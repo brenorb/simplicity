@@ -126,7 +126,7 @@ support. Claude's checked u128 helper oracles remain available in the
 parallel-proof archive if needed; do not register the alternative
 `fe_multiply` or `fe_square` endpoints as well as the selected ones.
 
-## Next review candidate: `simplicity_sha_256_block`
+## Current target: `simplicity_sha_256_block`
 
 There is already a complete C execution theorem in `jet_sha_block_local.v`
 and a startup-invariant/preservation adapter in `jet_sha_startup_jets.v`.
@@ -136,3 +136,24 @@ registration. In particular the older Coq SHA program uses `Word.adder` where
 Haskell uses `Arith.add`; reuse `canonical_add_word_matches_adder` rather than
 equating these syntactically. Do not repeat the completed C compression proof
 or count an unreviewed startup/specification premise as discharged.
+
+`jet_sha_block_literal.v` now has a shared block-tree template, a literal
+`Arith.add word32 >>> ih` adapter, and a semantic equality to the older Coq
+SHA program. `jet_sha_block_literal_local.v` composes that bridge with the
+existing actual C execution theorem and the startup-state preservation
+adapter; both local and persistent-startup contracts compile. The existing
+SHA/startup dependency closure (including `sha_init_mem_exists`) was rebuilt
+from source in a clean temporary tree under Coq 8.17.1/OCaml 4.14.4.
+
+This is an unregistered candidate, not completed canonical acceptance. Next
+finish source correspondence for the actual Haskell block tree, its 64
+constants and all reused word/bit operations; review the initialized portable
+dispatch/caller scope, then consider registration. The old C compression and
+reader/writer proofs are reused rather than reimplemented. Focused builds use
+`JET_TARGETS=C/jet_sha_block_literal_local.vo bash Coq/build-jets.sh -j2`.
+The candidate and actual initial-memory existence proof passed recursive
+kernel checking with
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sha_block_literal_local C.jet_sha_startup_init`.
+Reviewed records match: the local endpoint inherits six assumptions and the
+stronger startup endpoint eight, all within the existing Coq/CompCert
+allowlist. Neither result is an additional registry entry.

@@ -1,0 +1,2683 @@
+### C.jet_sha_block_literal.literal_sha_add32_matches
+literal_sha_add32_matches
+     : @eq
+         (Alg.Core.domain Alg.CoreFunSem (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+            (Word.Word (S (S (S (S (S O))))))) (@literal_sha_add32 Alg.CoreFunSem) (@SHA256.add32 Alg.CoreFunSem)
+### C.jet_sha_block_literal.sha_block_tree_existing
+sha_block_tree_existing
+     : forall term : Alg.Core.Algebra,
+       @eq
+         (Alg.Core.domain term
+            (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@sha_block_tree term (@SHA256.add32 term))
+         (@SHA256.hashBlock term)
+### C.jet_sha_block_literal.literal_sha_256_block_matches
+literal_sha_256_block_matches
+     : @eq
+         (Alg.Core.domain Alg.CoreFunSem
+            (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@literal_sha_256_block Alg.CoreFunSem)
+         (@SHA256.hashBlock Alg.CoreFunSem)
+### C.jet_sha_block_literal.literal_sha_add32
+literal_sha_add32 =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O)))))) term
+  (@jet_canonical_add_adapter.canonical_add_word (S (S (S (S (S O))))) term)
+  (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O))))))
+     (Word.Word (S (S (S (S (S O)))))) term (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S (S O))))))
+
+Arguments literal_sha_add32 {term}
+### C.jet_sha_block_literal.sha_block_tree
+sha_block_tree =
+fun (term : Alg.Core.Algebra)
+  (a32 : Alg.Core.domain term (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+           (Word.Word (S (S (S (S (S O))))))) =>
+let x32 :
+  Alg.Core.domain term
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S O)))))) :=
+  @SHA256.xor3Word32 term in
+let diag :
+  Alg.Core.domain term
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) :=
+  @Alg.Core.Combinators.pair
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S O))))))
+    (Word.Word (S (S (S (S (S O)))))) term
+    (@Alg.Core.Combinators.take (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O))))))
+       term
+       (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+          (Word.Word (S (S (S (S (S O)))))) term (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term)))
+    (@Alg.Core.Combinators.drop (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O))))))
+       term
+       (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+          (Word.Word (S (S (S (S (S O)))))) term (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term)))
+  in
+let odiag :
+  Alg.Core.domain term
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) :=
+  @Alg.Core.Combinators.take
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term diag in
+let idiag :
+  Alg.Core.domain term
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) :=
+  @Alg.Core.Combinators.drop
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term diag in
+let bigDiag :
+  Alg.Core.domain term
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) :=
+  @Alg.Core.Combinators.pair
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+    (@Alg.Core.Combinators.take
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Word.Word (S (S (S (S (S O)))))) term
+       (@Alg.Core.Combinators.drop (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+             (Word.Word (S (S (S (S (S O)))))) term (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))))
+    (@Alg.Core.Combinators.drop
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Word.Word (S (S (S (S (S O)))))) term
+       (@Alg.Core.Combinators.take (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+             (Word.Word (S (S (S (S (S O)))))) term (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))))
+  in
+let part1Schedule :
+  Alg.Core.domain term
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) :=
+  @Alg.Core.Combinators.pair
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term odiag bigDiag in
+let smallSigma0 : Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) :=
+  @Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S O))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S O))))))
+    term
+    (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+       (@SHA256.rotate32 (BinNums.Zneg (BinNums.xI (BinNums.xI BinNums.xH))) term)
+       (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@SHA256.rotate32 (BinNums.Zneg (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))) term)
+          (@SHA256.shift32 (BinNums.Zneg (BinNums.xI BinNums.xH)) term))) x32 in
+let smallSigma1 : Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) :=
+  @Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S O))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S O))))))
+    term
+    (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+       (@SHA256.rotate32 (BinNums.Zneg (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) term)
+       (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@SHA256.rotate32 (BinNums.Zneg (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))) term)
+          (@SHA256.shift32 (BinNums.Zneg (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))) term))) x32 in
+let smallSigma :
+  Alg.Core.domain term
+    (Ty.Prod
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+    (Word.Word (S (S (S (S (S O)))))) :=
+  @Alg.Core.Combinators.comp
+    (Ty.Prod
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O))))))
+    term
+    (@Alg.Core.Combinators.pair
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+       (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+       (@Alg.Core.Combinators.comp
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@Alg.Core.Combinators.take
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+             (@Alg.Core.Combinators.take
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+                (@Alg.Core.Combinators.take
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+                   (@Alg.Core.Combinators.pair
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))
+                      (@Alg.Core.Combinators.comp
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O))))))
+                            (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                            (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term)) smallSigma0))))) a32)
+       (@Alg.Core.Combinators.comp
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@Alg.Core.Combinators.drop
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+             (@Alg.Core.Combinators.pair
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.take
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.take
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))))
+                (@Alg.Core.Combinators.comp
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                   (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.drop
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                      (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.drop
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O))))))
+                            (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                            (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term)))) smallSigma1))) a32))
+    a32 in
+let schedule :
+  Alg.Core.domain term
+    (Ty.Prod
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+    (Ty.Prod
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))) :=
+  @Alg.Core.Combinators.pair
+    (Ty.Prod
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))) term
+    (@Alg.Core.Combinators.pair
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) term
+       (@Alg.Core.Combinators.take
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) term part1Schedule)
+       (@Alg.Core.Combinators.pair
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+          (@Alg.Core.Combinators.take
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term idiag)
+          (@Alg.Core.Combinators.pair
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+             (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.take
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.drop
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.drop
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term)))))
+             (@Alg.Core.Combinators.drop
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.take
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.take
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))))))))
+    (@Alg.Core.Combinators.pair
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) term
+       (@Alg.Core.Combinators.drop
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) term part1Schedule)
+       (@Alg.Core.Combinators.pair
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+          (@Alg.Core.Combinators.drop
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term idiag)
+          (@Alg.Core.Combinators.pair
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+             (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.drop
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.drop
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.drop
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))))) smallSigma))) in
+let bigSigma0 : Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) :=
+  @Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S O))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S O))))))
+    term
+    (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+       (@SHA256.rotate32 (BinNums.Zneg (BinNums.xO BinNums.xH)) term)
+       (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@SHA256.rotate32 (BinNums.Zneg (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))) term)
+          (@SHA256.rotate32 (BinNums.Zneg (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))) term))) x32
+  in
+let bigSigma1 : Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) :=
+  @Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S O))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S O))))))
+    term
+    (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+       (@SHA256.rotate32 (BinNums.Zneg (BinNums.xO (BinNums.xI BinNums.xH))) term)
+       (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@SHA256.rotate32 (BinNums.Zneg (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))) term)
+          (@SHA256.rotate32 (BinNums.Zneg (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))) term))) x32
+  in
+let t1 :
+  Alg.Core.domain term
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+    (Word.Word (S (S (S (S (S O)))))) :=
+  @Alg.Core.Combinators.comp
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O))))))
+    term
+    (@Alg.Core.Combinators.pair
+       (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+       (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+       (@Alg.Core.Combinators.comp
+          (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@Alg.Core.Combinators.pair
+             (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                   (Ty.Prod
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+             (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                   (Ty.Prod
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))
+             (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                   (Ty.Prod
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.drop
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                   (Ty.Prod
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+                   (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.take
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                      (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.take
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.take
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Word.Word (S (S (S (S (S O)))))) term
+                            (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O))))))
+                               (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                               (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S ...))))) term)))))))) a32)
+       (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@Alg.Core.Combinators.take
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+             (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.comp
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.drop
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+                   (@Alg.Core.Combinators.pair
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                      (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.drop
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O))))))
+                            (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                            (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term)))
+                      (@Alg.Core.Combinators.comp
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.pair
+                            (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S ...))))) (Word.Word (S (S (S (S ...))))))
+                               (Ty.Prod (Word.Word (S (S (S (S ...))))) (Word.Word (S (S (S (S ...)))))))
+                            (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                            (@Alg.Core.Combinators.comp
+                               (Ty.Prod (Ty.Prod (Word.Word (S (S (S ...)))) (Word.Word (S (S (S ...)))))
+                                  (Ty.Prod (Word.Word (S (S (S ...)))) (Word.Word (S (S (S ...))))))
+                               (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                               (@Alg.Core.Combinators.take
+                                  (Ty.Prod (Word.Word (S (S (S ...)))) (Word.Word (S (S (S ...)))))
+                                  (Ty.Prod (Word.Word (S (S (S ...)))) (Word.Word (S (S (S ...)))))
+                                  (Word.Word (S (S (S (S ...))))) term
+                                  (@Alg.Core.Combinators.take (Word.Word (S (S (S ...)))) (Word.Word (S (S (S ...))))
+                                     (Word.Word (S (S (S ...)))) term
+                                     (@Alg.Core.Combinators.iden (Word.Word (S (S ...))) term))) bigSigma1)
+                            (@Alg.Core.Combinators.comp
+                               (Ty.Prod (Ty.Prod (Word.Word (S (S (S ...)))) (Word.Word (S (S (S ...)))))
+                                  (Ty.Prod (Word.Word (S (S (S ...)))) (Word.Word (S (S (S ...))))))
+                               (Ty.Prod (Word.Word (S (S (S (S ...)))))
+                                  (Ty.Prod (Word.Word (S (S (S ...)))) (Word.Word (S (S (S ...))))))
+                               (Word.Word (S (S (S (S (S O)))))) term
+                               (@Alg.Core.Combinators.pair
+                                  (Ty.Prod (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))
+                                     (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...)))))
+                                  (Word.Word (S (S (S (S ...)))))
+                                  (Ty.Prod (Word.Word (S (S (S ...)))) (Word.Word (S (S (S ...))))) term
+                                  (@Alg.Core.Combinators.take (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))
+                                     (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))
+                                     (Word.Word (S (S (S ...)))) term
+                                     (@Alg.Core.Combinators.take (Word.Word (S (S ...))) (Word.Word (S (S ...)))
+                                        (Word.Word (S (S ...))) term
+                                        (@Alg.Core.Combinators.iden (Word.Word (S ...)) term))) diag)
+                               (@SHA256.chWord32 term))) a32))) a32)))) a32 in
+let t12 :
+  Alg.Core.domain term
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Word.Word (S (S (S (S (S O)))))) :=
+  @Alg.Core.Combinators.comp
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O))))))
+    term
+    (@Alg.Core.Combinators.take
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+       (@Alg.Core.Combinators.pair
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+          (@Alg.Core.Combinators.comp
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.pair
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Word.Word (S (S (S (S (S O))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+                (@Alg.Core.Combinators.take
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                      (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term)))
+                (@Alg.Core.Combinators.drop
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+                   (@Alg.Core.Combinators.iden
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term)))
+             (@SHA256.majWord32 term))
+          (@Alg.Core.Combinators.comp
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.take (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+                (@Alg.Core.Combinators.pair
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                      (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))
+                   (@Alg.Core.Combinators.comp
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term)) bigSigma0))) a32))) a32
+  in
+let t1d :
+  Alg.Core.domain term
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Word.Word (S (S (S (S (S O)))))) :=
+  @Alg.Core.Combinators.comp
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O))))))
+    term
+    (@Alg.Core.Combinators.pair
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+       (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+       (@Alg.Core.Combinators.take
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@Alg.Core.Combinators.take (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))))
+       (@Alg.Core.Combinators.drop
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Word.Word (S (S (S (S (S O)))))) term
+          (@Alg.Core.Combinators.take (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term))))) a32 in
+let part1Round :
+  Alg.Core.domain term
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))) :=
+  @Alg.Core.Combinators.pair
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) term
+    (@Alg.Core.Combinators.pair
+       (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+       (@Alg.Core.Combinators.pair
+          (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))))
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...))))))))))))
+          (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term t1
+          (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))))
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))))))
+             (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.take
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))))
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...))))))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...)))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (...)))))) (Word.Word (S (S (S (S (...))))))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.take
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.take
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Word.Word (S (S (S (S (S O)))))) term
+                      (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                         (Word.Word (S (S (S (S (S O)))))) term
+                         (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (...)))))) term)))))))
+       (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+          (@Alg.Core.Combinators.take
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term odiag)))
+    (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) term
+       (@Alg.Core.Combinators.take
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) term
+          (@Alg.Core.Combinators.pair
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term bigDiag idiag))) in
+let part2Round :
+  Alg.Core.domain term
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))) :=
+  @Alg.Core.Combinators.pair
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) term
+    (@Alg.Core.Combinators.pair
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+       (@Alg.Core.Combinators.pair
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term t12
+          (@Alg.Core.Combinators.take
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.take (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                   (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term)))))
+       (@Alg.Core.Combinators.take
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+          (@Alg.Core.Combinators.drop (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+             (@Alg.Core.Combinators.iden (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                term))))
+    (@Alg.Core.Combinators.pair
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+       (@Alg.Core.Combinators.pair
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term t1d
+          (@Alg.Core.Combinators.drop
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Word.Word (S (S (S (S (S O)))))) term
+             (@Alg.Core.Combinators.take (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Word.Word (S (S (S (S (S O)))))) term
+                (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+                   (Word.Word (S (S (S (S (S O)))))) term
+                   (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) term)))))
+       (@Alg.Core.Combinators.drop
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+          (@Alg.Core.Combinators.drop (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+             (@Alg.Core.Combinators.iden (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                term)))) in
+let round :
+  Alg.Core.domain term
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))) :=
+  @Alg.Core.Combinators.comp
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))) term part1Round part2Round in
+let step :
+  Alg.Core.domain term
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+    (Ty.Prod
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))) :=
+  @Alg.Core.Combinators.pair
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))))
+    (Ty.Prod
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+       (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+    (Ty.Prod
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+       (Ty.Prod
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+          (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))) term round
+    (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))))
+       (Ty.Prod
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))) term
+       (@Alg.Core.Combinators.drop
+          (Ty.Prod
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+             (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+          (Ty.Prod
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))
+             (Ty.Prod
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))))) term schedule)) in
+let k0 : BinNums.Z :=
+  BinNums.Zpos
+    (BinNums.xO
+       (BinNums.xO
+          (BinNums.xO
+             (BinNums.xI
+                (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))) in
+let ks : list BinNums.Z :=
+  @cons BinNums.Z
+    (BinNums.Zpos
+       (BinNums.xI
+          (BinNums.xO
+             (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))))
+    (@cons BinNums.Z
+       (BinNums.Zpos
+          (BinNums.xI
+             (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))
+       (@cons BinNums.Z
+          (BinNums.Zpos
+             (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...)))))))))
+          (@cons BinNums.Z
+             (BinNums.Zpos
+                (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))
+             (@cons BinNums.Z
+                (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI ...)))))))
+                (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...))))))
+                   (@cons BinNums.Z (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...)))))
+                      (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...))))
+                         (@cons BinNums.Z (BinNums.Zpos (BinNums.xI (BinNums.xO ...)))
+                            (@cons BinNums.Z (BinNums.Zpos (BinNums.xO ...))
+                               (@cons BinNums.Z (BinNums.Zpos ...) (@cons BinNums.Z ... ...))))))))))) in
+let compression :
+  Alg.Core.domain term
+    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (...)))))))))))
+    (Word.Word (S (S (S (S (S (S (S (S O))))))))) :=
+  @Alg.Core.Combinators.comp
+    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (...)))))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S (S (S (...))))))))) (Word.Word (S (S (S (S (S (S (S (...)))))))))))
+    (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+    (@Alg.Core.Combinators.pair
+       (Ty.Prod (Word.Word (S (S (S (S (S (S (S (...))))))))) (Word.Word (S (S (S (S (S (S (S (...))))))))))
+       (Word.Word (S (S (S (S (S O))))))
+       (Ty.Prod (Word.Word (S (S (S (S (S (S (S (...))))))))) (Word.Word (S (S (S (S (S (S (S (...)))))))))) term
+       (@SHA256.scribe32 k0
+          (Ty.Prod (Word.Word (S (S (S (S (S (S (...)))))))) (Word.Word (S (S (S (S (S (S (...))))))))) term)
+       (@Alg.Core.Combinators.iden
+          (Ty.Prod (Word.Word (S (S (S (S (S (S (...)))))))) (Word.Word (S (S (S (S (S (S (...))))))))) term))
+    (@List.fold_right
+       (Alg.Core.domain term
+          (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+             (Ty.Prod (Word.Word (S (S (S (S (S (...))))))) (Word.Word (S (S (S (S (S (...)))))))))
+          (Word.Word (S (S (S (S (S (S (S (...)))))))))) BinNums.Z
+       (fun (k : BinNums.Z)
+          (rec : Alg.Core.domain term
+                   (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+                      (Ty.Prod (Word.Word (S (S (S (S ...))))) (Word.Word (S (S (S (S ...)))))))
+                   (Word.Word (S (S (S (S (S (S ...)))))))) =>
+        @Alg.Core.Combinators.comp
+          (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))
+                      (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...)))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))
+                      (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))))
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...))))))))
+          (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))
+                      (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...)))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))
+                      (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))))
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...))))))))
+          (Word.Word (S (S (S (S (S (S (S ...)))))))) term
+          (@Alg.Core.Combinators.pair
+             (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))))
+                   (Ty.Prod
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word ...) (Word.Word ...)) (Ty.Prod (Word.Word ...) (Word.Word ...)))
+                         (Ty.Prod (Ty.Prod (Word.Word ...) (Word.Word ...)) (Ty.Prod (Word.Word ...) (Word.Word ...))))
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word ...) (Word.Word ...)) (Ty.Prod (Word.Word ...) (Word.Word ...)))
+                         (Ty.Prod (Ty.Prod (Word.Word ...) (Word.Word ...)) (Ty.Prod (Word.Word ...) (Word.Word ...)))))))
+             (Word.Word (S (S (S (S (S O))))))
+             (Ty.Prod
+                (Ty.Prod
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))
+                      (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...)))))
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))
+                      (Ty.Prod (Word.Word (S (S ...))) (Word.Word (S (S ...))))))
+                (Ty.Prod
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))))
+                   (Ty.Prod
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...))))
+                      (Ty.Prod (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...)))
+                         (Ty.Prod (Word.Word (S ...)) (Word.Word (S ...))))))) term
+             (@SHA256.scribe32 k
+                (Ty.Prod (Word.Word (S (S (S (S ...)))))
+                   (Ty.Prod
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Word.Word ...) (Word.Word ...)) (Ty.Prod (Word.Word ...) (Word.Word ...)))
+                         (Ty.Prod (Ty.Prod (Word.Word ...) (Word.Word ...)) (Ty.Prod (Word.Word ...) (Word.Word ...))))
+                      (Ty.Prod
+                         (Ty.Prod (Ty.Prod (Ty.Prod ... ...) (Ty.Prod ... ...))
+                            (Ty.Prod (Ty.Prod ... ...) (Ty.Prod ... ...)))
+                         (Ty.Prod (Ty.Prod (Ty.Prod ... ...) (Ty.Prod ... ...))
+                            (Ty.Prod (Ty.Prod ... ...) (Ty.Prod ... ...)))))) term) step) rec) round ks) in
+let collate :
+  forall _ : Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (...))))))))) (Word.Word (S (S (S (S (S O)))))),
+  Alg.Core.domain term
+    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (...))))))))) (Word.Word (S (S (S (S (S (S (S (...))))))))))
+    (Word.Word (S (S (S (S (S O)))))) :=
+  fun x : Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (...))))))))) (Word.Word (S (S (S (S (S O)))))) =>
+  @Alg.Core.Combinators.comp
+    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (...))))))))) (Word.Word (S (S (S (S (S (S (S (...))))))))))
+    (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O))))))
+    term
+    (@Alg.Core.Combinators.pair
+       (Ty.Prod (Word.Word (S (S (S (S (S (S (...)))))))) (Word.Word (S (S (S (S (S (S (...)))))))))
+       (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+       (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S (S (...)))))))) (Word.Word (S (S (S (S (S (S (...))))))))
+          (Word.Word (S (S (S (S (S O)))))) term x)
+       (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S (S (...)))))))) (Word.Word (S (S (S (S (S (S (...))))))))
+          (Word.Word (S (S (S (S (S O)))))) term x)) a32 in
+@Alg.Core.Combinators.comp
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (...)))))))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Ty.Prod
+     (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+     (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))) term
+  (@Alg.Core.Combinators.pair
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (...))))))))) (Word.Word (S (S (S (S (S (S (S (...))))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+     (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S (S (S (...)))))))))
+        (Word.Word (S (S (S (S (S (S (S (...))))))))) (Word.Word (S (S (S (S (S (S (S (...))))))))) term
+        (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (...)))))))) term)) compression)
+  (@Alg.Core.Combinators.pair
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (...))))))))) (Word.Word (S (S (S (S (S (S (S (...))))))))))
+     (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+     (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) term
+     (@Alg.Core.Combinators.pair
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (...)))))))) (Word.Word (S (S (S (S (S (S (...)))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+        (@Alg.Core.Combinators.pair
+           (Ty.Prod (Word.Word (S (S (S (S (S (...))))))) (Word.Word (S (S (S (S (S (...))))))))
+           (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+           (collate
+              (@Alg.Core.Combinators.take
+                 (Ty.Prod
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))) term
+                 (@Alg.Core.Combinators.take
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))) term
+                    (@Alg.Core.Combinators.take
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))) term
+                       (@Alg.Core.Combinators.iden (Ty.Prod ((...) (...) (...)) ((...) (...) (...))) term)))))
+           (collate
+              (@Alg.Core.Combinators.take
+                 (Ty.Prod
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))) term
+                 (@Alg.Core.Combinators.take
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))) term
+                    (@Alg.Core.Combinators.drop
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))) term
+                       (@Alg.Core.Combinators.iden (Ty.Prod ((...) (...) (...)) ((...) (...) (...))) term))))))
+        (@Alg.Core.Combinators.pair
+           (Ty.Prod (Word.Word (S (S (S (S (S (...))))))) (Word.Word (S (S (S (S (S (...))))))))
+           (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+           (collate
+              (@Alg.Core.Combinators.take
+                 (Ty.Prod
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))) term
+                 (@Alg.Core.Combinators.drop
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))) term
+                    (@Alg.Core.Combinators.take
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))) term
+                       (@Alg.Core.Combinators.iden (Ty.Prod ((...) (...) (...)) ((...) (...) (...))) term)))))
+           (collate
+              (@Alg.Core.Combinators.take
+                 (Ty.Prod
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))) term
+                 (@Alg.Core.Combinators.drop
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))) term
+                    (@Alg.Core.Combinators.drop
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))) term
+                       (@Alg.Core.Combinators.iden (Ty.Prod ((...) (...) (...)) ((...) (...) (...))) term)))))))
+     (@Alg.Core.Combinators.pair
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (...)))))))) (Word.Word (S (S (S (S (S (S (...)))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+        (@Alg.Core.Combinators.pair
+           (Ty.Prod (Word.Word (S (S (S (S (S (...))))))) (Word.Word (S (S (S (S (S (...))))))))
+           (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+           (collate
+              (@Alg.Core.Combinators.drop
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...))))))
+                 (Ty.Prod
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))) term
+                 (@Alg.Core.Combinators.take
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))) term
+                    (@Alg.Core.Combinators.take
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))) term
+                       (@Alg.Core.Combinators.iden (Ty.Prod ((...) (...) (...)) ((...) (...) (...))) term)))))
+           (collate
+              (@Alg.Core.Combinators.drop
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...))))))
+                 (Ty.Prod
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))) term
+                 (@Alg.Core.Combinators.take
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))) term
+                    (@Alg.Core.Combinators.drop
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))) term
+                       (@Alg.Core.Combinators.iden (Ty.Prod ((...) (...) (...)) ((...) (...) (...))) term))))))
+        (@Alg.Core.Combinators.pair
+           (Ty.Prod (Word.Word (S (S (S (S (S (...))))))) (Word.Word (S (S (S (S (S (...))))))))
+           (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) term
+           (collate
+              (@Alg.Core.Combinators.drop
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...))))))
+                 (Ty.Prod
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))) term
+                 (@Alg.Core.Combinators.drop
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))) term
+                    (@Alg.Core.Combinators.take
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))) term
+                       (@Alg.Core.Combinators.iden (Ty.Prod ((...) (...) (...)) ((...) (...) (...))) term)))))
+           (collate
+              (@Alg.Core.Combinators.drop
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...))))))
+                 (Ty.Prod
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))))
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (...)))))) term
+                 (@Alg.Core.Combinators.drop
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...)))))
+                    (Ty.Prod
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))))
+                    (Ty.Prod
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match ... ... with
+                           | ... => X
+                           | ... => Ty.Prod ... ...
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (...))))) term
+                    (@Alg.Core.Combinators.drop
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...))))
+                       (Ty.Prod ((fix Vector ... : Ty.Ty := ...
+                                                            ...
+                                                            ...
+                                                            end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))
+                          ((fix Vector ... : Ty.Ty := ...
+                                                      ...
+                                                      ...
+                                                      end) (Ty.Sum Ty.Unit Ty.Unit) (S (...)))) term
+                       (@Alg.Core.Combinators.iden (Ty.Prod ((...) (...) (...)) ((...) (...) (...))) term))))))))
+     : forall (term : Alg.Core.Algebra)
+         (_ : Alg.Core.domain term (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                (Word.Word (S (S (S (S (S O))))))),
+       Alg.Core.domain term
+         (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments sha_block_tree {term} a32
+### C.jet_sha_block_literal.literal_sha_256_block
+literal_sha_256_block =
+fun term : Alg.Core.Algebra => @sha_block_tree term (@literal_sha_add32 term)
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term
+         (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments literal_sha_256_block {term}
