@@ -1,0 +1,125 @@
+### C.jet_secp_square_separate_exec.sx_list_same_sound
+sx_list_same_sound
+     : forall (xs ys : list jet_sx_expr.sx) (_ : @eq bool (sx_list_same xs ys) true), @eq (list jet_sx_expr.sx) xs ys
+### C.jet_secp_square_separate_exec.separate_tail
+separate_tail
+     : forall (writable : bool) (freed : option BinNums.Z),
+       @eq (list jet_sx_state.region)
+         (@List.tl jet_sx_state.region
+            (jet_sx_eval.sregs (jet_secp_square_separate_layout.separate_state writable freed)))
+         (@cons jet_sx_state.region (jet_secp_square_separate_layout.separate_input writable freed)
+            (@nil jet_sx_state.region))
+### C.jet_secp_square_separate_exec.separate_out_shape
+separate_out_shape
+     : forall (writable : bool) (freed : option BinNums.Z),
+       @eq (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+         (jet_sx_state.rshape (separate_out writable freed))
+         (@pair (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)
+            (@pair (list (prod BinNums.Z AST.memory_chunk)) bool
+               (@cons (prod BinNums.Z AST.memory_chunk) (@pair BinNums.Z AST.memory_chunk BinNums.Z0 AST.Mint64)
+                  (@cons (prod BinNums.Z AST.memory_chunk)
+                     (@pair BinNums.Z AST.memory_chunk (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                        AST.Mint64)
+                     (@cons (prod BinNums.Z AST.memory_chunk)
+                        (@pair BinNums.Z AST.memory_chunk
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) AST.Mint64)
+                        (@cons (prod BinNums.Z AST.memory_chunk)
+                           (@pair BinNums.Z AST.memory_chunk
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))) AST.Mint64)
+                           (@cons (prod BinNums.Z AST.memory_chunk)
+                              (@pair BinNums.Z AST.memory_chunk
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                 AST.Mint64) (@nil (prod BinNums.Z AST.memory_chunk))))))) true)
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_square_separate_exec.separate_out_defined
+separate_out_defined
+     : forall (writable : bool) (freed : option BinNums.Z),
+       @eq bool (jet_secp_multiply_run_run.field_cells_defined (jet_sx_state.rcells (separate_out writable freed)))
+         true
+### C.jet_secp_square_separate_exec.separate_out_rebuild
+separate_out_rebuild
+     : forall (writable : bool) (freed : option BinNums.Z),
+       @eq jet_sx_state.region (separate_out writable freed)
+         (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (separate_limbs writable freed)) true
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_square_separate_exec.separate_limbs_equal
+separate_limbs_equal
+     : forall (writable : bool) (freed : option BinNums.Z),
+       @eq (list jet_sx_expr.sx) (separate_limbs writable freed) jet_secp_square_execution.square_limbs
+### C.jet_secp_square_separate_exec.separate_output
+separate_output
+     : forall (writable : bool) (freed : option BinNums.Z),
+       @eq (list jet_sx_state.region)
+         (jet_sx_eval.sregs (jet_secp_square_separate_layout.separate_state writable freed))
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 jet_secp_square_execution.square_limbs) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@cons jet_sx_state.region (jet_secp_square_separate_layout.separate_input writable freed)
+               (@nil jet_sx_state.region)))
+### C.jet_secp_square_separate_exec.eval_original_square_separate
+eval_original_square_separate
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (writable : bool) (freed : option BinNums.Z)
+         (_ : jet_sx_state.rep rho layout (jet_secp_square_separate_layout.separate_regs writable freed) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_sqr)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout (S O))
+                        (Integers.Ptrofs.repr (jet_sx_state.bas layout (S O)))) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_sx_state.rep rho layout
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 jet_secp_square_execution.square_limbs) true
+                        (@Some BinNums.Z
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                     (@cons jet_sx_state.region (jet_secp_square_separate_layout.separate_input writable freed)
+                        (@nil jet_sx_state.region))) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot layout
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape (jet_secp_square_separate_layout.separate_regs writable freed)) b ofs))
+                  m mf)))
+### C.jet_secp_square_separate_exec.sx_list_same
+sx_list_same =
+fix sx_list_same (xs ys : list jet_sx_expr.sx) {struct xs} : bool :=
+  match xs return bool with
+  | nil => match ys return bool with
+           | nil => true
+           | cons _ _ => false
+           end
+  | cons x xs0 =>
+      match ys return bool with
+      | nil => false
+      | cons y ys0 => andb (jet_secp_square_sx_equality.sx_same x y) (sx_list_same xs0 ys0)
+      end
+  end
+     : forall (_ : list jet_sx_expr.sx) (_ : list jet_sx_expr.sx), bool
+
+Arguments sx_list_same (xs ys)%list_scope
+### C.jet_secp_square_separate_exec.separate_out
+separate_out =
+fun (writable : bool) (freed : option BinNums.Z) =>
+@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+  (jet_sx_eval.sregs (jet_secp_square_separate_layout.separate_state writable freed))
+     : forall (_ : bool) (_ : option BinNums.Z), jet_sx_state.region
+
+Arguments separate_out writable%bool_scope freed
+### C.jet_secp_square_separate_exec.separate_limbs
+separate_limbs =
+fun (writable : bool) (freed : option BinNums.Z) =>
+@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_multiply_run_run.field_cell_value
+  (jet_sx_state.rcells (separate_out writable freed))
+     : forall (_ : bool) (_ : option BinNums.Z), list jet_sx_expr.sx
+
+Arguments separate_limbs writable%bool_scope freed

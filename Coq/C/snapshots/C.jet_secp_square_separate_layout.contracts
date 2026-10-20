@@ -1,0 +1,89 @@
+### C.jet_secp_square_separate_layout.separate_completes
+separate_completes
+     : forall (writable : bool) (freed : option BinNums.Z),
+       @eq bool
+         match separate_run writable freed return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_square_separate_layout.separate_run_eq
+separate_run_eq
+     : forall (writable : bool) (freed : option BinNums.Z),
+       @eq (option jet_sx_exec.res) (separate_run writable freed)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (separate_state writable freed) jet_sx_exec.ONormal))
+### C.jet_secp_square_separate_layout.separate_return
+separate_return
+     : forall (writable : bool) (freed : option BinNums.Z),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps (separate_state writable freed)))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_square_separate_layout.separate_input
+separate_input =
+fun (writable : bool) (freed : option BinNums.Z) =>
+jet_sx_state.mkreg
+  (jet_sx_rep.u64_cells BinNums.Z0
+     (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+        (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S O))))) (@nil jet_sx_expr.sx))))))) writable freed
+     : forall (_ : bool) (_ : option BinNums.Z), jet_sx_state.region
+
+Arguments separate_input writable%bool_scope freed
+### C.jet_secp_square_separate_layout.separate_regs
+separate_regs =
+fun (writable : bool) (freed : option BinNums.Z) =>
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (@List.map BinNums.Z jet_sx_state.cell
+        (fun ofs : BinNums.Z => jet_sx_state.mkcell ofs AST.Mint64 (@None jet_sx_expr.sx))
+        (@cons BinNums.Z BinNums.Z0
+           (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+              (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                 (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+                    (@cons BinNums.Z
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                       (@nil BinNums.Z))))))) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region (separate_input writable freed) (@nil jet_sx_state.region))
+     : forall (_ : bool) (_ : option BinNums.Z), list jet_sx_state.region
+
+Arguments separate_regs writable%bool_scope freed
+### C.jet_secp_square_separate_layout.separate_run
+separate_run =
+fun (writable : bool) (freed : option BinNums.Z) =>
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_multiply_run_run.field_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  jets_secp.f_secp256k1_fe_sqr
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0) (@nil jet_sx_expr.sx))) (separate_regs writable freed)
+  (@nil jet_sx_eval.event) (S (S (S (S (S O)))))
+     : forall (_ : bool) (_ : option BinNums.Z), option jet_sx_exec.res
+
+Arguments separate_run writable%bool_scope freed
+### C.jet_secp_square_separate_layout.separate_state
+separate_state =
+fun (writable : bool) (freed : option BinNums.Z) =>
+match separate_run writable freed return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ =>
+        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+    end
+| None => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : forall (_ : bool) (_ : option BinNums.Z), jet_sx_eval.sstate
+
+Arguments separate_state writable%bool_scope freed
