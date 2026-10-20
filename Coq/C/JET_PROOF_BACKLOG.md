@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 454 of the 533 header declarations.
+The current local-contract registry contains 456 of the 533 header declarations.
 The recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 79 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 77 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -374,7 +374,7 @@ the existing path bound in `raw_env_rep`, or repair the reported Bitcoin-domain
 mismatches. The archived concrete endpoints and their old README remain
 historical, not current acceptance evidence.
 
-## Canonical tapleaf/tap-environment candidates
+## Completed: canonical tapleaf/tap-environment getters
 
 `jet_bitcoin_tap_hash_literal.v` adapts the preserved tapleaf combinator tree
 to the accepted fixed-tag host recipe and algebra-general SHA bridges. It adds
@@ -398,7 +398,10 @@ variants retain six inherited library assumptions without an extra libc or
 execution/output premise. The existing source checker compares both canonical
 Core trees with the actual explicit algebra applications, tagged initialization,
 primitive/raw projections and all four complete C boundaries. It rejects 22
-further mutations. Ordinary acceptance and registration remain pending.
+further mutations. The registry selects the two raw endpoints. Ordinary scoped
+acceptance passed with 282 kernel-checked modules, matching assumption records
+for 153 modules and contract records for 176 modules, negative tests and all
+five AST regenerations. Its command is in `JET_ACCEPTANCE.md`.
 
 ## Source-review question: Elements fee predicates
 

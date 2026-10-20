@@ -2,7 +2,7 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 454/533 jets (326 without an extra libc
+The local-contract registry contains 456/533 jets (328 without an extra libc
 premise; 128 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
@@ -12,6 +12,7 @@ Tappath hash then passed the expanded consumer acceptance below.
 The four array-hash registrations then passed ordinary scoped acceptance below.
 The five array/tappath rows now select accepted raw-interpretation variants,
 without a change to the coverage count; their scoped acceptance is recorded below.
+The two tapleaf/tap-environment registrations then passed scoped acceptance below.
 
 Reproduce acceptance from the repository root:
 
@@ -463,4 +464,43 @@ source/mutation checks, gate negative tests and all five AST regenerations.
 Audited inputs stayed unchanged and no expectations were updated.
 
 This does not assert a fresh full 454-entry audit or discharge of the remaining
+shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
+
+## Bitcoin tapleaf and tap-environment hash getters
+
+`jet_bitcoin_tap_hash_literal.v` adapts the preserved tapleaf program tree to
+the accepted fixed-tag host recipe, literal tagged-context initialization and
+algebra-general SHA bridges. It supplies the full canonical `tapleafHash` and
+`tapEnvHash` trees, equality in every primitive algebra, and complete original-C
+contracts in both abstract and raw interpretations. The registry selects the
+two raw endpoints.
+
+The cache/frame relations are unchanged: `hash_getter_rep tapleaf_hash_of 8 8 176`
+and `hash_getter_rep tap_env_hash_of 8 72 176`, lifted through `raw_env_rep`.
+The final theorems discharge their shared helper's program-parametricity and
+execution obligations using the existing proofs. They add no libc or
+execution/output premise. The three program-equality and two parametricity
+lemmas are closed; all four C variants inherit the same six library assumptions.
+
+The tagged-context adapter is general in an already supplied prefix. Its use
+here instantiates the previously checked fixed `TapLeaf` host recipe; it is not
+an interpreter claim for arbitrary tags. The source checker compares the actual
+explicit algebra trees with the complete canonical programs, checks library
+dispatch, initialization and primitive/raw projections, and protects all four
+C boundaries, rejecting 22 further mutations. Normal compilation and reviewed
+snapshot comparisons passed; these are not acceptance by themselves.
+
+Actual caller cache construction, the existing path bound and frozen-domain
+differences remain open as before. No production C, canonical program or
+primitive signature/domain has been changed.
+
+Ordinary scoped acceptance passed: 282 kernel-checked modules, matching
+assumption records for 153 modules and contract records for 176 modules,
+negative tests and all five AST regenerations. Reproduce with:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_tapleaf_hash,simplicity_bitcoin_tap_env_hash
+```
+
+This does not assert a fresh full 456-entry audit or discharge of the remaining
 shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
