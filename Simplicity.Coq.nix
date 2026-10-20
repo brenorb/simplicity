@@ -5,9 +5,14 @@
 assert alectryon != null -> serapi != null;
 stdenv.mkDerivation {
   name = "Simplicity-coq-0.0.0";
+  # Source checks read C, Haskell and Coq through their shared repository root.
   src = lib.sourceFilesBySuffices
-      (lib.sourceByRegex ./Coq ["_CoqProject.*" ".*\\.sh" ".*\\.py" "C" "C/.*" "Simplicity" "Simplicity/.*" "Util" "Util/.*"])
-    ["_CoqProject" "_CoqProject.jets" ".v" ".c" ".in" ".sh" ".py" ".txt" ".tsv" ".expected"];
+    (lib.sourceByRegex ./. ["C" "C/.*" "Haskell" "Haskell/.*" "Coq" "Coq/.*"])
+    ["_CoqProject" ".jets" ".jets-regression" ".v" ".c" ".h" ".inc" ".S" ".s"
+     ".hs" ".in" ".sh" ".py" ".txt" ".tsv" ".expected" ".contracts" ".assumptions" ".md"];
+  postUnpack = ''
+    sourceRoot="$sourceRoot/Coq"
+  '';
   outputs = [ "out" ] ++ lib.optional (alectryon != null) "doc";
   postConfigure = ''
     coq_makefile -f _CoqProject -o CoqMakefile
@@ -26,8 +31,7 @@ stdenv.mkDerivation {
 
   doCheck = true;
   checkPhase = ''
-    JET_C_REPO=${import ./Simplicity.JetInventory.nix { inherit lib; }} \
-      JET_USE_COQPATH=1 bash check-jets.sh --no-build
+    JET_USE_COQPATH=1 bash check-jets.sh --no-build
   '';
 
   installFlags = "COQLIB=$(out)/lib/coq/${coq.coq-version}/";

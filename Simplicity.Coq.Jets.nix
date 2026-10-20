@@ -1,13 +1,18 @@
 # Focused build of the jet implementation-to-specification proofs:
 # the Simplicity library plus Coq/C/jet_*.v, without the secp256k1 and modinv
-# verifications of the full `coq` derivation.  Runs coqchk over every module
-# that contains a public theorem (Coq/C/jet_public_theorems.txt).
+# verifications of the full `coq` derivation. Runs coqchk over every built jet
+# module and compares the reviewed public contracts and assumptions.
 { coq, vst, compcert, lib, stdenv, python3 }:
 stdenv.mkDerivation {
   name = "Simplicity-coq-jets-0.0.0";
+  # Source checks read C, Haskell and Coq through their shared repository root.
   src = lib.sourceFilesBySuffices
-      (lib.sourceByRegex ./Coq ["_CoqProject.*" ".*\\.sh" ".*\\.py" "C" "C/.*" "Simplicity" "Simplicity/.*" "Util" "Util/.*"])
-    ["_CoqProject" "_CoqProject.jets" ".v" ".sh" ".py" ".txt" ".tsv" ".expected" ".contracts" ".assumptions"];
+    (lib.sourceByRegex ./. ["C" "C/.*" "Haskell" "Haskell/.*" "Coq" "Coq/.*"])
+    ["_CoqProject" ".jets" ".jets-regression" ".v" ".c" ".h" ".inc" ".S" ".s"
+     ".hs" ".in" ".sh" ".py" ".txt" ".tsv" ".expected" ".contracts" ".assumptions" ".md"];
+  postUnpack = ''
+    sourceRoot="$sourceRoot/Coq"
+  '';
 
   buildInputs = [ coq ];
   nativeBuildInputs = [ python3 ];
@@ -21,8 +26,7 @@ stdenv.mkDerivation {
 
   doCheck = true;
   checkPhase = ''
-    JET_C_REPO=${import ./Simplicity.JetInventory.nix { inherit lib; }} \
-      JET_USE_COQPATH=1 bash check-jets.sh --no-build
+    JET_USE_COQPATH=1 bash check-jets.sh --no-build
   '';
 
   installFlags = "COQLIB=$(out)/lib/coq/${coq.coq-version}/";

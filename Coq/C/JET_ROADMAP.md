@@ -139,9 +139,9 @@ opam exec --switch=simplicity -- bash Coq/check-jets.sh --ast
 
 The completeness command intentionally fails while any declaration lacks a
 proof entry. Passing the normal checks certifies existing proofs, not completion
-of the every-jet goal. Nix uses the same gates and supplies the C inventory
-through `Simplicity.JetInventory.nix` / `JET_C_REPO`, because its proof source
-tree otherwise contains only Coq files.
+of the every-jet goal. Nix uses the same gates and keeps C, Haskell and Coq
+in one filtered source tree, preserving the repository paths used by the source
+checks. Its build starts in the Coq subdirectory.
 
 ## Reusable proof structure and next families
 
