@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 456 of the 533 header declarations.
+The current local-contract registry contains 459 of the 533 header declarations.
 The recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 77 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 74 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -403,7 +403,7 @@ acceptance passed with 282 kernel-checked modules, matching assumption records
 for 153 modules and contract records for 176 modules, negative tests and all
 five AST regenerations. Its command is in `JET_ACCEPTANCE.md`.
 
-## Canonical input outpoints, annexes and combined-input hash candidates
+## Completed: canonical input outpoints, annexes and combined-input hashes
 
 `jet_bitcoin_inputs_hash_literal.v` supplies literal programs for
 `inputOutpointsHash`, `inputAnnexesHash` and `inputsHash`, reusing the original
@@ -427,8 +427,11 @@ all six C boundaries and rejects 33 further mutations. In particular, an
 absent input stops the annex loop, whereas a present input without an annex
 continues and appends a zero byte. Reviewed snapshots cover all fifteen public
 theorem types/assumption sets and the four new program definitions; comparison
-without update flags passes. The candidates are not registered yet; ordinary
-scoped acceptance remains required.
+without update flags passes. The registry selects the three raw endpoints.
+Ordinary scoped acceptance passed with 280 kernel-checked modules, matching
+assumption records for 151 modules and contract records for 174 modules,
+negative tests and all five AST regenerations. Its command is in
+`JET_ACCEPTANCE.md`.
 
 ## Source-review question: Elements fee predicates
 

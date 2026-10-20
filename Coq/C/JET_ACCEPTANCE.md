@@ -2,7 +2,7 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 456/533 jets (328 without an extra libc
+The local-contract registry contains 459/533 jets (331 without an extra libc
 premise; 128 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
@@ -13,6 +13,8 @@ The four array-hash registrations then passed ordinary scoped acceptance below.
 The five array/tappath rows now select accepted raw-interpretation variants,
 without a change to the coverage count; their scoped acceptance is recorded below.
 The two tapleaf/tap-environment registrations then passed scoped acceptance below.
+The three input outpoint/annex/combined-hash registrations then passed ordinary
+scoped acceptance below.
 
 Reproduce acceptance from the repository root:
 
@@ -503,4 +505,39 @@ bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_tapleaf_hash,simplicit
 ```
 
 This does not assert a fresh full 456-entry audit or discharge of the remaining
+shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
+
+## Bitcoin input outpoint, annex and combined-input hash getters
+
+`jet_bitcoin_inputs_hash_literal.v` reuses the original element-loop body and
+the accepted literal SHA/context programs to port the complete canonical
+`inputOutpointsHash`, `inputAnnexesHash` and `inputsHash` programs. It generalizes
+the outpoint/annex append equalities to every assertion algebra, without changing
+the existing option-only APIs. The shared element adapter and all three whole
+program equalities/parametricity lemmas are closed.
+
+Six complete C contracts compose the existing getter executions in abstract and
+raw primitive interpretations. The registry selects the three raw endpoints.
+The cache/frame relations remain `hash_getter_rep ... 0 <offset> 432`, at offsets
+112, 272 and 336, respectively, lifted through `raw_env_rep`. They add no libc,
+execution or output premise and retain the same six inherited library
+assumptions. Caller cache construction, the existing raw path bound and the
+frozen-domain discrepancies remain open.
+
+Normal compilation and reviewed snapshot comparisons passed for all fifteen
+public theorem records and four new program definitions. The existing source
+checker compares complete loop/composition trees, canonical library dispatch,
+primitive/raw interpretations and all six C boundaries, rejecting 33 further
+mutations. In particular, it distinguishes an absent input (stop) from a
+present input with no annex (continue, appending byte zero).
+
+Ordinary scoped acceptance passed: 280 kernel-checked modules, matching
+assumption records for 151 modules and contract records for 174 modules,
+negative tests and all five AST regenerations. Reproduce with:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_input_outpoints_hash,simplicity_bitcoin_input_annexes_hash,simplicity_bitcoin_inputs_hash
+```
+
+This does not assert a fresh full 459-entry audit or discharge of the remaining
 shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.

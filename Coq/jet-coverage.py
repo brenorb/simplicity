@@ -129,6 +129,12 @@ for stem, offset in [("tapleaf", 8), ("tap_env", 72)]:
         f"Ty.Unit Word256 (raw_env_rep (hash_getter_rep {stem}_hash_of 8 {offset} 176)) "
         f"(fun a environment => @literal_bitcoin_{stem}_hash raw_fullalg a environment).")
 
+for stem, offset in [("input_outpoints", 112), ("input_annexes", 272), ("inputs", 336)]:
+    RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (
+        f"application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge raw_bitcoin_environment "
+        f"Ty.Unit Word256 (raw_env_rep (hash_getter_rep {stem}_hash_of 0 {offset} 432)) "
+        f"(fun a environment => @literal_bitcoin_{stem}_hash raw_fullalg a environment).")
+
 
 def records(path, fields):
     result = []
