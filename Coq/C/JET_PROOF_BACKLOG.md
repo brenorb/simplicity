@@ -170,3 +170,20 @@ kernel checking with
 The local endpoint inherits six assumptions and the stronger startup/lifecycle
 endpoints eight, all within the existing Coq/CompCert allowlist. The two
 startup/lifecycle variants are supporting results, not additional entries.
+
+## Current target: SHA context-add family
+
+`jet_sha_ctx8_literal.v` connects the canonical block term under assertion/
+option semantics, then the one-byte context-add program and the shared
+sequential vector recursion. The actual one-byte C execution and startup
+contracts compile in `jet_sha_ctx8_literal_local.v`; both retain `memcpy_model`
+and their explicit SHA global-state requirements. No input counter, buffer
+length or assertion-failure case is excluded.
+
+The existing SHA source gate also compares the one-byte Core tree, increment,
+buffer-snoc/empty, count comparison and assertion-root dependencies; sixteen
+context mutations are rejected in addition to the block tests. This remains
+unregistered: review the recursive width specializations and compose the
+existing larger C contracts before ordinary scoped acceptance of the family.
+Focused builds use
+`JET_TARGETS=C/jet_sha_ctx8_literal_local.vo bash Coq/build-jets.sh -j2`.

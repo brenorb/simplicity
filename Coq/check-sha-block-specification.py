@@ -276,6 +276,142 @@ def check(s):
             raise ValueError("SHA public boundary differs: " + theorem)
 
 
+def context_add(s):
+    """Canonical one-byte path, including failure branches and its dependencies.
+
+    Typed AC ports are frozen explicitly where the small Core parser does not
+    read Coq type applications. Their canonical trees are reviewed alongside
+    the actual Haskell trees; the Coq bridges prove program/semantic equality.
+    """
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError("context dependency differs: " + name)
+
+    def replace(text, old, new):
+        return re.sub(r"\s*".join(re.escape(c) for c in p.compact(old)), new, text)
+
+    def names(text):
+        for old, new in [
+            ("@buffer_empty_spec (Word 3) 5 Ty.Unit (Alg.Assertion.toCore term)", "buffer63Empty"),
+            ("@buffer_snoc_spec (Word 3) 5 term", "buffer63Snoc"),
+            ("@literal_ctx8_increment64 (Alg.Assertion.toCore term)", "increment64"),
+            ("@literal_ctx8_no_carry term", "noCarry"),
+            ("@literal_sha_256_block (Alg.Assertion.toCore term)", "hashBlock"),
+            ("@literal_ctx8_verify_count term", "verifyNumCompression"),
+            ("@lt_word_spec term 6", "lt64"),
+            ("Alg.scribe sha256_count_limit", "scribe limit"),
+        ]:
+            text = replace(text, old, new)
+        return text
+
+    hs = s["hs"].split("mkLibAssert Lib{..}  = l", 1)[1]
+    entry = re.search(r"\bctx8Add1\s*=(.*?)\n\s*,\s*ctx8Addn", hs, re.S)[1]
+    entry = replace(entry, "increment word64", "increment64")
+    entry = replace(entry, "assertl ih cmrFail0", "noCarry")
+    port = p.definition(s["ctx"], "literal_ctx8_add1")
+    for name, args in [("literal_ctx8_snoc", "(Alg.Assertion.toCore term)"),
+                       ("literal_ctx8_add1_full", "term")]:
+        port = replace(port, "@" + name + " " + args, "(" + p.definition(s["ctx"], name) + ")")
+    same(entry, names(port), "ctx8Add1 tree and assertion order")
+    check_count = hbody(hs, "verifyNumCompression")
+    check_count = replace(check_count, "scribe (toWord64 (2^55))", "scribe limit")
+    check_count = replace(check_count, "lt word64", "lt64")
+    same(check_count, "assert (" + names(p.definition(s["ctx"], "literal_ctx8_count_check")) + ")", "compression-count assertion")
+    definition("ctx", "literal_ctx8_no_carry", '''@Alg.Assertion.Combinators.assertl
+      Ty.Unit Ty.Unit (Word 6) (Word 6) term (I H) assertion_cmr_fail0''')
+    definition("ctx", "literal_ctx8_verify_count", '''
+      (@literal_ctx8_count_check (Alg.Assertion.toCore term) &&& unit) >>>
+      @Alg.Assertion.Combinators.assertr Ty.Unit Ty.Unit Ty.Unit Ty.Unit term assertion_cmr_fail0 (O H)''')
+    same(hbody(s["hs_bit"], "assert t"), "t &&& unit >>> assertr cmrFail0 oh", "assert combinator")
+    definition("count", "sha256_count_limit", "@fromZ (WordToZ 6) 36028797018963968")
+    p.require(s["ctx"], "sha256_count_limit = @fromZ (WordToZ 6) (2^55)%Z", "checked count constant bridge")
+    definition("assert", "assertion_hash0", '''Simplicity.Digest.Hash256
+      [Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero] eq_refl''')
+    definition("assert", "assertion_cmr_fail0", '''@Alg.Assertion.Combinators.fail Ty.Unit Ty.Unit
+      Simplicity.MerkleRoot.CommitmentRoot_Assertion_alg (assertion_hash0, assertion_hash0)''')
+    p.require(s["merkle"], "cmrFail0 = commitmentRoot (fail0 :: CommitmentRoot () ())", "pruned assertion root")
+    p.require(s["core"], "fail0 = fail (hash0, hash0)", "fail root payload")
+    p.require(s["digest"], "hash0 = review (over be256) 0", "zero root payload")
+    increment = p.definition(s["ctx"], "literal_ctx8_increment64")
+    increment = replace(increment, "@Word.zero 6 term", "zero64")
+    increment = replace(increment, "@Word.fullAdder 6 term", "fullAdd64")
+    increment = replace(increment, "Bit.true", "true")
+    full = hbody(s["hs_arith"], "full_increment w")
+    full = replace(replace(full, "zero w", "zero64"), "full_add w", "fullAdd64")
+    same(increment, "true &&& iden >>> (" + full + ")", "literal increment64")
+    same(hbody(s["hs_arith"], "increment w"), "true &&& iden >>> full_increment w", "increment wrapper")
+    p.require(s["hs_arith"], "zero = low", "zero alias")
+    p.require(s["hs_word"], "low = fill false", "low alias")
+    same(hbody(s["hs_word"], "fill t SingleV"), "t", "fill base")
+    same(hbody(s["hs_word"], "fill t (DoubleV w)"), "rec &&& rec", "fill recursion")
+    p.require(s["hs_word"], "rec = fill t w", "fill recursive binding")
+    definition("word", "zero", "match n with | 0 => false | S n => zero &&& zero end")
+    same(hbody(s["hs_arith"], "lt w"), "subtract w >>> oh", "lt tree")
+    same(hbody(s["hs_arith"], "subtract w"), "false &&& iden >>> full_subtract w", "subtract tree")
+    same(hbody(s["hs_arith"], "full_subtract w"), '''
+      not oh &&& drop (oh &&& (ih >>> complement w)) >>> full_add w >>> not oh &&& ih''', "full subtraction tree")
+    definition("order", "lt_word_spec", "AC.comp (@subtract_word_spec term n) (AC.take AC.iden)")
+    definition("subtract", "subtract_word_spec", "AC.comp (AC.pair Bit.false AC.iden) (@full_subtract_word_spec term n)")
+    definition("subtract", "full_subtract_word_spec", '''AC.comp
+      (AC.pair (Bit.not (AC.take AC.iden))
+        (AC.drop (AC.pair (AC.take AC.iden) (AC.comp (AC.drop AC.iden) (@complement_spec n term)))))
+      (AC.comp (@Word.fullAdder n term) (AC.pair (Bit.not (AC.take AC.iden)) (AC.drop AC.iden)))''')
+    same(hbody(s["hs_word"], "complement SingleV"), "not iden", "complement base")
+    same(hbody(s["hs_word"], "complement (DoubleV w)"), "take rec &&& drop rec", "complement recursion")
+    p.require(s["hs_word"], "rec = complement w", "complement recursive binding")
+    definition("complement", "complement_spec", '''match n with
+      | O => @Bit.not Bit term (@Alg.Core.Combinators.iden Bit term)
+      | S n => @Alg.Core.Combinators.pair (Word (S n)) (Word n) (Word n) term
+          (@Alg.Core.Combinators.take (Word n) (Word n) (Word n) term (complement_spec n))
+          (@Alg.Core.Combinators.drop (Word n) (Word n) (Word n) term (complement_spec n)) end''')
+    definition("buffer", "buffer_type", '''match depth with
+      | Datatypes.O => Ty.Sum Ty.Unit X
+      | Datatypes.S d => Ty.Prod (Ty.Sum Ty.Unit (Vector X (Datatypes.S d))) (buffer_type X d) end''')
+    definition("buffer", "buffer_empty_spec", '''match depth with
+      | Datatypes.O => AC.injl AC.unit
+      | Datatypes.S d => AC.pair (AC.injl AC.unit) (buffer_empty_spec X d A) end''')
+    same(hbody(s["hs_word"], "bufferEmpty SingleB"), "injl unit", "buffer empty base")
+    same(hbody(s["hs_word"], "bufferEmpty (DoubleB b)"), "injl unit &&& bufferEmpty b", "buffer empty recursion")
+    definition("ctx_old", "buffer_snoc_spec", '''match depth with
+      | O => AC.case (AC.injr (AC.injr (AC.drop AC.iden))) (AC.injl AC.iden)
+      | S d => AC.comp
+          (AC.pair (AC.comp (AC.pair (AC.take (AC.drop AC.iden)) (AC.drop AC.iden)) (buffer_snoc_spec X d))
+                   (AC.take (AC.take AC.iden)))
+          (AC.case
+            (AC.comp (AC.pair (AC.drop AC.iden) (AC.take AC.iden))
+              (AC.case (AC.injr (AC.pair (AC.injr (AC.drop AC.iden)) (buffer_empty_spec X d _)))
+                       (AC.injl AC.iden)))
+            (AC.injr (AC.pair (AC.drop AC.iden) (AC.take AC.iden)))) end''')
+    same(hbody(s["hs_word"], "bufferSnoc SingleB"), "match (injr (injr ih)) (injl iden)", "buffer snoc base")
+    same(hbody(s["hs_word"], "bufferSnoc (DoubleB b)"), '''
+      (oih &&& ih >>> bufferSnoc b) &&& ooh >>>
+      match (ih &&& oh >>> match (injr (injr ih &&& bufferEmpty b)) (injl iden))
+            (injr (ih &&& oh))''', "buffer snoc recursive tree")
+    definition("ctx_init", "sha256_ctx8_type", "Ty.Prod (buffer_type (Word 3) 5) (Ty.Prod (Word 6) (Word 8))")
+    p.require(s["hs"], "type Ctx8 = (Buffer63 Word8, (Word64, Word256))", "context type")
+    for size, half in [(2, 1), (4, 2), (8, 4), (16, 8), (32, 16), (64, 32), (128, 64), (256, 128)]:
+        p.require(s["hs_types"], f"vector{size} = DoubleV vector{half}", "word vector depth")
+    for size in [8, 64, 256]:
+        p.require(s["hs_types"], f"type Word{size} = Vector{size} Bit", "context word carrier")
+        p.require(s["hs_types"], f"word{size} = vector{size}", "context word witness")
+    p.require(s["hs_types"], "buffer1 = SingleB", "buffer base")
+    p.require(s["hs_types"], "type Buffer1 x = S x", "buffer base carrier")
+    for size, half in [(3, 1), (7, 3), (15, 7), (31, 15), (63, 31)]:
+        p.require(s["hs_types"], f"buffer{size} = DoubleB buffer{half}", "buffer depth")
+        p.require(s["hs_types"], f"type Buffer{size} x = (S (Vector{(size+1)//2} x), Buffer{half} x)", "buffer carrier")
+    p.require(s["hs"], "libAssert = mkLibAssert lib", "canonical assertion library")
+    p.require(s["catalog"], "Sha256Ctx8Add1 :: HashJet (Sha256.Ctx8, Word8) Sha256.Ctx8", "context-add type")
+    p.require(s["catalog"], "specificationHash Sha256Ctx8Add1 = Sha256.ctx8Add1", "context-add dispatch")
+    for suffix in ["local", "startup"]:
+        contract = "sha_jet_partial_local_spec" if suffix == "local" else "sha_startup_partial_spec"
+        name = "sha_256_ctx_8_add_1_literal_" + suffix + "_spec"
+        statement = re.search(r"Theorem " + name + r"\s*:(.*?)\bProof\.", s["ctx_jet"], re.S)
+        expected = "memcpy_model -> " + contract + ''' f_simplicity_sha_256_ctx_8_add_1
+          (Ty.Prod sha256_ctx8_type (Word 3)) sha256_ctx8_type (@literal_ctx8_add1 optalg).'''
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError("context-add public contract differs: " + name)
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -292,12 +428,25 @@ def sources():
         "hs_arith": REPO / "Haskell/Core/Simplicity/Programs/Arith.hs",
         "wiring": COQ / "C/jet_sha_block_literal_word.v",
         "jet": COQ / "C/jet_sha_block_literal_local.v",
+        "ctx": COQ / "C/jet_sha_ctx8_literal.v",
+        "ctx_old": COQ / "C/jet_sha_ctx8_spec.v",
+        "ctx_init": COQ / "C/jet_sha256_ctx8_init_spec.v",
+        "ctx_jet": COQ / "C/jet_sha_ctx8_literal_local.v",
+        "buffer": COQ / "C/jet_buffer_empty_spec.v",
+        "count": COQ / "C/jet_sha256_count_assertion.v",
+        "assert": COQ / "C/jet_assertion_spec.v",
+        "merkle": REPO / "Haskell/Core/Simplicity/MerkleRoot/Impl.hs",
+        "digest": REPO / "Haskell/Core/Simplicity/Digest.hs",
+        "order": COQ / "C/jet_order_spec.v",
+        "subtract": COQ / "C/jet_subtract_spec.v",
+        "complement": COQ / "C/jet_complement_spec.v",
     }.items()}
 
 
 def test():
     s = sources()
     check(s)
+    context_add(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -337,6 +486,35 @@ def test():
             continue
         raise ValueError("SHA source mutation escaped: " + old)
     print("SHA block Core trees, word/bit dependencies and 64 constants match;", len(mutations), "mutations rejected")
+    context_mutations = [
+        ("catalog", "specificationHash Sha256Ctx8Add1 = Sha256.ctx8Add1", "specificationHash Sha256Ctx8Add1 = Sha256.ctx8Init"),
+        ("hs", "type Ctx8 = (Buffer63 Word8, (Word64, Word256))", "type Ctx8 = (Buffer31 Word8, (Word64, Word256))"),
+        ("hs", "assertl ih cmrFail0", "assertl oh cmrFail0"),
+        ("hs", "(verifyNumCompression &&& iden)", "(iden &&& verifyNumCompression)"),
+        ("hs", "(2^55)", "(2^54)"),
+        ("hs_word", "bufferSnoc SingleB = match (injr (injr ih))", "bufferSnoc SingleB = match (injl (injr ih))"),
+        ("hs_arith", "full_increment w = oh &&&", "full_increment w = ih &&&"),
+        ("hs_arith", "lt w = subtract w >>> oh", "lt w = subtract w >>> ih"),
+        ("ctx", "(I H) assertion_cmr_fail0", "(O H) assertion_cmr_fail0"),
+        ("ctx", "(I I H &&& O H >>>", "(O H &&& I I H >>>"),
+        ("ctx", "case (@literal_ctx8_add1_full term) iden", "case iden (@literal_ctx8_add1_full term)"),
+        ("count", "36028797018963968", "36028797018963969"),
+        ("ctx_old", "AC.injr (AC.injr (AC.drop AC.iden))", "AC.injr (AC.injr (AC.take AC.iden))"),
+        ("order", "AC.comp (@subtract_word_spec term n) (AC.take AC.iden)", "AC.comp (@subtract_word_spec term n) (AC.drop AC.iden)"),
+        ("ctx_jet", "memcpy_model ->", "False -> memcpy_model ->"),
+        ("ctx_jet", "f_simplicity_sha_256_ctx_8_add_1", "f_simplicity_sha_256_ctx_8_add_2"),
+    ]
+    for key, old, new in context_mutations:
+        if old not in s[key]:
+            raise ValueError("inactive context mutation: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            context_add(changed)
+        except ValueError:
+            continue
+        raise ValueError("context source mutation escaped: " + old)
+    print("SHA context-add canonical tree, buffer, counter and assertion dependencies match;", len(context_mutations), "mutations rejected")
 
 
 if __name__ == "__main__":

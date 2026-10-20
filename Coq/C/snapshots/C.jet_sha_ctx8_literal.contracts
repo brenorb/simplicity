@@ -1,0 +1,371 @@
+### C.jet_sha_ctx8_literal.literal_sha_add32_parametric
+literal_sha_add32_parametric
+     : @Alg.Core.Parametric (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S (S O)))))) (@jet_sha_block_literal.literal_sha_add32)
+### C.jet_sha_ctx8_literal.literal_sha_add32_option_matches
+literal_sha_add32_option_matches
+     : @eq
+         (Alg.Core.domain (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero))
+            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+            (Word.Word (S (S (S (S (S O)))))))
+         (@jet_sha_block_literal.literal_sha_add32 (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero)))
+         (@SHA256.add32 (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero)))
+### C.jet_sha_ctx8_literal.literal_sha_block_option_matches
+literal_sha_block_option_matches
+     : @eq
+         (Alg.Core.domain (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero))
+            (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_sha_block_literal.literal_sha_256_block
+            (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero)))
+         (@SHA256.hashBlock (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero)))
+### C.jet_sha_ctx8_literal.literal_ctx8_increment64_matches
+literal_ctx8_increment64_matches
+     : forall term : Alg.Core.Algebra,
+       @eq
+         (Alg.Core.domain term (Word.Word (S (S (S (S (S (S O)))))))
+            (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))) (@literal_ctx8_increment64 term)
+         (@jet_increment_spec.increment_word_spec term (S (S (S (S (S (S O)))))))
+### C.jet_sha_ctx8_literal.literal_ctx8_snoc_matches
+literal_ctx8_snoc_matches
+     : forall term : Alg.Core.Algebra,
+       @eq
+         (Alg.Core.domain term (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+            (Ty.Prod (Ty.Sum (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) jet_sha_ctx8_spec.ctx8_buf)
+               jet_sha_ctx8_spec.ctx8_tail)) (@literal_ctx8_snoc term) (@jet_sha_ctx8_spec.ctx8_add1_snoc term)
+### C.jet_sha_ctx8_literal.literal_ctx8_verify_count_matches
+literal_ctx8_verify_count_matches
+     : forall term : Alg.Assertion.Algebra,
+       @eq (Alg.Assertion.domain term jet_sha256_ctx8_init_spec.sha256_ctx8_type Ty.Unit)
+         (@literal_ctx8_verify_count term) (@jet_sha256_count_assertion.sha256_count_assertion_spec term)
+### C.jet_sha_ctx8_literal.literal_ctx8_count_limit_matches
+literal_ctx8_count_limit_matches
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) jet_sha256_count_assertion.sha256_count_limit
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
+### C.jet_sha_ctx8_literal.literal_ctx8_add1_matches
+literal_ctx8_add1_matches
+     : @eq
+         (Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero)
+            (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+            jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+         (@literal_ctx8_add1 (Alg.AssertionSem Option.option_Monad_Zero))
+         (@jet_sha_ctx8_spec.ctx8_add1_spec (Alg.AssertionSem Option.option_Monad_Zero))
+### C.jet_sha_ctx8_literal.literal_ctx8_addn_matches
+literal_ctx8_addn_matches
+     : forall n : nat,
+       @eq
+         (Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero)
+            (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n))
+            jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+         (@literal_ctx8_addn n (Alg.AssertionSem Option.option_Monad_Zero))
+         (@jet_sha_ctx8_spec.ctx8_addn_spec n (Alg.AssertionSem Option.option_Monad_Zero))
+### C.jet_sha_ctx8_literal.literal_ctx8_no_carry
+literal_ctx8_no_carry =
+fun term : Alg.Assertion.Algebra =>
+@Alg.Assertion.Combinators.assertl Ty.Unit Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+  (Word.Word (S (S (S (S (S (S O))))))) term
+  (@Alg.Core.Combinators.drop Ty.Unit (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))
+     (Alg.Assertion.toCore term)
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S O))))))) (Alg.Assertion.toCore term)))
+  jet_assertion_spec.assertion_cmr_fail0
+     : forall term : Alg.Assertion.Algebra,
+       Alg.Assertion.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S (S (S O)))))))
+
+Arguments literal_ctx8_no_carry {term}
+### C.jet_sha_ctx8_literal.literal_ctx8_increment64
+literal_ctx8_increment64 =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S O)))))))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))) term
+  (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S (S O))))))) (Ty.Sum Ty.Unit Ty.Unit)
+     (Word.Word (S (S (S (S (S (S O))))))) term (@Bit.true (Word.Word (S (S (S (S (S (S O))))))) term)
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S O))))))) term))
+  (@Alg.Core.Combinators.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+     (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+     (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))) term
+     (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+        (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+        term
+        (@Alg.Core.Combinators.take (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))
+           (Ty.Sum Ty.Unit Ty.Unit) term (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+        (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+           (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))) term
+           (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))
+              (Word.Word (S (S (S (S (S (S O))))))) term
+              (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S O))))))) term))
+           (@Alg.Core.Combinators.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))) Ty.Unit
+              (Word.Word (S (S (S (S (S (S O))))))) term
+              (@Alg.Core.Combinators.unit (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))) term)
+              (@Word.zero (S (S (S (S (S (S O)))))) term)))) (@Word.fullAdder (S (S (S (S (S (S O)))))) term))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S (S O)))))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+
+Arguments literal_ctx8_increment64 {term}
+### C.jet_sha_ctx8_literal.literal_ctx8_snoc
+literal_ctx8_snoc =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.pair
+  (Ty.Prod
+     (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (Word.Word (S (S (S O)))))
+  (Ty.Sum (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S (S O)))))))
+     (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+  (@Alg.Core.Combinators.comp
+     (Ty.Prod
+        (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Word.Word (S (S (S O)))))
+     (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Word.Word (S (S (S O)))))
+     (Ty.Sum (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S (S O)))))))
+        (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) term
+     (@Alg.Core.Combinators.pair
+        (Ty.Prod
+           (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S O)))))
+        (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Word.Word (S (S (S O)))) term
+        (@Alg.Core.Combinators.take
+           (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S O))))
+           (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) term
+           (@Alg.Core.Combinators.take
+              (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) term
+              (@Alg.Core.Combinators.iden
+                 (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) term)))
+        (@Alg.Core.Combinators.drop
+           (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))) term
+           (@Alg.Core.Combinators.iden (Word.Word (S (S (S O)))) term)))
+     (@jet_sha_ctx8_spec.buffer_snoc_spec (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) term))
+  (@Alg.Core.Combinators.take
+     (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (Word.Word (S (S (S O))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+     (@Alg.Core.Combinators.drop (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+        (@Alg.Core.Combinators.iden
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term)))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+         (Ty.Prod (Ty.Sum (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) jet_sha_ctx8_spec.ctx8_buf)
+            jet_sha_ctx8_spec.ctx8_tail)
+
+Arguments literal_ctx8_snoc {term}
+### C.jet_sha_ctx8_literal.literal_ctx8_count_check
+literal_ctx8_count_check =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp
+  (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))) (Ty.Sum Ty.Unit Ty.Unit) term
+  (@Alg.Core.Combinators.pair
+     (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))) term
+     (@Alg.Core.Combinators.drop (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Word.Word (S (S (S (S (S (S O))))))) term
+        (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Word.Word (S (S (S (S (S (S O))))))) term
+           (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S O))))))) term)))
+     (@Alg.Core.Combinators.comp
+        (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) Ty.Unit
+        (Word.Word (S (S (S (S (S (S O))))))) term
+        (@Alg.Core.Combinators.unit
+           (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) term)
+        (@Alg.scribe Ty.Unit (Word.Word (S (S (S (S (S (S O))))))) jet_sha256_count_assertion.sha256_count_limit term)))
+  (@jet_order_spec.lt_word_spec term (S (S (S (S (S (S O)))))))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term jet_sha256_ctx8_init_spec.sha256_ctx8_type (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments literal_ctx8_count_check {term}
+### C.jet_sha_ctx8_literal.literal_ctx8_verify_count
+literal_ctx8_verify_count =
+fun term : Alg.Assertion.Algebra =>
+@Alg.Core.Combinators.comp jet_sha256_ctx8_init_spec.sha256_ctx8_type (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)
+  Ty.Unit (Alg.Assertion.toCore term)
+  (@Alg.Core.Combinators.pair jet_sha256_ctx8_init_spec.sha256_ctx8_type (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit
+     (Alg.Assertion.toCore term) (@literal_ctx8_count_check (Alg.Assertion.toCore term))
+     (@Alg.Core.Combinators.unit jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)))
+  (@Alg.Assertion.Combinators.assertr Ty.Unit Ty.Unit Ty.Unit Ty.Unit term jet_assertion_spec.assertion_cmr_fail0
+     (@Alg.Core.Combinators.take Ty.Unit Ty.Unit Ty.Unit (Alg.Assertion.toCore term)
+        (@Alg.Core.Combinators.iden Ty.Unit (Alg.Assertion.toCore term))))
+     : forall term : Alg.Assertion.Algebra,
+       Alg.Assertion.domain term jet_sha256_ctx8_init_spec.sha256_ctx8_type Ty.Unit
+
+Arguments literal_ctx8_verify_count {term}
+### C.jet_sha_ctx8_literal.literal_ctx8_add1_full
+literal_ctx8_add1_full =
+fun term : Alg.Assertion.Algebra =>
+@Alg.Core.Combinators.pair
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+  (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Alg.Assertion.toCore term)
+  (@Alg.Core.Combinators.comp
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) Ty.Unit
+     (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) (Alg.Assertion.toCore term)
+     (@Alg.Core.Combinators.unit
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Alg.Assertion.toCore term))
+     (@jet_buffer_empty_spec.buffer_empty_spec (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) Ty.Unit
+        (Alg.Assertion.toCore term)))
+  (@Alg.Core.Combinators.pair
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Alg.Assertion.toCore term)
+     (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Word.Word (S (S (S (S (S (S O))))))) (Alg.Assertion.toCore term)
+        (@Alg.Core.Combinators.comp
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+           (Word.Word (S (S (S (S (S (S O))))))) (Alg.Assertion.toCore term)
+           (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S (S O)))))))
+              (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))) (Alg.Assertion.toCore term)
+              (@literal_ctx8_increment64 (Alg.Assertion.toCore term))) (@literal_ctx8_no_carry term)))
+     (@Alg.Core.Combinators.comp
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Alg.Assertion.toCore term)
+        (@Alg.Core.Combinators.pair
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+           (Alg.Assertion.toCore term)
+           (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Alg.Assertion.toCore term)
+              (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S (S O)))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                 (Alg.Assertion.toCore term)
+                 (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Alg.Assertion.toCore term))))
+           (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) (Alg.Assertion.toCore term)
+              (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) (Alg.Assertion.toCore term))))
+        (@jet_sha_block_literal.literal_sha_256_block (Alg.Assertion.toCore term))))
+     : forall term : Alg.Assertion.Algebra,
+       Alg.Assertion.domain term
+         (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) jet_sha_ctx8_spec.ctx8_tail)
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type
+
+Arguments literal_ctx8_add1_full {term}
+### C.jet_sha_ctx8_literal.literal_ctx8_add1
+literal_ctx8_add1 =
+fun term : Alg.Assertion.Algebra =>
+@Alg.Core.Combinators.comp (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+  (Ty.Prod (Ty.Sum (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) jet_sha_ctx8_spec.ctx8_buf)
+     jet_sha_ctx8_spec.ctx8_tail) jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+  (@literal_ctx8_snoc (Alg.Assertion.toCore term))
+  (@Alg.Core.Combinators.comp
+     (Ty.Prod
+        (Ty.Sum (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+           (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+        jet_sha_ctx8_spec.ctx8_tail) jet_sha256_ctx8_init_spec.sha256_ctx8_type
+     jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+     (@Alg.Core.Combinators.case (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+        (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) jet_sha_ctx8_spec.ctx8_tail
+        jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term) (@literal_ctx8_add1_full term)
+        (@Alg.Core.Combinators.iden
+           (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+              jet_sha_ctx8_spec.ctx8_tail) (Alg.Assertion.toCore term)))
+     (@Alg.Core.Combinators.comp jet_sha256_ctx8_init_spec.sha256_ctx8_type
+        (Ty.Prod Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type) jet_sha256_ctx8_init_spec.sha256_ctx8_type
+        (Alg.Assertion.toCore term)
+        (@Alg.Core.Combinators.pair jet_sha256_ctx8_init_spec.sha256_ctx8_type Ty.Unit
+           jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term) (@literal_ctx8_verify_count term)
+           (@Alg.Core.Combinators.iden jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)))
+        (@Alg.Core.Combinators.drop Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+           (@Alg.Core.Combinators.iden jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)))))
+     : forall term : Alg.Assertion.Algebra,
+       Alg.Assertion.domain term (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type
+
+Arguments literal_ctx8_add1 {term}
+### C.jet_sha_ctx8_literal.literal_ctx8_addn
+literal_ctx8_addn =
+fix literal_ctx8_addn (n : nat) (term : Alg.Assertion.Algebra) {struct n} :
+    Alg.Assertion.domain term
+      (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n))
+      jet_sha256_ctx8_init_spec.sha256_ctx8_type :=
+  match
+    n as n0
+    return
+      (Alg.Assertion.domain term
+         (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n0))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+  with
+  | O => @literal_ctx8_add1 term
+  | S k =>
+      @Alg.Core.Combinators.comp
+        (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) k) (Word.Vector (Word.Word (S (S (S O)))) k)))
+        (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) k))
+        jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+        (@Alg.Core.Combinators.pair
+           (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+              (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) k) (Word.Vector (Word.Word (S (S (S O)))) k)))
+           jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) k)
+           (Alg.Assertion.toCore term)
+           (@Alg.Core.Combinators.comp
+              (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                 (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) k) (Word.Vector (Word.Word (S (S (S O)))) k)))
+              (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) k))
+              jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+              (@Alg.Core.Combinators.pair
+                 (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                    (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) k) (Word.Vector (Word.Word (S (S (S O)))) k)))
+                 jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) k)
+                 (Alg.Assertion.toCore term)
+                 (@Alg.Core.Combinators.take jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                    (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) k) (Word.Vector (Word.Word (S (S (S O)))) k))
+                    jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+                    (@Alg.Core.Combinators.iden jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)))
+                 (@Alg.Core.Combinators.drop jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                    (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) k) (Word.Vector (Word.Word (S (S (S O)))) k))
+                    (Word.Vector (Word.Word (S (S (S O)))) k) (Alg.Assertion.toCore term)
+                    (@Alg.Core.Combinators.take (Word.Vector (Word.Word (S (S (S O)))) k)
+                       (Word.Vector (Word.Word (S (S (S O)))) k) (Word.Vector (Word.Word (S (S (S O)))) k)
+                       (Alg.Assertion.toCore term)
+                       (@Alg.Core.Combinators.iden (Word.Vector (Word.Word (S (S (S O)))) k)
+                          (Alg.Assertion.toCore term))))) (literal_ctx8_addn k term))
+           (@Alg.Core.Combinators.drop jet_sha256_ctx8_init_spec.sha256_ctx8_type
+              (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) k) (Word.Vector (Word.Word (S (S (S O)))) k))
+              (Word.Vector (Word.Word (S (S (S O)))) k) (Alg.Assertion.toCore term)
+              (@Alg.Core.Combinators.drop (Word.Vector (Word.Word (S (S (S O)))) k)
+                 (Word.Vector (Word.Word (S (S (S O)))) k) (Word.Vector (Word.Word (S (S (S O)))) k)
+                 (Alg.Assertion.toCore term)
+                 (@Alg.Core.Combinators.iden (Word.Vector (Word.Word (S (S (S O)))) k) (Alg.Assertion.toCore term)))))
+        (literal_ctx8_addn k term)
+  end
+     : forall (n : nat) (term : Alg.Assertion.Algebra),
+       Alg.Assertion.domain term
+         (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type
+
+Arguments literal_ctx8_addn n%nat_scope {term}
