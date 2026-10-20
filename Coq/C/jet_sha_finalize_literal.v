@@ -68,6 +68,14 @@ Definition literal_ctx8_finalize_pad {term : Alg.Assertion.Algebra} :
   (@literal_ctx8_clear_count term &&& (unit >>> Alg.scribe pad_word64)) >>>
     @literal_ctx8_addn 3 term >>> (O (@literal_sha_pad063 (Alg.Assertion.toCore term)) &&& I I H).
 
+Lemma literal_ctx8_finalize_pad_algebra_matches term :
+  @literal_ctx8_finalize_pad term = @ctx8_finalize_pad_spec term.
+Proof.
+  unfold literal_ctx8_finalize_pad.
+  rewrite literal_ctx8_clear_count_matches, literal_ctx8_addn_algebra_matches, literal_sha_pad063_matches.
+  unfold ctx8_finalize_pad_spec. reflexivity.
+Qed.
+
 Lemma literal_ctx8_finalize_pad_matches :
   @literal_ctx8_finalize_pad optalg = @ctx8_finalize_pad_spec optalg.
 Proof.
@@ -88,6 +96,14 @@ Proof. reflexivity. Qed.
 Definition literal_ctx8_finalize {term : Alg.Assertion.Algebra} : term sha256_ctx8_type (Word 8) :=
   @literal_ctx8_finalize_pad term &&& @literal_ctx8_bitlen (Alg.Assertion.toCore term) >>>
     @literal_ctx8_finalize_block (Alg.Assertion.toCore term) >>> @literal_sha_256_block (Alg.Assertion.toCore term).
+
+Lemma literal_ctx8_finalize_algebra_matches term : @literal_ctx8_finalize term = @ctx8_finalize_spec term.
+Proof.
+  unfold literal_ctx8_finalize.
+  rewrite literal_ctx8_finalize_pad_algebra_matches, literal_ctx8_bitlen_matches,
+    literal_ctx8_finalize_block_matches, literal_sha_256_block_core_matches.
+  unfold ctx8_finalize_spec. reflexivity.
+Qed.
 
 Lemma literal_ctx8_finalize_matches : @literal_ctx8_finalize optalg = @ctx8_finalize_spec optalg.
 Proof.

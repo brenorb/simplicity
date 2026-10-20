@@ -840,6 +840,111 @@ def bitcoin_context_hash(s):
                 raise ValueError("Bitcoin context hash complete public contract differs")
 
 
+def primitive_hash_words(s):
+    """Canonical array traversal and the existing Tappath primitive interface."""
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError("primitive SHA dependency differs: " + name)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError("primitive SHA binding differs: " + lhs)
+
+    def replace(text, old, new):
+        return re.sub(r"\s*".join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    p.require(s["bitcoin_catalog"], "import qualified Simplicity.Bitcoin.Programs.SigHash.Lib as SigHash", "SigHash catalog import")
+    p.require(s["bitcoin_catalog"], "TappathHash :: SigHashJet () Word256", "TappathHash catalog type")
+    binding("bitcoin_catalog", "specificationSigHash TappathHash", "SigHash.tappathHash")
+    p.require(s["sighash_lib"], "import qualified Simplicity.Bitcoin.Programs.SigHash as SigHash", "SigHash wrapper import")
+    binding("sighash_lib", "tappathHash", "SigHash.tappathHash SigHash.lib")
+    binding("sighash", "lib", "mkLib Sha256.lib Sha256.libAssert Transaction.lib")
+    body = s["sighash"].split("mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib", 1)[1]
+    selected = re.search(r"\btappathHash\s*=(.*?)\n\s*,\s*tapEnvHash", body, re.S)
+    if not selected:
+        raise ValueError("missing canonical tappathHash")
+    same(selected[1], "hashWord256s8 (drop (primitive Tappath))", "tappath primitive routing")
+    binding("sighash", "hashWord256s8", "hashWord256s word8")
+    binding("sighash", "hashLoop256", "Sha256.hashLoop vector32")
+    port = p.definition(s["hash_words_port"], "literal_sha_hash_words")
+    for old, new in [
+        ("@literal_sha_hash_ctx_init (Alg.Assertion.toCore term)", "ctx8Init"),
+        ("@literal_sha_hash_loop k w term C array", "hashLoop256 w array"),
+        ("@literal_ctx8_finalize term", "ctx8Finalize"),
+    ]:
+        port = replace(port, old, new)
+    same(hbody(s["sighash"], "hashWord256s w array"), port, "hashWord256s composition")
+    loop = hbody(s["hs"], "hashLoop v")
+    parts = re.fullmatch(r"\s*\\w\s+array\s*->\s*let\s+body\s*=(.*?)\bin\b(.*)", loop, re.S)
+    if not parts:
+        raise ValueError("canonical hashLoop binding differs")
+    binding("hs", "ctx8Addv", "ctx8Addn libAssert v")
+    port_body = replace(p.definition(s["hash_words_port"], "literal_sha_hash_loop_body"),
+                        "@literal_ctx8_addn k term", "ctx8Addv")
+    same(parts[1], port_body, "hashLoop body and stop/continue branches")
+    port_loop = replace(p.definition(s["hash_words_port"], "literal_sha_hash_loop"),
+        "@for_while_program w C sha256_ctx8_type sha256_ctx8_type (Alg.Assertion.toCore term) (@literal_sha_hash_loop_body k term C (Word w) array)",
+        "forWhile w body")
+    same(parts[2], port_loop, "hashLoop completion")
+    definition("forwhile", "for_while_program", '''match n as k return alg ((C * Word k) * A) (B + A) -> alg (C * A) (B + A) with
+      | 0 => fun body =>
+          ((((O H &&& Bit.false) &&& I H) >>> body) &&& O H) >>>
+            case (injl (O H)) (((I H &&& Bit.true) &&& O H) >>> body)
+      | S k => fun body => for_while_program k (for_while_program k
+          (((O O O H &&& (O O I H &&& O I H)) &&& I H) >>> body)) end body''')
+    same(hbody(s["hs_word"], "forWhile SingleV body").replace("monobody", "body"), '''
+      ((((oh &&& false) &&& ih) >>> body) &&& oh) >>>
+      match (injl oh) (((ih &&& true) &&& oh) >>> body)''', "forWhile base")
+    binding("hs_word", "monobody", "body")
+    same(hbody(s["hs_word"], "forWhile (DoubleV n) body"),
+         "forWhile n (forWhile n ((oooh &&& (ooih &&& oih)) &&& ih >>> body))", "forWhile nesting")
+    # Literal initializer, including the host toWord conversion. Its general
+    # Coq equality composes the already-proved converter, not a new assumption.
+    sha_lib = s["hs"].split("lib = l", 1)[1]
+    iv = re.search(r"\biv\s*=(.*?)\n\s*,\s*hashBlock", sha_lib, re.S)
+    init = re.search(r"\bctx8Init\s*=(.*?)\n\s*,\s*tapdataInit", sha_lib, re.S)
+    value = "0x6a09e667bb67ae853c6ef372a54ff53a510e527f9b05688c1f83d9ab5be0cd19"
+    if not iv or p.compact(iv[1]) != p.compact("scribe . toWord256 $ " + value):
+        raise ValueError("canonical SHA initializer IV differs")
+    if not init:
+        raise ValueError("missing canonical context initializer")
+    definition("hash_words_port", "literal_sha_hash_ctx_init", '''
+      @buffer_empty_spec (Word 3) 5 Ty.Unit term &&&
+      (@Word.zero 6 term &&& Alg.scribe (haskell_to_word 8 ''' + value + "))")
+    same(init[1], "buffer63Empty &&& (zero word64 &&& iv)", "context initializer")
+    p.require(s["hs"], "buffer63Empty = bufferEmpty buffer63", "initializer buffer alias")
+    p.require(s["hs_types"], "word8 = vector8", "8-bit counter")
+    p.require(s["hs_types"], "vector8 = DoubleV vector4", "8-bit counter vector")
+    p.require(s["hs_types"], "vector32 = DoubleV vector16", "32-byte array element")
+    definition("tappath_port", "literal_bitcoin_tappath_hash", '''
+      let term := PF.CanonicalStructures.toAssertion alg in
+      @literal_sha_hash_words 5 3 term Ty.Unit
+        (@Alg.Core.Combinators.drop Ty.Unit (Word 3) (Ty.Sum Ty.Unit (Vector (Word 3) 5))
+          (Alg.Assertion.toCore term) (@PF.Combinators.prim _ _ alg (BitcoinFull.Ext BitcoinExt.Tappath)))''')
+    # Retain the existing formal primitive, its names and interpretation.
+    # The host interpretation is source-reviewed; no general Haskell
+    # interpreter theorem is claimed by this checker.
+    p.require(s["btc_primitive"], "Tappath :: Prim Word8 (S Word256)", "Tappath primitive type")
+    binding("btc_primitive", "primName Tappath", '"tappath"')
+    binding("btc_primitive", "interpret Tappath", "return . cast . fmap encodeHash . listToMaybe . flip drop (tappath (envTap env)) . fromInteger . fromWord8")
+    binding("btc_primitive", "cast (Just x)", "Right x")
+    binding("btc_primitive", "cast Nothing", "Left ()")
+    binding("btc_primitive", "encodeHash", "toWord256 . integerHash256")
+    binding("hs_types", "fromWord8", "fromWord word8")
+    p.require(s["ext_primitive"], '| Tappath => "tappath"', "formal Tappath identity")
+    p.require(s["ext_primitive"], '''| Tappath => fun i =>
+      Some (cast (option_map (fun h => from_hash256 h) (nth_error (extTappath e) (Z.to_nat (toZ i)))))
+      | InternalKey''', "formal Tappath interpreter")
+    p.require(s["ext_primitive"], "extTappath_len : (length extTappath <= 128)%nat", "unchanged formal path domain")
+    p.require(s["btc_env_c"], "if (128 < rawEnv->pathLen) return NULL;", "C builder path bound")
+    statement = re.search(r"Theorem bitcoin_tappath_hash_literal_local_spec\s*:(.*?)\bProof\.", s["tappath_port"], re.S)
+    expected = '''application_jet_local_spec_sep f_simplicity_bitcoin_tappath_hash bitcoin_ge ext_environment
+      Ty.Unit Word256 (hash_getter_rep (fun e => words_hash_of 5 3 (tappath_of e)) 8 40 176)
+      (fun a environment => @literal_bitcoin_tappath_hash fullalg a environment).'''
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError("TappathHash complete C contract differs")
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -890,6 +995,14 @@ def sources():
         "hs_ty": REPO / "Haskell/Core/Simplicity/Ty.hs",
         "bctx_port": COQ / "C/jet_bitcoin_ctx_hash_literal.v",
         "bctx_jet": COQ / "C/jet_bitcoin_ctx_hash_literal_local.v",
+        "sighash": REPO / "Haskell/Simplicity/Bitcoin/Programs/SigHash.hs",
+        "sighash_lib": REPO / "Haskell/Simplicity/Bitcoin/Programs/SigHash/Lib.hs",
+        "hash_words_port": COQ / "C/jet_sha_hash_words_literal.v",
+        "tappath_port": COQ / "C/jet_bitcoin_tappath_hash_literal.v",
+        "forwhile": COQ / "C/jet_forWhile_spec.v",
+        "btc_primitive": REPO / "Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs",
+        "ext_primitive": COQ / "C/jet_bitcoin_ext_prim.v",
+        "btc_env_c": REPO / "C/bitcoin/env.c",
     }.items()}
 
 
@@ -901,6 +1014,7 @@ def test():
     tapdata(s)
     bitcoin_taproot(s)
     bitcoin_context_hash(s)
+    primitive_hash_words(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -1112,6 +1226,44 @@ def test():
             continue
         raise ValueError("Bitcoin context hash source mutation escaped: " + old)
     print("Bitcoin outpoint/annex canonical assertion trees and whole C boundaries match;", len(context_hash_mutations), "mutations rejected")
+    primitive_hash_mutations = [
+        ("bitcoin_catalog", "TappathHash = SigHash.tappathHash", "TappathHash = SigHash.tapleafHash"),
+        ("sighash_lib", "tappathHash = SigHash.tappathHash SigHash.lib", "tappathHash = SigHash.tapleafHash SigHash.lib"),
+        ("sighash", "lib = mkLib Sha256.lib Sha256.libAssert Transaction.lib", "lib = mkLib Sha256.lib Sha256.libAssert Transaction.libChanged"),
+        ("sighash", "hashWord256s8 (drop (primitive Tappath))", "hashWord256s32 (drop (primitive Tappath))"),
+        ("sighash", "hashWord256s8 = hashWord256s word8", "hashWord256s8 = hashWord256s word32"),
+        ("sighash", "hashLoop256 = Sha256.hashLoop vector32", "hashLoop256 = Sha256.hashLoop vector16"),
+        ("hs", "ctx8Addv = ctx8Addn libAssert v", "ctx8Addv = ctx8Addn libAssert vChanged"),
+        ("hs", "take array &&& ih", "take array &&& oh"),
+        ("hs", "injl ih", "injl oh"),
+        ("hs", "forWhile w body >>> copair iden iden", "forWhile w body >>> copair iden unit"),
+        ("hs_word", "monobody = body", "monobody = bodyChanged"),
+        ("hs_word", "forWhile n (forWhile n ((oooh", "forWhile n (forWhile n ((ooih"),
+        ("hash_words_port", "@literal_ctx8_addn k term", "@literal_ctx8_addn (S k) term"),
+        ("hash_words_port", "case (injl (I H))", "case (injl (O H))"),
+        ("hash_words_port", "copair iden iden", "copair unit iden"),
+        ("hash_words_port", ">>> @literal_ctx8_finalize term", ">>> iden"),
+        ("hash_words_port", "0x6a09e667bb67ae85", "0x6a09e667bb67ae84"),
+        ("tappath_port", "@literal_sha_hash_words 5 3 term", "@literal_sha_hash_words 5 5 term"),
+        ("tappath_port", "BitcoinFull.Ext BitcoinExt.Tappath", "BitcoinFull.Ext BitcoinExt.InternalKey"),
+        ("tappath_port", "application_jet_local_spec_sep", "False -> application_jet_local_spec_sep"),
+        ("tappath_port", "(tappath_of e)) 8 40 176", "(tappath_of e)) 8 72 176"),
+        ("btc_primitive", "fromInteger . fromWord8", "fromInteger . fromWord32"),
+        ("btc_primitive", "cast Nothing = Left ()", "cast Nothing = Right ()"),
+        ("ext_primitive", "(length extTappath <= 128)%nat", "(length extTappath <= 64)%nat"),
+        ("btc_env_c", "if (128 < rawEnv->pathLen)", "if (64 < rawEnv->pathLen)"),
+    ]
+    for key, old, new in primitive_hash_mutations:
+        if old not in s[key]:
+            raise ValueError("inactive primitive hash mutation: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            primitive_hash_words(changed)
+        except ValueError:
+            continue
+        raise ValueError("primitive hash source mutation escaped: " + old)
+    print("Primitive-bearing hash loop, TappathHash program/domain and whole C boundary match;", len(primitive_hash_mutations), "mutations rejected")
 
 
 if __name__ == "__main__":

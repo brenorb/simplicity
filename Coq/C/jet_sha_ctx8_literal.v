@@ -77,6 +77,13 @@ Definition literal_ctx8_add1 {term : Alg.Assertion.Algebra} :
     case (@literal_ctx8_add1_full term) iden >>>
     (@literal_ctx8_verify_count term &&& iden) >>> I H.
 
+Lemma literal_ctx8_add1_algebra_matches term : @literal_ctx8_add1 term = @ctx8_add1_spec term.
+Proof.
+  unfold literal_ctx8_add1. rewrite literal_ctx8_snoc_matches, literal_ctx8_verify_count_matches.
+  unfold ctx8_add1_spec, literal_ctx8_add1_full, ctx8_add1_full.
+  rewrite literal_ctx8_increment64_matches, literal_sha_256_block_core_matches. reflexivity.
+Qed.
+
 Lemma literal_ctx8_add1_matches : @literal_ctx8_add1 optalg = @ctx8_add1_spec optalg.
 Proof.
   unfold literal_ctx8_add1. rewrite literal_ctx8_snoc_matches, literal_ctx8_verify_count_matches.
@@ -91,6 +98,12 @@ Fixpoint literal_ctx8_addn n {term : Alg.Assertion.Algebra} :
   | Datatypes.O => @literal_ctx8_add1 term
   | Datatypes.S k => (O H &&& I O H >>> @literal_ctx8_addn k term) &&& I I H >>> @literal_ctx8_addn k term
   end.
+
+Lemma literal_ctx8_addn_algebra_matches n term : @literal_ctx8_addn n term = @ctx8_addn_spec n term.
+Proof.
+  induction n as [|n IHn]; [exact (literal_ctx8_add1_algebra_matches term)|].
+  cbn [literal_ctx8_addn ctx8_addn_spec]. rewrite IHn. reflexivity.
+Qed.
 
 Lemma literal_ctx8_addn_matches n : @literal_ctx8_addn n optalg = @ctx8_addn_spec n optalg.
 Proof.

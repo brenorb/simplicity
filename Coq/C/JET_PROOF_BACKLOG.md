@@ -278,17 +278,32 @@ acceptance passed: 292 recursive kernel modules, 186 assumption modules,
 unchanged audited inputs and no expectation updates. The reproducible command
 and remaining scope limits are recorded in `JET_ACCEPTANCE.md`.
 
-## Next shared bridge: arbitrary assertion algebras
+## Primitive-bearing SHA bridges and tappath-hash candidate
 
-The current context-add, buffer-add and finalizer equality interfaces specialize
-to `optalg`. Add algebra-parametric variants before the next primitive-bearing
-hash-program composition. Preserve the existing public C theorem types and
-programs. For context-add1 the existing proof works with
-`literal_sha_256_block_core_matches` in place of the option-only block bridge;
-context-addn and buffer-add then follow by their existing structural inductions.
-The finalizer-padding proof uses the addn result at depth 3, and the finalizer
-uses that result plus the universal Core block equality. These are program
-bridges, not additional C-jet coverage. They should allow the cached-hash
-programs to reuse the same structure in a primitive-bearing algebra without
-re-proving C execution. Their environment/cache and reported Bitcoin-domain
-obligations must remain explicit.
+The context-add, buffer-add and finalizer now have closed equality variants
+for every assertion algebra, in addition to their unchanged option interfaces.
+Existing program definitions and public C theorem types are unchanged. The
+proofs reuse `literal_sha_256_block_core_matches` and structural induction;
+no new semantic assumption or functional-extensionality premise is needed.
+
+`jet_sha_hash_words_literal.v` composes these bridges into the canonical
+initializer, bounded/early-stopping `hashLoop` and `hashWord256s` structures.
+`jet_bitcoin_tappath_hash_literal.v` instantiates the program with the existing
+Tappath primitive and composes the original complete C getter proof. The exact
+`hash_getter_rep ... 8 40 176` relation, frame separation and formal environment
+are retained. This is a cached-field jet: cache establishment by a caller is
+not proved by the new theorem. No extra libc premise is added.
+
+All ten new program bridges are closed; the C theorem inherits six library
+assumptions. Normal builds, recursive kernel checking with supported VM
+conversion, and reviewed comparisons of the five affected snapshot modules
+passed. The source checker follows the actual SigHash library instances,
+initialization, traversal/termination, 8-bit indexing and selected primitive,
+and rejects 25 further mutations. Host interpreter correspondence is
+source-reviewed, not a general Haskell interpreter correctness theorem.
+
+The existing extended environment restricts paths to 128 entries, matching the
+well-formedness guard in the real C taproot builder; no domain is changed here.
+The other inherited Bitcoin-domain discrepancies remain documented in
+`JET_BITCOIN_MODEL_MISMATCHES.md`. Registration and ordinary scoped acceptance
+of the new tappath-hash endpoint remain pending.

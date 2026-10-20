@@ -16,6 +16,16 @@ Fixpoint literal_ctx8_add_buffer d {term : Alg.Assertion.Algebra} :
         &&& I I H >>> @literal_ctx8_add_buffer k term
   end.
 
+Lemma literal_ctx8_add_buffer_algebra_matches d term :
+  @literal_ctx8_add_buffer d term = @ctx8_add_buffer_spec d term.
+Proof.
+  induction d as [|d IHd].
+  - cbn [literal_ctx8_add_buffer ctx8_add_buffer_spec].
+    rewrite literal_ctx8_verify_count_matches, literal_ctx8_add1_algebra_matches. reflexivity.
+  - cbn [literal_ctx8_add_buffer ctx8_add_buffer_spec].
+    rewrite literal_ctx8_addn_algebra_matches, IHd. reflexivity.
+Qed.
+
 Lemma literal_ctx8_add_buffer_matches d :
   @literal_ctx8_add_buffer d optalg = @ctx8_add_buffer_spec d optalg.
 Proof.
