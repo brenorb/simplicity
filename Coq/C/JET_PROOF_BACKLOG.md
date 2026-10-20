@@ -403,6 +403,33 @@ acceptance passed with 282 kernel-checked modules, matching assumption records
 for 153 modules and contract records for 176 modules, negative tests and all
 five AST regenerations. Its command is in `JET_ACCEPTANCE.md`.
 
+## Canonical input outpoints, annexes and combined-input hash candidates
+
+`jet_bitcoin_inputs_hash_literal.v` supplies literal programs for
+`inputOutpointsHash`, `inputAnnexesHash` and `inputsHash`, reusing the original
+generic element-loop body and the accepted literal SHA/context programs.
+The outpoint and annex append equalities are generalized to every assertion
+algebra without changing the existing option-only APIs. The shared element
+adapter and all three program equalities/parametricity bridges are closed.
+
+Six complete original-C getter contracts compose the existing executions with
+these bridges, in both abstract and raw primitive interpretations. Their cache
+relations remain `hash_getter_rep ... 0 <offset> 432` at offsets 112, 272 and
+336, respectively. There is no new libc, execution or output premise; all six
+contracts retain the same six inherited library assumptions. Caller cache
+construction, the raw path bound and the frozen-domain differences remain
+separate obligations.
+
+The normal project build passes under the pinned toolchain, after rebuilding
+unchanged stale dependencies from source. The existing source checker compares
+the complete canonical loop/composition trees, primitive interpretations and
+all six C boundaries and rejects 33 further mutations. In particular, an
+absent input stops the annex loop, whereas a present input without an annex
+continues and appends a zero byte. Reviewed snapshots cover all fifteen public
+theorem types/assumption sets and the four new program definitions; comparison
+without update flags passes. The candidates are not registered yet; ordinary
+scoped acceptance remains required.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:
