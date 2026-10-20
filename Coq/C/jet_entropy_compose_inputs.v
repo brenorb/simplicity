@@ -102,11 +102,11 @@ Lemma exec_entropy_store_index e le m mf bo r :
   Clight2.exec_stmt elements_ge e le m entropy_store_index E0 le mf Out_normal.
 Proof.
   intros HO HT HS. unfold entropy_store_index. eapply exec_Sassign with (v := Vlong r).
-  - eapply eval_Efield_struct with (delta := 32) (ofs := Ptrofs.zero).
-    + eapply eval_Elvalue; [apply eval_Evar_local; exact HO|apply deref_loc_copy; reflexivity].
+  - rewrite <- elements_sha_genv.
+    eapply eval_envu_field_lvalue with (sid := _outpoint) (delta := 32).
     + reflexivity.
-    + vm_compute; reflexivity.
-    + vm_compute; reflexivity.
+    + apply envu_field_offset_at. vm_compute; reflexivity.
+    + eapply eval_Elvalue; [apply eval_Evar_local; exact HO|apply deref_loc_copy; reflexivity].
   - apply eval_Etempvar; exact HT.
   - reflexivity.
   - apply assign_loc_value with (chunk := Mint64); [reflexivity|]. exact HS.
