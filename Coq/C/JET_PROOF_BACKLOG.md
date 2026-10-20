@@ -75,18 +75,30 @@ With the documented Coq 8.17.1 toolchain and matching pinned dependencies,
 reproduce the focused build and recursive kernel check with:
 
 ```sh
-JET_TARGETS=C/jet_secp_rescale_owned.vo bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_rescale_owned
+JET_TARGETS='C/jet_secp_rescale_owned.vo C/jet_secp_rescale_literal.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_rescale_owned C.jet_secp_rescale_literal
 ```
 
 The kernel command enables the checker's supported VM conversion; it still
 recursively checks every imported module, without admitting dependencies or
 disabling kernel checks. The ordinary acceptance command remains unchanged.
 
-Next compose the public reader/writer lifecycle with the literal `gej_rescale`
-program. Use the original Haskell `gej_rescale` and `zinv` trees; the C helper
-computes Y by two multiplications while the tree uses the cube, so carry their
-field residues through the existing numeric/writer bridges. Preserve all
+`jet_secp_rescale_literal.v` ports the original Haskell `gej_rescale`, `zinv`
+and cube trees. `rescale_reader_outputs_literal` connects all three helper
+outputs through the existing wide field writer's value function to that
+literal program for unrestricted Word256 inputs. It discharges the residue
+premises from the normalized reader representation, including the difference
+between C's two Y multiplications and the specification's cube expression.
+This is a value bridge, not yet public reader/writer execution.
+
+The checked rescale closure uses the declared Coq 8.17.1 baseline (the Nix
+compiler built with OCaml 4.14.4). An attempted import of the old
+`jet_secp_point_write_field.vo` found an OCaml 4.14.1 cache; the literal bridge
+does not need that module. Before using it for public writer composition,
+rebuild its affected source closure in a clean output tree under the declared
+baseline, rather than switching compilers to match the stale object.
+
+Next compose the public reader/writer lifecycle with this literal bridge. Preserve all
 Word256 inputs, including zero scale and arbitrary coordinates; no on-curve
 or nonzero premise is needed by the helper. Coordinates live at offsets 0, 40 and 80 inside
 one owned 128-byte point allocation. The existing owned multiply contract
