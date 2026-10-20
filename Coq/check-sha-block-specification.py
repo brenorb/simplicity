@@ -1479,6 +1479,257 @@ def elements_array_hashes(s):
         raise ValueError('Elements explicit/confidential proof view differs')
 
 
+def explicit_core_tree(node, atoms):
+    """Typed Coq Core applications after exact, context-specific aliases."""
+    if node == ('iden',) or (node[0] == 'name' and node[1] in atoms):
+        return node
+    if node[0] == 'app' and node[1][0] == 'name':
+        op = node[1][1]
+        if op in {'takeNode', 'dropNode'}:
+            return ('take' if op == 'takeNode' else 'drop', explicit_core_tree(node[2], atoms))
+        if op in {'injlNode', 'injrNode'}:
+            return ('app', ('name', op[:-4]), explicit_core_tree(node[2], atoms))
+    if node[0] == 'app' and node[1][0] == 'app' and node[1][1][0] == 'name':
+        op = node[1][1][1]
+        left, right = explicit_core_tree(node[1][2], atoms), explicit_core_tree(node[2], atoms)
+        if op in {'compNode', 'pairNode'}:
+            return ('comp' if op == 'compNode' else 'pair', left, right)
+        if op in {'caseNode', 'copairNode'}:
+            return ('app', ('app', ('name', 'case' if op == 'caseNode' else 'copair'), left), right)
+    raise ValueError('unsupported explicit Core tree')
+
+
+def elements_input_hashes(s):
+    """Two-lookup outpoint loop, nested annex loop and complete C getters.
+    Shared SHA, literal annex and primitive-array trees have existing gates.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('Elements input binding differs: ' + lhs)
+
+    def definition(name, expected):
+        if p.compact(p.definition(s['elements_inputs_port'], name)) != p.compact(expected):
+            raise ValueError('Elements input program differs: ' + name)
+
+    p.require(s['elements_sighash'], 'import Simplicity.Programs.Elements.Lib', 'Elements context library import')
+    p.require(s['elements_prog_lib'], 'import qualified Simplicity.Programs.Elements as Elements', 'Elements context wrapper import')
+    binding('elements_prog', 'libAssert', 'mkLibAssert Sha256.lib Sha256.libAssert LibSecp256k1.lib')
+    for name in ['outpointHash', 'annexHash']:
+        binding('elements_prog_lib', name, f'Elements.{name} Elements.libAssert')
+    contexts = s['elements_prog'].split('mkLibAssert Sha256.Lib{..} Sha256.LibAssert{..} LibSecp256k1.Lib{..} = libAssert', 1)[1]
+    hs_add = re.search(r'\boutpointHash\s*=(.*?)\n\s*,\s*assetAmountHash', contexts, re.S)
+    hs_annex = re.search(r'\bannexHash\s*=(.*?)\n\s*,\s*buildTaptweak', contexts, re.S)
+    if not hs_add or not hs_annex:
+        raise ValueError('missing Elements context program')
+    add = p.definition(s['elements_inputs_port'], 'literal_elements_outpoint_add')
+    for old, new in [('@literal_bitcoin_annex_hash term', 'annexHash'),
+                     ('@literal_ctx8_addn 5 term', 'ctx8Add32'), ('@literal_ctx8_addn 2 term', 'ctx8Add4')]:
+        add = replace(add, old, new)
+    same(hs_add[1], add, 'Elements pegin/outpoint absorber')
+    annex = p.definition(s['bctx_port'], 'literal_bitcoin_annex_hash')
+    for old, new in [('@Word.zero 3 (Alg.Assertion.toCore term)', 'zero8'),
+                     ('Alg.scribe (haskell_to_word 3 0x01)', 'byteOne'),
+                     ('@literal_ctx8_add1 term', 'ctx8Add1'), ('@literal_ctx8_addn 5 term', 'ctx8Add32')]:
+        annex = replace(annex, old, new)
+    hs_annex = replace(replace(hs_annex[1], 'zero word8', 'zero8'), 'scribe (toWord8 0x01)', 'byteOne')
+    same(hs_annex, annex, 'Elements shared literal annex program')
+    p.require(contexts, 'ctx8Add4 = ctx8Addn vector4', 'Elements outpoint index width')
+    p.require(contexts, 'ctx8Add32 = ctx8Addn vector32', 'Elements outpoint digest width')
+
+    ops = [('@AC.comp _ _ _ core', 'compNode'), ('@AC.pair _ _ _ core', 'pairNode'),
+           ('@AC.case _ _ _ _ core', 'caseNode'), ('@AC.copair _ _ _ core', 'copairNode'),
+           ('@AC.injl _ _ _ core', 'injlNode'), ('@AC.injr _ _ _ core', 'injrNode'),
+           ('@AC.take _ _ _ core', 'takeNode'), ('@AC.drop _ _ _ core', 'dropNode'),
+           ('@AC.unit _ core', 'unit'), ('@AC.iden _ core', 'iden'),
+           ('AC.drop', 'dropNode'), ('AC.take', 'takeNode'), ('AC.iden', 'iden')]
+    atoms = {'pPegin', 'pOutpoint', 'outpointHash', 'annexHash', 'array', 'unit',
+             'ctx8Init', 'ctx8Finalize', 'loop', 'outpoints', 'sequences', 'annexes', 'add64', 'add32'}
+
+    def tree(text, aliases, prefix=True):
+        if prefix:
+            header = re.fullmatch(r'\s*let term := EFP\.CanonicalStructures\.toAssertion alg in\s*'
+                                  r'let core := Alg\.Assertion\.toCore term in\s*(.*)', text, re.S)
+            if not header:
+                raise ValueError('Elements input algebra binding differs')
+            text = header[1]
+        for old, new in aliases + ops:
+            text = replace(text, old, new)
+        return explicit_core_tree(expression(text), atoms)
+
+    definition('literal_elements_elems_hash', '''let core := Alg.Assertion.toCore term in
+      @AC.comp _ _ _ core
+        (@AC.pair _ _ _ core (@AC.unit _ core) (@literal_sha_hash_ctx_init core))
+        (@AC.comp _ _ _ core
+          (@for_while_program w Ty.Unit sha256_ctx8_type sha256_ctx8_type core
+            (@gen_loop_body X add term Ty.Unit (Word w) array))
+          (@AC.copair _ _ _ core (@literal_ctx8_finalize term) (@literal_ctx8_finalize term)))''')
+    definition('literal_elements_input_annexes_hash', '''
+      let term := EFP.CanonicalStructures.toAssertion alg in let core := Alg.Assertion.toCore term in
+      @literal_elements_elems_hash (Ty.Sum Ty.Unit Word256)
+        (fun term => @literal_bitcoin_annex_hash term) 5 term
+        (@AC.drop Ty.Unit Word32 _ core (@EFP.Combinators.prim _ _ alg Elements.InputAnnexHash))''')
+    hs_programs = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    for tag, hs_name, stem, offset in [
+        ('InputOutpointsHash', 'inputOutpointsHash', 'input_outpoints', 216),
+        ('InputAnnexesHash', 'inputAnnexesHash', 'input_annexes', 376),
+        ('InputsHash', 'inputsHash', 'inputs', 440),
+    ]:
+        p.require(s['elements_catalog'], f'{tag} :: SigHashJet () Word256', 'Elements input catalog type')
+        binding('elements_catalog', 'specificationSigHash ' + tag, 'SigHash.' + hs_name)
+        binding('elements_sighash_lib', hs_name, 'SigHash.' + hs_name + ' SigHash.lib')
+        selected = re.search(r'\b' + hs_name + r'\s*=(.*?)\n\s*[,}]', hs_programs, re.S)
+        if not selected:
+            raise ValueError('missing Elements input hash')
+        if stem != 'inputs':
+            parts = re.fullmatch(r'\s*let\s+finalize\s*=\s*ctx8Finalize\s+body\s*=(.*?)\bin\b(.*)', selected[1], re.S)
+            if not parts:
+                raise ValueError('Elements input loop bindings differ')
+            if stem == 'input_outpoints':
+                hs_body = replace(replace(parts[1], 'primitive InputPegin', 'pPegin'), 'primitive InputPrevOutpoint', 'pOutpoint')
+                aliases = [('@EFP.Combinators.prim _ _ alg Elements.InputPegin', 'pPegin'),
+                           ('@EFP.Combinators.prim _ _ alg Elements.InputPrevOutpoint', 'pOutpoint'),
+                           ('@AC.drop Ty.Unit Word32 _ core', 'dropNode'),
+                           ('@literal_elements_outpoint_add term', 'outpointHash')]
+                actual = tree(p.definition(s['elements_inputs_port'], 'literal_elements_outpoints_body'), aliases)
+                if expression(hs_body) != actual:
+                    raise ValueError('Elements outpoint loop two-lookup/early-exit tree differs')
+                program = p.definition(s['elements_inputs_port'], 'literal_elements_input_outpoints_hash')
+                aliases = [('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+                           ('@for_while_program 5 _ _ _ core (@literal_elements_outpoints_body alg)', 'loop'),
+                           ('@literal_ctx8_finalize term', 'ctx8Finalize')]
+                expected = replace(replace(parts[2], 'forWhile word32 body', 'loop'), 'finalize', 'ctx8Finalize')
+                if expression(expected) != tree(program, aliases):
+                    raise ValueError('Elements outpoint whole traversal differs')
+            else:
+                hs_body = replace(parts[1], 'drop (primitive InputAnnexHash)', 'array')
+                body = p.definition(s['elems_loop'], 'gen_loop_body')
+                prefix = 'let core := Alg.Assertion.toCore term in'
+                if not body.lstrip().startswith(prefix):
+                    raise ValueError('element loop algebra differs')
+                if expression(hs_body) != tree(body.lstrip()[len(prefix):], [('add term', 'annexHash')], prefix=False):
+                    raise ValueError('Elements annex stop/continue body differs')
+                same(parts[2], 'unit &&& ctx8Init >>> forWhile word32 body >>> copair finalize finalize', 'Elements annex traversal')
+        else:
+            aliases = [('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+                       ('@literal_elements_input_outpoints_hash alg', 'outpoints'),
+                       ('@literal_elements_input_sequences_hash alg', 'sequences'),
+                       ('@literal_elements_input_annexes_hash alg', 'annexes'),
+                       ('@literal_ctx8_addn 6 term', 'add64'), ('@literal_ctx8_addn 5 term', 'add32'),
+                       ('@literal_ctx8_finalize term', 'ctx8Finalize')]
+            hs_body = selected[1]
+            for old, new in [('inputOutpointsHash', 'outpoints'), ('inputSequencesHash', 'sequences'),
+                             ('inputAnnexesHash', 'annexes'), ('ctx8Addn vector64', 'add64'), ('ctx8Addn vector32', 'add32')]:
+                hs_body = replace(hs_body, old, new)
+            if expression(hs_body) != tree(p.definition(s['elements_inputs_port'], 'literal_elements_inputs_hash'), aliases):
+                raise ValueError('Elements inputs hash composition differs')
+        statement = re.search(r'Theorem elements_' + stem + r'_hash_literal_local_spec\s*:(.*?)\bProof\.', s['elements_inputs_port'], re.S)
+        expected = f'''application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256
+          (hash_getter_rep elements_{stem}_hash_of 0 {offset} 760)
+          (fun a environment => @literal_elements_{stem}_hash elements_hash_alg a environment).'''
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError('Elements input whole C contract differs')
+    binding('elements_primitive_hs', 'interpret InputPegin', 'return . (atInput $ cast . fmap encodeHash . sigTxiPegin)')
+    binding('elements_primitive_hs', 'interpret InputPrevOutpoint', 'return . (atInput $ encodeOutpoint . sigTxiPreviousOutpoint)')
+    binding('elements_primitive_hs', 'encodeOutpoint op', '(encodeHash $ opHash op, toWord32 . fromIntegral $ opIndex op)')
+    binding('elements_primitive_hs', 'interpret InputAnnexHash', 'return . (atInput $ cast . fmap (encodeHash . bslHash) . sigTxiAnnex)')
+    for expected in [
+        '| InputPegin => atInput (fun txi => cast (option_map encodeHash (sigTxiPegin txi)))',
+        '| InputPrevOutpoint => atInput (fun txi => encodeOutpoint (sigTxiPreviousOutpoint txi))',
+        '| InputAnnexHash => atInput (fun txi => cast (option_map (fun x => encodeHash (byteStringHash x)) (sigTxiAnnex txi)))',
+    ]:
+        p.require(s['elements_primitive_coq'], expected, 'Elements optional primitive interpretation')
+
+
+def elements_tap_hashes(s):
+    """Fixed Elements tag, full tapleaf/tapEnv trees and native key boundary.
+    This does not establish caller cache construction or host-runtime fidelity.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('Elements tap binding differs: ' + lhs)
+
+    aliases = [
+        ('@literal_sha_tag_ctx (literal_short_tag_prefix "TapLeaf/elements"%string) core', 'tagInit'),
+        ('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+        ('@literal_elements_tapleaf_hash alg', 'tapleafHash'),
+        ('@literal_elements_tappath_hash alg', 'tappathHash'),
+        ('@EFP.Combinators.prim _ _ alg Elements.TapleafVersion', 'primVersion'),
+        ('@EFP.Combinators.prim _ _ alg Elements.ScriptCMR', 'primCMR'),
+        ('@EFP.Combinators.prim _ _ alg Elements.InternalKey', 'primKey'),
+        ('@Alg.scribe Ty.Unit Word8 (haskell_to_word 3 32) core', 'leafSize'),
+        ('@literal_ctx8_addn 1 term', 'add2'), ('@literal_ctx8_addn 5 term', 'add32'),
+        ('@literal_ctx8_addn 6 term', 'add64'), ('@literal_ctx8_finalize term', 'ctx8Finalize'),
+    ]
+    atoms = {new for _, new in aliases}
+    hs_programs = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    for tag, hs_name, stem, offset in [
+        ('TapleafHash', 'tapleafHash', 'tapleaf', 8), ('TapEnvHash', 'tapEnvHash', 'tap_env', 72),
+    ]:
+        p.require(s['elements_catalog'], f'{tag} :: SigHashJet () Word256', 'Elements tap catalog type')
+        binding('elements_catalog', 'specificationSigHash ' + tag, 'SigHash.' + hs_name)
+        binding('elements_sighash_lib', hs_name, 'SigHash.' + hs_name + ' SigHash.lib')
+        hs = re.search(r'\b' + hs_name + r'\s*=(.*?)\n\s*[,}]', hs_programs, re.S)
+        if not hs:
+            raise ValueError('missing canonical Elements tap program')
+        hs = hs[1]
+        program = 'literal_elements_' + stem + '_hash'
+        port = p.definition(s['elements_tap_port'], program)
+        # Whitespace is significant INSIDE a tag. Do this before aliases that
+        # intentionally ignore formatting between Core expression tokens.
+        expected_strings = ['"TapLeaf/elements"'] if stem == 'tapleaf' else []
+        for text in [hs, port]:
+            if re.findall(r'"(?:\\.|[^"\\])*"', text) != expected_strings:
+                raise ValueError('Elements tap tag literal differs')
+        header = re.fullmatch(r'\s*let term := EFP\.CanonicalStructures\.toAssertion alg in\s*'
+                              r'let core := Alg\.Assertion\.toCore term in\s*(.*)', port, re.S)
+        if not header:
+            raise ValueError('Elements tap algebra binding differs')
+        port = header[1]
+        for old, new in aliases + [('@AC.comp _ _ _ core', 'compNode'), ('@AC.pair _ _ _ core', 'pairNode')]:
+            port = replace(port, old, new)
+        for old, new in [
+            ('Sha256.ctx8InitTag "TapLeaf/elements"', 'tagInit'),
+            ('primitive TapleafVersion', 'primVersion'), ('primitive ScriptCMR', 'primCMR'),
+            ('primitive InternalKey', 'primKey'), ('scribe (toWord8 32)', 'leafSize'),
+            ('ctx8Addn vector2', 'add2'), ('ctx8Addn vector32', 'add32'), ('ctx8Addn vector64', 'add64'),
+        ]:
+            hs = replace(hs, old, new)
+        if expression(hs) != explicit_core_tree(expression(port), atoms):
+            raise ValueError('canonical Elements tap Core tree differs')
+        statement = re.search(r'Theorem elements_' + stem + r'_hash_literal_local_spec\s*:(.*?)\bProof\.', s['elements_tap_port'], re.S)
+        expected = f'''application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256
+          (hash_getter_rep elements_{stem}_hash_of 8 {offset} 176)
+          (fun a environment => @{program} elements_hash_alg a environment).'''
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError('Elements tap whole C contract differs')
+    for lhs, rhs in {
+        'interpret TapleafVersion': 'element . return . toWord8 . toInteger . tapleafVersion $ envTap env',
+        'interpret ScriptCMR': 'element . return . encodeHash . tapScriptCMR $ envTap env',
+        'interpret InternalKey': 'element . return . encodeKey . tapInternalKey $ envTap env',
+        'encodeKey (Schnorr.PubKey x)': 'toWord256 . toInteger $ x',
+    }.items():
+        binding('elements_primitive_hs', lhs, rhs)
+    p.require(s['native_schnorr'], 'import Simplicity.Word', 'native key word import')
+    p.require(s['native_schnorr'], 'data PubKey = PubKey Word256', 'native key carrier')
+    p.require(s['native_spec'], 'import Simplicity.LibSecp256k1.Schnorr', 'native key re-export import')
+    p.require(s['native_spec'], 'PubKey(..), pubkey_unpack', 'native key re-export')
+    if re.search(r'\b(?:data|newtype|type)\s+PubKey\b', s['native_spec']):
+        raise ValueError('native key re-export is shadowed')
+    p.require(s['secp_types'], 'type PubKey = Word256', 'Simplicity key program type')
+    for expected in [
+        '| TapleafVersion => fun _ => Some (fromZ (Byte.unsigned (tapleafVersion (envTap e))))',
+        '| ScriptCMR => fun _ => Some (encodeHash (tapScriptCMR (envTap e)))',
+        '| InternalKey => fun _ => Some (from_hash256 (tapInternalKey (envTap e)))',
+    ]:
+        p.require(s['elements_primitive_coq'], expected, 'Elements tap primitive interpretation')
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1545,6 +1796,13 @@ def sources():
         "elems_loop": COQ / "C/jet_sha_hash_loop_gen.v",
         "single_input_port": COQ / "C/jet_bitcoin_input_hash_literal.v",
         "elements_array_port": COQ / "C/jet_elements_array_hash_literal.v",
+        "elements_inputs_port": COQ / "C/jet_elements_inputs_hash_literal.v",
+        "elements_tap_port": COQ / "C/jet_elements_tap_hash_literal.v",
+        "elements_prog": REPO / "Haskell/Core/Simplicity/Programs/Elements.hs",
+        "elements_prog_lib": REPO / "Haskell/Core/Simplicity/Programs/Elements/Lib.hs",
+        "native_schnorr": REPO / "Haskell/Core/Simplicity/LibSecp256k1/Schnorr.hs",
+        "native_spec": REPO / "Haskell/Core/Simplicity/LibSecp256k1/Spec.hs",
+        "secp_types": REPO / "Haskell/Core/Simplicity/Ty/LibSecp256k1.hs",
         "elements_sighash": REPO / "Haskell/Simplicity/Elements/Programs/SigHash.hs",
         "elements_sighash_lib": REPO / "Haskell/Simplicity/Elements/Programs/SigHash/Lib.hs",
         "elements_catalog": REPO / "Haskell/Simplicity/Elements/Jets.hs",
@@ -1572,6 +1830,8 @@ def test():
     bitcoin_input_hashes(s)
     bitcoin_single_input_hash(s)
     elements_array_hashes(s)
+    elements_input_hashes(s)
+    elements_tap_hashes(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -2056,6 +2316,113 @@ def test():
             continue
         raise ValueError('Elements array mutation escaped: ' + old)
     print('Seven Elements array hash trees, raw primitives and whole C contracts match;', len(elements_array_mutations), 'mutations rejected')
+
+
+    elements_inputs_mutations = [
+        ('elements_sighash', 'body = take (drop (primitive InputPegin))', 'body = take (drop (primitive InputAnnexHash))'),
+        ('elements_sighash', 'take (drop (primitive InputPrevOutpoint)) &&& ih', 'take (drop (primitive InputSequence)) &&& ih'),
+        ('elements_sighash', 'match (injl iih) (ioh &&&', 'match (injr iih) (ioh &&&'),
+        ('elements_sighash', 'match (injl iih) (injr (iih &&& (ioh &&& oh) >>> outpointHash))', 'match (injr iih) (injr (iih &&& (ioh &&& oh) >>> outpointHash))'),
+        ('elements_prog', '((oh &&& ioh >>> annexHash) &&& iioh >>> ctx8Add32)', '((oh &&& ioh >>> annexHash) &&& iiih >>> ctx8Add32)'),
+        ('elements_prog', 'ctx8Add4 = ctx8Addn vector4', 'ctx8Add4 = ctx8Addn vector8'),
+        ('elements_prog', 'take (zero word8) >>> ctx8Add1', 'take (zero word16) >>> ctx8Add1', 2),
+        ('elements_prog_lib', 'outpointHash = Elements.outpointHash Elements.libAssert', 'outpointHash = Elements.annexHash Elements.libAssert'),
+        ('elements_prog_lib', 'annexHash = Elements.annexHash Elements.libAssert', 'annexHash = Elements.outpointHash Elements.libAssert'),
+        ('elements_inputs_port', '@literal_bitcoin_annex_hash term', '@literal_bitcoin_outpoint_hash term'),
+        ('elements_inputs_port', '@literal_ctx8_addn 5 term', '@literal_ctx8_addn 6 term'),
+        ('elements_inputs_port', '@EFP.Combinators.prim _ _ alg Elements.InputPegin', '@EFP.Combinators.prim _ _ alg Elements.InputAnnexHash'),
+        ('elements_inputs_port', '@EFP.Combinators.prim _ _ alg Elements.InputPrevOutpoint', '@EFP.Combinators.prim _ _ alg Elements.InputSequence'),
+        ('elements_inputs_port', '@for_while_program 5 _ _ _ core', '@for_while_program 3 _ _ _ core'),
+        ('elements_inputs_port', '@for_while_program w Ty.Unit', '@for_while_program 3 Ty.Unit'),
+        ('elements_inputs_port', '@literal_sha_hash_ctx_init core', '@AC.unit _ core'),
+        ('elements_inputs_port', '@literal_ctx8_finalize term', '@literal_ctx8_addn 5 term'),
+        ('elements_inputs_port', '(fun term => @literal_bitcoin_annex_hash term) 5 term', '(fun term => @literal_bitcoin_annex_hash term) 3 term'),
+        ('elements_inputs_port', '@literal_elements_input_sequences_hash alg', '@literal_elements_input_scripts_hash alg'),
+        ('elements_primitive_hs', 'interpret InputPegin = return . (atInput $ cast . fmap encodeHash . sigTxiPegin)', 'interpret InputPegin = return . (atInput $ cast . fmap encodeHash . sigTxiAnnex)'),
+        ('elements_primitive_coq', '| InputPegin => atInput (fun txi => cast (option_map encodeHash (sigTxiPegin txi)))', '| InputPegin => atInput (fun txi => inl tt)'),
+        ('elements_primitive_coq', '| InputAnnexHash => atInput (fun txi =>', '| InputAnnexHash => atOutput (fun txi =>'),
+    ]
+    stop_branch = '@AC.injl _ _ _ core (AC.drop (AC.drop AC.iden))'
+    for occurrence in [1, 2]:
+        elements_inputs_mutations.append(('elements_inputs_port', stop_branch,
+                                         '@AC.injr _ _ _ core (AC.drop (AC.drop AC.iden))', occurrence))
+    for tag, hs_name, stem, offset in [
+        ('InputOutpointsHash', 'inputOutpointsHash', 'input_outpoints', 216),
+        ('InputAnnexesHash', 'inputAnnexesHash', 'input_annexes', 376),
+        ('InputsHash', 'inputsHash', 'inputs', 440),
+    ]:
+        declaration = f'Theorem elements_{stem}_hash_literal_local_spec :'
+        elements_inputs_mutations.extend([
+            ('elements_catalog', f'specificationSigHash {tag} = SigHash.{hs_name}', f'specificationSigHash {tag} = SigHash.tapleafHash'),
+            ('elements_sighash_lib', f'{hs_name} = SigHash.{hs_name} SigHash.lib', f'{hs_name} = SigHash.tapleafHash SigHash.lib'),
+            ('elements_inputs_port', declaration, declaration + ' False ->'),
+            ('elements_inputs_port', f'hash_getter_rep elements_{stem}_hash_of 0 {offset} 760', f'hash_getter_rep elements_{stem}_hash_of 0 {offset + 8} 760'),
+        ])
+    for mutation in elements_inputs_mutations:
+        key, old, new = mutation[:3]
+        occurrence = mutation[3] if len(mutation) == 4 else 1
+        start = -1
+        for _ in range(occurrence):
+            start = s[key].find(old, start + 1)
+            if start < 0:
+                raise ValueError('inactive Elements input mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key][:start] + new + s[key][start + len(old):]
+        try:
+            elements_input_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('Elements input mutation escaped: ' + old)
+    print('Elements outpoint/annex/input trees and three whole C boundaries match;', len(elements_inputs_mutations), 'mutations rejected')
+    elements_tap_mutations = [
+        ('elements_sighash', 'Sha256.ctx8InitTag "TapLeaf/elements"', 'Sha256.ctx8InitTag "TapLeaf /elements"'),
+        ('elements_sighash', 'Sha256.ctx8InitTag "TapLeaf/elements"', 'Sha256.ctx8InitTag "TapLeaf/elements "'),
+        ('elements_sighash', 'Sha256.ctx8InitTag "TapLeaf/elements"', 'Sha256.ctx8InitTag "TapLeaf"'),
+        ('elements_sighash', 'tappathHash &&& primitive InternalKey', 'tapleafHash &&& primitive InternalKey'),
+        ('elements_tap_port', 'literal_short_tag_prefix "TapLeaf/elements"%string', 'literal_short_tag_prefix "TapLeaf /elements"%string', 2),
+        ('elements_tap_port', 'literal_short_tag_prefix "TapLeaf/elements"%string', 'literal_short_tag_prefix "TapLeaf/elements "%string', 2),
+        ('elements_tap_port', '@literal_sha_tag_ctx (literal_short_tag_prefix "TapLeaf/elements"%string) core', '@literal_sha_tag_ctx (literal_short_tag_prefix "TapLeaf"%string) core'),
+        ('elements_tap_port', 'haskell_to_word 3 32', 'haskell_to_word 3 33'),
+        ('elements_tap_port', '@literal_ctx8_addn 1 term', '@literal_ctx8_addn 2 term'),
+        ('elements_tap_port', '@literal_ctx8_addn 6 term', '@literal_ctx8_addn 5 term'),
+        ('elements_tap_port', '@literal_elements_tappath_hash alg', '@literal_elements_tapleaf_hash alg'),
+        ('elements_tap_port', '@AC.comp _ _ _ core', '@AC.pair _ _ _ core'),
+        ('elements_tap_port', 'Elements.ScriptCMR', 'Elements.InternalKey'),
+        ('elements_tap_port', 'Elements.InternalKey', 'Elements.ScriptCMR'),
+        ('elements_primitive_hs', 'encodeKey (Schnorr.PubKey x) = toWord256 . toInteger $ x', 'encodeKey (Schnorr.PubKey x) = toWord256 . Schnorr.fe_repr $ x'),
+        ('elements_primitive_hs', 'toWord8 . toInteger . tapleafVersion', 'toWord8 . toInteger . tapInternalKey'),
+        ('elements_primitive_coq', '| InternalKey => fun _ => Some (from_hash256 (tapInternalKey (envTap e)))', '| InternalKey => fun _ => Some (from_hash256 (tapScriptCMR (envTap e)))'),
+        ('native_schnorr', 'data PubKey = PubKey Word256', 'data PubKey = PubKey FE'),
+        ('native_spec', 'import Simplicity.LibSecp256k1.Schnorr', 'import Other.Schnorr'),
+        ('native_spec', 'PubKey(..), pubkey_unpack', 'FE(..), pubkey_unpack'),
+        ('native_spec', 'import Simplicity.Word', 'import Simplicity.Word\ndata PubKey = AlternateKey Word256'),
+        ('secp_types', 'type PubKey = Word256', 'type PubKey = FE'),
+    ]
+    for tag, hs_name, stem, offset in [('TapleafHash', 'tapleafHash', 'tapleaf', 8), ('TapEnvHash', 'tapEnvHash', 'tap_env', 72)]:
+        declaration = f'Theorem elements_{stem}_hash_literal_local_spec :'
+        elements_tap_mutations.extend([
+            ('elements_catalog', f'specificationSigHash {tag} = SigHash.{hs_name}', f'specificationSigHash {tag} = SigHash.tappathHash'),
+            ('elements_sighash_lib', f'{hs_name} = SigHash.{hs_name} SigHash.lib', f'{hs_name} = SigHash.tappathHash SigHash.lib'),
+            ('elements_tap_port', declaration, declaration + ' False ->'),
+            ('elements_tap_port', declaration, declaration + ' memcpy_model ->'),
+            ('elements_tap_port', f'hash_getter_rep elements_{stem}_hash_of 8 {offset} 176', f'hash_getter_rep elements_{stem}_hash_of 8 {offset + 8} 176'),
+        ])
+    for mutation in elements_tap_mutations:
+        key, old, new = mutation[:3]
+        occurrence = mutation[3] if len(mutation) == 4 else 1
+        start = -1
+        for _ in range(occurrence):
+            start = s[key].find(old, start + 1)
+            if start < 0:
+                raise ValueError('inactive Elements tap mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key][:start] + new + s[key][start + len(old):]
+        try:
+            elements_tap_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('Elements tap mutation escaped: ' + old)
+    print('Elements tapleaf/tapEnv trees, exact tag, native key and C boundaries match;', len(elements_tap_mutations), 'mutations rejected')
 
 
 if __name__ == "__main__":

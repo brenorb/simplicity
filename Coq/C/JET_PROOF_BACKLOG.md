@@ -474,6 +474,35 @@ theorem records and 20 definitions across the four modules; comparisons without
 update flags match all four. The registry selects the eight final endpoints;
 ordinary scoped acceptance passed, with its command in `JET_ACCEPTANCE.md`.
 
+## Candidates: Elements input and taproot hash getters
+
+Six preserved modules are restored unchanged into the normal build: the
+generic option-Reader element loop, Elements annex/outpoint/combined-input
+programs, and Elements tapleaf/tap-environment programs. The outpoint loop
+retains both primitive lookups and both early exits. There is no new assumed
+hash or execution oracle, nor an artificial Bitcoin environment.
+
+`jet_elements_inputs_hash_literal.v` connects three complete original C getters
+to literal canonical programs. Nine bridges are closed; the three C contracts
+retain the same six inherited assumptions and no extra libc premise. Their
+`hash_getter_rep` offsets are 216, 376 and 440 in the 760-byte transaction.
+
+`jet_elements_tap_hash_literal.v` connects two complete original C getters to
+the canonical tapleaf/tap-environment programs. Seven bridges, including the
+fixed `"TapLeaf/elements"` host recipe, are closed. Both C contracts retain
+the same six inherited assumptions and no extra libc premise, at offsets 8
+and 72 in the 176-byte taproot environment. Native `Schnorr.PubKey` carries
+`Word256`; this adapter does not assume that arbitrary words are valid curve
+points or field elements.
+
+Normal compilation and the existing complete source checker pass. The new
+checks reject 36 input-tree/boundary mutations and 32 taproot/tag/key/boundary
+mutations, including whitespace changes inside the tag. Reviewed snapshots
+cover 55 theorem records and 32 definitions across the eight modules.
+Caller/cache construction, the existing domain/path bounds, and general
+host-library fidelity remain separate obligations. These five endpoints are
+not registered or accepted yet.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:
