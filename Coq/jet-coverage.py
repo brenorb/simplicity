@@ -129,6 +129,25 @@ for stem, offset in [("tapleaf", 8), ("tap_env", 72)]:
         f"Ty.Unit Word256 (raw_env_rep (hash_getter_rep {stem}_hash_of 8 {offset} 176)) "
         f"(fun a environment => @literal_bitcoin_{stem}_hash raw_fullalg a environment).")
 
+RECOVERED_CONTRACTS["simplicity_bitcoin_input_hash"] = (
+    "memcpy_model -> application_jet_local_spec_sep f_simplicity_bitcoin_input_hash sha_ge raw_bitcoin_environment "
+    "(Word 5) (Ty.Sum Ty.Unit (Word 8)) (raw_env_rep input_hash_rep) "
+    "(fun a environment => @literal_bitcoin_input_hash raw_fullalg a environment).")
+
+for stem, k, w, ptr, offset, size in [
+    ("output_scripts", 5, 5, 0, 88, 760),
+    ("output_range_proofs", 5, 5, 0, 120, 760),
+    ("output_surjection_proofs", 5, 5, 0, 152, 760),
+    ("input_scripts", 5, 5, 0, 280, 760),
+    ("input_sequences", 2, 5, 0, 344, 760),
+    ("input_script_sigs", 5, 5, 0, 408, 760),
+    ("tappath", 5, 3, 8, 40, 176),
+]:
+    RECOVERED_CONTRACTS[f"simplicity_{stem}_hash"] = (
+        f"application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256 "
+        f"(hash_getter_rep (fun e => elements_words_hash_of {k} {w} (elements_{stem}_words e)) {ptr} {offset} {size}) "
+        f"(fun a environment => @literal_elements_{stem}_hash elements_hash_alg a environment).")
+
 for stem, offset in [("input_outpoints", 112), ("input_annexes", 272), ("inputs", 336)]:
     RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (
         f"application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge raw_bitcoin_environment "

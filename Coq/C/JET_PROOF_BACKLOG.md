@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 459 of the 533 header declarations.
-The recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 74 declarations remain unregistered.
+The current local-contract registry contains 467 of the 533 header declarations.
+Selected registrations, verification status and their conditions are listed in
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 66 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -433,13 +433,13 @@ assumption records for 151 modules and contract records for 174 modules,
 negative tests and all five AST regenerations. Its command is in
 `JET_ACCEPTANCE.md`.
 
-## Canonical computing single-input hash candidate
+## Completed: canonical computing single-input hash
 
 `jet_bitcoin_input_hash_literal.v` composes the existing complete original
 `input_hash` execution with a literal canonical program over primitives. The
 three bridges are closed; the two C variants retain the same six inherited
-library assumptions and the explicit `memcpy_model` premise. The registry has
-not selected either variant yet. The intended endpoint is the raw variant.
+library assumptions and the explicit `memcpy_model` premise. The registry
+selects the raw variant; ordinary scoped acceptance passed.
 
 Unlike the cached composite getters, this C function computes SHA over the
 selected input's outpoint, sequence and optional annex. Its existing
@@ -449,7 +449,7 @@ present-annex branches; caller construction/startup and frozen-domain limits
 are not discharged. The source checker compares the whole canonical assertion
 tree and both complete conditional C boundaries, rejecting 27 further mutations.
 
-## Canonical Elements array-hash candidates
+## Completed: canonical Elements array hashes
 
 The preserved `jet_sha_hash_words_reader.v` and
 `jet_elements_words_hash_program.v` are restored without source changes into
@@ -471,8 +471,8 @@ primitive/proof views and all seven C boundaries, rejecting 51 further mutations
 Both candidate families compile in the normal pinned-toolchain build after
 rebuilding unchanged stale dependencies. Reviewed snapshots cover 50 public
 theorem records and 20 definitions across the four modules; comparisons without
-update flags match all four. These checks are not ordinary acceptance; the
-eight jets are not registered yet.
+update flags match all four. The registry selects the eight final endpoints;
+ordinary scoped acceptance passed, with its command in `JET_ACCEPTANCE.md`.
 
 ## Source-review question: Elements fee predicates
 

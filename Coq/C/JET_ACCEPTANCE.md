@@ -2,8 +2,8 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 459/533 jets (331 without an extra libc
-premise; 128 conditional on `memcpy_model`). The earlier 430-entry baseline passed
+The local-contract registry contains 467/533 jets (338 without an extra libc
+premise; 129 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
@@ -15,6 +15,8 @@ without a change to the coverage count; their scoped acceptance is recorded belo
 The two tapleaf/tap-environment registrations then passed scoped acceptance below.
 The three input outpoint/annex/combined-hash registrations then passed ordinary
 scoped acceptance below.
+The single-input Bitcoin hash and seven Elements array-hash registrations then
+passed ordinary scoped acceptance below.
 
 Reproduce acceptance from the repository root:
 
@@ -540,4 +542,52 @@ bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_input_outpoints_hash,s
 ```
 
 This does not assert a fresh full 459-entry audit or discharge of the remaining
+shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
+
+## Computing Bitcoin input hash and seven Elements array hashes
+
+`jet_bitcoin_input_hash_literal.v` composes the complete original C computing
+jet with the canonical primitive-bearing `inputHash` program, including its
+assertions and absent-input/absent-annex/present-annex cases. The registry
+selects the raw interpretation. Its three bridges are closed; both C variants
+retain six inherited library assumptions and the existing explicit
+`memcpy_model` premise. The existing `input_hash_rep` relation, including SHA
+global readiness and environment/output separation, is unchanged.
+
+`jet_sha_hash_words_reader.v` and `jet_elements_words_hash_program.v` restore
+the preserved generic option-Reader semantics and seven complete Elements C
+cache getters without source changes. They reuse the existing SHA traversal
+and absorption/finalization results; there is no artificial Bitcoin environment
+or assumed hash/execution oracle.
+
+`jet_elements_array_hash_literal.v` connects these getters to the shared
+literal SHA programs. The registry selects output scripts/range proofs/
+surjection proofs, input scripts/sequences/scriptSigs, and tappath. Both generic
+bridges are closed; all seven C contracts retain the same six inherited
+assumptions and no extra libc premise. Their cache/frame relations remain
+`hash_getter_rep` at the original offsets (88, 120, 152, 280, 344 and 408 in a
+760-byte transaction; 40 in the 176-byte taproot environment).
+
+Normal compilation and reviewed snapshot comparisons passed across the four
+new modules: 50 theorem records and 20 definitions. The existing source checker
+compares the complete single-input tree/boundaries and the seven Elements
+streams, raw primitive/proof views and C boundaries, rejecting 27 and 51 further
+mutations, respectively. The exact conditional-count test now expects 129,
+including the computing Bitcoin jet's existing libc premise; rejection of
+substituted models or missing/extra premises remains required.
+
+Caller environment/cache construction, persistent SHA startup, existing model
+domain/path bounds, libc implementation and general host-library fidelity are
+not discharged here. No production C, original specification or generation
+configuration changed.
+
+Ordinary scoped acceptance passed: 373 kernel-checked modules, 242 assumption
+records and 266 contract records, followed by the unchanged gate negative tests
+and all five AST regenerations:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_input_hash,simplicity_output_scripts_hash,simplicity_output_range_proofs_hash,simplicity_output_surjection_proofs_hash,simplicity_input_scripts_hash,simplicity_input_sequences_hash,simplicity_input_script_sigs_hash,simplicity_tappath_hash
+```
+
+This does not assert a fresh full 467-entry audit or discharge of the remaining
 shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
