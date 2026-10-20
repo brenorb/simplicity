@@ -1,0 +1,67 @@
+### C.jet_sha_tagged_word_spec.ctx8_tagged_word_spec_parametric
+ctx8_tagged_word_spec_parametric
+     : forall k : nat,
+       @Alg.Assertion.Parametric
+         (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+            (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k)))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type (@ctx8_tagged_word_spec k)
+### C.jet_sha_tagged_word_spec.ctx8_tagged_word_option
+ctx8_tagged_word_option
+     : forall (k : nat) (c : Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+         (tag : Ty.tySem (Word.Word (S (S (S O))))) (v : Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type))
+         (@ctx8_tagged_word_spec k (Alg.AssertionSem Option.option_Monad_Zero)
+            (@pair (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+               (prod (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k))) c
+               (@pair (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) tag v)))
+         (jet_sha_ctx8_spec.ctx8_add_list c
+            (@cons (Ty.tySem (Word.Word (S (S (S O))))) tag
+               (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) k v)))
+### C.jet_sha_tagged_word_spec.ctx8_tagged_word_spec
+ctx8_tagged_word_spec =
+fun (k : nat) (term : Alg.Assertion.Algebra) =>
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@jet_sha256_ctx8_init_spec.AC.comp
+  (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+     (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k)))
+  (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) k))
+  jet_sha256_ctx8_init_spec.sha256_ctx8_type core
+  (@jet_sha256_ctx8_init_spec.AC.pair
+     (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+        (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k)))
+     jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) k) core
+     (@jet_sha256_ctx8_init_spec.AC.comp
+        (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k)))
+        (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+        jet_sha256_ctx8_init_spec.sha256_ctx8_type core
+        (@jet_sha256_ctx8_init_spec.AC.pair
+           (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+              (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k)))
+           jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))) core
+           (@jet_sha256_ctx8_init_spec.AC.take jet_sha256_ctx8_init_spec.sha256_ctx8_type
+              (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k))
+              jet_sha256_ctx8_init_spec.sha256_ctx8_type core
+              (@jet_sha256_ctx8_init_spec.AC.iden jet_sha256_ctx8_init_spec.sha256_ctx8_type core))
+           (@jet_sha256_ctx8_init_spec.AC.drop jet_sha256_ctx8_init_spec.sha256_ctx8_type
+              (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k))
+              (Word.Word (S (S (S O)))) core
+              (@jet_sha256_ctx8_init_spec.AC.take (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k)
+                 (Word.Word (S (S (S O)))) core (@jet_sha256_ctx8_init_spec.AC.iden (Word.Word (S (S (S O)))) core))))
+        (@jet_sha_ctx8_spec.ctx8_add1_spec term))
+     (@jet_sha256_ctx8_init_spec.AC.drop jet_sha256_ctx8_init_spec.sha256_ctx8_type
+        (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k))
+        (Word.Vector (Word.Word (S (S (S O)))) k) core
+        (@jet_sha256_ctx8_init_spec.AC.drop (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k)
+           (Word.Vector (Word.Word (S (S (S O)))) k) core
+           (@jet_sha256_ctx8_init_spec.AC.iden (Word.Vector (Word.Word (S (S (S O)))) k) core))))
+  (@jet_sha_ctx8_spec.ctx8_addn_spec k term)
+     : forall (k : nat) (term : Alg.Assertion.Algebra),
+       Alg.Assertion.domain term
+         (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+            (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Word.Word (S (S (S O)))) k)))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type
+
+Arguments ctx8_tagged_word_spec k%nat_scope {term}

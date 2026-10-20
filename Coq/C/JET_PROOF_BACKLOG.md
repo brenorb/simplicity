@@ -504,6 +504,36 @@ host-library fidelity remain separate obligations. These five endpoints are
 selected in the registry; ordinary scoped acceptance passed, with its
 command in `JET_ACCEPTANCE.md`.
 
+## Candidates: Elements issuance-proof, nonce and amount hash getters
+
+Six preserved support modules are restored unchanged, reusing the generic
+option-Reader element loop, prefix/payload absorber and complete original C
+getters. Three new adapters target the canonical primitive-bearing programs:
+
+- `jet_elements_issuance_proofs_hash_literal.v`: both issuance-proof primitive
+  lookups and early exits, with the existing closed asset/token proof-view
+  lemmas reused for absent issuance, reissuance and explicit/confidential cases.
+- `jet_elements_nonces_hash_literal.v`: absent output stops, whereas a present
+  output without a nonce absorbs byte zero. Explicit nonce words use prefix 1;
+  confidential native words use prefix 2 or 3. The existing native Word256
+  encoder bridge is reused, not replaced by a field-element restriction.
+- `jet_elements_amounts_hash_literal.v`: shared asset, amount and asset/amount
+  serializers serve input and output hash loops. Confidential assets use
+  prefixes 10/11, confidential amounts 8/9, and explicit values prefix 1.
+  Explicit amounts retain their 8-byte payload; the other payloads are 32 bytes.
+
+All four complete C endpoints retain the original `hash_getter_rep` relation,
+at transaction offsets 536, 56, 24 and 248 in the 760-byte structure. They have
+the same six inherited library assumptions and no extra libc premise. The 17
+adapter bridges are closed. Normal compilation passes after rebuilding unchanged
+stale dependencies under the pinned toolchain. The existing source checker
+rejects 19, 20 and 26 further mutations; reviewed snapshots cover 65 theorem
+records and 52 definitions across the nine modules.
+
+Caller/cache construction, existing representation/domain/layout bounds and
+general host-library fidelity remain separate obligations. These four endpoints
+are not registered or accepted yet.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

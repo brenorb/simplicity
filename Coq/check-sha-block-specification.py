@@ -1730,6 +1730,218 @@ def elements_tap_hashes(s):
         p.require(s['elements_primitive_coq'], expected, 'Elements tap primitive interpretation')
 
 
+def elements_issuance_proofs_hash(s):
+    """Canonical two-primitive loop and whole original C boundary.
+    Primitive proof-view/lens boundaries use the mandatory existing
+    elements-issuance-proof guard and the reused closed view lemmas.
+    """
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('Elements issuance binding differs: ' + lhs)
+
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    tag, name = 'IssuanceRangeProofsHash', 'issuanceRangeProofsHash'
+    p.require(s['elements_catalog'], tag + ' :: SigHashJet () Word256', 'issuance hash type')
+    binding('elements_catalog', 'specificationSigHash ' + tag, 'SigHash.' + name)
+    binding('elements_sighash_lib', name, 'SigHash.' + name + ' SigHash.lib')
+    hs_programs = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    selected = re.search(r'\b' + name + r'\s*=(.*?)\n\s*[,}]', hs_programs, re.S)
+    if not selected:
+        raise ValueError('missing issuance range proofs program')
+    parts = re.fullmatch(r'\s*let\s+finalize\s*=\s*ctx8Finalize\s+body\s*=(.*?)\bin\b(.*)', selected[1], re.S)
+    if not parts:
+        raise ValueError('issuance loop bindings differ')
+    ops = [('@AC.comp _ _ _ core', 'compNode'), ('@AC.pair _ _ _ core', 'pairNode'),
+           ('@AC.case _ _ _ _ core', 'caseNode'), ('@AC.copair _ _ _ core', 'copairNode'),
+           ('@AC.injl _ _ _ core', 'injlNode'), ('@AC.injr _ _ _ core', 'injrNode'),
+           ('@AC.take _ _ _ core', 'takeNode'), ('@AC.drop _ _ _ core', 'dropNode'),
+           ('@AC.drop Ty.Unit Word32 _ core', 'dropNode'), ('@AC.unit _ core', 'unit'),
+           ('@AC.iden _ core', 'iden'), ('AC.drop', 'dropNode'), ('AC.take', 'takeNode'), ('AC.iden', 'iden')]
+    aliases = [('@EFP.Combinators.prim _ _ alg Elements.IssuanceAssetProof', 'assetProof'),
+               ('@EFP.Combinators.prim _ _ alg Elements.IssuanceTokenProof', 'tokenProof'),
+               ('@literal_ctx8_addn 6 term', 'add64'),
+               ('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+               ('@literal_ctx8_finalize term', 'ctx8Finalize'),
+               ('@for_while_program 5 _ _ _ core (@literal_elements_issuance_proofs_body alg)', 'loop')]
+    atoms = {'assetProof', 'tokenProof', 'add64', 'ctx8Init', 'ctx8Finalize', 'unit', 'loop'}
+    def tree(name):
+        port = p.definition(s['elements_issuance_port'], name)
+        header = re.fullmatch(r'\s*let term := EFP\.CanonicalStructures\.toAssertion alg in\s*'
+                              r'let core := Alg\.Assertion\.toCore term in\s*(.*)', port, re.S)
+        if not header:
+            raise ValueError('issuance algebra binding differs')
+        port = header[1]
+        for old, new in aliases + ops:
+            port = replace(port, old, new)
+        return explicit_core_tree(expression(port), atoms)
+    body = parts[1]
+    for old, new in [('primitive IssuanceAssetProof', 'assetProof'),
+                     ('primitive IssuanceTokenProof', 'tokenProof'), ('ctx8Addn vector64', 'add64')]:
+        body = replace(body, old, new)
+    if expression(body) != tree('literal_elements_issuance_proofs_body'):
+        raise ValueError('issuance two-lookup/body tree differs')
+    program = replace(replace(parts[2], 'forWhile word32 body', 'loop'), 'finalize', 'ctx8Finalize')
+    if expression(program) != tree('literal_elements_issuance_range_proofs_hash'):
+        raise ValueError('issuance whole traversal differs')
+    expected = '''application_jet_local_spec_sep f_simplicity_issuance_range_proofs_hash elements_ge Elements.env Ty.Unit Word256
+        (hash_getter_rep elements_issuance_range_proofs_hash_of 0 536 760)
+        (fun a environment => @literal_elements_issuance_range_proofs_hash elements_hash_alg a environment).'''
+    statement = re.search(r'Theorem elements_issuance_range_proofs_hash_literal_local_spec\s*:(.*?)\bProof\.', s['elements_issuance_port'], re.S)
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError('issuance whole C contract differs')
+    for part, token in [('asset', 'false'), ('token', 'true')]:
+        found = re.search(r'Lemma literal_elements_issuance_' + part + r'_proof_view_matches txi\s*:(.*?)\bProof\.', s['elements_issuance_port'], re.S)
+        expected = 'elements_issuance_' + part + '_proof_bytes txi = haskell_issuance_proof_view ' + token + ' txi.'
+        if not found or p.compact(found[1]) != p.compact(expected):
+            raise ValueError('reused closed issuance proof-view bridge differs')
+
+
+def elements_nonce_hashes(s):
+    """Whole nonce serializer/loop and original C getter.
+    The native-word primitive boundary reuses the mandatory output-nonce
+    guard and the closed encoder bridge, rather than a field restriction.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('Elements nonce binding differs: ' + lhs)
+
+    binding('elements_prog_lib', 'nonceHash', 'Elements.nonceHash Elements.libAssert')
+    contexts = s['elements_prog'].split('mkLibAssert Sha256.Lib{..} Sha256.LibAssert{..} LibSecp256k1.Lib{..} = libAssert', 1)[1]
+    hs = re.search(r'\bnonceHash\s*=(.*?)\n\s*,\s*annexHash', contexts, re.S)
+    if not hs:
+        raise ValueError('missing canonical nonce serializer')
+    port = p.definition(s['elements_nonce_port'], 'literal_elements_nonce_hash')
+    for byte in ['0x01', '0x02', '0x03']:
+        port = replace(port, 'Alg.scribe (haskell_to_word 3 ' + byte + ')', 'scribe (toWord8 ' + byte + ')')
+    for old, new in [('@Word.zero 3 (Alg.Assertion.toCore term)', 'zero word8'),
+                     ('@literal_ctx8_add1 term', 'ctx8Add1'), ('@literal_ctx8_addn 5 term', 'ctx8Add32')]:
+        port = replace(port, old, new)
+    same(hs[1], port, 'canonical Elements nonce serializer')
+    p.require(contexts, 'ctx8Add32 = ctx8Addn vector32', 'nonce payload width')
+    tag, name = 'OutputNoncesHash', 'outputNoncesHash'
+    p.require(s['elements_catalog'], tag + ' :: SigHashJet () Word256', 'nonce hash jet type')
+    binding('elements_catalog', 'specificationSigHash ' + tag, 'SigHash.' + name)
+    binding('elements_sighash_lib', name, 'SigHash.' + name + ' SigHash.lib')
+    programs = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    hs = re.search(r'\b' + name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)
+    if not hs:
+        raise ValueError('missing nonce hash loop')
+    parts = re.fullmatch(r'\s*let\s+finalize\s*=\s*ctx8Finalize\s+body\s*=(.*?)\bin\b(.*)', hs[1], re.S)
+    if not parts:
+        raise ValueError('nonce loop bindings differ')
+    hs_body = replace(parts[1], 'drop (primitive OutputNonce)', 'array')
+    body = p.definition(s['elems_loop'], 'gen_loop_body')
+    prefix = 'let core := Alg.Assertion.toCore term in'
+    if not body.lstrip().startswith(prefix):
+        raise ValueError('nonce generic loop algebra differs')
+    body = body.lstrip()[len(prefix):]
+    for old, new in [('add term', 'nonceHash'), ('@AC.comp _ _ _ core', 'compNode'),
+                     ('@AC.pair _ _ _ core', 'pairNode'), ('@AC.case _ _ _ _ core', 'caseNode'),
+                     ('@AC.injl _ _ _ core', 'injlNode'), ('@AC.injr _ _ _ core', 'injrNode'),
+                     ('@AC.take _ _ _ core', 'takeNode'), ('@AC.drop _ _ _ core', 'dropNode'),
+                     ('@AC.iden _ core', 'iden')]:
+        body = replace(body, old, new)
+    if expression(hs_body) != explicit_core_tree(expression(body), {'array', 'nonceHash'}):
+        raise ValueError('nonce stop/continue loop tree differs')
+    same(parts[2], 'unit &&& ctx8Init >>> forWhile word32 body >>> copair finalize finalize', 'nonce traversal')
+    expected = '''let term := EFP.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in
+      @literal_elements_elems_hash elements_nonce_type
+        (fun term => @literal_elements_nonce_hash term) 5 term
+        (@Alg.Core.Combinators.drop Ty.Unit Word32 _ core
+          (@EFP.Combinators.prim _ _ alg Elements.OutputNonce))'''
+    if p.compact(p.definition(s['elements_nonce_port'], 'literal_elements_output_nonces_hash')) != p.compact(expected):
+        raise ValueError('nonce primitive/loop adapter differs')
+    found = re.search(r'Lemma literal_elements_nonce_encode_matches n\s*:(.*?)\bProof\.', s['elements_nonce_port'], re.S)
+    if not found or p.compact(found[1]) != p.compact('elements_nonce_encode n = encode_nonce_literal n.'):
+        raise ValueError('native nonce encoder bridge differs')
+    statement = re.search(r'Theorem elements_output_nonces_hash_literal_local_spec\s*:(.*?)\bProof\.', s['elements_nonce_port'], re.S)
+    expected = '''application_jet_local_spec_sep f_simplicity_output_nonces_hash elements_ge Elements.env Ty.Unit Word256
+        (hash_getter_rep elements_output_nonces_hash_of 0 56 760)
+        (fun a environment => @literal_elements_output_nonces_hash elements_hash_alg a environment).'''
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError('nonce whole C contract differs')
+
+
+def elements_amount_hashes(s):
+    """Three canonical serializers, shared primitive-pair loop and C getters.
+    Native primitive encoders/pair routing and the generic element loop
+    reuse their existing mandatory source/definition guards.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('Elements amount-hash binding differs: ' + lhs)
+
+    def definition(name, expected):
+        if p.compact(p.definition(s['elements_amounts_port'], name)) != p.compact(expected):
+            raise ValueError('Elements amount-hash adapter differs: ' + name)
+
+    binding('elements_prog_lib', 'assetAmountHash', 'Elements.assetAmountHash Elements.libAssert')
+    contexts = s['elements_prog'].split('mkLibAssert Sha256.Lib{..} Sha256.LibAssert{..} LibSecp256k1.Lib{..} = libAssert', 1)[1]
+    for stem, pattern in [
+        ('asset', r'\bassetHash\s*=(.*?)\n\s*amountHash\s*='),
+        ('amount', r'\bamountHash\s*=(.*?)\n\s*taptweakPrefix\s*='),
+        ('asset_amount', r'\bassetAmountHash\s*=(.*?)\n\s*,\s*nonceHash'),
+    ]:
+        hs = re.search(pattern, contexts, re.S)
+        if not hs:
+            raise ValueError('missing canonical Elements serializer')
+        port = p.definition(s['elements_amounts_port'], 'literal_elements_' + stem + '_hash')
+        for byte in ['0x01', '0x08', '0x09', '0x0a', '0x0b']:
+            port = replace(port, 'Alg.scribe (haskell_to_word 3 ' + byte + ')', 'scribe (toWord8 ' + byte + ')')
+        for old, new in [
+            ('@literal_ctx8_add1 term', 'ctx8Add1'), ('@literal_ctx8_addn 5 term', 'ctx8Add32'),
+            ('@literal_ctx8_addn 3 term', 'ctx8Add8'),
+            ('@literal_elements_asset_hash term', 'assetHash'),
+            ('@literal_elements_amount_hash term', 'amountHash'),
+        ]:
+            port = replace(port, old, new)
+        same(hs[1], port, 'Elements ' + stem + ' canonical serializer')
+    p.require(contexts, 'ctx8Add8 = ctx8Addn vector8', 'explicit amount width')
+    p.require(contexts, 'ctx8Add32 = ctx8Addn vector32', 'confidential payload width')
+    definition('literal_elements_amounts_hash', '''
+      let term := EFP.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in
+      @literal_elements_elems_hash elements_asset_amount_type
+        (fun term => @literal_elements_asset_amount_hash term) 5 term
+        (@Alg.Core.Combinators.drop Ty.Unit Word32 _ core
+          (@elements_amount_pair_spec alg Word32 elements_amount_hash_type elements_asset_hash_type
+            (@EFP.Combinators.prim _ _ alg pm) (@EFP.Combinators.prim _ _ alg pa)))''')
+    programs = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    for tag, name, stem, primitive, offset in [
+        ('OutputAmountsHash', 'outputAmountsHash', 'output_amounts', 'Output', 24),
+        ('InputAmountsHash', 'inputAmountsHash', 'input_amounts', 'Input', 248),
+    ]:
+        p.require(s['elements_catalog'], tag + ' :: SigHashJet () Word256', 'amount hash jet type')
+        binding('elements_catalog', 'specificationSigHash ' + tag, 'SigHash.' + name)
+        binding('elements_sighash_lib', name, 'SigHash.' + name + ' SigHash.lib')
+        hs = re.search(r'\b' + name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)
+        if not hs:
+            raise ValueError('missing canonical amount hash loop')
+        parts = re.fullmatch(r'\s*let\s+finalize\s*=\s*ctx8Finalize\s+body\s*=(.*?)\bin\b(.*)', hs[1], re.S)
+        if not parts:
+            raise ValueError('amount loop bindings differ')
+        same(parts[1], 'take (drop ' + ('outputAmount' if primitive == 'Output' else 'inputAmount') +
+             ') &&& ih >>> match (injl ih) (injr (ih &&& oh >>> assetAmountHash))', 'amount element loop')
+        same(parts[2], 'unit &&& ctx8Init >>> forWhile word32 body >>> copair finalize finalize', 'amount traversal')
+        definition('literal_elements_' + stem + '_hash',
+                   '@literal_elements_amounts_hash Elements.' + primitive + 'Amount Elements.' + primitive + 'Asset alg')
+        statement = re.search(r'Theorem elements_' + stem + r'_hash_literal_local_spec\s*:(.*?)\bProof\.', s['elements_amounts_port'], re.S)
+        expected = f'''application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256
+            (hash_getter_rep elements_{stem}_hash_of 0 {offset} 760)
+            (fun a environment => @literal_elements_{stem}_hash elements_hash_alg a environment).'''
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError('amount whole C contract differs')
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1798,6 +2010,9 @@ def sources():
         "elements_array_port": COQ / "C/jet_elements_array_hash_literal.v",
         "elements_inputs_port": COQ / "C/jet_elements_inputs_hash_literal.v",
         "elements_tap_port": COQ / "C/jet_elements_tap_hash_literal.v",
+        "elements_issuance_port": COQ / "C/jet_elements_issuance_proofs_hash_literal.v",
+        "elements_nonce_port": COQ / "C/jet_elements_nonces_hash_literal.v",
+        "elements_amounts_port": COQ / "C/jet_elements_amounts_hash_literal.v",
         "elements_prog": REPO / "Haskell/Core/Simplicity/Programs/Elements.hs",
         "elements_prog_lib": REPO / "Haskell/Core/Simplicity/Programs/Elements/Lib.hs",
         "native_schnorr": REPO / "Haskell/Core/Simplicity/LibSecp256k1/Schnorr.hs",
@@ -1832,6 +2047,9 @@ def test():
     elements_array_hashes(s)
     elements_input_hashes(s)
     elements_tap_hashes(s)
+    elements_issuance_proofs_hash(s)
+    elements_nonce_hashes(s)
+    elements_amount_hashes(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -2423,6 +2641,133 @@ def test():
             continue
         raise ValueError('Elements tap mutation escaped: ' + old)
     print('Elements tapleaf/tapEnv trees, exact tag, native key and C boundaries match;', len(elements_tap_mutations), 'mutations rejected')
+
+
+    elements_issuance_mutations = [
+        ('elements_catalog', 'specificationSigHash IssuanceRangeProofsHash = SigHash.issuanceRangeProofsHash', 'specificationSigHash IssuanceRangeProofsHash = SigHash.issuancesHash'),
+        ('elements_sighash_lib', 'issuanceRangeProofsHash = SigHash.issuanceRangeProofsHash SigHash.lib', 'issuanceRangeProofsHash = SigHash.issuancesHash SigHash.lib'),
+        ('elements_sighash', 'take (drop (primitive IssuanceAssetProof)) &&&', 'take (drop (primitive IssuanceTokenProof)) &&&'),
+        ('elements_sighash', '(take (drop (primitive IssuanceTokenProof)) &&& ih)', '(take (drop (primitive IssuanceAssetProof)) &&& ih)'),
+        ('elements_sighash', 'iih &&& (ioh &&& oh) >>> ctx8Addn vector64', 'iih &&& (ioh &&& oh) >>> ctx8Addn vector32'),
+        ('elements_issuance_port', 'Elements.IssuanceAssetProof', 'Elements.InputAnnexHash'),
+        ('elements_issuance_port', 'Elements.IssuanceTokenProof', 'Elements.IssuanceAssetProof'),
+        ('elements_issuance_port', '@literal_ctx8_addn 6 term', '@literal_ctx8_addn 5 term'),
+        ('elements_issuance_port', '@for_while_program 5 _ _ _ core', '@for_while_program 3 _ _ _ core'),
+        ('elements_issuance_port', '@literal_sha_hash_ctx_init core', '@AC.unit _ core'),
+        ('elements_issuance_port', '@literal_ctx8_finalize term', '@literal_ctx8_addn 5 term'),
+        ('elements_issuance_port', '@AC.comp _ _ _ core', '@AC.pair _ _ _ core'),
+        ('elements_issuance_port', 'haskell_issuance_proof_view false txi.', 'haskell_issuance_proof_view true txi.'),
+        ('elements_issuance_port', 'haskell_issuance_proof_view true txi.', 'haskell_issuance_proof_view false txi.'),
+    ]
+    for occurrence in [1, 2]:
+        elements_issuance_mutations.append(('elements_issuance_port', '@AC.injl _ _ _ core (AC.drop (AC.drop AC.iden))',
+                          '@AC.injr _ _ _ core (AC.drop (AC.drop AC.iden))', occurrence))
+    declaration = 'Theorem elements_issuance_range_proofs_hash_literal_local_spec :'
+    elements_issuance_mutations += [
+        ('elements_issuance_port', declaration, declaration + ' False ->'),
+        ('elements_issuance_port', declaration, declaration + ' memcpy_model ->'),
+        ('elements_issuance_port', 'hash_getter_rep elements_issuance_range_proofs_hash_of 0 536 760',
+         'hash_getter_rep elements_issuance_range_proofs_hash_of 0 544 760'),
+    ]
+    for mutation in elements_issuance_mutations:
+        key, old, new = mutation[:3]
+        occurrence = mutation[3] if len(mutation) == 4 else 1
+        start = -1
+        for _ in range(occurrence):
+            start = s[key].find(old, start + 1)
+            if start < 0:
+                raise ValueError('inactive issuance mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key][:start] + new + s[key][start + len(old):]
+        try:
+            elements_issuance_proofs_hash(changed)
+        except ValueError:
+            continue
+        raise ValueError('issuance mutation escaped: ' + old)
+    print('Issuance two-primitive loop, reused views and whole C boundary match;', len(elements_issuance_mutations), 'mutations rejected')
+    elements_nonce_mutations = [
+        ('elements_prog_lib', 'nonceHash = Elements.nonceHash Elements.libAssert', 'nonceHash = Elements.annexHash Elements.libAssert'),
+        ('elements_prog', 'scribe (toWord8 0x02)', 'scribe (toWord8 0x03)'),
+        ('elements_prog', 'scribe (toWord8 0x03)', 'scribe (toWord8 0x02)'),
+        ('elements_prog', '(unit >>> scribe (toWord8 0x01)) &&& iden', '(unit >>> scribe (toWord8 0x00)) &&& iden'),
+        ('elements_catalog', 'specificationSigHash OutputNoncesHash = SigHash.outputNoncesHash', 'specificationSigHash OutputNoncesHash = SigHash.outputScriptsHash'),
+        ('elements_sighash_lib', 'outputNoncesHash = SigHash.outputNoncesHash SigHash.lib', 'outputNoncesHash = SigHash.outputScriptsHash SigHash.lib'),
+        ('elements_sighash', 'body = take (drop (primitive OutputNonce)) &&& ih', 'body = take (drop (primitive OutputScriptHash)) &&& ih'),
+        ('elements_sighash', 'ih &&& oh >>> nonceHash', 'ih &&& oh >>> annexHash'),
+        ('elements_nonce_port', 'haskell_to_word 3 0x02', 'haskell_to_word 3 0x03'),
+        ('elements_nonce_port', 'haskell_to_word 3 0x03', 'haskell_to_word 3 0x02'),
+        ('elements_nonce_port', 'haskell_to_word 3 0x01', 'haskell_to_word 3 0x00'),
+        ('elements_nonce_port', '@Word.zero 3 (Alg.Assertion.toCore term)', 'Alg.scribe (haskell_to_word 3 0x01)'),
+        ('elements_nonce_port', '@literal_ctx8_addn 5 term', '@literal_ctx8_addn 6 term'),
+        ('elements_nonce_port', '@literal_ctx8_add1 term', '@literal_ctx8_addn 0 term'),
+        ('elements_nonce_port', '(fun term => @literal_elements_nonce_hash term) 5 term', '(fun term => @literal_elements_nonce_hash term) 3 term'),
+        ('elements_nonce_port', 'Elements.OutputNonce', 'Elements.OutputScriptHash'),
+        ('elements_nonce_port', 'elements_nonce_encode n = encode_nonce_literal n.', 'elements_nonce_encode n = elements_nonce_encode n.'),
+        ('elements_nonce_port', 'hash_getter_rep elements_output_nonces_hash_of 0 56 760', 'hash_getter_rep elements_output_nonces_hash_of 0 88 760'),
+    ]
+    declaration = 'Theorem elements_output_nonces_hash_literal_local_spec :'
+    elements_nonce_mutations += [
+        ('elements_nonce_port', declaration, declaration + ' False ->'),
+        ('elements_nonce_port', declaration, declaration + ' memcpy_model ->'),
+    ]
+    for key, old, new in elements_nonce_mutations:
+        if old not in s[key]:
+            raise ValueError('inactive nonce mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_nonce_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('nonce mutation escaped: ' + old)
+    print('Nonce serializer, primitive loop, native encoder and whole C boundary match;', len(elements_nonce_mutations), 'mutations rejected')
+    elements_amount_hash_mutations = [
+        ('elements_prog_lib', 'assetAmountHash = Elements.assetAmountHash Elements.libAssert', 'assetAmountHash = Elements.outpointHash Elements.libAssert'),
+        ('elements_prog', 'scribe (toWord8 0x0a)', 'scribe (toWord8 0x0b)'),
+        ('elements_prog', 'scribe (toWord8 0x08)', 'scribe (toWord8 0x09)'),
+        ('elements_prog', 'ctx8Add8 = ctx8Addn vector8', 'ctx8Add8 = ctx8Addn vector32'),
+        ('elements_prog', 'assetAmountHash = (oh &&& ioh >>> assetHash) &&& iih >>> amountHash', 'assetAmountHash = (oh &&& ioh >>> amountHash) &&& iih >>> assetHash'),
+        ('elements_amounts_port', 'haskell_to_word 3 0x0a', 'haskell_to_word 3 0x0b'),
+        ('elements_amounts_port', 'haskell_to_word 3 0x0b', 'haskell_to_word 3 0x0a'),
+        ('elements_amounts_port', 'haskell_to_word 3 0x08', 'haskell_to_word 3 0x09'),
+        ('elements_amounts_port', 'haskell_to_word 3 0x09', 'haskell_to_word 3 0x08'),
+        ('elements_amounts_port', '@literal_ctx8_addn 3 term', '@literal_ctx8_addn 5 term'),
+        ('elements_amounts_port', '@literal_ctx8_add1 term', '@literal_ctx8_addn 0 term'),
+        ('elements_amounts_port', '(O H &&& I O H >>> @literal_elements_asset_hash term)',
+         '(O H &&& I O H >>> @literal_elements_amount_hash term)'),
+        ('elements_amounts_port', '(fun term => @literal_elements_asset_amount_hash term) 5 term',
+         '(fun term => @literal_elements_asset_amount_hash term) 3 term'),
+        ('elements_amounts_port', '(@EFP.Combinators.prim _ _ alg pm) (@EFP.Combinators.prim _ _ alg pa)',
+         '(@EFP.Combinators.prim _ _ alg pa) (@EFP.Combinators.prim _ _ alg pm)'),
+    ]
+    for tag, name, stem, primitive, offset in [
+        ('OutputAmountsHash', 'outputAmountsHash', 'output_amounts', 'Output', 24),
+        ('InputAmountsHash', 'inputAmountsHash', 'input_amounts', 'Input', 248),
+    ]:
+        declaration = 'Theorem elements_' + stem + '_hash_literal_local_spec :'
+        elements_amount_hash_mutations += [
+            ('elements_catalog', 'specificationSigHash ' + tag + ' = SigHash.' + name,
+             'specificationSigHash ' + tag + ' = SigHash.outputScriptsHash'),
+            ('elements_sighash_lib', name + ' = SigHash.' + name + ' SigHash.lib',
+             name + ' = SigHash.outputScriptsHash SigHash.lib'),
+            ('elements_amounts_port', 'Elements.' + primitive + 'Amount Elements.' + primitive + 'Asset alg',
+             'Elements.' + primitive + 'Asset Elements.' + primitive + 'Amount alg'),
+            ('elements_amounts_port', declaration, declaration + ' False ->'),
+            ('elements_amounts_port', declaration, declaration + ' memcpy_model ->'),
+            ('elements_amounts_port', f'hash_getter_rep elements_{stem}_hash_of 0 {offset} 760',
+             f'hash_getter_rep elements_{stem}_hash_of 0 {offset + 8} 760'),
+        ]
+    for key, old, new in elements_amount_hash_mutations:
+        if old not in s[key]:
+            raise ValueError('inactive amount-hash mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_amount_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('amount-hash mutation escaped: ' + old)
+    print('Asset/amount serializers, two primitive loops and whole C boundaries match;', len(elements_amount_hash_mutations), 'mutations rejected')
 
 
 if __name__ == "__main__":
