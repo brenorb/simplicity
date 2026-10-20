@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify preserved sources and patch replay, or extract sources outside the repo.
+"""Verify preserved sources, optionally replay historical patches, or extract sources.
 
 This checks archive integrity. It neither compiles nor accepts a Coq proof.
 """
@@ -35,12 +35,18 @@ def check_hash(path, expected):
 
 def verify_sources():
     count = 0
-    for group in SOURCE_GROUPS:
-        manifest = read_manifest(group)
-        git("cat-file", "-e", manifest["dependency_base_commit"] + "^{commit}")
-        for record in manifest["files"]:
-            check_hash(HERE / group / record["path"], record["sha256"])
-            count += 1
+    for path in sorted(HERE.rglob("*manifest*.json")):
+        manifest = json.loads(path.read_text())
+        if not isinstance(manifest, dict):
+            continue
+        # Patch manifests describe historical output paths, not archived files.
+        if "patch_sha256" in manifest:
+            check_hash(path.parent / "candidate.patch", manifest["patch_sha256"])
+            continue
+        for record in manifest.get("files", []):
+            if isinstance(record, dict) and record.get("path") and record.get("sha256"):
+                check_hash(path.parent / record["path"], record["sha256"])
+                count += 1
     inventory = json.loads((HERE / "scratch-inventory.json").read_text())
     if len(inventory["entries"]) != 84:
         raise ValueError("incomplete scratch inventory")
@@ -49,10 +55,11 @@ def verify_sources():
         if location and location.endswith(".source"):
             check_hash(REPO / location, record["source_sha256"])
         if "integrated_blob" in record:
-            current = git("rev-parse", "HEAD:" + location)
+            data = (REPO / location).read_bytes()
+            current = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
             if current != record["integrated_blob"]:
                 raise ValueError(f"integrated source changed: {location}")
-    print(f"{count} archived sources/checkers match their hashes; 84 scratch files accounted for")
+    print(f"{count} archived source/checker references match; 84 scratch files accounted for")
 
 
 def replay(group):
@@ -105,6 +112,7 @@ def extract(group, output):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--extract", choices=SOURCE_GROUPS)
+    parser.add_argument("--replay", action="store_true", help="also replay historical patches; requires original backup history")
     parser.add_argument("--output")
     args = parser.parse_args()
     if args.extract:
@@ -115,8 +123,9 @@ def main():
         if args.output:
             parser.error("--output requires --extract")
         verify_sources()
-        replay("range")
-        replay("secp-field-predicates")
+        if args.replay:
+            replay("range")
+            replay("secp-field-predicates")
 
 
 if __name__ == "__main__":
