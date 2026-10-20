@@ -90,6 +90,9 @@ RECOVERED_CONTRACTS.update({
     "simplicity_sha_256_ctx_8_finalize": (
         "memcpy_model -> sha_jet_partial_local_spec f_simplicity_sha_256_ctx_8_finalize "
         "sha256_ctx8_type (Word 8) (@literal_ctx8_finalize optalg)."),
+    "simplicity_tapdata_init": (
+        "memcpy_model -> sha_jet_local_spec_pre (fun m => sha_globals_ok m /\\ sha_tag_ok m) "
+        "f_simplicity_tapdata_init Ty.Unit sha256_ctx8_type (@literal_tapdata_init Alg.CoreFunSem)."),
 })
 
 

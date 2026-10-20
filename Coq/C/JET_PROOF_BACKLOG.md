@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 444 of the 533 header declarations.
+The current local-contract registry contains 445 of the 533 header declarations.
 The recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 89 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 88 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -219,13 +219,11 @@ no expectation updates.
 Focused builds use
 `JET_TARGETS='C/jet_sha_buffer_literal_local.vo C/jet_sha_finalize_literal_local.vo' bash Coq/build-jets.sh -j2`.
 
-## Next candidate and reusable simplification
+## Completed: TapData registration and reusable simplification
 
-`tapdata_init` already has a complete C theorem in `jet_sha_tapdata_jet.v`.
-Before registration review the actual `Digest.tagIv`/`ivHash` recipe and
-one-word padding against its canonical program. Reuse `tag_hash_eval`,
-`tapdata_prefix_eval` and `tag_block_bytes` from `jet_sha_tapdata_spec.v`;
-do not treat an unexplained prefix numeral as canonical correspondence.
+`tapdata_init` reuses the complete C theorem in `jet_sha_tapdata_jet.v`, with
+an explicit canonical program bridge. Its scribed prefix is computed from
+the actual `Digest.tagIv`/`ivHash` recipe, not an unexplained numeral.
 
 The shared bridges now use a closed improvement:
 `@canonical_add_word (S n) term = @Word.adder (S n) term` is reflexive in every
@@ -244,4 +242,16 @@ digest and prefix. This is not a claimed arbitrary Haskell decoder interpreter.
 existing complete C and startup contracts; both compile with their original
 explicit libc/global/tag requirements. The existing SHA gate compares the
 recipe, all 64 rounds and 48 schedule steps, encoding and exact C contracts;
-131 mutations are rejected. TapData remains unregistered pending acceptance.
+131 mutations are rejected. The registry now selects this endpoint. Ordinary
+scoped acceptance passed for it and all thirteen affected SHA endpoints:
+281 recursive kernel modules, 176 assumption modules, 189 contract modules,
+negative tests and all five AST regenerations, with unchanged audited inputs.
+The command and exact scope are recorded in `JET_ACCEPTANCE.md`.
+
+The next reuse opportunity is `bitcoin_build_tapleaf_simplicity` and
+`bitcoin_build_tapbranch`: their original C proofs already exist in ordinary
+modules, and the startup invariant covers both static tag arrays. Reuse the
+fixed host SHA structure for the two prefixes and `haskell_hash_word256` for
+byte/hash-to-word conversion. Review the canonical shift/order/padding trees
+before registering; do not duplicate the C execution proofs or treat their
+unexplained prefix numerals as canonical correspondence.

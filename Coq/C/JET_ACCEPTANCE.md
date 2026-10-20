@@ -2,11 +2,11 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 444/533 jets (321 without an extra libc
-premise; 123 conditional on `memcpy_model`). The earlier 430-entry baseline passed
+The local-contract registry contains 445/533 jets (321 without an extra libc
+premise; 124 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
-and finalization.
+and finalization. TapData then passed the fourteen-jet scoped acceptance below.
 
 Reproduce acceptance from the repository root:
 
@@ -262,3 +262,39 @@ updated during acceptance.
 
 These are conditional local-contract registrations, not a fresh full
 444-entry audit or closure of the shared evaluator/libc/fidelity obligations.
+
+## TapData initializer and closed SHA program bridges
+
+`jet_tapdata_literal_local.v` composes the original public C initializer with
+the canonical `tapdataInit` program. Its local contract retains `memcpy_model`
+and both `sha_globals_ok` and `sha_tag_ok`. Its startup variant reuses the
+existing initialized portable-dispatch lifecycle; arbitrary externally
+installed callbacks are not covered. The local theorem inherits six library
+assumptions and the startup variant eight; neither adds a project axiom.
+
+The scribed prefix is derived by `jet_tapdata_host_recipe.v`, a port of the
+fixed two-block recipe in the vendored `Digest/Pure/SHA.hs`. Closed Coq
+computations establish its tag bytes, padding, block lengths, digest and
+prefix. The source check covers encoding, schedule, round constants and
+complete public contracts, rejecting 131 additional mutations. This is
+source-reviewed correspondence for the fixed host computation, not a formal
+interpreter or general correctness theorem for Haskell's binary decoders.
+
+The shared positive-depth adder bridge is now a reflexive equality in every
+Core algebra. Consequently the SHA block, option, context-add, buffer-add and
+finalizer program bridges no longer need functional extensionality. Existing
+public C theorem types and programs are unchanged.
+
+Scoped acceptance passed for TapData and all thirteen affected SHA jets:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_sha_256_block,simplicity_sha_256_ctx_8_add_1,simplicity_sha_256_ctx_8_add_2,simplicity_sha_256_ctx_8_add_4,simplicity_sha_256_ctx_8_add_8,simplicity_sha_256_ctx_8_add_16,simplicity_sha_256_ctx_8_add_32,simplicity_sha_256_ctx_8_add_64,simplicity_sha_256_ctx_8_add_128,simplicity_sha_256_ctx_8_add_256,simplicity_sha_256_ctx_8_add_512,simplicity_sha_256_ctx_8_add_buffer_511,simplicity_sha_256_ctx_8_finalize,simplicity_tapdata_init
+```
+
+The run passed the default recursive kernel check on 281 modules, assumption
+comparisons for 176 modules, contract comparisons for 189 modules, global
+source/mutation checks, gate negative tests and all five AST regenerations.
+No audited inputs changed during the run and no expectations were updated.
+
+This does not assert a fresh full 445-entry audit or closure of the remaining
+shared evaluator, libc and fidelity obligations.

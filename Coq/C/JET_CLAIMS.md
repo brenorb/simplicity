@@ -7,4 +7,3 @@ instead of starting a parallel proof.
 
 | Jet (`jet_coverage.tsv` name) | Owner (agent/session) | Branch | Since |
 | --- | --- | --- | --- |
-| `simplicity_tapdata_init` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
