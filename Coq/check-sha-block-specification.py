@@ -945,6 +945,76 @@ def primitive_hash_words(s):
         raise ValueError("TappathHash complete C contract differs")
 
 
+def bitcoin_array_hashes(s):
+    """Check literal specializations, selected primitive projections and full
+    cached-getter contracts. Caller cache construction is not certified here.
+    Shared SHA traversal is checked separately by primitive_hash_words.
+    """
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError("Bitcoin array hash binding differs: " + lhs)
+
+    def definition(name, expected):
+        if p.compact(p.definition(s["array_port"], name)) != p.compact(expected):
+            raise ValueError("Bitcoin array hash program differs: " + name)
+
+    body = s["sighash"].split("mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib", 1)[1]
+    binding("sighash", "hashWord256s32", "hashWord256s word32")
+    binding("sighash", "hashWord32s array", '''iden &&& (unit >>> ctx8Init)
+      >>> Sha256.hashLoop vector4 word32 array >>> ctx8Finalize''')
+    for lhs, rhs in [("word32", "vector32"), ("vector4", "DoubleV vector2"),
+                     ("vector2", "DoubleV vector1"), ("vector1", "SingleV")]:
+        binding("hs_types", lhs, rhs)
+    definition("literal_bitcoin_array_hash", '''
+      let term := PF.CanonicalStructures.toAssertion alg in
+      @literal_sha_hash_words k 5 term Ty.Unit
+        (@Alg.Core.Combinators.drop Ty.Unit (Word 5) (Ty.Sum Ty.Unit (Vector (Word 3) k))
+          (Alg.Assertion.toCore term) (@PF.Combinators.prim _ _ alg p))''')
+    cases = [
+        ("OutputScriptsHash", "outputScriptsHash", "output_scripts", "OutputScriptHash", "Base Bitcoin", 5, 48),
+        ("InputScriptsHash", "inputScriptsHash", "input_scripts", "InputScriptHash", "Ext BitcoinExt", 5, 176),
+        ("InputSequencesHash", "inputSequencesHash", "input_sequences", "InputSequence", "Base Bitcoin", 2, 240),
+        ("InputScriptSigsHash", "inputScriptSigsHash", "input_script_sigs", "InputScriptSigHash", "Ext BitcoinExt", 5, 304),
+    ]
+    for tag, hs_name, stem, prim, signature, k, offset in cases:
+        p.require(s["bitcoin_catalog"], f"{tag} :: SigHashJet () Word256", "array hash catalog type")
+        binding("bitcoin_catalog", "specificationSigHash " + tag, "SigHash." + hs_name)
+        binding("sighash_lib", hs_name, "SigHash." + hs_name + " SigHash.lib")
+        selected = re.search(r"\b" + hs_name + r"\s*=(.*?)\n\s*[,}]", body, re.S)
+        if not selected:
+            raise ValueError("missing canonical array hash: " + hs_name)
+        helper = "hashWord32s" if k == 2 else "hashWord256s32"
+        same(selected[1], f"{helper} (drop (primitive {prim}))", hs_name + " primitive routing")
+        program = "literal_bitcoin_" + stem + "_hash"
+        definition(program, f"@literal_bitcoin_array_hash {k} (BitcoinFull.{signature}.{prim}) alg")
+        statement = re.search(r"Theorem bitcoin_" + stem + r"_hash_literal_local_spec\s*:(.*?)\bProof\.",
+                              s["array_port"], re.S)
+        expected = f'''application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge ext_environment
+          Ty.Unit Word256 (hash_getter_rep (fun e => words_hash_of {k} 5 ({stem}_of e)) 0 {offset} 432)
+          (fun a environment => @{program} fullalg a environment).'''
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError("array hash complete C contract differs: " + stem)
+    # These are source-reviewed projections, not a general interpreter proof.
+    for lhs, rhs in {
+        "lookupInput": "(sigTxIn tx !?) . fromIntegral",
+        "lookupOutput": "(sigTxOut tx !?) . fromIntegral",
+        "atInput f": "cast . fmap f . lookupInput . fromInteger . fromWord32",
+        "atOutput f": "cast . fmap f . lookupOutput . fromInteger . fromWord32",
+        "interpret InputSequence": "return . (atInput $ toWord32 . toInteger . sigTxiSequence)",
+        "interpret OutputScriptHash": "return . (atOutput $ encodeHash . bslHash . txoScript)",
+        "interpret InputScriptHash": "return . (atInput $ encodeHash . bslHash . sigTxiScript)",
+        "interpret InputScriptSigHash": "return . (atInput $ encodeHash . bslHash . sigTxiScriptSig)",
+    }.items():
+        binding("btc_primitive", lhs, rhs)
+    p.require(s["base_primitive"], '''| InputSequence => atInput (fun txi => fromZ (Int.unsigned (sigTxiSequence txi)))''', "formal sequence projection")
+    p.require(s["base_primitive"], '''| OutputScriptHash => atOutput (fun txout => from_hash256 (byteStringHash (txoScript txout)))''', "formal output script projection")
+    for prim, field in [("InputScriptHash", "extInScriptHash"), ("InputScriptSigHash", "extInScriptSigHash")]:
+        p.require(s["ext_primitive"], f'''| {prim} => fun i =>
+          Some (cast (option_map (fun h => from_hash256 h) (nth_error ({field} e) (Z.to_nat (toZ i)))))''', "formal script projection")
+    p.require(s["full_primitive"], "| Base q => fun a => Bitcoin.sem q a (extBase e)", "base primitive dispatch")
+    p.require(s["full_primitive"], "| Ext q => fun a => BitcoinExt.sem q a e", "extended primitive dispatch")
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -999,6 +1069,9 @@ def sources():
         "sighash_lib": REPO / "Haskell/Simplicity/Bitcoin/Programs/SigHash/Lib.hs",
         "hash_words_port": COQ / "C/jet_sha_hash_words_literal.v",
         "tappath_port": COQ / "C/jet_bitcoin_tappath_hash_literal.v",
+        "array_port": COQ / "C/jet_bitcoin_array_hash_literal.v",
+        "base_primitive": COQ / "Simplicity/Primitive/Bitcoin.v",
+        "full_primitive": COQ / "C/jet_bitcoin_full_prim.v",
         "forwhile": COQ / "C/jet_forWhile_spec.v",
         "btc_primitive": REPO / "Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs",
         "ext_primitive": COQ / "C/jet_bitcoin_ext_prim.v",
@@ -1015,6 +1088,7 @@ def test():
     bitcoin_taproot(s)
     bitcoin_context_hash(s)
     primitive_hash_words(s)
+    bitcoin_array_hashes(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -1264,6 +1338,46 @@ def test():
             continue
         raise ValueError("primitive hash source mutation escaped: " + old)
     print("Primitive-bearing hash loop, TappathHash program/domain and whole C boundary match;", len(primitive_hash_mutations), "mutations rejected")
+    array_hash_mutations = [
+        ("sighash", "hashWord256s32 = hashWord256s word32", "hashWord256s32 = hashWord256s word8"),
+        ("sighash", "Sha256.hashLoop vector4 word32 array", "Sha256.hashLoop vector8 word32 array"),
+        ("sighash", "hashWord32s array = iden", "hashWord32s array = unit"),
+        ("array_port", "@literal_sha_hash_words k 5 term", "@literal_sha_hash_words k 3 term"),
+        ("array_port", "@PF.Combinators.prim _ _ alg p", "@PF.Combinators.prim _ _ alg changed"),
+        ("btc_primitive", "atInput f = cast . fmap f . lookupInput", "atInput f = cast . fmap f . lookupOutput"),
+        ("btc_primitive", "atOutput f = cast . fmap f . lookupOutput", "atOutput f = cast . fmap f . lookupInput"),
+        ("btc_primitive", "encodeHash . bslHash . sigTxiScript)", "encodeHash . bslHash . sigTxiScriptSig)"),
+        ("btc_primitive", "encodeHash . bslHash . sigTxiScriptSig)", "encodeHash . bslHash . sigTxiScript)"),
+        ("btc_primitive", "toWord32 . toInteger . sigTxiSequence)", "toWord32 . toInteger . sigTxiValue)"),
+        ("base_primitive", "| InputSequence => atInput (fun txi => fromZ (Int.unsigned (sigTxiSequence txi)))", "| InputSequence => atInput (fun txi => fromZ (Int.signed (sigTxiSequence txi)))"),
+        ("base_primitive", "byteStringHash (txoScript txout)", "byteStringHash []"),
+        ("ext_primitive", "nth_error (extInScriptHash e)", "nth_error (extInScriptSigHash e)"),
+        ("full_primitive", "Bitcoin.sem q a (extBase e)", "Bitcoin.sem q a other"),
+    ]
+    for tag, hs_name, stem, prim in [
+        ("OutputScriptsHash", "outputScriptsHash", "output_scripts", "OutputScriptHash"),
+        ("InputScriptsHash", "inputScriptsHash", "input_scripts", "InputScriptHash"),
+        ("InputSequencesHash", "inputSequencesHash", "input_sequences", "InputSequence"),
+        ("InputScriptSigsHash", "inputScriptSigsHash", "input_script_sigs", "InputScriptSigHash"),
+    ]:
+        array_hash_mutations += [
+            ("bitcoin_catalog", f"specificationSigHash {tag} = SigHash.{hs_name}", f"specificationSigHash {tag} = SigHash.tappathHash"),
+            ("sighash_lib", f"{hs_name} = SigHash.{hs_name} SigHash.lib", f"{hs_name} = SigHash.tappathHash SigHash.lib"),
+            ("sighash", f"(drop (primitive {prim}))", f"(take (primitive {prim}))"),
+            ("array_port", f"Bitcoin.{prim}" if prim in {"OutputScriptHash", "InputSequence"} else f"BitcoinExt.{prim}", "BitcoinExt.Tappath"),
+            ("array_port", f"Theorem bitcoin_{stem}_hash_literal_local_spec :", f"Theorem bitcoin_{stem}_hash_literal_local_spec : False ->"),
+        ]
+    for key, old, new in array_hash_mutations:
+        if old not in s[key]:
+            raise ValueError("inactive Bitcoin array hash mutation: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            bitcoin_array_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError("Bitcoin array hash source mutation escaped: " + old)
+    print("Four Bitcoin array hash programs, primitive projections and whole C boundaries match;", len(array_hash_mutations), "mutations rejected")
 
 
 if __name__ == "__main__":

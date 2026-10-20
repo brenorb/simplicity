@@ -311,3 +311,30 @@ consumers: 315 kernel-checked modules, 194 assumption comparisons, 211 contract
 comparisons, global source/mutation checks, negative tests and all five AST
 regenerations. Audited inputs stayed unchanged; no expectations were updated.
 Reproduce with the scoped command in `JET_ACCEPTANCE.md`.
+
+## Bitcoin array-hash candidates
+
+`jet_bitcoin_array_hash_literal.v` composes the shared literal SHA initializer,
+early-stopping traversal and finalizer with four original C getter proofs:
+output scripts, input scripts, input sequences and input scriptSigs. One closed
+program equality works for every indexed primitive and primitive algebra; the
+four adapters select the canonical 32-bit index and 32-byte/4-byte elements.
+No C implementation, prior execution proof or formal domain is changed.
+
+The endpoints retain `application_jet_local_spec_sep` and the existing
+`hash_getter_rep` relations (transaction offsets 48, 176, 240 and 304), with no
+additional libc premise. They prove the cached getters, not caller cache
+construction or unrestricted Haskell-environment representability. In
+particular, the frozen transaction-domain boundaries in
+`JET_BITCOIN_MODEL_MISMATCHES.md` remain unresolved; the two extended script-hash
+lists are still represented abstract environment fields, not newly established
+raw-script projections.
+
+All four endpoints compile in the normal project. Reviewed assumption and
+contract snapshots match: the general program equality is closed, and the C
+theorems each inherit six library assumptions. The existing SHA source checker
+also checks the four full canonical programs, library dispatch, selected
+primitive projections, widths and whole public contracts, rejecting 34 further
+mutations. These host projections are source-reviewed, not a general Haskell
+interpreter theorem. Recursive kernel checking and ordinary scoped acceptance
+must finish before these candidates are described as accepted.
