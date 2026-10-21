@@ -2,10 +2,10 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 497/533 jets (361 without an extra libc
+The local-contract registry contains 498/533 jets (362 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
-497/533, including the computing issuance hash, affine curve and projective
-X-equivalence endpoints. The earlier 430-entry baseline passed
+498/533, including the computing issuance hash, affine/projective curve and
+projective X-equivalence endpoints. The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
@@ -1126,3 +1126,36 @@ and 136 conditional on `memcpy_model`. The remaining 36 declarations and the
 shared fidelity/domain/caller obligations are not completed by this result.
 Production C, original specifications/domains/identities, API contracts and
 generation settings are unchanged.
+
+## Accepted: original projective curve check
+
+`C.jet_secp_gej_curve_local.gej_is_on_curve_literal_local_spec` proves the
+whole original `simplicity_gej_is_on_curve` against the existing literal
+canonical Simplicity program. It derives public entry, the by-value frame copy,
+all three actual coordinate reads, the complete original validity helper and
+its nine arithmetic calls, the boolean-typed bit write, successful return and
+all private/public frees. The selected square and multiplication proofs are
+reused; the alternative public field registrations stay excluded.
+
+The standard local contract covers arbitrary Word256 X/Y/Z inputs, including
+zero Z, with one writable output bit and ordinary valid frame/cursor layouts.
+There is no finite-point, on-curve, canonical-input, initialized-output,
+desired-result, intermediate-execution or extra libc-model premise. The final
+theorem retains the same six inherited execution assumptions.
+
+On `408a485c`, ordinary scoped acceptance passed with unchanged audit inputs:
+321 kernel modules, 260 assumption modules, 275 contract modules, gate negative
+tests and all five regenerated ASTs. The existing predicate correspondence
+suite now rejects 95 mutations, including eight new public-projective cases.
+Reproduce from the repository root with the baseline Coq 8.17.1 and prepared
+jet dependencies:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_gej_is_on_curve
+```
+
+Accepted local-contract coverage is 498/533: 362 without an extra libc premise
+and 136 conditional on `memcpy_model`. The remaining 35 declarations and
+shared fidelity/domain/caller obligations remain unfinished. Production C,
+original specifications/domains/identities, API contracts and generation
+settings are unchanged.
