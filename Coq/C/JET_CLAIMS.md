@@ -7,6 +7,5 @@ instead of starting a parallel proof.
 
 | Jet (`jet_coverage.tsv` name) | Owner (agent/session) | Branch | Since |
 | --- | --- | --- | --- |
-| `simplicity_issuance_asset_amounts_hash` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-20 |
-| `simplicity_issuance_token_amounts_hash` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-20 |
-| `simplicity_issuances_hash` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_tx_hash` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_sig_all_hash` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-20 |
