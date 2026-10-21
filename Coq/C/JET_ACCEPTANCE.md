@@ -2,8 +2,8 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 492/533 jets (359 without an extra libc
-premise; 133 conditional on `memcpy_model`). The earlier 430-entry baseline passed
+The local-contract registry contains 493/533 jets (359 without an extra libc
+premise; 134 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
@@ -34,6 +34,8 @@ The Elements transaction and signature hash entries then passed ordinary scoped
 acceptance below.
 The computing input UTXO hash entry then passed ordinary scoped acceptance
 below, bringing accepted local-contract coverage to 492/533.
+The computing output hash entry then passed ordinary scoped acceptance below,
+bringing accepted local-contract coverage to 493/533.
 
 Reproduce acceptance from the repository root:
 
@@ -101,7 +103,7 @@ ten are newly accepted registrations.
   do not identify the ordinary SHA translation unit with the Elements program.
 - Shared frame/evaluator admissibility and exhaustive inherited canonical
   fidelity review remain open; see `JET_INHERITED_REVIEW.md`.
-- The remaining 41 header declarations have no registered final contract.
+- The remaining 40 header declarations have no registered final contract.
   Cached Bitcoin hashes and SHA startup helpers are support until their raw-data
   and operational boundaries meet the public coverage requirements.
 
@@ -921,7 +923,7 @@ bash Coq/check-jets.sh --accept --jets=simplicity_tx_hash,simplicity_sig_all_has
 
 No production C, original specification, API or generation setting changed.
 
-## Candidate: computing Elements output hash
+## Accepted: computing Elements output hash
 
 `C.jet_elements_output_hash_literal.elements_output_hash_literal_local_spec`
 proves the whole original `simplicity_output_hash` against the literal
@@ -942,8 +944,9 @@ theorems and 12 definitions; the literal bridges and parametricity are closed.
 The C endpoint retains the six inherited library assumptions and explicit
 `memcpy_model`. The existing source checker compares the complete Core tree,
 Transaction amount route, initial representation and full public boundary,
-rejecting 30 new mutations. This candidate is not registered or accepted yet.
-After registration, run:
+rejecting 30 new mutations. Ordinary scoped acceptance passed: build, kernel
+checking of 444 modules, 313 assumption records, 337 public contract records,
+gate negative tests and regeneration of all five ASTs:
 
 ```sh
 bash Coq/check-jets.sh --accept --jets=simplicity_output_hash

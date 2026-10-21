@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 492 of the 533 header declarations.
+The current local-contract registry contains 493 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 41 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 40 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -690,7 +690,7 @@ admissibility and libc implementation linkage remain distinct obligations.
 Bitcoin domain blockers and Elements fee questions remain separate. Check
 `JET_CLAIMS.md` before starting another jet.
 
-## Computing Elements output hash candidate
+## Completed local contract: computing Elements output hash
 
 `jet_elements_output_hash_{spec,prep,payload,jet,literal}.v` and
 `jet_elements_nonce_hash_repr.v` now compile in the normal project. The final
@@ -702,10 +702,11 @@ with memory preservation. Absent nonce payload words need not be initialized.
 
 Reviewed snapshots cover 22 theorems and 12 definitions. Literal bridges are
 closed; the C endpoint retains six inherited assumptions and `memcpy_model`.
-The source checker rejects 30 targeted mutations. This is not registered or
-accepted yet; ordinary scoped acceptance must follow registration. Caller,
-environment-cache, libc and evaluator obligations are unchanged. The jet remains
-claimed in `JET_CLAIMS.md`; do not start a duplicate proof.
+The source checker rejects 30 targeted mutations. Ordinary scoped acceptance
+passed, including kernel checking of 444 modules and all five AST regenerations;
+accepted local-contract coverage is 493/533. Caller, environment-cache, libc and
+evaluator obligations are unchanged.
+Check `JET_CLAIMS.md` before starting another jet.
 
 ## Source-review question: Elements fee predicates
 
