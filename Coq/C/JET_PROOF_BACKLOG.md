@@ -1156,25 +1156,41 @@ uninitialized T, preserving S and deriving the exact value `4*feP - value S`
 and reusable bounds. `double_middle_calls` composes that negation, multiplication
 by the initial X, and the square of L into X. `double_front_calls` composes all
 eight calls from the initial point and three owned temporaries, with no
-intermediate execution/output premises. It returns X=L^2, T=-S*X (as actual
-machine limbs), S=Y^2, L, unchanged Y, updated Z, all ownership permissions and
-derived bounds needed by the tail. Build, focused assumption/contract audits
-and recursive kernel checks pass; coverage is unchanged. Reproduce with the
-baseline toolchain/dependencies described above:
+intermediate execution/output premises. It returns the actual `square_words L`
+at X and `double_t_words initial_X S` at T, along with S, L, unchanged Y,
+updated Z and all ownership permissions.
+
+The shared `eval_point_field_add` now proves original C addition for every
+point coordinate and both argument orders, retaining the full 128-byte point
+allocation and a precise frame for the other coordinates. Its machine-output
+contract needs no arithmetic range premise. `jet_secp_field_sum_bounds.v`
+derives no-wrap facts, exact radix sums and reusable scaled limb bounds from
+the preceding tight outputs; these are caller facts, not new domain constraints.
+`double_accumulate_calls` composes calls nine through twelve (X += T twice,
+S = S^2, T += X). `double_first_twelve_calls` then derives all twelve calls from
+the initial storage. It preserves Y/Z and L, returns the updated X/T/S machine
+fields, full ownership, and bounds for the last three calls. All these modules
+pass the ordinary build, focused assumption/contract audits and recursive kernel
+checks, with the same six inherited execution assumptions and no new libc
+premise. Coverage is unchanged. Reproduce with the baseline toolchain and
+dependencies described above:
 
 ```sh
-JET_TARGETS=C/jet_secp_double_front.vo bash Coq/build-jets.sh -j2
+JET_TARGETS=C/jet_secp_double_twelve.vo bash Coq/build-jets.sh -j2
 ulimit -S -s 65520
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_front
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_twelve
 ```
 
-Next prove the remaining seven arithmetic calls: add T to point X twice,
-square S in place (reuse `eval_square_inplace_from_storage`), add point X to T,
-multiply T and L into point Y, add S to Y, and magnitude-two negation of Y.
-The point/private add layouts and final negation need storage adapters and
-derived bounds, not assumed normalization. Compose the generated statement
-tree, flag load/store, helper entry and frees: the eight-call theorem is not
-yet an execution theorem for the entire helper. Connect the actual halving
+Next prove the remaining three arithmetic calls: multiply the separate private
+T and L fields into point Y, add S to Y (reuse `eval_point_field_add true PointY`),
+and magnitude-two in-place negation of Y. Reuse the selected multiplication
+event/numeric lemmas for that three-allocation destination layout. The final
+negation needs an adapter for the original magnitude-two call at offset 40,
+not the existing magnitude-one helper or an assumed normalized input. Derive
+its no-wrap and output bounds from the preceding multiplication and addition.
+Compose the generated statement tree, flag load/store, helper entry and frees:
+the twelve-call theorem is not yet an execution theorem for the entire helper.
+Connect the actual halving
 result and final coordinates to `literal_gej_double`, then compose the infinity
 branch and public read/write/lifecycle contract. The value identities alone do
 not discharge this implementation-to-literal bridge.
