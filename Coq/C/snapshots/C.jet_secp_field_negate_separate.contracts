@@ -1,0 +1,192 @@
+### C.jet_secp_field_negate_separate.negate_sep_run_eq
+negate_sep_run_eq
+     : @eq (option jet_sx_exec.res) negate_sep_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone negate_sep_state jet_sx_exec.ONormal))
+### C.jet_secp_field_negate_separate.negate_sep_return
+negate_sep_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps negate_sep_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_field_negate_separate.negate_sep_output_shape
+negate_sep_output_shape
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs negate_sep_state) negate_sep_out_regs
+### C.jet_secp_field_negate_separate.negate_sep_output_den
+negate_sep_output_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) negate_sep_out)
+         (@List.map Integers.Int64.int Values.val Values.Vlong
+            (jet_secp_multiply_normalize_bridge.words5 (negate_sep_words rho)))
+### C.jet_secp_field_negate_separate.eval_negate_sep_symbolic
+eval_negate_sep_symbolic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta negate_sep_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_negate)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val (Values.Vint Integers.Int.one) (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho beta negate_sep_out_regs mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape negate_sep_regs) b pos)) m mf)))
+### C.jet_secp_field_negate_separate.negate_sep_initial
+negate_sep_initial
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bout bin : Values.block)
+         (_ : not (@eq Values.block bout bin))
+         (_ : Memory.Mem.range_perm m bout BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bin BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bin BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       jet_sx_state.rep w
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bout BinNums.Z0)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bin BinNums.Z0)
+               (@nil (prod Values.block BinNums.Z)))) negate_sep_regs m
+### C.jet_secp_field_negate_separate.negate_sep_fields
+negate_sep_fields
+     : forall (w : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep w beta negate_sep_out_regs m),
+       and
+         (jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta O) (jet_sx_state.bas beta O)
+            (jet_secp_multiply_normalize_bridge.words5 (negate_sep_words w)))
+         (and
+            (jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta (S O)) (jet_sx_state.bas beta (S O))
+               (jet_secp_multiply_normalize_bridge.words5 w))
+            (and
+               (Memory.Mem.range_perm m (jet_sx_state.blk beta O) BinNums.Z0
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  Memtype.Cur Memtype.Freeable)
+               (Memory.Mem.range_perm m (jet_sx_state.blk beta (S O)) BinNums.Z0
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  Memtype.Cur Memtype.Freeable)))
+### C.jet_secp_field_negate_separate.negate_sep_unsigned
+negate_sep_unsigned
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_field_mul_small.mul_small_input_bounds w)
+         (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (negate_sep_words w i))
+         (BinInt.Z.sub
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+               (jet_secp_field_negate_values.negate_mask i)) (Integers.Int64.unsigned (w i)))
+### C.jet_secp_field_negate_separate.negate_sep_numeric
+negate_sep_numeric
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_field_mul_small.mul_small_input_bounds w),
+       and
+         (@eq BinNums.Z (jet_secp_multiply_finish_product.radix_value (negate_sep_words w))
+            (BinInt.Z.sub (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) jet_secp_fe_math.feP)
+               (jet_secp_multiply_finish_product.radix_value w)))
+         (jet_secp_square_columns.square_input_bounds (negate_sep_words w))
+### C.jet_secp_field_negate_separate.eval_negate_sep_from_storage
+eval_negate_sep_from_storage
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bout bin : Values.block)
+         (_ : jet_secp_field_mul_small.mul_small_input_bounds w) (_ : not (@eq Values.block bout bin))
+         (_ : Memory.Mem.range_perm m bout BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bin BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bin BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_negate)
+               (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bin Integers.Ptrofs.zero)
+                     (@cons Values.val (Values.Vint Integers.Int.one) (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf bout BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5 (negate_sep_words w)))
+               (and (jet_secp_fe_nv.fe_at mf bin BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+                  (and
+                     (Memory.Mem.range_perm mf bout BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf bin BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (@eq BinNums.Z (jet_secp_multiply_finish_product.radix_value (negate_sep_words w))
+                              (BinInt.Z.sub
+                                 (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) jet_secp_fe_math.feP)
+                                 (jet_secp_multiply_finish_product.radix_value w)))
+                           (and (jet_secp_square_columns.square_input_bounds (negate_sep_words w))
+                              (jet_sx_mem.lframe
+                                 (fun (b : Values.block) (_ : BinNums.Z) =>
+                                  and (not (@eq Values.block b bout)) (not (@eq Values.block b bin))) m mf))))))))
+### C.jet_secp_field_negate_separate.negate_sep_regs
+negate_sep_regs =
+@cons jet_sx_state.region
+  (jet_secp_local_regions.free_region jet_secp_fe_b32.fe_undef
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+  (@cons jet_sx_state.region
+     (jet_secp_local_regions.free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 O))
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+     (@nil jet_sx_state.region))
+     : list jet_sx_state.region
+### C.jet_secp_field_negate_separate.negate_sep_args
+negate_sep_args =
+@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XIc Integers.Int.one) (@nil jet_sx_expr.sx)))
+     : list jet_sx_expr.sx
+### C.jet_secp_field_negate_separate.negate_sep_expr
+negate_sep_expr =
+fun i : nat =>
+jet_sx_expr.XLb jet_sx_expr.Bsub
+  (jet_sx_expr.XLb jet_sx_expr.Bmul
+     (jet_sx_expr.XLb jet_sx_expr.Bmul
+        (jet_sx_expr.XLc (Integers.Int64.repr (jet_secp_field_negate_values.negate_mask i)))
+        (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))))))
+     (jet_sx_expr.XI2L Ctypes.Signed
+        (jet_sx_expr.XIb jet_sx_expr.Badd (jet_sx_expr.XIc Integers.Int.one) (jet_sx_expr.XIc Integers.Int.one))))
+  (jet_sx_expr.XLv i)
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments negate_sep_expr i%nat_scope
+### C.jet_secp_field_negate_separate.negate_sep_out
+negate_sep_out =
+@List.map nat jet_sx_expr.sx negate_sep_expr
+  (@cons nat O
+     (@cons nat (S O) (@cons nat (S (S O)) (@cons nat (S (S (S O))) (@cons nat (S (S (S (S O)))) (@nil nat))))))
+     : list jet_sx_expr.sx
+### C.jet_secp_field_negate_separate.negate_sep_words
+negate_sep_words =
+fun (w : forall _ : nat, Integers.Int64.int) (i : nat) =>
+Integers.Int64.sub
+  (Integers.Int64.repr
+     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (jet_secp_field_negate_values.negate_mask i)))
+  (w i)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments negate_sep_words w%function_scope i%nat_scope
+### C.jet_secp_field_negate_separate.negate_sep_run
+negate_sep_run =
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  (jet_sx_pure.int_table jet_secp_fns.secp_pure)
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  jets_secp.f_secp256k1_fe_negate negate_sep_args negate_sep_regs (@nil jet_sx_eval.event)
+  (S (S (S (S (S O)))))
+     : option jet_sx_exec.res
+### C.jet_secp_field_negate_separate.negate_sep_out_regs
+negate_sep_out_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 negate_sep_out) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region
+     (jet_secp_local_regions.free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 O))
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+     (@nil jet_sx_state.region))
+     : list jet_sx_state.region
