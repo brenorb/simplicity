@@ -1282,9 +1282,30 @@ projective/affine addition jet. Reuse the accepted doubling helper for its
 equal-point branch and the selected multiply/square infrastructure. The
 public affine reader establishes a zero infinity flag for B; derive that
 fact from the reader rather than adding a public input restriction.
-The incoming-infinity branch needs the actual `gej_set_ge` field copies and
-`fe_set_int` call. The finite branch still needs its full arithmetic, zero
-tests, literal-program bridge, public reads/writes, entry and frees.
+`jet_secp_field_copy_owned.v` proves the actual struct assignment into an
+uninitialized, distinct field slice, deriving the copied words, permission
+preservation and precise framing from readable source/writable destination
+storage. It uses CompCert's struct-copy rule, not a libc-model premise.
+`jet_secp_point_set_bit.v` proves the actual `fe_set_int(0/1)` on any coordinate
+slice inside one owned 128-byte point. It handles the generated assertion loop
+without changing assertion settings or treating the slices as separate blocks.
+`jet_secp_gej_set_ge_owned.v` composes the flag store, both field copies, actual
+Z initializer, entry and return of the original affine-to-projective helper.
+`jet_secp_mixed_head.v:mixed_infinite_body_owned` executes the actual mixed-add
+body's incoming-infinity branch, retained loop, NULL-rzr test, helper call and
+early return. It derives the resulting fields, zero infinity flag, ownership
+and external frame from storage; no intermediate call/output is assumed.
+These internal results do not register another jet. The finite branch still
+needs its full arithmetic, zero tests, literal-program bridge, public
+reads/writes, entry and frees.
+
+With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
+
+```sh
+JET_TARGETS=C/jet_secp_mixed_head.vo bash Coq/build-jets.sh -j2
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_head
+```
 
 ## Source-review question: Elements fee predicates
 

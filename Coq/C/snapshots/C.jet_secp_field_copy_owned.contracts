@@ -1,0 +1,39 @@
+### C.jet_secp_field_copy_owned.exec_field_copy_owned
+exec_field_copy_owned
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (src dst : Clight.expr)
+         (bs : Values.block) (sbase : BinNums.Z) (bd : Values.block) (dbase : BinNums.Z)
+         (w : forall _ : nat, Integers.Int64.int)
+         (_ : @eq Ctypes.type (Clight.typeof src) (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr))
+         (_ : @eq Ctypes.type (Clight.typeof dst) (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m src (Values.Vptr bs (Integers.Ptrofs.repr sbase)))
+         (_ : Clight.eval_lvalue jet_secp_linkage.secp_ge e le m dst bd (Integers.Ptrofs.repr dbase) Ctypes.Full)
+         (_ : not (@eq Values.block bs bd))
+         (_ : jet_secp_fe_nv.fe_at m bs sbase (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : BinInt.Z.le BinNums.Z0 dbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) dbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add dbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bd dbase
+                (BinInt.Z.add dbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (Clight.Sassign dst src) Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (and (jet_secp_fe_nv.fe_at mf bd dbase (jet_secp_multiply_normalize_bridge.words5 w))
+               (and
+                  (forall (b : Values.block) (pos : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission),
+                   iff (Memory.Mem.perm mf b pos k p) (Memory.Mem.perm m b pos k p))
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (pos : BinNums.Z) =>
+                      or (not (@eq Values.block b bd))
+                        (or (BinInt.Z.lt pos dbase)
+                           (BinInt.Z.le
+                              (BinInt.Z.add dbase
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))) pos)))
+                     m mf))))
