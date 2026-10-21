@@ -151,6 +151,8 @@ for stem, k, w, ptr, offset, size in [
 for stem, ptr, offset, size in [
     ("input_outpoints", 0, 216, 760), ("input_annexes", 0, 376, 760), ("inputs", 0, 440, 760),
     ("tapleaf", 8, 8, 176), ("tap_env", 8, 72, 176),
+    ("issuance_range_proofs", 0, 536, 760), ("output_nonces", 0, 56, 760),
+    ("output_amounts", 0, 24, 760), ("input_amounts", 0, 248, 760),
 ]:
     RECOVERED_CONTRACTS[f"simplicity_{stem}_hash"] = (
         f"application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256 "

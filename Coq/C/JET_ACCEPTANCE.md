@@ -2,7 +2,7 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 472/533 jets (343 without an extra libc
+The local-contract registry contains 476/533 jets (347 without an extra libc
 premise; 129 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
@@ -19,6 +19,8 @@ The single-input Bitcoin hash and seven Elements array-hash registrations then
 passed ordinary scoped acceptance below.
 The five further Elements input/taproot hash registrations then passed ordinary
 scoped acceptance below.
+The four Elements issuance-proof/nonce/amount-hash registrations then passed
+ordinary scoped acceptance below.
 
 Reproduce acceptance from the repository root:
 
@@ -633,4 +635,45 @@ bash Coq/check-jets.sh --accept --jets=simplicity_input_outpoints_hash,simplicit
 ```
 
 This does not assert a fresh full 472-entry audit or discharge of the remaining
+shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
+
+## Elements issuance-proof, nonce and amount hash getters
+
+Three adapters connect complete original C cache getters to the canonical
+primitive-bearing programs. `jet_elements_issuance_proofs_hash_literal.v`
+retains both primitive lookups and early exits and reuses the existing closed
+asset/token proof-view lemmas. `jet_elements_nonces_hash_literal.v` distinguishes
+absent output from absent nonce and reuses the native Word256 encoder bridge.
+`jet_elements_amounts_hash_literal.v` shares the canonical asset/amount
+serializers and primitive-pair loop between input and output hashes. Prefixes
+0/1/2/3, 10/11 and 8/9 and the explicit amount's 8-byte payload are retained;
+there is no new field-element restriction on native nonce words.
+
+Six preserved support modules are restored without source changes. The generic
+Reader loop, prefix/payload absorber and existing complete C getter proofs are
+reused, not replaced by execution/hash oracles. The four final contracts keep
+`hash_getter_rep` at offsets 536, 56, 24 and 248 in the 760-byte transaction.
+All four have the same six inherited library assumptions and no extra libc
+premise; all 17 adapter bridges are closed.
+
+Normal compilation passes after rebuilding unchanged stale dependencies with
+the pinned toolchain. Reviewed snapshots cover 65 theorem records and 52
+definitions across nine modules; comparisons without update flags pass. The
+existing source checker rejects 19 issuance-loop, 20 nonce and 26 amount-hash
+mutations, reusing the mandatory primitive/native-encoding/pair-routing guards.
+Existing gate negative tests remain unchanged.
+
+Caller/cache construction, existing representation/domain/layout bounds and
+general host-library fidelity remain separate obligations. No production C,
+original specification, API or generation configuration changed.
+
+Ordinary scoped acceptance passed: 367 kernel-checked modules, 235 assumption
+records and 260 contract records, followed by the unchanged gate negative tests
+and all five AST regenerations:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_issuance_range_proofs_hash,simplicity_output_nonces_hash,simplicity_output_amounts_hash,simplicity_input_amounts_hash
+```
+
+This does not assert a fresh full 476-entry audit or discharge of the remaining
 shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
