@@ -923,16 +923,37 @@ bash Coq/check-jets.sh --accept --jets=simplicity_tx_hash,simplicity_sig_all_has
 
 No production C, original specification, API or generation setting changed.
 
-## Support only: computing Elements input hash
+## Candidate: computing Elements input hash
 
-The six `jet_elements_single_input_*.v` modules compile in the normal project.
-Reviewed snapshots cover 24 theorems and 16 definitions. The program/literal
-bridge, all-index semantics, actual SHA payload calls and optional statement
-adapters are complete; the literal bridge is closed and the C chain retains
-the six inherited assumptions plus explicit `memcpy_model`. These modules do
-not yet compose entry, field loads, frame output and frees into a public
-whole-C contract. No registration or additional accepted jet is claimed.
-See `JET_PROOF_BACKLOG.md` for the next exact boundary and layout facts.
+The six support modules compile in the normal project, with reviewed snapshots
+covering 24 theorems and 16 definitions. The new `jet_elements_single_input_jet`
+and `jet_elements_single_input_literal_jet` add two theorems and two definitions.
+`elements_single_input_hash_literal_local_spec` proves the whole original
+`simplicity_input_hash` against the literal four-primitive `inputHash` program:
+index/tag, private SHA initialization, optional pegin, outpoint, index/sequence,
+optional annex, finalization, serialization, return and frees, plus the
+out-of-range skip branch. It retains arbitrary valid frame cursors, unknown old
+output contents, prefix/cursor preservation and external framing.
+
+The initial relation describes the actual input fields and their raw primitive
+meaning, plus SHA readiness. Optional hashes require payload words only when
+present. Intermediate field loads are derived through the actual SHA calls;
+neither those calls nor the desired final digest are assumed. The general
+streaming bridge handles all 42/74/106-byte messages.
+
+The literal bridge is closed; the C endpoint retains the six inherited library
+assumptions and explicit `memcpy_model`. The existing source checker compares
+the full Core tree, primitive routes, initial representation and public boundary,
+rejecting 34 new mutations. This candidate is not registered or accepted yet.
+After registration, run:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_input_hash
+```
+
+Builder/caller establishment, libc linkage and evaluator admissibility remain
+separate obligations. No production C, original specification/domain/identity,
+API or generation setting changed.
 
 ## Accepted: computing Elements output hash
 

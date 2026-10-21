@@ -2846,6 +2846,122 @@ def elements_single_output_hash(s):
               (GC, 0, 8); (GM, 0, 8)]''')
 
 
+def elements_single_input_hash(s):
+    """Whole indexed computing inputHash; reuse the mandatory outpoint,
+    annex and primitive checks, then compare the entire routing tree and
+    initial-only C relation rather than accepting a digest helper."""
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, name, expected):
+        if p.compact(hbody(s[key], name)) != p.compact(expected):
+            raise ValueError('Elements single input binding differs: ' + name)
+
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('Elements single input definition differs: ' + name)
+
+    def core(text):
+        for op in ['comp', 'pair', 'take', 'drop', 'injl', 'injr', 'case']:
+            text = replace(text, '@AC.' + op + ' ' + ('_ _ _ _' if op == 'case' else '_ _ _') + ' core',
+                           op + 'Node')
+            text = replace(text, 'AC.' + op, op + 'Node')
+        for op in ['unit', 'iden']:
+            text = replace(text, '@AC.' + op + ' _ core', op)
+            text = replace(text, 'AC.' + op, op)
+        return explicit_core_tree(expression(text),
+            {'unit', 'pPegin', 'pOutpoint', 'pSequence', 'pAnnex', 'ctx8Init',
+             'outpointHash', 'annexHash', 'add4', 'ctx8Finalize',
+             'assertOutpoint', 'assertSequence', 'assertAnnex'})
+
+    binding('elements_catalog', 'specificationSigHash InputHash', 'SigHash.inputHash')
+    p.require(s['elements_catalog'], 'InputHash :: SigHashJet Word32 (S Word256)', 'single input catalog type')
+    binding('elements_sighash_lib', 'inputHash', 'SigHash.inputHash SigHash.lib')
+    programs = s['elements_sighash'].split(
+        'mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    hs = re.search(r'\binputHash\s*=(.*?)\n\s*[,}]', programs, re.S)
+    if not hs:
+        raise ValueError('missing canonical inputHash')
+    hs = hs[1]
+    for old, new in [
+        ('primitive InputPegin', 'pPegin'),
+        ('primitive InputPrevOutpoint', 'pOutpoint'),
+        ('primitive InputSequence', 'pSequence'),
+        ('primitive InputAnnexHash', 'pAnnex'),
+        ('(drop . take . assert $ iden)', '(drop (take assertOutpoint))'),
+        ('(drop . drop . take . assert $ iden)', '(drop (drop (take assertSequence)))'),
+        ('(drop . drop . drop . assert $ iden)', '(drop (drop (drop assertAnnex)))'),
+        ('ctx8Add4', 'add4'),
+    ]:
+        hs = replace(hs, old, new)
+    prefix = '''let term := EFP.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in'''
+    port = p.definition(s['eih_port'], 'literal_elements_single_input_hash')
+    if not p.compact(port).startswith(p.compact(prefix)):
+        raise ValueError('single input algebra projection differs')
+    port = replace(port, prefix, '')
+    payload = p.definition(s['eih_port'], 'literal_elements_single_input_payload')
+    projection = 'let core := Alg.Assertion.toCore term in'
+    if not p.compact(payload).startswith(p.compact(projection)):
+        raise ValueError('single input payload algebra differs')
+    payload = replace(payload, projection, '')
+    port = replace(port, '@literal_elements_single_input_payload term', '(' + payload + ')')
+    for old, new in [
+        ('@EFP.Combinators.prim _ _ alg Elements.InputPegin', 'pPegin'),
+        ('@EFP.Combinators.prim _ _ alg Elements.InputPrevOutpoint', 'pOutpoint'),
+        ('@EFP.Combinators.prim _ _ alg Elements.InputSequence', 'pSequence'),
+        ('@EFP.Combinators.prim _ _ alg Elements.InputAnnexHash', 'pAnnex'),
+        ('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+        ('@literal_elements_outpoint_add term', 'outpointHash'),
+        ('@literal_bitcoin_annex_hash term', 'annexHash'),
+        ('@literal_ctx8_addn 2 term', 'add4'),
+        ('@literal_ctx8_finalize term', 'ctx8Finalize'),
+        ('@assert_iden_spec (Ty.Prod Word256 Word32) term', 'assertOutpoint'),
+        ('@assert_iden_spec Word32 term', 'assertSequence'),
+        ('@assert_iden_spec (Ty.Sum Ty.Unit Word256) term', 'assertAnnex'),
+    ]:
+        port = replace(port, old, new)
+    if expression(hs) != core(port):
+        raise ValueError('canonical whole inputHash composition differs')
+    statement = re.search(r'Theorem elements_single_input_hash_literal_local_spec\s*:(.*?)\bProof\.',
+                          s['eih_public'], re.S)
+    expected = '''memcpy_model ->
+      application_jet_local_spec_sep f_simplicity_input_hash elements_ge Elements.env
+        Word32 (Ty.Sum Ty.Unit Word256) elements_single_input_hash_rep
+        (fun a environment => @literal_elements_single_input_hash elements_hash_alg a environment).'''
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError('single input complete C contract differs')
+    definition('eih_jet', 'eih_elem_rep', r'''
+      Mem.load Mint8unsigned m b (ofs + 537) =
+        Some (Vint (bit_int (match sigTxiPegin txi with Some _ => true | None => false end))) /\
+      Mem.load Mint8unsigned m b (ofs + 536) =
+        Some (Vint (bit_int (match sigTxiAnnex txi with Some _ => true | None => false end))) /\
+      (forall h, sigTxiPegin txi = Some h -> uint32_array_at m b (ofs + 32) (hash256_reg h)) /\
+      uint32_array_at m b (ofs + 96) (hash256_reg (opHash (sigTxiPreviousOutpoint txi))) /\
+      Mem.load Mint64 m b (ofs + 128) =
+        Some (Vlong (Int64.repr (Int.unsigned (opIndex (sigTxiPreviousOutpoint txi))))) /\
+      Mem.load Mint64 m b (ofs + 248) =
+        Some (Vlong (Int64.repr (Int.unsigned (sigTxiSequence txi)))) /\
+      (forall bs, sigTxiAnnex txi = Some bs -> uint32_array_at m b ofs (hash256_reg (byteStringHash bs)))''')
+    definition('eih_jet', 'elements_single_input_hash_rep', r'''
+      exists be ebase bt txbase bin inbase nI,
+        env = Vptr be (Ptrofs.repr ebase) /\
+        0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
+        0 <= txbase /\ txbase + 760 <= Ptrofs.max_unsigned /\
+        0 <= inbase /\
+        inbase + 544 * Z.of_nat (length (sigTxIn (Elements.envTx e))) <= Ptrofs.max_unsigned /\
+        Mem.load Mptr m be (ebase + 0) = Some (Vptr bt (Ptrofs.repr txbase)) /\
+        Mem.load Mptr m bt (txbase + 0) = Some (Vptr bin (Ptrofs.repr inbase)) /\
+        Mem.load Mint64 m bt (txbase + 696) = Some (Vlong nI) /\
+        Int64.unsigned nI = Z.of_nat (length (sigTxIn (Elements.envTx e))) /\
+        (forall j txi, nth_error (sigTxIn (Elements.envTx e)) j = Some txi ->
+          eih_elem_rep m bin (inbase + 544 * Z.of_nat j) txi) /\
+        sha_globals_ok m /\
+        fp = [(be, ebase, ebase + 8); (bt, txbase + 0, txbase + 8);
+              (bin, inbase, inbase + 544 * Z.of_nat (length (sigTxIn (Elements.envTx e))));
+              (GC, 0, 8); (GM, 0, 8)]''')
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -2947,6 +3063,9 @@ def sources():
         "eiu_jet": COQ / "C/jet_elements_input_utxo_hash_jet.v",
         "eoh_port": COQ / "C/jet_elements_output_hash_literal.v",
         "eoh_jet": COQ / "C/jet_elements_output_hash_jet.v",
+        "eih_port": COQ / "C/jet_elements_single_input_literal.v",
+        "eih_public": COQ / "C/jet_elements_single_input_literal_jet.v",
+        "eih_jet": COQ / "C/jet_elements_single_input_jet.v",
         "eiu_amount_model": COQ / "C/jet_elements_amount_jets.v",
         "eiu_transaction": REPO / "Haskell/Simplicity/Elements/Programs/Transaction.hs",
         "elements_annex_exec": COQ / "C/jet_elements_annex_context_exec.v",
@@ -3000,6 +3119,7 @@ def test():
     elements_transaction_signature_hashes(s)
     elements_single_utxo_hash(s)
     elements_single_output_hash(s)
+    elements_single_input_hash(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -4207,6 +4327,79 @@ def test():
             continue
         raise ValueError('single output mutation escaped: ' + old)
     print('Elements computing output full Core tree, amount route and C contract match;',
+          len(changes), 'mutations rejected')
+
+    changes = [
+        ('elements_catalog', 'specificationSigHash InputHash = SigHash.inputHash',
+         'specificationSigHash InputHash = SigHash.inputsHash'),
+        ('elements_catalog', 'InputHash :: SigHashJet Word32 (S Word256)',
+         'InputHash :: SigHashJet () (S Word256)'),
+        ('elements_sighash_lib', 'inputHash = SigHash.inputHash SigHash.lib',
+         'inputHash = SigHash.inputsHash SigHash.lib'),
+        ('elements_sighash', 'primitive InputPegin &&& (primitive InputPrevOutpoint',
+         'primitive InputAnnexHash &&& (primitive InputPrevOutpoint'),
+        ('elements_sighash', 'primitive InputSequence &&& primitive InputAnnexHash',
+         'primitive InputAnnexHash &&& primitive InputSequence'),
+        ('elements_sighash', '(drop . take . assert $ iden)', '(take . take . assert $ iden)'),
+        ('elements_sighash', '(drop . drop . take . assert $ iden)', '(drop . take . take . assert $ iden)'),
+        ('elements_sighash', '(drop . drop . drop . assert $ iden)', '(drop . drop . take . assert $ iden)'),
+        ('eih_port', 'Elements.InputPegin', 'Elements.InputAnnexHash'),
+        ('eih_port', 'Elements.InputPrevOutpoint', 'Elements.InputScriptHash'),
+        ('eih_port', 'Elements.InputSequence', 'Elements.Version'),
+        ('eih_port', 'Elements.InputAnnexHash', 'Elements.InputScriptSigHash'),
+        ('eih_port', '@literal_elements_outpoint_add term', '@literal_bitcoin_annex_hash term'),
+        ('eih_port', '@literal_bitcoin_annex_hash term', '@literal_elements_outpoint_add term'),
+        ('eih_port', '@literal_ctx8_addn 2 term', '@literal_ctx8_addn 3 term'),
+        ('eih_port', '@assert_iden_spec (Ty.Prod Word256 Word32) term', '@assert_iden_spec Word256 term'),
+        ('eih_port', '@assert_iden_spec Word32 term', '@assert_iden_spec Word64 term'),
+        ('eih_port', '@assert_iden_spec (Ty.Sum Ty.Unit Word256) term', '@assert_iden_spec Word256 term'),
+        ('eih_public', 'Theorem elements_single_input_hash_literal_local_spec :',
+         'Theorem elements_single_input_hash_literal_local_spec : False ->'),
+        ('eih_public', 'f_simplicity_input_hash elements_ge Elements.env',
+         'f_simplicity_inputs_hash elements_ge Elements.env'),
+        ('eih_public', 'f_simplicity_input_hash elements_ge Elements.env',
+         'f_simplicity_input_hash bitcoin_ge Elements.env'),
+        ('eih_public', 'Word32 (Ty.Sum Ty.Unit Word256) elements_single_input_hash_rep',
+         'Word32 (Ty.Sum Ty.Unit Word256) (fun m env e fp => False)'),
+        ('eih_jet', 'Mem.load Mint8unsigned m b (ofs + 537)', 'Mem.load Mint8unsigned m b (ofs + 536)'),
+        ('eih_jet', 'Mem.load Mint8unsigned m b (ofs + 536)', 'Mem.load Mint8unsigned m b (ofs + 537)'),
+        ('eih_jet', 'sigTxiPegin txi = Some h -> uint32_array_at m b (ofs + 32)',
+         'True -> uint32_array_at m b (ofs + 32)'),
+        ('eih_jet', 'uint32_array_at m b (ofs + 96)', 'uint32_array_at m b (ofs + 64)'),
+        ('eih_jet', 'Mem.load Mint64 m b (ofs + 128)', 'Mem.load Mint64 m b (ofs + 136)'),
+        ('eih_jet', 'Mem.load Mint64 m b (ofs + 248)', 'Mem.load Mint64 m b (ofs + 496)'),
+        ('eih_jet', 'sigTxiAnnex txi = Some bs -> uint32_array_at m b ofs',
+         'True -> uint32_array_at m b ofs'),
+        ('eih_jet', 'Mem.load Mint64 m bt (txbase + 696)', 'Mem.load Mint64 m bt (txbase + 704)'),
+        ('eih_jet', 'eih_elem_rep m bin (inbase + 544 * Z.of_nat j) txi',
+         'eih_elem_rep m bin (inbase + 544 * Z.of_nat j + 136) txi'),
+        ('eih_jet', 'eih_elem_rep m bin (inbase + 544 * Z.of_nat j) txi', 'True'),
+        ('eih_jet', 'sha_globals_ok m /\\', 'False /\\ sha_globals_ok m /\\'),
+        ('eih_jet', '(GC, 0, 8); (GM, 0, 8)', '(GC, 0, 0); (GM, 0, 0)'),
+    ]
+    for key, old, new in changes:
+        if key == 'eih_port':
+            for name in ['literal_elements_single_input_payload', 'literal_elements_single_input_hash']:
+                body = p.definition(s[key], name)
+                if old in body:
+                    old, new = body, body.replace(old, new, 1)
+                    break
+        if key == 'elements_sighash':
+            programs = s[key].split(
+                'mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+            body = re.search(r'\binputHash\s*=(.*?)\n\s*[,}]', programs, re.S)[1]
+            if old in body:
+                old, new = body, body.replace(old, new, 1)
+        if old not in s[key]:
+            raise ValueError('inactive single input mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_single_input_hash(changed)
+        except ValueError:
+            continue
+        raise ValueError('single input mutation escaped: ' + old)
+    print('Elements computing input full Core tree, optional routes and C contract match;',
           len(changes), 'mutations rejected')
 
 
