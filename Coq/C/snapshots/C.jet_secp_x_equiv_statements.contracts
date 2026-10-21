@@ -1,0 +1,106 @@
+### C.jet_secp_x_equiv_statements.x_equiv_helper_body_source
+x_equiv_helper_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_gej_eq_x_var) x_equiv_helper_stmt
+### C.jet_secp_x_equiv_statements.eval_x_equiv_z_address
+eval_x_equiv_z_address
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bp : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr bp Integers.Ptrofs.zero))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m x_equiv_z_address
+         (Values.Vptr bp
+            (Integers.Ptrofs.repr
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+### C.jet_secp_x_equiv_statements.exec_x_equiv_body_from_calls
+exec_x_equiv_body_from_calls
+     : forall (le : Maps.PTree.tree Values.val) (m ms mm mc mn mf : Memory.Mem.mem) (bp bq br br2 : Values.block)
+         (v : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr bp Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._x le)
+                (@Some Values.val (Values.Vptr bq Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_sqr)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      (Values.Vptr bp
+                         (Integers.Ptrofs.repr
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                      (@nil Values.val))) Events.E0 ms Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge ms
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bq Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mm
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (x_equiv_helper_env br br2) le mm
+                jet_secp_x_equiv_copy.x_equiv_copy_stmt Events.E0 le mc ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mc
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_normalize_weak)
+                (@cons Values.val (Values.Vptr br2 Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mn Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mn
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_equal_var)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br2 Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                (Values.Vint v)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (x_equiv_helper_env br br2) le m x_equiv_helper_stmt
+         Events.E0 (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint v) le) mf
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type) (@pair Values.val Ctypes.type (Values.Vint v) Ctypesdefs.tint)))
+### C.jet_secp_x_equiv_statements.x_equiv_helper_env
+x_equiv_helper_env =
+fun br br2 : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._r2
+  (@pair Values.block Ctypes.type br2 jet_secp_curve_statements.curve_fe_type)
+  (@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._r
+     (@pair Values.block Ctypes.type br jet_secp_curve_statements.curve_fe_type) Clight.empty_env)
+     : forall (_ : Values.block) (_ : Values.block), Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments x_equiv_helper_env br br2
+### C.jet_secp_x_equiv_statements.x_equiv_z_address
+x_equiv_z_address =
+Clight.Eaddrof
+  (Clight.Efield
+     (Clight.Ederef (Clight.Etempvar jets_secp._a (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)))
+        (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)) jets_secp._z jet_secp_curve_statements.curve_fe_type)
+  (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type)
+     : Clight.expr
+### C.jet_secp_x_equiv_statements.x_equiv_square_stmt
+x_equiv_square_stmt =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_sqr jets_secp.f_secp256k1_fe_sqr
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._r)
+     (@cons Clight.expr x_equiv_z_address (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_x_equiv_statements.x_equiv_multiply_stmt
+x_equiv_multiply_stmt =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_mul jets_secp.f_secp256k1_fe_mul
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._r)
+     (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._r)
+        (@cons Clight.expr (Clight.Etempvar jets_secp._x (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type))
+           (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_secp_x_equiv_statements.x_equiv_weak_stmt
+x_equiv_weak_stmt =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_normalize_weak jets_secp.f_secp256k1_fe_normalize_weak
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._r2) (@nil Clight.expr))
+     : Clight.statement
+### C.jet_secp_x_equiv_statements.x_equiv_equal_stmt
+x_equiv_equal_stmt =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_equal_var jets_secp.f_secp256k1_fe_equal_var
+  (@Some AST.ident jets_secp._t'1)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._r)
+     (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._r2) (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_x_equiv_statements.x_equiv_helper_stmt
+x_equiv_helper_stmt =
+Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+  (Clight.Ssequence x_equiv_square_stmt
+     (Clight.Ssequence x_equiv_multiply_stmt
+        (Clight.Ssequence jet_secp_x_equiv_copy.x_equiv_copy_stmt
+           (Clight.Ssequence x_equiv_weak_stmt
+              (Clight.Ssequence x_equiv_equal_stmt
+                 (Clight.Sreturn (@Some Clight.expr (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tint))))))))
+     : Clight.statement

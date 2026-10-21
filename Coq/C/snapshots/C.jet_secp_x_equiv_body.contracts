@@ -1,0 +1,90 @@
+### C.jet_secp_x_equiv_body.exec_x_equiv_body_owned
+exec_x_equiv_body_owned
+     : forall (q x z : forall _ : nat, Integers.Int64.int) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bp bq br br2 : Values.block) (_ : jet_secp_square_columns.square_input_bounds q)
+         (_ : jet_secp_square_columns.square_input_bounds x) (_ : jet_secp_square_columns.square_input_bounds z)
+         (_ : not (@eq Values.block bp bq)) (_ : not (@eq Values.block br bp)) (_ : not (@eq Values.block br bq))
+         (_ : not (@eq Values.block br2 bp)) (_ : not (@eq Values.block br2 bq)) (_ : not (@eq Values.block br2 br))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr bp Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._x le)
+                (@Some Values.val (Values.Vptr bq Integers.Ptrofs.zero)))
+         (_ : jet_secp_fe_nv.fe_at m bp BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 x))
+         (_ : jet_secp_fe_nv.fe_at m bp
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (jet_secp_multiply_normalize_bridge.words5 z))
+         (_ : jet_secp_fe_nv.fe_at m bq BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 q))
+         (_ : Memory.Mem.range_perm m bp BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bq BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m br2 BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+               (jet_secp_x_equiv_statements.x_equiv_helper_env br br2) le m
+               (Clight.fn_body jets_secp.f_secp256k1_gej_eq_x_var) Events.E0
+               (@Maps.PTree.set Values.val jets_secp._t'1
+                  (Values.Vint
+                     match
+                       BinInt.Z.eqb
+                         (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value x) jet_secp_fe_math.feP)
+                         (BinInt.Z.modulo
+                            (BinInt.Z.mul
+                               (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value z)
+                                  (jet_secp_multiply_finish_product.radix_value z))
+                               (jet_secp_multiply_finish_product.radix_value q)) jet_secp_fe_math.feP)
+                       return Integers.Int.int
+                     with
+                     | true => Integers.Int.one
+                     | false => Integers.Int.zero
+                     end) le) mf
+               (ClightBigstep.Out_return
+                  (@Some (prod Values.val Ctypes.type)
+                     (@pair Values.val Ctypes.type
+                        (Values.Vint
+                           match
+                             BinInt.Z.eqb
+                               (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value x) jet_secp_fe_math.feP)
+                               (BinInt.Z.modulo
+                                  (BinInt.Z.mul
+                                     (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value z)
+                                        (jet_secp_multiply_finish_product.radix_value z))
+                                     (jet_secp_multiply_finish_product.radix_value q)) jet_secp_fe_math.feP)
+                             return Integers.Int.int
+                           with
+                           | true => Integers.Int.one
+                           | false => Integers.Int.zero
+                           end) Ctypesdefs.tint))))
+            (and
+               (Memory.Mem.range_perm mf bp BinNums.Z0
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                  Memtype.Cur Memtype.Freeable)
+               (and
+                  (Memory.Mem.range_perm mf bq BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and
+                     (Memory.Mem.range_perm mf br BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf br2 BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (_ : BinNums.Z) =>
+                            and (not (@eq Values.block b bp))
+                              (and (not (@eq Values.block b bq))
+                                 (and (not (@eq Values.block b br)) (not (@eq Values.block b br2))))) m mf))))))

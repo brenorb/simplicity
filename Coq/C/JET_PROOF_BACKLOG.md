@@ -982,6 +982,17 @@ Both modules pass the normal build, reviewed contract/assumption comparisons
 and recursive kernel check with the six inherited library assumptions. These
 are helper results, not additional public-jet equivalence registrations.
 
+`jet_secp_x_equiv_prefix.v` composes the actual Z square and in-place multiply
+while preserving the caller's point allocation and X argument. The exact
+original helper statement tree, retained no-op loop and call/address derivations
+are in `jet_secp_x_equiv_statements.v`. `exec_x_equiv_body_owned` in
+`jet_secp_x_equiv_body.v` derives the complete original body from these storage
+contracts: no intermediate call execution, copied field or desired result is
+assumed. It includes the return statement, but not function entry or private
+frees. All three ordinary modules build, their reviewed snapshots match, and
+the body with its recursive dependencies passes the kernel check. Coverage
+remains 496/533; the public X-equivalence jet is not registered.
+
 Next compose the original `secp256k1_gej_eq_x_var`: square Z, multiply the temporary by the separate X
 argument, copy the point's X to `r2`, weak-normalize it, compare, return and free.
 Reuse `eval_original_field_mul_wrapper_product` and `field_mul_regs`, which
