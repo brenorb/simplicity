@@ -177,6 +177,12 @@ RECOVERED_CONTRACTS["simplicity_annex_hash"] = (
     "(Ty.Prod sha256_ctx8_type (Ty.Sum Ty.Unit (Word 8))) sha256_ctx8_type "
     "(@literal_bitcoin_annex_hash optalg).")
 
+for stem, depth in [("leaf", 8), ("branch", 9)]:
+    function = "simplicity_build_tap" + stem + ("_simplicity" if stem == "leaf" else "")
+    RECOVERED_CONTRACTS[function] = (
+        f"memcpy_model -> elements_sha_local_spec_pre el_sha_tap{stem}_pre f_{function} "
+        f"(Word {depth}) (Word 8) (@literal_elements_build_tap{stem} Alg.CoreFunSem).")
+
 for stem, offset in [("input_outpoints", 112), ("input_annexes", 272), ("inputs", 336)]:
     RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (
         f"application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge raw_bitcoin_environment "

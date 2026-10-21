@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 484 of the 533 header declarations.
+The current local-contract registry contains 486 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 49 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 47 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -591,7 +591,7 @@ It retains explicit SHA-global and `memcpy_model` premises and passed ordinary
 scoped acceptance together with the computed issuance getters. See
 `JET_ACCEPTANCE.md` for scope and the command.
 
-## Candidates: Elements taproot builders
+## Completed local contracts: Elements taproot builders
 
 Both whole original C builder calls now compile in
 `jet_elements_tap_builders_literal.v`. The Elements-specific tagged-context,
@@ -599,8 +599,9 @@ hash-I/O and comparison execution modules reuse the existing SHA and nonce
 frame infrastructure. Literal adapters share the accepted tapleaf payload,
 universal SHA bridge and fixed host tag recipe. Their initialized frame
 contracts retain `memcpy_model`, SHA dispatch/counter and actual tag-byte
-premises. These two candidates do not increase accepted coverage yet; the
-scope and required ordinary acceptance command are in `JET_ACCEPTANCE.md`.
+premises. Both endpoints passed ordinary scoped acceptance, including all
+309 kernel dependency modules. The scope and reproducible command are in
+`JET_ACCEPTANCE.md`.
 
 ## Source-review question: Elements fee predicates
 
