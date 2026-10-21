@@ -964,6 +964,14 @@ contract/assumption comparisons pass. This module does not prove C execution
 and is not a coverage registration. Keep this literal tree as the target,
 rather than replacing it by the numeric equation.
 
+`jet_secp_field_pair_multiply.v` now adapts the selected original C multiplier
+to two owned 40-byte fields. Its inputs may have the square contract's 49-bit
+top limb; it derives the original 56-/52-bit bounds, actual call, modular product,
+reusable output bounds, source preservation, both ownership ranges and framing.
+The normal build and reviewed contract/assumption comparisons pass. No fresh
+oracle, alternate multiplier, initialized-output or desired-result premise is
+introduced; no additional jet is registered.
+
 Next compose the original `secp256k1_gej_eq_x_var`: square Z, multiply the temporary by the separate X
 argument, copy the point's X to `r2`, weak-normalize it, compare, return and free.
 Reuse `eval_original_field_mul_wrapper_product` and `field_mul_regs`, which
