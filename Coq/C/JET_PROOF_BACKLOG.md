@@ -835,7 +835,7 @@ Caller/cache establishment, libc and evaluator obligations remain separate.
 ## Next claimed target: ge_is_on_curve
 
 The main session claims `simplicity_ge_is_on_curve` in `JET_CLAIMS.md`.
-Six ordinary modules now compile as internal support, not a registered curve
+Nine ordinary modules now compile as internal support, not a registered curve
 jet or a new acceptance result:
 
 - `jet_secp_field_add7.v`: actual `fe_add_int(7)`, exact field-value increment,
@@ -848,6 +848,14 @@ jet or a new acceptance result:
 - `jet_secp_curve_equal.v`: actual `fe_equal_var`, including allocation/freeing
   of its private temporary, returns equality modulo the field prime for lower
   52-bit/top 49-bit operands and preserves both input representations/framing.
+- `jet_secp_curve_mul.v`: actual in-place multiplication of a 40-byte temporary
+  by X inside an 88-byte affine input, with proved event witnesses, source
+  preservation and tight 52-/49-bit product bounds. It reuses `point_mul_table`,
+  `fm_solves`, and the existing field arithmetic, not a second public endpoint.
+- `jet_secp_curve_square{,_caller}.v`: selected original optimized C square
+  from either affine X (offset 0) or Y (offset 40) into a separate, possibly
+  uninitialized 40-byte temporary; output/source loads, caller ownership,
+  modular square value, tight bounds and framing are proved.
 
 These are C execution-plus-value contracts, not just relations between jet
 specifications. Their integer bridges are closed; execution contracts retain
@@ -856,18 +864,20 @@ only the six inherited library assumptions. No extra libc model is needed.
 Next compose the actual `f_secp256k1_ge_is_valid_var` in `jets_secp.v`: infinity
 test, two separate-output squares, in-place cube multiplication, +7, weak
 normalization and equality. Reuse the selected square proof and existing
-`point_mul_table`/`fm_solves`/field arithmetic. Generalize the multiplication
-storage adapter to the real 40-byte output temporary and 88-byte affine input,
-instead of imposing the point adapter's unrelated 128-/40-byte ownership.
+`point_mul_table`/`fm_solves`/field arithmetic through the new 40-/88-byte
+storage adapters, rather than imposing unrelated 128-/40-byte ownership.
 Prove private allocations, preservation, result conversion and frees, then the
 public reader/writeBit wrapper and full literal canonical Core bridge. The
 Haskell target is `ge_is_on_curve = iden &&& (unit >>> fe_one) >>> gej_is_on_curve`;
 do not replace it by an assumed numeric curve equation. Add source-fidelity
 checks and scoped acceptance only after that whole endpoint compiles.
 
-Cached square dependencies previously reported inconsistent assumptions over
-`jet_canonical_add_adapter`; rebuild affected unchanged sources under the Coq
-8.17.1 baseline when needed. Do not change toolchain pins or mix OCaml objects.
+Cached square dependencies had inconsistent assumptions over
+`jet_canonical_add_adapter`. The affected unchanged sources were rebuilt under
+the Coq 8.17.1 baseline, first in temporary output and then in the normal build;
+both selected public field endpoints also recompiled. Do not change toolchain
+pins or mix OCaml objects. Square certificate comparisons are split by fixed
+input offset and limb, retaining the 10-second command bound.
 Claude's alternative public field endpoints remain unregistered; do not merge
 `dd4579a7` or duplicate the selected `fe_multiply`/`fe_square` rows.
 

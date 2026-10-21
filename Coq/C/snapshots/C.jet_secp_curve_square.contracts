@@ -1,0 +1,207 @@
+### C.jet_secp_curve_square.curve_square_completes
+curve_square_completes
+     : forall k : bool,
+       @eq bool
+         match curve_square_run k return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_curve_square.curve_square_run_eq
+curve_square_run_eq
+     : forall k : bool,
+       @eq (option jet_sx_exec.res) (curve_square_run k)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (curve_square_state k) jet_sx_exec.ONormal))
+### C.jet_secp_curve_square.curve_square_return
+curve_square_return
+     : forall k : bool,
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps (curve_square_state k)))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_curve_square.curve_square_tail
+curve_square_tail
+     : forall k : bool,
+       @eq (list jet_sx_state.region) (@List.tl jet_sx_state.region (jet_sx_eval.sregs (curve_square_state k)))
+         (@cons jet_sx_state.region (curve_square_input k) (@nil jet_sx_state.region))
+### C.jet_secp_curve_square.curve_square_shape
+curve_square_shape
+     : forall k : bool,
+       @eq (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+         (jet_sx_state.rshape (curve_square_out k))
+         (@pair (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)
+            (@pair (list (prod BinNums.Z AST.memory_chunk)) bool
+               (@cons (prod BinNums.Z AST.memory_chunk) (@pair BinNums.Z AST.memory_chunk BinNums.Z0 AST.Mint64)
+                  (@cons (prod BinNums.Z AST.memory_chunk)
+                     (@pair BinNums.Z AST.memory_chunk (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                        AST.Mint64)
+                     (@cons (prod BinNums.Z AST.memory_chunk)
+                        (@pair BinNums.Z AST.memory_chunk
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) AST.Mint64)
+                        (@cons (prod BinNums.Z AST.memory_chunk)
+                           (@pair BinNums.Z AST.memory_chunk
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))) AST.Mint64)
+                           (@cons (prod BinNums.Z AST.memory_chunk)
+                              (@pair BinNums.Z AST.memory_chunk
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                 AST.Mint64) (@nil (prod BinNums.Z AST.memory_chunk))))))) true)
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_curve_square.curve_square_defined
+curve_square_defined
+     : forall k : bool,
+       @eq bool (jet_secp_multiply_run_run.field_cells_defined (jet_sx_state.rcells (curve_square_out k))) true
+### C.jet_secp_curve_square.curve_square_rebuild
+curve_square_rebuild
+     : forall k : bool,
+       @eq jet_sx_state.region (curve_square_out k)
+         (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (curve_square_limbs k)) true
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_curve_square.curve_square_limbs_true
+curve_square_limbs_true
+     : @eq (list jet_sx_expr.sx) (curve_square_limbs true) jet_secp_square_execution.square_limbs
+### C.jet_secp_curve_square.curve_square_limbs_false
+curve_square_limbs_false
+     : @eq (list jet_sx_expr.sx) (curve_square_limbs false) jet_secp_square_execution.square_limbs
+### C.jet_secp_curve_square.curve_square_limbs_equal
+curve_square_limbs_equal
+     : forall k : bool, @eq (list jet_sx_expr.sx) (curve_square_limbs k) jet_secp_square_execution.square_limbs
+### C.jet_secp_curve_square.curve_square_output
+curve_square_output
+     : forall k : bool,
+       @eq (list jet_sx_state.region) (jet_sx_eval.sregs (curve_square_state k))
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 jet_secp_square_execution.square_limbs) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@cons jet_sx_state.region (curve_square_input k) (@nil jet_sx_state.region)))
+### C.jet_secp_curve_square.eval_curve_square_symbolic
+eval_curve_square_symbolic
+     : forall (k : bool) (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho layout (curve_square_regs k) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_sqr)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout (S O))
+                        (Integers.Ptrofs.repr (BinInt.Z.add (jet_sx_state.bas layout (S O)) (curve_square_offset k))))
+                     (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep rho layout
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 jet_secp_square_execution.square_limbs) true
+                        (@Some BinNums.Z
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                     (@cons jet_sx_state.region (curve_square_input k) (@nil jet_sx_state.region))) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot layout
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape (curve_square_regs k)) b ofs)) m mf)))
+### C.jet_secp_curve_square.curve_square_offset
+curve_square_offset =
+fun y : bool =>
+match y return BinNums.Z with
+| true => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+| false => BinNums.Z0
+end
+     : forall _ : bool, BinNums.Z
+
+Arguments curve_square_offset y%bool_scope
+### C.jet_secp_curve_square.curve_square_input
+curve_square_input =
+fun k : bool =>
+jet_sx_state.mkreg (jet_sx_rep.u64_cells (curve_square_offset k) (jet_secp_fe_nv.vars5 O)) true
+  (@Some BinNums.Z
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     : forall _ : bool, jet_sx_state.region
+
+Arguments curve_square_input k%bool_scope
+### C.jet_secp_curve_square.curve_square_regs
+curve_square_regs =
+fun k : bool =>
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (@List.map BinNums.Z jet_sx_state.cell
+        (fun ofs : BinNums.Z => jet_sx_state.mkcell ofs AST.Mint64 (@None jet_sx_expr.sx))
+        (@cons BinNums.Z BinNums.Z0
+           (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+              (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                 (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+                    (@cons BinNums.Z
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                       (@nil BinNums.Z))))))) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region (curve_square_input k) (@nil jet_sx_state.region))
+     : forall _ : bool, list jet_sx_state.region
+
+Arguments curve_square_regs k%bool_scope
+### C.jet_secp_curve_square.curve_square_args
+curve_square_args =
+fun k : bool =>
+@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) (curve_square_offset k)) (@nil jet_sx_expr.sx))
+     : forall _ : bool, list jet_sx_expr.sx
+
+Arguments curve_square_args k%bool_scope
+### C.jet_secp_curve_square.curve_square_run
+curve_square_run =
+fun k : bool =>
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_multiply_run_run.field_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  jets_secp.f_secp256k1_fe_sqr (curve_square_args k) (curve_square_regs k) (@nil jet_sx_eval.event)
+  (S (S (S (S (S O)))))
+     : forall _ : bool, option jet_sx_exec.res
+
+Arguments curve_square_run k%bool_scope
+### C.jet_secp_curve_square.curve_square_tree
+curve_square_tree = curve_square_run
+     : forall _ : bool, option jet_sx_exec.res
+
+Arguments curve_square_tree k%bool_scope
+### C.jet_secp_curve_square.curve_square_state
+curve_square_state =
+fun k : bool =>
+match curve_square_tree k return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ =>
+        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+    end
+| None => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : forall _ : bool, jet_sx_eval.sstate
+
+Arguments curve_square_state k%bool_scope
+### C.jet_secp_curve_square.curve_square_out
+curve_square_out =
+fun k : bool =>
+@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+  (jet_sx_eval.sregs (curve_square_state k))
+     : forall _ : bool, jet_sx_state.region
+
+Arguments curve_square_out k%bool_scope
+### C.jet_secp_curve_square.curve_square_limbs
+curve_square_limbs =
+fun k : bool =>
+@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_multiply_run_run.field_cell_value
+  (jet_sx_state.rcells (curve_square_out k))
+     : forall _ : bool, list jet_sx_expr.sx
+
+Arguments curve_square_limbs k%bool_scope
