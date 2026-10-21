@@ -1,8 +1,10 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 496 of the 533 header declarations.
+The current local-contract registry contains 497 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 37 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 36 declarations remain unregistered.
+The new X-equivalence candidate has passed its focused proof checks; ordinary
+scoped acceptance is pending, so accepted coverage is still 496/533.
 
 The remaining work includes:
 
@@ -934,12 +936,15 @@ input offset and limb, retaining the 10-second command bound.
 Claude's alternative public field endpoints remain unregistered; do not merge
 `dd4579a7` or duplicate the selected `fe_multiply`/`fe_square` rows.
 
-## Next claimed target: gej_x_equiv
+## Candidate public proof: gej_x_equiv
 
-The main session claims `simplicity_gej_x_equiv`. No existing proof for it was
-found in the active modules or proof-work handoffs. Keep the original total
-public contract: unrestricted `(FE, GEJ)` words, including zero Z and the real
-infinity short-circuit. Do not add a finite-point or on-curve premise.
+The main session completed `simplicity_gej_x_equiv`; its claim is removed.
+`C.jet_secp_x_equiv_local.gej_x_equiv_literal_local_spec` retains the original
+total public contract: unrestricted `(FE, GEJ)` words, including zero Z and
+the real infinity short-circuit. It adds no finite-point, on-curve, initialized
+output, intermediate execution or libc-model premise. The ordinary build,
+reviewed snapshots and recursive kernel check pass; the registered candidate
+still needs ordinary scoped acceptance before accepted coverage increases.
 
 `jet_secp_point_square_z.v` now proves the actual optimized square from offset
 80 of an owned 128-byte point into an uninitialized distinct 40-byte temporary.
@@ -990,8 +995,8 @@ are in `jet_secp_x_equiv_statements.v`. `exec_x_equiv_body_owned` in
 contracts: no intermediate call execution, copied field or desired result is
 assumed. It includes the return statement, but not function entry or private
 frees. All three ordinary modules build, their reviewed snapshots match, and
-the body with its recursive dependencies passes the kernel check. Coverage
-remains 496/533; the public X-equivalence jet is not registered.
+the body with its recursive dependencies passes the kernel check. These body
+milestones alone did not establish the complete public contract.
 
 `eval_x_equiv_function` in `jet_secp_x_equiv_function.v` now proves the entire
 original `secp256k1_gej_eq_x_var` call: two real local allocations, parameter
@@ -1000,19 +1005,29 @@ point/field storage, separation and the reader-compatible loose limb bounds;
 no intermediate allocation, execution or desired result is assumed. The
 ordinary build, reviewed contract/assumption comparisons and recursive kernel
 check pass. The helper works for zero Z as well; it does not assume a finite
-or on-curve point. Its numeric result is not yet the guarded public jet theorem.
+or on-curve point. Its numeric result alone is not the guarded public jet theorem.
 
-Next connect the literal target and real public wrapper. The original
+The `jet_secp_x_equiv_public_{reads,statements,rest,lifecycle,call}.v` modules
+connect the literal target and real public wrapper. The original
 `simplicity_gej_x_equiv` reads the separate field first, then the point: input
 order is `(q,((x,y),z))`, not the rescale reader's `(x,y,z,s)` order. Its local
-allocation order is source frame (16), separate field (40), point (128). Reuse
+allocation order is source frame (16), separate field (40), point (128). They reuse
 `eval_read_fe_with_cursor_capacity` followed by `eval_read_gej_canonical_fields` at
-`rc+256`, preserving the already-read field across the point reader. Keep the
-one-bit output contract (`1 <= N`); do not inherit rescale's 768-bit requirement.
+`rc+256`, preserving the already-read field across the point reader, and keep
+the one-bit output contract (`1 <= N`), not rescale's 768-bit requirement.
 The public infinity flag is derived by `read_gej`; its true branch skips the
-arithmetic helper and returns the false bit. Execute both branches, the actual
-bit writer and public frees, then register only the whole literal equivalence
-endpoint and run the ordinary scoped acceptance check. Coverage remains 496/533.
+arithmetic helper and returns the false bit. Both branches, the actual bit
+writer, all allocations, the by-value source-frame copy and public frees are
+derived. Only the whole literal-equivalence endpoint is registered.
+
+The existing predicate source gate now checks this catalog binding, full
+Haskell/Coq literal routing, infinity dependency, Bit.and port and exact public
+contract. Its 87 mutations include 25 new X-equivalence/dependency cases.
+The registry checker also enforces the exact direct endpoint. Next run:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_gej_x_equiv
+```
 
 The capacity-parametric cursor reader in `jet_secp_read_fe_cursor_capacity.v`
 now derives the actual field read and advanced cursor for any nonnegative

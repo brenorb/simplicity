@@ -69,14 +69,40 @@ mutations=[
  ('coq','C/jet_secp_curve_local.v','(Ty.Sum Ty.Unit Ty.Unit)','(Word 8)'),
  ('coq','C/jet_secp_curve_local.v','(@literal_ge_is_on_curve Alg.CoreFunSem).','(@literal_gej_is_on_curve Alg.CoreFunSem).'),
  ('coq','C/jet_secp_curve_literal.v','I H >>> @literal_fe_cube term','O H >>> @literal_fe_cube term (* I H >>> @literal_fe_cube term *)'),
+ # Guarded X-equivalence: preserve the actual program, domain and endpoint.
+ ('coq','Simplicity/Bit.v','s &&& iden >>> cond t false.','s &&& iden >>> cond t true.'),
+ ('repo','Haskell/Core/Simplicity/Programs/Bit.hs','and s t = s &&& iden >>> cond t false','and s t = s &&& iden >>> cond false t'),
+ ('repo','Haskell/Core/Simplicity/CoreJets.hs','GejXEquiv :: Secp256k1Jet (Secp256k1.FE, Secp256k1.GEJ) Bit','GejXEquiv :: Secp256k1Jet (Secp256k1.FE, Secp256k1.GE) Bit'),
+ ('repo','Haskell/Core/Simplicity/CoreJets.hs','specificationSecp256k1 GejXEquiv = Secp256k1.gej_x_equiv','specificationSecp256k1 GejXEquiv = Secp256k1.gej_equiv'),
+ ('repo','Haskell/Core/Simplicity/CoreJets.hs','implementationSecp256k1 GejXEquiv = FFI.gej_x_equiv','implementationSecp256k1 GejXEquiv = FFI.gej_equiv'),
+ ('repo','Haskell/Core/Simplicity/Programs/LibSecp256k1.hs','gej_is_infinity = drop fe_is_zero','gej_is_infinity = take fe_is_zero'),
+ ('repo','Haskell/Core/Simplicity/Programs/LibSecp256k1.hs','gej_x_equiv = and (not (drop gej_is_infinity))','gej_x_equiv = and (drop gej_is_infinity)'),
+ ('repo','Haskell/Core/Simplicity/Programs/LibSecp256k1.hs','drop (take (take fe_negate)) &&& (drop (drop fe_square) &&& oh >>> fe_multiply)','drop (take (drop fe_negate)) &&& (drop (drop fe_square) &&& oh >>> fe_multiply)'),
+ ('repo','Haskell/Core/Simplicity/Programs/LibSecp256k1.hs','drop (drop fe_square) &&& oh >>> fe_multiply','drop (take fe_square) &&& oh >>> fe_multiply'),
+ ('repo','Haskell/Core/Simplicity/Programs/LibSecp256k1.hs','drop (drop fe_square) &&& oh >>> fe_multiply','drop (drop fe_square) &&& ih >>> fe_multiply'),
+ ('coq','C/jet_secp_literal_gej_predicate.v','Alg.Core.Combinators.drop (@canonical_fe_is_zero term)','Alg.Core.Combinators.take (@canonical_fe_is_zero term)'),
+ ('coq','C/jet_secp_x_equiv_literal.v','Bit.and (Bit.not (I (@literal_gej_is_infinity term)))','Bit.or (Bit.not (I (@literal_gej_is_infinity term)))'),
+ ('coq','C/jet_secp_x_equiv_literal.v','Bit.and (Bit.not (I (@literal_gej_is_infinity term)))','Bit.and (I (@literal_gej_is_infinity term))'),
+ ('coq','C/jet_secp_x_equiv_literal.v','I (O (O (@literal_fe_negate term)))','I (O (I (@literal_fe_negate term)))'),
+ ('coq','C/jet_secp_x_equiv_literal.v','I (I (@literal_fe_square term))','I (O (@literal_fe_square term))'),
+ ('coq','C/jet_secp_x_equiv_literal.v','&&& O H >>> @literal_fe_multiply term','&&& I H >>> @literal_fe_multiply term'),
+ ('coq','C/jet_secp_x_equiv_literal.v','>>> @literal_fe_add term >>> @canonical_fe_is_zero term)','>>> @literal_fe_multiply term >>> @canonical_fe_is_zero term)'),
+ ('coq','C/jet_secp_x_equiv_literal.v','>>> @canonical_fe_is_zero term)','>>> @canonical_fe_is_odd term)'),
+ ('coq','C/jet_secp_x_equiv_literal.v','term (Ty.Prod (Word 8) (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)))','term (Ty.Prod (Word 7) (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)))'),
+ ('coq','C/jet_secp_x_equiv_literal.v','(Ty.Sum Ty.Unit Ty.Unit) :=','(Word 8) :='),
+ ('coq','C/jet_secp_x_equiv_local.v','Theorem gej_x_equiv_literal_local_spec :','Theorem gej_x_equiv_literal_local_spec : False ->'),
+ ('coq','C/jet_secp_x_equiv_local.v','secp_jet_local_spec f_simplicity_gej_x_equiv','secp_jet_local_spec f_secp256k1_gej_eq_x_var'),
+ ('coq','C/jet_secp_x_equiv_local.v','(Ty.Sum Ty.Unit Ty.Unit)','(Word 8)'),
+ ('coq','C/jet_secp_x_equiv_local.v','(@literal_gej_x_equiv Alg.CoreFunSem).','(fun _ => inr tt).'),
+ ('coq','C/jet_secp_x_equiv_literal.v','I (I (@literal_fe_square term))','I (O (@literal_fe_square term)) (* I (I (@literal_fe_square term)) *)'),
 ]
 with tempfile.TemporaryDirectory(prefix='secp-predicate-gate.') as tmp:
  coq,repo=Path(tmp)/'Coq',Path(tmp)/'repo'
- for relative in ['check-secp-normalize-specification.py', 'C/jet_secp_canonical_normalize.v', 'C/jet_secp_normalize_local.v', 'C/jet_bitmachine_rep.v', 'Simplicity/Bit.v', 'Simplicity/Word.v', 'C/jet_test_value_spec.v', 'C/jet_equality_spec.v', 'C/jet_predicate_spec.v', 'C/jet_secp_canonical_odd.v', 'C/jet_secp_canonical_zero.v', 'C/jet_secp_odd_local.v', 'C/jet_secp_zero_local.v', 'C/jet_secp_curve_literal.v', 'C/jet_secp_curve_local.v', 'C/jet_secp_rescale_literal.v', 'C/jet_secp_literal_add_program.v']:
+ for relative in ['check-secp-normalize-specification.py', 'C/jet_secp_canonical_normalize.v', 'C/jet_secp_normalize_local.v', 'C/jet_bitmachine_rep.v', 'Simplicity/Bit.v', 'Simplicity/Word.v', 'C/jet_test_value_spec.v', 'C/jet_equality_spec.v', 'C/jet_predicate_spec.v', 'C/jet_secp_canonical_odd.v', 'C/jet_secp_canonical_zero.v', 'C/jet_secp_odd_local.v', 'C/jet_secp_zero_local.v', 'C/jet_secp_curve_literal.v', 'C/jet_secp_curve_local.v', 'C/jet_secp_rescale_literal.v', 'C/jet_secp_literal_add_program.v', 'C/jet_secp_literal_gej_predicate.v', 'C/jet_secp_x_equiv_literal.v', 'C/jet_secp_x_equiv_local.v']:
   dst=coq/relative;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(SOURCE/relative,dst)
  for relative in ['Haskell/Core/Simplicity/CoreJets.hs', 'Haskell/Core/Simplicity/Ty/LibSecp256k1.hs', 'Haskell/Core/Simplicity/Programs/LibSecp256k1.hs', 'Haskell/Core/Simplicity/LibSecp256k1/Spec.hs', 'Haskell/Core/Simplicity/Programs/Arith.hs', 'Haskell/Core/Simplicity/Programs/Word.hs', 'Haskell/Core/Simplicity/Programs/Generic.hs', 'Haskell/Core/Simplicity/Programs/Bit.hs']:
   dst=repo/relative;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(project/relative,dst)
- assert gate.check(coq,repo)==3
+ assert gate.check(coq,repo)==4
  for kind,relative,old,new in mutations:
   path=(coq if kind=='coq' else repo)/relative
   original=path.read_text();assert old in original,(relative,old)
@@ -85,5 +111,5 @@ with tempfile.TemporaryDirectory(prefix='secp-predicate-gate.') as tmp:
   except ValueError:pass
   else:raise AssertionError((relative,old))
   finally:path.write_text(original)
- assert gate.check(coq,repo)==3
+ assert gate.check(coq,repo)==4
 print(f'predicate source gate passed; rejected {len(mutations)} meaningful mutations')

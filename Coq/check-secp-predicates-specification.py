@@ -78,6 +78,7 @@ def check(coq=COQ, repo=REPO):
         ('Simplicity/Bit.v', 'true', 'injr unit'),
         ('Simplicity/Bit.v', 'cond', 'case (drop els) (drop thn)'),
         ('Simplicity/Bit.v', 'not', 't &&& unit >>> cond false true'),
+        ('Simplicity/Bit.v', 'and', 's &&& iden >>> cond t false'),
         ('Simplicity/Bit.v', 'or', 's &&& iden >>> cond true t'),
         ('Simplicity/Word.v', 'build_rightmost', 'drop rec'),
         ('Simplicity/Word.v', 'rightmost', 'match n with | 0 => iden | S n => build_rightmost rightmost end'),
@@ -108,6 +109,7 @@ def check(coq=COQ, repo=REPO):
     for fragment in ['false = injl unit', 'true = injr unit',
                      'cond thn els = match (drop els) (drop thn)',
                      'not t = t &&& unit >>> cond false true',
+                     'and s t = s &&& iden >>> cond t false',
                      'or s t = s &&& iden >>> cond true t']:
         require(hs_bit, fragment, 'Bit combinator '+fragment.split('=')[0].strip())
     catalog = read_code(repo/'Haskell/Core/Simplicity/CoreJets.hs')
@@ -200,7 +202,38 @@ def check(coq=COQ, repo=REPO):
             '(@literal_ge_is_on_curve Alg.CoreFunSem).')
     if not statement or compact(statement[1]) != compact(want):
         raise ValueError('curve full public contract differs')
-    return 3
+    # X-equivalence must retain its guard, coordinate routing and subtraction
+    # tree. The numeric comparison alone is not the canonical program.
+    require(catalog, 'GejXEquiv :: Secp256k1Jet (Secp256k1.FE, Secp256k1.GEJ) Bit', 'X-equivalence jet type')
+    require(catalog, 'specificationSecp256k1 GejXEquiv = Secp256k1.gej_x_equiv', 'X-equivalence dispatch')
+    require(catalog, 'implementationSecp256k1 GejXEquiv = FFI.gej_x_equiv', 'X-equivalence implementation')
+    exact_program(impl, 'gej_is_infinity', 'gej_double', 'drop fe_is_zero')
+    exact_program(impl, 'gej_x_equiv', 'gej_y_is_odd',
+                  'and (not (drop gej_is_infinity)) '
+                  '(drop (take (take fe_negate)) &&& (drop (drop fe_square) &&& oh >>> fe_multiply) '
+                  '>>> fe_add >>> fe_is_zero)')
+    infinity = read_code(coq/'C/jet_secp_literal_gej_predicate.v')
+    if compact(definition(infinity, 'literal_gej_is_infinity')) != compact(
+            'Alg.Core.Combinators.drop (@canonical_fe_is_zero term)'):
+        raise ValueError('X-equivalence infinity port differs')
+    port = read_code(coq/'C/jet_secp_x_equiv_literal.v')
+    require(port, 'literal_gej_x_equiv {term : Alg.Core.Algebra} : '
+            'term (Ty.Prod (Word 8) (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8))) (Ty.Sum Ty.Unit Ty.Unit)',
+            'X-equivalence port type')
+    expected = ('Bit.and (Bit.not (I (@literal_gej_is_infinity term))) '
+                '((I (O (O (@literal_fe_negate term)))) &&& '
+                '((I (I (@literal_fe_square term))) &&& O H >>> @literal_fe_multiply term) '
+                '>>> @literal_fe_add term >>> @canonical_fe_is_zero term)')
+    if compact(definition(port, 'literal_gej_x_equiv')) != compact(expected):
+        raise ValueError('literal X-equivalence tree differs')
+    local = read_code(coq/'C/jet_secp_x_equiv_local.v')
+    statement = re.search(r'Theorem gej_x_equiv_literal_local_spec\s*:(.*?)\bProof\.', local, re.S)
+    want = ('secp_jet_local_spec f_simplicity_gej_x_equiv '
+            '(Ty.Prod (Word 8) (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8))) '
+            '(Ty.Sum Ty.Unit Ty.Unit) (@literal_gej_x_equiv Alg.CoreFunSem).')
+    if not statement or compact(statement[1]) != compact(want):
+        raise ValueError('X-equivalence full public contract differs')
+    return 4
 
 
 if __name__ == "__main__":
