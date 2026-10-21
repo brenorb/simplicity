@@ -1366,9 +1366,23 @@ intermediate execution/output or initialized-temporary premise is added.
 spine exactly. The existing `statement_sequence` prefix combinator, including
 its final proof-only `Sskip`, attaches the remaining original suffix; it does
 not skip any C statement. `exec_mixed_preparation_then_rest` demonstrates that
-composition for the after-square portion. H/I preparation, zero-test branches,
-the final arithmetic, literal-value bridge and public lifecycle remain.
+composition for the after-square portion. The H/I stage is below; zero-test
+branches, final arithmetic, literal-value bridge and public lifecycle remain.
 This internal prefix does not register additional jet coverage.
+
+`jet_secp_field_sum_owned.v:eval_field_sum_owned` reuses the actual private
+addition execution and exposes the unchanged source words as well as the
+destination sum and both allocations' permissions. It has no arithmetic
+range premise. `jet_secp_mixed_difference.v:exec_mixed_differences` now
+composes the four actual H/I statements from prepared private storage:
+negate U1 into H, add U2, negate S2 into I, add S1. It derives the exact
+words, `4*p - minus + plus` values, loose reusable bounds, all preserved
+source fields and six owned temporaries, without execution/output premises
+or initialized H/I destinations. The same pair proof handles H and I;
+source equalities retain the generated statement order. Its tight operand
+bounds must still be discharged when composing it with the preparation
+result (reuse the existing multiplication and positioned-reader bounds).
+The zero tests and both equal/inverse-point branches remain unproved here.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1388,6 +1402,8 @@ JET_TARGETS=C/jet_secp_mixed_s2_calls.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_s2_calls
 JET_TARGETS=C/jet_secp_mixed_preparation.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_preparation
+JET_TARGETS=C/jet_secp_mixed_difference.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_difference
 ```
 
 ## Source-review question: Elements fee predicates
