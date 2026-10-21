@@ -1,4 +1,4 @@
-"""Point rescale/doubling catalog/term/contract correspondence; not C execution.
+"""Point rescale/doubling contracts and addition ports; not C execution.
 
 Reuse the existing source parser.  Field multiply/square dependencies retain
 their own gates; this checks the new projections, cube and zinv composition.
@@ -103,6 +103,69 @@ def check_double(s):
         raise ValueError("GejDouble full public contract differs")
 
 
+def check_addition_ports(s):
+    """Freeze addition routing before composing the C mixed-addition proof.
+
+    No public addition contract or coverage is asserted by this helper check.
+    The existing field/doubling checks retain responsibility for callees.
+    """
+    impl = s["program"].split("lib@Lib{..} = Lib {", 1)[1]
+    p.exact_program(impl, "gej_add_ex", "gej_add", """
+      let
+      body = ((oooh &&& (iih >>> fe_square) >>> fe_multiply) &&& (drop (take (take fe_negate)) &&& (oih >>> fe_square) >>> fe_multiply) >>> fe_add &&& oh)
+      &&& ((ooih  &&& (iih >>> fe_cube) >>> fe_multiply)   &&& (drop (take (drop fe_negate)) &&& (oih >>> fe_cube) >>> fe_multiply) >>> fe_add &&& oh) &&&
+      (oh &&& drop (drop fe_negate))
+      >>> take (take fe_is_zero) &&& iden >>> cond (drop zeroH) nonZeroH
+      zeroH = take (take fe_is_zero) &&& ioh >>> cond (oih &&& gej_double) (unit >>> fe_zero &&& gej_infinity)
+      nonZeroH = (ooh &&& ((ooh &&& drop ioih >>> fe_multiply) &&& iiih)) &&& ((take (take fe_square) &&& oih >>> fe_multiply) &&& ioh)
+      >>> ((ooh &&& oiih >>> fe_multiply) &&& take (drop fe_multiply)) &&& (((ooh >>> fe_cube) &&& ioh) &&& iih)
+      >>> ooh &&& drop ((((take (oh &&& drop (fe_multiplyInt (-2)) >>> fe_add) &&& drop (take fe_square) >>> fe_add) &&& oih) &&& (ioh &&& (ooh &&& iih >>> fe_multiply)))
+      >>> ooh &&& (iih &&& (ioh &&& take (oh &&& drop fe_negate >>> fe_add) >>> fe_multiply) >>> fe_add))
+      &&& oih
+      in
+      take gej_is_infinity &&& iden
+      >>> cond ((unit >>> fe_zero) &&& (drop (take (take fe_normalize &&& drop fe_normalize) &&& (drop fe_normalize))))
+      (drop gej_is_infinity &&& iden
+      >>> cond ((unit >>> fe_one) &&& (take (take (take fe_normalize &&& drop fe_normalize) &&& (drop fe_normalize)))) body)
+    """)
+    for name, next_name, expected in [
+        ("gej_add", "gej_ge_add_ex", "gej_add_ex >>> ih"),
+        ("gej_ge_add_ex", "gej_ge_add", "oh &&& (ih &&& (unit >>> fe_one)) >>> gej_add_ex"),
+        ("gej_ge_add", "gej_scale_lambda", "gej_ge_add_ex >>> ih"),
+    ]:
+        p.exact_program(impl, name, next_name, expected)
+    expected_ports = {
+        "literal_gej_add_ex": """
+          let zeroH := O (O (@canonical_fe_is_zero term)) &&& I O H >>> Bit.cond (O I H &&& (@literal_gej_double term)) (unit >>> (@literal_fe_zero256 term) &&& (@literal_gej_infinity term)) in
+          let nonZeroH := (O O H &&& ((O O H &&& I I O I H >>> (@literal_fe_multiply term)) &&& I I I H)) &&& ((O (O (@literal_fe_square term)) &&& O I H >>> (@literal_fe_multiply term)) &&& I O H)
+          >>> ((O O H &&& O I I H >>> (@literal_fe_multiply term)) &&& O (I (@literal_fe_multiply term))) &&& (((O O H >>> (@literal_fe_cube term)) &&& I O H) &&& I I H)
+          >>> O O H &&& I ((((O (O H &&& I ((@literal_fe_multiply_int (-2) term)) >>> (@literal_fe_add term)) &&& I (O (@literal_fe_square term)) >>> (@literal_fe_add term)) &&& O I H) &&& (I O H &&& (O O H &&& I I H >>> (@literal_fe_multiply term))))
+          >>> O O H &&& (I I H &&& (I O H &&& O (O H &&& I (@literal_fe_negate term) >>> (@literal_fe_add term)) >>> (@literal_fe_multiply term)) >>> (@literal_fe_add term)))
+          &&& O I H in
+          let body := ((O O O H &&& (I I H >>> (@literal_fe_square term)) >>> (@literal_fe_multiply term)) &&& (I (O (O (@literal_fe_negate term))) &&& (O I H >>> (@literal_fe_square term)) >>> (@literal_fe_multiply term)) >>> (@literal_fe_add term) &&& O H)
+          &&& ((O O I H  &&& (I I H >>> (@literal_fe_cube term)) >>> (@literal_fe_multiply term))   &&& (I (O (I (@literal_fe_negate term))) &&& (O I H >>> (@literal_fe_cube term)) >>> (@literal_fe_multiply term)) >>> (@literal_fe_add term) &&& O H) &&&
+          (O H &&& I (I (@literal_fe_negate term)))
+          >>> O (O (@canonical_fe_is_zero term)) &&& iden >>> Bit.cond (I zeroH) nonZeroH in
+          O (@literal_gej_is_infinity term) &&& iden
+          >>> Bit.cond ((unit >>> (@literal_fe_zero256 term)) &&& (I (O (O (@canonical_fe_normalize term) &&& I (@canonical_fe_normalize term)) &&& (I (@canonical_fe_normalize term)))))
+          (I (@literal_gej_is_infinity term) &&& iden
+          >>> Bit.cond ((unit >>> (@literal_fe_one256 term)) &&& (O (O (O (@canonical_fe_normalize term) &&& I (@canonical_fe_normalize term)) &&& (I (@canonical_fe_normalize term))))) body)
+        """,
+        "literal_gej_add": """
+          @literal_gej_add_ex term >>> I H
+        """,
+        "literal_gej_ge_add_ex": """
+          O H &&& (I H &&& (unit >>> @literal_fe_one256 term)) >>> @literal_gej_add_ex term
+        """,
+        "literal_gej_ge_add": """
+          @literal_gej_ge_add_ex term >>> I H
+        """,
+    }
+    for name, expected in expected_ports.items():
+        if p.compact(p.definition(s["add_port"], name)) != p.compact(expected):
+            raise ValueError("literal addition tree differs: " + name)
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -112,6 +175,7 @@ def test():
         "jet": COQ / "C/jet_secp_rescale_local.v",
         "double_port": COQ / "C/jet_secp_double_literal.v",
         "double_jet": COQ / "C/jet_secp_double_local.v",
+        "add_port": COQ / "C/jet_secp_add_literal.v",
     }.items()}
     check(s)
     mutations = [
@@ -181,6 +245,33 @@ def test():
             continue
         raise ValueError("accepted doubling source mutation: " + old)
     print(f"GejDouble catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
+    check_addition_ports(s)
+    mutations = [
+        ("program", "zeroH = take (take fe_is_zero)", "zeroH = take (drop fe_is_zero)"),
+        ("program", "cond (oih &&& gej_double)", "cond (ooh &&& gej_double)"),
+        ("program", "fe_multiplyInt (-2)", "fe_multiplyInt 2"),
+        ("program", "gej_add = gej_add_ex >>> ih", "gej_add = gej_add_ex >>> oh"),
+        ("program", "gej_ge_add_ex = oh &&&", "gej_ge_add_ex = ih &&&"),
+        ("program", "gej_ge_add = gej_ge_add_ex >>> ih", "gej_ge_add = gej_ge_add_ex >>> oh"),
+        ("add_port", "Bit.cond (O I H &&&", "Bit.cond (O O H &&&"),
+        ("add_port", "I zeroH", "O zeroH"),
+        ("add_port", "@literal_fe_multiply_int (-2) term", "@literal_fe_multiply_int 2 term"),
+        ("add_port", "O O O H &&&", "O O I H &&&"),
+        ("add_port", "@literal_gej_add_ex term >>> I H", "@literal_gej_add_ex term >>> O H"),
+        ("add_port", "O H &&& (I H &&& (unit >>> @literal_fe_one256 term))", "I H &&& (O H &&& (unit >>> @literal_fe_one256 term))"),
+        ("add_port", "@literal_gej_ge_add_ex term >>> I H", "@literal_gej_ge_add_ex term >>> O H"),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError("inactive addition mutation fixture: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_addition_ports(changed)
+        except ValueError:
+            continue
+        raise ValueError("accepted addition source mutation: " + old)
+    print(f"Addition literal ports match; {len(mutations)} targeted mutations rejected; no public addition coverage claimed")
 
 
 if __name__ == "__main__":

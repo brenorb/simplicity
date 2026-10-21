@@ -1299,12 +1299,31 @@ These internal results do not register another jet. The finite branch still
 needs its full arithmetic, zero tests, literal-program bridge, public
 reads/writes, entry and frees.
 
+`jet_secp_add_literal.v` ports the canonical `gej_add_ex`, `gej_add`,
+`gej_ge_add_ex` and `gej_ge_add` trees, including both infinity branches,
+the zero-H/equal-point distinction and the original ratio output. The ports
+are algebra-parametric; do not replace them with an arithmetic formula.
+`jet_secp_mixed_infinite_literal.v:mixed_infinite_body_literal` composes the
+actual incoming-infinity branch with the reader-word and actual writer-value
+bridges. Its infinity case hypothesis selects this internal branch, not a
+restriction on a registered public jet. It derives all output fields, writer
+bounds, literal output equality and framing without an intermediate call or
+desired-result premise. Public writer execution and the finite branch remain
+to be composed.
+
+The existing `secp-field-integration/check-rescale.py` also compares these four
+literal ports with the fixed Haskell routing and rejects 13 targeted addition
+mutations. This source-correspondence check supplements the formal proofs;
+it does not establish whole-jet addition execution or register coverage.
+
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
 ```sh
 JET_TARGETS=C/jet_secp_mixed_head.vo bash Coq/build-jets.sh -j2
 ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_head
+JET_TARGETS=C/jet_secp_mixed_infinite_literal.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_infinite_literal
 ```
 
 ## Source-review question: Elements fee predicates
