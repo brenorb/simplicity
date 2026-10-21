@@ -1346,8 +1346,16 @@ modular product, reusable bounds, all three allocation permissions and precise
 framing for the other affine coordinate/flag. `exec_mixed_affine_call` connects
 it to both actual U2/initial-S2 `Scall` nodes; `mixed_affine_calls_source`
 identifies their positions. No desired execution/result or fresh-word oracle
-is assumed. Next compose the S2 multiplication by A.Z, then H/I preparation,
-zero-test branches, the final arithmetic and public lifecycle.
+is assumed.
+
+`jet_secp_mixed_s2_calls.v:exec_mixed_s2_calls` composes both consecutive
+original S2 multiplications, `S2 = B.Y * z12; S2 *= A.Z`. It derives the exact
+result words, triple-product residue, reusable bounds, preserved source fields,
+full point/affine/temporary ownership and precise framing from initial storage.
+No intermediate execution/result is assumed. The complete preparation prefix
+still needs composition of the square, U1/S1 copy/weak calls, U2 and this S2
+pair in original order; then H/I preparation, zero-test branches, the final
+arithmetic and public lifecycle remain. These modules do not register coverage.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1363,6 +1371,8 @@ JET_TARGETS=C/jet_secp_mixed_copy_weak.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_copy_weak
 JET_TARGETS=C/jet_secp_mixed_affine_product.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_affine_product
+JET_TARGETS=C/jet_secp_mixed_s2_calls.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_s2_calls
 ```
 
 ## Source-review question: Elements fee predicates
