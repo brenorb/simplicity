@@ -646,11 +646,33 @@ The remaining indexed computing Elements hash jets need actual C helper
 execution, not just cache-getter registration. `input_utxo_hash` is the smallest
 next representative: read index/tag, initialize SHA, execute confAsset/confAmt
 and hash calls, finalize, serialize and free, including the out-of-range branch.
-The ordinary C tree has no live-context confAsset/confAmt execution proofs yet;
-check the archived Elements-environment helper proofs before deriving them for
-the actual Elements jet program. Do not identify the two translation units or
-introduce an assumed intermediate call/digest. Bitcoin domain blockers and
-Elements fee questions remain separate. Check `JET_CLAIMS.md` before starting.
+The ordinary C tree now contains live-context execution proofs for the actual
+jet translation unit, adapted from the archived Elements-environment call
+structure without identifying the two programs:
+
+- `jet_elements_confidential_exec.v`, `jet_elements_confidential_wrap.v` and
+  `jet_elements_conf_amount_exec.v`: actual confidential/asset/nonce/amount
+  helper calls over `ctxi`, with exact counter/overflow transitions and memory
+  effects. The absent confidential case does not require initialized payload
+  words; explicit amounts retain their full 64-bit range.
+- `jet_elements_conf_hash_bridge.v`: closed byte-stream bridges to the existing
+  asset/amount Simplicity serializers. `jet_elements_conf_hash_repr.v` connects
+  their existing memory representations to actual helper execution. The C
+  results retain `memcpy_model` and the six inherited library assumptions.
+- `jet_elements_input_utxo_hash_spec.v`: the primitive-bearing composition and
+  its raw-environment semantics, including the out-of-range result. Its
+  parametricity proof is closed; its semantics uses inherited functional
+  extensionality. This is support, not a whole-jet C theorem.
+
+These six support modules compile in the normal project; reviewed snapshots
+cover 37 theorems and 14 definitions and compare without update flags. They do
+not add a registration or claim whole-jet acceptance. Next compose the original
+indexed jet's initialization, helper calls, finalization, output serialization
+and frees, preserving general valid cursors/output contents and framing. Extend
+canonical source-tree correspondence to its complete public endpoint before
+ordinary scoped acceptance. Do not introduce an assumed intermediate call or
+digest. Bitcoin domain blockers and Elements fee questions remain separate.
+Check `JET_CLAIMS.md` before starting; `input_utxo_hash` remains claimed.
 
 ## Source-review question: Elements fee predicates
 

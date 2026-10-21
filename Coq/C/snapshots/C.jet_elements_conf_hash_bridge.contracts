@@ -1,0 +1,31 @@
+### C.jet_elements_conf_hash_bridge.elements_hash_words_bytes
+elements_hash_words_bytes
+     : forall h : Digest.hash256,
+       @eq (list Integers.Int.int) (jet_elements_support_sha_be32_write.be_bytes (Digest.hash256_reg h))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) (Word.from_hash256 h)))
+### C.jet_elements_conf_hash_bridge.elements_amount64_bytes
+elements_amount64_bytes
+     : forall v : Integers.Int64.int,
+       @eq (list Integers.Int.int) (jet_elements_support_sha_be64_exec.c_be64_bytes v)
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S O)))
+               (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.unsigned v))))
+### C.jet_elements_conf_hash_bridge.elements_asset_canonical_bytes
+elements_asset_canonical_bytes
+     : forall a : jet_elements_prim.assetWith unit,
+       @eq (list Integers.Int.int)
+         (jet_elements_confidential_exec.conf_bytes
+            (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+            (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))
+            (@jet_elements_asset_jets.conf_prefix Digest.hash256 a) (jet_elements_asset_jets.asset_words a))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (jet_elements_asset_amount_hash_spec.elements_asset_bytes (jet_elements_asset_jets.encode_asset a)))
+### C.jet_elements_conf_hash_bridge.elements_amount_canonical_bytes
+elements_amount_canonical_bytes
+     : forall a : jet_elements_prim.amountWith unit,
+       @eq (list Integers.Int.int)
+         (jet_elements_conf_amount_exec.amt_bytes (@jet_elements_asset_jets.conf_prefix Integers.Int64.int a)
+            (jet_elements_amount_jets.amount_value a) (jet_elements_amount_jets.amount_words a))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (jet_elements_asset_amount_hash_spec.elements_amount_bytes (jet_elements_amount_jets.encode_amount a)))
