@@ -571,6 +571,17 @@ general host-library fidelity remain separate obligations. These four endpoints
 are selected in the registry; ordinary scoped acceptance passed, with its
 command in `JET_ACCEPTANCE.md`.
 
+## Candidates: Elements computed issuance getters
+
+`jet_elements_issuance_computed_literal.v` now composes the complete original
+entropy/asset/token getters with literal primitive-bearing programs, sharing
+one C getter proof and the existing universal SHA/word bridges. Every Word32
+index and issuance-kind branch is retained. The initial canonical cache
+relation remains a caller obligation, not an assumed execution or final output.
+Normal compilation and source checks pass; the reviewed snapshots and pending
+acceptance command are described in `JET_ACCEPTANCE.md`. These three candidates
+do not yet increase accepted coverage.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

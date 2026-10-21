@@ -724,3 +724,37 @@ bash Coq/check-jets.sh --accept --jets=simplicity_outputs_hash,simplicity_input_
 
 This does not assert a fresh full 480-entry audit or discharge of the remaining
 shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
+
+## Candidates: Elements computed issuance getters
+
+Three preserved modules supply the complete original `issuance_entropy`,
+`issuance_asset` and `issuance_token` getter executions. Two literal adapters
+reuse the existing universal SHA-block and Haskell-word bridges. The new
+outpoint program retains both compressions, the four-byte index reversal,
+288-bit length and original second-block constant. The primitive programs
+retain missing input, no issuance, new issuance and reissuance routing;
+token selection still distinguishes confidential from explicit asset amounts.
+
+The final contracts retain `application_jet_local_spec_sep` and the initial
+`computed_issuance_hash_rep` at issuance-relative offsets 72, 168 and 200.
+The actual enum load is at input offset 528, with stride 544 and count offset
+696. Cache loads after output writes are derived from separation and effects.
+No execution, desired-output, success, zero-output or issuance-kind premise
+is added. The three C endpoints retain the same six inherited assumptions
+and no extra libc premise. The sixteen new program bridges/parametricity
+results are closed.
+
+Normal compilation passes. Reviewed snapshots cover 39 theorem records and
+37 definitions in five new modules; the existing calculation snapshots are
+unchanged. The existing source checker rejects 35 further mutations of
+constants, byte order, primitive routing, offsets and complete C contracts.
+These candidates are not registered or accepted yet. Reproduce the required
+ordinary scoped acceptance after registration:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_issuance_entropy,simplicity_issuance_asset,simplicity_issuance_token
+```
+
+The real Elements builder must still establish the cached-value relation.
+Existing caller/domain/layout and host-library obligations remain; the
+production C, original specifications, API and generation settings are fixed.

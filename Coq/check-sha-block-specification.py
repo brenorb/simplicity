@@ -2190,6 +2190,141 @@ def elements_issuance_status(s):
       None => Int.repr 0 | Some (inl _) => Int.repr 1 | Some (inr _) => Int.repr 2 end''')
 
 
+def elements_issuance_computed(s):
+    """Literal calculations, primitive routing and complete original C getters.
+    Cached-value establishment by the real environment builder stays separate.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('computed issuance binding differs: ' + lhs)
+
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('computed issuance definition differs: ' + name)
+
+    def unflip(node):
+        node = tuple(unflip(x) if isinstance(x, tuple) else x for x in node)
+        if (node[0] == 'app' and node[1][0] == 'app' and node[1][1][0] == 'app'
+                and node[1][1][1] == ('name', 'flip') and node[1][1][2] == ('name', 'case')):
+            return ('app', ('app', ('name', 'case'), node[2]), node[1][2])
+        return node
+
+    def coq_tree(body, aliases, atoms):
+        for old, new in aliases + [('LC.' + op, op + 'Node') for op in
+                                  ['comp', 'pair', 'case', 'copair', 'take', 'drop', 'injl', 'injr']]:
+            body = replace(body, old, new)
+        body = replace(replace(body, 'LC.unit', 'unit'), 'LC.iden', 'iden')
+        return explicit_core_tree(expression(body), atoms)
+
+    # The mandatory shared SHA checker fixes all rounds and the actual IV.
+    definition('elements_calc_port', 'literal_issuance_iv', '''
+      Alg.scribe (haskell_to_word 8
+        0x6a09e667bb67ae853c6ef372a54ff53a510e527f9b05688c1f83d9ab5be0cd19)''')
+    binding('elements_prog', 'lib', 'mkLib Sha256.lib')
+    binding('elements_issuance_program', 'lib', 'mkLib Elements.lib')
+    calculation_body = s['elements_prog'].split('mkLib Sha256.Lib{..} = lib', 1)[1]
+    constants = [(5, '(2 ^ 31)', '32', '(2^31)', 'pad32'),
+                 (7, '(256 + 32)', '128', '(256+32)', 'len128'),
+                 (8, '(2 ^ 255 + 256)', '256', '(2^255 + 256)', 'pad256'),
+                 (8, '(2 * 2 ^ 248)', '256', '(2*2^248)', 'tokenConf'),
+                 (8, '(2 ^ 248)', '256', '(2^248)', 'tokenExplicit')]
+    aliases = [('literal_issuance_iv', 'iv'), ('literal_issuance_op_hash', 'opHash'),
+               ('literal_sha_256_block', 'hashBlock'),
+               ('@Word.zero 6 core', 'zero64'), ('@Word.zero 8 core', 'zero256')]
+    for depth, number, width, hs_number, atom in constants:
+        aliases.insert(0, ('Alg.scribe (haskell_to_word ' + str(depth) + ' ' + number + ')', atom))
+    atoms = {'iv', 'opHash', 'hashBlock', 'zero64', 'zero256', 'unit'} | {c[4] for c in constants}
+    for hs_name, coq_name in [
+        ('opHash', 'literal_issuance_op_hash'),
+        ('calculateIssuanceEntropy', 'literal_calculate_issuance_entropy'),
+        ('calculateAsset', 'literal_calculate_asset'),
+        ('calculateExplicitToken', 'literal_calculate_explicit_token'),
+        ('calculateConfidentialToken', 'literal_calculate_confidential_token'),
+    ]:
+        if hs_name == 'opHash':
+            hs = hbody(calculation_body, hs_name)
+        else:
+            found = re.search(r'\b' + hs_name + r'\s*=(.*?)\n\s*[,}]', calculation_body, re.S)
+            if not found:
+                raise ValueError('missing issuance calculation: ' + hs_name)
+            hs = found[1]
+        for depth, number, width, hs_number, atom in constants:
+            hs = replace(hs, 'scribe (toWord' + width + ' ' + hs_number + ')', atom)
+        hs = replace(replace(hs, 'zero word64', 'zero64'), 'zero word256', 'zero256')
+        if expression(hs) != coq_tree(p.definition(s['elements_calc_port'], coq_name), aliases, atoms):
+            raise ValueError('issuance calculation Core tree differs: ' + hs_name)
+
+    primitives = [('ReissuanceEntropy', 'pReissuance'), ('NewIssuanceContract', 'pNew'),
+                  ('InputPrevOutpoint', 'pOutpoint'), ('IssuanceAssetAmount', 'pAmount')]
+    calcs = [('literal_calculate_issuance_entropy', 'calculateIssuanceEntropy'),
+             ('literal_calculate_asset', 'calculateAsset'),
+             ('literal_calculate_confidential_token', 'calculateConfidentialToken'),
+             ('literal_calculate_explicit_token', 'calculateExplicitToken')]
+    route_atoms = {'unit'} | {c[1] for c in calcs}
+    def route(name):
+        text = p.definition(s['elements_computed_port'], name)
+        if name == 'literal_issuance_entropy_route':
+            text = replace(text, 'literal_new_issuance_entropy_route',
+                           '(' + p.definition(s['elements_computed_port'], 'literal_new_issuance_entropy_route') + ')')
+        return coq_tree(text, calcs, route_atoms)
+
+    routes = {'entropy': route('literal_issuance_entropy_route'),
+              'asset': route('literal_issuance_asset_route'),
+              'token': route('literal_issuance_token_route')}
+    programs = s['elements_issuance_program'].split('mkLib Elements.Lib{..} = lib', 1)[1]
+    for stem, hs_name, tag, offset in [
+        ('entropy', 'issuanceEntropy', 'IssuanceEntropy', 72),
+        ('asset', 'issuanceAsset', 'IssuanceAsset', 168),
+        ('token', 'issuanceToken', 'IssuanceToken', 200),
+    ]:
+        p.require(s['elements_catalog'], tag + ' :: IssuanceJet Word32 (S (S Word256))', 'computed issuance type')
+        binding('elements_catalog', 'specificationIssuance ' + tag, 'Issuance.' + hs_name)
+        binding('elements_issuance_lib', hs_name, 'Issuance.' + hs_name + ' Issuance.lib')
+        found = re.search(r'\b' + hs_name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)
+        if not found:
+            raise ValueError('missing primitive issuance program: ' + hs_name)
+        hs = found[1]
+        for prim, atom in primitives:
+            hs = replace(hs, 'primitive ' + prim, atom)
+        hs = replace(hs, 'issuanceEntropy', 'entropy')
+        if stem == 'entropy':
+            expected = ('comp', ('pair', ('name', 'pReissuance'),
+                         ('pair', ('name', 'pNew'), ('name', 'pOutpoint'))), routes[stem])
+            adapter = '''elements_comp
+              (elements_pair (Primitive.Combinators.prim Elements.ReissuanceEntropy)
+                (elements_pair (Primitive.Combinators.prim Elements.NewIssuanceContract)
+                  (Primitive.Combinators.prim Elements.InputPrevOutpoint)))
+              (elements_core (@literal_issuance_entropy_route))'''
+        elif stem == 'asset':
+            expected = ('comp', ('name', 'entropy'), routes[stem])
+            adapter = '''elements_comp literal_elements_issuance_entropy
+              (elements_core (@literal_issuance_asset_route))'''
+        else:
+            expected = ('comp', ('pair', ('name', 'entropy'), ('name', 'pAmount')), routes[stem])
+            adapter = '''elements_comp
+              (elements_pair literal_elements_issuance_entropy (Primitive.Combinators.prim Elements.IssuanceAssetAmount))
+              (elements_core (@literal_issuance_token_route))'''
+        if unflip(expression(hs)) != expected:
+            raise ValueError('primitive issuance routing Core tree differs: ' + hs_name)
+        definition('elements_computed_port', 'literal_elements_issuance_' + stem, adapter)
+        statement = re.search(r'Theorem elements_issuance_' + stem + r'_literal_local_spec\s*:(.*?)\bProof\.',
+                              s['elements_computed_port'], re.S)
+        expected_contract = (
+            'application_jet_local_spec_sep f_simplicity_issuance_' + stem + ' elements_ge Elements.env Word32 issuance_digest_option '
+            '(indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e)) '
+            '(computed_issuance_hash_rep ' + str(offset) + ' issuance_' + stem + '_of_input) 544 0 0 696) '
+            '(fun a environment => @literal_elements_issuance_' + stem + ' (PrimitivePrimSem option_Monad_Zero) a environment).')
+        if not statement or p.compact(statement[1]) != p.compact(expected_contract):
+            raise ValueError('complete issuance C getter contract differs: ' + stem)
+    definition('elements_computed_exec', 'computed_issuance_hash_rep', r'''
+      issuance_status_enum_rep m b ofs txi /\
+      forall h, value txi = inr h ->
+        uint32_array_at m b (ofs + 256 + delta) (hash256_reg (to_hash256 h))''')
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -2269,6 +2404,9 @@ def sources():
         "elements_status_exec": COQ / "C/jet_elements_issuance_status_exec.v",
         "elements_status_local": COQ / "C/jet_elements_issuance_status_local.v",
         "elements_status_tags": COQ / "C/jet_elements_issuance_jets.v",
+        "elements_calc_port": COQ / "C/jet_elements_issuance_calc_literal.v",
+        "elements_computed_port": COQ / "C/jet_elements_issuance_computed_literal.v",
+        "elements_computed_exec": COQ / "C/jet_elements_issuance_computed_exec.v",
         "elements_issuance_program": REPO / "Haskell/Simplicity/Elements/Programs/Issuance.hs",
         "elements_issuance_lib": REPO / "Haskell/Simplicity/Elements/Programs/Issuance/Lib.hs",
         "elements_prog": REPO / "Haskell/Core/Simplicity/Programs/Elements.hs",
@@ -2311,6 +2449,7 @@ def test():
     elements_composite_hashes(s)
     elements_blinding_entropy_hash(s)
     elements_issuance_status(s)
+    elements_issuance_computed(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -3148,6 +3287,52 @@ def test():
             continue
         raise ValueError('issuance status mutation escaped: ' + old)
     print('Issuance literal flip-match routing, all four cases, enum and whole C boundary match;', len(elements_status_mutations), 'mutations rejected')
+
+    elements_computed_mutations = [
+        ('elements_calc_port', '0x6a09e667bb67ae853c6ef372a54ff53a510e527f9b05688c1f83d9ab5be0cd19', '0x6a09e667bb67ae853c6ef372a54ff53a510e527f9b05688c1f83d9ab5be0cd18'),
+        ('elements_calc_port', 'haskell_to_word 5 (2 ^ 31)', 'haskell_to_word 5 (2 ^ 30)'),
+        ('elements_calc_port', 'haskell_to_word 7 (256 + 32)', 'haskell_to_word 7 (256 + 64)'),
+        ('elements_calc_port', 'haskell_to_word 8 (2 ^ 255 + 256)', 'haskell_to_word 8 (2 ^ 255 + 512)'),
+        ('elements_calc_port', 'haskell_to_word 8 (2 ^ 248)', 'haskell_to_word 8 (2 * 2 ^ 248)'),
+        ('elements_calc_port', 'haskell_to_word 8 (2 * 2 ^ 248)', 'haskell_to_word 8 (2 ^ 248)'),
+        ('elements_calc_port', 'LC.drop (LC.pair (LC.drop LC.iden) (LC.take LC.iden))', 'LC.drop (LC.pair (LC.take LC.iden) (LC.drop LC.iden))'),
+        ('elements_calc_port', '@Word.zero 6 core', '@Word.zero 5 core'),
+        ('elements_calc_port', '@Word.zero 8 core', '@Word.zero 7 core'),
+        ('elements_prog', 'drop (drop (ih &&& oh) &&& take (ih &&& oh))', 'drop (take (ih &&& oh) &&& drop (ih &&& oh))'),
+        ('elements_prog', 'toWord128 (256+32)', 'toWord128 (256+64)'),
+        ('elements_prog', 'toWord256 (2*2^248)', 'toWord256 (2^248)'),
+        ('elements_computed_port', 'LC.drop literal_calculate_confidential_token', 'LC.drop literal_calculate_explicit_token'),
+        ('elements_computed_port', 'LC.case (LC.injl LC.unit)', 'LC.case (LC.injr LC.unit)'),
+        ('elements_computed_port', 'Primitive.Combinators.prim Elements.InputPrevOutpoint', 'Primitive.Combinators.prim Elements.ReissuanceEntropy'),
+        ('elements_computed_port', 'Primitive.Combinators.prim Elements.IssuanceAssetAmount', 'Primitive.Combinators.prim Elements.IssuanceTokenAmount'),
+        ('elements_issuance_program', 'flip match (take (injr (injr iden)))', 'match (take (injr (injr iden)))'),
+        ('elements_issuance_program', 'match (drop calculateConfidentialToken) (drop calculateExplicitToken)', 'match (drop calculateExplicitToken) (drop calculateConfidentialToken)'),
+        ('elements_computed_exec', '(ofs + 256 + delta)', '(ofs + 256 + delta + 32)'),
+        ('elements_computed_exec', 'issuance_status_enum_rep m b ofs txi /\\', 'True /\\'),
+    ]
+    for stem, tag, offset in [('entropy', 'IssuanceEntropy', 72), ('asset', 'IssuanceAsset', 168), ('token', 'IssuanceToken', 200)]:
+        declaration = 'Theorem elements_issuance_' + stem + '_literal_local_spec :'
+        elements_computed_mutations += [
+            ('elements_computed_port', declaration, declaration + ' False ->'),
+            ('elements_computed_port', declaration, declaration + ' memcpy_model ->'),
+            ('elements_computed_port', '(computed_issuance_hash_rep ' + str(offset) + ' issuance_' + stem + '_of_input)',
+             '(computed_issuance_hash_rep ' + str(offset + 32) + ' issuance_' + stem + '_of_input)'),
+            ('elements_catalog', 'specificationIssuance ' + tag + ' = Issuance.issuance' + stem.capitalize(),
+             'specificationIssuance ' + tag + ' = Issuance.issuance'),
+            ('elements_issuance_lib', 'issuance' + stem.capitalize() + ' = Issuance.issuance' + stem.capitalize() + ' Issuance.lib',
+             'issuance' + stem.capitalize() + ' = Issuance.issuance Issuance.lib'),
+        ]
+    for key, old, new in elements_computed_mutations:
+        if old not in s[key]:
+            raise ValueError('inactive computed issuance mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_issuance_computed(changed)
+        except ValueError:
+            continue
+        raise ValueError('computed issuance mutation escaped: ' + old)
+    print('Computed issuance literal calculations, primitive routing and whole C contracts match;', len(elements_computed_mutations), 'mutations rejected')
 
 
 if __name__ == "__main__":

@@ -1,0 +1,629 @@
+### C.jet_elements_issuance_entropy_spec.new_issuance_entropy_route_parametric
+new_issuance_entropy_route_parametric
+     : @Alg.Core.Parametric (Ty.Prod issuance_digest_option issuance_prevout_option) issuance_digest_option
+         (@new_issuance_entropy_route)
+### C.jet_elements_issuance_entropy_spec.issuance_entropy_route_parametric
+issuance_entropy_route_parametric
+     : @Alg.Core.Parametric (Ty.Prod issuance_digest_option (Ty.Prod issuance_digest_option issuance_prevout_option))
+         issuance_digest_option (@issuance_entropy_route)
+### C.jet_elements_issuance_entropy_spec.elements_issuance_entropy_spec_parametric
+elements_issuance_entropy_spec_parametric
+     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric (Word.Word (S (S (S (S (S O))))))
+         issuance_digest_option (@elements_issuance_entropy_spec)
+### C.jet_elements_issuance_entropy_spec.elements_issuance_entropy_sem
+elements_issuance_entropy_sem
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem issuance_digest_option))
+         (@elements_issuance_entropy_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+         (@Some (Ty.tySem issuance_digest_option)
+            (issuance_entropy_result (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment)) a))
+### C.jet_elements_issuance_entropy_spec.issuance_asset_route_parametric
+issuance_asset_route_parametric
+     : @Alg.Core.Parametric issuance_digest_option issuance_digest_option (@issuance_asset_route)
+### C.jet_elements_issuance_entropy_spec.elements_issuance_asset_spec_parametric
+elements_issuance_asset_spec_parametric
+     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric (Word.Word (S (S (S (S (S O))))))
+         issuance_digest_option (@elements_issuance_asset_spec)
+### C.jet_elements_issuance_entropy_spec.elements_issuance_asset_sem
+elements_issuance_asset_sem
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem issuance_digest_option))
+         (@elements_issuance_asset_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+         (@Some (Ty.tySem issuance_digest_option)
+            (issuance_asset_result (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment)) a))
+### C.jet_elements_issuance_entropy_spec.issuance_token_route_parametric
+issuance_token_route_parametric
+     : @Alg.Core.Parametric (Ty.Prod issuance_digest_option issuance_amount_option) issuance_digest_option
+         (@issuance_token_route)
+### C.jet_elements_issuance_entropy_spec.elements_issuance_token_spec_parametric
+elements_issuance_token_spec_parametric
+     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric (Word.Word (S (S (S (S (S O))))))
+         issuance_digest_option (@elements_issuance_token_spec)
+### C.jet_elements_issuance_entropy_spec.elements_issuance_token_sem
+elements_issuance_token_sem
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem issuance_digest_option))
+         (@elements_issuance_token_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+         (@Some (Ty.tySem issuance_digest_option)
+            (issuance_token_result (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment)) a))
+### C.jet_elements_issuance_entropy_spec.issuance_digest_option
+issuance_digest_option = Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     : Ty.Ty
+### C.jet_elements_issuance_entropy_spec.issuance_prevout_option
+issuance_prevout_option =
+Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+     : Ty.Ty
+### C.jet_elements_issuance_entropy_spec.new_issuance_entropy_route
+new_issuance_entropy_route =
+fun core : Alg.Core.Algebra =>
+@EC.case Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+  (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+  (@EC.injl
+     (Ty.Prod Ty.Unit
+        (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))))
+     Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+     (@EC.unit
+        (Ty.Prod Ty.Unit
+           (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))))
+        core))
+  (@EC.case Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+     (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+     (@EC.injr
+        (Ty.Prod Ty.Unit
+           (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))))
+        Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+        (@EC.injl
+           (Ty.Prod Ty.Unit
+              (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))))
+           Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+           (@EC.unit
+              (Ty.Prod Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))) core)))
+     (@EC.comp
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))))
+        (Ty.Prod
+           (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+        (@EC.pair
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))))
+           (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+           (@EC.drop (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+              (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+              core
+              (@EC.iden
+                 (Ty.Sum Ty.Unit
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))) core))
+           (@EC.take (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+              (@EC.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) core)))
+        (@EC.case Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+           (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+           (@EC.injl (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+              (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+              (@EC.unit (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core))
+           (@EC.injr
+              (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+              (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+              (@EC.injr
+                 (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                    (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+                 (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+                 (@jet_elements_issuance_calc_spec.calculate_issuance_entropy_spec core))))))
+     : forall core : Alg.Core.Algebra,
+       Alg.Core.domain core (Ty.Prod issuance_digest_option issuance_prevout_option) issuance_digest_option
+
+Arguments new_issuance_entropy_route {core}
+### C.jet_elements_issuance_entropy_spec.issuance_entropy_route
+issuance_entropy_route =
+fun core : Alg.Core.Algebra =>
+@EC.case Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Ty.Prod issuance_digest_option issuance_prevout_option)
+  (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+  (@EC.injl (Ty.Prod Ty.Unit (Ty.Prod issuance_digest_option issuance_prevout_option)) Ty.Unit
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+     (@EC.unit (Ty.Prod Ty.Unit (Ty.Prod issuance_digest_option issuance_prevout_option)) core))
+  (@EC.case Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Ty.Prod issuance_digest_option issuance_prevout_option) issuance_digest_option core
+     (@EC.drop Ty.Unit (Ty.Prod issuance_digest_option issuance_prevout_option) issuance_digest_option core
+        (@new_issuance_entropy_route core))
+     (@EC.take (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Ty.Prod issuance_digest_option issuance_prevout_option)
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+        (@EC.injr (Word.Word (S (S (S (S (S (S (S (S O))))))))) Ty.Unit
+           (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+           (@EC.injr (Word.Word (S (S (S (S (S (S (S (S O))))))))) Ty.Unit
+              (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+              (@EC.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) core)))))
+     : forall core : Alg.Core.Algebra,
+       Alg.Core.domain core (Ty.Prod issuance_digest_option (Ty.Prod issuance_digest_option issuance_prevout_option))
+         issuance_digest_option
+
+Arguments issuance_entropy_route {core}
+### C.jet_elements_issuance_entropy_spec.elements_issuance_entropy_spec
+elements_issuance_entropy_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@jet_elements_current_spec.elements_comp alg (Word.Word (S (S (S (S (S O))))))
+  (Ty.Prod (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (Ty.Prod (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))))
+  issuance_digest_option
+  (@jet_elements_prim_sem.elements_pair alg (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (Ty.Prod (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))))
+     (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) alg
+        jet_elements_prim.Elements.ReissuanceEntropy)
+     (@jet_elements_prim_sem.elements_pair alg (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+        (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+           (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) alg
+           jet_elements_prim.Elements.NewIssuanceContract)
+        (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+           (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+           alg jet_elements_prim.Elements.InputPrevOutpoint)))
+  (@jet_elements_prim_sem.elements_core
+     (Ty.Prod issuance_digest_option (Ty.Prod issuance_digest_option issuance_prevout_option)) issuance_digest_option
+     (@issuance_entropy_route) alg)
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S (S (S O))))))
+         issuance_digest_option
+
+Arguments elements_issuance_entropy_spec {alg}
+### C.jet_elements_issuance_entropy_spec.issuance_entropy_of_input
+issuance_entropy_of_input =
+fun txi : jet_elements_prim.sigTxInput =>
+match
+  jet_elements_prim.sigTxiIssuance txi return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+with
+| Some i =>
+    match i return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) with
+    | inl new =>
+        @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+          (@jet_elements_issuance_calc_spec.calculate_issuance_entropy_spec Alg.CoreFunSem
+             (@pair
+                (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                   (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O)))))))))
+                (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                   (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
+                   (Word.from_hash256 (jet_elements_prim.opHash (jet_elements_prim.sigTxiPreviousOutpoint txi)))
+                   (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+                      (Integers.Int.unsigned (jet_elements_prim.opIndex (jet_elements_prim.sigTxiPreviousOutpoint txi)))))
+                (Word.from_hash256 (jet_elements_prim.newIssuanceContractHash new))))
+    | inr re =>
+        @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+          (Word.from_hash256 (jet_elements_prim.reissuanceEntropy re))
+    end
+| None =>
+    @inl unit
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end)
+            ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                match n return Ty.Ty with
+                | O => X
+                | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end)
+            ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                match n return Ty.Ty with
+                | O => X
+                | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))) tt
+end
+     : forall _ : jet_elements_prim.sigTxInput, Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments issuance_entropy_of_input txi
+### C.jet_elements_issuance_entropy_spec.issuance_entropy_result
+issuance_entropy_result =
+fun (elems : list jet_elements_prim.sigTxInput) (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) =>
+match
+  @List.nth_error jet_elements_prim.sigTxInput elems
+    (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) a))
+  return (Ty.tySem issuance_digest_option)
+with
+| Some txi =>
+    @inr unit (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (issuance_entropy_of_input txi)
+| None =>
+    @inl unit
+      (sum
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) Ty.Unit)
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) tt
+end
+     : forall (_ : list jet_elements_prim.sigTxInput) (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       Ty.tySem issuance_digest_option
+
+Arguments issuance_entropy_result elems%list_scope a
+### C.jet_elements_issuance_entropy_spec.issuance_asset_route
+issuance_asset_route =
+fun core : Alg.Core.Algebra =>
+@EC.copair Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+  (@EC.injl Ty.Unit Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core (@EC.unit Ty.Unit core))
+  (@EC.injr (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+     (@EC.copair Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+        (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+        (@EC.injl Ty.Unit Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) core (@EC.unit Ty.Unit core))
+        (@EC.injr (Word.Word (S (S (S (S (S (S (S (S O))))))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           core (@jet_elements_issuance_calc_spec.calculate_asset_spec core))))
+     : forall core : Alg.Core.Algebra, Alg.Core.domain core issuance_digest_option issuance_digest_option
+
+Arguments issuance_asset_route {core}
+### C.jet_elements_issuance_entropy_spec.elements_issuance_asset_spec
+elements_issuance_asset_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@jet_elements_current_spec.elements_comp alg (Word.Word (S (S (S (S (S O)))))) issuance_digest_option
+  issuance_digest_option (@elements_issuance_entropy_spec alg)
+  (@jet_elements_prim_sem.elements_core issuance_digest_option issuance_digest_option (@issuance_asset_route) alg)
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S (S (S O))))))
+         issuance_digest_option
+
+Arguments elements_issuance_asset_spec {alg}
+### C.jet_elements_issuance_entropy_spec.issuance_asset_of_input
+issuance_asset_of_input =
+fun txi : jet_elements_prim.sigTxInput =>
+match
+  issuance_entropy_of_input txi return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+with
+| inl _ =>
+    @inl unit
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end)
+            ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                match n return Ty.Ty with
+                | O => X
+                | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end)
+            ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                match n return Ty.Ty with
+                | O => X
+                | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))) tt
+| inr h =>
+    @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+      (@jet_elements_issuance_calc_spec.calculate_asset_spec Alg.CoreFunSem h)
+end
+     : forall _ : jet_elements_prim.sigTxInput, Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments issuance_asset_of_input txi
+### C.jet_elements_issuance_entropy_spec.issuance_asset_result
+issuance_asset_result =
+fun (elems : list jet_elements_prim.sigTxInput) (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) =>
+match
+  @List.nth_error jet_elements_prim.sigTxInput elems
+    (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) a))
+  return (Ty.tySem issuance_digest_option)
+with
+| Some txi =>
+    @inr unit (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (issuance_asset_of_input txi)
+| None =>
+    @inl unit
+      (sum
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) Ty.Unit)
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) tt
+end
+     : forall (_ : list jet_elements_prim.sigTxInput) (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       Ty.tySem issuance_digest_option
+
+Arguments issuance_asset_result elems%list_scope a
+### C.jet_elements_issuance_entropy_spec.issuance_amount_option
+issuance_amount_option =
+Ty.Sum Ty.Unit
+  (Ty.Sum Ty.Unit
+     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Word.Word (S (S (S (S (S (S O)))))))))
+     : Ty.Ty
+### C.jet_elements_issuance_entropy_spec.issuance_token_route
+issuance_token_route =
+fun core : Alg.Core.Algebra =>
+@EC.case Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Ty.Sum Ty.Unit
+     (Ty.Sum Ty.Unit
+        (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Word.Word (S (S (S (S (S (S O))))))))))
+  (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+  (@EC.injl
+     (Ty.Prod Ty.Unit
+        (Ty.Sum Ty.Unit
+           (Ty.Sum Ty.Unit
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O))))))))))) Ty.Unit
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+     (@EC.unit
+        (Ty.Prod Ty.Unit
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O))))))))))) core))
+  (@EC.case Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Ty.Sum Ty.Unit
+        (Ty.Sum Ty.Unit
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))))
+     (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+     (@EC.injr
+        (Ty.Prod Ty.Unit
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O))))))))))) Ty.Unit
+        (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+        (@EC.injl
+           (Ty.Prod Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           core
+           (@EC.unit
+              (Ty.Prod Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum Ty.Unit
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O))))))))))) core)))
+     (@EC.comp
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O)))))))))))
+        (Ty.Prod
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+        (@EC.pair
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O)))))))))))
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+           (@EC.drop (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))))
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O)))))))))) core
+              (@EC.iden
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum Ty.Unit
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O)))))))))) core))
+           (@EC.take (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+              (@EC.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) core)))
+        (@EC.case Ty.Unit
+           (Ty.Sum Ty.Unit
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+           (@EC.injl (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+              (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+              (@EC.unit (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core))
+           (@EC.case Ty.Unit
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+              (@EC.injl (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+                 (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+                 (@EC.unit (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core))
+              (@EC.injr
+                 (Ty.Prod
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+                 (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+                 (@EC.injr
+                    (Ty.Prod
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+                    (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+                    (@EC.case (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                       (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+                       (@EC.drop (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                          core (@jet_elements_issuance_calc_spec.calculate_confidential_token_spec core))
+                       (@EC.drop (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                          (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+                          (@jet_elements_issuance_calc_spec.calculate_explicit_token_spec core)))))))))
+     : forall core : Alg.Core.Algebra,
+       Alg.Core.domain core (Ty.Prod issuance_digest_option issuance_amount_option) issuance_digest_option
+
+Arguments issuance_token_route {core}
+### C.jet_elements_issuance_entropy_spec.elements_issuance_token_spec
+elements_issuance_token_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@jet_elements_current_spec.elements_comp alg (Word.Word (S (S (S (S (S O))))))
+  (Ty.Prod issuance_digest_option
+     (Ty.Sum Ty.Unit
+        (Ty.Sum Ty.Unit
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))))) issuance_digest_option
+  (@jet_elements_prim_sem.elements_pair alg (Word.Word (S (S (S (S (S O)))))) issuance_digest_option
+     (Ty.Sum Ty.Unit
+        (Ty.Sum Ty.Unit
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O)))))))))) (@elements_issuance_entropy_spec alg)
+     (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit
+           (Ty.Sum Ty.Unit
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O)))))))))) alg jet_elements_prim.Elements.IssuanceAssetAmount))
+  (@jet_elements_prim_sem.elements_core (Ty.Prod issuance_digest_option issuance_amount_option) issuance_digest_option
+     (@issuance_token_route) alg)
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S (S (S O))))))
+         issuance_digest_option
+
+Arguments elements_issuance_token_spec {alg}
+### C.jet_elements_issuance_entropy_spec.issuance_token_for_amount
+issuance_token_for_amount =
+fun (P : Set) (amt : jet_elements_prim.amountWith P) (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) =>
+match amt return (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) with
+| jet_elements_prim.Explicit _ => @jet_elements_issuance_calc_spec.calculate_explicit_token_spec Alg.CoreFunSem h
+| jet_elements_prim.Confidential _ _ =>
+    @jet_elements_issuance_calc_spec.calculate_confidential_token_spec Alg.CoreFunSem h
+end
+     : forall (P : Set) (_ : jet_elements_prim.amountWith P)
+         (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))),
+       Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments issuance_token_for_amount {P}%type_scope amt h
+### C.jet_elements_issuance_entropy_spec.issuance_token_of_input
+issuance_token_of_input =
+fun txi : jet_elements_prim.sigTxInput =>
+match
+  jet_elements_prim.sigTxiIssuance txi return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+with
+| Some i =>
+    match i return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) with
+    | inl new =>
+        @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+          (@issuance_token_for_amount (list Integers.Byte.int) (jet_elements_prim.newIssuanceAmount new)
+             (@jet_elements_issuance_calc_spec.calculate_issuance_entropy_spec Alg.CoreFunSem
+                (@pair
+                   (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O)))))))))
+                   (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                   (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
+                      (Word.from_hash256 (jet_elements_prim.opHash (jet_elements_prim.sigTxiPreviousOutpoint txi)))
+                      (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+                         (Integers.Int.unsigned
+                            (jet_elements_prim.opIndex (jet_elements_prim.sigTxiPreviousOutpoint txi)))))
+                   (Word.from_hash256 (jet_elements_prim.newIssuanceContractHash new)))))
+    | inr re =>
+        @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+          (@issuance_token_for_amount (list Integers.Byte.int) (jet_elements_prim.reissuanceAmount re)
+             (Word.from_hash256 (jet_elements_prim.reissuanceEntropy re)))
+    end
+| None =>
+    @inl unit
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end)
+            ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                match n return Ty.Ty with
+                | O => X
+                | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end)
+            ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                match n return Ty.Ty with
+                | O => X
+                | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))) tt
+end
+     : forall _ : jet_elements_prim.sigTxInput, Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments issuance_token_of_input txi
+### C.jet_elements_issuance_entropy_spec.issuance_token_result
+issuance_token_result =
+fun (elems : list jet_elements_prim.sigTxInput) (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) =>
+match
+  @List.nth_error jet_elements_prim.sigTxInput elems
+    (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) a))
+  return (Ty.tySem issuance_digest_option)
+with
+| Some txi =>
+    @inr unit (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (issuance_token_of_input txi)
+| None =>
+    @inl unit
+      (sum
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) Ty.Unit)
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) tt
+end
+     : forall (_ : list jet_elements_prim.sigTxInput) (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       Ty.tySem issuance_digest_option
+
+Arguments issuance_token_result elems%list_scope a
