@@ -1321,8 +1321,8 @@ of both finite infinity-flag checks and the first actual square, `z12 = a.z^2`.
 `mixed_finite_source` identifies these statements inside the original generated
 body. The square contract supplies actual output words, modular value, reusable
 bounds, input preservation and full point/local ownership. This is a prefix,
-not the complete function. Continue with the real U1/S1 struct copies and weak
-normalizations, then U2/S2, H/I and their zero tests. Reuse the checked weak
+not the complete function. The composed preparation is below; H/I and their
+zero tests remain. Reuse the checked weak
 normalization and reader-identity results (`jet_secp_curve_weak{,_math}.v`,
 `jet_secp_point_weak_values.v`) instead of repeating their arithmetic.
 
@@ -1335,8 +1335,8 @@ struct-copy and weak-normalization statements from storage, with uninitialized
 destinations, full allocation permissions and unchanged source point. Its
 `mixed_copies_source` identifies both pairs inside the original body, separated
 by the actual U2 multiplication. No intermediate execution or desired output
-is a premise. These helper results still need composition with U2/S2 and the
-remaining finite arithmetic before a whole-jet contract can be registered.
+is a premise. Their preparation-path composition is below; the remaining
+finite arithmetic is still required before a whole-jet contract can be registered.
 
 `jet_secp_mixed_affine_product.v:eval_mixed_affine_product` now derives the
 actual `fe_mul` into an uninitialized private field from either coordinate of
@@ -1352,10 +1352,23 @@ is assumed.
 original S2 multiplications, `S2 = B.Y * z12; S2 *= A.Z`. It derives the exact
 result words, triple-product residue, reusable bounds, preserved source fields,
 full point/affine/temporary ownership and precise framing from initial storage.
-No intermediate execution/result is assumed. The complete preparation prefix
-still needs composition of the square, U1/S1 copy/weak calls, U2 and this S2
-pair in original order; then H/I preparation, zero-test branches, the final
-arithmetic and public lifecycle remain. These modules do not register coverage.
+No intermediate execution/result is assumed.
+
+`jet_secp_mixed_preparation.v:exec_mixed_finite_preparation` now composes the
+entire finite preparation path from initial storage: both infinity checks,
+the square into uninitialized z12, U1/S1 copies and weak normalizations, U2,
+and both S2 multiplications in original order. It derives all prepared words,
+reusable bounds, preserved input fields/zero flags, allocation permissions and
+the precise external frame. The seven named storage blocks are distinct
+(`NoDup`), as the actual caller's fresh allocations will establish; no
+intermediate execution/output or initialized-temporary premise is added.
+`mixed_finite_preparation_source` identifies the original generated statement
+spine exactly. The existing `statement_sequence` prefix combinator, including
+its final proof-only `Sskip`, attaches the remaining original suffix; it does
+not skip any C statement. `exec_mixed_preparation_then_rest` demonstrates that
+composition for the after-square portion. H/I preparation, zero-test branches,
+the final arithmetic, literal-value bridge and public lifecycle remain.
+This internal prefix does not register additional jet coverage.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1373,6 +1386,8 @@ JET_TARGETS=C/jet_secp_mixed_affine_product.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_affine_product
 JET_TARGETS=C/jet_secp_mixed_s2_calls.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_s2_calls
+JET_TARGETS=C/jet_secp_mixed_preparation.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_preparation
 ```
 
 ## Source-review question: Elements fee predicates
