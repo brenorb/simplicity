@@ -1,0 +1,287 @@
+### C.jet_secp_equal_loose.field_equal_loose_checked
+field_equal_loose_checked
+     : and
+         (@eq (option (prod BinNums.Z BinNums.Z))
+            (jet_sx_zval.zb field_equal_loose_bounds jet_secp_curve_equal.curve_equal_ret)
+            (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))))
+         (and (@eq bool (jet_sx_expr.isk jet_sx_expr.KI jet_secp_curve_equal.curve_equal_ret) true)
+            (and
+               (@eq (option (prod BinNums.Z BinNums.Z))
+                  (jet_sx_zval.zb field_equal_loose_bounds jet_secp_curve_equal.curve_equal_cond)
+                  (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))))
+               (@eq bool (jet_sx_expr.isk jet_sx_expr.KI jet_secp_curve_equal.curve_equal_cond) true)))
+### C.jet_secp_equal_loose.field_equal_loose_diff_bounds
+field_equal_loose_diff_bounds
+     : forall (rho : forall _ : nat, BinNums.Z)
+         (_ : forall n : nat,
+              and (BinInt.Z.le (@fst BinNums.Z BinNums.Z (field_equal_loose_bounds n)) (rho n))
+                (BinInt.Z.le (rho n) (@snd BinNums.Z BinNums.Z (field_equal_loose_bounds n))))
+         (n : nat) (_ : and (le (S O) n) (le n (S (S (S (S (S O))))))),
+       and (BinInt.Z.le BinNums.Z0 (jet_secp_curve_equal.curve_equal_diff rho n))
+         (BinInt.Z.le (jet_secp_curve_equal.curve_equal_diff rho n)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_equal_loose.eval_field_equal_loose_numeric
+eval_field_equal_loose_numeric
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho layout jet_secp_curve_equal.curve_equal_regs m)
+         (_ : forall n : nat,
+              and
+                (BinInt.Z.le (@fst BinNums.Z BinNums.Z (field_equal_loose_bounds n)) (Integers.Int64.unsigned (rho n)))
+                (BinInt.Z.le (Integers.Int64.unsigned (rho n)) (@snd BinNums.Z BinNums.Z (field_equal_loose_bounds n)))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_equal_var)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout (S O))
+                        (Integers.Ptrofs.repr (jet_sx_state.bas layout (S O)))) (@nil Values.val))) Events.E0 mf
+               (Values.Vint
+                  match
+                    BinInt.Z.eqb
+                      (BinInt.Z.modulo
+                         (jet_secp_fe_math.fe_val (Integers.Int64.unsigned (rho (S O)))
+                            (Integers.Int64.unsigned (rho (S (S O)))) (Integers.Int64.unsigned (rho (S (S (S O)))))
+                            (Integers.Int64.unsigned (rho (S (S (S (S O))))))
+                            (Integers.Int64.unsigned (rho (S (S (S (S (S O)))))))) jet_secp_fe_math.feP)
+                      (BinInt.Z.modulo
+                         (jet_secp_fe_math.fe_val (Integers.Int64.unsigned (rho (S (S (S (S (S (S O))))))))
+                            (Integers.Int64.unsigned (rho (S (S (S (S (S (S (S O)))))))))
+                            (Integers.Int64.unsigned (rho (S (S (S (S (S (S (S (S O))))))))))
+                            (Integers.Int64.unsigned (rho (S (S (S (S (S (S (S (S (S O)))))))))))
+                            (Integers.Int64.unsigned (rho (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+                         jet_secp_fe_math.feP) return Integers.Int.int
+                  with
+                  | true => Integers.Int.one
+                  | false => Integers.Int.zero
+                  end))
+            (and (jet_sx_state.rep rho layout jet_secp_curve_equal.curve_equal_regs mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot layout
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape jet_secp_curve_equal.curve_equal_regs) b pos)) m mf)))
+### C.jet_secp_equal_loose.field_equal_loose_inputs
+field_equal_loose_inputs
+     : forall (a b : forall _ : nat, Integers.Int64.int)
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+              BinInt.Z.lt (Integers.Int64.unsigned (a i))
+                match PeanoNat.Nat.eqb i (S (S (S (S O)))) return BinNums.Z with
+                | true =>
+                    BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))
+                | false =>
+                    BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))
+                end) (_ : jet_secp_square_columns.square_input_bounds b) (n : nat),
+       and
+         (BinInt.Z.le (@fst BinNums.Z BinNums.Z (field_equal_loose_bounds n))
+            (Integers.Int64.unsigned (jet_secp_curve_tail_values.curve_equal_rho a b n)))
+         (BinInt.Z.le (Integers.Int64.unsigned (jet_secp_curve_tail_values.curve_equal_rho a b n))
+            (@snd BinNums.Z BinNums.Z (field_equal_loose_bounds n)))
+### C.jet_secp_equal_loose.eval_field_equal_loose_owned
+eval_field_equal_loose_owned
+     : forall (a b : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (ba bb : Values.block)
+         (_ : not (@eq Values.block ba bb))
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+              BinInt.Z.lt (Integers.Int64.unsigned (a i))
+                match PeanoNat.Nat.eqb i (S (S (S (S O)))) return BinNums.Z with
+                | true =>
+                    BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))
+                | false =>
+                    BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))
+                end) (_ : jet_secp_square_columns.square_input_bounds b)
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 a))
+         (_ : jet_secp_fe_nv.fe_at m bb BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 b))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_equal_var)
+               (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+               (Values.Vint
+                  match
+                    BinInt.Z.eqb
+                      (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value a) jet_secp_fe_math.feP)
+                      (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value b) jet_secp_fe_math.feP)
+                    return Integers.Int.int
+                  with
+                  | true => Integers.Int.one
+                  | false => Integers.Int.zero
+                  end))
+            (and
+               (Memory.Mem.range_perm mf ba BinNums.Z0
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  Memtype.Cur Memtype.Freeable)
+               (and
+                  (Memory.Mem.range_perm mf bb BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (jet_sx_mem.lframe
+                     (fun (bx : Values.block) (_ : BinNums.Z) =>
+                      and (not (@eq Values.block bx ba)) (not (@eq Values.block bx bb))) m mf))))
+### C.jet_secp_equal_loose.field_equal_loose_bounds
+field_equal_loose_bounds =
+fun n : nat =>
+@pair BinNums.Z BinNums.Z BinNums.Z0
+  match PeanoNat.Nat.leb n (S (S (S (S (S O))))) return BinNums.Z with
+  | true =>
+      match PeanoNat.Nat.eqb n (S (S (S (S (S O))))) return BinNums.Z with
+      | true =>
+          BinNums.Zpos
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))))))))))))
+      | false =>
+          BinNums.Zpos
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))))))))))))
+      end
+  | false =>
+      match PeanoNat.Nat.eqb n (S (S (S (S (S (S (S (S (S (S O)))))))))) return BinNums.Z with
+      | true =>
+          BinNums.Zpos
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))))))))))))
+      | false =>
+          BinNums.Zpos
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))))))))))))
+      end
+  end
+     : forall _ : nat, prod BinNums.Z BinNums.Z
+
+Arguments field_equal_loose_bounds n%nat_scope
