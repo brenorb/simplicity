@@ -2,8 +2,10 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 494/533 jets (359 without an extra libc
-premise; 135 conditional on `memcpy_model`). The earlier 430-entry baseline passed
+The local-contract registry contains 495/533 jets (359 without an extra libc
+premise; 136 conditional on `memcpy_model`). The computing issuance hash entry is
+newly registered and awaiting scoped acceptance; accepted coverage is still
+494/533. The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
@@ -105,7 +107,7 @@ ten are newly accepted registrations.
   do not identify the ordinary SHA translation unit with the Elements program.
 - Shared frame/evaluator admissibility and exhaustive inherited canonical
   fidelity review remain open; see `JET_INHERITED_REVIEW.md`.
-- The remaining 39 header declarations have no registered final contract.
+- The remaining 38 header declarations have no registered final contract.
   Cached Bitcoin hashes and SHA startup helpers are support until their raw-data
   and operational boundaries meet the public coverage requirements.
 

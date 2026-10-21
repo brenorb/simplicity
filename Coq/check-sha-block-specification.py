@@ -2962,6 +2962,158 @@ def elements_single_input_hash(s):
               (GC, 0, 8); (GM, 0, 8)]''')
 
 
+
+def elements_single_issuance_hash(s):
+    """Canonical whole issuanceHash tree and initial-only C boundary.
+    Existing mandatory issuance/blinding/amount/SHA checks validate the
+    shared leaves; this guard fixes their complete indexed composition."""
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('Elements single issuance definition differs: ' + name)
+
+    def binding(key, name, expected):
+        if p.compact(hbody(s[key], name)) != p.compact(expected):
+            raise ValueError('Elements single issuance binding differs: ' + name)
+
+    def core(text):
+        for op in ['comp', 'pair', 'take', 'drop', 'injl', 'injr', 'case']:
+            text = replace(text, '@AC.' + op + ' ' + ('_ _ _ _' if op == 'case' else '_ _ _') + ' core',
+                           op + 'Node')
+            text = replace(text, 'AC.' + op, op + 'Node')
+        for op in ['unit', 'iden']:
+            text = replace(text, '@AC.' + op + ' _ core', op)
+            text = replace(text, 'AC.' + op, op)
+        return explicit_core_tree(expression(text),
+            {'unit', 'assetPair', 'tokenPair', 'pAssetProof', 'pTokenProof', 'blindingPair',
+             'ctx8Init', 'absorbIA', 'add32', 'blindingHash', 'ctx8Finalize',
+             'assertIA', 'assertHash', 'assertBlinding'})
+
+    binding('elements_catalog', 'specificationSigHash IssuanceHash', 'SigHash.issuanceHash')
+    p.require(s['elements_catalog'], 'IssuanceHash :: SigHashJet Word32 (S Word256)', 'single issuance catalog type')
+    binding('elements_sighash_lib', 'issuanceHash', 'SigHash.issuanceHash SigHash.lib')
+    programs = s['elements_sighash'].split(
+        'mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    hs = re.search(r'\bissuanceHash\s*=(.*?)\n\s*[,}]', programs, re.S)
+    if not hs:
+        raise ValueError('missing canonical issuanceHash')
+    hs = hs[1]
+    for old, new in [
+        ('issuanceAssetAmountHash', 'absorbIA'),
+        ('issuanceAssetAmount', 'assetPair'), ('issuanceTokenAmount', 'tokenPair'),
+        ('primitive IssuanceAssetProof', 'pAssetProof'),
+        ('primitive IssuanceTokenProof', 'pTokenProof'),
+        ('issuanceBlindingEntropy', 'blindingPair'), ('blindingEntropyHash', 'blindingHash'),
+        ('(drop . take . assert $ iden)', '(drop (take assertIA))'),
+        ('(drop . drop . take . take . assert $ iden)', '(drop (drop (take (take assertHash))))'),
+        ('(drop . drop . take . drop . assert $ iden)', '(drop (drop (take (drop assertHash))))'),
+        ('(drop . drop . drop . assert $ iden)', '(drop (drop (drop assertBlinding)))'),
+        ('ctx8Add32', 'add32'),
+    ]:
+        hs = replace(hs, old, new)
+    prefix = '''let term := EFP.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in'''
+    port = p.definition(s['eis_port'], 'literal_elements_single_issuance_hash')
+    if not p.compact(port).startswith(p.compact(prefix)):
+        raise ValueError('single issuance algebra projection differs')
+    port = replace(port, prefix, '')
+    payload = p.definition(s['eis_port'], 'literal_elements_single_issuance_payload')
+    projection = 'let core := Alg.Assertion.toCore term in'
+    if not p.compact(payload).startswith(p.compact(projection)):
+        raise ValueError('single issuance payload algebra differs')
+    payload = replace(payload, projection, '')
+    port = replace(port, '@literal_elements_single_issuance_payload term', '(' + payload + ')')
+    for old, new in [
+        ('@literal_elements_issuance_asset_pair alg', 'assetPair'),
+        ('@literal_elements_issuance_token_pair alg', 'tokenPair'),
+        ('@EFP.Combinators.prim _ _ alg Elements.IssuanceAssetProof', 'pAssetProof'),
+        ('@EFP.Combinators.prim _ _ alg Elements.IssuanceTokenProof', 'pTokenProof'),
+        ('@elements_issuance_blinding_entropy_spec alg', 'blindingPair'),
+        ('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+        ('@literal_issuance_asset_amount_absorb term', 'absorbIA'),
+        ('@literal_ctx8_addn 5 term', 'add32'),
+        ('@literal_elements_blinding_entropy_absorb term', 'blindingHash'),
+        ('@literal_ctx8_finalize term', 'ctx8Finalize'),
+        ('@assert_iden_spec issuance_asset_amount_value_type term', 'assertIA'),
+        ('@assert_iden_spec Word256 term', 'assertHash'),
+        ('@assert_iden_spec blinding_entropy_value_type term', 'assertBlinding'),
+    ]:
+        port = replace(port, old, new)
+    if expression(hs) != core(port):
+        raise ValueError('canonical whole issuanceHash composition differs')
+    statement = re.search(r'Theorem elements_single_issuance_hash_literal_local_spec\s*:(.*?)\bProof\.',
+                          s['eis_public'], re.S)
+    expected = '''memcpy_model ->
+      application_jet_local_spec_sep f_simplicity_issuance_hash elements_ge Elements.env
+        Word32 (Ty.Sum Ty.Unit Word256) elements_single_issuance_hash_rep
+        (fun a environment => @literal_elements_single_issuance_hash elements_hash_alg a environment).'''
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError('single issuance complete C contract differs')
+    definition('eis_rep', 'eis_tag', r'''
+  match sigTxiIssuance txi with None => Int.zero | Some (inl _) => Int.one | Some (inr _) => Int.repr 2 end''')
+    definition('eis_rep', 'eis_asset_id', r'''
+  match issuance_asset_of_input txi with inl _ => byteStringHash [] | inr h => to_hash256 h end''')
+    definition('eis_rep', 'eis_token_id', r'''
+  match issuance_token_of_input txi with inl _ => byteStringHash [] | inr h => to_hash256 h end''')
+    definition('eis_rep', 'eis_asset_amount', r'''
+  match sigTxiIssuance txi with
+  | None => Explicit Int64.zero
+  | Some (inl n) => clearPrf (newIssuanceAmount n)
+  | Some (inr r) => clearPrf (reissuanceAmount r)
+  end''')
+    definition('eis_rep', 'eis_token_amount', r'''
+  match sigTxiIssuance txi with Some (inl n) => clearPrf (newIssuanceTokenAmount n) | _ => Explicit Int64.zero end''')
+    definition('eis_rep', 'eis_proof_asset', r''' byteStringHash (issuance_asset_proof_bytes txi)''')
+    definition('eis_rep', 'eis_proof_token', r''' byteStringHash (issuance_token_proof_bytes txi)''')
+    definition('eis_rep', 'eis_union_hash', r'''
+  match sigTxiIssuance txi with
+  | None => byteStringHash []
+  | Some (inl n) => newIssuanceContractHash n
+  | Some (inr r) => reissuanceBlindingNonce r
+  end''')
+    definition('eis_rep', 'eis_re_entropy', r'''
+  match sigTxiIssuance txi with Some (inr r) => reissuanceEntropy r | _ => byteStringHash [] end''')
+    definition('eis_rep', 'eis_message', r'''
+  elements_single_issuance_bytes (issuance_asset_pair_of_input txi) (issuance_token_pair_of_input txi)
+    (from_hash256 (eis_proof_asset txi)) (from_hash256 (eis_proof_token txi))
+    (elements_blinding_entropy_of_input txi)''')
+    definition('eis_rep', 'eis_elem_rep', r'''
+  Mem.load Mint32 m b (ofs + 272) = Some (Vint (eis_tag txi)) /\
+  uint32_array_at m b (ofs + 104) (hash256_reg (eis_proof_asset txi)) /\
+  uint32_array_at m b (ofs + 136) (hash256_reg (eis_proof_token txi)) /\
+  match sigTxiIssuance txi with
+  | None => True
+  | Some iss =>
+      uint32_array_at m b (ofs + 168) (hash256_reg (eis_asset_id txi)) /\
+      uint32_array_at m b (ofs + 200) (hash256_reg (eis_token_id txi)) /\
+      amount_rep m b (ofs + 232) (eis_asset_amount txi) /\
+      uint32_array_at m b ofs (hash256_reg (eis_union_hash txi)) /\
+      match iss with
+      | inl _ => amount_rep m b (ofs + 32) (eis_token_amount txi)
+      | inr _ => uint32_array_at m b (ofs + 72) (hash256_reg (eis_re_entropy txi))
+      end
+  end''')
+    definition('eis_jet', 'elements_single_issuance_hash_rep', r'''
+  exists be ebase bt txbase bin inbase nI,
+    env = Vptr be (Ptrofs.repr ebase) /\
+    0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
+    0 <= txbase /\ txbase + 760 <= Ptrofs.max_unsigned /\
+    0 <= inbase /\
+    inbase + 544 * Z.of_nat (length (sigTxIn (Elements.envTx e))) <= Ptrofs.max_unsigned /\
+    Mem.load Mptr m be (ebase + 0) = Some (Vptr bt (Ptrofs.repr txbase)) /\
+    Mem.load Mptr m bt (txbase + 0) = Some (Vptr bin (Ptrofs.repr inbase)) /\
+    Mem.load Mint64 m bt (txbase + 696) = Some (Vlong nI) /\
+    Int64.unsigned nI = Z.of_nat (length (sigTxIn (Elements.envTx e))) /\
+    (forall j txi, nth_error (sigTxIn (Elements.envTx e)) j = Some txi ->
+      eis_elem_rep m bin (inbase + 544 * Z.of_nat j + 256) txi) /\
+    sha_globals_ok m /\
+    fp = [(be, ebase, ebase + 8); (bt, txbase + 0, txbase + 8);
+          (bin, inbase, inbase + 544 * Z.of_nat (length (sigTxIn (Elements.envTx e))));
+          (GC, 0, 8); (GM, 0, 8)]''')
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -3066,6 +3218,10 @@ def sources():
         "eih_port": COQ / "C/jet_elements_single_input_literal.v",
         "eih_public": COQ / "C/jet_elements_single_input_literal_jet.v",
         "eih_jet": COQ / "C/jet_elements_single_input_jet.v",
+        "eis_port": COQ / "C/jet_elements_single_issuance_literal.v",
+        "eis_public": COQ / "C/jet_elements_single_issuance_literal_jet.v",
+        "eis_rep": COQ / "C/jet_elements_single_issuance_rep.v",
+        "eis_jet": COQ / "C/jet_elements_single_issuance_jet.v",
         "eiu_amount_model": COQ / "C/jet_elements_amount_jets.v",
         "eiu_transaction": REPO / "Haskell/Simplicity/Elements/Programs/Transaction.hs",
         "elements_annex_exec": COQ / "C/jet_elements_annex_context_exec.v",
@@ -3120,6 +3276,7 @@ def test():
     elements_single_utxo_hash(s)
     elements_single_output_hash(s)
     elements_single_input_hash(s)
+    elements_single_issuance_hash(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -4400,6 +4557,98 @@ def test():
             continue
         raise ValueError('single input mutation escaped: ' + old)
     print('Elements computing input full Core tree, optional routes and C contract match;',
+          len(changes), 'mutations rejected')
+
+    changes = [
+        ('elements_catalog', 'specificationSigHash IssuanceHash = SigHash.issuanceHash',
+         'specificationSigHash IssuanceHash = SigHash.inputHash'),
+        ('elements_catalog', 'IssuanceHash :: SigHashJet Word32 (S Word256)',
+         'IssuanceHash :: SigHashJet Word64 (S Word256)'),
+        ('elements_sighash_lib', 'issuanceHash = SigHash.issuanceHash SigHash.lib',
+         'issuanceHash = SigHash.inputHash SigHash.lib'),
+        ('elements_sighash', 'issuanceAssetAmount &&& issuanceTokenAmount',
+         'issuanceTokenAmount &&& issuanceAssetAmount'),
+        ('elements_sighash', 'primitive IssuanceAssetProof &&& primitive IssuanceTokenProof',
+         'primitive IssuanceTokenProof &&& primitive IssuanceAssetProof'),
+        ('elements_sighash', '&&& issuanceBlindingEntropy', '&&& issuanceAssetAmount'),
+        ('elements_sighash', '(drop . take . assert $ iden)', '(drop . drop . assert $ iden)'),
+        ('elements_sighash', '(drop . drop . take . take . assert $ iden)',
+         '(drop . drop . take . drop . assert $ iden)'),
+        ('elements_sighash', '(drop . drop . take . drop . assert $ iden)',
+         '(drop . drop . take . take . assert $ iden)'),
+        ('elements_sighash', '(drop . drop . drop . assert $ iden)',
+         '(drop . drop . take . assert $ iden)'),
+        ('elements_sighash', 'ctx8Add32', 'ctx8Add64'),
+        ('elements_sighash', 'blindingEntropyHash >>> ctx8Finalize', 'ctx8Finalize >>> blindingEntropyHash'),
+        ('eis_port', '@literal_elements_issuance_asset_pair alg', '@literal_elements_issuance_token_pair alg'),
+        ('eis_port', '@literal_elements_issuance_token_pair alg', '@literal_elements_issuance_asset_pair alg'),
+        ('eis_port', 'Elements.IssuanceAssetProof', 'Elements.IssuanceTokenProof'),
+        ('eis_port', 'Elements.IssuanceTokenProof', 'Elements.IssuanceAssetProof'),
+        ('eis_port', '@elements_issuance_blinding_entropy_spec alg', '@literal_elements_issuance_asset_pair alg'),
+        ('eis_port', '@literal_issuance_asset_amount_absorb term', '@literal_elements_blinding_entropy_absorb term'),
+        ('eis_port', '@literal_elements_blinding_entropy_absorb term', '@literal_issuance_asset_amount_absorb term'),
+        ('eis_port', '@literal_ctx8_addn 5 term', '@literal_ctx8_addn 6 term'),
+        ('eis_port', '@assert_iden_spec issuance_asset_amount_value_type term', '@assert_iden_spec Word256 term'),
+        ('eis_port', '@assert_iden_spec Word256 term', '@assert_iden_spec Word128 term'),
+        ('eis_port', '@assert_iden_spec blinding_entropy_value_type term', '@assert_iden_spec Word256 term'),
+        ('eis_public', 'Theorem elements_single_issuance_hash_literal_local_spec :',
+         'Theorem elements_single_issuance_hash_literal_local_spec : False ->'),
+        ('eis_public', 'f_simplicity_issuance_hash elements_ge Elements.env',
+         'f_simplicity_issuances_hash elements_ge Elements.env'),
+        ('eis_public', 'f_simplicity_issuance_hash elements_ge Elements.env',
+         'f_simplicity_issuance_hash bitcoin_ge Elements.env'),
+        ('eis_public', 'Word32 (Ty.Sum Ty.Unit Word256) elements_single_issuance_hash_rep',
+         'Word32 (Ty.Sum Ty.Unit Word256) (fun m env e fp => False)'),
+        ('eis_rep', 'Mem.load Mint32 m b (ofs + 272)', 'Mem.load Mint32 m b (ofs + 268)'),
+        ('eis_rep', 'uint32_array_at m b (ofs + 104)', 'uint32_array_at m b (ofs + 136)'),
+        ('eis_rep', 'uint32_array_at m b (ofs + 136)', 'uint32_array_at m b (ofs + 104)'),
+        ('eis_rep', 'uint32_array_at m b (ofs + 168)', 'uint32_array_at m b (ofs + 200)'),
+        ('eis_rep', 'uint32_array_at m b (ofs + 200)', 'uint32_array_at m b (ofs + 168)'),
+        ('eis_rep', 'amount_rep m b (ofs + 232)', 'amount_rep m b (ofs + 32)'),
+        ('eis_rep', 'amount_rep m b (ofs + 32)', 'amount_rep m b (ofs + 232)'),
+        ('eis_rep', 'uint32_array_at m b ofs (hash256_reg (eis_union_hash txi))',
+         'uint32_array_at m b (ofs + 72) (hash256_reg (eis_union_hash txi))'),
+        ('eis_rep', '| None => True', '| None => False'),
+        ('eis_rep', '| inr _ => uint32_array_at m b (ofs + 72) (hash256_reg (eis_re_entropy txi))',
+         '| inr _ => True'),
+        ('eis_rep', 'match issuance_asset_of_input txi with', 'match issuance_token_of_input txi with'),
+        ('eis_rep', 'match issuance_token_of_input txi with', 'match issuance_asset_of_input txi with'),
+        ('eis_rep', 'clearPrf (newIssuanceTokenAmount n)', 'clearPrf (newIssuanceAmount n)'),
+        ('eis_rep', 'clearPrf (reissuanceAmount r)', 'Explicit Int64.zero'),
+        ('eis_rep', 'Some (inr r) => reissuanceBlindingNonce r', 'Some (inr r) => reissuanceEntropy r'),
+        ('eis_rep', 'Some (inr r) => reissuanceEntropy r', 'Some (inr r) => reissuanceBlindingNonce r'),
+        ('eis_rep', 'byteStringHash (issuance_asset_proof_bytes txi)', 'byteStringHash (issuance_token_proof_bytes txi)'),
+        ('eis_rep', 'byteStringHash (issuance_token_proof_bytes txi)', 'byteStringHash (issuance_asset_proof_bytes txi)'),
+        ('eis_jet', 'Mem.load Mint64 m bt (txbase + 696)', 'Mem.load Mint64 m bt (txbase + 704)'),
+        ('eis_jet', 'eis_elem_rep m bin (inbase + 544 * Z.of_nat j + 256) txi',
+         'eis_elem_rep m bin (inbase + 544 * Z.of_nat j) txi'),
+        ('eis_jet', 'eis_elem_rep m bin (inbase + 544 * Z.of_nat j + 256) txi', 'True'),
+        ('eis_jet', 'sha_globals_ok m /\\', 'False /\\ sha_globals_ok m /\\'),
+        ('eis_jet', '(GC, 0, 8); (GM, 0, 8)', '(GC, 0, 0); (GM, 0, 0)'),
+    ]
+    for key, old, new in changes:
+        if key == 'eis_port':
+            for name in ['literal_elements_single_issuance_payload', 'literal_elements_single_issuance_hash']:
+                body = p.definition(s[key], name)
+                if old in body:
+                    old, new = body, body.replace(old, new, 1)
+                    break
+        if key == 'elements_sighash':
+            programs = s[key].split(
+                'mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+            body = re.search(r'\bissuanceHash\s*=(.*?)\n\s*[,}]', programs, re.S)[1]
+            if old in body:
+                old, new = body, body.replace(old, new, 1)
+        if old not in s[key]:
+            raise ValueError('inactive single issuance mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_single_issuance_hash(changed)
+        except ValueError:
+            continue
+        raise ValueError('single issuance mutation escaped: ' + old)
+    print('Elements computing issuance full Core tree, active union routes and C contract match;',
           len(changes), 'mutations rejected')
 
 

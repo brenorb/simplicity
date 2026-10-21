@@ -29,7 +29,7 @@ def main():
     rows = coverage.inventory()
     # Computing Elements indexed hashes and both Elements
     # taproot builders retain the explicit memcpy premise.
-    assert sum(row["condition"] == "memcpy_model" for row in rows) == 135
+    assert sum(row["condition"] == "memcpy_model" for row in rows) == 136
     expected = {name for header in coverage.HEADERS.values()
                 for name in coverage.declarations((coverage.REPO / header).read_text())}
     assert {row["function"] for row in rows} == expected

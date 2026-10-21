@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 494 of the 533 header declarations.
+The current local-contract registry contains 495 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 39 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 38 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -744,8 +744,8 @@ prep}.v`, `jet_elements_issuance_{asset_literal,zero_literal,zero_array}.v` and
 definitions. The canonical all-index semantic/literal bridge reuses the accepted
 issuance calculations, optional asset/amount serializer and actual one8 blinding
 program. The general payload bound is 261 bytes; the absent-issuance message is
-69 bytes. The whole endpoint described below compiles but is not yet registered;
-the jet is still claimed.
+69 bytes. The whole endpoint described below compiles and is registered;
+scoped acceptance is pending.
 
 The C support proves both real confidential-ID literals (typed struct copy plus
 explicit prefix), the reissuance explicit-zero amount and the new-issuance
@@ -813,14 +813,15 @@ actual allocations and includes source-frame copying, both index branches,
 issuance address setup, SHA init/copy, type dispatch, payloads, writeHash, return,
 the actual free-list and framing. It covers arbitrary valid frame cursors and
 existing output bits. No payload execution or desired digest is a premise.
-The ordinary build and reviewed contract/assumption checks pass; this is not
-yet registered or a new scoped-acceptance result.
+The ordinary build and reviewed contract/assumption checks pass. The endpoint
+is registered, but this is not yet a new scoped-acceptance result.
 
-Next extend the existing canonical whole-program source/mutation check for
-`issuanceHash`, including the initial-only relation and full literal endpoint.
-Then add the exact public contract to the existing coverage guard, register
-the single endpoint, adjust the memcpy conditional count from 135 to 136,
-remove the claim, and run ordinary scoped acceptance without update flags.
+The existing source checker now compares the whole canonical `issuanceHash`
+Core tree, full literal C boundary and every initial-field/cache definition;
+50 additional mutations are rejected. The exact contract is guarded in coverage,
+the single endpoint is registered, the memcpy conditional count is 136, and the
+claim is removed. Next run ordinary scoped acceptance without update flags:
+`bash Coq/check-jets.sh --accept --jets=simplicity_issuance_hash`.
 Do not claim acceptance from compilation or generated snapshots alone.
 The element's issuance starts at offset 256; checked
 existing fields include entropy 72, proof hashes 104/136, assetAmt 232 and type
