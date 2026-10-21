@@ -9,3 +9,4 @@ instead of starting a parallel proof.
 | --- | --- | --- | --- |
 | `simplicity_issuance_asset_amounts_hash` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-20 |
 | `simplicity_issuance_token_amounts_hash` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_issuances_hash` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-20 |
