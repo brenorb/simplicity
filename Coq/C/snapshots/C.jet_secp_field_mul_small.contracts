@@ -1,0 +1,220 @@
+### C.jet_secp_field_mul_small.mul_small_run_eq
+mul_small_run_eq
+     : forall c : Integers.Int.int,
+       @eq (option jet_sx_exec.res) (mul_small_run c)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (mul_small_state c) jet_sx_exec.ONormal))
+### C.jet_secp_field_mul_small.mul_small_return
+mul_small_return
+     : forall c : Integers.Int.int,
+       @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps (mul_small_state c)))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_field_mul_small.mul_small_output_shape
+mul_small_output_shape
+     : forall c : Integers.Int.int,
+       @eq (list jet_sx_state.region) (jet_sx_eval.sregs (mul_small_state c))
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (mul_small_out c)) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@nil jet_sx_state.region))
+### C.jet_secp_field_mul_small.mul_small_output_den
+mul_small_output_den
+     : forall (c : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay layout)) (mul_small_out c))
+         (@List.map Integers.Int64.int Values.val Values.Vlong
+            (jet_secp_multiply_normalize_bridge.words5 (mul_small_words c rho)))
+### C.jet_secp_field_mul_small.eval_field_mul_small_symbolic
+eval_field_mul_small_symbolic
+     : forall (c : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho layout mul_small_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul_int)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val (Values.Vint c) (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep rho layout
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (mul_small_out c)) true
+                        (@Some BinNums.Z
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                     (@nil jet_sx_state.region)) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot layout
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape mul_small_regs) b pos)) m mf)))
+### C.jet_secp_field_mul_small.mul_small_initial
+mul_small_initial
+     : forall (rho : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (b : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 rho))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       jet_sx_state.rep rho
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+            (@nil (prod Values.block BinNums.Z))) mul_small_regs m
+### C.jet_secp_field_mul_small.mul_small_result
+mul_small_result
+     : forall (c : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout)
+         (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho layout
+                (@cons jet_sx_state.region
+                   (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (mul_small_out c)) true
+                      (@Some BinNums.Z
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                   (@nil jet_sx_state.region)) m),
+       and
+         (jet_secp_fe_nv.fe_at m (jet_sx_state.blk layout O) (jet_sx_state.bas layout O)
+            (jet_secp_multiply_normalize_bridge.words5 (mul_small_words c rho)))
+         (Memory.Mem.range_perm m (jet_sx_state.blk layout O) BinNums.Z0
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+            Memtype.Freeable)
+### C.jet_secp_field_mul_small.mul_small_unsigned
+mul_small_unsigned
+     : forall (c : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.signed c))
+                (BinInt.Z.le (Integers.Int.signed c) (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))))
+         (_ : mul_small_input_bounds rho) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (mul_small_words c rho i))
+         (BinInt.Z.mul (Integers.Int.signed c) (Integers.Int64.unsigned (rho i)))
+### C.jet_secp_field_mul_small.mul_small_radix
+mul_small_radix
+     : forall (c : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.signed c))
+                (BinInt.Z.le (Integers.Int.signed c) (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))))
+         (_ : mul_small_input_bounds rho),
+       @eq BinNums.Z (jet_secp_multiply_finish_product.radix_value (mul_small_words c rho))
+         (BinInt.Z.mul (Integers.Int.signed c) (jet_secp_multiply_finish_product.radix_value rho))
+### C.jet_secp_field_mul_small.mul_small_output_bounds
+mul_small_output_bounds
+     : forall (c : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.signed c))
+                (BinInt.Z.le (Integers.Int.signed c) (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))))
+         (_ : mul_small_input_bounds rho), jet_secp_square_columns.square_input_bounds (mul_small_words c rho)
+### C.jet_secp_field_mul_small.eval_field_mul_small_from_storage
+eval_field_mul_small_from_storage
+     : forall (c : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem)
+         (b : Values.block)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.signed c))
+                (BinInt.Z.le (Integers.Int.signed c) (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))))
+         (_ : mul_small_input_bounds rho)
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 rho))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul_int)
+               (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vint c) (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf b BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5 (mul_small_words c rho)))
+               (and
+                  (Memory.Mem.range_perm mf b BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and
+                     (@eq BinNums.Z (jet_secp_multiply_finish_product.radix_value (mul_small_words c rho))
+                        (BinInt.Z.mul (Integers.Int.signed c) (jet_secp_multiply_finish_product.radix_value rho)))
+                     (and (jet_secp_square_columns.square_input_bounds (mul_small_words c rho))
+                        (jet_sx_mem.lframe (fun (bx : Values.block) (_ : BinNums.Z) => not (@eq Values.block bx b)) m
+                           mf))))))
+### C.jet_secp_field_mul_small.mul_small_regs
+mul_small_regs =
+@cons jet_sx_state.region
+  (jet_secp_local_regions.free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 O))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+  (@nil jet_sx_state.region)
+     : list jet_sx_state.region
+### C.jet_secp_field_mul_small.mul_small_args
+mul_small_args =
+fun c : Integers.Int.int =>
+@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0) (@cons jet_sx_expr.sx (jet_sx_expr.XI c) (@nil jet_sx_expr.sx))
+     : forall _ : Integers.Int.int, list jet_sx_expr.sx
+
+Arguments mul_small_args c
+### C.jet_secp_field_mul_small.mul_small_run
+mul_small_run =
+fun c : Integers.Int.int =>
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  (jet_sx_pure.int_table jet_secp_fns.secp_pure)
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  jets_secp.f_secp256k1_fe_mul_int (mul_small_args c) mul_small_regs (@nil jet_sx_eval.event)
+  (S (S (S (S (S O)))))
+     : forall _ : Integers.Int.int, option jet_sx_exec.res
+
+Arguments mul_small_run c
+### C.jet_secp_field_mul_small.mul_small_out
+mul_small_out =
+fun c : Integers.Int.int =>
+@List.map jet_sx_expr.sx jet_sx_expr.sx
+  (fun x : jet_sx_expr.sx => jet_sx_expr.XLb jet_sx_expr.Bmul x (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XI c)))
+  (jet_secp_fe_nv.vars5 O)
+     : forall _ : Integers.Int.int, list jet_sx_expr.sx
+
+Arguments mul_small_out c
+### C.jet_secp_field_mul_small.mul_small_words
+mul_small_words =
+fun (c : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int) (i : nat) =>
+Integers.Int64.mul (rho i) (Integers.Int64.repr (Integers.Int.signed c))
+     : forall (_ : Integers.Int.int) (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments mul_small_words c rho%function_scope i%nat_scope
+### C.jet_secp_field_mul_small.mul_small_input_bounds
+mul_small_input_bounds =
+fun rho : forall _ : nat, Integers.Int64.int =>
+forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+BinInt.Z.lt (Integers.Int64.unsigned (rho i))
+  match PeanoNat.Nat.eqb i (S (S (S (S O)))) return BinNums.Z with
+  | true =>
+      BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))
+  | false =>
+      BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))
+  end
+     : forall _ : forall _ : nat, Integers.Int64.int, Prop
+
+Arguments mul_small_input_bounds rho%function_scope
