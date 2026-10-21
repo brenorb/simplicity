@@ -758,7 +758,15 @@ allocated in order/sizes: src 16, midstate 32, ctx 88, compound 36, compound1 36
 compound2 40, compound3 32, __res 88. Derive ownership/freshness from those real
 allocations and use `eis_blocks`'s actual free-list order.
 
-Next compose the three actual payload branches, then the shared finalize,
+`jet_elements_single_issuance_none.v` now proves execution of the actual
+no-issuance branch and its finalize call, with digest words equal to the
+canonical 69-byte payload hash and preservation outside the private SHA
+context/midstate. Its premises require only the two proof hashes, not inactive
+issuance fields. It compiles in the normal build; its theorem/definition and
+inherited-assumption snapshots are checked. It is branch support, not a whole
+jet acceptance result.
+
+Next compose the remaining two actual payload branches, then the shared finalize,
 writeHash, return, frees and framing. No issuance: four uchar(0), two proof-hash
 calls, uchar(0). New issuance: two explicit ID literals and amount calls, proof
 hashes, uchar(1), zero-array construction/absorption, contract hash. Reissuance:

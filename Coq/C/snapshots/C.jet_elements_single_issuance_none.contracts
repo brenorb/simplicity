@@ -1,0 +1,326 @@
+### C.jet_elements_single_issuance_none.eis_none_shape
+eis_none_shape
+     : @eq Clight.statement jet_elements_single_issuance_prep.eis_none
+         (Clight.Ssequence (jet_elements_single_input_optional.eih_uchar_stmt Integers.Int.zero)
+            (Clight.Ssequence (jet_elements_single_input_optional.eih_uchar_stmt Integers.Int.zero)
+               (Clight.Ssequence (jet_elements_single_input_optional.eih_uchar_stmt Integers.Int.zero)
+                  (Clight.Ssequence (jet_elements_single_input_optional.eih_uchar_stmt Integers.Int.zero)
+                     (Clight.Ssequence (eis_hash_stmt jets_elements._assetRangeProofHash)
+                        (Clight.Ssequence (eis_hash_stmt jets_elements._tokenRangeProofHash)
+                           (jet_elements_single_input_optional.eih_uchar_stmt Integers.Int.zero)))))))
+### C.jet_elements_single_issuance_none.eis_hash_stmt_exec
+eis_hash_stmt_exec
+     : forall (field : AST.ident) (delta : BinNums.Z) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bx bin : Values.block)
+         (ofs : BinNums.Z) (_ : jet_elements_field_eval.elements_field_at jets_elements._assetIssuance field delta)
+         (_ : BinInt.Z.le BinNums.Z0 delta)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add delta
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._sha256_hash e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._ctx e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._issuance le)
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr ofs))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_support_sha_linkage.sha_ge m
+                (@Ctypes.Internal Clight.function jets_elements.f_sha256_hash)
+                (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bin (Integers.Ptrofs.repr (BinInt.Z.add ofs delta)))
+                      (@nil Values.val))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge e le m (eis_hash_stmt field) Events.E0
+         le mf ClightBigstep.Out_normal
+### C.jet_elements_single_issuance_none.eis_asset_proof_offset
+eis_asset_proof_offset
+     : jet_elements_field_eval.elements_field_at jets_elements._assetIssuance jets_elements._assetRangeProofHash
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+### C.jet_elements_single_issuance_none.eis_token_proof_offset
+eis_token_proof_offset
+     : jet_elements_field_eval.elements_field_at jets_elements._assetIssuance jets_elements._tokenRangeProofHash
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_elements_single_issuance_none.eis_none_bytes_canonical
+eis_none_bytes_canonical
+     : forall ha ht : Digest.hash256,
+       @eq (list Integers.Int.int) (eis_none_bytes ha ht)
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (jet_elements_single_issuance_spec.elements_single_issuance_bytes
+               (@inl unit
+                  (prod
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt)
+               (@inl unit
+                  (prod
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt)
+               (Word.from_hash256 ha) (Word.from_hash256 ht)
+               (@inl unit
+                  (prod
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) tt)))
+### C.jet_elements_single_issuance_none.eis_none_message_length
+eis_none_message_length
+     : forall ha ht : Digest.hash256,
+       @eq nat
+         (@length (Ty.tySem (Word.Word (S (S (S O)))))
+            (jet_elements_single_issuance_spec.elements_single_issuance_bytes
+               (@inl unit
+                  (prod
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt)
+               (@inl unit
+                  (prod
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt)
+               (Word.from_hash256 ha) (Word.from_hash256 ht)
+               (@inl unit
+                  (prod
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) tt)))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+### C.jet_elements_single_issuance_none.exec_eis_none_finalize
+exec_eis_none_finalize
+     : forall (_ : jet_memcpy_model.memcpy_model) (bx bm : Values.block) (_ : not (@eq Values.block bm bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bm))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bx))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bm)) (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bin : Values.block) (ofs : BinNums.Z) (ha ht : Digest.hash256)
+         (_ : jet_elements_support_sha_ctxi.ctxi m bx bm (@nil Integers.Int.int) jet_sha256_iv_init.sha256_iv_words
+                Integers.Int64.zero false) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned) (_ : not (@eq Values.block bin bx)) (_ : not (@eq Values.block bin bm))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._sha256_hash e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._sha256_uchar e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._ctx e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._issuance le)
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr ofs))))
+         (_ : jet_uint32_array_init.uint32_array_at m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
+                (Digest.hash256_reg ha))
+         (_ : jet_uint32_array_init.uint32_array_at m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                (Digest.hash256_reg ht)),
+       @ex Memory.Mem.mem
+         (fun mp : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             @ex Values.val
+               (fun vr : Values.val =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge e le m
+                     jet_elements_single_issuance_prep.eis_none Events.E0 le mp ClightBigstep.Out_normal)
+                  (and
+                     (ClightBigstep.Clight2.eval_funcall jet_elements_support_sha_linkage.sha_ge mp
+                        (@Ctypes.Internal Clight.function jets_elements.f_sha256_finalize)
+                        (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf vr)
+                     (and
+                        (forall (j : nat) (_ : lt j (S (S (S (S (S (S (S (S O))))))))),
+                         @eq (option Values.val)
+                           (Memory.Mem.load AST.Mint32 mf bm
+                              (BinInt.Z.add BinNums.Z0
+                                 (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat j))))
+                           (@Some Values.val
+                              (Values.Vint
+                                 (@List.nth Integers.Int.int j
+                                    (Digest.hash256_reg
+                                       (jet_bitcoin_composite_hash.sha256_bytes_of
+                                          (jet_elements_single_issuance_spec.elements_single_issuance_bytes
+                                             (@inl unit
+                                                (prod
+                                                   ((fix tySem (X : Ty.Ty) : Set :=
+                                                       match X return Set with
+                                                       | Ty.Unit => unit
+                                                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                                                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                                                       end) (Word.Word (S (S (S (S (...)))))))
+                                                   ((fix tySem (X : Ty.Ty) : Set :=
+                                                       match X return Set with
+                                                       | Ty.Unit => unit
+                                                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                                                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                                                       end)
+                                                      jet_elements_asset_amount_hash_spec.elements_amount_hash_type))
+                                                tt)
+                                             (@inl unit
+                                                (prod
+                                                   ((fix tySem (X : Ty.Ty) : Set :=
+                                                       match X return Set with
+                                                       | Ty.Unit => unit
+                                                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                                                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                                                       end) (Word.Word (S (S (S (S (...)))))))
+                                                   ((fix tySem (X : Ty.Ty) : Set :=
+                                                       match X return Set with
+                                                       | Ty.Unit => unit
+                                                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                                                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                                                       end)
+                                                      jet_elements_asset_amount_hash_spec.elements_amount_hash_type))
+                                                tt) (Word.from_hash256 ha) (Word.from_hash256 ht)
+                                             (@inl unit
+                                                (prod
+                                                   ((fix tySem (X : Ty.Ty) : Set :=
+                                                       match X return Set with
+                                                       | Ty.Unit => unit
+                                                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                                                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                                                       end) (Word.Word (S (S (S (S (...)))))))
+                                                   ((fix tySem (X : Ty.Ty) : Set :=
+                                                       match X return Set with
+                                                       | Ty.Unit => unit
+                                                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                                                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                                                       end) (Word.Word (S (S (S (S (...)))))))) tt))))
+                                    Integers.Int.zero))))
+                        (and
+                           (forall (ch : AST.memory_chunk) (b : Values.block) (o : BinNums.Z)
+                              (_ : Memory.Mem.valid_block m b) (_ : not (@eq Values.block b bx))
+                              (_ : not (@eq Values.block b bm)),
+                            @eq (option Values.val) (Memory.Mem.load ch mf b o) (Memory.Mem.load ch m b o))
+                           (and
+                              (forall (b : Values.block) (o : BinNums.Z) (k : Memtype.perm_kind)
+                                 (p : Memtype.permission) (_ : Memory.Mem.valid_block m b)
+                                 (_ : Memory.Mem.perm m b o k p), Memory.Mem.perm mf b o k p)
+                              (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b))))))))
+### C.jet_elements_single_issuance_none.eis_hash_stmt
+eis_hash_stmt =
+fun field : AST.ident =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_elements._sha256_hash
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)) Ctypes.Tnil))
+        Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets_elements._ctx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Eaddrof
+           (Clight.Efield
+              (Clight.Ederef
+                 (Clight.Etempvar jets_elements._issuance
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)))
+                 (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)) field
+              (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)))
+        (@nil Clight.expr)))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments eis_hash_stmt field
+### C.jet_elements_single_issuance_none.eis_none_bytes
+eis_none_bytes =
+fun ha ht : Digest.hash256 =>
+@app Integers.Int.int
+  (@app Integers.Int.int
+     (@app Integers.Int.int
+        (@cons Integers.Int.int Integers.Int.zero
+           (@cons Integers.Int.int Integers.Int.zero
+              (@cons Integers.Int.int Integers.Int.zero
+                 (@cons Integers.Int.int Integers.Int.zero (@nil Integers.Int.int)))))
+        (jet_elements_support_sha_be32_write.be_bytes (Digest.hash256_reg ha)))
+     (jet_elements_support_sha_be32_write.be_bytes (Digest.hash256_reg ht)))
+  (@cons Integers.Int.int Integers.Int.zero (@nil Integers.Int.int))
+     : forall (_ : Digest.hash256) (_ : Digest.hash256), list Integers.Int.int
+
+Arguments eis_none_bytes ha ht
