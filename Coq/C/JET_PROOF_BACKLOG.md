@@ -535,6 +535,41 @@ general host-library fidelity remain separate obligations. These four endpoints
 are selected in the registry; ordinary scoped acceptance passed, with its
 command in `JET_ACCEPTANCE.md`.
 
+## Candidates: Elements composite hashes, blinding entropy and issuance status
+
+Ten preserved support modules are restored without source changes; two new
+adapters connect the complete C getters to the shared literal programs.
+`jet_elements_composite_hash_literal.v` uses one fixed-vector SHA skeleton for
+the four-component output hash and two-component input-UTXO hash.
+`jet_elements_blinding_entropy_literal.v` retains all three primitive lookups,
+the optional/new/reissuance routing and the actual `Arith.one word8` program,
+not a substituted constant. Its padding dependencies are compared with the
+canonical Haskell program. Eight adapter bridges are closed. The three complete
+C contracts keep the original cache relations at transaction offsets 184, 312
+and 568 in the 760-byte structure.
+
+The preserved `jet_elements_issuance_status_local.v` is already a literal
+primitive-program endpoint for the original `simplicity_issuance`. It covers
+out-of-range input, no issuance, new issuance (false), and reissuance (true).
+Its initial relation represents only pointers/count and the enum at input
+offset 528, with stride 544 and count offset 696. It has no cached-hash,
+execution, desired-output, nonzero-issuance or initialized-output premise.
+The actual enum reload after the first payload write is preserved by the
+derived write effect. The local preservation contract still requires valid
+separated frames; it is not an overlapping-buffer API claim or caller-builder
+proof.
+
+All four C endpoints retain the same six inherited library assumptions and no
+extra libc premise. Normal compilation passes after rebuilding unchanged stale
+dependencies with the pinned toolchain. Source checks reject 26 composite,
+24 blinding-entropy and 17 issuance-status mutations, including reversed
+`flip match` branches and vacuous final contracts. Reviewed snapshots cover
+55 theorem records and 43 definitions across twelve modules.
+
+Caller/cache construction, existing representation/domain/layout bounds and
+general host-library fidelity remain separate obligations. These four endpoints
+are not registered or accepted yet.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

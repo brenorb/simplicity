@@ -1942,6 +1942,254 @@ def elements_amount_hashes(s):
             raise ValueError('amount whole C contract differs')
 
 
+def elements_composite_hashes(s):
+    """Full composition trees, fixed-vector widths and original C boundaries.
+    Each component's canonical/primitive/native boundary has an existing gate.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('Elements composite binding differs: ' + lhs)
+
+    fixed = p.definition(s['elements_composite_port'], 'literal_elements_fixed_vector_hash')
+    expected = '''let term := EFP.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in
+      @AC.comp _ _ _ core
+        (@AC.pair _ _ _ core (@literal_sha_hash_ctx_init core) payload)
+        (@AC.comp _ _ _ core (@literal_ctx8_addn k term) (@literal_ctx8_finalize term))'''
+    if p.compact(fixed) != p.compact(expected):
+        raise ValueError('Elements fixed-vector hash skeleton differs')
+    aliases = [
+        ('@literal_elements_output_amounts_hash alg', 'outputAmountsHash'),
+        ('@literal_elements_output_nonces_hash alg', 'outputNoncesHash'),
+        ('@literal_elements_output_scripts_hash alg', 'outputScriptsHash'),
+        ('@literal_elements_output_range_proofs_hash alg', 'outputRangeProofsHash'),
+        ('@literal_elements_input_amounts_hash alg', 'inputAmountsHash'),
+        ('@literal_elements_input_scripts_hash alg', 'inputScriptsHash'),
+    ]
+    atoms = {new for _, new in aliases}
+    programs = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    for tag, hs_name, stem, k, offset in [
+        ('OutputsHash', 'outputsHash', 'outputs', 7, 184),
+        ('InputUtxosHash', 'inputUtxosHash', 'input_utxos', 6, 312),
+    ]:
+        p.require(s['elements_catalog'], tag + ' :: SigHashJet () Word256', 'Elements composite type')
+        binding('elements_catalog', 'specificationSigHash ' + tag, 'SigHash.' + hs_name)
+        binding('elements_sighash_lib', hs_name, 'SigHash.' + hs_name + ' SigHash.lib')
+        hs = re.search(r'\b' + hs_name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)
+        if not hs:
+            raise ValueError('missing Elements composite program')
+        port = p.definition(s['elements_composite_port'], 'literal_elements_' + stem + '_hash')
+        header = re.fullmatch(r'\s*let core := Alg\.Assertion\.toCore \(EFP\.CanonicalStructures\.toAssertion alg\) in\s*'
+                              r'@literal_elements_fixed_vector_hash ' + str(k) + r' alg\s*(.*)', port, re.S)
+        if not header:
+            raise ValueError('Elements composite hash algebra/width differs')
+        payload = header[1]
+        for old, new in aliases + [('@AC.pair _ _ _ core', 'pairNode')]:
+            payload = replace(payload, old, new)
+        payload = explicit_core_tree(expression(payload), atoms)
+        expected = ('comp', ('pair', ('name', 'ctx8Init'), payload),
+                    ('comp', ('name', 'absorb'), ('name', 'ctx8Finalize')))
+        hs = replace(hs[1], 'ctx8Addn vector' + str(2 ** k), 'absorb')
+        if expression(hs) != expected:
+            raise ValueError('canonical Elements composite component tree differs')
+        statement = re.search(r'Theorem elements_' + stem + r'_hash_literal_local_spec\s*:(.*?)\bProof\.', s['elements_composite_port'], re.S)
+        expected = f'''application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256
+            (hash_getter_rep elements_{stem}_hash_of 0 {offset} 760)
+            (fun a environment => @literal_elements_{stem}_hash elements_hash_alg a environment).'''
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError('Elements composite whole C contract differs')
+
+
+def elements_blinding_entropy_hash(s):
+    """Three primitive branches, actual one-word program, SHA loop and C.
+    Host/runtime/caller construction remain outside this source guard.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, name, expected):
+        if p.compact(hbody(s[key], name)) != p.compact(expected):
+            raise ValueError('blinding entropy binding differs: ' + name)
+
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('blinding entropy definition differs: ' + name)
+
+    binding('hs_arith', 'one w', 'true >>> left_pad_low word1 w')
+    for text in [
+        'fill t SingleV = t', 'fill t (DoubleV w) = rec &&& rec', 'rec = fill t w',
+        'low = fill false', 'left_pad_pad _ SingleV = iden',
+        'left_pad_pad t (DoubleV v) = fill t v &&& left_pad_pad t v',
+        'left_pad_low w v = left_pad_pad (unit >>> low w) v',
+    ]:
+        p.require(s['hs_word'], text, 'actual one-word padding dependency')
+    definition('word', 'fill', 'match n with | 0 => t | (S n) => build_fill (fill t) end')
+    definition('word', 'build_fill', 'rec &&& rec')
+    definition('one_spec', 'one8_spec', '''@Alg.Core.Combinators.comp Ty.Unit Bit Word8 term
+      (@Bit.true Ty.Unit term) (@left_pad_low_1_8 term)''')
+    definition('one_spec', 'left_pad_low_1_8', 'left_pad_low_1_n 3')
+    definition('one_spec', 'left_pad_low_1_n', '''match n with
+      | Datatypes.O => @Alg.Core.Combinators.iden Bit term
+      | S n => @Alg.Core.Combinators.pair Bit (Word n) (Word n) term
+          (fill (n := n) (@Alg.Core.Combinators.comp Bit Ty.Unit Bit term
+            (@Alg.Core.Combinators.unit Bit term) (@Bit.false Ty.Unit term)))
+          (left_pad_low_1_n n) end''')
+
+    hs = hbody(s['elements_sighash'], 'issuanceBlindingEntropy')
+    parts = re.fullmatch(r'\s*let\s+issuanceEntropyBody\s*=(.*?)\bin\b(.*)', hs, re.S)
+    if not parts:
+        raise ValueError('missing blinding entropy local routing')
+    ops = [
+        ('@blinding_entropy_body_spec core', 'body'), ('@Word.zero 8 core', 'zero256'),
+        ('AC.case', 'caseNode'), ('AC.comp', 'compNode'), ('AC.pair', 'pairNode'),
+        ('AC.injl', 'injlNode'), ('AC.injr', 'injrNode'),
+        ('AC.take', 'takeNode'), ('AC.drop', 'dropNode'), ('AC.iden', 'iden'), ('AC.unit', 'unit'),
+    ]
+    def tree(name):
+        text = p.definition(s['elements_blinding_model'], name)
+        for old, new in ops:
+            text = replace(text, old, new)
+        return explicit_core_tree(expression(text), {'unit', 'body', 'zero256'})
+    if expression(parts[1]) != tree('blinding_entropy_body_spec'):
+        raise ValueError('blinding entropy optional-pair body differs')
+    whole = parts[2]
+    for old, new in [
+        ('primitive NewIssuanceContract', 'pNew'), ('primitive ReissuanceBlinding', 'pBlinding'),
+        ('primitive ReissuanceEntropy', 'pEntropy'), ('issuanceEntropyBody', 'body'),
+        ('zero word256', 'zero256'),
+    ]:
+        whole = replace(whole, old, new)
+    expected = ('comp', ('pair', ('name', 'pNew'), ('pair', ('name', 'pBlinding'), ('name', 'pEntropy'))),
+                tree('blinding_entropy_route_spec'))
+    if expression(whole) != expected:
+        raise ValueError('three-primitive blinding entropy route differs')
+    definition('elements_blinding_model', 'elements_issuance_blinding_entropy_spec', '''
+      let core := Alg.Assertion.toCore (EFP.CanonicalStructures.toAssertion alg) in
+      @AC.comp _ _ _ core
+        (@AC.pair _ _ _ core (@EFP.Combinators.prim _ _ alg Elements.NewIssuanceContract)
+          (@AC.pair _ _ _ core (@EFP.Combinators.prim _ _ alg Elements.ReissuanceBlinding)
+            (@EFP.Combinators.prim _ _ alg Elements.ReissuanceEntropy)))
+        (@blinding_entropy_route_spec core)''')
+    absorber = p.definition(s['elements_blinding_port'], 'literal_elements_blinding_entropy_absorb')
+    for old, new in [
+        ('@Word.zero 3 (Alg.Assertion.toCore term)', 'zero word8'),
+        ('@one8_spec (Alg.Assertion.toCore term)', 'one word8'),
+        ('@literal_ctx8_add1 term', 'ctx8Add1'), ('@literal_ctx8_addn 6 term', 'ctx8Add64'),
+    ]:
+        absorber = replace(absorber, old, new)
+    same(hbody(s['elements_sighash'], 'blindingEntropyHash'), absorber, 'literal blinding entropy absorber')
+    p.require(s['elements_sighash'], 'ctx8Add64 = ctx8Addn vector64', 'blinding pair byte width')
+    definition('elements_blinding_port', 'literal_elements_issuance_blinding_entropy_hash', '''
+      let term := EFP.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in
+      @literal_elements_elems_hash blinding_entropy_value_type
+        (fun term => @literal_elements_blinding_entropy_absorb term) 5 term
+        (@Alg.Core.Combinators.drop Ty.Unit Word32 _ core (@elements_issuance_blinding_entropy_spec alg))''')
+    tag, name = 'IssuanceBlindingEntropyHash', 'issuanceBlindingEntropyHash'
+    p.require(s['elements_catalog'], tag + ' :: SigHashJet () Word256', 'blinding entropy jet type')
+    binding('elements_catalog', 'specificationSigHash ' + tag, 'SigHash.' + name)
+    binding('elements_sighash_lib', name, 'SigHash.' + name + ' SigHash.lib')
+    programs = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    hs = re.search(r'\b' + name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)
+    parts = re.fullmatch(r'\s*let\s+finalize\s*=\s*ctx8Finalize\s+body\s*=(.*?)\bin\b(.*)', hs[1], re.S) if hs else None
+    if not parts:
+        raise ValueError('blinding entropy traversal bindings differ')
+    same(parts[1], 'take (drop issuanceBlindingEntropy) &&& ih >>> match (injl ih) (injr (ih &&& oh >>> blindingEntropyHash))', 'blinding entropy element loop')
+    same(parts[2], 'unit &&& ctx8Init >>> forWhile word32 body >>> copair finalize finalize', 'blinding entropy traversal')
+    for tag, route in [
+        ('NewIssuanceContract', 'either (Just . newIssuanceContractHash) (const Nothing)'),
+        ('ReissuanceBlinding', 'either (const Nothing) (Just . reissuanceBlindingNonce)'),
+        ('ReissuanceEntropy', 'either (const Nothing) (Just . reissuanceEntropy)'),
+    ]:
+        binding('elements_primitive_hs', 'interpret ' + tag,
+                'return . (atInput $ cast . fmap encodeHash . (' + route + ' <=< sigTxiIssuance))')
+    for clause in [
+        '| Some (inl new) => Some (newIssuanceContractHash new)',
+        '| Some (inr re) => Some (reissuanceBlindingNonce re)',
+        '| Some (inr re) => Some (reissuanceEntropy re)',
+    ]:
+        p.require(s['elements_primitive_coq'], clause, 'blinding entropy primitive payload')
+    statement = re.search(r'Theorem elements_issuance_blinding_entropy_hash_literal_local_spec\s*:(.*?)\bProof\.', s['elements_blinding_port'], re.S)
+    expected = '''application_jet_local_spec_sep f_simplicity_issuance_blinding_entropy_hash elements_ge Elements.env Ty.Unit Word256
+      (hash_getter_rep elements_issuance_blinding_entropy_hash_of 0 568 760)
+      (fun a environment => @literal_elements_issuance_blinding_entropy_hash elements_hash_alg a environment).'''
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError('blinding entropy whole C contract differs')
+
+
+def elements_issuance_status(s):
+    """Resolve canonical flip-match explicitly; retain all four outcomes.
+    The contract has no hash-cache, execution or success premise.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('issuance status binding differs: ' + lhs)
+
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('issuance status definition differs: ' + name)
+
+    def unflip(node):
+        node = tuple(unflip(x) if isinstance(x, tuple) else x for x in node)
+        if (node[0] == 'app' and node[1][0] == 'app' and node[1][1][0] == 'app'
+                and node[1][1][1] == ('name', 'flip') and node[1][1][2] == ('name', 'case')):
+            return ('app', ('app', ('name', 'case'), node[2]), node[1][2])
+        return node
+
+    p.require(s['elements_catalog'], 'Issuance :: IssuanceJet Word32 (S (S Bit))', 'issuance status jet type')
+    binding('elements_catalog', 'specificationIssuance Issuance', 'Issuance.issuance')
+    binding('elements_issuance_lib', 'issuance', 'Issuance.issuance Issuance.lib')
+    binding('elements_issuance_program', 'lib', 'mkLib Elements.lib')
+    programs = s['elements_issuance_program'].split('mkLib Elements.Lib{..} = lib', 1)[1]
+    hs = re.search(r'\bissuance\s*=(.*?)\n\s*,\s*issuanceEntropy', programs, re.S)
+    if not hs:
+        raise ValueError('missing canonical issuance status program')
+    hs = hs[1]
+    for old, new in [('primitive ReissuanceEntropy', 'pReissuance'), ('primitive NewIssuanceContract', 'pNew')]:
+        hs = replace(hs, old, new)
+    route = p.definition(s['elements_status_model'], 'issuance_status_route')
+    for old, new in [('ISC.case', 'caseNode'), ('ISC.copair', 'copairNode'),
+                     ('ISC.injl', 'injlNode'), ('ISC.injr', 'injrNode'),
+                     ('ISC.drop', 'dropNode'), ('ISC.take', 'takeNode'),
+                     ('ISC.unit', 'unit'), ('ISC.iden', 'iden'),
+                     ('Bit.false', 'false'), ('Bit.true', 'true')]:
+        route = replace(route, old, new)
+    route = explicit_core_tree(expression(route), {'unit', 'false', 'true'})
+    expected = ('comp', ('pair', ('name', 'pReissuance'), ('name', 'pNew')), route)
+    if unflip(expression(hs)) != expected:
+        raise ValueError('canonical issuance flip-match/copair tree differs')
+    definition('elements_status_model', 'elements_issuance_status_spec', '''
+      elements_comp
+        (elements_pair (Primitive.Combinators.prim Elements.ReissuanceEntropy)
+                       (Primitive.Combinators.prim Elements.NewIssuanceContract))
+        (elements_core (@issuance_status_route))''')
+    definition('elements_status_model', 'issuance_status_digest_option', 'Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Word256)')
+    definition('elements_status_model', 'issuance_status_payload', 'Ty.Sum Ty.Unit Bit')
+    definition('elements_status_model', 'issuance_status_type', 'Ty.Sum Ty.Unit issuance_status_payload')
+    definition('elements_status_model', 'issuance_status_of_input', '''match sigTxiIssuance txi with
+      | None => inl tt | Some (inl _) => inr (inl tt) | Some (inr _) => inr (inr tt) end''')
+    definition('elements_status_model', 'issuance_status_result', '''match nth_error elems (Z.to_nat (toZ a)) with
+      | None => inl tt | Some txi => inr (issuance_status_of_input txi) end''')
+    definition('elements_status_exec', 'issuance_status_enum_rep',
+               'Mem.load Mint32 m b (ofs + 528) = Some (Vint (issuance_tag (sigTxiIssuance txi)))')
+    definition('elements_status_exec', 'issuance_status_pcells',
+               '@encode issuance_status_payload (issuance_status_of_input txi)')
+    statement = re.search(r'Theorem elements_issuance_status_local_spec\s*:(.*?)\bProof\.', s['elements_status_local'], re.S)
+    expected = '''application_jet_local_spec_sep f_simplicity_issuance elements_ge Elements.env Word32 issuance_status_type
+      (indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e)) issuance_status_enum_rep 544 0 0 696)
+      (fun a environment => @elements_issuance_status_spec (PrimitivePrimSem option_Monad_Zero) a environment).'''
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError('issuance status complete C contract differs')
+    definition('elements_status_tags', 'issuance_tag', '''match o with
+      None => Int.repr 0 | Some (inl _) => Int.repr 1 | Some (inr _) => Int.repr 2 end''')
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -2013,6 +2261,16 @@ def sources():
         "elements_issuance_port": COQ / "C/jet_elements_issuance_proofs_hash_literal.v",
         "elements_nonce_port": COQ / "C/jet_elements_nonces_hash_literal.v",
         "elements_amounts_port": COQ / "C/jet_elements_amounts_hash_literal.v",
+        "elements_composite_port": COQ / "C/jet_elements_composite_hash_literal.v",
+        "elements_blinding_model": COQ / "C/jet_elements_blinding_entropy_spec.v",
+        "elements_blinding_port": COQ / "C/jet_elements_blinding_entropy_literal.v",
+        "one_spec": COQ / "C/jet_spec.v",
+        "elements_status_model": COQ / "C/jet_elements_issuance_status_spec.v",
+        "elements_status_exec": COQ / "C/jet_elements_issuance_status_exec.v",
+        "elements_status_local": COQ / "C/jet_elements_issuance_status_local.v",
+        "elements_status_tags": COQ / "C/jet_elements_issuance_jets.v",
+        "elements_issuance_program": REPO / "Haskell/Simplicity/Elements/Programs/Issuance.hs",
+        "elements_issuance_lib": REPO / "Haskell/Simplicity/Elements/Programs/Issuance/Lib.hs",
         "elements_prog": REPO / "Haskell/Core/Simplicity/Programs/Elements.hs",
         "elements_prog_lib": REPO / "Haskell/Core/Simplicity/Programs/Elements/Lib.hs",
         "native_schnorr": REPO / "Haskell/Core/Simplicity/LibSecp256k1/Schnorr.hs",
@@ -2050,6 +2308,9 @@ def test():
     elements_issuance_proofs_hash(s)
     elements_nonce_hashes(s)
     elements_amount_hashes(s)
+    elements_composite_hashes(s)
+    elements_blinding_entropy_hash(s)
+    elements_issuance_status(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -2768,6 +3029,125 @@ def test():
             continue
         raise ValueError('amount-hash mutation escaped: ' + old)
     print('Asset/amount serializers, two primitive loops and whole C boundaries match;', len(elements_amount_hash_mutations), 'mutations rejected')
+
+
+    elements_composite_mutations = [
+        ('elements_sighash', '(outputAmountsHash &&& outputNoncesHash)', '(outputNoncesHash &&& outputAmountsHash)'),
+        ('elements_sighash', '(outputScriptsHash &&& outputRangeProofsHash)', '(outputRangeProofsHash &&& outputScriptsHash)'),
+        ('elements_sighash', '(inputAmountsHash &&& inputScriptsHash)', '(inputScriptsHash &&& inputAmountsHash)'),
+        ('elements_sighash', '>>> ctx8Addn vector128 >>> ctx8Finalize', '>>> ctx8Addn vector64 >>> ctx8Finalize'),
+        ('elements_sighash', 'inputUtxosHash = ctx8Init', 'inputUtxosHash = (unit >>> ctx8Init)'),
+        ('elements_composite_port', '@literal_ctx8_addn k term', '@literal_ctx8_addn 7 term'),
+        ('elements_composite_port', '@literal_sha_hash_ctx_init core', '@AC.unit _ core'),
+        ('elements_composite_port', '@literal_ctx8_finalize term', '@literal_ctx8_addn 6 term'),
+        ('elements_composite_port', '@literal_elements_fixed_vector_hash 7 alg', '@literal_elements_fixed_vector_hash 6 alg'),
+        ('elements_composite_port', '@literal_elements_fixed_vector_hash 6 alg', '@literal_elements_fixed_vector_hash 7 alg'),
+        ('elements_composite_port', '@literal_elements_output_amounts_hash alg', '@literal_elements_input_amounts_hash alg'),
+        ('elements_composite_port', '@literal_elements_output_nonces_hash alg', '@literal_elements_output_scripts_hash alg'),
+        ('elements_composite_port', '@literal_elements_output_scripts_hash alg', '@literal_elements_output_range_proofs_hash alg'),
+        ('elements_composite_port', '@literal_elements_input_amounts_hash alg', '@literal_elements_output_amounts_hash alg'),
+        ('elements_composite_port', '@literal_elements_input_scripts_hash alg', '@literal_elements_output_scripts_hash alg'),
+        ('elements_composite_port', '@AC.pair _ _ _ core', '@AC.comp _ _ _ core'),
+    ]
+    for tag, hs_name, stem, k, offset in [
+        ('OutputsHash', 'outputsHash', 'outputs', 7, 184),
+        ('InputUtxosHash', 'inputUtxosHash', 'input_utxos', 6, 312),
+    ]:
+        declaration = 'Theorem elements_' + stem + '_hash_literal_local_spec :'
+        elements_composite_mutations += [
+            ('elements_catalog', 'specificationSigHash ' + tag + ' = SigHash.' + hs_name,
+             'specificationSigHash ' + tag + ' = SigHash.inputsHash'),
+            ('elements_sighash_lib', hs_name + ' = SigHash.' + hs_name + ' SigHash.lib',
+             hs_name + ' = SigHash.inputsHash SigHash.lib'),
+            ('elements_composite_port', declaration, declaration + ' False ->'),
+            ('elements_composite_port', declaration, declaration + ' memcpy_model ->'),
+            ('elements_composite_port', f'hash_getter_rep elements_{stem}_hash_of 0 {offset} 760',
+             f'hash_getter_rep elements_{stem}_hash_of 0 {offset + 8} 760'),
+        ]
+    for key, old, new in elements_composite_mutations:
+        if old not in s[key]:
+            raise ValueError('inactive Elements composite mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_composite_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('Elements composite mutation escaped: ' + old)
+    print('Elements composite payload order, SHA skeleton and whole C boundaries match;', len(elements_composite_mutations), 'mutations rejected')
+    elements_blinding_mutations = [
+        ('elements_sighash', 'primitive NewIssuanceContract &&& primitive ReissuanceBlinding', 'primitive ReissuanceEntropy &&& primitive ReissuanceBlinding'),
+        ('elements_sighash', 'match (drop issuanceEntropyBody)', 'match (take issuanceEntropyBody)'),
+        ('elements_sighash', '((unit >>> zero word256) &&& oh)', '((unit >>> one word256) &&& oh)'),
+        ('elements_blinding_model', 'AC.injr (AC.injl AC.unit)', 'AC.injl (AC.injl AC.unit)'),
+        ('elements_blinding_model', '@Word.zero 8 core', '@Word.zero 5 core'),
+        ('elements_blinding_model', 'Elements.NewIssuanceContract', 'Elements.ReissuanceBlinding'),
+        ('elements_blinding_model', 'Elements.ReissuanceEntropy', 'Elements.NewIssuanceContract'),
+        ('elements_blinding_port', '@Word.zero 3 (Alg.Assertion.toCore term)', '@one8_spec (Alg.Assertion.toCore term)'),
+        ('elements_blinding_port', '@one8_spec (Alg.Assertion.toCore term)', 'Alg.scribe (haskell_to_word 3 1)'),
+        ('elements_blinding_port', '@literal_ctx8_addn 6 term', '@literal_ctx8_addn 5 term'),
+        ('elements_blinding_port', '@literal_ctx8_add1 term', '@literal_ctx8_addn 0 term'),
+        ('elements_blinding_port', '(fun term => @literal_elements_blinding_entropy_absorb term) 5 term', '(fun term => @literal_elements_blinding_entropy_absorb term) 3 term'),
+        ('elements_blinding_port', '(@elements_issuance_blinding_entropy_spec alg)', '(@elements_input_outpoints_hash_spec alg)'),
+        ('elements_blinding_port', 'hash_getter_rep elements_issuance_blinding_entropy_hash_of 0 568 760', 'hash_getter_rep elements_issuance_blinding_entropy_hash_of 0 536 760'),
+        ('elements_catalog', 'specificationSigHash IssuanceBlindingEntropyHash = SigHash.issuanceBlindingEntropyHash', 'specificationSigHash IssuanceBlindingEntropyHash = SigHash.issuanceRangeProofsHash'),
+        ('elements_sighash_lib', 'issuanceBlindingEntropyHash = SigHash.issuanceBlindingEntropyHash SigHash.lib', 'issuanceBlindingEntropyHash = SigHash.issuanceRangeProofsHash SigHash.lib'),
+        ('hs_arith', 'one w = true >>> left_pad_low word1 w', 'one w = false >>> left_pad_low word1 w'),
+        ('hs_word', 'left_pad_pad _ SingleV = iden', 'left_pad_pad _ SingleV = unit'),
+        ('one_spec', 'left_pad_low_1_n 3', 'left_pad_low_1_n 4'),
+        ('one_spec', '(@Bit.true Ty.Unit term)', '(@Bit.false Ty.Unit term)'),
+        ('elements_primitive_hs', 'either (Just . newIssuanceContractHash) (const Nothing)', 'either (const Nothing) (Just . reissuanceEntropy)'),
+        ('elements_primitive_coq', '| Some (inr re) => Some (reissuanceEntropy re)', '| Some (inr re) => Some (reissuanceBlindingNonce re)'),
+    ]
+    declaration = 'Theorem elements_issuance_blinding_entropy_hash_literal_local_spec :'
+    elements_blinding_mutations += [
+        ('elements_blinding_port', declaration, declaration + ' False ->'),
+        ('elements_blinding_port', declaration, declaration + ' memcpy_model ->'),
+    ]
+    for key, old, new in elements_blinding_mutations:
+        if old not in s[key]:
+            raise ValueError('inactive blinding entropy mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_blinding_entropy_hash(changed)
+        except ValueError:
+            continue
+        raise ValueError('blinding entropy mutation escaped: ' + old)
+    print('Blinding entropy routes, actual one-word program, traversal and whole C boundary match;', len(elements_blinding_mutations), 'mutations rejected')
+    elements_status_mutations = [
+        ('elements_catalog', 'specificationIssuance Issuance = Issuance.issuance', 'specificationIssuance Issuance = Issuance.issuanceEntropy'),
+        ('elements_issuance_lib', 'issuance = Issuance.issuance Issuance.lib', 'issuance = Issuance.issuanceEntropy Issuance.lib'),
+        ('elements_issuance_program', 'flip match (injr (injr true))', 'match (injr (injr true))'),
+        ('elements_issuance_program', 'primitive ReissuanceEntropy &&& primitive NewIssuanceContract', 'primitive NewIssuanceContract &&& primitive ReissuanceEntropy'),
+        ('elements_status_model', 'ISC.injr (ISC.injr Bit.true)', 'ISC.injr (ISC.injr Bit.false)'),
+        ('elements_status_model', 'ISC.injr (ISC.injr Bit.false)', 'ISC.injr (ISC.injr Bit.true)'),
+        ('elements_status_model', 'ISC.copair (ISC.injl ISC.unit)', 'ISC.copair (ISC.injr ISC.unit)'),
+        ('elements_status_model', 'Primitive.Combinators.prim Elements.NewIssuanceContract', 'Primitive.Combinators.prim Elements.ReissuanceEntropy'),
+        ('elements_status_model', '| Some (inl _) => inr (inl tt)', '| Some (inl _) => inr (inr tt)'),
+        ('elements_status_model', '| None => inl tt', '| None => inr (inl tt)'),
+        ('elements_status_exec', '(ofs + 528)', '(ofs + 532)'),
+        ('elements_status_exec', '@encode issuance_status_payload (issuance_status_of_input txi)', '@encode issuance_status_payload (inl tt)'),
+        ('elements_status_tags', '| Some (inl _) => Int.repr 1', '| Some (inl _) => Int.repr 2'),
+        ('elements_status_local', 'issuance_status_enum_rep 544 0 0 696', 'issuance_status_enum_rep 544 0 0 704'),
+    ]
+    declaration = 'Theorem elements_issuance_status_local_spec :'
+    elements_status_mutations += [
+        ('elements_status_local', declaration, declaration + ' False ->'),
+        ('elements_status_local', declaration, declaration + ' memcpy_model ->'),
+        ('elements_status_local', 'application_jet_local_spec_sep f_simplicity_issuance elements_ge', 'application_jet_local_spec_sep f_simplicity_input_amount elements_ge'),
+    ]
+    for key, old, new in elements_status_mutations:
+        if old not in s[key]:
+            raise ValueError('inactive issuance status mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_issuance_status(changed)
+        except ValueError:
+            continue
+        raise ValueError('issuance status mutation escaped: ' + old)
+    print('Issuance literal flip-match routing, all four cases, enum and whole C boundary match;', len(elements_status_mutations), 'mutations rejected')
 
 
 if __name__ == "__main__":
