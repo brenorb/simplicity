@@ -1404,9 +1404,19 @@ real infinity initializer and returns when I is nonzero. Both derive their
 calls from storage and preserve I ownership/words and an external frame.
 The equal branch retains the actual doubling coordinates, even when the
 resulting infinity flag is set; it does not silently zero those coordinates.
-These branch-body results still need attaching to the preceding H test and
-finite prefix. Then prove the nonzero-H arithmetic, complete helper/public
-wrapper entry/return/free lifecycle and the literal specification bridge.
+`jet_secp_mixed_zero_return.v:exec_mixed_zero_return` now derives the H test
+and both I-dependent early returns as one execution of
+`mixed_after_difference`, preserving H/I ownership and words. It covers
+either I result, rather than assuming an intermediate branch execution.
+`jet_secp_mixed_finite_return.v:exec_mixed_finite_zero_body` attaches this to
+the checked finite preparation: the complete original helper body executes
+from initial point/affine fields and uninitialized private storage when its
+computed H is zero modulo p. It derives its H/I storage and bounds, returns
+the actual conditional coordinates/flag, all nine named allocations' ownership
+and an external frame. This is an internal branch theorem: finite flags and
+H=0 select this path; they are not restrictions on a registered public jet.
+Next prove the nonzero-H arithmetic, complete helper/public wrapper
+entry/return/free lifecycle and the literal specification bridge.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1432,6 +1442,8 @@ JET_TARGETS=C/jet_secp_mixed_finite_prefix.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_finite_prefix
 JET_TARGETS=C/jet_secp_mixed_zero_branch.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_zero_branch
+JET_TARGETS=C/jet_secp_mixed_finite_return.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_finite_return
 ```
 
 ## Source-review question: Elements fee predicates
