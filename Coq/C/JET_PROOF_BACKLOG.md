@@ -1113,8 +1113,9 @@ bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej
 
 ## Next claimed target: gej_double
 
-The main session claims `simplicity_gej_double`. There is not yet a complete
-public endpoint. `jet_secp_double_literal.v` now ports the canonical
+The main session claims `simplicity_gej_double`. The public endpoint now
+compiles and is registered as a candidate pending scoped acceptance.
+`jet_secp_double_literal.v` ports the canonical
 `gej_double` pairing/projection tree, `fe_halve` (including its one-bit shift),
 and `fe_multiplyInt`; its routing and parametricity lemmas are closed. These
 are specification bridges, not additional C-jet coverage. Continue with the
@@ -1206,11 +1207,11 @@ preservation, flag-store existence, ownership and external-memory framing are
 derived internally. There is no on-curve or nonzero-coordinate hypothesis and
 no intermediate call/output premise in that theorem.
 
-These are execution/output results, **not yet** a complete public jet or
-literal-specification equivalence. Coverage is unchanged. Reproduce the normal
-build and recursive kernel check with the baseline toolchain and dependencies
-described above; focused assumption/contract audits use the existing scripts
-and each module's reviewed snapshots:
+These internal execution/output results alone do not establish public jet
+equivalence; the public composition below is required. Reproduce the normal
+helper build and recursive kernel check with the baseline toolchain and
+dependencies described above; focused assumption/contract audits use the
+existing scripts and each module's reviewed snapshots:
 
 ```sh
 JET_TARGETS=C/jet_secp_double_var_owned.vo bash Coq/build-jets.sh -j2
@@ -1241,26 +1242,36 @@ The arithmetic-to-literal bridge is now derived, not assumed:
   with those fields and output equality. It proves actual XYZ serialization
   and the resulting encoded literal value in `finv`.
 
-Next compose the public `simplicity_gej_double` wrapper: initial frame/source
-copy and local allocations, `eval_read_gej_canonical_fields` (capacity 768),
-`eval_double_var_literal`, `eval_write_gej_doubled_literal`, true return and
-the actual frees. Reuse `rescale_reader_limbs` to identify reader fields with
-`words5 (square_reader_rho ...)`. The existing rescale public prepare/entry/body
-and projective-predicate public rest/call modules provide lifecycle/framing
-patterns; inspect the doubling function's own AST, locals and temps first.
-Derive preservation of `finv` and source/local ownership from each precise
-frame, rather than adding those facts as caller assumptions. Only after a
-complete standard local-contract endpoint should the literal fidelity gate,
-registration and full scoped acceptance be updated. The public wrapper
-lifecycle and acceptance remain unfinished; these internal bridges do not
-increase accepted coverage.
+The public wrapper is now composed in `jet_secp_double_public_{boundary,rest,call}.v`:
+the actual source-frame copy and two local allocations, canonical point reader
+with capacity 768, real doubling helper, unconditional XYZ writer, true return
+and both frees. It reuses the checked point-jet lifecycle and
+`rescale_reader_limbs` rather than adding post-call framing/ownership premises.
+`jet_secp_double_local.v:gej_double_literal_local_spec` is the complete standard
+`secp_jet_local_spec` for the original public function against
+`literal_gej_double`, over every Word256 triple and the normal valid frame
+contract. Compilation and the reviewed focused assumption/contract audits pass;
+the endpoint retains the same six inherited execution assumptions and no added
+libc, curve-membership or nonzero-coordinate premise.
+
+The existing point-program correspondence check
+`secp-field-integration/check-rescale.py` now also freezes the doubling catalog,
+literal half/integer-multiplier/doubling trees and full public theorem. It
+rejects 27 targeted doubling mutations; the existing full-shift and inherited
+field gates retain responsibility for those dependencies. The coverage test
+also rejects vacuous, wrong-function and weakened doubling registrations.
+The candidate coverage row would raise coverage to 499/533, with 34 remaining;
+do not treat that metadata count as accepted before the full scoped check:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_gej_double
+```
 
 Follow the writer body, which writes X/Y/Z unconditionally: an infinity flag
 alone does not imply all-zero stored coordinates. In particular, retain the
 finite-input Y=0 case; its final infinity flag can be true while the stored
 X/Y are nonzero. The input-infinity branch explicitly sets all coordinates to
-zero. The remaining public composition is a plan, not additional proved
-coverage.
+zero. Full scoped acceptance is the next required check, not a skipped step.
 
 ## Source-review question: Elements fee predicates
 
