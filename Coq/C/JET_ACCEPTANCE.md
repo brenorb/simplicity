@@ -3,9 +3,8 @@
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
 The local-contract registry contains 495/533 jets (359 without an extra libc
-premise; 136 conditional on `memcpy_model`). The computing issuance hash entry is
-newly registered and awaiting scoped acceptance; accepted coverage is still
-494/533. The earlier 430-entry baseline passed
+premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
+495/533, including the computing issuance hash endpoint. The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
@@ -1041,3 +1040,31 @@ bash Coq/check-jets.sh --accept --jets=simplicity_input_utxo_hash
 
 Production C, frozen specifications/domains/identities, API contracts and
 generation settings are unchanged.
+
+## Accepted: computing Elements issuance hash
+
+`C.jet_elements_single_issuance_literal_jet.elements_single_issuance_hash_literal_local_spec`
+proves the whole original `simplicity_issuance_hash` against its literal
+primitive-bearing program. It includes all eight actual allocations, source
+frame copying, both index branches, issuance-kind dispatch, every active payload,
+SHA initialization/finalization, serialization and actual frees. The initial
+relation describes fields/cache correspondence and SHA readiness, never an
+assumed intermediate execution or desired final digest. Inactive union arms
+are not required. Arbitrary valid cursors, unknown old output bits and framing
+are retained.
+
+The canonical Core-tree, initial representation and full C-boundary source
+checks reject 50 additional mutations. Ordinary scoped acceptance passed:
+475 kernel modules, 344 assumption records, 368 contract records, gate negative
+tests and all five regenerated ASTs:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_issuance_hash
+```
+
+The endpoint retains the six inherited library assumptions and explicit
+`memcpy_model`. Accepted local-contract coverage is 495/533, with 136 entries
+conditional on that model. Caller/cache establishment, libc linkage, evaluator
+admissibility and remaining source/domain/configuration limits remain separate.
+Production C, frozen specifications, API contracts and generation settings are
+unchanged.
