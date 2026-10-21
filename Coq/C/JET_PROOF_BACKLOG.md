@@ -1338,6 +1338,17 @@ by the actual U2 multiplication. No intermediate execution or desired output
 is a premise. These helper results still need composition with U2/S2 and the
 remaining finite arithmetic before a whole-jet contract can be registered.
 
+`jet_secp_mixed_affine_product.v:eval_mixed_affine_product` now derives the
+actual `fe_mul` into an uninitialized private field from either coordinate of
+the actual 88-byte affine object and a separate private operand. It reuses the
+selected multiplication/u128 log and proofs, deriving the output words,
+modular product, reusable bounds, all three allocation permissions and precise
+framing for the other affine coordinate/flag. `exec_mixed_affine_call` connects
+it to both actual U2/initial-S2 `Scall` nodes; `mixed_affine_calls_source`
+identifies their positions. No desired execution/result or fresh-word oracle
+is assumed. Next compose the S2 multiplication by A.Z, then H/I preparation,
+zero-test branches, the final arithmetic and public lifecycle.
+
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
 ```sh
@@ -1350,6 +1361,8 @@ JET_TARGETS=C/jet_secp_mixed_finite_start.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_finite_start
 JET_TARGETS=C/jet_secp_mixed_copy_weak.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_copy_weak
+JET_TARGETS=C/jet_secp_mixed_affine_product.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_affine_product
 ```
 
 ## Source-review question: Elements fee predicates
