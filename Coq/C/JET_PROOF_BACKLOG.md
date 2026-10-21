@@ -1218,24 +1218,49 @@ ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_var_owned
 ```
 
-Next connect the actual halving result and final coordinates to
-`literal_gej_double`, then compose the public read/write/lifecycle contract.
-Reuse `half_value_identity`, the small-multiplier/sum identities and the
-selected square/product modulo-prime lemmas. For the literal half-word shift,
-`jet_vector_shift_word.v` already provides `full_right_shift1_value`, quotient
-and remainder lemmas; a new shift execution framework is unnecessary. Derive
-the literal `fe_halve` value, its agreement with the C half modulo the prime,
-and then all three output-coordinate equalities. Finally connect the actual
-reader's infinity flag to the literal infinity predicate and use the general
-point writer. The existing integer identities alone do not discharge this
-implementation-to-literal bridge or the public wrapper lifecycle.
+The arithmetic-to-literal bridge is now derived, not assumed:
+
+- `jet_secp_double_half_literal_numeric.v` observes the actual literal shift
+  and conditional-add tree. For every word its result is canonical, and twice
+  that result equals the input modulo p. The width-generic bit-vector value
+  adapters reuse the existing shift proof; no new shift executor is needed.
+  Literal small-integer multiplication is also related to its numeric value.
+- `jet_secp_double_half_bridge.v` combines that result with the actual C half
+  identity, including loose input limbs and multiply-three/half composition.
+- `double_body_coordinates_match` in `jet_secp_double_coordinate_numeric.v`
+  derives all three arithmetic-output residues against the literal body,
+  deriving every needed intermediate limb bound. Its hypotheses are only
+  initial bounds and input/specification residue agreement, not curve or
+  nonzero-coordinate assumptions.
+- `double_reader_outputs_literal` relates the actual reader-derived words and
+  flag, through the output decoder, to the complete literal program. It handles
+  both incoming infinity and finite inputs. `eval_double_var_literal` composes
+  that equality with the checked real C function, deriving its output fields,
+  writer bounds, ownership and external-memory frame.
+- `eval_write_gej_doubled_literal` composes the existing general point writer
+  with those fields and output equality. It proves actual XYZ serialization
+  and the resulting encoded literal value in `finv`.
+
+Next compose the public `simplicity_gej_double` wrapper: initial frame/source
+copy and local allocations, `eval_read_gej_canonical_fields` (capacity 768),
+`eval_double_var_literal`, `eval_write_gej_doubled_literal`, true return and
+the actual frees. Reuse `rescale_reader_limbs` to identify reader fields with
+`words5 (square_reader_rho ...)`. The existing rescale public prepare/entry/body
+and projective-predicate public rest/call modules provide lifecycle/framing
+patterns; inspect the doubling function's own AST, locals and temps first.
+Derive preservation of `finv` and source/local ownership from each precise
+frame, rather than adding those facts as caller assumptions. Only after a
+complete standard local-contract endpoint should the literal fidelity gate,
+registration and full scoped acceptance be updated. The public wrapper
+lifecycle and acceptance remain unfinished; these internal bridges do not
+increase accepted coverage.
 
 Follow the writer body, which writes X/Y/Z unconditionally: an infinity flag
 alone does not imply all-zero stored coordinates. In particular, retain the
 finite-input Y=0 case; its final infinity flag can be true while the stored
 X/Y are nonzero. The input-infinity branch explicitly sets all coordinates to
-zero. The remaining bridge and public composition are a plan, not additional
-proved coverage.
+zero. The remaining public composition is a plan, not additional proved
+coverage.
 
 ## Source-review question: Elements fee predicates
 
