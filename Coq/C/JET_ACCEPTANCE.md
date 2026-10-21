@@ -2,8 +2,8 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 480/533 jets (351 without an extra libc
-premise; 129 conditional on `memcpy_model`). The earlier 430-entry baseline passed
+The local-contract registry contains 484/533 jets (354 without an extra libc
+premise; 130 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
@@ -23,6 +23,9 @@ The four Elements issuance-proof/nonce/amount-hash registrations then passed
 ordinary scoped acceptance below.
 Three Elements composite/blinding-hash registrations and issuance status then
 passed ordinary scoped acceptance below.
+The three computed issuance getters and annex context jet then passed ordinary
+scoped acceptance together (338 kernel modules, 237 assumption modules and
+251 contract modules, gate negative tests and five regenerated ASTs).
 
 Reproduce acceptance from the repository root:
 
@@ -748,8 +751,8 @@ Normal compilation passes. Reviewed snapshots cover 39 theorem records and
 37 definitions in five new modules; the existing calculation snapshots are
 unchanged. The existing source checker rejects 35 further mutations of
 constants, byte order, primitive routing, offsets and complete C contracts.
-These candidates are not registered or accepted yet. Reproduce the required
-ordinary scoped acceptance after registration:
+These three endpoints passed ordinary scoped acceptance together with annex
+context hashing below. Reproduce the getter-only scope with:
 
 ```sh
 bash Coq/check-jets.sh --accept --jets=simplicity_issuance_entropy,simplicity_issuance_asset,simplicity_issuance_token
@@ -782,11 +785,11 @@ Normal compilation passes after rebuilding unchanged stale objects under the
 pinned toolchain. Fifteen theorem records and thirteen definitions are added
 in two modules. The existing source checker reuses the shared literal-tree
 checks and rejects thirteen further complete-contract/binding mutations.
-This candidate is not registered or accepted yet; ordinary scoped acceptance
-is required after registration:
+This endpoint passed ordinary scoped acceptance with the three computed
+issuance getters. Reproduce the checked scope with:
 
 ```sh
-bash Coq/check-jets.sh --accept --jets=simplicity_annex_hash
+bash Coq/check-jets.sh --accept --jets=simplicity_issuance_entropy,simplicity_issuance_asset,simplicity_issuance_token,simplicity_annex_hash
 ```
 
 No production C, original specification, API or generation setting changed.

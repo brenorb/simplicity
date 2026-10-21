@@ -166,6 +166,17 @@ RECOVERED_CONTRACTS["simplicity_issuance"] = (
     "(indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e)) issuance_status_enum_rep 544 0 0 696) "
     "(fun a environment => @elements_issuance_status_spec (PrimitivePrimSem option_Monad_Zero) a environment).")
 
+for stem, offset in [("entropy", 72), ("asset", 168), ("token", 200)]:
+    RECOVERED_CONTRACTS[f"simplicity_issuance_{stem}"] = (
+        f"application_jet_local_spec_sep f_simplicity_issuance_{stem} elements_ge Elements.env Word32 issuance_digest_option "
+        f"(indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e)) (computed_issuance_hash_rep {offset} issuance_{stem}_of_input) 544 0 0 696) "
+        f"(fun a environment => @literal_elements_issuance_{stem} (PrimitivePrimSem option_Monad_Zero) a environment).")
+
+RECOVERED_CONTRACTS["simplicity_annex_hash"] = (
+    "memcpy_model -> nonce_elements_partial_local_spec f_simplicity_annex_hash "
+    "(Ty.Prod sha256_ctx8_type (Ty.Sum Ty.Unit (Word 8))) sha256_ctx8_type "
+    "(@literal_bitcoin_annex_hash optalg).")
+
 for stem, offset in [("input_outpoints", 112), ("input_annexes", 272), ("inputs", 336)]:
     RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (
         f"application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge raw_bitcoin_environment "

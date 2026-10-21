@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 480 of the 533 header declarations.
+The current local-contract registry contains 484 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 53 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 49 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -578,17 +578,18 @@ entropy/asset/token getters with literal primitive-bearing programs, sharing
 one C getter proof and the existing universal SHA/word bridges. Every Word32
 index and issuance-kind branch is retained. The initial canonical cache
 relation remains a caller obligation, not an assumed execution or final output.
-Normal compilation and source checks pass; the reviewed snapshots and pending
-acceptance command are described in `JET_ACCEPTANCE.md`. These three candidates
-do not yet increase accepted coverage.
+Normal compilation, source checks and ordinary scoped acceptance pass; the
+reviewed snapshots and acceptance command are described in `JET_ACCEPTANCE.md`.
+These three endpoints are registered local contracts.
 
 ## Candidate: Elements annex context hashing
 
 `jet_elements_annex_context_literal.v` now composes the original context jet
 with the shared literal annex program and existing nonce/SHA frame contract.
 The normal build and source checks pass, including assertion-failure cases.
-It retains explicit SHA-global and `memcpy_model` premises and is not yet
-registered or accepted. See `JET_ACCEPTANCE.md` for scope and the command.
+It retains explicit SHA-global and `memcpy_model` premises and passed ordinary
+scoped acceptance together with the computed issuance getters. See
+`JET_ACCEPTANCE.md` for scope and the command.
 
 ## Source-review question: Elements fee predicates
 
