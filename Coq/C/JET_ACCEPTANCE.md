@@ -2,7 +2,7 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 489/533 jets (357 without an extra libc
+The local-contract registry contains 491/533 jets (359 without an extra libc
 premise; 132 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
@@ -21,6 +21,7 @@ The five further Elements input/taproot hash registrations then passed ordinary
 scoped acceptance below.
 The four Elements issuance-proof/nonce/amount-hash registrations then passed
 ordinary scoped acceptance below.
+
 Three Elements composite/blinding-hash registrations and issuance status then
 passed ordinary scoped acceptance below.
 The three computed issuance getters and annex context jet then passed ordinary
@@ -29,6 +30,8 @@ scoped acceptance together (338 kernel modules, 237 assumption modules and
 The two Elements taproot builders then passed ordinary scoped acceptance below.
 The two issuance amount-array getters and composite issuances hash then passed
 ordinary scoped acceptance below.
+The Elements transaction and signature hash entries then passed ordinary scoped
+acceptance below.
 
 Reproduce acceptance from the repository root:
 
@@ -96,7 +99,7 @@ ten are newly accepted registrations.
   do not identify the ordinary SHA translation unit with the Elements program.
 - Shared frame/evaluator admissibility and exhaustive inherited canonical
   fidelity review remain open; see `JET_INHERITED_REVIEW.md`.
-- The remaining 44 header declarations have no registered final contract.
+- The remaining 42 header declarations have no registered final contract.
   Cached Bitcoin hashes and SHA startup helpers are support until their raw-data
   and operational boundaries meet the public coverage requirements.
 
@@ -906,7 +909,9 @@ source checker compares the full canonical composition trees, primitive
 bindings, word encodings, direct-field representation and complete C boundaries,
 and rejects 26 further mutations. Reviewed snapshots cover 13 theorems and
 12 definitions in the three modules; comparisons without update flags pass.
-These candidates are not registered or accepted yet. After registration, run:
+Both entries passed ordinary scoped acceptance: 406 kernel modules, 274
+assumption modules, 299 contract modules, the gate negative tests and all five
+regenerated AST comparisons. Reproduce with:
 
 ```sh
 bash Coq/check-jets.sh --accept --jets=simplicity_tx_hash,simplicity_sig_all_hash

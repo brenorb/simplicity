@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 489 of the 533 header declarations.
+The current local-contract registry contains 491 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 44 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 42 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -637,8 +637,10 @@ contract and existing `writeHash` execution. The former retains the existing
 pointer-field getter framework. Their initial canonical cache relations at
 transaction offset 632 and txEnv offset 48 remain caller obligations. No
 execution/output premise or extra libc model is introduced. Normal builds,
-source correspondence and 26 targeted mutations pass; the candidates are not
-registered or accepted yet. See `JET_ACCEPTANCE.md` for scope and the command.
+source correspondence and 26 targeted mutations pass. Both entries passed
+ordinary scoped acceptance (406 kernel modules, 274 assumption modules, 299
+contract modules, negative tests and five regenerated ASTs). Accepted local
+coverage is 491/533. See `JET_ACCEPTANCE.md` for scope and the command.
 
 The remaining indexed computing Elements hash jets need actual C helper
 execution, not just cache-getter registration. `input_utxo_hash` is the smallest

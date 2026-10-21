@@ -157,6 +157,7 @@ for stem, ptr, offset, size in [
     ("issuance_blinding_entropy", 0, 568, 760),
     ("issuance_asset_amounts", 0, 472, 760), ("issuance_token_amounts", 0, 504, 760),
     ("issuances", 0, 600, 760),
+    ("tx", 0, 632, 760),
 ]:
     RECOVERED_CONTRACTS[f"simplicity_{stem}_hash"] = (
         f"application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256 "
@@ -178,6 +179,11 @@ RECOVERED_CONTRACTS["simplicity_annex_hash"] = (
     "memcpy_model -> nonce_elements_partial_local_spec f_simplicity_annex_hash "
     "(Ty.Prod sha256_ctx8_type (Ty.Sum Ty.Unit (Word 8))) sha256_ctx8_type "
     "(@literal_bitcoin_annex_hash optalg).")
+
+RECOVERED_CONTRACTS["simplicity_sig_all_hash"] = (
+    "application_jet_local_spec_sep f_simplicity_sig_all_hash elements_ge Elements.env Ty.Unit Word256 "
+    "(elements_direct_hash_rep elements_sig_all_hash_of 48) "
+    "(fun a environment => @literal_elements_sig_all_hash elements_hash_alg a environment).")
 
 for stem, depth in [("leaf", 8), ("branch", 9)]:
     function = "simplicity_build_tap" + stem + ("_simplicity" if stem == "leaf" else "")
