@@ -67,6 +67,9 @@ statements and the body equalities `secp_fe_mul_body`, `secp_fe_sqr_body`).
 
 ## Verdict
 
-No mismatch found. The registered contracts are
+No mismatch was found in this historical alternative review. The candidate
+contracts below are not the current registrations; see the
+[registration decision](README.md#registration-decision) for the selected
+active endpoints. The alternative contracts are
 `secp_jet_local_spec f_simplicity_fe_multiply (Ty.Prod (Word 8) (Word 8)) (Word 8) (@literal_fe_multiply Alg.CoreFunSem)`
 and `secp_jet_local_spec f_simplicity_fe_square (Word 8) (Word 8) (@literal_fe_square Alg.CoreFunSem)`.
