@@ -1046,10 +1046,11 @@ object. Keep the actual enclosing allocation in the execution contract.
 ## Next claimed target: gej_is_on_curve
 
 The main session claims `simplicity_gej_is_on_curve`. Its literal program,
-semantic-step lemma and parametricity proof already live in
-`jet_secp_curve_literal.v`; no complete C endpoint was found in the active
-modules or proof-work README files. Extend these results rather than starting
-another literal port. The intended public contract admits arbitrary Word256
+semantic-step lemma and parametricity proof live in
+`jet_secp_curve_literal.v`. The complete internal C helper is now proved
+against that literal program; the public reader/writer wrapper remains.
+Extend these results rather than starting another literal port.
+The intended public contract admits arbitrary Word256
 X/Y/Z values and one output bit, not only genuine or finite curve points.
 
 The actual helper is `f_simplicity_gej_is_valid_var`, defined in
@@ -1058,14 +1059,56 @@ tests the polynomial `y^2 = x^3 + 7*z^6` without checking the infinity flag, and
 accepts `(0,0,0)` as the canonical infinity representative. Do not import the
 affine helper's early infinity rejection into this proof.
 
-Reuse the selected square/multiply arithmetic and owned-point contracts.
-Generalize the coordinate-square storage adapter to offsets 0/40/80 while
-retaining the whole 128-byte allocation. The remaining helper sequence needs
-the actual multiplication by 7, field addition and equality comparison.
+The ordinary build now includes the following reusable proof chain:
+
+- `jet_secp_point_square_coordinate.v` squares X/Y/Z at offsets 0/40/80,
+  retaining ownership of the full 128-byte point. It reuses the selected
+  square proofs instead of deriving new arithmetic.
+- `jet_secp_field_point_multiply.v` derives the actual reverse-direction
+  call: private temporary multiplied in place by a point coordinate.
+  It reuses the selected multiplication log and output lemmas.
+- `jet_secp_square_inplace_storage.v`, `jet_secp_field_mul7.v`,
+  `jet_secp_field_add_scaled.v` and `jet_secp_equal_loose.v` cover the
+  remaining calls, with exact limbs, derived bounds and memory frames.
+- `jet_secp_gej_curve_{coordinate,prefix,tail,calls}.v` composes all nine
+  arithmetic calls in original C order; there are no assumed intermediate
+  call executions or desired outputs in `gej_curve_arithmetic_calls`.
+- `jet_secp_gej_curve_statements.v` identifies the unchanged original body.
+  `jet_secp_gej_curve_function.v` derives that body from owned storage,
+  allocates and frees its three temporaries, and proves the bool return
+  conversion in `eval_gej_curve_function`.
+- `jet_secp_gej_curve_literal_{numeric,bridge}.v` relates the helper to the
+  existing literal program for all three input words.
+  `eval_gej_curve_literal` accepts the actual canonical reader limbs and
+  full point ownership; it has no infinity-flag premise.
+
 Unlike the affine checker and X-equivalence, this C helper does not
-weak-normalize the sum before equality: extend the comparison proof to the
-derived looser second-operand bounds; do not assume or insert a normalization
-call. These next steps are a plan, not additional proved or registered coverage.
+weak-normalize the sum before equality. The new comparison proof handles the
+derived loose second operand without inserting a normalization call.
+
+Next: compose `eval_read_gej_canonical_fields` with output capacity 1,
+`eval_gej_curve_literal`, and the actual bit writer; reuse the existing
+owned 128-byte point/public frame lifecycle. The infinity predicate wrapper
+is a useful lifecycle template, but this public jet calls
+`f_simplicity_gej_is_valid_var`, not the infinity checker. The affine curve
+wrapper supplies a useful helper-call/bit-writer template, but its 88-byte
+point and finite-flag requirement must not be copied. The projective wrapper's
+`_t'1` has type `tbool`, unlike the infinity/affine predicate wrappers' `tint`;
+use the actual boolean-typed writeBit argument rather than copying their AST.
+Then prove the ordinary
+local contract against `literal_gej_is_on_curve`, extend the existing
+predicate fidelity gate, register the whole endpoint and run scoped acceptance.
+No new public jet is registered by the internal-helper chain above; coverage
+remains 497/533. Keep the existing claim until the public endpoint is accepted.
+
+To reproduce the internal-helper build and recursive kernel check with the
+baseline Coq 8.17.1 on PATH and prepared jet dependencies:
+
+```sh
+JET_TARGETS=C/jet_secp_gej_curve_literal_bridge.vo bash Coq/build-jets.sh -j2
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_curve_literal_bridge
+```
 
 ## Source-review question: Elements fee predicates
 
