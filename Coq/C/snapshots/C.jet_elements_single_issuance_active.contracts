@@ -1,0 +1,253 @@
+### C.jet_elements_single_issuance_active.eis_some_shape
+eis_some_shape
+     : @eq Clight.statement jet_elements_single_issuance_prep.eis_some
+         (Clight.Ssequence jet_elements_single_issuance_asset.eis_asset_prefix
+            (Clight.Ssequence jet_elements_single_issuance_amount.eis_asset_amount_stmt
+               (Clight.Ssequence jet_elements_single_issuance_asset.eis_token_prefix
+                  (Clight.Ssequence jet_elements_single_issuance_amount.eis_token_amount_stmt
+                     jet_elements_single_issuance_tail.eis_active_tail))))
+### C.jet_elements_single_issuance_active.eis_some_message_bytes
+eis_some_message_bytes
+     : forall (isnew : bool) (asset token : Digest.hash256) (aa ta : jet_elements_prim.amountWith unit)
+         (hpa hpt q ent : Digest.hash256),
+       @eq (list Integers.Int.int)
+         (@app Integers.Int.int
+            (@app Integers.Int.int
+               (@app Integers.Int.int
+                  (@app Integers.Int.int
+                     (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int
+                        jet_read8s_layout.word8_array_value
+                        (jet_elements_asset_amount_hash_spec.elements_asset_bytes
+                           (jet_elements_asset_jets.encode_asset
+                              (@jet_elements_prim.Explicit unit Digest.hash256 asset))))
+                     (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int
+                        jet_read8s_layout.word8_array_value
+                        (jet_elements_asset_amount_hash_spec.elements_amount_bytes
+                           (jet_elements_amount_jets.encode_amount aa))))
+                  (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+                     (jet_elements_asset_amount_hash_spec.elements_asset_bytes
+                        (jet_elements_asset_jets.encode_asset (@jet_elements_prim.Explicit unit Digest.hash256 token)))))
+               (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+                  (jet_elements_asset_amount_hash_spec.elements_amount_bytes
+                     (jet_elements_amount_jets.encode_amount
+                        (jet_elements_single_issuance_amount.eis_selected_amount isnew ta)))))
+            (jet_elements_single_issuance_tail.eis_tail_bytes isnew hpa hpt q ent))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (eis_some_message isnew asset token aa ta hpa hpt q ent))
+### C.jet_elements_single_issuance_active.exec_eis_some_finalize
+exec_eis_some_finalize
+     : forall (_ : jet_memcpy_model.memcpy_model) (bx bm : Values.block) (_ : not (@eq Values.block bm bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bm))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bx))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bm)) (isnew : bool) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bin : Values.block) (ofs : BinNums.Z)
+         (ba bt bz bb : Values.block) (asset token : Digest.hash256) (aa ta : jet_elements_prim.amountWith unit)
+         (hpa hpt q ent : Digest.hash256)
+         (_ : jet_elements_support_sha_ctxi.ctxi m bx bm (@nil Integers.Int.int) jet_sha256_iv_init.sha256_iv_words
+                Integers.Int64.zero false)
+         (_ : @List.NoDup Values.block
+                (@cons Values.block ba
+                   (@cons Values.block bt (@cons Values.block bz (@cons Values.block bb (@nil Values.block))))))
+         (_ : forall (b : Values.block)
+                (_ : @List.In Values.block b
+                       (@cons Values.block ba
+                          (@cons Values.block bt (@cons Values.block bz (@cons Values.block bb (@nil Values.block)))))),
+              and (not (@eq Values.block b bin))
+                (and (not (@eq Values.block b bx))
+                   (and (not (@eq Values.block b bm))
+                      (and
+                         (not
+                            (@eq Values.block b
+                               (jet_elements_support_sha_linkage.sha_symbol_block
+                                  jets_elements._simplicity_sha256_compression)))
+                         (not
+                            (@eq Values.block b
+                               (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._ctx e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements.___compound e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type ba (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements.___compound__1 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bt (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements.___compound__2 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bz (Ctypes.Tstruct jets_elements._confAmount Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements.___compound__3 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bb
+                      (Ctypesdefs.tarray Ctypesdefs.tuchar
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._simplicity_sha256_confAsset e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._simplicity_sha256_confAmt e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._sha256_hash e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._sha256_uchar e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._sha256_uchars e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._issuance le)
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr ofs)))) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned) (_ : not (@eq Values.block bin bx)) (_ : not (@eq Values.block bin bm))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m bin
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (@Some Values.val (Values.Vint (jet_elements_single_issuance_amount.eis_kind isnew))))
+         (_ : jet_uint32_array_init.uint32_array_at m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                (Digest.hash256_reg asset))
+         (_ : jet_uint32_array_init.uint32_array_at m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+                (Digest.hash256_reg token))
+         (_ : jet_elements_amount_jets.amount_rep m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))))) aa)
+         (_ : forall _ : @eq bool isnew true,
+              jet_elements_amount_jets.amount_rep m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) ta)
+         (_ : jet_uint32_array_init.uint32_array_at m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
+                (Digest.hash256_reg hpa))
+         (_ : jet_uint32_array_init.uint32_array_at m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                (Digest.hash256_reg hpt)) (_ : jet_uint32_array_init.uint32_array_at m bin ofs (Digest.hash256_reg q))
+         (_ : forall _ : @eq bool isnew false,
+              jet_uint32_array_init.uint32_array_at m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (Digest.hash256_reg ent))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable)
+         (_ : Memory.Mem.range_perm m bt BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable)
+         (_ : Memory.Mem.range_perm m bz BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable)
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mp : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             @ex Values.val
+               (fun vr : Values.val =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge e le m
+                     jet_elements_single_issuance_prep.eis_some Events.E0
+                     (@Maps.PTree.set Values.val jets_elements._t'5
+                        (Values.Vint (jet_elements_single_issuance_amount.eis_kind isnew))
+                        (jet_elements_single_issuance_amount.eis_token_le le isnew bin ofs bz)) mp
+                     ClightBigstep.Out_normal)
+                  (and
+                     (ClightBigstep.Clight2.eval_funcall jet_elements_support_sha_linkage.sha_ge mp
+                        (@Ctypes.Internal Clight.function jets_elements.f_sha256_finalize)
+                        (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf vr)
+                     (and
+                        (forall (j : nat) (_ : lt j (S (S (S (S (S (S (S (S O))))))))),
+                         @eq (option Values.val)
+                           (Memory.Mem.load AST.Mint32 mf bm
+                              (BinInt.Z.add BinNums.Z0
+                                 (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat j))))
+                           (@Some Values.val
+                              (Values.Vint
+                                 (@List.nth Integers.Int.int j
+                                    (Digest.hash256_reg
+                                       (jet_bitcoin_composite_hash.sha256_bytes_of
+                                          (eis_some_message isnew asset token aa ta hpa hpt q ent))) Integers.Int.zero))))
+                        (and
+                           (forall (ch : AST.memory_chunk) (b : Values.block) (o : BinNums.Z)
+                              (_ : Memory.Mem.valid_block m b) (_ : not (@eq Values.block b ba))
+                              (_ : not (@eq Values.block b bt)) (_ : not (@eq Values.block b bz))
+                              (_ : not (@eq Values.block b bb)) (_ : not (@eq Values.block b bx))
+                              (_ : not (@eq Values.block b bm)),
+                            @eq (option Values.val) (Memory.Mem.load ch mf b o) (Memory.Mem.load ch m b o))
+                           (and
+                              (forall (b : Values.block) (o : BinNums.Z) (k : Memtype.perm_kind)
+                                 (p : Memtype.permission) (_ : Memory.Mem.valid_block m b)
+                                 (_ : Memory.Mem.perm m b o k p), Memory.Mem.perm mf b o k p)
+                              (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b))))))))
+### C.jet_elements_single_issuance_active.eis_some_message
+eis_some_message =
+fun (isnew : bool) (asset token : Digest.hash256) (aa ta : jet_elements_prim.amountWith unit)
+  (hpa hpt q ent : Digest.hash256) =>
+jet_elements_single_issuance_spec.elements_single_issuance_bytes
+  (@inr unit
+     (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.tySem
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))))
+     (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.tySem
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))) (Word.from_hash256 asset)
+        (jet_elements_amount_jets.encode_amount aa)))
+  (@inr unit
+     (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.tySem
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))))
+     (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.tySem
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))) (Word.from_hash256 token)
+        (jet_elements_amount_jets.encode_amount (jet_elements_single_issuance_amount.eis_selected_amount isnew ta))))
+  (Word.from_hash256 hpa) (Word.from_hash256 hpt)
+  (@inr unit
+     (Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (jet_elements_single_issuance_blinding.eis_blinding_pair isnew q ent))
+     : forall (_ : bool) (_ : Digest.hash256) (_ : Digest.hash256) (_ : jet_elements_prim.amountWith unit)
+         (_ : jet_elements_prim.amountWith unit) (_ : Digest.hash256) (_ : Digest.hash256)
+         (_ : Digest.hash256) (_ : Digest.hash256), list (Ty.tySem (Word.Word (S (S (S O)))))
+
+Arguments eis_some_message isnew%bool_scope asset token aa ta hpa hpt q ent

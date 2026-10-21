@@ -738,7 +738,7 @@ under the baseline toolchain; no version pins or production sources changed.
 
 ## Computing Elements issuance_hash: checked support, whole C proof missing
 
-Seven modules now compile normally: `jet_elements_single_issuance_{spec,literal,
+The seven foundational modules compile normally: `jet_elements_single_issuance_{spec,literal,
 prep}.v`, `jet_elements_issuance_{asset_literal,zero_literal,zero_array}.v` and
 `jet_elements_indexed_flag.v`. Reviewed snapshots cover 30 theorems and 25
 definitions. The canonical all-index semantic/literal bridge reuses the accepted
@@ -788,14 +788,24 @@ the active nonce/entropy fields. The byte bridge uses the canonical 256-bit
 zero word, and the common suffix absorbs exactly 129 bytes. Context, load,
 permission and validity preservation are included in these compiled contracts.
 
-Next compose the remaining two actual payload branches, then the shared finalize,
-writeHash, return, frees and framing. No issuance: four uchar(0), two proof-hash
-calls, uchar(0). New issuance: two explicit ID literals and amount calls, proof
-hashes, uchar(1), zero-array construction/absorption, contract hash. Reissuance:
-use the explicit-zero token amount instead of reading inactive tokenAmt, then
-the proof hashes, uchar(1), blinding-nonce and entropy hashes. Require only active
-union arms and actually read fields; neither executions nor the final digest
-may be public premises. The element's issuance starts at offset 256; checked
+`jet_elements_single_issuance_active.v` completes both actual active payload
+branches and finalization in `exec_eis_some_finalize`. It executes all four
+ID/amount prefixes and the suffix, and proves equality of the final digest words
+to `sha256_bytes_of (eis_some_message ...)`, whose bytes are the canonical
+`elements_single_issuance_bytes`. No execution or desired result is a premise.
+Together with `exec_eis_none_finalize`, all three payload cases now compile.
+These remain internal branch results, not a complete or registered C jet.
+
+Next define the initial raw-field/cache representation by issuance kind, bridge
+its values to `elements_single_issuance_result`, and compose the whole function:
+eight real allocations, source-frame copy, index read and bounds dispatch,
+issuance address setup, SHA init/copy, outer type dispatch, checked payloads,
+writeHash, return, actual free-list and framing. Discharge the branch helpers'
+private-object freshness/writability from allocations, and all source-field
+loads from the initial relation. Include out-of-range indices, arbitrary valid
+frame cursors and existing output bits. Require only active union arms and
+actually read fields; neither executions nor the final digest may be public
+premises. The element's issuance starts at offset 256; checked
 existing fields include entropy 72, proof hashes 104/136, assetAmt 232 and type
 272. The ID offsets 168/200 and union tokenAmt offset 32 are checked against
 the AST. Extend the existing canonical-tree/full-contract source check
