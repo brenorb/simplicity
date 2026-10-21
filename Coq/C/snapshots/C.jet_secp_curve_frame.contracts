@@ -1,0 +1,133 @@
+### C.jet_secp_curve_frame.curve_two_blocks
+curve_two_blocks
+     : forall (regs : list jet_sx_state.region) (ba bb bx : Values.block) (pos : BinNums.Z)
+         (_ : @eq nat (@length jet_sx_state.region regs) (S (S O)))
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bb BinNums.Z0)
+                      (@nil (prod Values.block BinNums.Z))))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   regs) bx pos), or (@eq Values.block bx ba) (@eq Values.block bx bb)
+### C.jet_secp_curve_frame.curve_one_block
+curve_one_block
+     : forall (regs : list jet_sx_state.region) (ba bx : Values.block) (pos : BinNums.Z)
+         (_ : @eq nat (@length jet_sx_state.region regs) (S O))
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                   (@nil (prod Values.block BinNums.Z)))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   regs) bx pos), @eq Values.block bx ba
+### C.jet_secp_curve_frame.curve_frame_two
+curve_frame_two
+     : forall (regs : list jet_sx_state.region) (ba bb : Values.block) (m mf : Memory.Mem.mem)
+         (_ : @eq nat (@length jet_sx_state.region regs) (S (S O)))
+         (_ : jet_sx_mem.lframe
+                (fun (bx : Values.block) (pos : BinNums.Z) =>
+                 not
+                   (jet_sx_state.foot
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bb BinNums.Z0)
+                            (@nil (prod Values.block BinNums.Z))))
+                      (@List.map jet_sx_state.region
+                         (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                         jet_sx_state.rshape regs) bx pos)) m mf),
+       jet_sx_mem.lframe
+         (fun (bx : Values.block) (_ : BinNums.Z) => and (not (@eq Values.block bx ba)) (not (@eq Values.block bx bb)))
+         m mf
+### C.jet_secp_curve_frame.curve_frame_one
+curve_frame_one
+     : forall (regs : list jet_sx_state.region) (ba : Values.block) (m mf : Memory.Mem.mem)
+         (_ : @eq nat (@length jet_sx_state.region regs) (S O))
+         (_ : jet_sx_mem.lframe
+                (fun (bx : Values.block) (pos : BinNums.Z) =>
+                 not
+                   (jet_sx_state.foot
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                         (@nil (prod Values.block BinNums.Z)))
+                      (@List.map jet_sx_state.region
+                         (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                         jet_sx_state.rshape regs) bx pos)) m mf),
+       jet_sx_mem.lframe (fun (bx : Values.block) (_ : BinNums.Z) => not (@eq Values.block bx ba)) m mf
+### C.jet_secp_curve_frame.curve_keep_free
+curve_keep_free
+     : forall (P : forall (_ : Values.block) (_ : BinNums.Z), Prop) (m mf : Memory.Mem.mem)
+         (b : Values.block) (sz : BinNums.Z) (_ : BinInt.Z.lt BinNums.Z0 sz)
+         (_ : Memory.Mem.range_perm m b BinNums.Z0 sz Memtype.Cur Memtype.Freeable) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall pos : BinNums.Z, P b pos), Memory.Mem.range_perm mf b BinNums.Z0 sz Memtype.Cur Memtype.Freeable
+### C.jet_secp_curve_frame.curve_keep_field_range
+curve_keep_field_range
+     : forall (P : forall (_ : Values.block) (_ : BinNums.Z), Prop) (m mf : Memory.Mem.mem)
+         (b : Values.block) (ofs : BinNums.Z) (xs : list Integers.Int64.int)
+         (_ : @eq nat (@length Integers.Int64.int xs) (S (S (S (S (S O)))))) (_ : jet_secp_fe_nv.fe_at m b ofs xs)
+         (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall (pos : BinNums.Z)
+                (_ : and (BinInt.Z.le ofs pos)
+                       (BinInt.Z.lt pos
+                          (BinInt.Z.add ofs
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))),
+              P b pos), jet_secp_fe_nv.fe_at mf b ofs xs
+### C.jet_secp_curve_frame.curve_square_foot
+curve_square_foot
+     : forall (k : bool) (bout bin bx : Values.block) (pos : BinNums.Z)
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bout BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bin BinNums.Z0)
+                      (@nil (prod Values.block BinNums.Z))))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   (jet_secp_curve_square.curve_square_regs k)) bx pos),
+       or
+         (and (@eq Values.block bx bout)
+            (and (BinInt.Z.le BinNums.Z0 pos)
+               (BinInt.Z.lt pos
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (and (@eq Values.block bx bin)
+            (and (BinInt.Z.le (jet_secp_curve_square.curve_square_offset k) pos)
+               (BinInt.Z.lt pos
+                  (BinInt.Z.add (jet_secp_curve_square.curve_square_offset k)
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_curve_frame.curve_square_other_field
+curve_square_other_field
+     : forall (k : bool) (w : list Integers.Int64.int) (m mf : Memory.Mem.mem) (bout bin : Values.block)
+         (_ : not (@eq Values.block bout bin))
+         (_ : jet_secp_fe_nv.fe_at m bin (jet_secp_curve_square.curve_square_offset (negb k)) w)
+         (_ : @eq nat (@length Integers.Int64.int w) (S (S (S (S (S O))))))
+         (_ : jet_sx_mem.lframe
+                (fun (bx : Values.block) (pos : BinNums.Z) =>
+                 not
+                   (jet_sx_state.foot
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bout BinNums.Z0)
+                         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bin BinNums.Z0)
+                            (@nil (prod Values.block BinNums.Z))))
+                      (@List.map jet_sx_state.region
+                         (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                         jet_sx_state.rshape (jet_secp_curve_square.curve_square_regs k)) bx pos)) m mf),
+       jet_secp_fe_nv.fe_at mf bin (jet_secp_curve_square.curve_square_offset (negb k)) w
+### C.jet_secp_curve_frame.curve_mul_square_shape
+curve_mul_square_shape
+     : @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape jet_secp_curve_mul.curve_mul_regs)
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_secp_curve_square.curve_square_regs false))
+### C.jet_secp_curve_frame.curve_mul_other_field
+curve_mul_other_field
+     : forall (w : list Integers.Int64.int) (m mf : Memory.Mem.mem) (bout bin : Values.block)
+         (_ : not (@eq Values.block bout bin))
+         (_ : jet_secp_fe_nv.fe_at m bin
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) w)
+         (_ : @eq nat (@length Integers.Int64.int w) (S (S (S (S (S O))))))
+         (_ : jet_sx_mem.lframe
+                (fun (bx : Values.block) (pos : BinNums.Z) =>
+                 not
+                   (jet_sx_state.foot
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bout BinNums.Z0)
+                         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bin BinNums.Z0)
+                            (@nil (prod Values.block BinNums.Z))))
+                      (@List.map jet_sx_state.region
+                         (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                         jet_sx_state.rshape jet_secp_curve_mul.curve_mul_regs) bx pos)) m mf),
+       jet_secp_fe_nv.fe_at mf bin
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) w

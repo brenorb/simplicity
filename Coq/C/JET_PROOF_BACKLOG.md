@@ -835,7 +835,7 @@ Caller/cache establishment, libc and evaluator obligations remain separate.
 ## Next claimed target: ge_is_on_curve
 
 The main session claims `simplicity_ge_is_on_curve` in `JET_CLAIMS.md`.
-Nine ordinary modules now compile as internal support, not a registered curve
+Eleven ordinary modules now compile as internal support, not a registered curve
 jet or a new acceptance result:
 
 - `jet_secp_field_add7.v`: actual `fe_add_int(7)`, exact field-value increment,
@@ -856,14 +856,19 @@ jet or a new acceptance result:
   from either affine X (offset 0) or Y (offset 40) into a separate, possibly
   uninitialized 40-byte temporary; output/source loads, caller ownership,
   modular square value, tight bounds and framing are proved.
+- `jet_secp_curve_frame.v` and `jet_secp_curve_calls.v`: reusable enclosing-object
+  and disjoint-field framing, plus `curve_square_cube_calls`, which composes
+  the actual Y-square, X-square and in-place cube calls in C order. It derives
+  both modular values, tight bounds, source-field preservation and ownership
+  across all three memories; neither temporary needs initialization.
 
 These are C execution-plus-value contracts, not just relations between jet
 specifications. Their integer bridges are closed; execution contracts retain
 only the six inherited library assumptions. No extra libc model is needed.
 
 Next compose the actual `f_secp256k1_ge_is_valid_var` in `jets_secp.v`: infinity
-test, two separate-output squares, in-place cube multiplication, +7, weak
-normalization and equality. Reuse the selected square proof and existing
+test, the now-composed square/cube prefix, +7, weak normalization and equality.
+Derive the prefix's private buffer premises from actual allocations. Reuse the selected square proof and existing
 `point_mul_table`/`fm_solves`/field arithmetic through the new 40-/88-byte
 storage adapters, rather than imposing unrelated 128-/40-byte ownership.
 Prove private allocations, preservation, result conversion and frees, then the
