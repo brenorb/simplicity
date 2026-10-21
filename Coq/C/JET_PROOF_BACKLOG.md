@@ -1391,9 +1391,22 @@ U/S/z12/H/I words, nine owned allocations and the combined frame. Its source
 equality identifies the whole original body prefix through H/I; no execution,
 intermediate output or tight multiplication-result premise is assumed.
 These are internal execution results, not a new public jet registration.
-Next prove the actual zero tests and equal/inverse-point branches, then the
-nonzero-H arithmetic and full helper/public-wrapper lifecycle and literal
-specification bridge.
+
+`jet_secp_field_zero_owned.v:eval_field_zero_owned` adapts the existing
+`eval_curve_zero_numeric` to actual owned 40-byte fields; it derives the
+zero-mod-p return, unchanged words and retained ownership from initial
+storage. `jet_secp_mixed_zero.v` uses this for the actual H and I call nodes
+and proves the nonzero-H guard falls through. The H=0 branch body is proved
+in `jet_secp_mixed_zero_branch.v`: `exec_mixed_equal_branch` tests I and
+executes the real in-place `gej_double_var` when I=0;
+`exec_mixed_inverse_branch` tests I, skips the NULL-rzr write, executes the
+real infinity initializer and returns when I is nonzero. Both derive their
+calls from storage and preserve I ownership/words and an external frame.
+The equal branch retains the actual doubling coordinates, even when the
+resulting infinity flag is set; it does not silently zero those coordinates.
+These branch-body results still need attaching to the preceding H test and
+finite prefix. Then prove the nonzero-H arithmetic, complete helper/public
+wrapper entry/return/free lifecycle and the literal specification bridge.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1417,6 +1430,8 @@ JET_TARGETS=C/jet_secp_mixed_difference.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_difference
 JET_TARGETS=C/jet_secp_mixed_finite_prefix.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_finite_prefix
+JET_TARGETS=C/jet_secp_mixed_zero_branch.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_zero_branch
 ```
 
 ## Source-review question: Elements fee predicates
