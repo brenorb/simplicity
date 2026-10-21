@@ -690,6 +690,23 @@ admissibility and libc implementation linkage remain distinct obligations.
 Bitcoin domain blockers and Elements fee questions remain separate. Check
 `JET_CLAIMS.md` before starting another jet.
 
+## Computing Elements output hash candidate
+
+`jet_elements_output_hash_{spec,prep,payload,jet,literal}.v` and
+`jet_elements_nonce_hash_repr.v` now compile in the normal project. The final
+`elements_output_hash_literal_local_spec` covers the actual whole C call and
+canonical primitive-bearing program, not merely the serializer or digest math.
+It reuses the indexed-frame/private-local spine and streaming SHA bridge from
+input UTXO hashing; its extra nonce/script/range-proof calls are proved in order
+with memory preservation. Absent nonce payload words need not be initialized.
+
+Reviewed snapshots cover 22 theorems and 12 definitions. Literal bridges are
+closed; the C endpoint retains six inherited assumptions and `memcpy_model`.
+The source checker rejects 30 targeted mutations. This is not registered or
+accepted yet; ordinary scoped acceptance must follow registration. Caller,
+environment-cache, libc and evaluator obligations are unchanged. The jet remains
+claimed in `JET_CLAIMS.md`; do not start a duplicate proof.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

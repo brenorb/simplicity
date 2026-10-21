@@ -921,6 +921,38 @@ bash Coq/check-jets.sh --accept --jets=simplicity_tx_hash,simplicity_sig_all_has
 
 No production C, original specification, API or generation setting changed.
 
+## Candidate: computing Elements output hash
+
+`C.jet_elements_output_hash_literal.elements_output_hash_literal_local_spec`
+proves the whole original `simplicity_output_hash` against the literal
+primitive-bearing `outputHash` program. It includes the index/tag, SHA
+initialization, actual asset/amount/nonce calls, script and range-proof digest
+absorption, finalization, serialization and frees, and the out-of-range skip
+branch. The indexed-frame skeleton and general streaming bridge are reused.
+
+The initial relation describes the actual 248-byte output array: asset at 0,
+amount at 104, nonce at 144, script digest at 180 and range-proof digest at 68,
+plus SHA readiness. A missing nonce requires only its prefix, not initialized
+payload words. Messages span 107, 131, 139 or 163 bytes. No intermediate C call
+or desired final digest is assumed. Arbitrary valid frame cursors, unknown old
+output contents, cursor/prefix preservation and external framing are retained.
+
+All six modules compile in the normal project. Reviewed snapshots cover 22
+theorems and 12 definitions; the literal bridges and parametricity are closed.
+The C endpoint retains the six inherited library assumptions and explicit
+`memcpy_model`. The existing source checker compares the complete Core tree,
+Transaction amount route, initial representation and full public boundary,
+rejecting 30 new mutations. This candidate is not registered or accepted yet.
+After registration, run:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_output_hash
+```
+
+Caller/builder establishment, libc linkage, evaluator admissibility and the
+remaining canonical-domain/host limits are separate obligations. No production
+C, frozen specification/domain/identity, API or generation setting changed.
+
 ## Accepted: computing Elements input UTXO hash
 
 `C.jet_elements_input_utxo_hash_literal.elements_input_utxo_hash_literal_local_spec`
