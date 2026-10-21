@@ -993,15 +993,26 @@ frees. All three ordinary modules build, their reviewed snapshots match, and
 the body with its recursive dependencies passes the kernel check. Coverage
 remains 496/533; the public X-equivalence jet is not registered.
 
-Next compose the original `secp256k1_gej_eq_x_var`: square Z, multiply the temporary by the separate X
-argument, copy the point's X to `r2`, weak-normalize it, compare, return and free.
-Reuse `eval_original_field_mul_wrapper_product` and `field_mul_regs`, which
-already own two distinct 40-byte fields and admit 56-/52-bit operands, rather
-than the affine-specific 88-byte source adapter or a normalized-only multiplier.
-The square's 49-bit top limb must remain admissible. Reuse the current weak
-normalizer and equality proofs, then connect the real public readers, branch,
-bit writer and local frees. The public infinity flag is derived by `read_gej`;
-its true branch skips the arithmetic helper and returns the false bit.
+`eval_x_equiv_function` in `jet_secp_x_equiv_function.v` now proves the entire
+original `secp256k1_gej_eq_x_var` call: two real local allocations, parameter
+binding, body, return conversion and both frees. Its premises are caller-owned
+point/field storage, separation and the reader-compatible loose limb bounds;
+no intermediate allocation, execution or desired result is assumed. The
+ordinary build, reviewed contract/assumption comparisons and recursive kernel
+check pass. The helper works for zero Z as well; it does not assume a finite
+or on-curve point. Its numeric result is not yet the guarded public jet theorem.
+
+Next connect the literal target and real public wrapper. The original
+`simplicity_gej_x_equiv` reads the separate field first, then the point: input
+order is `(q,((x,y),z))`, not the rescale reader's `(x,y,z,s)` order. Its local
+allocation order is source frame (16), separate field (40), point (128). Reuse
+`eval_read_fe_with_cursor` followed by `eval_read_gej_canonical_fields` at
+`rc+256`, preserving the already-read field across the point reader. Keep the
+one-bit output contract (`1 <= N`); do not inherit rescale's 768-bit requirement.
+The public infinity flag is derived by `read_gej`; its true branch skips the
+arithmetic helper and returns the false bit. Execute both branches, the actual
+bit writer and public frees, then register only the whole literal equivalence
+endpoint and run the ordinary scoped acceptance check. Coverage remains 496/533.
 
 Do not infer full input ownership from a borrowed view: `foot` conservatively
 includes read cells, and `rw=false` alone does not retain a whole Freeable
