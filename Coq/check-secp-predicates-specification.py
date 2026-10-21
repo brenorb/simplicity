@@ -157,6 +157,9 @@ def check(coq=COQ, repo=REPO):
     require(catalog, 'GeIsOnCurve :: Secp256k1Jet Secp256k1.GE Bit', 'curve jet type')
     require(catalog, 'specificationSecp256k1 GeIsOnCurve = Secp256k1.ge_is_on_curve', 'curve dispatch')
     require(catalog, 'implementationSecp256k1 GeIsOnCurve = FFI.ge_is_on_curve', 'curve implementation')
+    require(catalog, 'GejIsOnCurve :: Secp256k1Jet Secp256k1.GEJ Bit', 'projective curve jet type')
+    require(catalog, 'specificationSecp256k1 GejIsOnCurve = Secp256k1.gej_is_on_curve', 'projective curve dispatch')
+    require(catalog, 'implementationSecp256k1 GejIsOnCurve = FFI.gej_is_on_curve', 'projective curve implementation')
     require(program, 'scribe256 = scribe . toWord256', 'curve constant encoding')
     exact_program(impl, 'fe_one', 'fe_is_zero', 'one256')
     exact_program(impl, 'gej_is_on_curve', 'ge_is_on_curve',
@@ -202,6 +205,13 @@ def check(coq=COQ, repo=REPO):
             '(@literal_ge_is_on_curve Alg.CoreFunSem).')
     if not statement or compact(statement[1]) != compact(want):
         raise ValueError('curve full public contract differs')
+    local = read_code(coq/'C/jet_secp_gej_curve_local.v')
+    statement = re.search(r'Theorem gej_is_on_curve_literal_local_spec\s*:(.*?)\bProof\.', local, re.S)
+    want = ('secp_jet_local_spec f_simplicity_gej_is_on_curve '
+            '(Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) (Ty.Sum Ty.Unit Ty.Unit) '
+            '(@literal_gej_is_on_curve Alg.CoreFunSem).')
+    if not statement or compact(statement[1]) != compact(want):
+        raise ValueError('projective curve full public contract differs')
     # X-equivalence must retain its guard, coordinate routing and subtraction
     # tree. The numeric comparison alone is not the canonical program.
     require(catalog, 'GejXEquiv :: Secp256k1Jet (Secp256k1.FE, Secp256k1.GEJ) Bit', 'X-equivalence jet type')
@@ -233,7 +243,7 @@ def check(coq=COQ, repo=REPO):
             '(Ty.Sum Ty.Unit Ty.Unit) (@literal_gej_x_equiv Alg.CoreFunSem).')
     if not statement or compact(statement[1]) != compact(want):
         raise ValueError('X-equivalence full public contract differs')
-    return 4
+    return 5
 
 
 if __name__ == "__main__":

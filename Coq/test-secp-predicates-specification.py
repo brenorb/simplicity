@@ -95,14 +95,25 @@ mutations=[
  ('coq','C/jet_secp_x_equiv_local.v','(Ty.Sum Ty.Unit Ty.Unit)','(Word 8)'),
  ('coq','C/jet_secp_x_equiv_local.v','(@literal_gej_x_equiv Alg.CoreFunSem).','(fun _ => inr tt).'),
  ('coq','C/jet_secp_x_equiv_literal.v','I (I (@literal_fe_square term))','I (O (@literal_fe_square term)) (* I (I (@literal_fe_square term)) *)'),
+ # Projective curve registration must name the whole public jet, not its helper.
+ ('repo','Haskell/Core/Simplicity/CoreJets.hs','GejIsOnCurve :: Secp256k1Jet Secp256k1.GEJ Bit','GejIsOnCurve :: Secp256k1Jet Secp256k1.GE Bit'),
+ ('repo','Haskell/Core/Simplicity/CoreJets.hs','specificationSecp256k1 GejIsOnCurve = Secp256k1.gej_is_on_curve','specificationSecp256k1 GejIsOnCurve = Secp256k1.ge_is_on_curve'),
+ ('repo','Haskell/Core/Simplicity/CoreJets.hs','implementationSecp256k1 GejIsOnCurve = FFI.gej_is_on_curve','implementationSecp256k1 GejIsOnCurve = FFI.gej_is_infinity'),
+ ('coq','C/jet_secp_gej_curve_local.v','Theorem gej_is_on_curve_literal_local_spec :','Theorem gej_is_on_curve_literal_local_spec : False ->'),
+ ('coq','C/jet_secp_gej_curve_local.v','secp_jet_local_spec f_simplicity_gej_is_on_curve','secp_jet_local_spec f_simplicity_gej_is_valid_var'),
+ ('coq','C/jet_secp_gej_curve_local.v','(Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8))','(Ty.Prod (Ty.Prod (Word 7) (Word 8)) (Word 8))'),
+ ('coq','C/jet_secp_gej_curve_local.v','(Ty.Sum Ty.Unit Ty.Unit)','(Word 8)'),
+ ('coq','C/jet_secp_gej_curve_local.v','(@literal_gej_is_on_curve Alg.CoreFunSem).','(fun _ => inr tt).'),
 ]
 with tempfile.TemporaryDirectory(prefix='secp-predicate-gate.') as tmp:
  coq,repo=Path(tmp)/'Coq',Path(tmp)/'repo'
  for relative in ['check-secp-normalize-specification.py', 'C/jet_secp_canonical_normalize.v', 'C/jet_secp_normalize_local.v', 'C/jet_bitmachine_rep.v', 'Simplicity/Bit.v', 'Simplicity/Word.v', 'C/jet_test_value_spec.v', 'C/jet_equality_spec.v', 'C/jet_predicate_spec.v', 'C/jet_secp_canonical_odd.v', 'C/jet_secp_canonical_zero.v', 'C/jet_secp_odd_local.v', 'C/jet_secp_zero_local.v', 'C/jet_secp_curve_literal.v', 'C/jet_secp_curve_local.v', 'C/jet_secp_rescale_literal.v', 'C/jet_secp_literal_add_program.v', 'C/jet_secp_literal_gej_predicate.v', 'C/jet_secp_x_equiv_literal.v', 'C/jet_secp_x_equiv_local.v']:
   dst=coq/relative;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(SOURCE/relative,dst)
+ relative='C/jet_secp_gej_curve_local.v'
+ shutil.copy2(SOURCE/relative,coq/relative)
  for relative in ['Haskell/Core/Simplicity/CoreJets.hs', 'Haskell/Core/Simplicity/Ty/LibSecp256k1.hs', 'Haskell/Core/Simplicity/Programs/LibSecp256k1.hs', 'Haskell/Core/Simplicity/LibSecp256k1/Spec.hs', 'Haskell/Core/Simplicity/Programs/Arith.hs', 'Haskell/Core/Simplicity/Programs/Word.hs', 'Haskell/Core/Simplicity/Programs/Generic.hs', 'Haskell/Core/Simplicity/Programs/Bit.hs']:
   dst=repo/relative;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(project/relative,dst)
- assert gate.check(coq,repo)==4
+ assert gate.check(coq,repo)==5
  for kind,relative,old,new in mutations:
   path=(coq if kind=='coq' else repo)/relative
   original=path.read_text();assert old in original,(relative,old)
@@ -111,5 +122,5 @@ with tempfile.TemporaryDirectory(prefix='secp-predicate-gate.') as tmp:
   except ValueError:pass
   else:raise AssertionError((relative,old))
   finally:path.write_text(original)
- assert gate.check(coq,repo)==4
+ assert gate.check(coq,repo)==5
 print(f'predicate source gate passed; rejected {len(mutations)} meaningful mutations')
