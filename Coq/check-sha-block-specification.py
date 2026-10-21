@@ -2325,6 +2325,32 @@ def elements_issuance_computed(s):
         uint32_array_at m b (ofs + 256 + delta) (hash256_reg (to_hash256 h))''')
 
 
+def elements_annex_context(s):
+    """The shared literal annex program also describes the original Elements jet.
+    Shared context trees/encoders have mandatory checks above; retain both
+    assertion outcomes, the initialized SHA globals and external memcpy premise.
+    """
+    for key, lhs, expected in [
+        ('elements_catalog', 'specificationSigHash AnnexHash', 'Prog.annexHash'),
+        ('elements_prog_lib', 'annexHash', 'Elements.annexHash Elements.libAssert'),
+        ('elements_prog', 'libAssert', 'mkLibAssert Sha256.lib Sha256.libAssert LibSecp256k1.lib'),
+    ]:
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('Elements annex library binding differs: ' + lhs)
+    p.require(s['elements_catalog'], 'AnnexHash :: SigHashJet (Ctx8, S Word256) Ctx8', 'annex context jet type')
+    for key, theorem, predicate, program in [
+        ('elements_annex_exec', 'elements_annex_hash_local_spec', 'nonce_sha_partial_local_spec',
+         '(fun a => @annex_hash_spec optalg a)'),
+        ('elements_annex_context_port', 'elements_annex_hash_literal_local_spec', 'nonce_elements_partial_local_spec',
+         '(@literal_bitcoin_annex_hash optalg)'),
+    ]:
+        statement = re.search(r'Theorem ' + theorem + r'\s*:(.*?)\bProof\.', s[key], re.S)
+        expected = ('memcpy_model -> ' + predicate + ' f_simplicity_annex_hash '
+                    '(Ty.Prod sha256_ctx8_type (Ty.Sum Ty.Unit (Word 8))) sha256_ctx8_type ' + program + '.')
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError('Elements annex whole original C contract differs: ' + theorem)
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -2407,6 +2433,8 @@ def sources():
         "elements_calc_port": COQ / "C/jet_elements_issuance_calc_literal.v",
         "elements_computed_port": COQ / "C/jet_elements_issuance_computed_literal.v",
         "elements_computed_exec": COQ / "C/jet_elements_issuance_computed_exec.v",
+        "elements_annex_exec": COQ / "C/jet_elements_annex_context_exec.v",
+        "elements_annex_context_port": COQ / "C/jet_elements_annex_context_literal.v",
         "elements_issuance_program": REPO / "Haskell/Simplicity/Elements/Programs/Issuance.hs",
         "elements_issuance_lib": REPO / "Haskell/Simplicity/Elements/Programs/Issuance/Lib.hs",
         "elements_prog": REPO / "Haskell/Core/Simplicity/Programs/Elements.hs",
@@ -2450,6 +2478,7 @@ def test():
     elements_blinding_entropy_hash(s)
     elements_issuance_status(s)
     elements_issuance_computed(s)
+    elements_annex_context(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -3333,6 +3362,37 @@ def test():
             continue
         raise ValueError('computed issuance mutation escaped: ' + old)
     print('Computed issuance literal calculations, primitive routing and whole C contracts match;', len(elements_computed_mutations), 'mutations rejected')
+
+    elements_annex_mutations = [
+        ('elements_catalog', 'specificationSigHash AnnexHash = Prog.annexHash', 'specificationSigHash AnnexHash = Prog.nonceHash'),
+        ('elements_prog_lib', 'annexHash = Elements.annexHash Elements.libAssert', 'annexHash = Elements.nonceHash Elements.libAssert'),
+        ('elements_annex_context_port', 'nonce_elements_partial_local_spec f_simplicity_annex_hash', 'nonce_elements_partial_local_spec f_simplicity_nonce_hash'),
+        ('elements_annex_context_port', '(@literal_bitcoin_annex_hash optalg)', '(@literal_bitcoin_outpoint_hash optalg)'),
+        ('elements_annex_context_port', '(Ty.Sum Ty.Unit (Word 8))', '(Ty.Sum Ty.Unit (Word 6))'),
+        ('elements_annex_exec', 'nonce_sha_partial_local_spec f_simplicity_annex_hash', 'nonce_sha_partial_local_spec f_simplicity_nonce_hash'),
+        ('elements_annex_exec', '(fun a => @annex_hash_spec optalg a)', '(fun a => @outpoint_hash_spec optalg a)'),
+    ]
+    for key, theorem in [
+        ('elements_annex_exec', 'elements_annex_hash_local_spec'),
+        ('elements_annex_context_port', 'elements_annex_hash_literal_local_spec'),
+    ]:
+        declaration = 'Theorem ' + theorem + ' : memcpy_model ->'
+        elements_annex_mutations += [
+            (key, declaration, 'Theorem ' + theorem + ' :'),
+            (key, declaration, declaration + ' False ->'),
+            (key, declaration, declaration + ' sha_globals_ok Mem.empty ->'),
+        ]
+    for key, old, new in elements_annex_mutations:
+        if old not in s[key]:
+            raise ValueError('inactive Elements annex mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_annex_context(changed)
+        except ValueError:
+            continue
+        raise ValueError('Elements annex mutation escaped: ' + old)
+    print('Elements annex shared literal program and complete partial C boundary match;', len(elements_annex_mutations), 'mutations rejected')
 
 
 if __name__ == "__main__":

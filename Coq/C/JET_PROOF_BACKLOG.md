@@ -582,6 +582,14 @@ Normal compilation and source checks pass; the reviewed snapshots and pending
 acceptance command are described in `JET_ACCEPTANCE.md`. These three candidates
 do not yet increase accepted coverage.
 
+## Candidate: Elements annex context hashing
+
+`jet_elements_annex_context_literal.v` now composes the original context jet
+with the shared literal annex program and existing nonce/SHA frame contract.
+The normal build and source checks pass, including assertion-failure cases.
+It retains explicit SHA-global and `memcpy_model` premises and is not yet
+registered or accepted. See `JET_ACCEPTANCE.md` for scope and the command.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

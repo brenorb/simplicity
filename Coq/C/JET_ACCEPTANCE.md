@@ -758,3 +758,35 @@ bash Coq/check-jets.sh --accept --jets=simplicity_issuance_entropy,simplicity_is
 The real Elements builder must still establish the cached-value relation.
 Existing caller/domain/layout and host-library obligations remain; the
 production C, original specifications, API and generation settings are fixed.
+
+## Candidate: Elements annex context hashing
+
+`jet_elements_annex_context_exec.v` composes the original `annex_hash` C jet
+with existing Elements SHA execution support. It reuses the nonce source-copy,
+context-reader, counter and memory-preservation infrastructure; it does not
+copy four complete SHA-jet proof modules into another namespace. The literal
+endpoint reuses `literal_bitcoin_annex_hash`, whose tree is also the canonical
+Elements `annexHash` program, and the existing generic
+`nonce_elements_partial_local_spec` contract over the actual Elements program.
+
+Both absent and present payloads are covered (one absorbed zero byte versus
+prefix one plus 32 bytes), including all input context/count values and both
+assertion outcomes. The full call derives entry, source copy, SHA updates,
+output serialization, return/free and the original framing observations.
+There is no cache-value, execution, desired-output or success premise. The
+explicit `memcpy_model` and initialized SHA dispatch/counter premises remain;
+general caller initialization and libc linkage are not proved by this result.
+Both C endpoints use the same six inherited library assumptions.
+
+Normal compilation passes after rebuilding unchanged stale objects under the
+pinned toolchain. Fifteen theorem records and thirteen definitions are added
+in two modules. The existing source checker reuses the shared literal-tree
+checks and rejects thirteen further complete-contract/binding mutations.
+This candidate is not registered or accepted yet; ordinary scoped acceptance
+is required after registration:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_annex_hash
+```
+
+No production C, original specification, API or generation setting changed.
