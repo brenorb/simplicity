@@ -1183,36 +1183,59 @@ premise is required.
 `double_helper_source` identifies the original generated body exactly as the
 flag load/store followed by `double_arithmetic_body`.
 `exec_double_arithmetic_owned` executes that actual arithmetic suffix from
-owned storage, discharging every call premise internally. It is not yet an
-execution/equivalence theorem for the whole helper or public jet. These modules
-pass the ordinary build, focused assumption/contract audits and recursive kernel
-checks, with the same six inherited execution assumptions and no new libc
-premise. Coverage is unchanged. Reproduce with the baseline toolchain and
-dependencies described above:
+owned storage, discharging every call premise internally. The subsequent
+`double_flag_copy_owned` derives preservation of all three coordinate fields
+and permissions from the real Mint32 flag store. `exec_double_body_owned`
+executes the complete original body. `eval_double_function` composes both
+parameter bindings, the three actual allocations, that body, the void result
+and all frees. Allocation order is L/S/T; the checked `blocks_of_env` free
+order is S/L/T. It accepts arbitrary bounded coordinates and any integer flag.
+
+`eval_point_normalizes_zero` reuses the checked variable-time zero-test
+arithmetic on any owned point coordinate, including loose limbs and the early
+return. The final result is zero modulo the field prime, not merely a test of
+canonical limbs. Do not substitute `fe_is_zero` for this actual C helper.
+
+`jet_secp_double_var_statements.v` proves the original NULL-rzr dispatch
+statements for both branches. `eval_double_var_owned` now composes the entire
+original `secp256k1_gej_double_var` function, with both point parameters aliased
+and the actual 64-bit NULL value for `rzr`. Its finite branch derives the
+arithmetic outputs, Z-zero test and final flag store; its incoming-infinity
+branch reuses the real initializer and returns zero coordinates. All field
+preservation, flag-store existence, ownership and external-memory framing are
+derived internally. There is no on-curve or nonzero-coordinate hypothesis and
+no intermediate call/output premise in that theorem.
+
+These are execution/output results, **not yet** a complete public jet or
+literal-specification equivalence. Coverage is unchanged. Reproduce the normal
+build and recursive kernel check with the baseline toolchain and dependencies
+described above; focused assumption/contract audits use the existing scripts
+and each module's reviewed snapshots:
 
 ```sh
-JET_TARGETS=C/jet_secp_double_body_owned.vo bash Coq/build-jets.sh -j2
+JET_TARGETS=C/jet_secp_double_var_owned.vo bash Coq/build-jets.sh -j2
 ulimit -S -s 65520
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_body_owned
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_var_owned
 ```
 
-Next execute the flag load/store and compose helper entry and frees. For the
-flag store at bytes [120,124), derive preservation of X/Y/Z and permissions
-before invoking the checked arithmetic suffix; do not assume those post-store
-facts or require the memory to be literally unchanged. Reuse the three-field
-allocation/free pattern in `jet_secp_gej_curve_function.v`, but check this
-helper's parameter bindings and `blocks_of_env` order rather than copying them.
-Then handle `secp256k1_gej_double_var` with NULL `rzr`, including the input-infinity
-branch and the actual post-doubling Z-zero test/flag store. Connect the actual
-halving result and final coordinates to `literal_gej_double`, then compose the
-public read/write/lifecycle contract. The value identities alone do not
-discharge this implementation-to-literal bridge.
+Next connect the actual halving result and final coordinates to
+`literal_gej_double`, then compose the public read/write/lifecycle contract.
+Reuse `half_value_identity`, the small-multiplier/sum identities and the
+selected square/product modulo-prime lemmas. For the literal half-word shift,
+`jet_vector_shift_word.v` already provides `full_right_shift1_value`, quotient
+and remainder lemmas; a new shift execution framework is unnecessary. Derive
+the literal `fe_halve` value, its agreement with the C half modulo the prime,
+and then all three output-coordinate equalities. Finally connect the actual
+reader's infinity flag to the literal infinity predicate and use the general
+point writer. The existing integer identities alone do not discharge this
+implementation-to-literal bridge or the public wrapper lifecycle.
 
 Follow the writer body, which writes X/Y/Z unconditionally: an infinity flag
 alone does not imply all-zero stored coordinates. In particular, retain the
 finite-input Y=0 case; its final infinity flag can be true while the stored
 X/Y are nonzero. The input-infinity branch explicitly sets all coordinates to
-zero. These next steps are a plan, not additional proved coverage.
+zero. The remaining bridge and public composition are a plan, not additional
+proved coverage.
 
 ## Source-review question: Elements fee predicates
 
