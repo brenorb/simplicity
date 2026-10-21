@@ -8,6 +8,7 @@ Require Import C.jet_secp_square_numeric C.jet_secp_square_columns C.jet_secp_sq
 Require Import C.jet_secp_point_mul_storage C.jet_secp_point_mul_numeric.
 Require Import C.jet_secp_field_read_preservation.
 Require Import C.jet_secp_curve_square C.jet_secp_curve_square_caller C.jet_secp_curve_mul C.jet_secp_curve_frame.
+Require Import C.jet_secp_curve_tail.
 Import Ctypes Values ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -83,4 +84,56 @@ Proof.
   - eapply lframe_trans.
     + eapply lframe_implies; [exact E2|]. intros b pos (HNotA & HNotY & HNotX) HV; split; assumption.
     + eapply lframe_implies; [exact E3|]. intros b pos (HNotA & HNotY & HNotX) HV; split; assumption.
+Qed.
+
+Theorem curve_six_arithmetic_calls x y m ba b_y2 bx :
+  square_input_bounds x -> square_input_bounds y -> ba<>b_y2 -> ba<>bx -> b_y2<>bx ->
+  fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) ->
+  Mem.range_perm m ba 0 88 Cur Freeable ->
+  Mem.range_perm m b_y2 0 40 Cur Freeable -> Mem.range_perm m bx 0 40 Cur Freeable ->
+  exists m1 m2 m3 m4 m5 mf,
+  Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_sqr)
+    [Vptr b_y2 Ptrofs.zero;Vptr ba (Ptrofs.repr 40)] E0 m1 Vundef /\
+  Clight2.eval_funcall secp_ge m1 (Internal f_secp256k1_fe_sqr)
+    [Vptr bx Ptrofs.zero;Vptr ba Ptrofs.zero] E0 m2 Vundef /\
+  Clight2.eval_funcall secp_ge m2 (Internal f_secp256k1_fe_mul)
+    [Vptr bx Ptrofs.zero;Vptr bx Ptrofs.zero;Vptr ba Ptrofs.zero] E0 m3 Vundef /\
+  Clight2.eval_funcall secp_ge m3 (Internal f_secp256k1_fe_add_int)
+    [Vptr bx Ptrofs.zero;Vint (Int.repr 7)] E0 m4 Vundef /\
+  Clight2.eval_funcall secp_ge m4 (Internal f_secp256k1_fe_normalize_weak)
+    [Vptr bx Ptrofs.zero] E0 m5 Vundef /\
+  Clight2.eval_funcall secp_ge m5 (Internal f_secp256k1_fe_equal_var)
+    [Vptr b_y2 Ptrofs.zero;Vptr bx Ptrofs.zero] E0 mf
+    (Vint (if Z.eqb ((radix_value y * radix_value y) mod feP)
+      ((radix_value x * radix_value x * radix_value x+7) mod feP) then Int.one else Int.zero)) /\
+  fe_at mf ba 0 (words5 x) /\ fe_at mf ba 40 (words5 y) /\
+  Mem.range_perm mf ba 0 88 Cur Freeable /\
+  Mem.range_perm mf b_y2 0 40 Cur Freeable /\ Mem.range_perm mf bx 0 40 Cur Freeable /\
+  lframe (fun b _ => b<>ba /\ b<>b_y2 /\ b<>bx) m mf.
+Proof.
+  intros BX BY HAY HAX HYX HX HY HFA HFY HFX.
+  destruct (curve_square_cube_calls x y m ba b_y2 bx BX BY HAY HAX HYX HX HY HFA HFY HFX)
+    as (m1 & m2 & m3 & C1 & C2 & C3 & Y3 & X3 & A3X & A3Y & AF3 & YF3 & XF3 & VY & VC & BY3 & BX3 & FPrefix).
+  destruct (curve_tail_calls (square_words y) (point_mul_words (square_words x) x)
+    m3 b_y2 bx HYX BY3 BX3 Y3 X3 YF3 XF3)
+    as (m4 & m5 & mf & C4 & C5 & C6 & YF6 & XF6 & FTail).
+  pose proof (field_at_lframe m3 mf ba 0 (words5 x) _ A3X FTail
+    ltac:(intro pos; split; assumption)) as A6X.
+  pose proof (field_at_lframe m3 mf ba 40 (words5 y) _ A3Y FTail
+    ltac:(intro pos; split; assumption)) as A6Y.
+  pose proof (curve_keep_free _ m3 mf ba 88 ltac:(lia) AF3 FTail
+    ltac:(intro pos; split; assumption)) as AF6.
+  assert (HPlus : (radix_value (point_mul_words (square_words x) x)+7) mod feP =
+    (radix_value x * radix_value x * radix_value x+7) mod feP).
+  { transitivity ((radix_value (point_mul_words (square_words x) x) mod feP + 7) mod feP).
+    - symmetry; apply Zplus_mod_idemp_l.
+    - rewrite VC. apply Zplus_mod_idemp_l. }
+  rewrite VY, HPlus in C6.
+  exists m1,m2,m3,m4,m5,mf.
+  split; [exact C1|]. split; [exact C2|]. split; [exact C3|].
+  split; [exact C4|]. split; [exact C5|]. split; [exact C6|].
+  split; [exact A6X|]. split; [exact A6Y|]. split; [exact AF6|].
+  split; [exact YF6|]. split; [exact XF6|].
+  eapply lframe_trans; [exact FPrefix|].
+  eapply lframe_implies; [exact FTail|]. intros b pos [_ [HNotY HNotX]] HV; split; assumption.
 Qed.

@@ -835,7 +835,7 @@ Caller/cache establishment, libc and evaluator obligations remain separate.
 ## Next claimed target: ge_is_on_curve
 
 The main session claims `simplicity_ge_is_on_curve` in `JET_CLAIMS.md`.
-Eleven ordinary modules now compile as internal support, not a registered curve
+Thirteen ordinary modules now compile as internal support, not a registered curve
 jet or a new acceptance result:
 
 - `jet_secp_field_add7.v`: actual `fe_add_int(7)`, exact field-value increment,
@@ -861,14 +861,21 @@ jet or a new acceptance result:
   the actual Y-square, X-square and in-place cube calls in C order. It derives
   both modular values, tight bounds, source-field preservation and ownership
   across all three memories; neither temporary needs initialization.
+- `jet_secp_curve_tail{,_values}.v` and `curve_six_arithmetic_calls` now compose
+  all six actual arithmetic calls in C order. The returned C integer is exactly
+  the comparison of Y² with X³+7 modulo the field prime, derived from the initial
+  limbs. Both private temporaries and the affine input remain Freeable; input
+  fields and external framing are preserved. This is a complete arithmetic-call
+  composition, not yet the containing Clight statement/function or literal jet.
 
 These are C execution-plus-value contracts, not just relations between jet
 specifications. Their integer bridges are closed; execution contracts retain
 only the six inherited library assumptions. No extra libc model is needed.
 
 Next compose the actual `f_secp256k1_ge_is_valid_var` in `jets_secp.v`: infinity
-test, the now-composed square/cube prefix, +7, weak normalization and equality.
-Derive the prefix's private buffer premises from actual allocations. Reuse the selected square proof and existing
+test, the now-composed six arithmetic calls, result conversion and freeing.
+Derive the call composition's private buffer premises from actual allocations.
+Reuse the selected square proof and existing
 `point_mul_table`/`fm_solves`/field arithmetic through the new 40-/88-byte
 storage adapters, rather than imposing unrelated 128-/40-byte ownership.
 Prove private allocations, preservation, result conversion and frees, then the
