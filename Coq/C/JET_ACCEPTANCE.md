@@ -93,7 +93,7 @@ ten are newly accepted registrations.
   do not identify the ordinary SHA translation unit with the Elements program.
 - Shared frame/evaluator admissibility and exhaustive inherited canonical
   fidelity review remain open; see `JET_INHERITED_REVIEW.md`.
-- The remaining 89 header declarations have no registered final contract.
+- The remaining 49 header declarations have no registered final contract.
   Cached Bitcoin hashes and SHA startup helpers are support until their raw-data
   and operational boundaries meet the public coverage requirements.
 
@@ -790,6 +790,39 @@ issuance getters. Reproduce the checked scope with:
 
 ```sh
 bash Coq/check-jets.sh --accept --jets=simplicity_issuance_entropy,simplicity_issuance_asset,simplicity_issuance_token,simplicity_annex_hash
+```
+
+No production C, original specification, API or generation setting changed.
+
+## Candidates: Elements tapleaf and tapbranch builders
+
+`C.jet_elements_tap_builders_literal` supplies the complete original C calls
+for `simplicity_build_tapleaf_simplicity` and `simplicity_build_tapbranch`,
+against `literal_elements_build_tapleaf` and `literal_elements_build_tapbranch`.
+The literal adapters reuse the accepted shared tapleaf payload and universal
+SHA block bridge. Their closed tag equalities use `TapLeaf/elements` and
+`TapBranch/elements`; the leaf version is 190. Branch ordering covers both
+orders and equality. The Elements global environment is the actual
+`jets_elements.prog`, not an identification with the SHA-only program.
+
+The initialized frame contract retains arbitrary valid input/output cursors,
+pre-existing output bits, the C return value, output encoding, prefix/cursor
+preservation and external framing. The explicit `memcpy_model` premise and
+initial SHA dispatch/counter and raw tag-byte relations remain. Startup from
+the program's initial memory and concrete libc linkage are not discharged by
+these local theorems; there is no assumed intermediate execution or digest.
+The fixed host tag recipe is source-reviewed, not a general proof of the
+Haskell cryptographic runtime.
+
+Normal compilation passes for all twelve added modules. The literal Core
+bridges are closed; the two public execution endpoints use only the six
+inherited library assumptions. The existing source checker compares the full
+shared payload trees, exact tags, actual linkage and complete contracts, and
+rejects 29 further mutations. These candidates are not registered or accepted
+yet. After snapshot review and registration, run:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_build_tapleaf_simplicity,simplicity_build_tapbranch
 ```
 
 No production C, original specification, API or generation setting changed.

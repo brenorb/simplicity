@@ -591,6 +591,17 @@ It retains explicit SHA-global and `memcpy_model` premises and passed ordinary
 scoped acceptance together with the computed issuance getters. See
 `JET_ACCEPTANCE.md` for scope and the command.
 
+## Candidates: Elements taproot builders
+
+Both whole original C builder calls now compile in
+`jet_elements_tap_builders_literal.v`. The Elements-specific tagged-context,
+hash-I/O and comparison execution modules reuse the existing SHA and nonce
+frame infrastructure. Literal adapters share the accepted tapleaf payload,
+universal SHA bridge and fixed host tag recipe. Their initialized frame
+contracts retain `memcpy_model`, SHA dispatch/counter and actual tag-byte
+premises. These two candidates do not increase accepted coverage yet; the
+scope and required ordinary acceptance command are in `JET_ACCEPTANCE.md`.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

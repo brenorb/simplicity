@@ -2351,6 +2351,82 @@ def elements_annex_context(s):
             raise ValueError('Elements annex whole original C contract differs: ' + theorem)
 
 
+def elements_tap_builders(s):
+    """Reuse the checked Bitcoin payload tree, with actual Elements tags/ge.
+    This is correspondence and boundary checking, not a new execution oracle.
+    """
+    def binding(key, lhs, expected):
+        actual = hbody(s[key], lhs)
+        if re.findall(r'"([^"]*)"', actual) != re.findall(r'"([^"]*)"', expected):
+            raise ValueError('Elements builder literal string differs: ' + lhs)
+        if p.compact(actual) != p.compact(expected):
+            raise ValueError('Elements builder binding differs: ' + lhs)
+
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('Elements builder definition differs: ' + name)
+
+    def hs_program(key, name):
+        library = s[key].split('mkLib Sha256.Lib{..} = lib', 1)[1]
+        found = re.search(r'\b' + name + r'\s*=(.*?)\n\s*[,}]', library, re.S)
+        if not found:
+            raise ValueError('missing Elements builder tree: ' + name)
+        return found[1]
+
+    binding('elements_prog', 'lib', 'mkLib Sha256.lib')
+    binding('elements_prog', 'simplicityVersion', 'scribe . toWord8 $ 0xbe')
+    definition('eltap_linkage', 'sha_ge', 'Clight.globalenv jets_elements.prog')
+    if p.compact(p.definition(s['eltap_contract'], 'elements_sha_local_spec_pre')) != p.compact(
+            p.definition(s['sha_original_tap_contract'], 'sha_jet_local_spec_pre')):
+        raise ValueError('Elements initialized-frame contract differs from the existing complete SHA contract')
+    p.require(s['eltap_contract'], 'Require Import C.jet_elements_support_sha_linkage.',
+              'actual Elements program contract linkage')
+
+    for tag, name, stem, size, field in [
+        ('BuildTapleafSimplicity', 'buildTapleafSimplicity', 'leaf', 'Word256', '_tagName__1'),
+        ('BuildTapbranch', 'buildTapbranch', 'branch', '(Word256, Word256)', '_tagName__2'),
+    ]:
+        label = 'TapLeaf/elements' if stem == 'leaf' else 'TapBranch/elements'
+        short = 'TapLeaf' if stem == 'leaf' else 'TapBranch'
+        prefix = 'tapleafPrefix' if stem == 'leaf' else 'tapbranchPrefix'
+        binding('elements_catalog', 'specificationSigHash ' + tag, 'Prog.' + name)
+        p.require(s['elements_catalog'], tag + ' :: SigHashJet ' + size + ' Word256', 'Elements builder catalog type')
+        binding('elements_prog_lib', name, 'Elements.' + name + ' Elements.lib')
+        binding('elements_prog', prefix,
+                'scribe . toWord256 . integerHash256 . ivHash . tagIv $ fromString "' + label + '"')
+        if p.compact(hs_program('elements_prog', name)) != p.compact(hs_program('bitcoin_prog', name)):
+            raise ValueError('Elements/Bitcoin shared builder payload tree differs: ' + name)
+        port_name = 'literal_elements_build_tap' + stem
+        port = p.definition(s['eltap_builders_port'], port_name)
+        if re.findall(r'"([^"]*)"', port) != [label]:
+            raise ValueError('Elements builder port tag differs: ' + name)
+        shared = p.definition(s['bt_port'], 'literal_build_tap' + stem)
+        if p.compact(port.replace('"' + label + '"', '"' + short + '"')) != p.compact(shared):
+            raise ValueError('Elements builder shared literal Core tree differs: ' + name)
+
+        helper = 'eltap_' + stem + '_exec'
+        globals_key = 'eltap_' + stem + '_public'
+        ints = 'el_tap' + stem + '_tag_ints'
+        ready = 'el_sha_tap' + stem + '_tag_ok'
+        n = len(label)
+        definition(helper, ints, 'map Int.repr [' + '; '.join(str(ord(c)) for c in label) + ']')
+        definition(helper, ready, '''
+          forall i, (i < ''' + str(n) + ''')%nat ->
+            Mem.load Mint8unsigned m (sha_symbol_block ''' + field + ''') (Z.of_nat i) =
+              Some (Vint (nth i ''' + ints + ''' Int.zero))''')
+        pre = 'el_sha_tap' + stem + '_pre'
+        definition(globals_key, pre, 'sha_globals_ok m /\\ ' + ready + ' m')
+        theorem = ('elements_build_tapleaf_simplicity_literal_local_spec' if stem == 'leaf'
+                   else 'elements_build_tapbranch_literal_local_spec')
+        function = 'f_simplicity_build_tap' + stem + ('_simplicity' if stem == 'leaf' else '')
+        depth = 8 if stem == 'leaf' else 9
+        statement = re.search(r'Theorem ' + theorem + r'\s*:(.*?)\bProof\.', s['eltap_builders_port'], re.S)
+        expected = ('memcpy_model -> elements_sha_local_spec_pre ' + pre + ' ' + function +
+                    ' (Word ' + str(depth) + ') (Word 8) (@' + port_name + ' Alg.CoreFunSem).')
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError('Elements builder whole C boundary differs: ' + theorem)
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -2433,6 +2509,14 @@ def sources():
         "elements_calc_port": COQ / "C/jet_elements_issuance_calc_literal.v",
         "elements_computed_port": COQ / "C/jet_elements_issuance_computed_literal.v",
         "elements_computed_exec": COQ / "C/jet_elements_issuance_computed_exec.v",
+        "sha_original_tap_contract": COQ / "C/jet_sha_tapdata_jet.v",
+        "eltap_linkage": COQ / "C/jet_elements_support_sha_linkage.v",
+        "eltap_builders_port": COQ / "C/jet_elements_tap_builders_literal.v",
+        "eltap_contract": COQ / "C/jet_elements_tap_contract.v",
+        "eltap_leaf_exec": COQ / "C/jet_elements_make_tapleaf_exec.v",
+        "eltap_branch_exec": COQ / "C/jet_elements_make_tapbranch_exec.v",
+        "eltap_leaf_public": COQ / "C/jet_elements_build_tapleaf_jet.v",
+        "eltap_branch_public": COQ / "C/jet_elements_build_tapbranch_jet.v",
         "elements_annex_exec": COQ / "C/jet_elements_annex_context_exec.v",
         "elements_annex_context_port": COQ / "C/jet_elements_annex_context_literal.v",
         "elements_issuance_program": REPO / "Haskell/Simplicity/Elements/Programs/Issuance.hs",
@@ -2479,6 +2563,7 @@ def test():
     elements_issuance_status(s)
     elements_issuance_computed(s)
     elements_annex_context(s)
+    elements_tap_builders(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -3393,6 +3478,53 @@ def test():
             continue
         raise ValueError('Elements annex mutation escaped: ' + old)
     print('Elements annex shared literal program and complete partial C boundary match;', len(elements_annex_mutations), 'mutations rejected')
+
+    elements_builder_mutations = [
+        ('elements_prog', 'scribe . toWord8 $ 0xbe', 'scribe . toWord8 $ 0xbc'),
+        ('elements_prog', 'lt word256 &&& iden >>> cond iden (ih &&& oh)', 'lt word256 &&& iden >>> cond iden (oh &&& ih)'),
+        ('elements_prog', 'toWord512 $ 2^511 + 1024', 'toWord512 $ 2^511 + 512'),
+        ('eltap_builders_port', '&&& @literal_build_tapleaf_block term >>> @literal_sha_256_block term.', '&&& @build_tapleaf_block term >>> @literal_sha_256_block term.'),
+        ('eltap_builders_port', '@lt_word_spec term 8', '@lt_word_spec term 7'),
+        ('eltap_builders_port', 'Bit.cond iden (I H &&& O H)', 'Bit.cond iden (O H &&& I H)'),
+        ('eltap_builders_port', 'haskell_to_word 9 (2^511+1024)', 'haskell_to_word 9 (2^511+512)'),
+        ('eltap_contract', 'frame_base_valid sbase ->', 'False -> frame_base_valid sbase ->'),
+        ('eltap_contract', 'write_prefix_at m mf bw outedge cursor /\\', 'True /\\'),
+        ('eltap_contract', 'E0 mf (Vint Int.one)', 'E0 mf Vundef'),
+        ('eltap_linkage', 'Clight.globalenv jets_elements.prog', 'Clight.globalenv jets_sha.prog'),
+    ]
+    for stem, tag, hs_name, label, field, size in [
+        ('leaf', 'BuildTapleafSimplicity', 'buildTapleafSimplicity', 'TapLeaf/elements', '_tagName__1', 16),
+        ('branch', 'BuildTapbranch', 'buildTapbranch', 'TapBranch/elements', '_tagName__2', 18),
+    ]:
+        theorem = ('elements_build_tapleaf_simplicity_literal_local_spec' if stem == 'leaf'
+                   else 'elements_build_tapbranch_literal_local_spec')
+        declaration = 'Theorem ' + theorem + ' : memcpy_model ->'
+        elements_builder_mutations += [
+            ('elements_catalog', 'specificationSigHash ' + tag + ' = Prog.' + hs_name,
+             'specificationSigHash ' + tag + ' = Prog.annexHash'),
+            ('elements_prog_lib', hs_name + ' = Elements.' + hs_name + ' Elements.lib',
+             hs_name + ' = Elements.annexHash Elements.libAssert'),
+            ('eltap_builders_port', '(unit >>> Alg.scribe (literal_short_tag_prefix "' + label + '"%string))',
+             '(unit >>> Alg.scribe (literal_short_tag_prefix "' + label + ' "%string))'),
+            ('eltap_builders_port', '(unit >>> Alg.scribe (literal_short_tag_prefix "' + label + '"%string))',
+             '(unit >>> Alg.scribe (literal_short_tag_prefix "' + label.replace('/', ' /') + '"%string))'),
+            ('eltap_builders_port', declaration, declaration + ' False ->'),
+            ('eltap_builders_port', declaration, 'Theorem ' + theorem + ' :'),
+            ('eltap_' + stem + '_exec', '(i < ' + str(size) + ')%nat', '(i < ' + str(size - 1) + ')%nat'),
+            ('eltap_' + stem + '_exec', '(sha_symbol_block ' + field + ')', '(sha_symbol_block _tagName)'),
+            ('eltap_' + stem + '_public', 'sha_globals_ok m /\\ el_sha_tap' + stem + '_tag_ok m', 'sha_globals_ok m'),
+        ]
+    for key, old, new in elements_builder_mutations:
+        if old not in s[key]:
+            raise ValueError('inactive Elements builder mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_tap_builders(changed)
+        except ValueError:
+            continue
+        raise ValueError('Elements builder mutation escaped: ' + old)
+    print('Elements taproot builders share checked literal payloads with exact tags/ge and full C boundaries;', len(elements_builder_mutations), 'mutations rejected')
 
 
 if __name__ == "__main__":

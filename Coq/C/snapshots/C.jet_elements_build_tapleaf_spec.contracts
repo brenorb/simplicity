@@ -1,0 +1,198 @@
+### C.jet_elements_build_tapleaf_spec.el_be_bytes_word
+el_be_bytes_word
+     : forall w : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+       @eq (list Integers.Int.int)
+         (jet_elements_support_sha_be32_write.c_be32_bytes
+            (Integers.Int64.repr (Integers.Int.unsigned (jet_read32s_layout.word32_array_value w))))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (jet_sha_ctx8_model.word_bytes w))
+### C.jet_elements_build_tapleaf_spec.el_be_bytes_words
+el_be_bytes_words
+     : forall ws : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq (list Integers.Int.int)
+         (jet_elements_support_sha_be32_write.be_bytes
+            (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+               jet_read32s_layout.word32_array_value ws))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (@List.flat_map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (Ty.tySem (Word.Word (S (S (S O)))))
+               jet_sha_ctx8_model.word_bytes ws))
+### C.jet_elements_build_tapleaf_spec.el_be_bytes_state_regs
+el_be_bytes_state_regs
+     : forall h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (list Integers.Int.int) (jet_elements_support_sha_be32_write.be_bytes (jet_sha_ctx8_model.state_regs h))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) h))
+### C.jet_elements_build_tapleaf_spec.el_build_tapleaf_spec_parametric
+el_build_tapleaf_spec_parametric
+     : @Alg.Core.Parametric (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@el_build_tapleaf_spec)
+### C.jet_elements_build_tapleaf_spec.el_build_tapleaf_block_bytes
+el_build_tapleaf_block_bytes
+     : forall a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (list (Ty.tySem (Word.Word (S (S (S O))))))
+         (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S (S O))))))
+            (@el_build_tapleaf_block Alg.CoreFunSem a))
+         (@app (Ty.tySem (Word.Word (S (S (S O)))))
+            (@cons (Ty.tySem (Word.Word (S (S (S O))))) el_tl_version
+               (@cons (Ty.tySem (Word.Word (S (S (S O))))) jet_bitcoin_tapleaf_hash_spec.byte32
+                  (@nil (Ty.tySem (Word.Word (S (S (S O))))))))
+            (@app (Ty.tySem (Word.Word (S (S (S O)))))
+               (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) a) el_tl_pad))
+### C.jet_elements_build_tapleaf_spec.el_build_tapleaf_spec_value
+el_build_tapleaf_spec_value
+     : forall a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@el_build_tapleaf_spec Alg.CoreFunSem a)
+         (@SHA256.hashBlock Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))) jet_elements_tap_tags.el_tapleaf_prefix
+               (@el_build_tapleaf_block Alg.CoreFunSem a)))
+### C.jet_elements_build_tapleaf_spec.el_tl_version
+el_tl_version =
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S O))))
+  (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     : Ty.tySem (Word.Word (S (S (S O))))
+### C.jet_elements_build_tapleaf_spec.el_tl_w8000
+el_tl_w8000 =
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))
+     : Ty.tySem (Word.Word (S (S (S (S O)))))
+### C.jet_elements_build_tapleaf_spec.el_tl_len
+el_tl_len =
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S O))))))))
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+     : Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))
+### C.jet_elements_build_tapleaf_spec.el_build_tapleaf_block
+el_build_tapleaf_block =
+fun term : Alg.Core.Algebra =>
+@AC.comp (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+  (Ty.Prod (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))
+     (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))))
+  (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+     (Ty.Prod
+        (Ty.Prod
+           (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+              (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+        (Word.Word (S (S (S (S (S (S (S O)))))))))) term
+  (@AC.pair (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+     (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))
+     (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) term
+     (@AC.comp (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) Ty.Unit
+        (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) term
+        (@AC.unit (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) term)
+        (@AC.pair Ty.Unit (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))) term
+           (@Alg.scribe Ty.Unit (Word.Word (S (S (S O)))) el_tl_version term)
+           (@Alg.scribe Ty.Unit (Word.Word (S (S (S O)))) jet_bitcoin_tapleaf_hash_spec.byte32 term)))
+     (@AC.iden (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) term))
+  (@AC.comp (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))))
+     (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+     (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+        (Ty.Prod
+           (Ty.Prod
+              (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+                 (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+           (Word.Word (S (S (S (S (S (S (S O)))))))))) term
+     (@Word.full_right_shift1 (Word.Word (S (S (S (S O))))) (S (S (S (S O)))) term)
+     (@AC.pair (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+        (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+        (Ty.Prod
+           (Ty.Prod
+              (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+                 (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+           (Word.Word (S (S (S (S (S (S (S O))))))))) term
+        (@AC.take (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))
+           (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) term
+           (@AC.iden (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) term))
+        (@AC.pair (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+           (Ty.Prod
+              (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+                 (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+           (Word.Word (S (S (S (S (S (S (S O)))))))) term
+           (@AC.pair
+              (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+              (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+                 (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))) term
+              (@AC.pair
+                 (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+                 (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+                 (Word.Word (S (S (S (S (S O)))))) term
+                 (@AC.pair
+                    (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+                       (Word.Word (S (S (S (S O)))))) (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) term
+                    (@AC.drop (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+                       (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) term
+                       (@AC.iden (Word.Word (S (S (S (S O))))) term))
+                    (@AC.comp
+                       (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+                          (Word.Word (S (S (S (S O)))))) Ty.Unit (Word.Word (S (S (S (S O))))) term
+                       (@AC.unit
+                          (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+                             (Word.Word (S (S (S (S O)))))) term)
+                       (@Alg.scribe Ty.Unit (Word.Word (S (S (S (S O))))) el_tl_w8000 term)))
+                 (@AC.comp
+                    (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+                       (Word.Word (S (S (S (S O)))))) Ty.Unit (Word.Word (S (S (S (S (S O)))))) term
+                    (@AC.unit
+                       (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+                          (Word.Word (S (S (S (S O)))))) term) (@Word.zero (S (S (S (S (S O))))) term)))
+              (@AC.comp
+                 (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+                 Ty.Unit (Word.Word (S (S (S (S (S (S O))))))) term
+                 (@AC.unit
+                    (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O)))))
+                       (Word.Word (S (S (S (S O)))))) term) (@Word.zero (S (S (S (S (S (S O)))))) term)))
+           (@AC.comp
+              (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+              Ty.Unit (Word.Word (S (S (S (S (S (S (S O)))))))) term
+              (@AC.unit
+                 (Ty.Prod (Word.Vector (Word.Word (S (S (S (S O))))) (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+                 term) (@Alg.scribe Ty.Unit (Word.Word (S (S (S (S (S (S (S O)))))))) el_tl_len term)))))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments el_build_tapleaf_block {term}
+### C.jet_elements_build_tapleaf_spec.el_build_tapleaf_spec
+el_build_tapleaf_spec =
+fun term : Alg.Core.Algebra =>
+@AC.comp (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  (@AC.pair (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) term
+     (@AC.comp (Word.Word (S (S (S (S (S (S (S (S O))))))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+        (@AC.unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) term)
+        (@Alg.scribe Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_elements_tap_tags.el_tapleaf_prefix term))
+     (@el_build_tapleaf_block term)) (@SHA256.hashBlock term)
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments el_build_tapleaf_spec {term}
+### C.jet_elements_build_tapleaf_spec.el_tl_pad
+el_tl_pad =
+@List.map BinNums.Z (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S O))))))
+  (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S O)))))
+  (@app BinNums.Z
+     (@cons BinNums.Z
+        (BinNums.Zpos
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (@nil BinNums.Z))
+     (@app BinNums.Z
+        (@List.repeat BinNums.Z BinNums.Z0
+           (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))
+        (@cons BinNums.Z (BinNums.Zpos (BinNums.xI BinNums.xH))
+           (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+              (@nil BinNums.Z)))))
+     : list (Ty.tySem (Word.Word (S (S (S O)))))
