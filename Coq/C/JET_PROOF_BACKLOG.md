@@ -832,6 +832,45 @@ the AST. Extend the existing canonical-tree/full-contract source check
 and run ordinary acceptance only after the final whole-C literal endpoint.
 Caller/cache establishment, libc and evaluator obligations remain separate.
 
+## Next claimed target: ge_is_on_curve
+
+The main session claims `simplicity_ge_is_on_curve` in `JET_CLAIMS.md`.
+Six ordinary modules now compile as internal support, not a registered curve
+jet or a new acceptance result:
+
+- `jet_secp_field_add7.v`: actual `fe_add_int(7)`, exact field-value increment,
+  no-wrap bounds, owned storage and framing for loose multiplication outputs.
+- `jet_secp_curve_weak{,_math}.v`: actual weak normalization from five limbs
+  bounded by `2^60`, exact output loads, modular-value preservation, lower
+  52-bit limbs and top limb at most 281474976710912, ownership and framing.
+- `jet_secp_curve_zero{,_math}.v`: actual `fe_normalizes_to_zero_var`, including
+  its fast return; its bit accumulators detect zero modulo the field prime.
+- `jet_secp_curve_equal.v`: actual `fe_equal_var`, including allocation/freeing
+  of its private temporary, returns equality modulo the field prime for lower
+  52-bit/top 49-bit operands and preserves both input representations/framing.
+
+These are C execution-plus-value contracts, not just relations between jet
+specifications. Their integer bridges are closed; execution contracts retain
+only the six inherited library assumptions. No extra libc model is needed.
+
+Next compose the actual `f_secp256k1_ge_is_valid_var` in `jets_secp.v`: infinity
+test, two separate-output squares, in-place cube multiplication, +7, weak
+normalization and equality. Reuse the selected square proof and existing
+`point_mul_table`/`fm_solves`/field arithmetic. Generalize the multiplication
+storage adapter to the real 40-byte output temporary and 88-byte affine input,
+instead of imposing the point adapter's unrelated 128-/40-byte ownership.
+Prove private allocations, preservation, result conversion and frees, then the
+public reader/writeBit wrapper and full literal canonical Core bridge. The
+Haskell target is `ge_is_on_curve = iden &&& (unit >>> fe_one) >>> gej_is_on_curve`;
+do not replace it by an assumed numeric curve equation. Add source-fidelity
+checks and scoped acceptance only after that whole endpoint compiles.
+
+Cached square dependencies previously reported inconsistent assumptions over
+`jet_canonical_add_adapter`; rebuild affected unchanged sources under the Coq
+8.17.1 baseline when needed. Do not change toolchain pins or mix OCaml objects.
+Claude's alternative public field endpoints remain unregistered; do not merge
+`dd4579a7` or duplicate the selected `fe_multiply`/`fe_square` rows.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:
