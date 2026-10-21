@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 493 of the 533 header declarations.
+The current local-contract registry contains 494 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 40 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 39 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -708,7 +708,7 @@ accepted local-contract coverage is 493/533. Caller, environment-cache, libc and
 evaluator obligations are unchanged.
 Check `JET_CLAIMS.md` before starting another jet.
 
-## Elements input_hash: complete candidate, acceptance still required
+## Completed local contract: computing Elements input hash
 
 Six support modules provide the four-primitive program/literal bridge,
 all-index semantics, actual optional-hash and u32 SHA calls, complete digest
@@ -728,8 +728,9 @@ The intermediate loads, calls, digest and frame/return/free facts are proved
 from that relation, not assumed. All valid cursors and old output contents remain
 covered. Literal bridges are closed; the C endpoint retains the six inherited
 assumptions plus `memcpy_model`. The source checker rejects 34 new mutations.
-This is not registered or accepted yet: next select the endpoint and run ordinary
-scoped acceptance. Accepted coverage remains 493/533, and the jet stays claimed.
+Ordinary scoped acceptance passed, including kernel checking of 434 modules and
+all five AST regenerations. Accepted local-contract coverage is 494/533.
+Check `JET_CLAIMS.md` before starting another jet.
 Builder/caller, libc and evaluator obligations remain separate.
 
 Old cached u32be and environment-call objects were rebuilt from unchanged source

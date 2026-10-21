@@ -195,6 +195,11 @@ RECOVERED_CONTRACTS["simplicity_output_hash"] = (
     "Word32 (Ty.Sum Ty.Unit Word256) elements_output_hash_rep "
     "(fun a environment => @literal_elements_output_hash elements_hash_alg a environment).")
 
+RECOVERED_CONTRACTS["simplicity_input_hash"] = (
+    "memcpy_model -> application_jet_local_spec_sep f_simplicity_input_hash elements_ge Elements.env "
+    "Word32 (Ty.Sum Ty.Unit Word256) elements_single_input_hash_rep "
+    "(fun a environment => @literal_elements_single_input_hash elements_hash_alg a environment).")
+
 for stem, depth in [("leaf", 8), ("branch", 9)]:
     function = "simplicity_build_tap" + stem + ("_simplicity" if stem == "leaf" else "")
     RECOVERED_CONTRACTS[function] = (
