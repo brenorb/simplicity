@@ -153,11 +153,18 @@ for stem, ptr, offset, size in [
     ("tapleaf", 8, 8, 176), ("tap_env", 8, 72, 176),
     ("issuance_range_proofs", 0, 536, 760), ("output_nonces", 0, 56, 760),
     ("output_amounts", 0, 24, 760), ("input_amounts", 0, 248, 760),
+    ("outputs", 0, 184, 760), ("input_utxos", 0, 312, 760),
+    ("issuance_blinding_entropy", 0, 568, 760),
 ]:
     RECOVERED_CONTRACTS[f"simplicity_{stem}_hash"] = (
         f"application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256 "
         f"(hash_getter_rep elements_{stem}_hash_of {ptr} {offset} {size}) "
         f"(fun a environment => @literal_elements_{stem}_hash elements_hash_alg a environment).")
+
+RECOVERED_CONTRACTS["simplicity_issuance"] = (
+    "application_jet_local_spec_sep f_simplicity_issuance elements_ge Elements.env Word32 issuance_status_type "
+    "(indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e)) issuance_status_enum_rep 544 0 0 696) "
+    "(fun a environment => @elements_issuance_status_spec (PrimitivePrimSem option_Monad_Zero) a environment).")
 
 for stem, offset in [("input_outpoints", 112), ("input_annexes", 272), ("inputs", 336)]:
     RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (

@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 476 of the 533 header declarations.
+The current local-contract registry contains 480 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 57 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 53 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -535,7 +535,7 @@ general host-library fidelity remain separate obligations. These four endpoints
 are selected in the registry; ordinary scoped acceptance passed, with its
 command in `JET_ACCEPTANCE.md`.
 
-## Candidates: Elements composite hashes, blinding entropy and issuance status
+## Completed: Elements composite hashes, blinding entropy and issuance status
 
 Ten preserved support modules are restored without source changes; two new
 adapters connect the complete C getters to the shared literal programs.
@@ -568,7 +568,8 @@ dependencies with the pinned toolchain. Source checks reject 26 composite,
 
 Caller/cache construction, existing representation/domain/layout bounds and
 general host-library fidelity remain separate obligations. These four endpoints
-are not registered or accepted yet.
+are selected in the registry; ordinary scoped acceptance passed, with its
+command in `JET_ACCEPTANCE.md`.
 
 ## Source-review question: Elements fee predicates
 

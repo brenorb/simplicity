@@ -2,7 +2,7 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 476/533 jets (347 without an extra libc
+The local-contract registry contains 480/533 jets (351 without an extra libc
 premise; 129 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
@@ -21,6 +21,8 @@ The five further Elements input/taproot hash registrations then passed ordinary
 scoped acceptance below.
 The four Elements issuance-proof/nonce/amount-hash registrations then passed
 ordinary scoped acceptance below.
+Three Elements composite/blinding-hash registrations and issuance status then
+passed ordinary scoped acceptance below.
 
 Reproduce acceptance from the repository root:
 
@@ -676,4 +678,49 @@ bash Coq/check-jets.sh --accept --jets=simplicity_issuance_range_proofs_hash,sim
 ```
 
 This does not assert a fresh full 476-entry audit or discharge of the remaining
+shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
+
+## Elements composite hashes, blinding entropy and issuance status
+
+Ten preserved support modules are restored without source changes; two new
+adapters connect complete original C getters to the shared literal programs.
+`jet_elements_composite_hash_literal.v` reuses one fixed-vector SHA skeleton
+for the canonical four-component outputs hash and two-component input-UTXO
+hash. `jet_elements_blinding_entropy_literal.v` retains the three primitive
+lookups, optional/new/reissuance routing and actual `Arith.one word8` program,
+including its reviewed padding dependencies. The eight adapter bridges are
+closed. The three full C contracts keep the original `hash_getter_rep` at
+transaction offsets 184, 312 and 568 in the 760-byte structure.
+
+The preserved `jet_elements_issuance_status_local.v` is already a literal
+primitive-program endpoint for the original `simplicity_issuance`. It covers
+every Word32 index and out-of-range/no-issuance/new/reissuance results. Its
+initial relation represents only pointers/count and the enum at input offset
+528, with stride 544 and count offset 696. It has no hash-cache, execution,
+desired-output, nonzero-issuance or initialized-output premise. The actual
+enum reload after the first payload write is preserved by its derived effect.
+It still requires valid separated frames and is not an overlapping-buffer API
+claim or production caller-construction proof.
+
+All four endpoints retain the same six inherited library assumptions and no
+extra libc premise. Normal compilation and reviewed snapshot comparisons pass
+for 55 theorem records and 43 definitions across twelve modules. The existing
+source checker rejects 26 composite, 24 blinding-entropy and 17 issuance-status
+mutations, including component reordering, replacing the one-word program,
+reversed `flip match` branches and vacuous final contracts. Existing gate
+negative tests remain unchanged.
+
+Caller/cache construction, existing representation/domain/layout bounds and
+general host-library fidelity remain separate obligations. No production C,
+original specification, API or generation configuration changed.
+
+Ordinary scoped acceptance passed: 362 kernel-checked modules, 231 assumption
+records and 255 contract records, followed by the unchanged gate negative tests
+and all five AST regenerations:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_outputs_hash,simplicity_input_utxos_hash,simplicity_issuance_blinding_entropy_hash,simplicity_issuance
+```
+
+This does not assert a fresh full 480-entry audit or discharge of the remaining
 shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
