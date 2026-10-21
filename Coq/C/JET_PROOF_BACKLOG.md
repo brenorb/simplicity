@@ -796,8 +796,14 @@ to `sha256_bytes_of (eis_some_message ...)`, whose bytes are the canonical
 Together with `exec_eis_none_finalize`, all three payload cases now compile.
 These remain internal branch results, not a complete or registered C jet.
 
-Next define the initial raw-field/cache representation by issuance kind, bridge
-its values to `elements_single_issuance_result`, and compose the whole function:
+`jet_elements_single_issuance_{rep,dispatch}.v` now provides that initial
+representation by issuance kind, the canonical message bridges, its bounded
+load-preservation lemma, and `exec_eis_dispatch_finalize` for the actual outer
+type test plus all three payloads/finalization. `eis_payload_le_dst` preserves
+the destination temporary. The relation's asset/token caches are tied to the
+existing primitive-based issuance calculations, not the desired final digest.
+
+Next compose the whole function using this dispatch result:
 eight real allocations, source-frame copy, index read and bounds dispatch,
 issuance address setup, SHA init/copy, outer type dispatch, checked payloads,
 writeHash, return, actual free-list and framing. Discharge the branch helpers'

@@ -1,0 +1,275 @@
+### C.jet_elements_single_issuance_rep.eis_message_none
+eis_message_none
+     : forall (txi : jet_elements_prim.sigTxInput)
+         (_ : @eq (option jet_elements_prim.issuance) (jet_elements_prim.sigTxiIssuance txi)
+                (@None jet_elements_prim.issuance)),
+       @eq (list (Ty.tySem (Word.Word (S (S (S O)))))) (eis_message txi)
+         (jet_elements_single_issuance_spec.elements_single_issuance_bytes
+            (@inl unit
+               (prod
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt)
+            (@inl unit
+               (prod
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt)
+            (Word.from_hash256 (eis_proof_asset txi)) (Word.from_hash256 (eis_proof_token txi))
+            (@inl unit
+               (prod
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) tt))
+### C.jet_elements_single_issuance_rep.eis_message_active
+eis_message_active
+     : forall (txi : jet_elements_prim.sigTxInput) (isnew : bool)
+         (_ : match isnew return Prop with
+              | true =>
+                  @ex jet_elements_prim.newIssuance
+                    (fun n : jet_elements_prim.newIssuance =>
+                     @eq (option jet_elements_prim.issuance) (jet_elements_prim.sigTxiIssuance txi)
+                       (@Some (sum jet_elements_prim.newIssuance jet_elements_prim.reissuance)
+                          (@inl jet_elements_prim.newIssuance jet_elements_prim.reissuance n)))
+              | false =>
+                  @ex jet_elements_prim.reissuance
+                    (fun r : jet_elements_prim.reissuance =>
+                     @eq (option jet_elements_prim.issuance) (jet_elements_prim.sigTxiIssuance txi)
+                       (@Some (sum jet_elements_prim.newIssuance jet_elements_prim.reissuance)
+                          (@inr jet_elements_prim.newIssuance jet_elements_prim.reissuance r)))
+              end),
+       @eq (list (Ty.tySem (Word.Word (S (S (S O))))))
+         (jet_elements_single_issuance_active.eis_some_message isnew (eis_asset_id txi) (eis_token_id txi)
+            (eis_asset_amount txi) (eis_token_amount txi) (eis_proof_asset txi) (eis_proof_token txi)
+            (eis_union_hash txi) (eis_re_entropy txi)) (eis_message txi)
+### C.jet_elements_single_issuance_rep.eis_elem_rep_valid
+eis_elem_rep_valid
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput)
+         (_ : eis_elem_rep m b ofs txi), Memory.Mem.valid_block m b
+### C.jet_elements_single_issuance_rep.eis_elem_rep_mono
+eis_elem_rep_mono
+     : forall (m m' : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput)
+         (_ : eis_elem_rep m b ofs txi)
+         (_ : forall (ch : AST.memory_chunk) (off : BinNums.Z) (v : Values.val) (_ : BinInt.Z.le ofs off)
+                (_ : BinInt.Z.le (BinInt.Z.add off (Memdata.size_chunk ch))
+                       (BinInt.Z.add ofs
+                          (BinNums.Zpos
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (_ : @eq (option Values.val) (Memory.Mem.load ch m b off) (@Some Values.val v)),
+              @eq (option Values.val) (Memory.Mem.load ch m' b off) (@Some Values.val v)),
+       eis_elem_rep m' b ofs txi
+### C.jet_elements_single_issuance_rep.eis_tag
+eis_tag =
+fun txi : jet_elements_prim.sigTxInput =>
+match jet_elements_prim.sigTxiIssuance txi return Integers.Int.int with
+| Some i =>
+    match i return Integers.Int.int with
+    | inl _ => Integers.Int.one
+    | inr _ => Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))
+    end
+| None => Integers.Int.zero
+end
+     : forall _ : jet_elements_prim.sigTxInput, Integers.Int.int
+
+Arguments eis_tag txi
+### C.jet_elements_single_issuance_rep.eis_asset_id
+eis_asset_id =
+fun txi : jet_elements_prim.sigTxInput =>
+match jet_elements_issuance_entropy_spec.issuance_asset_of_input txi return Digest.hash256 with
+| inl _ => Digest.byteStringHash (@nil Integers.Byte.int)
+| inr h => Word.to_hash256 h
+end
+     : forall _ : jet_elements_prim.sigTxInput, Digest.hash256
+
+Arguments eis_asset_id txi
+### C.jet_elements_single_issuance_rep.eis_token_id
+eis_token_id =
+fun txi : jet_elements_prim.sigTxInput =>
+match jet_elements_issuance_entropy_spec.issuance_token_of_input txi return Digest.hash256 with
+| inl _ => Digest.byteStringHash (@nil Integers.Byte.int)
+| inr h => Word.to_hash256 h
+end
+     : forall _ : jet_elements_prim.sigTxInput, Digest.hash256
+
+Arguments eis_token_id txi
+### C.jet_elements_single_issuance_rep.eis_asset_amount
+eis_asset_amount =
+fun txi : jet_elements_prim.sigTxInput =>
+match jet_elements_prim.sigTxiIssuance txi return (jet_elements_prim.amountWith unit) with
+| Some i =>
+    match i return (jet_elements_prim.amountWith unit) with
+    | inl n =>
+        @jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int (jet_elements_prim.newIssuanceAmount n)
+    | inr r =>
+        @jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int (jet_elements_prim.reissuanceAmount r)
+    end
+| None => @jet_elements_prim.Explicit unit Integers.Int64.int Integers.Int64.zero
+end
+     : forall _ : jet_elements_prim.sigTxInput, jet_elements_prim.amountWith unit
+
+Arguments eis_asset_amount txi
+### C.jet_elements_single_issuance_rep.eis_token_amount
+eis_token_amount =
+fun txi : jet_elements_prim.sigTxInput =>
+match jet_elements_prim.sigTxiIssuance txi return (jet_elements_prim.amountWith unit) with
+| Some i =>
+    match i return (jet_elements_prim.amountWith unit) with
+    | inl n =>
+        @jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int
+          (jet_elements_prim.newIssuanceTokenAmount n)
+    | inr _ => @jet_elements_prim.Explicit unit Integers.Int64.int Integers.Int64.zero
+    end
+| None => @jet_elements_prim.Explicit unit Integers.Int64.int Integers.Int64.zero
+end
+     : forall _ : jet_elements_prim.sigTxInput, jet_elements_prim.amountWith unit
+
+Arguments eis_token_amount txi
+### C.jet_elements_single_issuance_rep.eis_proof_asset
+eis_proof_asset =
+fun txi : jet_elements_prim.sigTxInput =>
+Digest.byteStringHash (jet_elements_input_hash_jets.issuance_asset_proof_bytes txi)
+     : forall _ : jet_elements_prim.sigTxInput, Digest.hash256
+
+Arguments eis_proof_asset txi
+### C.jet_elements_single_issuance_rep.eis_proof_token
+eis_proof_token =
+fun txi : jet_elements_prim.sigTxInput =>
+Digest.byteStringHash (jet_elements_input_hash_jets.issuance_token_proof_bytes txi)
+     : forall _ : jet_elements_prim.sigTxInput, Digest.hash256
+
+Arguments eis_proof_token txi
+### C.jet_elements_single_issuance_rep.eis_union_hash
+eis_union_hash =
+fun txi : jet_elements_prim.sigTxInput =>
+match jet_elements_prim.sigTxiIssuance txi return Digest.hash256 with
+| Some i =>
+    match i return Digest.hash256 with
+    | inl n => jet_elements_prim.newIssuanceContractHash n
+    | inr r => jet_elements_prim.reissuanceBlindingNonce r
+    end
+| None => Digest.byteStringHash (@nil Integers.Byte.int)
+end
+     : forall _ : jet_elements_prim.sigTxInput, Digest.hash256
+
+Arguments eis_union_hash txi
+### C.jet_elements_single_issuance_rep.eis_re_entropy
+eis_re_entropy =
+fun txi : jet_elements_prim.sigTxInput =>
+match jet_elements_prim.sigTxiIssuance txi return Digest.hash256 with
+| Some i =>
+    match i return Digest.hash256 with
+    | inl _ => Digest.byteStringHash (@nil Integers.Byte.int)
+    | inr r => jet_elements_prim.reissuanceEntropy r
+    end
+| None => Digest.byteStringHash (@nil Integers.Byte.int)
+end
+     : forall _ : jet_elements_prim.sigTxInput, Digest.hash256
+
+Arguments eis_re_entropy txi
+### C.jet_elements_single_issuance_rep.eis_message
+eis_message =
+fun txi : jet_elements_prim.sigTxInput =>
+jet_elements_single_issuance_spec.elements_single_issuance_bytes
+  (jet_elements_issuance_amounts_hash_program.issuance_asset_pair_of_input txi)
+  (jet_elements_issuance_amounts_hash_program.issuance_token_pair_of_input txi)
+  (Word.from_hash256 (eis_proof_asset txi)) (Word.from_hash256 (eis_proof_token txi))
+  (jet_elements_blinding_entropy_spec.elements_blinding_entropy_of_input txi)
+     : forall _ : jet_elements_prim.sigTxInput, list (Ty.tySem (Word.Word (S (S (S O)))))
+
+Arguments eis_message txi
+### C.jet_elements_single_issuance_rep.eis_elem_rep
+eis_elem_rep =
+fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput) =>
+and
+  (@eq (option Values.val)
+     (Memory.Mem.load AST.Mint32 m b
+        (BinInt.Z.add ofs
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+     (@Some Values.val (Values.Vint (eis_tag txi))))
+  (and
+     (jet_uint32_array_init.uint32_array_at m b
+        (BinInt.Z.add ofs
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
+        (Digest.hash256_reg (eis_proof_asset txi)))
+     (and
+        (jet_uint32_array_init.uint32_array_at m b
+           (BinInt.Z.add ofs
+              (BinNums.Zpos
+                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+           (Digest.hash256_reg (eis_proof_token txi)))
+        match jet_elements_prim.sigTxiIssuance txi return Prop with
+        | Some iss =>
+            and
+              (jet_uint32_array_init.uint32_array_at m b
+                 (BinInt.Z.add ofs
+                    (BinNums.Zpos
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                 (Digest.hash256_reg (eis_asset_id txi)))
+              (and
+                 (jet_uint32_array_init.uint32_array_at m b
+                    (BinInt.Z.add ofs
+                       (BinNums.Zpos
+                          (BinNums.xO
+                             (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+                    (Digest.hash256_reg (eis_token_id txi)))
+                 (and
+                    (jet_elements_amount_jets.amount_rep m b
+                       (BinInt.Z.add ofs
+                          (BinNums.Zpos
+                             (BinNums.xO
+                                (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                       (eis_asset_amount txi))
+                    (and (jet_uint32_array_init.uint32_array_at m b ofs (Digest.hash256_reg (eis_union_hash txi)))
+                       match iss return Prop with
+                       | inl _ =>
+                           jet_elements_amount_jets.amount_rep m b
+                             (BinInt.Z.add ofs
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                             (eis_token_amount txi)
+                       | inr _ =>
+                           jet_uint32_array_init.uint32_array_at m b
+                             (BinInt.Z.add ofs
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                             (Digest.hash256_reg (eis_re_entropy txi))
+                       end)))
+        | None => True
+        end))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : jet_elements_prim.sigTxInput), Prop
+
+Arguments eis_elem_rep m b ofs%Z_scope txi
