@@ -736,7 +736,7 @@ Builder/caller, libc and evaluator obligations remain separate.
 Old cached u32be and environment-call objects were rebuilt from unchanged source
 under the baseline toolchain; no version pins or production sources changed.
 
-## Computing Elements issuance_hash: checked support, whole C proof missing
+## Computing Elements issuance_hash: whole C proof compiled, acceptance pending
 
 The seven foundational modules compile normally: `jet_elements_single_issuance_{spec,literal,
 prep}.v`, `jet_elements_issuance_{asset_literal,zero_literal,zero_array}.v` and
@@ -744,7 +744,8 @@ prep}.v`, `jet_elements_issuance_{asset_literal,zero_literal,zero_array}.v` and
 definitions. The canonical all-index semantic/literal bridge reuses the accepted
 issuance calculations, optional asset/amount serializer and actual one8 blinding
 program. The general payload bound is 261 bytes; the absent-issuance message is
-69 bytes. This is not a complete or registered C equivalence; the jet is claimed.
+69 bytes. The whole endpoint described below compiles but is not yet registered;
+the jet is still claimed.
 
 The C support proves both real confidential-ID literals (typed struct copy plus
 explicit prefix), the reissuance explicit-zero amount and the new-issuance
@@ -803,15 +804,25 @@ type test plus all three payloads/finalization. `eis_payload_le_dst` preserves
 the destination temporary. The relation's asset/token caches are tied to the
 existing primitive-based issuance calculations, not the desired final digest.
 
-Next compose the whole function using this dispatch result:
-eight real allocations, source-frame copy, index read and bounds dispatch,
-issuance address setup, SHA init/copy, outer type dispatch, checked payloads,
-writeHash, return, actual free-list and framing. Discharge the branch helpers'
-private-object freshness/writability from allocations, and all source-field
-loads from the initial relation. Include out-of-range indices, arbitrary valid
-frame cursors and existing output bits. Require only active union arms and
-actually read fields; neither executions nor the final digest may be public
-premises. The element's issuance starts at offset 256; checked
+`jet_elements_single_issuance_{jet,literal_jet}.v` now compiles that whole
+function. `elements_single_issuance_hash_literal_local_spec` proves the original
+`f_simplicity_issuance_hash` against the literal primitive-bearing program,
+conditional on `memcpy_model`, initial field/cache correspondence and SHA
+readiness. The proof discharges private freshness/writability from all eight
+actual allocations and includes source-frame copying, both index branches,
+issuance address setup, SHA init/copy, type dispatch, payloads, writeHash, return,
+the actual free-list and framing. It covers arbitrary valid frame cursors and
+existing output bits. No payload execution or desired digest is a premise.
+The ordinary build and reviewed contract/assumption checks pass; this is not
+yet registered or a new scoped-acceptance result.
+
+Next extend the existing canonical whole-program source/mutation check for
+`issuanceHash`, including the initial-only relation and full literal endpoint.
+Then add the exact public contract to the existing coverage guard, register
+the single endpoint, adjust the memcpy conditional count from 135 to 136,
+remove the claim, and run ordinary scoped acceptance without update flags.
+Do not claim acceptance from compilation or generated snapshots alone.
+The element's issuance starts at offset 256; checked
 existing fields include entropy 72, proof hashes 104/136, assetAmt 232 and type
 272. The ID offsets 168/200 and union tokenAmt offset 32 are checked against
 the AST. Extend the existing canonical-tree/full-contract source check
