@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 491 of the 533 header declarations.
+The current local-contract registry contains 492 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 42 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 41 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -683,11 +683,12 @@ Normal builds and canonical source-tree checks pass; 24 new targeted mutations
 are rejected. Reviewed snapshots cover 23 theorems and eight definitions in
 these four modules and compare without update flags. The literal bridges are
 closed; the C endpoint retains the six inherited assumptions and explicit
-`memcpy_model`. It is not registered or accepted yet; ordinary scoped acceptance
-must follow registration. Raw-environment establishment, startup/caller
+`memcpy_model`. Ordinary scoped acceptance passed, including kernel checking of
+428 modules and all five AST regenerations; accepted local-contract coverage is
+492/533. Raw-environment establishment, startup/caller
 admissibility and libc implementation linkage remain distinct obligations.
 Bitcoin domain blockers and Elements fee questions remain separate. Check
-`JET_CLAIMS.md` before starting; `input_utxo_hash` remains claimed.
+`JET_CLAIMS.md` before starting another jet.
 
 ## Source-review question: Elements fee predicates
 

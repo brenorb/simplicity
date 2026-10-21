@@ -27,8 +27,9 @@ def main():
     assert coverage.declarations(f"/* {signature} */\n// {signature}\n{signature}") == ["simplicity_example"]
     rejects(lambda: coverage.declarations("bool simplicity_bad(int x);"), "signature")
     rows = coverage.inventory()
-    # Computing hashes and both Elements taproot builders retain memcpy.
-    assert sum(row["condition"] == "memcpy_model" for row in rows) == 132
+    # Computing hashes (including Elements input_utxo_hash) and both Elements
+    # taproot builders retain the explicit memcpy premise.
+    assert sum(row["condition"] == "memcpy_model" for row in rows) == 133
     expected = {name for header in coverage.HEADERS.values()
                 for name in coverage.declarations((coverage.REPO / header).read_text())}
     assert {row["function"] for row in rows} == expected
