@@ -774,6 +774,13 @@ checks assetId/tokenId offsets 168/200 against the frozen composite environment.
 Private-object separation and writability must be discharged from `eis_entry`'s
 allocations by the eventual whole-function proof, not imposed on callers.
 
+`jet_elements_single_issuance_amount.v` proves the actual asset amount call and
+the complete token amount selection/absorption for both active kinds. The new
+path derives the nested-union address at offset 32; the reissuance path executes
+the local zero initializer and requires no inactive tokenAmt representation.
+`eis_token_le` records the actual updates to t'6/t'2. Their compiled contracts
+preserve the running SHA state and frame loads outside the private objects.
+
 Next compose the remaining two actual payload branches, then the shared finalize,
 writeHash, return, frees and framing. No issuance: four uchar(0), two proof-hash
 calls, uchar(0). New issuance: two explicit ID literals and amount calls, proof
@@ -783,8 +790,8 @@ the proof hashes, uchar(1), blinding-nonce and entropy hashes. Require only acti
 union arms and actually read fields; neither executions nor the final digest
 may be public premises. The element's issuance starts at offset 256; checked
 existing fields include entropy 72, proof hashes 104/136, assetAmt 232 and type
-272. The ID offsets 168/200 are now checked; verify union tokenAmt at 32 against
-the AST when using it. Extend the existing canonical-tree/full-contract source check
+272. The ID offsets 168/200 and union tokenAmt offset 32 are checked against
+the AST. Extend the existing canonical-tree/full-contract source check
 and run ordinary acceptance only after the final whole-C literal endpoint.
 Caller/cache establishment, libc and evaluator obligations remain separate.
 
