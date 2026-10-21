@@ -1113,9 +1113,12 @@ bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej
 
 ## Next claimed target: gej_double
 
-The main session claims `simplicity_gej_double`. No existing complete endpoint
-or literal port was found in the active sources or proof-work handoffs during
-the preceding review. Start with the actual `secp256k1_gej_double_var` caller
+The main session claims `simplicity_gej_double`. There is not yet a complete
+public endpoint. `jet_secp_double_literal.v` now ports the canonical
+`gej_double` pairing/projection tree, `fe_halve` (including its one-bit shift),
+and `fe_multiplyInt`; its routing and parametricity lemmas are closed. These
+are specification bridges, not additional C-jet coverage. Continue with the
+actual `secp256k1_gej_double_var` caller
 with `rzr = NULL`, its early infinity branch, and the in-place
 `secp256k1_gej_double` arithmetic. Keep arbitrary coordinates, including Y=0;
 do not restrict to genuine curve points. Equivalence helpers call point
@@ -1125,19 +1128,34 @@ and Y-parity also need the uncompleted inversion proof.
 Reuse the selected square/multiply arithmetic, the coordinate storage/frame
 adapters above, `eval_read_gej_canonical_fields`, and the general bounded point
 writer (`eval_write_gej_general`, with `rescale_point_field`/bounds adapters).
-The first new memory obligation is `r.z = a.z * a.y` with `r = a`: both source
-coordinates and the destination inhabit one actual 128-byte allocation.
-Represent its slices in one owned region; do not reuse a two-separated-block
-contract by pretending the coordinates are different allocations. Later calls
+The first memory obligation, `r.z = a.z * a.y` with `r = a`, is now proved by
+`eval_point_zy_mul_owned`: both sources and the destination inhabit one actual
+128-byte allocation. `jet_secp_owned_slice_fields.v` combines/extracts slices
+of that owned region; do not pretend they are separate allocations. Later calls
 also need a square into a point coordinate from a private field, and a point
 destination multiplied from two private fields. Reuse the existing u128 log
 and numeric output lemmas for these concrete call layouts.
 
-The missing arithmetic helper is actual `secp256k1_fe_half` on the loose
-`3*X^2` limbs, plus small-multiplier/add/negate storage adapters. Derive the
-bounds required by subsequent calls and the point writer rather than assuming
-normalization. Port the existing Haskell `gej_double` Core tree literally;
-the numeric bridge is support, not a substitute specification.
+The actual `secp256k1_fe_half` execution is now proved in
+`jet_secp_field_half.v`, without an input-limb bound needed for execution.
+`jet_secp_field_half_numeric.v` derives reusable loose output bounds and
+`2 * radix_value output = radix_value input + low_bit(input) * feP` under
+the established loose input bounds. The shared `jet_secp_field_mul_small.v`
+handles signed C multipliers from zero through seven on tight limbs.
+`eval_double_l_scale` composes the real multiply-by-three and halve calls,
+preserving ownership, external memory, the resulting value identity and bounds.
+All these modules build normally and pass focused assumption/contract and
+recursive kernel checks; execution results retain only the same six inherited
+assumptions, with no added libc-model premise.
+
+Next compose the checked Z multiplication, Y/X coordinate squares and L-scale
+calls in the helper's actual memory sequence. Then supply the remaining
+add/negate and reversed square/multiply storage layouts and the complete helper
+entry/return/free proof. Connect the actual halving result and final coordinates
+to `literal_gej_double`, then compose the infinity branch and public
+read/write/lifecycle contract. Derive bounds for every later call and the point
+writer; do not assume normalization or intermediate executions. The value
+identities alone do not discharge this implementation-to-literal bridge.
 
 Follow the writer body, which writes X/Y/Z unconditionally: an infinity flag
 alone does not imply all-zero stored coordinates. In particular, retain the
