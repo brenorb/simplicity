@@ -708,6 +708,35 @@ accepted local-contract coverage is 493/533. Caller, environment-cache, libc and
 evaluator obligations are unchanged.
 Check `JET_CLAIMS.md` before starting another jet.
 
+## Elements input_hash: support compiled, whole-C boundary still missing
+
+Six `jet_elements_single_input_*.v` modules now compile in the normal project.
+They provide the four-primitive program and literal bridge, its semantics for
+all indices and pegin/annex alternatives, actual optional-hash and u32 SHA
+calls, the complete digest payload chain, optional statement adapters and
+entry/body/pointer-layout lemmas. They are support, not a registered or accepted
+whole-jet theorem. Accepted coverage remains 493/533; this jet stays claimed.
+
+The next step is to reuse `jet_elements_input_utxo_hash_jet.v`'s frame,
+initialization, writeHash and free spine. Use `eih_entry`/`eih_body` and indexed
+temporaries t'9/t'10. The actual input stride is 544, with annexHash at 0, pegin
+at 32, prevOutpoint at 96 (txid 96 and ix 128), sequence at 248, hasAnnex at 536
+and isPegin at 537. The element base has no additional UTXO offset 136. Optional
+hash payloads should be required only when present; both flags are actually read.
+
+Instantiate `eval_eih_payload` from the initial raw-field representation after
+frame writes and private initialization. Its three intermediate load-preservation
+conclusions discharge the later ix, sequence and annex-flag reads; do not assume
+them or the payload execution at the public boundary. Connect optional branches
+with `eih_optional_stmt_exec`, prove the return/frees/output/framing facts and
+then expose the literal program in `elements_ge`. Extend the existing full
+Core-tree/contract source check and run ordinary acceptance only after that
+boundary and its initial relation exist. The current literal bridge is closed;
+the C payload retains the six inherited assumptions and `memcpy_model`.
+
+Old cached u32be and environment-call objects were rebuilt from unchanged source
+under the baseline toolchain; no version pins or production sources changed.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

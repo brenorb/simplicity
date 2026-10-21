@@ -923,6 +923,17 @@ bash Coq/check-jets.sh --accept --jets=simplicity_tx_hash,simplicity_sig_all_has
 
 No production C, original specification, API or generation setting changed.
 
+## Support only: computing Elements input hash
+
+The six `jet_elements_single_input_*.v` modules compile in the normal project.
+Reviewed snapshots cover 24 theorems and 16 definitions. The program/literal
+bridge, all-index semantics, actual SHA payload calls and optional statement
+adapters are complete; the literal bridge is closed and the C chain retains
+the six inherited assumptions plus explicit `memcpy_model`. These modules do
+not yet compose entry, field loads, frame output and frees into a public
+whole-C contract. No registration or additional accepted jet is claimed.
+See `JET_PROOF_BACKLOG.md` for the next exact boundary and layout facts.
+
 ## Accepted: computing Elements output hash
 
 `C.jet_elements_output_hash_literal.elements_output_hash_literal_local_spec`
