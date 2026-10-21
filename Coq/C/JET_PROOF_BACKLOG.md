@@ -934,6 +934,43 @@ input offset and limb, retaining the 10-second command bound.
 Claude's alternative public field endpoints remain unregistered; do not merge
 `dd4579a7` or duplicate the selected `fe_multiply`/`fe_square` rows.
 
+## Next claimed target: gej_x_equiv
+
+The main session claims `simplicity_gej_x_equiv`. No existing proof for it was
+found in the active modules or proof-work handoffs. Keep the original total
+public contract: unrestricted `(FE, GEJ)` words, including zero Z and the real
+infinity short-circuit. Do not add a finite-point or on-curve premise.
+
+`jet_secp_point_square_z.v` now proves the actual optimized square from offset
+80 of an owned 128-byte point into an uninitialized distinct 40-byte temporary.
+`eval_point_square_z_from_storage` supplies the modular square, reusable limb
+bounds, source Z loads, both Freeable ranges and external framing;
+`point_square_z_foot` bounds the conservative footprint to the output and the
+source Z cells. It reuses the selected square arithmetic through five closed
+expression equalities. The ordinary build, reviewed snapshots and recursive
+kernel check pass; this is support, not a registered new jet. For the recursive
+check use the same stack limit as `check-jets.sh`:
+
+```sh
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_point_square_z
+```
+
+Next establish the full literal `gej_x_equiv` target and compose the original
+`secp256k1_gej_eq_x_var`: square Z, multiply the temporary by the separate X
+argument, copy the point's X to `r2`, weak-normalize it, compare, return and free.
+Reuse `eval_original_field_mul_wrapper_product` and `field_mul_regs`, which
+already own two distinct 40-byte fields and admit 56-/52-bit operands, rather
+than the affine-specific 88-byte source adapter or a normalized-only multiplier.
+The square's 49-bit top limb must remain admissible. Reuse the current weak
+normalizer and equality proofs, then connect the real public readers, branch,
+bit writer and local frees. The public infinity flag is derived by `read_gej`;
+its true branch skips the arithmetic helper and returns the false bit.
+
+Do not infer full input ownership from a borrowed view: `foot` conservatively
+includes read cells, and `rw=false` alone does not retain a whole Freeable
+object. Keep the actual enclosing allocation in the execution contract.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:
