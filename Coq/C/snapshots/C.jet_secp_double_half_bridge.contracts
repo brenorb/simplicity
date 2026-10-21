@@ -1,0 +1,67 @@
+### C.jet_secp_double_half_bridge.field_double_cancel_mod
+field_double_cancel_mod
+     : forall (a b : BinNums.Z)
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) a) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) b) jet_secp_fe_math.feP)),
+       @eq BinNums.Z (BinInt.Z.modulo a jet_secp_fe_math.feP) (BinInt.Z.modulo b jet_secp_fe_math.feP)
+### C.jet_secp_double_half_bridge.half_words_matches_literal
+half_words_matches_literal
+     : forall (w : forall _ : nat, Integers.Int64.int) (a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_secp_square_columns.square_input_bounds w)
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value w) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) a)
+                   jet_secp_fe_math.feP)),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value (jet_secp_field_half.half_words w))
+            jet_secp_fe_math.feP)
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (@jet_secp_double_literal.literal_fe_halve Alg.CoreFunSem a))
+### C.jet_secp_double_half_bridge.eval_field_half_literal
+eval_field_half_literal
+     : forall (w : forall _ : nat, Integers.Int64.int) (a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (m : Memory.Mem.mem) (b : Values.block) (_ : jet_secp_square_columns.square_input_bounds w)
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value w) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) a)
+                   jet_secp_fe_math.feP)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_half)
+               (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf b BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5 (jet_secp_field_half.half_words w)))
+               (and
+                  (Memory.Mem.range_perm mf b BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and (jet_secp_square_columns.square_input_bounds (jet_secp_field_half.half_words w))
+                     (and
+                        (@eq BinNums.Z
+                           (BinInt.Z.modulo
+                              (jet_secp_multiply_finish_product.radix_value (jet_secp_field_half.half_words w))
+                              jet_secp_fe_math.feP)
+                           (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                              (@jet_secp_double_literal.literal_fe_halve Alg.CoreFunSem a)))
+                        (jet_sx_mem.lframe (fun (bx : Values.block) (_ : BinNums.Z) => not (@eq Values.block bx b)) m
+                           mf))))))
+### C.jet_secp_double_half_bridge.double_l_words_matches_literal
+double_l_words_matches_literal
+     : forall (w : forall _ : nat, Integers.Int64.int) (a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_secp_field_mul_small.mul_small_input_bounds w)
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value w) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) a)
+                   jet_secp_fe_math.feP)),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value (jet_secp_double_l_scale.double_l_words w))
+            jet_secp_fe_math.feP)
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (@jet_secp_double_literal.literal_fe_halve Alg.CoreFunSem
+               (@jet_secp_double_literal.literal_fe_multiply_int (BinNums.Zpos (BinNums.xI BinNums.xH)) Alg.CoreFunSem
+                  a)))
