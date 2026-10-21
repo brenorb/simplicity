@@ -781,6 +781,13 @@ the local zero initializer and requires no inactive tokenAmt representation.
 `eis_token_le` records the actual updates to t'6/t'2. Their compiled contracts
 preserve the running SHA state and frame loads outside the private objects.
 
+`jet_elements_single_issuance_{blinding,tail}.v` now execute both actual
+blinding branches and the shared proof-hash/present-marker suffix. The new
+path establishes and absorbs all 32 zero bytes; the reissuance path loads only
+the active nonce/entropy fields. The byte bridge uses the canonical 256-bit
+zero word, and the common suffix absorbs exactly 129 bytes. Context, load,
+permission and validity preservation are included in these compiled contracts.
+
 Next compose the remaining two actual payload branches, then the shared finalize,
 writeHash, return, frees and framing. No issuance: four uchar(0), two proof-hash
 calls, uchar(0). New issuance: two explicit ID literals and amount calls, proof
