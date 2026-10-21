@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 486 of the 533 header declarations.
+The current local-contract registry contains 489 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 47 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 44 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -603,7 +603,7 @@ premises. Both endpoints passed ordinary scoped acceptance, including all
 309 kernel dependency modules. The scope and reproducible command are in
 `JET_ACCEPTANCE.md`.
 
-## Candidates: Elements issuance amount and composite hashes
+## Completed local contracts: Elements issuance amount and composite hashes
 
 `jet_elements_issuance_amounts_hash_literal.v` now compiles the complete C
 `issuance_asset_amounts_hash` and `issuance_token_amounts_hash` getters against
@@ -617,8 +617,9 @@ Normal compilation and full source correspondence pass (40 further mutations
 rejected). The public C endpoints use only the six inherited assumptions and
 no extra libc premise. Initial cached-hash correspondence, represented
 environment/frame admissibility and general caller construction remain
-explicit obligations. These three candidates are not registered or accepted
-yet; see `JET_ACCEPTANCE.md` for scope and the required ordinary audit.
+explicit obligations. All three endpoints passed ordinary scoped acceptance,
+including all 392 kernel dependency modules. See `JET_ACCEPTANCE.md` for scope
+and the reproducible command.
 
 The direct next composition is Elements `tx_hash` (version/locktime, four
 component hashes, then input-UTXO hash), followed by `sig_all_hash`. Reuse the

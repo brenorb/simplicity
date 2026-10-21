@@ -155,6 +155,8 @@ for stem, ptr, offset, size in [
     ("output_amounts", 0, 24, 760), ("input_amounts", 0, 248, 760),
     ("outputs", 0, 184, 760), ("input_utxos", 0, 312, 760),
     ("issuance_blinding_entropy", 0, 568, 760),
+    ("issuance_asset_amounts", 0, 472, 760), ("issuance_token_amounts", 0, 504, 760),
+    ("issuances", 0, 600, 760),
 ]:
     RECOVERED_CONTRACTS[f"simplicity_{stem}_hash"] = (
         f"application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256 "
