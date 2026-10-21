@@ -1,0 +1,249 @@
+### C.jet_secp_point_y_negate2.point_y_neg2_run_eq
+point_y_neg2_run_eq
+     : @eq (option jet_sx_exec.res) point_y_neg2_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone point_y_neg2_state jet_sx_exec.ONormal))
+### C.jet_secp_point_y_negate2.point_y_neg2_return
+point_y_neg2_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps point_y_neg2_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_point_y_negate2.point_y_neg2_output_shape
+point_y_neg2_output_shape
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs point_y_neg2_state)
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg
+               (jet_sx_rep.u64_cells
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  point_y_neg2_out) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+            (@nil jet_sx_state.region))
+### C.jet_secp_point_y_negate2.point_y_neg2_output_den
+point_y_neg2_output_den
+     : forall (w : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den w (jet_sx_state.lay beta)) point_y_neg2_out)
+         (@List.map Integers.Int64.int Values.val Values.Vlong
+            (jet_secp_multiply_normalize_bridge.words5 (point_y_neg2_words w)))
+### C.jet_secp_point_y_negate2.eval_point_y_neg2_symbolic
+eval_point_y_neg2_symbolic
+     : forall (w : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep w beta point_y_neg2_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_negate)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O)
+                     (Integers.Ptrofs.repr
+                        (BinInt.Z.add (jet_sx_state.bas beta O)
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta O)
+                        (Integers.Ptrofs.repr
+                           (BinInt.Z.add (jet_sx_state.bas beta O)
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                     (@cons Values.val (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))))
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep w beta
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg
+                        (jet_sx_rep.u64_cells
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           point_y_neg2_out) true
+                        (@Some BinNums.Z
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                     (@nil jet_sx_state.region)) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape point_y_neg2_regs) b pos)) m mf)))
+### C.jet_secp_point_y_negate2.point_y_neg2_initial
+point_y_neg2_initial
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bp : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m bp
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bp BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Memtype.Cur Memtype.Freeable),
+       jet_sx_state.rep w
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bp BinNums.Z0)
+            (@nil (prod Values.block BinNums.Z))) point_y_neg2_regs m
+### C.jet_secp_point_y_negate2.point_y_neg2_fields
+point_y_neg2_fields
+     : forall (w : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep w beta
+                (@cons jet_sx_state.region
+                   (jet_sx_state.mkreg
+                      (jet_sx_rep.u64_cells
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                         point_y_neg2_out) true
+                      (@Some BinNums.Z
+                         (BinNums.Zpos
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                   (@nil jet_sx_state.region)) m),
+       and
+         (jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta O)
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+            (jet_secp_multiply_normalize_bridge.words5 (point_y_neg2_words w)))
+         (Memory.Mem.range_perm m (jet_sx_state.blk beta O) BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+            Memtype.Cur Memtype.Freeable)
+### C.jet_secp_point_y_negate2.point_y_neg2_unsigned
+point_y_neg2_unsigned
+     : forall (w : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_field_sum_bounds.field_scaled_bounds (BinNums.Zpos (BinNums.xO BinNums.xH)) w)
+         (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (point_y_neg2_words w i))
+         (BinInt.Z.sub
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))
+               (jet_secp_field_negate_values.negate_mask i)) (Integers.Int64.unsigned (w i)))
+### C.jet_secp_point_y_negate2.point_y_neg2_numeric
+point_y_neg2_numeric
+     : forall (w : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_field_sum_bounds.field_scaled_bounds (BinNums.Zpos (BinNums.xO BinNums.xH)) w),
+       and
+         (@eq BinNums.Z (jet_secp_multiply_finish_product.radix_value (point_y_neg2_words w))
+            (BinInt.Z.sub (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))) jet_secp_fe_math.feP)
+               (jet_secp_multiply_finish_product.radix_value w)))
+         (jet_secp_field_sum_bounds.field_scaled_bounds (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))
+            (point_y_neg2_words w))
+### C.jet_secp_point_y_negate2.point_y_neg2_foot
+point_y_neg2_foot
+     : forall (bp b : Values.block) (pos : BinNums.Z)
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bp BinNums.Z0)
+                   (@nil (prod Values.block BinNums.Z)))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   point_y_neg2_regs) b pos),
+       and (@eq Values.block b bp)
+         (and
+            (BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) pos)
+            (BinInt.Z.lt pos
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+### C.jet_secp_point_y_negate2.eval_point_y_negate2
+eval_point_y_negate2
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bp : Values.block)
+         (_ : jet_secp_field_sum_bounds.field_scaled_bounds (BinNums.Zpos (BinNums.xO BinNums.xH)) w)
+         (_ : jet_secp_fe_nv.fe_at m bp
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bp BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_negate)
+               (@cons Values.val
+                  (Values.Vptr bp
+                     (Integers.Ptrofs.repr
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                  (@cons Values.val
+                     (Values.Vptr bp
+                        (Integers.Ptrofs.repr
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                     (@cons Values.val (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))))
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf bp
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  (jet_secp_multiply_normalize_bridge.words5 (point_y_neg2_words w)))
+               (and
+                  (Memory.Mem.range_perm mf bp BinNums.Z0
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and
+                     (@eq BinNums.Z (jet_secp_multiply_finish_product.radix_value (point_y_neg2_words w))
+                        (BinInt.Z.sub
+                           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))) jet_secp_fe_math.feP)
+                           (jet_secp_multiply_finish_product.radix_value w)))
+                     (and (jet_secp_square_columns.square_input_bounds (point_y_neg2_words w))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (pos : BinNums.Z) =>
+                            or (not (@eq Values.block b bp))
+                              (or
+                                 (BinInt.Z.lt pos
+                                    (BinNums.Zpos
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                 (BinInt.Z.le
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                    pos))) m mf))))))
+### C.jet_secp_point_y_negate2.point_y_neg2_regs
+point_y_neg2_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (jet_sx_rep.u64_cells (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+        (jet_secp_fe_nv.vars5 O)) true
+     (@Some BinNums.Z
+        (BinNums.Zpos
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+  (@nil jet_sx_state.region)
+     : list jet_sx_state.region
+### C.jet_secp_point_y_negate2.point_y_neg2_args
+point_y_neg2_args =
+@cons jet_sx_expr.sx
+  (jet_sx_expr.XP O (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+  (@cons jet_sx_expr.sx
+     (jet_sx_expr.XP O (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+     (@cons jet_sx_expr.sx (jet_sx_expr.XIc (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))))
+        (@nil jet_sx_expr.sx)))
+     : list jet_sx_expr.sx
+### C.jet_secp_point_y_negate2.point_y_neg2_expr
+point_y_neg2_expr =
+fun i : nat =>
+jet_sx_expr.XLb jet_sx_expr.Bsub
+  (jet_sx_expr.XLb jet_sx_expr.Bmul
+     (jet_sx_expr.XLb jet_sx_expr.Bmul
+        (jet_sx_expr.XLc (Integers.Int64.repr (jet_secp_field_negate_values.negate_mask i)))
+        (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))))))
+     (jet_sx_expr.XI2L Ctypes.Signed
+        (jet_sx_expr.XIb jet_sx_expr.Badd (jet_sx_expr.XIc (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))))
+           (jet_sx_expr.XIc Integers.Int.one)))) (jet_sx_expr.XLv i)
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments point_y_neg2_expr i%nat_scope
+### C.jet_secp_point_y_negate2.point_y_neg2_out
+point_y_neg2_out =
+@List.map nat jet_sx_expr.sx point_y_neg2_expr
+  (@cons nat O
+     (@cons nat (S O) (@cons nat (S (S O)) (@cons nat (S (S (S O))) (@cons nat (S (S (S (S O)))) (@nil nat))))))
+     : list jet_sx_expr.sx
+### C.jet_secp_point_y_negate2.point_y_neg2_words
+point_y_neg2_words =
+fun (w : forall _ : nat, Integers.Int64.int) (i : nat) =>
+Integers.Int64.sub
+  (Integers.Int64.repr
+     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))) (jet_secp_field_negate_values.negate_mask i)))
+  (w i)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments point_y_neg2_words w%function_scope i%nat_scope
+### C.jet_secp_point_y_negate2.point_y_neg2_run
+point_y_neg2_run =
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  (jet_sx_pure.int_table jet_secp_fns.secp_pure)
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  jets_secp.f_secp256k1_fe_negate point_y_neg2_args point_y_neg2_regs (@nil jet_sx_eval.event)
+  (S (S (S (S (S O)))))
+     : option jet_sx_exec.res
