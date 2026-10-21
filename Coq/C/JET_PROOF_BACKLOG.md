@@ -1,10 +1,10 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 497 of the 533 header declarations.
+The current local-contract registry contains 499 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 36 declarations remain unregistered.
-The X-equivalence endpoint passed ordinary scoped acceptance; accepted
-local-contract coverage is 497/533. The every-jet goal remains incomplete.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 34 declarations remain unregistered.
+The projective curve and doubling endpoints passed ordinary scoped acceptance;
+accepted local-contract coverage is 499/533. The every-jet goal remains incomplete.
 
 The remaining work includes:
 
@@ -1111,17 +1111,17 @@ ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_curve_literal_bridge
 ```
 
-## Next claimed target: gej_double
+## Completed: gej_double
 
-The main session claims `simplicity_gej_double`. The public endpoint now
-compiles and is registered as a candidate pending scoped acceptance.
+The public endpoint is registered and passed ordinary scoped acceptance on
+`23b1ca34`; the main session's next claim is `simplicity_gej_ge_add`.
 `jet_secp_double_literal.v` ports the canonical
 `gej_double` pairing/projection tree, `fe_halve` (including its one-bit shift),
 and `fe_multiplyInt`; its routing and parametricity lemmas are closed. These
-are specification bridges, not additional C-jet coverage. Continue with the
-actual `secp256k1_gej_double_var` caller
-with `rzr = NULL`, its early infinity branch, and the in-place
-`secp256k1_gej_double` arithmetic. Keep arbitrary coordinates, including Y=0;
+are specification bridges, not additional C-jet coverage. The completed proof
+executes the actual `secp256k1_gej_double_var` caller with `rzr = NULL`, its
+early infinity branch and the in-place `secp256k1_gej_double` arithmetic.
+Keep arbitrary coordinates, including Y=0, when reusing it;
 do not restrict to genuine curve points. Equivalence helpers call point
 addition, so they are not independent shortcuts around this work. Normalization
 and Y-parity also need the uncompleted inversion proof.
@@ -1260,8 +1260,10 @@ literal half/integer-multiplier/doubling trees and full public theorem. It
 rejects 27 targeted doubling mutations; the existing full-shift and inherited
 field gates retain responsibility for those dependencies. The coverage test
 also rejects vacuous, wrong-function and weakened doubling registrations.
-The candidate coverage row would raise coverage to 499/533, with 34 remaining;
-do not treat that metadata count as accepted before the full scoped check:
+The registered endpoint passed the full scoped check on `23b1ca34`: 355 kernel
+modules, 294 assumption modules, 309 contract modules, negative tests and all
+five regenerated ASTs. Accepted coverage is 499/533, with 34 remaining.
+Reproduce with:
 
 ```sh
 bash Coq/check-jets.sh --accept --jets=simplicity_gej_double
@@ -1271,7 +1273,18 @@ Follow the writer body, which writes X/Y/Z unconditionally: an infinity flag
 alone does not imply all-zero stored coordinates. In particular, retain the
 finite-input Y=0 case; its final infinity flag can be true while the stored
 X/Y are nonzero. The input-infinity branch explicitly sets all coordinates to
-zero. Full scoped acceptance is the next required check, not a skipped step.
+zero. These cases are included in the accepted theorem.
+
+## Next claimed target: gej_ge_add
+
+The main session claims `simplicity_gej_ge_add`, the original mixed
+projective/affine addition jet. Reuse the accepted doubling helper for its
+equal-point branch and the selected multiply/square infrastructure. The
+public affine reader establishes a zero infinity flag for B; derive that
+fact from the reader rather than adding a public input restriction.
+The incoming-infinity branch needs the actual `gej_set_ge` field copies and
+`fe_set_int` call. The finite branch still needs its full arithmetic, zero
+tests, literal-program bridge, public reads/writes, entry and frees.
 
 ## Source-review question: Elements fee predicates
 

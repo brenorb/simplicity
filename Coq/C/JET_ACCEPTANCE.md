@@ -2,10 +2,10 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 498/533 jets (362 without an extra libc
+The local-contract registry contains 499/533 jets (363 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
-498/533, including the computing issuance hash, affine/projective curve and
-projective X-equivalence endpoints. The earlier 430-entry baseline passed
+499/533, including the computing issuance hash, affine/projective curve,
+projective X-equivalence and doubling endpoints. The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
@@ -107,7 +107,7 @@ ten are newly accepted registrations.
   do not identify the ordinary SHA translation unit with the Elements program.
 - Shared frame/evaluator admissibility and exhaustive inherited canonical
   fidelity review remain open; see `JET_INHERITED_REVIEW.md`.
-- The remaining 38 header declarations have no registered final contract.
+- The remaining 34 header declarations have no registered final contract.
   Cached Bitcoin hashes and SHA startup helpers are support until their raw-data
   and operational boundaries meet the public coverage requirements.
 
@@ -1156,6 +1156,37 @@ bash Coq/check-jets.sh --accept --jets=simplicity_gej_is_on_curve
 
 Accepted local-contract coverage is 498/533: 362 without an extra libc premise
 and 136 conditional on `memcpy_model`. The remaining 35 declarations and
+shared fidelity/domain/caller obligations remain unfinished. Production C,
+original specifications/domains/identities, API contracts and generation
+settings are unchanged.
+
+## Accepted: original projective point doubling
+
+`C.jet_secp_double_local.gej_double_literal_local_spec` proves the whole
+original `simplicity_gej_double` against the literal canonical Simplicity
+program. It derives entry, source-frame copy, coordinate reads, the real
+NULL-rzr doubling dispatch, all fifteen arithmetic calls, unconditional XYZ
+serialization, successful return and all local frees. The selected field
+multiplication and square proofs are reused, not registered again.
+
+The standard local contract covers every Word256 X/Y/Z triple and ordinary
+valid frame/cursor layouts, including incoming infinity and finite inputs
+with Y=0. No curve-membership, nonzero-coordinate, canonical-input,
+initialized-output, intermediate-execution or extra libc-model premise is
+added. The six inherited execution assumptions are unchanged.
+
+On `23b1ca34`, ordinary scoped acceptance passed with unchanged audit inputs:
+355 kernel modules, 294 assumption modules, 309 contract modules, gate negative
+tests and all five regenerated ASTs. The existing point-program correspondence
+suite rejects 27 targeted doubling mutations. Reproduce with the baseline
+Coq 8.17.1 and prepared jet dependencies:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_gej_double
+```
+
+Accepted local-contract coverage is 499/533: 363 without an extra libc premise
+and 136 conditional on `memcpy_model`. The remaining 34 declarations and
 shared fidelity/domain/caller obligations remain unfinished. Production C,
 original specifications/domains/identities, API contracts and generation
 settings are unchanged.
