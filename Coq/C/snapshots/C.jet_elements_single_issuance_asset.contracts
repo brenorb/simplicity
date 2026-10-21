@@ -1,0 +1,299 @@
+### C.jet_elements_single_issuance_asset.eis_asset_prefix_shape
+eis_asset_prefix_shape
+     : @eq Clight.statement eis_asset_prefix
+         (Clight.Ssequence jet_elements_issuance_asset_literal.eis_asset_init_actual
+            (eis_conf_asset_stmt jets_elements.___compound))
+### C.jet_elements_single_issuance_asset.eis_token_prefix_shape
+eis_token_prefix_shape
+     : @eq Clight.statement eis_token_prefix
+         (Clight.Ssequence jet_elements_issuance_asset_literal.eis_token_init_actual
+            (eis_conf_asset_stmt jets_elements.___compound__1))
+### C.jet_elements_single_issuance_asset.exec_eis_conf_asset
+exec_eis_conf_asset
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (id : BinNums.positive) (bx ba : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._simplicity_sha256_confAsset e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._ctx e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type ba (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_support_sha_linkage.sha_ge m
+                (@Ctypes.Internal Clight.function jets_elements.f_simplicity_sha256_confAsset)
+                (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge e le m (eis_conf_asset_stmt id)
+         Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_elements_single_issuance_asset.exec_eis_literal_asset_hash
+exec_eis_literal_asset_hash
+     : forall (_ : jet_memcpy_model.memcpy_model) (bx bm : Values.block) (_ : not (@eq Values.block bm bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bm))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bx))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bm)) (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (id : BinNums.positive) (source : Clight.expr) (ba bin : Values.block)
+         (base : BinNums.Z) (h : Digest.hash256) (l regs : list Integers.Int.int) (c : Integers.Int64.int)
+         (ovf : bool) (_ : jet_elements_support_sha_ctxi.ctxi m bx bm l regs c ovf)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type ba (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._ctx e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._simplicity_sha256_confAsset e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq Ctypes.type (Clight.typeof source) (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+         (_ : Clight.eval_expr jet_elements_support_sha_linkage.sha_ge e le m source
+                (Values.Vptr bin (Integers.Ptrofs.repr base))) (_ : not (@eq Values.block ba bin))
+         (_ : not (@eq Values.block ba bx)) (_ : not (@eq Values.block ba bm))
+         (_ : not
+                (@eq Values.block ba
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression)))
+         (_ : not
+                (@eq Values.block ba
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : jet_uint32_array_init.uint32_array_at m bin base (Digest.hash256_reg h))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable),
+       let B : list Integers.Int.int :=
+         @List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+           (jet_elements_asset_amount_hash_spec.elements_asset_bytes
+              (jet_elements_asset_jets.encode_asset (@jet_elements_prim.Explicit unit Digest.hash256 h))) in
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge e le m
+               (Clight.Ssequence (jet_elements_issuance_asset_literal.eis_asset_literal_stmt id source)
+                  (eis_conf_asset_stmt id)) Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_elements_support_sha_ctxi.ctxi mf bx bm
+                  (@fst (list Integers.Int.int) (list Integers.Int.int)
+                     (jet_elements_support_sha_uchars_prep.absorb_i l regs B))
+                  (@snd (list Integers.Int.int) (list Integers.Int.int)
+                     (jet_elements_support_sha_uchars_prep.absorb_i l regs B))
+                  (Integers.Int64.add c
+                     (Integers.Int64.repr
+                        (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                  (jet_elements_confidential_exec.conf_overflow c ovf Integers.Int.one))
+               (and
+                  (forall (ch : AST.memory_chunk) (b : Values.block) (o : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+                     (_ : not (@eq Values.block b ba)) (_ : not (@eq Values.block b bx))
+                     (_ : not (@eq Values.block b bm)),
+                   @eq (option Values.val) (Memory.Mem.load ch mf b o) (Memory.Mem.load ch m b o))
+                  (and
+                     (forall (b : Values.block) (o : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                        (_ : Memory.Mem.valid_block m b) (_ : Memory.Mem.perm m b o k p), Memory.Mem.perm mf b o k p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))
+### C.jet_elements_single_issuance_asset.eis_asset_id_offset
+eis_asset_id_offset
+     : jet_elements_field_eval.elements_field_at jets_elements._assetIssuance jets_elements._assetId
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_elements_single_issuance_asset.eis_token_id_offset
+eis_token_id_offset
+     : jet_elements_field_eval.elements_field_at jets_elements._assetIssuance jets_elements._tokenId
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))
+### C.jet_elements_single_issuance_asset.exec_eis_id_hash
+exec_eis_id_hash
+     : forall (_ : jet_memcpy_model.memcpy_model) (bx bm : Values.block) (token : bool)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (ba bin : Values.block) (ofs : BinNums.Z) (h : Digest.hash256)
+         (l regs : list Integers.Int.int) (c : Integers.Int64.int) (ovf : bool) (_ : not (@eq Values.block bm bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bm))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bx))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bm)) (_ : jet_elements_support_sha_ctxi.ctxi m bx bm l regs c ovf)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type)
+                   match token return BinNums.positive with
+                   | true => jets_elements.___compound__1
+                   | false => jets_elements.___compound
+                   end e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type ba (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._ctx e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._simplicity_sha256_confAsset e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._issuance le)
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr ofs)))) (_ : not (@eq Values.block ba bin))
+         (_ : not (@eq Values.block ba bx)) (_ : not (@eq Values.block ba bm))
+         (_ : not
+                (@eq Values.block ba
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression)))
+         (_ : not
+                (@eq Values.block ba
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)))
+         (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : jet_uint32_array_init.uint32_array_at m bin
+                (BinInt.Z.add ofs
+                   match token return BinNums.Z with
+                   | true =>
+                       BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                   | false =>
+                       BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                   end) (Digest.hash256_reg h))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable),
+       let B : list Integers.Int.int :=
+         @List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+           (jet_elements_asset_amount_hash_spec.elements_asset_bytes
+              (jet_elements_asset_jets.encode_asset (@jet_elements_prim.Explicit unit Digest.hash256 h))) in
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge e le m
+               match token return Clight.statement with
+               | true => eis_token_prefix
+               | false => eis_asset_prefix
+               end Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_elements_support_sha_ctxi.ctxi mf bx bm
+                  (@fst (list Integers.Int.int) (list Integers.Int.int)
+                     (jet_elements_support_sha_uchars_prep.absorb_i l regs B))
+                  (@snd (list Integers.Int.int) (list Integers.Int.int)
+                     (jet_elements_support_sha_uchars_prep.absorb_i l regs B))
+                  (Integers.Int64.add c
+                     (Integers.Int64.repr
+                        (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                  (jet_elements_confidential_exec.conf_overflow c ovf Integers.Int.one))
+               (and
+                  (forall (ch : AST.memory_chunk) (b : Values.block) (o : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+                     (_ : not (@eq Values.block b ba)) (_ : not (@eq Values.block b bx))
+                     (_ : not (@eq Values.block b bm)),
+                   @eq (option Values.val) (Memory.Mem.load ch mf b o) (Memory.Mem.load ch m b o))
+                  (and
+                     (forall (b : Values.block) (o : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                        (_ : Memory.Mem.valid_block m b) (_ : Memory.Mem.perm m b o k p), Memory.Mem.perm mf b o k p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))
+### C.jet_elements_single_issuance_asset.eis_conf_asset_stmt
+eis_conf_asset_stmt =
+fun id : AST.ident =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_elements._simplicity_sha256_confAsset
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr)) Ctypes.Tnil))
+        Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets_elements._ctx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Eaddrof (Clight.Evar id (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))) (@nil Clight.expr)))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments eis_conf_asset_stmt id
+### C.jet_elements_single_issuance_asset.eis_asset_prefix
+eis_asset_prefix =
+Clight.Ssequence
+  (Clight.Ssequence
+     (Clight.Sassign
+        (Clight.Efield
+           (Clight.Evar jets_elements.___compound (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))
+           jets_elements._data (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+        (Clight.Efield
+           (Clight.Ederef
+              (Clight.Etempvar jets_elements._issuance
+                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)))
+              (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)) jets_elements._assetId
+           (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)))
+     (Clight.Sassign
+        (Clight.Efield
+           (Clight.Evar jets_elements.___compound (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))
+           jets_elements._prefix Ctypesdefs.tint)
+        (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint)))
+  (Clight.Scall (@None AST.ident)
+     (Clight.Evar jets_elements._simplicity_sha256_confAsset
+        (Ctypes.Tfunction
+           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+              (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr)) Ctypes.Tnil))
+           Ctypesdefs.tvoid AST.cc_default))
+     (@cons Clight.expr
+        (Clight.Eaddrof (Clight.Evar jets_elements._ctx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr)))
+        (@cons Clight.expr
+           (Clight.Eaddrof
+              (Clight.Evar jets_elements.___compound (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))
+              (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr)))
+           (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_elements_single_issuance_asset.eis_token_prefix
+eis_token_prefix =
+Clight.Ssequence
+  (Clight.Ssequence
+     (Clight.Sassign
+        (Clight.Efield
+           (Clight.Evar jets_elements.___compound__1 (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))
+           jets_elements._data (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+        (Clight.Efield
+           (Clight.Ederef
+              (Clight.Etempvar jets_elements._issuance
+                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)))
+              (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)) jets_elements._tokenId
+           (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)))
+     (Clight.Sassign
+        (Clight.Efield
+           (Clight.Evar jets_elements.___compound__1 (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))
+           jets_elements._prefix Ctypesdefs.tint)
+        (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint)))
+  (Clight.Scall (@None AST.ident)
+     (Clight.Evar jets_elements._simplicity_sha256_confAsset
+        (Ctypes.Tfunction
+           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+              (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr)) Ctypes.Tnil))
+           Ctypesdefs.tvoid AST.cc_default))
+     (@cons Clight.expr
+        (Clight.Eaddrof (Clight.Evar jets_elements._ctx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr)))
+        (@cons Clight.expr
+           (Clight.Eaddrof
+              (Clight.Evar jets_elements.___compound__1 (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))
+              (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr)))
+           (@nil Clight.expr))))
+     : Clight.statement

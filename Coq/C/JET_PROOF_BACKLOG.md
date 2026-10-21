@@ -766,6 +766,14 @@ issuance fields. It compiles in the normal build; its theorem/definition and
 inherited-assumption snapshots are checked. It is branch support, not a whole
 jet acceptance result.
 
+`jet_elements_single_issuance_asset.v` composes construction and absorption
+of both actual asset/token ID prefixes. `exec_eis_id_hash` selects either real
+subtree, derives its source expression from `_issuance`, and establishes the
+corresponding canonical explicit-asset bytes in the running SHA context. It
+checks assetId/tokenId offsets 168/200 against the frozen composite environment.
+Private-object separation and writability must be discharged from `eis_entry`'s
+allocations by the eventual whole-function proof, not imposed on callers.
+
 Next compose the remaining two actual payload branches, then the shared finalize,
 writeHash, return, frees and framing. No issuance: four uchar(0), two proof-hash
 calls, uchar(0). New issuance: two explicit ID literals and amount calls, proof
@@ -775,8 +783,8 @@ the proof hashes, uchar(1), blinding-nonce and entropy hashes. Require only acti
 union arms and actually read fields; neither executions nor the final digest
 may be public premises. The element's issuance starts at offset 256; checked
 existing fields include entropy 72, proof hashes 104/136, assetAmt 232 and type
-272. Verify assetId/tokenId at 168/200 and union tokenAmt at 32 against the AST
-when using them. Extend the existing canonical-tree/full-contract source check
+272. The ID offsets 168/200 are now checked; verify union tokenAmt at 32 against
+the AST when using it. Extend the existing canonical-tree/full-contract source check
 and run ordinary acceptance only after the final whole-C literal endpoint.
 Caller/cache establishment, libc and evaluator obligations remain separate.
 
