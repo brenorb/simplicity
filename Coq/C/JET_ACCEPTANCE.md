@@ -874,3 +874,42 @@ bash Coq/check-jets.sh --accept --jets=simplicity_issuance_asset_amounts_hash,si
 ```
 
 No production C, original specification, API or generation setting changed.
+
+## Candidates: Elements transaction and signature hashes
+
+`elements_tx_hash_literal_local_spec` in `C.jet_elements_tx_hash_literal`
+proves the original transaction-cache getter against the complete literal
+`txHash` program: Version/LockTime, then the input/output/issuance/surjection
+hash tuple in canonical order, then the input-UTXO hash and finalization.
+The proof composes the existing component results and shared byte-list
+absorption/finalization lemmas. Its initial representation is
+`hash_getter_rep elements_tx_hash_of 0 632 760`.
+
+`elements_sig_all_hash_literal_local_spec` in
+`C.jet_elements_sig_all_hash_literal` proves the original direct txEnv-cache
+getter against the complete literal `sigAllHash` program: both copies of
+GenesisBlockHash, the transaction and tap-environment hashes, CurrentIndex,
+and finalization. It uses the new shared direct-field getter execution proof,
+whose initial relation is `elements_direct_hash_rep elements_sig_all_hash_of 48`.
+The actual Elements program and the original 88-byte txEnv layout are retained.
+
+Both keep `application_jet_local_spec_sep`, arbitrary valid frame cursors and
+old output contents, actual C execution/return, output encoding, prefix/cursor
+preservation and external framing. The initial cache correspondence remains
+explicit. Actual builder establishment and general caller/evaluator
+admissibility are not proved by these local results. No intermediate execution,
+output premise or extra libc model is added. The literal program bridges are
+closed; the C endpoints use only the six inherited library assumptions.
+
+All three modules compile through the normal project target. The existing
+source checker compares the full canonical composition trees, primitive
+bindings, word encodings, direct-field representation and complete C boundaries,
+and rejects 26 further mutations. Reviewed snapshots cover 13 theorems and
+12 definitions in the three modules; comparisons without update flags pass.
+These candidates are not registered or accepted yet. After registration, run:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_tx_hash,simplicity_sig_all_hash
+```
+
+No production C, original specification, API or generation setting changed.

@@ -1,0 +1,94 @@
+### C.jet_elements_direct_hash_getter.exec_elements_direct_hash_mid
+exec_elements_direct_hash_mid
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (mc me : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (be : Values.block)
+         (ebase : BinNums.Z) (field : AST.ident) (delta : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeHash e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase)))) (_ : BinInt.Z.le BinNums.Z0 ebase)
+         (_ : BinInt.Z.le BinNums.Z0 delta) (_ : BinInt.Z.le (BinInt.Z.add ebase delta) Integers.Ptrofs.max_unsigned)
+         (_ : jet_elements_field_eval.elements_field_at jets_elements._txEnv field delta)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge mc
+                (@Ctypes.Internal Clight.function jets_elements.f_writeHash)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr be (Integers.Ptrofs.repr (BinInt.Z.add ebase delta)))
+                      (@nil Values.val))) Events.E0 me Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le mc (elements_direct_hash_mid field)
+         Events.E0 le me ClightBigstep.Out_normal
+### C.jet_elements_direct_hash_getter.elements_direct_hash_getter_local
+@elements_direct_hash_getter_local
+     : forall (E : Set) (hash_of : forall _ : E, Digest.hash256) (delta : BinNums.Z) (field : AST.ident)
+         (f : Clight.function)
+         (spec : forall (_ : Ty.tySem Ty.Unit) (_ : E), option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (_ : forall e : E,
+              @eq (option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (spec tt e)
+                (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.from_hash256 (hash_of e))))
+         (_ : jet_elements_wrapper.elements_wrapper_shape f
+                (jet_elements_wrapper.elements_simple_rest (elements_direct_hash_mid field)))
+         (_ : jet_elements_field_eval.elements_field_at jets_elements._txEnv field delta)
+         (_ : and (BinInt.Z.le BinNums.Z0 delta)
+                (BinInt.Z.le
+                   (BinInt.Z.add delta
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))),
+       jet_application_sep.application_jet_local_spec_sep f jet_elements_linkage.elements_ge E Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@elements_direct_hash_rep E hash_of delta) spec
+### C.jet_elements_direct_hash_getter.elements_direct_hash_mid
+elements_direct_hash_mid =
+fun field : AST.ident =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_elements._writeHash
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)) Ctypes.Tnil))
+        Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Eaddrof
+           (Clight.Efield
+              (Clight.Ederef
+                 (Clight.Etempvar jets_elements._env
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._txEnv Ctypes.noattr)))
+                 (Ctypes.Tstruct jets_elements._txEnv Ctypes.noattr)) field
+              (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)))
+        (@nil Clight.expr)))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments elements_direct_hash_mid field
+### C.jet_elements_direct_hash_getter.elements_direct_hash_rep
+elements_direct_hash_rep =
+fun (E : Set) (hash_of : forall _ : E, Digest.hash256) (delta : BinNums.Z) (m : Memory.Mem.mem)
+  (env : Values.val) (environment : E) (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+        (and (BinInt.Z.le BinNums.Z0 ebase)
+           (and
+              (BinInt.Z.le
+                 (BinInt.Z.add ebase
+                    (BinNums.Zpos
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                 Integers.Ptrofs.max_unsigned)
+              (and
+                 (jet_uint32_array_init.uint32_array_at m be (BinInt.Z.add ebase delta)
+                    (Digest.hash256_reg (hash_of environment)))
+                 (@eq (list (prod (prod Values.block BinNums.Z) BinNums.Z)) fp
+                    (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                       (@pair (prod Values.block BinNums.Z) BinNums.Z
+                          (@pair Values.block BinNums.Z be (BinInt.Z.add ebase delta))
+                          (BinInt.Z.add (BinInt.Z.add ebase delta)
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                       (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))))))))
+     : forall (E : Set) (_ : forall _ : E, Digest.hash256) (_ : BinNums.Z) (_ : Memory.Mem.mem)
+         (_ : Values.val) (_ : E) (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments elements_direct_hash_rep {E}%type_scope hash_of%function_scope delta%Z_scope m env environment fp%list_scope

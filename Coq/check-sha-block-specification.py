@@ -2542,6 +2542,91 @@ def elements_issuance_amount_hashes(s):
         raise ValueError('composite issuance whole C getter contract differs')
 
 
+def elements_transaction_signature_hashes(s):
+    """Whole canonical composition trees and complete original C getters.
+    Component correspondence is fixed by the existing mandatory family checks.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, name, expected):
+        if p.compact(hbody(s[key], name)) != p.compact(expected):
+            raise ValueError('Elements transaction/signature binding differs: ' + name)
+
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('Elements transaction/signature definition differs: ' + name)
+
+    aliases = [
+        ('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+        ('@literal_ctx8_finalize term', 'ctx8Finalize'),
+    ] + [('@literal_ctx8_addn ' + str(k) + ' term', 'add' + str(2 ** k)) for k in [2, 3, 5, 7]]
+    components = [('inputs', 'inputsHash'), ('outputs', 'outputsHash'), ('issuances', 'issuancesHash'),
+                  ('output_surjection_proofs', 'outputSurjectionProofsHash'),
+                  ('input_utxos', 'inputUtxosHash'), ('tx', 'txHash'), ('tap_env', 'tapEnvHash')]
+    aliases += [('@literal_elements_' + stem + '_hash alg', name) for stem, name in components]
+    primitives = ['Version', 'LockTime', 'GenesisBlockHash', 'CurrentIndex']
+    aliases += [('@EFP.Combinators.prim _ _ alg Elements.' + name, 'p' + name) for name in primitives]
+    atoms = {'ctx8Init', 'ctx8Finalize', 'add4', 'add8', 'add32', 'add128'}
+    atoms |= {name for stem, name in components} | {'p' + name for name in primitives}
+    prefix = '''let term := EFP.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in'''
+    programs = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    for stem, tag, name, key in [('tx', 'TxHash', 'txHash', 'elements_tx_port'),
+                                 ('sig_all', 'SigAllHash', 'sigAllHash', 'elements_sig_all_port')]:
+        binding('elements_catalog', 'specificationSigHash ' + tag, 'SigHash.' + name)
+        p.require(s['elements_catalog'], tag + ' :: SigHashJet () Word256', 'transaction/signature jet type')
+        binding('elements_sighash_lib', name, 'SigHash.' + name + ' SigHash.lib')
+        hs = re.search(r'\b' + name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)
+        if not hs:
+            raise ValueError('missing canonical hash composition: ' + name)
+        hs = hs[1]
+        for primitive in primitives:
+            hs = replace(hs, 'primitive ' + primitive, 'p' + primitive)
+        for k in [2, 3, 5, 7]:
+            hs = replace(hs, 'ctx8Addn vector' + str(2 ** k), 'add' + str(2 ** k))
+        port = p.definition(s[key], 'literal_elements_' + stem + '_hash')
+        if not p.compact(port).startswith(p.compact(prefix)):
+            raise ValueError('transaction/signature algebra projection differs')
+        port = replace(port, prefix, '')
+        for old, new in aliases:
+            port = replace(port, old, new)
+        for op in ['comp', 'pair']:
+            port = replace(port, '@AC.' + op + ' _ _ _ core', op + 'Node')
+            port = replace(port, 'AC.' + op, op + 'Node')
+        port = replace(port, 'AC.iden', 'iden')
+        if expression(hs) != explicit_core_tree(expression(port), atoms):
+            raise ValueError('canonical whole hash composition differs: ' + name)
+        theorem = 'elements_' + stem + '_hash_literal_local_spec'
+        statement = re.search(r'Theorem ' + theorem + r'\s*:(.*?)\bProof\.', s[key], re.S)
+        rep = ('hash_getter_rep elements_tx_hash_of 0 632 760' if stem == 'tx' else
+               'elements_direct_hash_rep elements_sig_all_hash_of 48')
+        expected = ('application_jet_local_spec_sep f_simplicity_' + stem + '_hash elements_ge Elements.env Ty.Unit Word256 '
+                    '(' + rep + ') (fun a environment => @literal_elements_' + stem + '_hash elements_hash_alg a environment).')
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError('transaction/signature whole C getter contract differs: ' + theorem)
+
+    for primitive, body in [
+        ('Version', 'element . return . toWord32 . toInteger $ sigTxVersion tx'),
+        ('LockTime', 'element . return . toWord32 . toInteger $ sigTxLock tx'),
+        ('GenesisBlockHash', 'element . return . encodeHash $ envGenesisBlock env'),
+        ('CurrentIndex', 'element . return . toWord32 . toInteger $ ix'),
+    ]:
+        binding('elements_primitive_hs', 'interpret ' + primitive, body)
+    definition('elements_tx_port', 'elements_tx_version_word',
+               '@fromZ (WordToZ 5) (Int.unsigned (sigTxVersion (Elements.envTx e)))')
+    definition('elements_tx_port', 'elements_tx_locktime_word',
+               '@fromZ (WordToZ 5) (Int.unsigned (sigTxLock (Elements.envTx e)))')
+    definition('elements_sig_all_port', 'elements_genesis_word', 'from_hash256 (Elements.envGenesisBlock e)')
+    definition('elements_sig_all_port', 'elements_current_index_word', '@fromZ (WordToZ 5) (Z.of_nat (Elements.envIx e))')
+    definition('elements_direct_getter', 'elements_direct_hash_rep', r'''
+      exists be ebase,
+        env = Vptr be (Ptrofs.repr ebase) /\
+        0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
+        uint32_array_at m be (ebase + delta) (hash256_reg (hash_of environment)) /\
+        fp = [(be, ebase + delta, ebase + delta + 32)]''')
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -2636,6 +2721,9 @@ def sources():
         "issuance_amount_program": COQ / "C/jet_elements_issuance_amounts_hash_program.v",
         "issuance_amount_port": COQ / "C/jet_elements_issuance_amounts_hash_literal.v",
         "issuances_port": COQ / "C/jet_elements_issuances_hash_literal.v",
+        "elements_tx_port": COQ / "C/jet_elements_tx_hash_literal.v",
+        "elements_sig_all_port": COQ / "C/jet_elements_sig_all_hash_literal.v",
+        "elements_direct_getter": COQ / "C/jet_elements_direct_hash_getter.v",
         "elements_annex_exec": COQ / "C/jet_elements_annex_context_exec.v",
         "elements_annex_context_port": COQ / "C/jet_elements_annex_context_literal.v",
         "elements_issuance_program": REPO / "Haskell/Simplicity/Elements/Programs/Issuance.hs",
@@ -2684,6 +2772,7 @@ def test():
     elements_annex_context(s)
     elements_tap_builders(s)
     elements_issuance_amount_hashes(s)
+    elements_transaction_signature_hashes(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -3710,6 +3799,60 @@ def test():
             continue
         raise ValueError('issuance amount mutation escaped: ' + old)
     print('Issuance amount optional pair/serializer, traversal and complete C contracts match;', len(changes), 'mutations rejected')
+
+    changes = [
+        ('elements_sighash', 'primitive Version &&& primitive LockTime', 'primitive LockTime &&& primitive Version'),
+        ('elements_sighash', 'inputsHash &&& outputsHash', 'outputsHash &&& inputsHash'),
+        ('elements_sighash', 'issuancesHash &&& outputSurjectionProofsHash', 'issuancesHash &&& outputRangeProofsHash'),
+        ('elements_sighash', 'primitive GenesisBlockHash >>> iden &&& iden', 'primitive GenesisBlockHash >>> iden'),
+        ('elements_sighash', 'txHash &&& tapEnvHash', 'tapEnvHash &&& txHash'),
+        ('elements_tx_port', '@literal_ctx8_addn 3 term', '@literal_ctx8_addn 2 term'),
+        ('elements_tx_port', '@literal_ctx8_addn 7 term', '@literal_ctx8_addn 6 term'),
+        ('elements_tx_port', '@literal_elements_output_surjection_proofs_hash alg', '@literal_elements_output_range_proofs_hash alg'),
+        ('elements_sig_all_port', '(AC.pair AC.iden AC.iden)', '(AC.take AC.iden)'),
+        ('elements_sig_all_port', '@literal_ctx8_addn 2 term', '@literal_ctx8_addn 3 term'),
+        ('elements_sig_all_port', '@EFP.Combinators.prim _ _ alg Elements.CurrentIndex', '@EFP.Combinators.prim _ _ alg Elements.Version'),
+        ('elements_tx_port', 'Int.unsigned (sigTxVersion (Elements.envTx e))', 'Int.signed (sigTxVersion (Elements.envTx e))'),
+        ('elements_sig_all_port', 'Z.of_nat (Elements.envIx e)', '0'),
+        ('elements_primitive_hs', 'encodeHash $ envGenesisBlock env', 'encodeHash $ txid tx'),
+        ('elements_direct_getter', 'uint32_array_at m be (ebase + delta) (hash256_reg (hash_of environment))', 'True'),
+        ('elements_direct_getter', 'fp = [(be, ebase + delta, ebase + delta + 32)]', 'fp = []'),
+    ]
+    for stem, tag, name, key in [('tx', 'TxHash', 'txHash', 'elements_tx_port'),
+                                 ('sig_all', 'SigAllHash', 'sigAllHash', 'elements_sig_all_port')]:
+        declaration = 'Theorem elements_' + stem + '_hash_literal_local_spec :'
+        changes += [
+            ('elements_catalog', 'specificationSigHash ' + tag + ' = SigHash.' + name,
+             'specificationSigHash ' + tag + ' = SigHash.inputsHash'),
+            ('elements_sighash_lib', name + ' = SigHash.' + name + ' SigHash.lib',
+             name + ' = SigHash.inputsHash SigHash.lib'),
+            (key, declaration, declaration + ' False ->'),
+            (key, declaration, declaration + ' memcpy_model ->'),
+        ]
+    changes += [
+        ('elements_tx_port', '(hash_getter_rep elements_tx_hash_of 0 632 760)\n    (fun a environment',
+         '(hash_getter_rep elements_tx_hash_of 0 600 760)\n    (fun a environment'),
+        ('elements_sig_all_port', '(elements_direct_hash_rep elements_sig_all_hash_of 48)',
+         '(elements_direct_hash_rep elements_sig_all_hash_of 16)'),
+    ]
+    for key, old, new in changes:
+        # Shared fragments also occur in the intermediate semantic model.
+        # Mutate the actual literal port when testing its source correspondence.
+        if key in {'elements_tx_port', 'elements_sig_all_port'}:
+            stem = 'tx' if key == 'elements_tx_port' else 'sig_all'
+            body = p.definition(s[key], 'literal_elements_' + stem + '_hash')
+            if old in body:
+                old, new = body, body.replace(old, new, 1)
+        if old not in s[key]:
+            raise ValueError('inactive transaction/signature hash mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_transaction_signature_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('transaction/signature hash mutation escaped: ' + old)
+    print('Elements transaction/signature full Core trees, primitives and C boundaries match;', len(changes), 'mutations rejected')
 
 
 if __name__ == "__main__":

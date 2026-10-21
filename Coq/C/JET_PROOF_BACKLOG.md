@@ -621,11 +621,34 @@ explicit obligations. All three endpoints passed ordinary scoped acceptance,
 including all 392 kernel dependency modules. See `JET_ACCEPTANCE.md` for scope
 and the reproducible command.
 
-The direct next composition is Elements `tx_hash` (version/locktime, four
-component hashes, then input-UTXO hash), followed by `sig_all_hash`. Reuse the
-existing byte-list absorption/finalization lemmas rather than repeating SHA
-execution. Those jets are not claimed by this note; check `JET_CLAIMS.md`
-before starting them. Bitcoin value-domain blockers remain separate.
+## Candidates: Elements transaction and signature hashes
+
+`jet_elements_tx_hash_literal.v` and `jet_elements_sig_all_hash_literal.v`
+now compile the complete original getters against their full literal,
+primitive-bearing programs. They reuse the component-hash theorems and
+byte-list absorption/finalization lemmas, rather than repeating SHA execution.
+The transaction hash keeps the version/locktime prefix, canonical order of
+four component hashes and final input-UTXO hash. The signature hash keeps both
+copies of GenesisBlockHash, transaction/tap-environment hashes and CurrentIndex.
+
+The shared `jet_elements_direct_hash_getter.v` proves the direct txEnv-field
+wrapper needed by the latter, with the same complete application-frame
+contract and existing `writeHash` execution. The former retains the existing
+pointer-field getter framework. Their initial canonical cache relations at
+transaction offset 632 and txEnv offset 48 remain caller obligations. No
+execution/output premise or extra libc model is introduced. Normal builds,
+source correspondence and 26 targeted mutations pass; the candidates are not
+registered or accepted yet. See `JET_ACCEPTANCE.md` for scope and the command.
+
+The remaining indexed computing Elements hash jets need actual C helper
+execution, not just cache-getter registration. `input_utxo_hash` is the smallest
+next representative: read index/tag, initialize SHA, execute confAsset/confAmt
+and hash calls, finalize, serialize and free, including the out-of-range branch.
+The ordinary C tree has no live-context confAsset/confAmt execution proofs yet;
+check the archived Elements-environment helper proofs before deriving them for
+the actual Elements jet program. Do not identify the two translation units or
+introduce an assumed intermediate call/digest. Bitcoin domain blockers and
+Elements fee questions remain separate. Check `JET_CLAIMS.md` before starting.
 
 ## Source-review question: Elements fee predicates
 
