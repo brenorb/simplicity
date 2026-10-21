@@ -956,8 +956,15 @@ ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_point_square_z
 ```
 
-Next establish the full literal `gej_x_equiv` target and compose the original
-`secp256k1_gej_eq_x_var`: square Z, multiply the temporary by the separate X
+`jet_secp_x_equiv_literal.v` supplies the full literal `gej_x_equiv` target,
+including the infinity guard and the negation/addition/zero-test tree. Its
+parametricity and semantic-step lemmas are closed; the numeric comparison
+bridge inherits only functional extensionality. The ordinary build and reviewed
+contract/assumption comparisons pass. This module does not prove C execution
+and is not a coverage registration. Keep this literal tree as the target,
+rather than replacing it by the numeric equation.
+
+Next compose the original `secp256k1_gej_eq_x_var`: square Z, multiply the temporary by the separate X
 argument, copy the point's X to `r2`, weak-normalize it, compare, return and free.
 Reuse `eval_original_field_mul_wrapper_product` and `field_mul_regs`, which
 already own two distinct 40-byte fields and admit 56-/52-bit operands, rather
