@@ -1006,13 +1006,22 @@ Next connect the literal target and real public wrapper. The original
 `simplicity_gej_x_equiv` reads the separate field first, then the point: input
 order is `(q,((x,y),z))`, not the rescale reader's `(x,y,z,s)` order. Its local
 allocation order is source frame (16), separate field (40), point (128). Reuse
-`eval_read_fe_with_cursor` followed by `eval_read_gej_canonical_fields` at
+`eval_read_fe_with_cursor_capacity` followed by `eval_read_gej_canonical_fields` at
 `rc+256`, preserving the already-read field across the point reader. Keep the
 one-bit output contract (`1 <= N`); do not inherit rescale's 768-bit requirement.
 The public infinity flag is derived by `read_gej`; its true branch skips the
 arithmetic helper and returns the false bit. Execute both branches, the actual
 bit writer and public frees, then register only the whole literal equivalence
 endpoint and run the ordinary scoped acceptance check. Coverage remains 496/533.
+
+The capacity-parametric cursor reader in `jet_secp_read_fe_cursor_capacity.v`
+now derives the actual field read and advanced cursor for any nonnegative
+output capacity fitting N. The older `eval_read_fe_with_cursor` fixes capacity
+256 and must not be used to strengthen this jet's one-bit output premise.
+`jet_secp_x_equiv_literal_bridge.v` proves the reader-product residue and the
+guarded helper-result equality to the full literal target, including zero Z.
+These two ordinary modules pass build, reviewed contract/assumption comparisons
+and the recursive kernel check. They add no jet coverage.
 
 Do not infer full input ownership from a borrowed view: `foot` conservatively
 includes read cells, and `rw=false` alone does not retain a whole Freeable
