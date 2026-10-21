@@ -1,4 +1,4 @@
-"""Check literal canonical field predicate programs and complete jet contracts.
+"""Check literal field/curve predicate programs and complete jet contracts.
 
 This supplements kernel and execution checks; it does not establish C execution.
 """
@@ -147,7 +147,60 @@ def check(coq=COQ, repo=REPO):
         want = f'secp_jet_local_spec f_simplicity_fe_is_{suffix} (Word 8) Bit (@{name} Alg.CoreFunSem).'
         if not statement or compact(statement[1]) != compact(want):
             raise ValueError(name+' full public contract differs')
-    return 2
+    # The curve endpoint reuses the field ports checked here and by the existing
+    # add/negate/multiply/square gates. Freeze its new routing and constant too.
+    types = read_code(repo/'Haskell/Core/Simplicity/Ty/LibSecp256k1.hs')
+    for fragment in ['type FE = Word256', 'type GE = (FE, FE)', 'type GEJ = (GE, FE)']:
+        require(types, fragment, 'curve representation')
+    require(catalog, 'GeIsOnCurve :: Secp256k1Jet Secp256k1.GE Bit', 'curve jet type')
+    require(catalog, 'specificationSecp256k1 GeIsOnCurve = Secp256k1.ge_is_on_curve', 'curve dispatch')
+    require(catalog, 'implementationSecp256k1 GeIsOnCurve = FFI.ge_is_on_curve', 'curve implementation')
+    require(program, 'scribe256 = scribe . toWord256', 'curve constant encoding')
+    exact_program(impl, 'fe_one', 'fe_is_zero', 'one256')
+    exact_program(impl, 'gej_is_on_curve', 'ge_is_on_curve',
+                  '((unit >>> scribe256 7) &&& (ih >>> fe_cube >>> fe_square) >>> fe_multiply) '
+                  '&&& (take (take fe_cube &&& (drop fe_square >>> fe_negate)) >>> fe_add) '
+                  '>>> fe_add >>> fe_is_zero')
+    exact_program(impl, 'ge_is_on_curve', 'scalar_normalize',
+                  'iden &&& (unit >>> fe_one) >>> gej_is_on_curve')
+    cubes = re.findall(r'^\s*fe_cube\s*=([^\n]*)$', impl, re.M)
+    if len(cubes) != 1 or compact(cubes[0]) != compact('iden &&& fe_square >>> fe_multiply'):
+        raise ValueError('canonical curve cube differs')
+    port = read_code(coq/'C/jet_secp_curve_literal.v')
+    for name, expected in [
+        ('curve_seven_word', '@fromZ (WordToZ 8) 7'),
+        ('literal_gej_is_on_curve',
+         '(((unit >>> Alg.scribe curve_seven_word) &&& '
+         '(I H >>> @literal_fe_cube term >>> @literal_fe_square term) >>> @literal_fe_multiply term) &&& '
+         '(O (O (@literal_fe_cube term) &&& (I (@literal_fe_square term) >>> @literal_fe_negate term)) '
+         '>>> @literal_fe_add term)) >>> @literal_fe_add term >>> @canonical_fe_is_zero term'),
+        ('literal_ge_is_on_curve',
+         'iden &&& (unit >>> @literal_fe_one256 term) >>> @literal_gej_is_on_curve term'),
+    ]:
+        if compact(definition(port, name)) != compact(expected):
+            raise ValueError('literal curve tree differs: '+name)
+    for fragment in [
+        'curve_seven_word : Ty.tySem (Word 8)',
+        'literal_gej_is_on_curve {term : Alg.Core.Algebra} : term (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) Bit',
+        'literal_ge_is_on_curve {term : Alg.Core.Algebra} : term (Ty.Prod (Word 8) (Word 8)) Bit',
+    ]:
+        require(port, fragment, 'curve port type')
+    cube = read_code(coq/'C/jet_secp_rescale_literal.v')
+    one = read_code(coq/'C/jet_secp_literal_add_program.v')
+    for source, name, expected in [
+        (cube, 'literal_fe_cube', 'iden &&& @literal_fe_square term >>> @literal_fe_multiply term'),
+        (one, 'literal_fe_one256', 'Bit.true >>> @left_pad_low_1_n term 8'),
+    ]:
+        if compact(definition(source, name)) != compact(expected):
+            raise ValueError('shared curve dependency differs: '+name)
+    local = read_code(coq/'C/jet_secp_curve_local.v')
+    statement = re.search(r'Theorem ge_is_on_curve_literal_local_spec\s*:(.*?)\bProof\.', local, re.S)
+    want = ('secp_jet_local_spec f_simplicity_ge_is_on_curve '
+            '(Ty.Prod (Word 8) (Word 8)) (Ty.Sum Ty.Unit Ty.Unit) '
+            '(@literal_ge_is_on_curve Alg.CoreFunSem).')
+    if not statement or compact(statement[1]) != compact(want):
+        raise ValueError('curve full public contract differs')
+    return 3
 
 
 if __name__ == "__main__":
@@ -155,4 +208,4 @@ if __name__ == "__main__":
         check()
     except (ValueError, OSError, IndexError) as error:
         raise SystemExit(str(error))
-    print("canonical field predicate programs, recursive ports and full frame contracts match")
+    print("canonical field/curve predicate programs, recursive ports and full frame contracts match")

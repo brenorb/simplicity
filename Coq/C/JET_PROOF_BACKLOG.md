@@ -897,21 +897,23 @@ unregistered public curve endpoint. This is not a new acceptance result:
   The ordinary target `JET_TARGETS=C/jet_secp_curve_local.vo bash Coq/build-jets.sh -j2`
   passes; all four reviewed contract/assumption snapshots match without update
   flags. The endpoint retains the same six inherited library assumptions and
-  needs no extra libc premise. It is deliberately not in `jet_coverage.tsv` yet.
+  needs no extra libc premise. Its single exact endpoint is registered as a
+  candidate; scoped acceptance has not yet been completed.
 
 These are C execution-plus-value contracts, not just relations between jet
 specifications. The helper integer bridges are closed; execution contracts retain
 only the six inherited library assumptions. No extra libc model is needed.
 
-Next extend the existing `check-secp-predicates-specification.py` source gate
-and its mutation fixtures to the full projective/affine curve trees, catalog
-dispatch, shared cube/one ports and the exact public endpoint contract. Other
-field ports retain their existing gates. Add the exact endpoint boundary to
-`jet-coverage.py` and its negative tests, then register only
-`C.jet_secp_curve_local.ge_is_on_curve_literal_local_spec`, remove the claim,
-and run `bash Coq/check-jets.sh --accept --jets=simplicity_ge_is_on_curve` with
-sources frozen until terminal completion. Do not count the new jet until that
-acceptance passes. Existing accepted coverage remains 495/533.
+The existing `check-secp-predicates-specification.py` source gate now checks
+the full projective/affine curve trees, catalog dispatch/implementation, shared
+cube/one ports and the exact public endpoint contract. Its mutation suite rejects
+62 variants (28 new curve cases). Other field ports retain their existing gates.
+`jet-coverage.py` also enforces the exact boundary and its negative tests pass.
+Only `C.jet_secp_curve_local.ge_is_on_curve_literal_local_spec` is registered;
+the claim is removed. Next run
+`bash Coq/check-jets.sh --accept --jets=simplicity_ge_is_on_curve` with sources
+frozen until terminal completion. Do not count the new jet until that acceptance
+passes: the inventory has 496 entries but accepted coverage remains 495/533.
 The numeric `curve_result` alone is not the jet specification. The
 Haskell target is `ge_is_on_curve = iden &&& (unit >>> fe_one) >>> gej_is_on_curve`;
 its local `fe_cube = iden &&& fe_square >>> fe_multiply` must be retained in the
