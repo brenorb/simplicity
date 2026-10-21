@@ -835,7 +835,7 @@ Caller/cache establishment, libc and evaluator obligations remain separate.
 ## Next claimed target: ge_is_on_curve
 
 The main session claims `simplicity_ge_is_on_curve` in `JET_CLAIMS.md`.
-Sixteen ordinary modules now compile as internal support, not a registered curve
+Eighteen ordinary modules now compile as internal support, not a registered curve
 jet or a new acceptance result:
 
 - `jet_secp_field_add7.v`: actual `fe_add_int(7)`, exact field-value increment,
@@ -877,9 +877,19 @@ jet or a new acceptance result:
   final result, private buffer or allocation premise. X/Y, source ownership and
   external framing are preserved. The flag-zero premise must be derived from
   the actual affine reader in the public jet proof, not imposed on jet inputs.
+- `jet_secp_curve_literal{,_bridge}.v`: the full literal canonical projective
+  and affine Core trees, their parametricity, and `eval_curve_finite_literal`.
+  The latter connects the complete original helper to the literal affine bit
+  for every pair of Word256 inputs represented by the actual reader's limbs.
+  Reader reduction modulo P preserves the comparison; no canonical-input or
+  on-curve premise is added. It retains the derived-reader obligations (X/Y
+  fields, finite flag and owned 88-byte object), not a public frame contract.
+  The residue lemmas are closed; the literal numeric bridge inherits functional
+  extensionality and the execution theorem retains the same six library
+  assumptions. Both ordinary modules and reviewed snapshots pass.
 
 These are C execution-plus-value contracts, not just relations between jet
-specifications. Their integer bridges are closed; execution contracts retain
+specifications. The helper integer bridges are closed; execution contracts retain
 only the six inherited library assumptions. No extra libc model is needed.
 
 Next prove the whole public `f_simplicity_ge_is_on_curve` wrapper, reusing
@@ -889,8 +899,8 @@ already establishes X/Y limbs, the zero infinity flag, cursor movement and
 preserve the frame invariant through the helper, then execute the actual
 writeBit, return and public local frees. Reuse the generic owned-public lifecycle
 and the selected field proofs instead of duplicating their arithmetic. Prove
-the full literal canonical Core bridge; the numeric `curve_result` alone is not
-the jet specification. The
+the full public literal endpoint using `eval_curve_finite_literal`; the numeric
+`curve_result` alone is not the jet specification. The
 Haskell target is `ge_is_on_curve = iden &&& (unit >>> fe_one) >>> gej_is_on_curve`;
 its local `fe_cube = iden &&& fe_square >>> fe_multiply` must be retained in the
 literal port. Do not replace it by an assumed numeric curve equation. Add source-fidelity
