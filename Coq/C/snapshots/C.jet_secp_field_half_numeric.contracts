@@ -1,0 +1,394 @@
+### C.jet_secp_field_half_numeric.half_lowbit_unsigned
+half_lowbit_unsigned
+     : forall x : Integers.Int64.int,
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.and x Integers.Int64.one))
+         (BinInt.Z.modulo (Integers.Int64.unsigned x) (BinNums.Zpos (BinNums.xO BinNums.xH)))
+### C.jet_secp_field_half_numeric.half_lowbit_word
+half_lowbit_word
+     : forall x : Integers.Int64.int,
+       @eq Integers.Int64.int (Integers.Int64.and x Integers.Int64.one)
+         (Integers.Int64.repr (BinInt.Z.modulo (Integers.Int64.unsigned x) (BinNums.Zpos (BinNums.xO BinNums.xH))))
+### C.jet_secp_field_half_numeric.half_parity_range
+half_parity_range
+     : forall w : forall _ : nat, Integers.Int64.int,
+       or (@eq BinNums.Z (half_parity w) BinNums.Z0) (@eq BinNums.Z (half_parity w) (BinNums.Zpos BinNums.xH))
+### C.jet_secp_field_half_numeric.half_mask_word
+half_mask_word
+     : forall w : forall _ : nat, Integers.Int64.int,
+       @eq Integers.Int64.int (jet_secp_field_half.half_mask w)
+         (Integers.Int64.repr
+            (BinInt.Z.mul (half_parity w)
+               (BinNums.Zpos
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI
+                                                            (BinNums.xI
+                                                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+### C.jet_secp_field_half_numeric.half_addend_unsigned
+half_addend_unsigned
+     : forall (w : forall _ : nat, Integers.Int64.int) (i : nat),
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            match PeanoNat.Nat.eqb i O return Integers.Int64.int with
+            | true =>
+                Integers.Int64.and
+                  (Integers.Int64.repr
+                     (BinNums.Zpos
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xI
+                                                            (BinNums.xI
+                                                               (BinNums.xI
+                                                                  (BinNums.xI
+                                                                     (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))
+                  (jet_secp_field_half.half_mask w)
+            | false =>
+                match PeanoNat.Nat.eqb i (S (S (S (S O)))) return Integers.Int64.int with
+                | true =>
+                    Integers.Int64.shru (jet_secp_field_half.half_mask w)
+                      (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+                | false => jet_secp_field_half.half_mask w
+                end
+            end) (BinInt.Z.mul (half_parity w) (half_prime_digit i))
+### C.jet_secp_field_half_numeric.half_adjust_unsigned
+half_adjust_unsigned
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds w)
+         (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (jet_secp_field_half.half_adjust_words w i))
+         (BinInt.Z.add (Integers.Int64.unsigned (w i)) (BinInt.Z.mul (half_parity w) (half_prime_digit i)))
+### C.jet_secp_field_half_numeric.half_adjust_bound
+half_adjust_bound
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds w)
+         (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned (jet_secp_field_half.half_adjust_words w i)))
+         (BinInt.Z.lt (Integers.Int64.unsigned (jet_secp_field_half.half_adjust_words w i))
+            match PeanoNat.Nat.eqb i (S (S (S (S O)))) return BinNums.Z with
+            | true =>
+                BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))
+            | false =>
+                BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))
+            end)
+### C.jet_secp_field_half_numeric.half_carry_unsigned
+half_carry_unsigned
+     : forall a : Integers.Int64.int,
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (Integers.Int64.shl (Integers.Int64.and a Integers.Int64.one)
+               (Integers.Int64.repr
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+         (BinInt.Z.mul (BinInt.Z.modulo (Integers.Int64.unsigned a) (BinNums.Zpos (BinNums.xO BinNums.xH)))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+### C.jet_secp_field_half_numeric.half_output_unsigned
+half_output_unsigned
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds w)
+         (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (jet_secp_field_half.half_words w i))
+         match PeanoNat.Nat.eqb i (S (S (S (S O)))) return BinNums.Z with
+         | true =>
+             BinInt.Z.div (Integers.Int64.unsigned (jet_secp_field_half.half_adjust_words w i))
+               (BinNums.Zpos (BinNums.xO BinNums.xH))
+         | false =>
+             BinInt.Z.add
+               (BinInt.Z.div (Integers.Int64.unsigned (jet_secp_field_half.half_adjust_words w i))
+                  (BinNums.Zpos (BinNums.xO BinNums.xH)))
+               (BinInt.Z.mul
+                  (BinInt.Z.modulo (Integers.Int64.unsigned (jet_secp_field_half.half_adjust_words w (S i)))
+                     (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))))))))
+         end
+### C.jet_secp_field_half_numeric.half_output_reusable
+half_output_reusable
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds w),
+       jet_secp_square_columns.square_input_bounds (jet_secp_field_half.half_words w)
+### C.jet_secp_field_half_numeric.half_adjust_radix
+half_adjust_radix
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds w),
+       @eq BinNums.Z (jet_secp_multiply_finish_product.radix_value (jet_secp_field_half.half_adjust_words w))
+         (BinInt.Z.add (jet_secp_multiply_finish_product.radix_value w)
+            (BinInt.Z.mul (half_parity w) jet_secp_fe_math.feP))
+### C.jet_secp_field_half_numeric.half_adjust_even
+half_adjust_even
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds w),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (Integers.Int64.unsigned (jet_secp_field_half.half_adjust_words w O))
+            (BinNums.Zpos (BinNums.xO BinNums.xH))) BinNums.Z0
+### C.jet_secp_field_half_numeric.half_radix_telescope
+half_radix_telescope
+     : forall (t0 t1 t2 t3 t4 : BinNums.Z)
+         (_ : @eq BinNums.Z (BinInt.Z.modulo t0 (BinNums.Zpos (BinNums.xO BinNums.xH))) BinNums.Z0),
+       @eq BinNums.Z
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (jet_secp_fe_math.fe_val
+               (BinInt.Z.add (BinInt.Z.div t0 (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                  (BinInt.Z.mul (BinInt.Z.modulo t1 (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))
+               (BinInt.Z.add (BinInt.Z.div t1 (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                  (BinInt.Z.mul (BinInt.Z.modulo t2 (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))
+               (BinInt.Z.add (BinInt.Z.div t2 (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                  (BinInt.Z.mul (BinInt.Z.modulo t3 (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))
+               (BinInt.Z.add (BinInt.Z.div t3 (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                  (BinInt.Z.mul (BinInt.Z.modulo t4 (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))
+               (BinInt.Z.div t4 (BinNums.Zpos (BinNums.xO BinNums.xH))))) (jet_secp_fe_math.fe_val t0 t1 t2 t3 t4)
+### C.jet_secp_field_half_numeric.half_value_identity
+half_value_identity
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds w),
+       @eq BinNums.Z
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (jet_secp_multiply_finish_product.radix_value (jet_secp_field_half.half_words w)))
+         (BinInt.Z.add (jet_secp_multiply_finish_product.radix_value w)
+            (BinInt.Z.mul (half_parity w) jet_secp_fe_math.feP))
+### C.jet_secp_field_half_numeric.eval_field_half_numeric
+eval_field_half_numeric
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (b : Values.block)
+         (_ : jet_secp_square_columns.square_input_bounds w)
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_half)
+               (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf b BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5 (jet_secp_field_half.half_words w)))
+               (and
+                  (Memory.Mem.range_perm mf b BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and (jet_secp_square_columns.square_input_bounds (jet_secp_field_half.half_words w))
+                     (and
+                        (@eq BinNums.Z
+                           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH))
+                              (jet_secp_multiply_finish_product.radix_value (jet_secp_field_half.half_words w)))
+                           (BinInt.Z.add (jet_secp_multiply_finish_product.radix_value w)
+                              (BinInt.Z.mul (half_parity w) jet_secp_fe_math.feP)))
+                        (jet_sx_mem.lframe (fun (bx : Values.block) (_ : BinNums.Z) => not (@eq Values.block bx b)) m
+                           mf))))))
+### C.jet_secp_field_half_numeric.half_parity
+half_parity =
+fun w : forall _ : nat, Integers.Int64.int =>
+BinInt.Z.modulo (Integers.Int64.unsigned (w O)) (BinNums.Zpos (BinNums.xO BinNums.xH))
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments half_parity w%function_scope
+### C.jet_secp_field_half_numeric.half_prime_digit
+half_prime_digit =
+fun i : nat =>
+match PeanoNat.Nat.eqb i O return BinNums.Z with
+| true =>
+    BinNums.Zpos
+      (BinNums.xI
+         (BinNums.xI
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xO
+                     (BinNums.xI
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))))))
+| false =>
+    match PeanoNat.Nat.eqb i (S (S (S (S O)))) return BinNums.Z with
+    | true =>
+        BinNums.Zpos
+          (BinNums.xI
+             (BinNums.xI
+                (BinNums.xI
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI
+                                                    (BinNums.xI
+                                                       (BinNums.xI
+                                                          (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))
+    | false =>
+        BinNums.Zpos
+          (BinNums.xI
+             (BinNums.xI
+                (BinNums.xI
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI
+                                                    (BinNums.xI
+                                                       (BinNums.xI
+                                                          (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))
+    end
+end
+     : forall _ : nat, BinNums.Z
+
+Arguments half_prime_digit i%nat_scope

@@ -1,0 +1,227 @@
+### C.jet_secp_field_half.half_run_eq
+half_run_eq
+     : @eq (option jet_sx_exec.res) half_run (@Some jet_sx_exec.res (jet_sx_exec.RDone half_state jet_sx_exec.ONormal))
+### C.jet_secp_field_half.half_return
+half_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps half_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_field_half.half_output_shape
+half_output_shape
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs half_state)
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 half_out) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@nil jet_sx_state.region))
+### C.jet_secp_field_half.half_output_den
+half_output_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) half_out)
+         (@List.map Integers.Int64.int Values.val Values.Vlong
+            (jet_secp_multiply_normalize_bridge.words5 (half_words rho)))
+### C.jet_secp_field_half.eval_field_half_symbolic
+eval_field_half_symbolic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta half_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_half)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@nil Values.val)) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep rho beta
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 half_out) true
+                        (@Some BinNums.Z
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                     (@nil jet_sx_state.region)) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape half_regs) b pos)) m mf)))
+### C.jet_secp_field_half.half_initial
+half_initial
+     : forall (rho : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (b : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 rho))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       jet_sx_state.rep rho
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+            (@nil (prod Values.block BinNums.Z))) half_regs m
+### C.jet_secp_field_half.half_result
+half_result
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta
+                (@cons jet_sx_state.region
+                   (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 half_out) true
+                      (@Some BinNums.Z
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                   (@nil jet_sx_state.region)) m),
+       and
+         (jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta O) (jet_sx_state.bas beta O)
+            (jet_secp_multiply_normalize_bridge.words5 (half_words rho)))
+         (Memory.Mem.range_perm m (jet_sx_state.blk beta O) BinNums.Z0
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+            Memtype.Freeable)
+### C.jet_secp_field_half.eval_field_half_from_storage
+eval_field_half_from_storage
+     : forall (rho : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (b : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 rho))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_half)
+               (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf Values.Vundef)
+            (and (jet_secp_fe_nv.fe_at mf b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 (half_words rho)))
+               (and
+                  (Memory.Mem.range_perm mf b BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (jet_sx_mem.lframe (fun (bx : Values.block) (_ : BinNums.Z) => not (@eq Values.block bx b)) m mf))))
+### C.jet_secp_field_half.half_regs
+half_regs =
+@cons jet_sx_state.region
+  (jet_secp_local_regions.free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 O))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+  (@nil jet_sx_state.region)
+     : list jet_sx_state.region
+### C.jet_secp_field_half.half_one
+half_one =
+jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc (Integers.Int.repr (BinNums.Zpos BinNums.xH)))
+     : jet_sx_expr.sx
+### C.jet_secp_field_half.half_mask_expr
+half_mask_expr =
+jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLneg (jet_sx_expr.XLb jet_sx_expr.Band (jet_sx_expr.XLv O) half_one))
+  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))
+     : jet_sx_expr.sx
+### C.jet_secp_field_half.half_adjust_expr
+half_adjust_expr =
+fun i : nat =>
+jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv i)
+  match PeanoNat.Nat.eqb i O return jet_sx_expr.sx with
+  | true =>
+      jet_sx_expr.XLb jet_sx_expr.Band
+        (jet_sx_expr.XLc
+           (Integers.Int64.repr
+              (BinNums.Zpos
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))
+        half_mask_expr
+  | false =>
+      match PeanoNat.Nat.eqb i (S (S (S (S O)))) return jet_sx_expr.sx with
+      | true => jet_sx_expr.XLsh jet_sx_expr.Hshru half_mask_expr (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+      | false => half_mask_expr
+      end
+  end
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments half_adjust_expr i%nat_scope
+### C.jet_secp_field_half.half_out_expr
+half_out_expr =
+fun i : nat =>
+match PeanoNat.Nat.eqb i (S (S (S (S O)))) return jet_sx_expr.sx with
+| true => jet_sx_expr.XLsh jet_sx_expr.Hshru (half_adjust_expr i) (BinNums.Zpos BinNums.xH)
+| false =>
+    jet_sx_expr.XLb jet_sx_expr.Badd
+      (jet_sx_expr.XLsh jet_sx_expr.Hshru (half_adjust_expr i) (BinNums.Zpos BinNums.xH))
+      (jet_sx_expr.XLsh jet_sx_expr.Hshl (jet_sx_expr.XLb jet_sx_expr.Band (half_adjust_expr (S i)) half_one)
+         (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+end
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments half_out_expr i%nat_scope
+### C.jet_secp_field_half.half_out
+half_out =
+@List.map nat jet_sx_expr.sx half_out_expr
+  (@cons nat O
+     (@cons nat (S O) (@cons nat (S (S O)) (@cons nat (S (S (S O))) (@cons nat (S (S (S (S O)))) (@nil nat))))))
+     : list jet_sx_expr.sx
+### C.jet_secp_field_half.half_run
+half_run =
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  (jet_sx_pure.int_table jet_secp_fns.secp_pure)
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  jets_secp.f_secp256k1_fe_half (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0) (@nil jet_sx_expr.sx)) half_regs
+  (@nil jet_sx_eval.event) (S (S (S (S (S O)))))
+     : option jet_sx_exec.res
+### C.jet_secp_field_half.half_mask
+half_mask =
+fun w : forall _ : nat, Integers.Int64.int =>
+Integers.Int64.shru (Integers.Int64.neg (Integers.Int64.and (w O) Integers.Int64.one))
+  (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+     : forall _ : forall _ : nat, Integers.Int64.int, Integers.Int64.int
+
+Arguments half_mask w%function_scope
+### C.jet_secp_field_half.half_adjust_words
+half_adjust_words =
+fun (w : forall _ : nat, Integers.Int64.int) (i : nat) =>
+Integers.Int64.add (w i)
+  match PeanoNat.Nat.eqb i O return Integers.Int64.int with
+  | true =>
+      Integers.Int64.and
+        (Integers.Int64.repr
+           (BinNums.Zpos
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))
+        (half_mask w)
+  | false =>
+      match PeanoNat.Nat.eqb i (S (S (S (S O)))) return Integers.Int64.int with
+      | true =>
+          Integers.Int64.shru (half_mask w) (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+      | false => half_mask w
+      end
+  end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments half_adjust_words w%function_scope i%nat_scope
+### C.jet_secp_field_half.half_words
+half_words =
+fun (w : forall _ : nat, Integers.Int64.int) (i : nat) =>
+match PeanoNat.Nat.eqb i (S (S (S (S O)))) return Integers.Int64.int with
+| true => Integers.Int64.shru (half_adjust_words w i) (Integers.Int64.repr (BinNums.Zpos BinNums.xH))
+| false =>
+    Integers.Int64.add (Integers.Int64.shru (half_adjust_words w i) (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+      (Integers.Int64.shl (Integers.Int64.and (half_adjust_words w (S i)) Integers.Int64.one)
+         (Integers.Int64.repr
+            (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments half_words w%function_scope i%nat_scope
