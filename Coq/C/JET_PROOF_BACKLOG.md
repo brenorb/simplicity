@@ -1134,9 +1134,10 @@ The first memory obligation, `r.z = a.z * a.y` with `r = a`, is now proved by
 of that owned region; do not pretend they are separate allocations. The reverse
 square layout (private L into point X) is now proved by `eval_square_point_x`:
 precise framing restores the full point allocation and preserves Y/Z/flag
-bytes. The later Y destination multiplied from two private fields remains to
-be supplied. Reuse the existing u128 log and numeric output lemmas for that
-concrete call layout.
+bytes. `eval_point_y_product` now proves the later Y destination multiplication
+from two private fields, reusing the selected u128 log and numeric lemmas.
+Its three-allocation initial representation follows from full point ownership
+and the two actual operand fields; initial Y contents need not be defined.
 
 The actual `secp256k1_fe_half` execution is now proved in
 `jet_secp_field_half.v`, without an input-limb bound needed for execution.
@@ -1169,31 +1170,43 @@ the preceding tight outputs; these are caller facts, not new domain constraints.
 `double_accumulate_calls` composes calls nine through twelve (X += T twice,
 S = S^2, T += X). `double_first_twelve_calls` then derives all twelve calls from
 the initial storage. It preserves Y/Z and L, returns the updated X/T/S machine
-fields, full ownership, and bounds for the last three calls. All these modules
+fields, full ownership, and bounds for the last three calls.
+
+`eval_point_y_negate2` proves the actual magnitude-two, in-place negation at
+offset 40, deriving the exact value `6*feP - value Y` and reusable output bounds
+from the preceding sum's bounds. `double_y_tail_calls` composes all three final
+calls. `double_all_arithmetic_calls` now derives all fifteen original helper
+calls, output fields, full point/temporary ownership and writer bounds from the
+initial point and three owned temporaries. No intermediate execution/output
+premise is required.
+
+`double_helper_source` identifies the original generated body exactly as the
+flag load/store followed by `double_arithmetic_body`.
+`exec_double_arithmetic_owned` executes that actual arithmetic suffix from
+owned storage, discharging every call premise internally. It is not yet an
+execution/equivalence theorem for the whole helper or public jet. These modules
 pass the ordinary build, focused assumption/contract audits and recursive kernel
 checks, with the same six inherited execution assumptions and no new libc
 premise. Coverage is unchanged. Reproduce with the baseline toolchain and
 dependencies described above:
 
 ```sh
-JET_TARGETS=C/jet_secp_double_twelve.vo bash Coq/build-jets.sh -j2
+JET_TARGETS=C/jet_secp_double_body_owned.vo bash Coq/build-jets.sh -j2
 ulimit -S -s 65520
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_twelve
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_body_owned
 ```
 
-Next prove the remaining three arithmetic calls: multiply the separate private
-T and L fields into point Y, add S to Y (reuse `eval_point_field_add true PointY`),
-and magnitude-two in-place negation of Y. Reuse the selected multiplication
-event/numeric lemmas for that three-allocation destination layout. The final
-negation needs an adapter for the original magnitude-two call at offset 40,
-not the existing magnitude-one helper or an assumed normalized input. Derive
-its no-wrap and output bounds from the preceding multiplication and addition.
-Compose the generated statement tree, flag load/store, helper entry and frees:
-the twelve-call theorem is not yet an execution theorem for the entire helper.
-Connect the actual halving
-result and final coordinates to `literal_gej_double`, then compose the infinity
-branch and public read/write/lifecycle contract. The value identities alone do
-not discharge this implementation-to-literal bridge.
+Next execute the flag load/store and compose helper entry and frees. For the
+flag store at bytes [120,124), derive preservation of X/Y/Z and permissions
+before invoking the checked arithmetic suffix; do not assume those post-store
+facts or require the memory to be literally unchanged. Reuse the three-field
+allocation/free pattern in `jet_secp_gej_curve_function.v`, but check this
+helper's parameter bindings and `blocks_of_env` order rather than copying them.
+Then handle `secp256k1_gej_double_var` with NULL `rzr`, including the input-infinity
+branch and the actual post-doubling Z-zero test/flag store. Connect the actual
+halving result and final coordinates to `literal_gej_double`, then compose the
+public read/write/lifecycle contract. The value identities alone do not
+discharge this implementation-to-literal bridge.
 
 Follow the writer body, which writes X/Y/Z unconditionally: an infinity flag
 alone does not imply all-zero stored coordinates. In particular, retain the
