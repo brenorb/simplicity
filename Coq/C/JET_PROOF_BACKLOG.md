@@ -3,8 +3,8 @@
 The current local-contract registry contains 497 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 36 declarations remain unregistered.
-The new X-equivalence candidate has passed its focused proof checks; ordinary
-scoped acceptance is pending, so accepted coverage is still 496/533.
+The X-equivalence endpoint passed ordinary scoped acceptance; accepted
+local-contract coverage is 497/533. The every-jet goal remains incomplete.
 
 The remaining work includes:
 
@@ -936,15 +936,16 @@ input offset and limb, retaining the 10-second command bound.
 Claude's alternative public field endpoints remain unregistered; do not merge
 `dd4579a7` or duplicate the selected `fe_multiply`/`fe_square` rows.
 
-## Candidate public proof: gej_x_equiv
+## Completed: gej_x_equiv
 
 The main session completed `simplicity_gej_x_equiv`; its claim is removed.
 `C.jet_secp_x_equiv_local.gej_x_equiv_literal_local_spec` retains the original
 total public contract: unrestricted `(FE, GEJ)` words, including zero Z and
 the real infinity short-circuit. It adds no finite-point, on-curve, initialized
 output, intermediate execution or libc-model premise. The ordinary build,
-reviewed snapshots and recursive kernel check pass; the registered candidate
-still needs ordinary scoped acceptance before accepted coverage increases.
+reviewed snapshots and recursive kernel check pass. Ordinary scoped acceptance
+also passed on `0b694db8`: 318 kernel modules, 257 assumption modules, 272 contract
+modules, gate negative tests and all five regenerated ASTs, with unchanged inputs.
 
 `jet_secp_point_square_z.v` now proves the actual optimized square from offset
 80 of an owned 128-byte point into an uninitialized distinct 40-byte temporary.
@@ -1023,7 +1024,7 @@ derived. Only the whole literal-equivalence endpoint is registered.
 The existing predicate source gate now checks this catalog binding, full
 Haskell/Coq literal routing, infinity dependency, Bit.and port and exact public
 contract. Its 87 mutations include 25 new X-equivalence/dependency cases.
-The registry checker also enforces the exact direct endpoint. Next run:
+The registry checker also enforces the exact direct endpoint. Reproduce with:
 
 ```sh
 bash Coq/check-jets.sh --accept --jets=simplicity_gej_x_equiv
@@ -1041,6 +1042,30 @@ and the recursive kernel check. They add no jet coverage.
 Do not infer full input ownership from a borrowed view: `foot` conservatively
 includes read cells, and `rw=false` alone does not retain a whole Freeable
 object. Keep the actual enclosing allocation in the execution contract.
+
+## Next claimed target: gej_is_on_curve
+
+The main session claims `simplicity_gej_is_on_curve`. Its literal program,
+semantic-step lemma and parametricity proof already live in
+`jet_secp_curve_literal.v`; no complete C endpoint was found in the active
+modules or proof-work README files. Extend these results rather than starting
+another literal port. The intended public contract admits arbitrary Word256
+X/Y/Z values and one output bit, not only genuine or finite curve points.
+
+The actual helper is `f_simplicity_gej_is_valid_var`, defined in
+`C/jets-secp256k1.c`, not libsecp's affine validity checker. It deliberately
+tests the polynomial `y^2 = x^3 + 7*z^6` without checking the infinity flag, and
+accepts `(0,0,0)` as the canonical infinity representative. Do not import the
+affine helper's early infinity rejection into this proof.
+
+Reuse the selected square/multiply arithmetic and owned-point contracts.
+Generalize the coordinate-square storage adapter to offsets 0/40/80 while
+retaining the whole 128-byte allocation. The remaining helper sequence needs
+the actual multiplication by 7, field addition and equality comparison.
+Unlike the affine checker and X-equivalence, this C helper does not
+weak-normalize the sum before equality: extend the comparison proof to the
+derived looser second-operand bounds; do not assume or insert a normalization
+call. These next steps are a plan, not additional proved or registered coverage.
 
 ## Source-review question: Elements fee predicates
 

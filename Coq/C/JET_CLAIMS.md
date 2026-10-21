@@ -7,3 +7,4 @@ instead of starting a parallel proof.
 
 | Jet (`jet_coverage.tsv` name) | Owner (agent/session) | Branch | Since |
 | --- | --- | --- | --- |
+| `simplicity_gej_is_on_curve` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-21 |

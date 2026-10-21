@@ -2,9 +2,10 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 496/533 jets (360 without an extra libc
+The local-contract registry contains 497/533 jets (361 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
-496/533, including the computing issuance hash and affine curve endpoints. The earlier 430-entry baseline passed
+497/533, including the computing issuance hash, affine curve and projective
+X-equivalence endpoints. The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
@@ -1094,3 +1095,34 @@ libc model. Accepted local-contract coverage is 496/533 (360 without an extra
 libc premise; 136 conditional on `memcpy_model`). Production C, frozen
 specifications/domains/identities, API contracts and generation settings are
 unchanged. This completes this jet, not the broader every-jet goal.
+
+## Accepted: original guarded projective X-equivalence
+
+`C.jet_secp_x_equiv_local.gej_x_equiv_literal_local_spec` proves the original
+`simplicity_gej_x_equiv` against the full literal canonical Simplicity tree,
+not an assumed numeric predicate. It derives the frame/field/point allocations,
+by-value source-frame copy, four actual input reads in `(q,((x,y),z))` order,
+the infinity accessor and both short-circuit branches, the complete comparison
+helper, bit write, successful return and all private/public frees.
+
+The standard local-frame contract covers all four Word256 inputs, including
+zero Z, with one writable output bit. There is no finite-point, on-curve,
+canonical-input, zero-initialized-output, desired-result, intermediate-execution
+or extra libc-model premise. The final theorem retains the six inherited
+library assumptions. The selected multiply/square proofs are reused; the
+alternative public field registrations remain excluded.
+
+On `0b694db8`, ordinary scoped acceptance passed with unchanged audit inputs:
+318 kernel modules, 257 assumption modules, 272 contract modules, gate negative
+tests and all five regenerated ASTs. The extended predicate source suite rejects
+87 mutations, including 25 new X-equivalence/dependency cases. Reproduce with:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_gej_x_equiv
+```
+
+Accepted local-contract coverage is 497/533: 361 without an extra libc premise
+and 136 conditional on `memcpy_model`. The remaining 36 declarations and the
+shared fidelity/domain/caller obligations are not completed by this result.
+Production C, original specifications/domains/identities, API contracts and
+generation settings are unchanged.
