@@ -1379,10 +1379,21 @@ negate U1 into H, add U2, negate S2 into I, add S1. It derives the exact
 words, `4*p - minus + plus` values, loose reusable bounds, all preserved
 source fields and six owned temporaries, without execution/output premises
 or initialized H/I destinations. The same pair proof handles H and I;
-source equalities retain the generated statement order. Its tight operand
-bounds must still be discharged when composing it with the preparation
-result (reuse the existing multiplication and positioned-reader bounds).
-The zero tests and both equal/inverse-point branches remain unproved here.
+source equalities retain the generated statement order.
+
+`jet_secp_mixed_finite_prefix.v:exec_mixed_finite_difference` connects the
+complete finite preparation to those four H/I statements. It derives the
+tight H/I operand bounds from positioned-reader bounds and the existing
+`double_mul_tight`/`double_tight_loose` results, and carries initially
+uninitialized H/I storage through preparation using its memory frame. The
+result preserves all point/affine inputs and both flags, returns the exact
+U/S/z12/H/I words, nine owned allocations and the combined frame. Its source
+equality identifies the whole original body prefix through H/I; no execution,
+intermediate output or tight multiplication-result premise is assumed.
+These are internal execution results, not a new public jet registration.
+Next prove the actual zero tests and equal/inverse-point branches, then the
+nonzero-H arithmetic and full helper/public-wrapper lifecycle and literal
+specification bridge.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1404,6 +1415,8 @@ JET_TARGETS=C/jet_secp_mixed_preparation.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_preparation
 JET_TARGETS=C/jet_secp_mixed_difference.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_difference
+JET_TARGETS=C/jet_secp_mixed_finite_prefix.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_finite_prefix
 ```
 
 ## Source-review question: Elements fee predicates
