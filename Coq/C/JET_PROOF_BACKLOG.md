@@ -835,7 +835,7 @@ Caller/cache establishment, libc and evaluator obligations remain separate.
 ## Next claimed target: ge_is_on_curve
 
 The main session claims `simplicity_ge_is_on_curve` in `JET_CLAIMS.md`.
-Thirteen ordinary modules now compile as internal support, not a registered curve
+Sixteen ordinary modules now compile as internal support, not a registered curve
 jet or a new acceptance result:
 
 - `jet_secp_field_add7.v`: actual `fe_add_int(7)`, exact field-value increment,
@@ -865,23 +865,35 @@ jet or a new acceptance result:
   all six actual arithmetic calls in C order. The returned C integer is exactly
   the comparison of Y² with X³+7 modulo the field prime, derived from the initial
   limbs. Both private temporaries and the affine input remain Freeable; input
-  fields and external framing are preserved. This is a complete arithmetic-call
-  composition, not yet the containing Clight statement/function or literal jet.
+  fields and external framing are preserved. This arithmetic-call composition
+  is used by the containing Clight function below, not substituted for a literal jet.
+- `jet_secp_curve_statements.v`, `jet_secp_curve_body.v` and
+  `jet_secp_curve_function.v`: `eval_curve_finite_function` proves the whole
+  original `f_secp256k1_ge_is_valid_var` for a finite affine object. It establishes
+  both actual 40-byte allocations and freshness, binds the actual parameter,
+  executes the flag load/finite branch and all six arithmetic statements,
+  converts the return integer and frees both private objects in the actual
+  `blocks_of_env` order. Its preconditions contain no intermediate execution,
+  final result, private buffer or allocation premise. X/Y, source ownership and
+  external framing are preserved. The flag-zero premise must be derived from
+  the actual affine reader in the public jet proof, not imposed on jet inputs.
 
 These are C execution-plus-value contracts, not just relations between jet
 specifications. Their integer bridges are closed; execution contracts retain
 only the six inherited library assumptions. No extra libc model is needed.
 
-Next compose the actual `f_secp256k1_ge_is_valid_var` in `jets_secp.v`: infinity
-test, the now-composed six arithmetic calls, result conversion and freeing.
-Derive the call composition's private buffer premises from actual allocations.
-Reuse the selected square proof and existing
-`point_mul_table`/`fm_solves`/field arithmetic through the new 40-/88-byte
-storage adapters, rather than imposing unrelated 128-/40-byte ownership.
-Prove private allocations, preservation, result conversion and frees, then the
-public reader/writeBit wrapper and full literal canonical Core bridge. The
+Next prove the whole public `f_simplicity_ge_is_on_curve` wrapper, reusing
+`eval_read_ge_canonical_fields` (`jet_secp_read_ge_fields.v`): that actual reader
+already establishes X/Y limbs, the zero infinity flag, cursor movement and
+88-byte ownership. Feed its derived fields/bounds to `eval_curve_finite_function`,
+preserve the frame invariant through the helper, then execute the actual
+writeBit, return and public local frees. Reuse the generic owned-public lifecycle
+and the selected field proofs instead of duplicating their arithmetic. Prove
+the full literal canonical Core bridge; the numeric `curve_result` alone is not
+the jet specification. The
 Haskell target is `ge_is_on_curve = iden &&& (unit >>> fe_one) >>> gej_is_on_curve`;
-do not replace it by an assumed numeric curve equation. Add source-fidelity
+its local `fe_cube = iden &&& fe_square >>> fe_multiply` must be retained in the
+literal port. Do not replace it by an assumed numeric curve equation. Add source-fidelity
 checks and scoped acceptance only after that whole endpoint compiles.
 
 Cached square dependencies had inconsistent assumptions over
