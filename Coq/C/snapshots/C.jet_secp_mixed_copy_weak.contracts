@@ -1,0 +1,224 @@
+### C.jet_secp_mixed_copy_weak.mixed_copies_source
+mixed_copies_source
+     : @eq Clight.statement jet_secp_mixed_finite_start.mixed_after_square
+         (Clight.Ssequence (mixed_copy_coordinate false)
+            (Clight.Ssequence (mixed_weak_coordinate false)
+               (Clight.Ssequence mixed_u2_stmt
+                  (Clight.Ssequence (mixed_copy_coordinate true)
+                     (Clight.Ssequence (mixed_weak_coordinate true) mixed_after_s1)))))
+### C.jet_secp_mixed_copy_weak.eval_mixed_a_copy_field
+eval_mixed_a_copy_field
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (ba : Values.block)
+         (y : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr ba Integers.Ptrofs.zero))),
+       Clight.eval_lvalue jet_secp_linkage.secp_ge e le m
+         (jet_secp_double_statements.double_point_field jets_secp._a
+            match y return AST.ident with
+            | true => jets_secp._y
+            | false => jets_secp._x
+            end jet_secp_curve_statements.curve_fe_type) ba
+         (Integers.Ptrofs.repr
+            match y return BinNums.Z with
+            | true => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+            | false => BinNums.Z0
+            end) Ctypes.Full
+### C.jet_secp_mixed_copy_weak.exec_mixed_copy_weak
+exec_mixed_copy_weak
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (ba bu : Values.block) (y : bool) (w : forall _ : nat, Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr ba Integers.Ptrofs.zero)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type)
+                   match y return BinNums.positive with
+                   | true => jets_secp._s1
+                   | false => jets_secp._u1
+                   end e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bu jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_normalize_weak e)
+                (@None (prod Values.block Ctypes.type))) (_ : not (@eq Values.block ba bu))
+         (_ : jet_secp_fe_math.fe_limbs_ok (Integers.Int64.unsigned (w O)) (Integers.Int64.unsigned (w (S O)))
+                (Integers.Int64.unsigned (w (S (S O)))) (Integers.Int64.unsigned (w (S (S (S O)))))
+                (Integers.Int64.unsigned (w (S (S (S (S O)))))))
+         (_ : jet_secp_fe_nv.fe_at m ba
+                match y return BinNums.Z with
+                | true => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+                | false => BinNums.Z0
+                end (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bu BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mc : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (mixed_copy_coordinate y) Events.E0 le
+                  mc ClightBigstep.Out_normal)
+               (and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le mc (mixed_weak_coordinate y) Events.E0
+                     le mf ClightBigstep.Out_normal)
+                  (and (jet_secp_fe_nv.fe_at mf bu BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+                     (and
+                        (Memory.Mem.range_perm mf bu BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (jet_secp_fe_nv.fe_at mf ba
+                              match y return BinNums.Z with
+                              | true =>
+                                  BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+                              | false => BinNums.Z0
+                              end (jet_secp_multiply_normalize_bridge.words5 w))
+                           (and
+                              (Memory.Mem.range_perm mf ba BinNums.Z0
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                 Memtype.Cur Memtype.Freeable)
+                              (jet_sx_mem.lframe
+                                 (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bu)) m mf))))))))
+### C.jet_secp_mixed_copy_weak.mixed_copy_coordinate
+mixed_copy_coordinate =
+fun y : bool =>
+Clight.Sassign
+  (Clight.Evar match y return AST.ident with
+               | true => jets_secp._s1
+               | false => jets_secp._u1
+               end jet_secp_curve_statements.curve_fe_type)
+  (jet_secp_double_statements.double_point_field jets_secp._a
+     match y return AST.ident with
+     | true => jets_secp._y
+     | false => jets_secp._x
+     end jet_secp_curve_statements.curve_fe_type)
+     : forall _ : bool, Clight.statement
+
+Arguments mixed_copy_coordinate y%bool_scope
+### C.jet_secp_mixed_copy_weak.mixed_weak_coordinate
+mixed_weak_coordinate =
+fun y : bool =>
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_normalize_weak jets_secp.f_secp256k1_fe_normalize_weak
+  (@None AST.ident)
+  (@cons Clight.expr
+     (jet_secp_curve_statements.curve_local_address
+        match y return AST.ident with
+        | true => jets_secp._s1
+        | false => jets_secp._u1
+        end) (@nil Clight.expr))
+     : forall _ : bool, Clight.statement
+
+Arguments mixed_weak_coordinate y%bool_scope
+### C.jet_secp_mixed_copy_weak.mixed_after_u1
+mixed_after_u1 =
+match jet_secp_mixed_finite_start.mixed_after_square return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ rest => rest
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_mixed_copy_weak.mixed_u2_stmt
+mixed_u2_stmt =
+match mixed_after_u1 return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence h _ => h
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_mixed_copy_weak.mixed_after_s1
+mixed_after_s1 =
+match mixed_after_u1 return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ rest => rest
+        | Clight.Sifthenelse _ _ _ => Clight.Sskip
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement

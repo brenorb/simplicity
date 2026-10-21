@@ -1326,6 +1326,18 @@ normalizations, then U2/S2, H/I and their zero tests. Reuse the checked weak
 normalization and reader-identity results (`jet_secp_curve_weak{,_math}.v`,
 `jet_secp_point_weak_values.v`) instead of repeating their arithmetic.
 
+`jet_secp_field_weak_tight.v:eval_field_weak_tight` now derives the actual
+private-field weak-normalization call and exact unchanged output words for
+positioned limbs, reusing those checked execution/carry identities.
+`square_reader_positioned` discharges the limb bounds for every reader input.
+`jet_secp_mixed_copy_weak.v:exec_mixed_copy_weak` derives both actual U1/S1
+struct-copy and weak-normalization statements from storage, with uninitialized
+destinations, full allocation permissions and unchanged source point. Its
+`mixed_copies_source` identifies both pairs inside the original body, separated
+by the actual U2 multiplication. No intermediate execution or desired output
+is a premise. These helper results still need composition with U2/S2 and the
+remaining finite arithmetic before a whole-jet contract can be registered.
+
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
 ```sh
@@ -1336,6 +1348,8 @@ JET_TARGETS=C/jet_secp_mixed_infinite_literal.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_infinite_literal
 JET_TARGETS=C/jet_secp_mixed_finite_start.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_finite_start
+JET_TARGETS=C/jet_secp_mixed_copy_weak.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_copy_weak
 ```
 
 ## Source-review question: Elements fee predicates
