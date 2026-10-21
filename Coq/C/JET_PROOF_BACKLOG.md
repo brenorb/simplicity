@@ -1131,10 +1131,12 @@ writer (`eval_write_gej_general`, with `rescale_point_field`/bounds adapters).
 The first memory obligation, `r.z = a.z * a.y` with `r = a`, is now proved by
 `eval_point_zy_mul_owned`: both sources and the destination inhabit one actual
 128-byte allocation. `jet_secp_owned_slice_fields.v` combines/extracts slices
-of that owned region; do not pretend they are separate allocations. Later calls
-also need a square into a point coordinate from a private field, and a point
-destination multiplied from two private fields. Reuse the existing u128 log
-and numeric output lemmas for these concrete call layouts.
+of that owned region; do not pretend they are separate allocations. The reverse
+square layout (private L into point X) is now proved by `eval_square_point_x`:
+precise framing restores the full point allocation and preserves Y/Z/flag
+bytes. The later Y destination multiplied from two private fields remains to
+be supplied. Reuse the existing u128 log and numeric output lemmas for that
+concrete call layout.
 
 The actual `secp256k1_fe_half` execution is now proved in
 `jet_secp_field_half.v`, without an input-limb bound needed for execution.
@@ -1148,14 +1150,34 @@ All these modules build normally and pass focused assumption/contract and
 recursive kernel checks; execution results retain only the same six inherited
 assumptions, with no added libc-model premise.
 
-Next compose the checked Z multiplication, Y/X coordinate squares and L-scale
-calls in the helper's actual memory sequence. Then supply the remaining
-add/negate and reversed square/multiply storage layouts and the complete helper
-entry/return/free proof. Connect the actual halving result and final coordinates
-to `literal_gej_double`, then compose the infinity branch and public
-read/write/lifecycle contract. Derive bounds for every later call and the point
-writer; do not assume normalization or intermediate executions. The value
-identities alone do not discharge this implementation-to-literal bridge.
+`double_prefix_calls` now derives the first five arithmetic calls from initial
+storage. `eval_negate_sep_from_storage` proves the next actual negation into
+uninitialized T, preserving S and deriving the exact value `4*feP - value S`
+and reusable bounds. `double_middle_calls` composes that negation, multiplication
+by the initial X, and the square of L into X. `double_front_calls` composes all
+eight calls from the initial point and three owned temporaries, with no
+intermediate execution/output premises. It returns X=L^2, T=-S*X (as actual
+machine limbs), S=Y^2, L, unchanged Y, updated Z, all ownership permissions and
+derived bounds needed by the tail. Build, focused assumption/contract audits
+and recursive kernel checks pass; coverage is unchanged. Reproduce with the
+baseline toolchain/dependencies described above:
+
+```sh
+JET_TARGETS=C/jet_secp_double_front.vo bash Coq/build-jets.sh -j2
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_front
+```
+
+Next prove the remaining seven arithmetic calls: add T to point X twice,
+square S in place (reuse `eval_square_inplace_from_storage`), add point X to T,
+multiply T and L into point Y, add S to Y, and magnitude-two negation of Y.
+The point/private add layouts and final negation need storage adapters and
+derived bounds, not assumed normalization. Compose the generated statement
+tree, flag load/store, helper entry and frees: the eight-call theorem is not
+yet an execution theorem for the entire helper. Connect the actual halving
+result and final coordinates to `literal_gej_double`, then compose the infinity
+branch and public read/write/lifecycle contract. The value identities alone do
+not discharge this implementation-to-literal bridge.
 
 Follow the writer body, which writes X/Y/Z unconditionally: an infinity flag
 alone does not imply all-zero stored coordinates. In particular, retain the

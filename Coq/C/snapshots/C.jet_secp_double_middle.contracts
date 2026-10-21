@@ -1,0 +1,135 @@
+### C.jet_secp_double_middle.double_middle_calls
+double_middle_calls
+     : forall (x s l : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (ba bs bl bt : Values.block)
+         (_ : jet_secp_square_columns.square_input_bounds x) (_ : jet_secp_field_mul_small.mul_small_input_bounds s)
+         (_ : jet_secp_square_columns.square_input_bounds l) (_ : not (@eq Values.block ba bs))
+         (_ : not (@eq Values.block ba bl)) (_ : not (@eq Values.block ba bt)) (_ : not (@eq Values.block bs bl))
+         (_ : not (@eq Values.block bs bt)) (_ : not (@eq Values.block bl bt))
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 x))
+         (_ : jet_secp_fe_nv.fe_at m bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 s))
+         (_ : jet_secp_fe_nv.fe_at m bl BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 l))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bl BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bt BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun m1 : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun m2 : Memory.Mem.mem =>
+             @ex Memory.Mem.mem
+               (fun mf : Memory.Mem.mem =>
+                and
+                  (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                     (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_negate)
+                     (@cons Values.val (Values.Vptr bt Integers.Ptrofs.zero)
+                        (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+                           (@cons Values.val (Values.Vint Integers.Int.one) (@nil Values.val)))) Events.E0 m1
+                     Values.Vundef)
+                  (and
+                     (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m1
+                        (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+                        (@cons Values.val (Values.Vptr bt Integers.Ptrofs.zero)
+                           (@cons Values.val (Values.Vptr bt Integers.Ptrofs.zero)
+                              (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 m2
+                        Values.Vundef)
+                     (and
+                        (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m2
+                           (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_sqr)
+                           (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                              (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                           Values.Vundef)
+                        (and
+                           (jet_secp_fe_nv.fe_at mf ba BinNums.Z0
+                              (jet_secp_multiply_normalize_bridge.words5 (jet_secp_square_numeric.square_words l)))
+                           (and (jet_secp_fe_nv.fe_at mf bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 s))
+                              (and
+                                 (jet_secp_fe_nv.fe_at mf bl BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 l))
+                                 (and
+                                    (jet_secp_fe_nv.fe_at mf bt BinNums.Z0
+                                       (jet_secp_multiply_normalize_bridge.words5 (double_t_words x s)))
+                                    (and
+                                       (Memory.Mem.range_perm mf ba BinNums.Z0
+                                          (BinNums.Zpos
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                          Memtype.Cur Memtype.Freeable)
+                                       (and
+                                          (Memory.Mem.range_perm mf bs BinNums.Z0
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                             Memtype.Cur Memtype.Freeable)
+                                          (and
+                                             (Memory.Mem.range_perm mf bl BinNums.Z0
+                                                (BinNums.Zpos
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                                Memtype.Cur Memtype.Freeable)
+                                             (and
+                                                (Memory.Mem.range_perm mf bt BinNums.Z0
+                                                   (BinNums.Zpos
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                                   Memtype.Cur Memtype.Freeable)
+                                                (and
+                                                   (jet_secp_field_mul_small.mul_small_input_bounds
+                                                      (jet_secp_square_numeric.square_words l))
+                                                   (and
+                                                      (jet_secp_field_mul_small.mul_small_input_bounds
+                                                         (double_t_words x s))
+                                                      (and
+                                                         (@eq BinNums.Z
+                                                            (BinInt.Z.modulo
+                                                               (jet_secp_multiply_finish_product.radix_value
+                                                                  (double_t_words x s)) jet_secp_fe_math.feP)
+                                                            (BinInt.Z.modulo
+                                                               (BinInt.Z.mul
+                                                                  (BinInt.Z.sub (BinInt.Z.mul ... jet_secp_fe_math.feP)
+                                                                     (jet_secp_multiply_finish_product.radix_value s))
+                                                                  (jet_secp_multiply_finish_product.radix_value x))
+                                                               jet_secp_fe_math.feP))
+                                                         (and
+                                                            (@eq BinNums.Z
+                                                               (BinInt.Z.modulo
+                                                                  (jet_secp_multiply_finish_product.radix_value
+                                                                     (jet_secp_square_numeric.square_words l))
+                                                                  jet_secp_fe_math.feP)
+                                                               (BinInt.Z.modulo
+                                                                  (BinInt.Z.mul
+                                                                     (jet_secp_multiply_finish_product.radix_value l)
+                                                                     (jet_secp_multiply_finish_product.radix_value l))
+                                                                  jet_secp_fe_math.feP))
+                                                            (jet_sx_mem.lframe (double_middle_frame ba bs bl bt) m mf))))))))))))))))))
+### C.jet_secp_double_middle.double_t_words
+double_t_words =
+fun x s : forall _ : nat, Integers.Int64.int =>
+jet_secp_point_mul_storage.point_mul_words (jet_secp_field_negate_separate.negate_sep_words s) x
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, Integers.Int64.int) (_ : nat),
+       Integers.Int64.int
+
+Arguments double_t_words (x s)%function_scope i%nat_scope
+### C.jet_secp_double_middle.double_middle_frame
+double_middle_frame =
+fun (ba bs bl bt b : Values.block) (pos : BinNums.Z) =>
+and (not (@eq Values.block b bs))
+  (and (not (@eq Values.block b bl))
+     (and (not (@eq Values.block b bt))
+        (or (not (@eq Values.block b ba))
+           (or (BinInt.Z.lt pos BinNums.Z0)
+              (BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                 pos)))))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block)
+         (_ : BinNums.Z), Prop
+
+Arguments double_middle_frame ba bs bl bt b pos%Z_scope
