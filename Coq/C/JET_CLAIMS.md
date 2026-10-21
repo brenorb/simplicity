@@ -7,4 +7,4 @@ instead of starting a parallel proof.
 
 | Jet (`jet_coverage.tsv` name) | Owner (agent/session) | Branch | Since |
 | --- | --- | --- | --- |
-| `simplicity_output_hash` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-21 |
+| `simplicity_input_hash` | Codex / main proof session | `feat/jet-equivalence` | 2026-10-21 |
