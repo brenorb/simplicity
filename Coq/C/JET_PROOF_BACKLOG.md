@@ -835,8 +835,8 @@ Caller/cache establishment, libc and evaluator obligations remain separate.
 ## Next claimed target: ge_is_on_curve
 
 The main session claims `simplicity_ge_is_on_curve` in `JET_CLAIMS.md`.
-Eighteen ordinary modules now compile as internal support, not a registered curve
-jet or a new acceptance result:
+Twenty-two ordinary modules now compile: internal support and a complete but
+unregistered public curve endpoint. This is not a new acceptance result:
 
 - `jet_secp_field_add7.v`: actual `fe_add_int(7)`, exact field-value increment,
   no-wrap bounds, owned storage and framing for loose multiplication outputs.
@@ -887,20 +887,32 @@ jet or a new acceptance result:
   The residue lemmas are closed; the literal numeric bridge inherits functional
   extensionality and the execution theorem retains the same six library
   assumptions. Both ordinary modules and reviewed snapshots pass.
+- `jet_secp_curve_public_{body,rest,call}.v` and `jet_secp_curve_local.v`:
+  `ge_is_on_curve_literal_local_spec` now compiles as the whole original public
+  `secp_jet_local_spec`, not a helper-only theorem. The proof derives both public
+  allocations, the by-value source-frame copy, the real affine reader's fields
+  and zero flag, the full validity-helper call, the bit write, successful return
+  and actual public local frees. No intermediate execution, initialized output,
+  canonical input or on-curve premise is imposed on its public contract.
+  The ordinary target `JET_TARGETS=C/jet_secp_curve_local.vo bash Coq/build-jets.sh -j2`
+  passes; all four reviewed contract/assumption snapshots match without update
+  flags. The endpoint retains the same six inherited library assumptions and
+  needs no extra libc premise. It is deliberately not in `jet_coverage.tsv` yet.
 
 These are C execution-plus-value contracts, not just relations between jet
 specifications. The helper integer bridges are closed; execution contracts retain
 only the six inherited library assumptions. No extra libc model is needed.
 
-Next prove the whole public `f_simplicity_ge_is_on_curve` wrapper, reusing
-`eval_read_ge_canonical_fields` (`jet_secp_read_ge_fields.v`): that actual reader
-already establishes X/Y limbs, the zero infinity flag, cursor movement and
-88-byte ownership. Feed its derived fields/bounds to `eval_curve_finite_function`,
-preserve the frame invariant through the helper, then execute the actual
-writeBit, return and public local frees. Reuse the generic owned-public lifecycle
-and the selected field proofs instead of duplicating their arithmetic. Prove
-the full public literal endpoint using `eval_curve_finite_literal`; the numeric
-`curve_result` alone is not the jet specification. The
+Next extend the existing `check-secp-predicates-specification.py` source gate
+and its mutation fixtures to the full projective/affine curve trees, catalog
+dispatch, shared cube/one ports and the exact public endpoint contract. Other
+field ports retain their existing gates. Add the exact endpoint boundary to
+`jet-coverage.py` and its negative tests, then register only
+`C.jet_secp_curve_local.ge_is_on_curve_literal_local_spec`, remove the claim,
+and run `bash Coq/check-jets.sh --accept --jets=simplicity_ge_is_on_curve` with
+sources frozen until terminal completion. Do not count the new jet until that
+acceptance passes. Existing accepted coverage remains 495/533.
+The numeric `curve_result` alone is not the jet specification. The
 Haskell target is `ge_is_on_curve = iden &&& (unit >>> fe_one) >>> gej_is_on_curve`;
 its local `fe_cube = iden &&& fe_square >>> fe_multiply` must be retained in the
 literal port. Do not replace it by an assumed numeric curve equation. Add source-fidelity
@@ -910,7 +922,10 @@ Cached square dependencies had inconsistent assumptions over
 `jet_canonical_add_adapter`. The affected unchanged sources were rebuilt under
 the Coq 8.17.1 baseline, first in temporary output and then in the normal build;
 both selected public field endpoints also recompiled. Do not change toolchain
-pins or mix OCaml objects. Square certificate comparisons are split by fixed
+pins or mix OCaml objects. The old affine reader/lifecycle objects also needed
+rebuilding from their unchanged sources under the baseline (OCaml 4.14.1 caches
+were incompatible with 4.14.4); both the temporary and normal rebuilds passed.
+Square certificate comparisons are split by fixed
 input offset and limb, retaining the 10-second command bound.
 Claude's alternative public field endpoints remain unregistered; do not merge
 `dd4579a7` or duplicate the selected `fe_multiply`/`fe_square` rows.
