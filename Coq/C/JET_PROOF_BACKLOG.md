@@ -1316,6 +1316,16 @@ literal ports with the fixed Haskell routing and rejects 13 targeted addition
 mutations. This source-correspondence check supplements the formal proofs;
 it does not establish whole-jet addition execution or register coverage.
 
+`jet_secp_mixed_finite_start.v:exec_mixed_finite_start` now derives execution
+of both finite infinity-flag checks and the first actual square, `z12 = a.z^2`.
+`mixed_finite_source` identifies these statements inside the original generated
+body. The square contract supplies actual output words, modular value, reusable
+bounds, input preservation and full point/local ownership. This is a prefix,
+not the complete function. Continue with the real U1/S1 struct copies and weak
+normalizations, then U2/S2, H/I and their zero tests. Reuse the checked weak
+normalization and reader-identity results (`jet_secp_curve_weak{,_math}.v`,
+`jet_secp_point_weak_values.v`) instead of repeating their arithmetic.
+
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
 ```sh
@@ -1324,6 +1334,8 @@ ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_head
 JET_TARGETS=C/jet_secp_mixed_infinite_literal.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_infinite_literal
+JET_TARGETS=C/jet_secp_mixed_finite_start.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_finite_start
 ```
 
 ## Source-review question: Elements fee predicates
