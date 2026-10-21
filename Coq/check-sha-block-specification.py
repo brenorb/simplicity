@@ -2427,6 +2427,121 @@ def elements_tap_builders(s):
             raise ValueError('Elements builder whole C boundary differs: ' + theorem)
 
 
+def elements_issuance_amount_hashes(s):
+    """Two complete issuance traversals, sharing checked serializers/SHA loops.
+    The mandatory computed-issuance check fixes the digest-producing trees.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, name, expected):
+        if p.compact(hbody(s[key], name)) != p.compact(expected):
+            raise ValueError('issuance amount binding differs: ' + name)
+
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('issuance amount definition differs: ' + name)
+
+    definition('issuance_amount_absorb', 'issuance_asset_amount_value_type',
+               'Ty.Sum Ty.Unit (Ty.Prod Word256 elements_amount_hash_type)')
+    route = p.definition(s['issuance_amount_program'], 'issuance_pair_route')
+    for op in ['comp', 'pair', 'case', 'take', 'drop', 'injl', 'injr']:
+        route = replace(route, 'AC.' + op, op + 'Node')
+    route = replace(replace(route, 'AC.unit', 'unit'), 'AC.iden', 'iden')
+    route = explicit_core_tree(expression(route), {'unit'})
+
+    absorb = p.definition(s['issuance_amount_port'], 'literal_issuance_asset_amount_absorb')
+    for old, new in [
+        ('@Word.zero 4 (Alg.Assertion.toCore term)', 'zero word16'),
+        ('@literal_ctx8_addn 1 term', 'ctx8Addn vector2'),
+        ('@literal_elements_asset_amount_hash term', 'assetAmountHash'),
+    ]:
+        absorb = replace(absorb, old, new)
+    same(hbody(s['elements_sighash'], 'issuanceAssetAmountHash'), absorb,
+         'issuance optional amount serializer')
+    definition('issuance_amount_port', 'literal_elements_issuance_amounts_hash', '''
+      let term := EFP.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in
+      @literal_elements_elems_hash issuance_asset_amount_value_type
+        (fun term => @literal_issuance_asset_amount_absorb term) 5 term
+        (@Alg.Core.Combinators.drop Ty.Unit Word32 _ core (array alg))''')
+    programs = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    for stem, cap, offset in [('asset', 'Asset', 472), ('token', 'Token', 504)]:
+        name = 'issuance' + cap + 'AmountsHash'
+        pair = 'issuance' + cap + 'Amount'
+        primitive = 'Issuance' + cap + 'Amount'
+        tag = 'Issuance' + cap + 'AmountsHash'
+        digest = 'issuance' + cap
+        p.require(s['elements_catalog'], tag + ' :: SigHashJet () Word256', 'issuance amount catalog type')
+        binding('elements_catalog', 'specificationSigHash ' + tag, 'SigHash.' + name)
+        binding('elements_sighash_lib', name, 'SigHash.' + name + ' SigHash.lib')
+        hs_pair = replace(hbody(s['elements_sighash'], pair), 'primitive ' + primitive, 'pAmount')
+        hs_pair = replace(hs_pair, digest, 'digest')
+        if expression(hs_pair) != ('comp', ('pair', ('name', 'digest'), ('name', 'pAmount')), route):
+            raise ValueError('issuance optional asset/amount pair route differs: ' + pair)
+        definition('issuance_amount_port', 'literal_elements_issuance_' + stem + '_pair', '''
+          let core := Alg.Assertion.toCore (EFP.CanonicalStructures.toAssertion alg) in
+          @Alg.Core.Combinators.comp _ _ _ core
+            (@Alg.Core.Combinators.pair _ _ _ core (@literal_elements_issuance_''' + stem + ''' alg)
+              (@EFP.Combinators.prim _ _ alg Elements.''' + primitive + '''))
+            (@issuance_pair_route core)''')
+        definition('issuance_amount_port', 'literal_elements_issuance_' + stem + '_amounts_hash',
+                   '@literal_elements_issuance_amounts_hash (@literal_elements_issuance_' + stem + '_pair) alg')
+        hs = re.search(r'\b' + name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)
+        parts = re.fullmatch(r'\s*let\s+finalize\s*=\s*ctx8Finalize\s+body\s*=(.*?)\bin\b(.*)', hs[1], re.S) if hs else None
+        if not parts:
+            raise ValueError('issuance amount traversal bindings differ: ' + name)
+        same(parts[1], 'take (drop ' + pair + ') &&& ih >>> match (injl ih) (injr (ih &&& oh >>> issuanceAssetAmountHash))',
+             'issuance amount loop body')
+        same(parts[2], 'unit &&& ctx8Init >>> forWhile word32 body >>> copair finalize finalize',
+             'issuance amount traversal')
+        binding('elements_primitive_hs', 'interpret ' + primitive,
+                'return . (atInput $ cast . fmap (encodeAmount . clearAmountPrf . ' + pair + ') . sigTxiIssuance)'
+                if stem == 'token' else
+                'return . (atInput $ cast . fmap (encodeAmount . clearAmountPrf . issuanceAmount) . sigTxiIssuance)')
+        theorem = 'elements_issuance_' + stem + '_amounts_hash_literal_local_spec'
+        statement = re.search(r'Theorem ' + theorem + r'\s*:(.*?)\bProof\.', s['issuance_amount_port'], re.S)
+        expected = ('application_jet_local_spec_sep f_simplicity_issuance_' + stem + '_amounts_hash elements_ge Elements.env Ty.Unit Word256 '
+                    '(hash_getter_rep elements_issuance_' + stem + '_amounts_hash_of 0 ' + str(offset) + ' 760) '
+                    '(fun a environment => @literal_elements_issuance_' + stem + '_amounts_hash elements_hash_alg a environment).')
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError('issuance amount whole C getter contract differs: ' + theorem)
+    binding('elements_primitive_hs', 'issuanceAmount', 'either newIssuanceAmount reissuanceAmount')
+    binding('elements_primitive_hs', 'issuanceTokenAmount', 'either newIssuanceTokenAmount (const (Amount (Explicit 0)))')
+    for name, body in [
+        ('issuanceAmount', 'match i with | inl new => newIssuanceAmount new | inr re => reissuanceAmount re end'),
+        ('issuanceTokenAmount', 'match i with | inl new => newIssuanceTokenAmount new | inr _ => Explicit Int64.zero end'),
+    ]:
+        match = re.search(r'Let ' + name + r'\b.*?:=.*?(?=\n\s*\(\*|\n\s*Let |\n\s*End )', s['elements_primitive_coq'], re.S)
+        if not match or p.compact(match[0].split(':=', 1)[1].strip().removesuffix('.')) != p.compact(body):
+            raise ValueError('issuance primitive amount selection differs: ' + name)
+
+    binding('elements_catalog', 'specificationSigHash IssuancesHash', 'SigHash.issuancesHash')
+    p.require(s['elements_catalog'], 'IssuancesHash :: SigHashJet () Word256', 'composite issuance catalog type')
+    binding('elements_sighash_lib', 'issuancesHash', 'SigHash.issuancesHash SigHash.lib')
+    composite = re.search(r'\bissuancesHash\s*=(.*?)\n\s*[,}]', programs, re.S)
+    if not composite:
+        raise ValueError('missing composite issuances hash program')
+    same(composite[1], '''(ctx8Init &&& ((issuanceAssetAmountsHash &&& issuanceTokenAmountsHash)
+      &&& (issuanceRangeProofsHash &&& issuanceBlindingEntropyHash)) >>> ctx8Addn vector128) >>> ctx8Finalize''',
+         'four-hash issuance composition')
+    definition('issuances_port', 'literal_elements_issuances_hash', '''
+      let core := Alg.Assertion.toCore (EFP.CanonicalStructures.toAssertion alg) in
+      @literal_elements_fixed_vector_hash 7 alg
+        (@AC.pair _ _ _ core
+          (@AC.pair _ _ _ core (@literal_elements_issuance_asset_amounts_hash alg)
+            (@literal_elements_issuance_token_amounts_hash alg))
+          (@AC.pair _ _ _ core (@literal_elements_issuance_range_proofs_hash alg)
+            (@literal_elements_issuance_blinding_entropy_hash alg)))''')
+    statement = re.search(r'Theorem elements_issuances_hash_literal_local_spec\s*:(.*?)\bProof\.',
+                          s['issuances_port'], re.S)
+    expected = '''application_jet_local_spec_sep f_simplicity_issuances_hash elements_ge Elements.env Ty.Unit Word256
+      (hash_getter_rep elements_issuances_hash_of 0 600 760)
+      (fun a environment => @literal_elements_issuances_hash elements_hash_alg a environment).'''
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError('composite issuance whole C getter contract differs')
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -2517,6 +2632,10 @@ def sources():
         "eltap_branch_exec": COQ / "C/jet_elements_make_tapbranch_exec.v",
         "eltap_leaf_public": COQ / "C/jet_elements_build_tapleaf_jet.v",
         "eltap_branch_public": COQ / "C/jet_elements_build_tapbranch_jet.v",
+        "issuance_amount_absorb": COQ / "C/jet_elements_issuance_amount_hash_spec.v",
+        "issuance_amount_program": COQ / "C/jet_elements_issuance_amounts_hash_program.v",
+        "issuance_amount_port": COQ / "C/jet_elements_issuance_amounts_hash_literal.v",
+        "issuances_port": COQ / "C/jet_elements_issuances_hash_literal.v",
         "elements_annex_exec": COQ / "C/jet_elements_annex_context_exec.v",
         "elements_annex_context_port": COQ / "C/jet_elements_annex_context_literal.v",
         "elements_issuance_program": REPO / "Haskell/Simplicity/Elements/Programs/Issuance.hs",
@@ -2564,6 +2683,7 @@ def test():
     elements_issuance_computed(s)
     elements_annex_context(s)
     elements_tap_builders(s)
+    elements_issuance_amount_hashes(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -3525,6 +3645,71 @@ def test():
             continue
         raise ValueError('Elements builder mutation escaped: ' + old)
     print('Elements taproot builders share checked literal payloads with exact tags/ge and full C boundaries;', len(elements_builder_mutations), 'mutations rejected')
+
+    changes = [
+        ('elements_sighash', 'unit >>> zero word16', 'unit >>> zero word8'),
+        ('elements_sighash', 'ih &&& (injr ooh &&& oih) >>> assetAmountHash', 'ih &&& (injl ooh &&& oih) >>> assetAmountHash'),
+        ('issuance_amount_port', '@Word.zero 4 (Alg.Assertion.toCore term)', '@Word.zero 3 (Alg.Assertion.toCore term)'),
+        ('issuance_amount_port', '@literal_ctx8_addn 1 term', '@literal_ctx8_addn 0 term'),
+        ('issuance_amount_port', 'injr (O O H) &&& O I H', 'injr (O I H) &&& O O H'),
+        ('issuance_amount_port', '(fun term => @literal_issuance_asset_amount_absorb term) 5 term', '(fun term => @literal_issuance_asset_amount_absorb term) 4 term'),
+        ('issuance_amount_program', 'AC.case (AC.injr (AC.injl AC.unit))', 'AC.case (AC.injl (AC.injl AC.unit))'),
+        ('issuance_amount_program', 'AC.pair (AC.drop AC.iden) (AC.take AC.iden)', 'AC.pair (AC.take AC.iden) (AC.drop AC.iden)'),
+        ('elements_primitive_hs', 'either newIssuanceTokenAmount (const (Amount (Explicit 0)))', 'either newIssuanceTokenAmount (const (Amount (Explicit 1)))'),
+        ('elements_primitive_coq', '| inr _ => Explicit Int64.zero', '| inr _ => Explicit Int64.one'),
+        ('elements_catalog', 'specificationSigHash IssuancesHash = SigHash.issuancesHash',
+         'specificationSigHash IssuancesHash = SigHash.inputsHash'),
+        ('elements_sighash_lib', 'issuancesHash = SigHash.issuancesHash SigHash.lib',
+         'issuancesHash = SigHash.inputsHash SigHash.lib'),
+        ('elements_sighash', 'issuanceAssetAmountsHash &&& issuanceTokenAmountsHash',
+         'issuanceTokenAmountsHash &&& issuanceAssetAmountsHash'),
+        ('issuances_port', '@literal_elements_fixed_vector_hash 7 alg', '@literal_elements_fixed_vector_hash 6 alg'),
+        ('issuances_port', '@literal_elements_issuance_asset_amounts_hash alg', '@literal_elements_issuance_token_amounts_hash alg'),
+        ('issuances_port', '@literal_elements_issuance_range_proofs_hash alg', '@literal_elements_issuance_blinding_entropy_hash alg'),
+        ('issuances_port', '(hash_getter_rep elements_issuances_hash_of 0 600 760)\n    (fun a environment',
+         '(hash_getter_rep elements_issuances_hash_of 0 632 760)\n    (fun a environment'),
+        ('issuances_port', 'Theorem elements_issuances_hash_literal_local_spec :', 'Theorem elements_issuances_hash_literal_local_spec : False ->'),
+    ]
+    for stem, cap, offset in [('asset', 'Asset', 472), ('token', 'Token', 504)]:
+        tag = 'Issuance' + cap + 'AmountsHash'
+        name = 'issuance' + cap + 'AmountsHash'
+        pair = 'issuance' + cap + 'Amount'
+        primitive = 'Issuance' + cap + 'Amount'
+        theorem = 'Theorem elements_issuance_' + stem + '_amounts_hash_literal_local_spec :'
+        changes += [
+            ('elements_catalog', 'specificationSigHash ' + tag + ' = SigHash.' + name,
+             'specificationSigHash ' + tag + ' = SigHash.inputsHash'),
+            ('elements_sighash_lib', name + ' = SigHash.' + name + ' SigHash.lib',
+             name + ' = SigHash.inputsHash SigHash.lib'),
+            ('issuance_amount_port', '@literal_elements_issuance_' + stem + ' alg', '@literal_elements_issuance_entropy alg'),
+            ('issuance_amount_port', '@EFP.Combinators.prim _ _ alg Elements.' + primitive,
+             '@EFP.Combinators.prim _ _ alg Elements.NewIssuanceContract'),
+            ('issuance_amount_port', theorem, theorem + ' False ->'),
+            ('issuance_amount_port', theorem, theorem + ' memcpy_model ->'),
+            ('issuance_amount_port', 'hash_getter_rep elements_issuance_' + stem + '_amounts_hash_of 0 ' + str(offset) + ' 760',
+             'hash_getter_rep elements_issuance_' + stem + '_amounts_hash_of 0 ' + str(offset + 32) + ' 760'),
+            ('elements_sighash', pair + ' = issuance' + cap + ' &&& primitive ' + primitive,
+             pair + ' = issuance' + cap + ' &&& primitive IssuanceAssetProof'),
+        ]
+        programs = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+        body = re.search(r'\b' + name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)[1]
+        for old, new in [('forWhile word32', 'forWhile word16'),
+                         ('copair finalize finalize', 'copair finalize iden'),
+                         ('>>> issuanceAssetAmountHash', '>>> assetAmountHash')]:
+            if old not in body:
+                raise ValueError('inactive issuance traversal fixture')
+            changes.append(('elements_sighash', body, body.replace(old, new, 1)))
+    for key, old, new in changes:
+        if old not in s[key]:
+            raise ValueError('inactive issuance amount fixture: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_issuance_amount_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('issuance amount mutation escaped: ' + old)
+    print('Issuance amount optional pair/serializer, traversal and complete C contracts match;', len(changes), 'mutations rejected')
 
 
 if __name__ == "__main__":

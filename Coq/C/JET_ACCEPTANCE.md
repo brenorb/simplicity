@@ -829,3 +829,44 @@ bash Coq/check-jets.sh --accept --jets=simplicity_build_tapleaf_simplicity,simpl
 ```
 
 No production C, original specification, API or generation setting changed.
+
+## Candidates: Elements issuance amount arrays and composite hash
+
+The two endpoints in `C.jet_elements_issuance_amounts_hash_literal` execute
+the original `simplicity_issuance_asset_amounts_hash` and
+`simplicity_issuance_token_amounts_hash` cache getters against their full
+literal Simplicity programs. The programs retain indexed primitive lookup,
+all no/new/reissuance branches, explicit asset identifiers, confidential or
+explicit amounts, byte absorption, traversal termination and finalization.
+An absent issuance absorbs exactly two null bytes, rather than terminating
+the traversal. The reissuance token amount remains explicit zero.
+
+`C.jet_elements_issuances_hash_literal.elements_issuances_hash_literal_local_spec`
+composes those programs with the accepted issuance range-proof and
+blinding-entropy programs in canonical order, absorbs their 128 bytes and
+finalizes, then proves the complete original composite getter. Its universal
+program bridge retains the actual `one word8` program in blinding entropy;
+it does not substitute a scribed constant.
+
+All three local contracts retain `application_jet_local_spec_sep`, the actual
+Elements program/environment, initial canonical cache correspondence at
+transaction offsets 472, 504 and 600 in the 760-byte transaction, arbitrary
+writable frame contents/cursors and complete return/output/framing behavior.
+No execution or final-output premise and no extra libc model is added.
+Establishment of the initial caches by actual callers, general environment
+and evaluator admissibility and host-runtime fidelity remain separate.
+
+The four new modules compile through the normal project target. The public
+execution endpoints use only the six inherited library assumptions; literal
+program bridges are closed. The existing source checker reuses the verified
+SHA, issuance-calculation, serializer and traversal checks and rejects forty
+further mutations of routing, amount selection, payload ordering, widths,
+catalog bindings, offsets and complete C contracts. Reviewed snapshots cover
+28 theorems and 23 definitions; comparison without update flags passes.
+These candidates are not registered or accepted yet. After registration, run:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_issuance_asset_amounts_hash,simplicity_issuance_token_amounts_hash,simplicity_issuances_hash
+```
+
+No production C, original specification, API or generation setting changed.

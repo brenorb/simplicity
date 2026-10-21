@@ -603,6 +603,29 @@ premises. Both endpoints passed ordinary scoped acceptance, including all
 309 kernel dependency modules. The scope and reproducible command are in
 `JET_ACCEPTANCE.md`.
 
+## Candidates: Elements issuance amount and composite hashes
+
+`jet_elements_issuance_amounts_hash_literal.v` now compiles the complete C
+`issuance_asset_amounts_hash` and `issuance_token_amounts_hash` getters against
+primitive-bearing literal traversals. Both reuse the existing element loop
+and asset/amount serializer, with a shared two-null-byte absent-issuance
+adapter. `jet_elements_issuances_hash_literal.v` composes them with the
+accepted range-proof and blinding-entropy programs, retaining the latter's
+actual `one word8` program, and proves the original composite C getter.
+
+Normal compilation and full source correspondence pass (40 further mutations
+rejected). The public C endpoints use only the six inherited assumptions and
+no extra libc premise. Initial cached-hash correspondence, represented
+environment/frame admissibility and general caller construction remain
+explicit obligations. These three candidates are not registered or accepted
+yet; see `JET_ACCEPTANCE.md` for scope and the required ordinary audit.
+
+The direct next composition is Elements `tx_hash` (version/locktime, four
+component hashes, then input-UTXO hash), followed by `sig_all_hash`. Reuse the
+existing byte-list absorption/finalization lemmas rather than repeating SHA
+execution. Those jets are not claimed by this note; check `JET_CLAIMS.md`
+before starting them. Bitcoin value-domain blockers remain separate.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

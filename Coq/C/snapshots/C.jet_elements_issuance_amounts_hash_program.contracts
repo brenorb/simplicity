@@ -1,0 +1,867 @@
+### C.jet_elements_issuance_amounts_hash_program.issuance_pair_route_parametric
+issuance_pair_route_parametric
+     : @Alg.Core.Parametric
+         (Ty.Prod jet_elements_issuance_entropy_spec.issuance_digest_option
+            jet_elements_issuance_entropy_spec.issuance_amount_option)
+         (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+         (@issuance_pair_route)
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_pair_spec_parametric
+elements_issuance_pair_spec_parametric
+     : forall
+         (g : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+              jet_elements_words_hash_program.EFP.domain alg (Word.Word (S (S (S (S (S O))))))
+                jet_elements_issuance_entropy_spec.issuance_digest_option)
+         (pm : jet_elements_prim.Elements.t (Word.Word (S (S (S (S (S O))))))
+                 jet_elements_issuance_entropy_spec.issuance_amount_option)
+         (_ : @jet_elements_words_hash_program.EFP.Parametric (Word.Word (S (S (S (S (S O))))))
+                jet_elements_issuance_entropy_spec.issuance_digest_option g),
+       @jet_elements_words_hash_program.EFP.Parametric (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+         (@elements_issuance_pair_spec g pm)
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_pair_spec_sem
+elements_issuance_pair_spec_sem
+     : forall
+         (g : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+              jet_elements_words_hash_program.EFP.domain alg (Word.Word (S (S (S (S (S O))))))
+                jet_elements_issuance_entropy_spec.issuance_digest_option)
+         (pm : jet_elements_prim.Elements.t (Word.Word (S (S (S (S (S O))))))
+                 jet_elements_issuance_entropy_spec.issuance_amount_option)
+         (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)))
+         (@elements_issuance_pair_spec g pm
+            (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) i e)
+         match
+           g (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) i e
+           return
+             (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                (Ty.tySem (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)))
+         with
+         | Some h =>
+             match
+               @jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
+                 jet_elements_issuance_entropy_spec.issuance_amount_option pm i e
+               return
+                 (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                    (Ty.tySem (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)))
+             with
+             | Some a =>
+                 @Some
+                   (Ty.tySem (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type))
+                   (@issuance_pair_route Alg.CoreFunSem
+                      (@pair (Ty.tySem jet_elements_issuance_entropy_spec.issuance_digest_option)
+                         (Ty.tySem jet_elements_issuance_entropy_spec.issuance_amount_option) h a))
+             | None =>
+                 @None
+                   (Ty.tySem (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type))
+             end
+         | None =>
+             @None (Ty.tySem (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type))
+         end
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_asset_pairs_sem
+elements_issuance_asset_pairs_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)))
+         (@elements_issuance_pair_spec (@jet_elements_issuance_entropy_spec.elements_issuance_asset_spec)
+            jet_elements_prim.Elements.IssuanceAssetAmount
+            (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) i e)
+         (@Some (sum unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type))
+            match
+              @List.nth_error (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+                (elements_issuance_asset_pairs e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type))
+            with
+            | Some x => @inr unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) x
+            | None => @inl unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) tt
+            end)
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_token_pairs_sem
+elements_issuance_token_pairs_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)))
+         (@elements_issuance_pair_spec (@jet_elements_issuance_entropy_spec.elements_issuance_token_spec)
+            jet_elements_prim.Elements.IssuanceTokenAmount
+            (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) i e)
+         (@Some (sum unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type))
+            match
+              @List.nth_error (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+                (elements_issuance_token_pairs e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type))
+            with
+            | Some x => @inr unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) x
+            | None => @inl unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) tt
+            end)
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_amounts_hash_spec_parametric
+elements_issuance_amounts_hash_spec_parametric
+     : forall
+         (g : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+              jet_elements_words_hash_program.EFP.domain alg (Word.Word (S (S (S (S (S O))))))
+                jet_elements_issuance_entropy_spec.issuance_digest_option)
+         (pm : jet_elements_prim.Elements.t (Word.Word (S (S (S (S (S O))))))
+                 jet_elements_issuance_entropy_spec.issuance_amount_option)
+         (_ : @jet_elements_words_hash_program.EFP.Parametric (Word.Word (S (S (S (S (S O))))))
+                jet_elements_issuance_entropy_spec.issuance_digest_option g),
+       @jet_elements_words_hash_program.EFP.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@elements_issuance_amounts_hash_spec g pm)
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_amounts_loop_bound
+elements_issuance_amounts_loop_bound
+     : BinInt.Z.lt
+         (BinInt.Z.div
+            (BinInt.Z.mul
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+               (jet_forWhile_seq.wsize (S (S (S (S (S O)))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         jet_sha_ctx8_spec.ctx8_limit
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_amounts_hash_spec_sem
+elements_issuance_amounts_hash_spec_sem
+     : forall
+         (g : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+              jet_elements_words_hash_program.EFP.domain alg (Word.Word (S (S (S (S (S O))))))
+                jet_elements_issuance_entropy_spec.issuance_digest_option)
+         (pm : jet_elements_prim.Elements.t (Word.Word (S (S (S (S (S O))))))
+                 jet_elements_issuance_entropy_spec.issuance_amount_option)
+         (xs_of : forall _ : jet_elements_prim.Elements.env,
+                  list (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type))
+         (_ : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+              @eq
+                (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                   (Ty.tySem (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)))
+                (@elements_issuance_pair_spec g pm
+                   (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) i e)
+                (@Some (sum unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type))
+                   match
+                     @List.nth_error (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+                       (xs_of e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+                     return
+                       (sum unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type))
+                   with
+                   | Some x =>
+                       @inr unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) x
+                   | None =>
+                       @inl unit (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) tt
+                   end)) (e : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@elements_issuance_amounts_hash_spec g pm
+            (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt e)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.from_hash256
+               (jet_bitcoin_tx_hash.elems_hash_of
+                  jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type
+                  jet_elements_issuance_amount_hash_spec.issuance_asset_amount_bytes (S (S (S (S (S O)))))
+                  (xs_of e))))
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_asset_amounts_hash_program_local_spec
+elements_issuance_asset_amounts_hash_program_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_issuance_asset_amounts_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            elements_issuance_asset_amounts_hash_of BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @elements_issuance_asset_amounts_hash_spec
+            (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_token_amounts_hash_program_local_spec
+elements_issuance_token_amounts_hash_program_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_issuance_token_amounts_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            elements_issuance_token_amounts_hash_of BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @elements_issuance_token_amounts_hash_spec
+            (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_issuance_amounts_hash_program.issuance_pair_route
+issuance_pair_route =
+fun core : Alg.Core.Algebra =>
+@jet_buffer_empty_spec.AC.case Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Ty.Sum Ty.Unit
+     (Ty.Sum Ty.Unit
+        (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Word.Word (S (S (S (S (S (S O))))))))))
+  (Ty.Sum Ty.Unit
+     (Ty.Sum Ty.Unit
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))))) core
+  (@jet_buffer_empty_spec.AC.injl
+     (Ty.Prod Ty.Unit
+        (Ty.Sum Ty.Unit
+           (Ty.Sum Ty.Unit
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O))))))))))) Ty.Unit
+     (Ty.Sum Ty.Unit
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O)))))))))) core
+     (@jet_buffer_empty_spec.AC.unit
+        (Ty.Prod Ty.Unit
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O))))))))))) core))
+  (@jet_buffer_empty_spec.AC.case Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Ty.Sum Ty.Unit
+        (Ty.Sum Ty.Unit
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))))
+     (Ty.Sum Ty.Unit
+        (Ty.Sum Ty.Unit
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O))))))))))) core
+     (@jet_buffer_empty_spec.AC.injr
+        (Ty.Prod Ty.Unit
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O))))))))))) Ty.Unit
+        (Ty.Sum Ty.Unit
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O)))))))))) core
+        (@jet_buffer_empty_spec.AC.injl
+           (Ty.Prod Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))))) Ty.Unit
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O))))))))) core
+           (@jet_buffer_empty_spec.AC.unit
+              (Ty.Prod Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum Ty.Unit
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O))))))))))) core)))
+     (@jet_buffer_empty_spec.AC.comp
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O)))))))))))
+        (Ty.Prod
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Sum Ty.Unit
+           (Ty.Sum Ty.Unit
+              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O))))))))))) core
+        (@jet_buffer_empty_spec.AC.pair
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O)))))))))))
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+           (@jet_buffer_empty_spec.AC.drop (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))))
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O)))))))))) core
+              (@jet_buffer_empty_spec.AC.iden
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum Ty.Unit
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O)))))))))) core))
+           (@jet_buffer_empty_spec.AC.take (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+              (@jet_buffer_empty_spec.AC.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) core)))
+        (@jet_buffer_empty_spec.AC.case Ty.Unit
+           (Ty.Sum Ty.Unit
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Ty.Sum Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))))) core
+           (@jet_buffer_empty_spec.AC.injl (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+              (Ty.Sum Ty.Unit
+                 (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O)))))))))) core
+              (@jet_buffer_empty_spec.AC.unit (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core))
+           (@jet_buffer_empty_spec.AC.case Ty.Unit
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Sum Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O))))))))))) core
+              (@jet_buffer_empty_spec.AC.injl (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O)))))))))) core
+                 (@jet_buffer_empty_spec.AC.unit (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core))
+              (@jet_buffer_empty_spec.AC.injr
+                 (Ty.Prod
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+                 (Ty.Sum Ty.Unit
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O)))))))))) core
+                 (@jet_buffer_empty_spec.AC.injr
+                    (Ty.Prod
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Ty.Unit
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O))))))))) core
+                    (@jet_buffer_empty_spec.AC.pair
+                       (Ty.Prod
+                          (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                             (Word.Word (S (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S O)))))))) core
+                       (@jet_buffer_empty_spec.AC.drop
+                          (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                             (Word.Word (S (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                          (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+                          (@jet_buffer_empty_spec.AC.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) core))
+                       (@jet_buffer_empty_spec.AC.take
+                          (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                             (Word.Word (S (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                          (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                             (Word.Word (S (S (S (S (S (S O)))))))) core
+                          (@jet_buffer_empty_spec.AC.iden
+                             (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                (Word.Word (S (S (S (S (S (S O)))))))) core)))))))))
+     : forall core : Alg.Core.Algebra,
+       Alg.Core.domain core
+         (Ty.Prod jet_elements_issuance_entropy_spec.issuance_digest_option
+            jet_elements_issuance_entropy_spec.issuance_amount_option)
+         (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+
+Arguments issuance_pair_route {core}
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_pair_spec
+elements_issuance_pair_spec =
+fun
+  (g : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+       jet_elements_words_hash_program.EFP.domain alg (Word.Word (S (S (S (S (S O))))))
+         jet_elements_issuance_entropy_spec.issuance_digest_option)
+  (pm : jet_elements_prim.Elements.t (Word.Word (S (S (S (S (S O))))))
+          jet_elements_issuance_entropy_spec.issuance_amount_option)
+  (alg : jet_elements_words_hash_program.EFP.Algebra) =>
+let core : Alg.Core.Algebra :=
+  Alg.Assertion.toCore (jet_elements_words_hash_program.EFP.CanonicalStructures.toAssertion alg) in
+@jet_buffer_empty_spec.AC.comp (Word.Word (S (S (S (S (S O))))))
+  (Ty.Prod jet_elements_issuance_entropy_spec.issuance_digest_option
+     jet_elements_issuance_entropy_spec.issuance_amount_option)
+  (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) core
+  (@jet_buffer_empty_spec.AC.pair (Word.Word (S (S (S (S (S O))))))
+     jet_elements_issuance_entropy_spec.issuance_digest_option
+     jet_elements_issuance_entropy_spec.issuance_amount_option core (g alg)
+     (@jet_elements_words_hash_program.EFP.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+        jet_elements_issuance_entropy_spec.issuance_amount_option alg pm)) (@issuance_pair_route core)
+     : forall
+         (_ : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+              jet_elements_words_hash_program.EFP.domain alg (Word.Word (S (S (S (S (S O))))))
+                jet_elements_issuance_entropy_spec.issuance_digest_option)
+         (_ : jet_elements_prim.Elements.t (Word.Word (S (S (S (S (S O))))))
+                jet_elements_issuance_entropy_spec.issuance_amount_option)
+         (alg : jet_elements_words_hash_program.EFP.Algebra),
+       jet_elements_words_hash_program.EFP.domain alg (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+
+Arguments elements_issuance_pair_spec g%function_scope pm {alg}
+### C.jet_elements_issuance_amounts_hash_program.issuance_asset_pair_of_input
+issuance_asset_pair_of_input =
+fun txi : jet_elements_prim.sigTxInput =>
+match
+  jet_elements_prim.sigTxiIssuance txi
+  return (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+with
+| Some i =>
+    match i return (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) with
+    | inl new =>
+        match
+          jet_elements_issuance_entropy_spec.issuance_asset_of_input txi
+          return (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+        with
+        | inl _ =>
+            @inl unit
+              (prod
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt
+        | inr h =>
+            @inr unit
+              (prod
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+                 (Ty.tySem
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))))
+              (@pair
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+                 (Ty.tySem
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))) h
+                 (jet_elements_amount_jets.encode_amount
+                    (@jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int
+                       (jet_elements_prim.newIssuanceAmount new))))
+        end
+    | inr re =>
+        match
+          jet_elements_issuance_entropy_spec.issuance_asset_of_input txi
+          return (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+        with
+        | inl _ =>
+            @inl unit
+              (prod
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt
+        | inr h =>
+            @inr unit
+              (prod
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+                 (Ty.tySem
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))))
+              (@pair
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+                 (Ty.tySem
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))) h
+                 (jet_elements_amount_jets.encode_amount
+                    (@jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int
+                       (jet_elements_prim.reissuanceAmount re))))
+        end
+    end
+| None =>
+    @inl unit
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt
+end
+     : forall _ : jet_elements_prim.sigTxInput,
+       Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type
+
+Arguments issuance_asset_pair_of_input txi
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_asset_pairs
+elements_issuance_asset_pairs =
+fun e : jet_elements_prim.Elements.env =>
+@List.map jet_elements_prim.sigTxInput
+  (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) issuance_asset_pair_of_input
+  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
+     : forall _ : jet_elements_prim.Elements.env,
+       list (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+
+Arguments elements_issuance_asset_pairs e
+### C.jet_elements_issuance_amounts_hash_program.issuance_token_pair_of_input
+issuance_token_pair_of_input =
+fun txi : jet_elements_prim.sigTxInput =>
+match
+  jet_elements_prim.sigTxiIssuance txi
+  return (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+with
+| Some i =>
+    match i return (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) with
+    | inl new =>
+        match
+          jet_elements_issuance_entropy_spec.issuance_token_of_input txi
+          return (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+        with
+        | inl _ =>
+            @inl unit
+              (prod
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt
+        | inr h =>
+            @inr unit
+              (prod
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+                 (Ty.tySem
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))))
+              (@pair
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+                 (Ty.tySem
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))) h
+                 (jet_elements_amount_jets.encode_amount
+                    (@jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int
+                       (jet_elements_prim.newIssuanceTokenAmount new))))
+        end
+    | inr _ =>
+        match
+          jet_elements_issuance_entropy_spec.issuance_token_of_input txi
+          return (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+        with
+        | inl _ =>
+            @inl unit
+              (prod
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt
+        | inr h =>
+            @inr unit
+              (prod
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+                 (Ty.tySem
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))))
+              (@pair
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+                 (Ty.tySem
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))) h
+                 (jet_elements_amount_jets.encode_amount
+                    (@jet_elements_prim.Explicit unit Integers.Int64.int Integers.Int64.zero)))
+        end
+    end
+| None =>
+    @inl unit
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) jet_elements_asset_amount_hash_spec.elements_amount_hash_type)) tt
+end
+     : forall _ : jet_elements_prim.sigTxInput,
+       Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type
+
+Arguments issuance_token_pair_of_input txi
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_token_pairs
+elements_issuance_token_pairs =
+fun e : jet_elements_prim.Elements.env =>
+@List.map jet_elements_prim.sigTxInput
+  (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) issuance_token_pair_of_input
+  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
+     : forall _ : jet_elements_prim.Elements.env,
+       list (Ty.tySem jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type)
+
+Arguments elements_issuance_token_pairs e
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_amounts_hash_spec
+elements_issuance_amounts_hash_spec =
+fun
+  (g : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+       jet_elements_words_hash_program.EFP.domain alg (Word.Word (S (S (S (S (S O))))))
+         jet_elements_issuance_entropy_spec.issuance_digest_option)
+  (pm : jet_elements_prim.Elements.t (Word.Word (S (S (S (S (S O))))))
+          jet_elements_issuance_entropy_spec.issuance_amount_option)
+  (alg : jet_elements_words_hash_program.EFP.Algebra) =>
+let term : Alg.Assertion.Algebra := jet_elements_words_hash_program.EFP.CanonicalStructures.toAssertion alg in
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@jet_sha_hash_elems_reader.hash_elems_spec jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type
+  (fun term0 : Alg.Assertion.Algebra => @jet_elements_issuance_amount_hash_spec.issuance_asset_amount_absorb_spec term0)
+  (S (S (S (S (S O))))) term
+  (@jet_buffer_empty_spec.AC.drop Ty.Unit (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type) core
+     (@elements_issuance_pair_spec g pm alg))
+     : forall
+         (_ : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+              jet_elements_words_hash_program.EFP.domain alg (Word.Word (S (S (S (S (S O))))))
+                jet_elements_issuance_entropy_spec.issuance_digest_option)
+         (_ : jet_elements_prim.Elements.t (Word.Word (S (S (S (S (S O))))))
+                jet_elements_issuance_entropy_spec.issuance_amount_option)
+         (alg : jet_elements_words_hash_program.EFP.Algebra),
+       jet_elements_words_hash_program.EFP.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments elements_issuance_amounts_hash_spec g%function_scope pm {alg}
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_asset_amounts_hash_spec
+elements_issuance_asset_amounts_hash_spec =
+fun alg : jet_elements_words_hash_program.EFP.Algebra =>
+@elements_issuance_amounts_hash_spec (@jet_elements_issuance_entropy_spec.elements_issuance_asset_spec)
+  jet_elements_prim.Elements.IssuanceAssetAmount alg
+     : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+       jet_elements_words_hash_program.EFP.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments elements_issuance_asset_amounts_hash_spec {alg}
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_token_amounts_hash_spec
+elements_issuance_token_amounts_hash_spec =
+fun alg : jet_elements_words_hash_program.EFP.Algebra =>
+@elements_issuance_amounts_hash_spec (@jet_elements_issuance_entropy_spec.elements_issuance_token_spec)
+  jet_elements_prim.Elements.IssuanceTokenAmount alg
+     : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+       jet_elements_words_hash_program.EFP.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments elements_issuance_token_amounts_hash_spec {alg}
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_asset_amounts_hash_of
+elements_issuance_asset_amounts_hash_of =
+fun e : jet_elements_prim.Elements.env =>
+jet_bitcoin_tx_hash.elems_hash_of jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type
+  jet_elements_issuance_amount_hash_spec.issuance_asset_amount_bytes (S (S (S (S (S O)))))
+  (elements_issuance_asset_pairs e)
+     : forall _ : jet_elements_prim.Elements.env, Digest.hash256
+
+Arguments elements_issuance_asset_amounts_hash_of e
+### C.jet_elements_issuance_amounts_hash_program.elements_issuance_token_amounts_hash_of
+elements_issuance_token_amounts_hash_of =
+fun e : jet_elements_prim.Elements.env =>
+jet_bitcoin_tx_hash.elems_hash_of jet_elements_issuance_amount_hash_spec.issuance_asset_amount_value_type
+  jet_elements_issuance_amount_hash_spec.issuance_asset_amount_bytes (S (S (S (S (S O)))))
+  (elements_issuance_token_pairs e)
+     : forall _ : jet_elements_prim.Elements.env, Digest.hash256
+
+Arguments elements_issuance_token_amounts_hash_of e
