@@ -1,0 +1,333 @@
+### C.jet_elements_issuance_zero_array.exec_eis_zero_byte
+exec_eis_zero_byte
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (id : BinNums.positive) (b : Values.block) (j : nat)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b
+                      (Ctypesdefs.tarray Ctypesdefs.tuchar
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : lt j (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint8unsigned m b (BinInt.Z.of_nat j) (Values.Vint Integers.Int.zero))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge e le m (eis_zero_byte_stmt id j)
+         Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_elements_issuance_zero_array.eis_zero_array_shape
+eis_zero_array_shape
+     : @eq Clight.statement eis_array_init_actual
+         (eis_zero_array_prefix jets_elements.___compound__3
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+### C.jet_elements_issuance_zero_array.exec_eis_zero_array_prefix
+exec_eis_zero_array_prefix
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le0 : Clight.temp_env)
+         (id : BinNums.positive) (b : Values.block) (n : nat)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b
+                      (Ctypesdefs.tarray Ctypesdefs.tuchar
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : le n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (m : Memory.Mem.mem)
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge e le0 m
+               (eis_zero_array_prefix id n) Events.E0 le0 mf ClightBigstep.Out_normal)
+            (and
+               (forall (j : nat) (_ : lt j n),
+                @eq (option Values.val) (Memory.Mem.load AST.Mint8unsigned mf b (BinInt.Z.of_nat j))
+                  (@Some Values.val (Values.Vint Integers.Int.zero)))
+               (and
+                  (forall (ch : AST.memory_chunk) (bb : Values.block) (off : BinNums.Z)
+                     (_ : or (not (@eq Values.block bb b))
+                            (or (BinInt.Z.le (BinInt.Z.add off (Memdata.size_chunk ch)) BinNums.Z0)
+                               (BinInt.Z.le
+                                  (BinNums.Zpos
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) off))),
+                   @eq (option Values.val) (Memory.Mem.load ch mf bb off) (Memory.Mem.load ch m bb off))
+                  (and
+                     (forall (bb : Values.block) (off : BinNums.Z) (k : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm m bb off k p), Memory.Mem.perm mf bb off k p)
+                     (forall (bb : Values.block) (_ : Memory.Mem.valid_block m bb), Memory.Mem.valid_block mf bb)))))
+### C.jet_elements_issuance_zero_array.eis_zero_byte_stmt
+eis_zero_byte_stmt =
+fun (id : AST.ident) (j : nat) =>
+Clight.Sassign
+  (Clight.Ederef
+     (Clight.Ebinop Cop.Oadd
+        (Clight.Evar id
+           (Ctypesdefs.tarray Ctypesdefs.tuchar
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (Clight.Econst_int (Integers.Int.repr (BinInt.Z.of_nat j)) Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar))
+     Ctypesdefs.tuchar) (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+     : forall (_ : AST.ident) (_ : nat), Clight.statement
+
+Arguments eis_zero_byte_stmt id j%nat_scope
+### C.jet_elements_issuance_zero_array.eis_zero_array_prefix
+eis_zero_array_prefix =
+fix eis_zero_array_prefix (id : AST.ident) (n : nat) {struct n} : Clight.statement :=
+  match n return Clight.statement with
+  | O => Clight.Sskip
+  | S k =>
+      match k return Clight.statement with
+      | O => eis_zero_byte_stmt id O
+      | S _ => Clight.Ssequence (eis_zero_array_prefix id k) (eis_zero_byte_stmt id k)
+      end
+  end
+     : forall (_ : AST.ident) (_ : nat), Clight.statement
+
+Arguments eis_zero_array_prefix id n%nat_scope
+### C.jet_elements_issuance_zero_array.eis_array_init_actual
+eis_array_init_actual =
+Clight.Ssequence
+  (Clight.Ssequence
+     (Clight.Ssequence
+        (Clight.Ssequence
+           (Clight.Ssequence
+              (Clight.Ssequence
+                 (Clight.Ssequence
+                    (Clight.Ssequence
+                       (Clight.Ssequence
+                          (Clight.Ssequence
+                             (Clight.Ssequence
+                                (Clight.Ssequence
+                                   (Clight.Ssequence
+                                      (Clight.Ssequence
+                                         (Clight.Ssequence
+                                            (Clight.Ssequence
+                                               (Clight.Ssequence
+                                                  (Clight.Ssequence
+                                                     (Clight.Ssequence
+                                                        (Clight.Ssequence
+                                                           (Clight.Ssequence
+                                                              (Clight.Ssequence (Clight.Ssequence (...) (...))
+                                                                 (Clight.Sassign (...) (...)))
+                                                              (Clight.Sassign (Clight.Ederef (...) Ctypesdefs.tuchar)
+                                                                 (Clight.Econst_int (...) Ctypesdefs.tint)))
+                                                           (Clight.Sassign
+                                                              (Clight.Ederef (Clight.Ebinop Cop.Oadd (...) (...) (...))
+                                                                 Ctypesdefs.tuchar)
+                                                              (Clight.Econst_int (Integers.Int.repr BinNums.Z0)
+                                                                 Ctypesdefs.tint)))
+                                                        (Clight.Sassign
+                                                           (Clight.Ederef
+                                                              (Clight.Ebinop Cop.Oadd
+                                                                 (Clight.Evar jets_elements.___compound__3 (...))
+                                                                 (Clight.Econst_int (...) Ctypesdefs.tint)
+                                                                 (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+                                                           (Clight.Econst_int (Integers.Int.repr BinNums.Z0)
+                                                              Ctypesdefs.tint)))
+                                                     (Clight.Sassign
+                                                        (Clight.Ederef
+                                                           (Clight.Ebinop Cop.Oadd
+                                                              (Clight.Evar jets_elements.___compound__3
+                                                                 (Ctypesdefs.tarray Ctypesdefs.tuchar (...)))
+                                                              (Clight.Econst_int (Integers.Int.repr (...))
+                                                                 Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar))
+                                                           Ctypesdefs.tuchar)
+                                                        (Clight.Econst_int (Integers.Int.repr BinNums.Z0)
+                                                           Ctypesdefs.tint)))
+                                                  (Clight.Sassign
+                                                     (Clight.Ederef
+                                                        (Clight.Ebinop Cop.Oadd
+                                                           (Clight.Evar jets_elements.___compound__3
+                                                              (Ctypesdefs.tarray Ctypesdefs.tuchar (BinNums.Zpos (...))))
+                                                           (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (...)))
+                                                              Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar))
+                                                        Ctypesdefs.tuchar)
+                                                     (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                                               (Clight.Sassign
+                                                  (Clight.Ederef
+                                                     (Clight.Ebinop Cop.Oadd
+                                                        (Clight.Evar jets_elements.___compound__3
+                                                           (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                                              (BinNums.Zpos (BinNums.xO (...)))))
+                                                        (Clight.Econst_int
+                                                           (Integers.Int.repr (BinNums.Zpos (BinNums.xO (...))))
+                                                           Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar))
+                                                     Ctypesdefs.tuchar)
+                                                  (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                                            (Clight.Sassign
+                                               (Clight.Ederef
+                                                  (Clight.Ebinop Cop.Oadd
+                                                     (Clight.Evar jets_elements.___compound__3
+                                                        (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (...))))))
+                                                     (Clight.Econst_int
+                                                        (Integers.Int.repr
+                                                           (BinNums.Zpos (BinNums.xI (BinNums.xO (...)))))
+                                                        Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar))
+                                                  Ctypesdefs.tuchar)
+                                               (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                                         (Clight.Sassign
+                                            (Clight.Ederef
+                                               (Clight.Ebinop Cop.Oadd
+                                                  (Clight.Evar jets_elements.___compound__3
+                                                     (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))
+                                                  (Clight.Econst_int
+                                                     (Integers.Int.repr
+                                                        (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO (...))))))
+                                                     Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar))
+                                               Ctypesdefs.tuchar)
+                                            (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                                      (Clight.Sassign
+                                         (Clight.Ederef
+                                            (Clight.Ebinop Cop.Oadd
+                                               (Clight.Evar jets_elements.___compound__3
+                                                  (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                                     (BinNums.Zpos
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))
+                                               (Clight.Econst_int
+                                                  (Integers.Int.repr
+                                                     (BinNums.Zpos
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                                  Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar))
+                                            Ctypesdefs.tuchar)
+                                         (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                                   (Clight.Sassign
+                                      (Clight.Ederef
+                                         (Clight.Ebinop Cop.Oadd
+                                            (Clight.Evar jets_elements.___compound__3
+                                               (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                                  (BinNums.Zpos
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                            (Clight.Econst_int
+                                               (Integers.Int.repr
+                                                  (BinNums.Zpos
+                                                     (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                               Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+                                      (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                                (Clight.Sassign
+                                   (Clight.Ederef
+                                      (Clight.Ebinop Cop.Oadd
+                                         (Clight.Evar jets_elements.___compound__3
+                                            (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                               (BinNums.Zpos
+                                                  (BinNums.xO
+                                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                         (Clight.Econst_int
+                                            (Integers.Int.repr
+                                               (BinNums.Zpos
+                                                  (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                            Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+                                   (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                             (Clight.Sassign
+                                (Clight.Ederef
+                                   (Clight.Ebinop Cop.Oadd
+                                      (Clight.Evar jets_elements.___compound__3
+                                         (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                            (BinNums.Zpos
+                                               (BinNums.xO
+                                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                      (Clight.Econst_int
+                                         (Integers.Int.repr
+                                            (BinNums.Zpos
+                                               (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                         Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+                                (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                          (Clight.Sassign
+                             (Clight.Ederef
+                                (Clight.Ebinop Cop.Oadd
+                                   (Clight.Evar jets_elements.___compound__3
+                                      (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                         (BinNums.Zpos
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                   (Clight.Econst_int
+                                      (Integers.Int.repr
+                                         (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                      Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+                             (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                       (Clight.Sassign
+                          (Clight.Ederef
+                             (Clight.Ebinop Cop.Oadd
+                                (Clight.Evar jets_elements.___compound__3
+                                   (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                      (BinNums.Zpos
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                (Clight.Econst_int
+                                   (Integers.Int.repr
+                                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+                                   Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+                          (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                    (Clight.Sassign
+                       (Clight.Ederef
+                          (Clight.Ebinop Cop.Oadd
+                             (Clight.Evar jets_elements.___compound__3
+                                (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                   (BinNums.Zpos
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                             (Clight.Econst_int
+                                (Integers.Int.repr
+                                   (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+                                Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+                       (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+                 (Clight.Sassign
+                    (Clight.Ederef
+                       (Clight.Ebinop Cop.Oadd
+                          (Clight.Evar jets_elements.___compound__3
+                             (Ctypesdefs.tarray Ctypesdefs.tuchar
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                          (Clight.Econst_int
+                             (Integers.Int.repr
+                                (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))
+                             Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+                    (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+              (Clight.Sassign
+                 (Clight.Ederef
+                    (Clight.Ebinop Cop.Oadd
+                       (Clight.Evar jets_elements.___compound__3
+                          (Ctypesdefs.tarray Ctypesdefs.tuchar
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                       (Clight.Econst_int
+                          (Integers.Int.repr
+                             (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))
+                          Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+                 (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+           (Clight.Sassign
+              (Clight.Ederef
+                 (Clight.Ebinop Cop.Oadd
+                    (Clight.Evar jets_elements.___compound__3
+                       (Ctypesdefs.tarray Ctypesdefs.tuchar
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                    (Clight.Econst_int
+                       (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))
+                       Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+              (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+        (Clight.Sassign
+           (Clight.Ederef
+              (Clight.Ebinop Cop.Oadd
+                 (Clight.Evar jets_elements.___compound__3
+                    (Ctypesdefs.tarray Ctypesdefs.tuchar
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                 (Clight.Econst_int
+                    (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))
+                    Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+           (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+     (Clight.Sassign
+        (Clight.Ederef
+           (Clight.Ebinop Cop.Oadd
+              (Clight.Evar jets_elements.___compound__3
+                 (Ctypesdefs.tarray Ctypesdefs.tuchar
+                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+              (Clight.Econst_int
+                 (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                 Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+        (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+  (Clight.Sassign
+     (Clight.Ederef
+        (Clight.Ebinop Cop.Oadd
+           (Clight.Evar jets_elements.___compound__3
+              (Ctypesdefs.tarray Ctypesdefs.tuchar
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+           (Clight.Econst_int
+              (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+              Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar)) Ctypesdefs.tuchar)
+     (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint))
+     : Clight.statement

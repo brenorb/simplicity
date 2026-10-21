@@ -736,6 +736,42 @@ Builder/caller, libc and evaluator obligations remain separate.
 Old cached u32be and environment-call objects were rebuilt from unchanged source
 under the baseline toolchain; no version pins or production sources changed.
 
+## Computing Elements issuance_hash: checked support, whole C proof missing
+
+Seven modules now compile normally: `jet_elements_single_issuance_{spec,literal,
+prep}.v`, `jet_elements_issuance_{asset_literal,zero_literal,zero_array}.v` and
+`jet_elements_indexed_flag.v`. Reviewed snapshots cover 30 theorems and 25
+definitions. The canonical all-index semantic/literal bridge reuses the accepted
+issuance calculations, optional asset/amount serializer and actual one8 blinding
+program. The general payload bound is 261 bytes; the absent-issuance message is
+69 bytes. This is not a complete or registered C equivalence; the jet is claimed.
+
+The C support proves both real confidential-ID literals (typed struct copy plus
+explicit prefix), the reissuance explicit-zero amount and the new-issuance
+32-byte zero initializer from arbitrary writable memory. Closed AST equalities
+match these initializers. Do not assume their contents in the final theorem.
+
+Use the flag-parameterized indexed wrapper: this function stores writeBit's
+result in t'3 and uses t'2 as an amount pointer. The old t'2 wrapper is not its
+body. `eis_entry`, `eis_body`, `eis_blocks` and `eis_copy` cover eight locals,
+allocated in order/sizes: src 16, midstate 32, ctx 88, compound 36, compound1 36,
+compound2 40, compound3 32, __res 88. Derive ownership/freshness from those real
+allocations and use `eis_blocks`'s actual free-list order.
+
+Next compose the three actual payload branches, then the shared finalize,
+writeHash, return, frees and framing. No issuance: four uchar(0), two proof-hash
+calls, uchar(0). New issuance: two explicit ID literals and amount calls, proof
+hashes, uchar(1), zero-array construction/absorption, contract hash. Reissuance:
+use the explicit-zero token amount instead of reading inactive tokenAmt, then
+the proof hashes, uchar(1), blinding-nonce and entropy hashes. Require only active
+union arms and actually read fields; neither executions nor the final digest
+may be public premises. The element's issuance starts at offset 256; checked
+existing fields include entropy 72, proof hashes 104/136, assetAmt 232 and type
+272. Verify assetId/tokenId at 168/200 and union tokenAmt at 32 against the AST
+when using them. Extend the existing canonical-tree/full-contract source check
+and run ordinary acceptance only after the final whole-C literal endpoint.
+Caller/cache establishment, libc and evaluator obligations remain separate.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

@@ -925,6 +925,22 @@ bash Coq/check-jets.sh --accept --jets=simplicity_tx_hash,simplicity_sig_all_has
 
 No production C, original specification, API or generation setting changed.
 
+## Support only: computing Elements issuance hash
+
+Seven new modules compile in the normal project; reviewed snapshots cover 30
+theorems and 25 definitions. They provide the canonical indexed program and
+literal bridge (reusing issuance calculations and the actual one8 blinding
+program), all-index semantics, actual asset/token-ID compound copies, explicit
+zero amount construction, all 32 zero-byte stores and the eight-local function
+entry/frame copy. Closed AST equalities match the actual literal initializers.
+The shared indexed wrapper is adapted to the actual t'3 result temporary, with
+a closed equality specializing it to the existing t'2 wrapper.
+
+These are support results, not a complete C-to-program equivalence for
+`simplicity_issuance_hash`. Its three payload paths and their final frame/free
+composition remain to be proved; no registration or additional accepted jet
+is claimed. See `JET_PROOF_BACKLOG.md` for the next boundary.
+
 ## Accepted: computing Elements input hash
 
 The six support modules compile in the normal project, with reviewed snapshots
