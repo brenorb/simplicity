@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 495 of the 533 header declarations.
+The current local-contract registry contains 496 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 38 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 37 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -832,11 +832,11 @@ the AST. Extend the existing canonical-tree/full-contract source check
 and run ordinary acceptance only after the final whole-C literal endpoint.
 Caller/cache establishment, libc and evaluator obligations remain separate.
 
-## Next claimed target: ge_is_on_curve
+## Accepted: ge_is_on_curve
 
 The main session claims `simplicity_ge_is_on_curve` in `JET_CLAIMS.md`.
-Twenty-two ordinary modules now compile: internal support and a complete but
-unregistered public curve endpoint. This is not a new acceptance result:
+Twenty-two ordinary modules now compile: internal support and the complete
+registered public curve endpoint. Ordinary scoped acceptance has passed:
 
 - `jet_secp_field_add7.v`: actual `fe_add_int(7)`, exact field-value increment,
   no-wrap bounds, owned storage and framing for loose multiplication outputs.
@@ -897,8 +897,8 @@ unregistered public curve endpoint. This is not a new acceptance result:
   The ordinary target `JET_TARGETS=C/jet_secp_curve_local.vo bash Coq/build-jets.sh -j2`
   passes; all four reviewed contract/assumption snapshots match without update
   flags. The endpoint retains the same six inherited library assumptions and
-  needs no extra libc premise. Its single exact endpoint is registered as a
-  candidate; scoped acceptance has not yet been completed.
+  needs no extra libc premise. Its single exact endpoint is registered and
+  has passed ordinary scoped acceptance.
 
 These are C execution-plus-value contracts, not just relations between jet
 specifications. The helper integer bridges are closed; execution contracts retain
@@ -910,10 +910,12 @@ cube/one ports and the exact public endpoint contract. Its mutation suite reject
 62 variants (28 new curve cases). Other field ports retain their existing gates.
 `jet-coverage.py` also enforces the exact boundary and its negative tests pass.
 Only `C.jet_secp_curve_local.ge_is_on_curve_literal_local_spec` is registered;
-the claim is removed. Next run
-`bash Coq/check-jets.sh --accept --jets=simplicity_ge_is_on_curve` with sources
-frozen until terminal completion. Do not count the new jet until that acceptance
-passes: the inventory has 496 entries but accepted coverage remains 495/533.
+the claim is removed. On `ad63ab2b`,
+`bash Coq/check-jets.sh --accept --jets=simplicity_ge_is_on_curve` passed build,
+kernel checking of all 341 dependency modules, 280 assumption and 295 contract
+records, gate negative tests and all five regenerated ASTs, with unchanged
+audit inputs. Accepted coverage is 496/533: 360 without an extra libc premise
+and 136 conditional on `memcpy_model`. The full every-jet goal is not complete.
 The numeric `curve_result` alone is not the jet specification. The
 Haskell target is `ge_is_on_curve = iden &&& (unit >>> fe_one) >>> gej_is_on_curve`;
 its local `fe_cube = iden &&& fe_square >>> fe_multiply` must be retained in the

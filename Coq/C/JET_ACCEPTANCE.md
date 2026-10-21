@@ -2,9 +2,9 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 495/533 jets (359 without an extra libc
+The local-contract registry contains 496/533 jets (360 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
-495/533, including the computing issuance hash endpoint. The earlier 430-entry baseline passed
+496/533, including the computing issuance hash and affine curve endpoints. The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
@@ -1068,3 +1068,29 @@ conditional on that model. Caller/cache establishment, libc linkage, evaluator
 admissibility and remaining source/domain/configuration limits remain separate.
 Production C, frozen specifications, API contracts and generation settings are
 unchanged.
+
+## Accepted: original affine curve check
+
+`C.jet_secp_curve_local.ge_is_on_curve_literal_local_spec` proves the whole
+original `simplicity_ge_is_on_curve` against the literal canonical Core tree.
+It derives public allocations and the source-frame copy, both real coordinate
+reads and their zero infinity flag, all six arithmetic calls inside the original
+validity helper, the actual bit write, successful return and all private/public
+frees. The public contract covers every Word256 input pair with ordinary valid
+frames: no canonical-input, on-curve, initialized-output or extra libc premise.
+
+The existing predicate source gate checks the full projective/affine tree,
+catalog wiring, constant and shared cube/one ports, and exact public boundary.
+Its suite rejects 62 mutations, including 28 new curve cases. On `ad63ab2b`,
+ordinary scoped acceptance passed: 341 kernel modules, 280 assumption records,
+295 contract records, gate negative tests and all five AST regenerations:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_ge_is_on_curve
+```
+
+The endpoint retains the same six inherited library assumptions and no extra
+libc model. Accepted local-contract coverage is 496/533 (360 without an extra
+libc premise; 136 conditional on `memcpy_model`). Production C, frozen
+specifications/domains/identities, API contracts and generation settings are
+unchanged. This completes this jet, not the broader every-jet goal.
