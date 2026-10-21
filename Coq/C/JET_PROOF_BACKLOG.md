@@ -666,13 +666,28 @@ structure without identifying the two programs:
 
 These six support modules compile in the normal project; reviewed snapshots
 cover 37 theorems and 14 definitions and compare without update flags. They do
-not add a registration or claim whole-jet acceptance. Next compose the original
-indexed jet's initialization, helper calls, finalization, output serialization
-and frees, preserving general valid cursors/output contents and framing. Extend
-canonical source-tree correspondence to its complete public endpoint before
-ordinary scoped acceptance. Do not introduce an assumed intermediate call or
-digest. Bitcoin domain blockers and Elements fee questions remain separate.
-Check `JET_CLAIMS.md` before starting; `input_utxo_hash` remains claimed.
+not add a registration or claim whole-jet acceptance.
+
+The complete candidate is now in `jet_elements_input_utxo_{prep,payload}.v` and
+`jet_elements_input_utxo_hash_{jet,literal}.v`. Its final theorem
+`elements_input_utxo_hash_literal_local_spec` proves the actual C call against
+the primitive-bearing literal program, including both index branches, context
+initialization, actual helper calls, finalization, serialization and frees.
+It retains arbitrary valid frame cursors, unknown old output contents, prefix
+and cursor preservation and external framing. The initial relation describes
+the actual input-array asset, amount and script-hash fields, plus SHA readiness;
+no intermediate execution or desired final digest is assumed. The payload uses
+the general streaming lemma, including 74/98-byte compression-boundary crossings.
+
+Normal builds and canonical source-tree checks pass; 24 new targeted mutations
+are rejected. Reviewed snapshots cover 23 theorems and eight definitions in
+these four modules and compare without update flags. The literal bridges are
+closed; the C endpoint retains the six inherited assumptions and explicit
+`memcpy_model`. It is not registered or accepted yet; ordinary scoped acceptance
+must follow registration. Raw-environment establishment, startup/caller
+admissibility and libc implementation linkage remain distinct obligations.
+Bitcoin domain blockers and Elements fee questions remain separate. Check
+`JET_CLAIMS.md` before starting; `input_utxo_hash` remains claimed.
 
 ## Source-review question: Elements fee predicates
 

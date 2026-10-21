@@ -1,0 +1,155 @@
+### C.jet_elements_input_utxo_payload.eiu_asset_len
+eiu_asset_len
+     : forall a : jet_elements_prim.assetWith unit,
+       @eq nat
+         (@length Integers.Int.int
+            (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+               (jet_elements_asset_amount_hash_spec.elements_asset_bytes (jet_elements_asset_jets.encode_asset a))))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+### C.jet_elements_input_utxo_payload.eiu_amount_len
+eiu_amount_len
+     : forall v : jet_elements_prim.amountWith unit,
+       or
+         (@eq nat
+            (@length Integers.Int.int
+               (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+                  (jet_elements_asset_amount_hash_spec.elements_amount_bytes (jet_elements_amount_jets.encode_amount v))))
+            (S (S (S (S (S (S (S (S (S O))))))))))
+         (@eq nat
+            (@length Integers.Int.int
+               (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+                  (jet_elements_asset_amount_hash_spec.elements_amount_bytes (jet_elements_amount_jets.encode_amount v))))
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+### C.jet_elements_input_utxo_payload.eiu_stream_regs
+eiu_stream_regs
+     : forall bs : list (Ty.tySem (Word.Word (S (S (S O))))),
+       @eq SHA256.registers (Digest.hash256_reg (jet_bitcoin_composite_hash.sha256_bytes_of bs))
+         (@snd (list Integers.Int.int) (list Integers.Int.int)
+            (jet_elements_support_sha_uchars_prep.absorb_i
+               (@fst (list Integers.Int.int) (list Integers.Int.int)
+                  (jet_elements_support_sha_uchars_prep.absorb_i (@nil Integers.Int.int)
+                     jet_sha256_iv_init.sha256_iv_words
+                     (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int
+                        jet_read8s_layout.word8_array_value bs)))
+               (@snd (list Integers.Int.int) (list Integers.Int.int)
+                  (jet_elements_support_sha_uchars_prep.absorb_i (@nil Integers.Int.int)
+                     jet_sha256_iv_init.sha256_iv_words
+                     (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int
+                        jet_read8s_layout.word8_array_value bs)))
+               (jet_elements_support_sha_finalize_exec.sha_pad
+                  (Integers.Int64.repr (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) bs))))))
+### C.jet_elements_input_utxo_payload.eval_eiu_payload
+eval_eiu_payload
+     : forall (_ : jet_memcpy_model.memcpy_model) (bx bm : Values.block) (_ : not (@eq Values.block bm bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bm))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bx))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bm)) (m : Memory.Mem.mem) (bin : Values.block) (ofs : BinNums.Z)
+         (a : jet_elements_prim.assetWith unit) (v : jet_elements_prim.amountWith unit) (h : Digest.hash256)
+         (_ : jet_elements_support_sha_ctxi.ctxi m bx bm (@nil Integers.Int.int) jet_sha256_iv_init.sha256_iv_words
+                Integers.Int64.zero false) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned) (_ : not (@eq Values.block bin bx)) (_ : not (@eq Values.block bin bm))
+         (_ : jet_elements_asset_jets.asset_rep m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) a)
+         (_ : jet_elements_amount_jets.amount_rep m bin
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))) v)
+         (_ : jet_uint32_array_init.uint32_array_at m bin ofs (Digest.hash256_reg h)),
+       @ex Memory.Mem.mem
+         (fun ma : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mv : Memory.Mem.mem =>
+             @ex Memory.Mem.mem
+               (fun mh : Memory.Mem.mem =>
+                @ex Memory.Mem.mem
+                  (fun mf : Memory.Mem.mem =>
+                   @ex Values.val
+                     (fun vr : Values.val =>
+                      and
+                        (ClightBigstep.Clight2.eval_funcall jet_elements_support_sha_linkage.sha_ge m
+                           (@Ctypes.Internal Clight.function jets_elements.f_simplicity_sha256_confAsset)
+                           (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                              (@cons Values.val
+                                 (Values.Vptr bin
+                                    (Integers.Ptrofs.repr
+                                       (BinInt.Z.add ofs
+                                          (BinNums.Zpos
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                 (@nil Values.val))) Events.E0 ma Values.Vundef)
+                        (and
+                           (ClightBigstep.Clight2.eval_funcall jet_elements_support_sha_linkage.sha_ge ma
+                              (@Ctypes.Internal Clight.function jets_elements.f_simplicity_sha256_confAmt)
+                              (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                                 (@cons Values.val
+                                    (Values.Vptr bin
+                                       (Integers.Ptrofs.repr
+                                          (BinInt.Z.add ofs
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                                    (@nil Values.val))) Events.E0 mv Values.Vundef)
+                           (and
+                              (ClightBigstep.Clight2.eval_funcall jet_elements_support_sha_linkage.sha_ge mv
+                                 (@Ctypes.Internal Clight.function jets_elements.f_sha256_hash)
+                                 (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                                    (@cons Values.val (Values.Vptr bin (Integers.Ptrofs.repr ofs)) (@nil Values.val)))
+                                 Events.E0 mh Values.Vundef)
+                              (and
+                                 (ClightBigstep.Clight2.eval_funcall jet_elements_support_sha_linkage.sha_ge mh
+                                    (@Ctypes.Internal Clight.function jets_elements.f_sha256_finalize)
+                                    (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero) (@nil Values.val))
+                                    Events.E0 mf vr)
+                                 (and
+                                    (forall (j : nat) (_ : lt j (S (S (S (S (S (S (S (S O))))))))),
+                                     @eq (option Values.val)
+                                       (Memory.Mem.load AST.Mint32 mf bm
+                                          (BinInt.Z.add BinNums.Z0
+                                             (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                                                (BinInt.Z.of_nat j))))
+                                       (@Some Values.val
+                                          (Values.Vint
+                                             (@List.nth Integers.Int.int j (Digest.hash256_reg (eiu_hash_of a v h))
+                                                Integers.Int.zero))))
+                                    (and
+                                       (forall (ch : AST.memory_chunk) (b : Values.block) (o : BinNums.Z)
+                                          (_ : Memory.Mem.valid_block m b) (_ : not (@eq Values.block b bx))
+                                          (_ : not (@eq Values.block b bm)),
+                                        @eq (option Values.val) (Memory.Mem.load ch mf b o) (Memory.Mem.load ch m b o))
+                                       (and
+                                          (forall (b : Values.block) (o : BinNums.Z) (k : Memtype.perm_kind)
+                                             (q : Memtype.permission) (_ : Memory.Mem.valid_block m b)
+                                             (_ : Memory.Mem.perm m b o k q), Memory.Mem.perm mf b o k q)
+                                          (forall (b : Values.block) (_ : Memory.Mem.valid_block m b),
+                                           Memory.Mem.valid_block mf b))))))))))))
+### C.jet_elements_input_utxo_payload.eiu_hash_of
+eiu_hash_of =
+fun (a : jet_elements_prim.assetWith unit) (v : jet_elements_prim.amountWith unit) (h : Digest.hash256) =>
+jet_bitcoin_composite_hash.sha256_bytes_of
+  (jet_elements_input_utxo_hash_spec.elements_input_utxo_bytes
+     (@pair
+        (Ty.tySem
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Ty.tySem
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))) (jet_elements_asset_jets.encode_asset a)
+        (jet_elements_amount_jets.encode_amount v)) (Word.from_hash256 h))
+     : forall (_ : jet_elements_prim.assetWith unit) (_ : jet_elements_prim.amountWith unit) (_ : Digest.hash256),
+       Digest.hash256
+
+Arguments eiu_hash_of a v h

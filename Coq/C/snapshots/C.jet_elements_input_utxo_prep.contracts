@@ -1,0 +1,373 @@
+### C.jet_elements_input_utxo_prep.eiu_body
+eiu_body
+     : @eq Clight.statement (Clight.fn_body jets_elements.f_simplicity_input_utxo_hash)
+         (Clight.Ssequence
+            (Clight.Sassign (Clight.Evar jets_elements._src (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+               (Clight.Etempvar jets_elements._src (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+            (jet_elements_indexed_exec.elements_indexed_rest jets_elements._t'5 jets_elements._t'6
+               jets_elements._numInputs eiu_then eiu_else))
+### C.jet_elements_input_utxo_prep.eiu_blocks
+eiu_blocks
+     : forall bl bm bx br : Values.block,
+       @eq (list (prod (prod Values.block BinNums.Z) BinNums.Z))
+         (Clight.blocks_of_env jet_elements_support_sha_linkage.sha_ge (eiu_env bl bm bx br))
+         (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+            (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bx BinNums.Z0)
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+               (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bl BinNums.Z0)
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+               (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                  (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bm BinNums.Z0)
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                  (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                     (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z br BinNums.Z0)
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                     (@nil (prod (prod Values.block BinNums.Z) BinNums.Z))))))
+### C.jet_elements_input_utxo_prep.eiu_entry
+eiu_entry
+     : forall (env : Values.val) (m : Memory.Mem.mem) (m1 m2 m3 m4 : Memory.Mem.mem') (bl bm bx br bd : Values.block)
+         (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block m1 bl))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m1 BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block m2 bm))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m2 BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block m3 bx))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m3 BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block m4 br)),
+       Clight.function_entry2 jet_elements_support_sha_linkage.sha_ge jets_elements.f_simplicity_input_utxo_hash
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         m (eiu_env bl bm bx br) (eiu_temps env bd dbase bs sbase) m4
+### C.jet_elements_input_utxo_prep.eiu_copy
+eiu_copy
+     : forall (m mc : Memory.Mem.mem) (bl bm bx br bs : Values.block) (sbase : BinNums.Z) (bytes : list Memdata.memval)
+         (le : Maps.PTree.tree Values.val) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._src le)
+                (@Some Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes m bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes m bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc)),
+       ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge (eiu_env bl bm bx br) le m
+         (Clight.Sassign (Clight.Evar jets_elements._src (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+            (Clight.Etempvar jets_elements._src (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))) Events.E0 le
+         mc ClightBigstep.Out_normal
+### C.jet_elements_input_utxo_prep.eiu_so_script
+eiu_so_script
+     : jet_elements_field_eval.elements_field_at jets_elements._utxo jets_elements._scriptPubKey BinNums.Z0
+### C.jet_elements_input_utxo_prep.eiu_env_tx
+eiu_env_tx
+     : jet_elements_field_eval.elements_field_at jets_elements._txEnv jets_elements._tx BinNums.Z0
+### C.jet_elements_input_utxo_prep.eiu_sizeof_so
+eiu_sizeof_so
+     : @eq BinNums.Z
+         (Ctypes.sizeof (Clight.genv_cenv jet_elements_support_sha_linkage.sha_ge)
+            (Ctypes.Tstruct jets_elements._utxo Ctypes.noattr))
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+### C.jet_elements_input_utxo_prep.eiu_in_skipBits
+eiu_in_skipBits
+     : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function jets._skipBits jets.f_skipBits)
+         jet_elements_transport.elements_core_helpers
+### C.jet_elements_input_utxo_prep.eiu_cast256
+eiu_cast256
+     : forall m : Memory.Mem.mem,
+       @eq (option Values.val)
+         (Cop.sem_cast
+            (Values.Vint
+               (Integers.Int.repr
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+            Ctypesdefs.tint Ctypesdefs.tulong m)
+         (@Some Values.val
+            (Values.Vlong
+               (Integers.Int64.repr
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+### C.jet_elements_input_utxo_prep.eiu_encode_some
+eiu_encode_some
+     : forall h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) h))
+         (@app (option bool) (@cons (option bool) (@Some bool true) (@nil (option bool)))
+            (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) h))
+### C.jet_elements_input_utxo_prep.eiu_encode_none
+eiu_encode_none
+     : @eq (list BitMachine.Cell)
+         (@Translate.encode (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (@inl unit
+               (prod
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end)
+                     (let rec : Ty.Ty :=
+                        let rec : Ty.Ty :=
+                          let rec : Ty.Ty :=
+                            let rec : Ty.Ty :=
+                              let rec : Ty.Ty :=
+                                let rec : Ty.Ty := let rec : Ty.Ty := Ty.Sum Ty.Unit Ty.Unit in Ty.Prod rec rec in
+                                Ty.Prod rec rec in
+                              Ty.Prod rec rec in
+                            Ty.Prod rec rec in
+                          Ty.Prod rec rec in
+                        Ty.Prod rec rec in
+                      Ty.Prod rec rec))
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end)
+                     (let rec : Ty.Ty :=
+                        let rec : Ty.Ty :=
+                          let rec : Ty.Ty :=
+                            let rec : Ty.Ty :=
+                              let rec : Ty.Ty :=
+                                let rec : Ty.Ty := let rec : Ty.Ty := Ty.Sum Ty.Unit Ty.Unit in Ty.Prod rec rec in
+                                Ty.Prod rec rec in
+                              Ty.Prod rec rec in
+                            Ty.Prod rec rec in
+                          Ty.Prod rec rec in
+                        Ty.Prod rec rec in
+                      Ty.Prod rec rec))) tt))
+         (@app (option bool) (@cons (option bool) (@Some bool false) (@nil (option bool)))
+            (@List.repeat (option bool) (@None bool)
+               (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+### C.jet_elements_input_utxo_prep.eiu_conf_asset_symbol
+eiu_conf_asset_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+            (Clight.genv_genv jet_elements_support_sha_linkage.sha_ge) jets_elements._simplicity_sha256_confAsset)
+         (@Some Values.block
+            (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_confAsset))
+### C.jet_elements_input_utxo_prep.eiu_conf_asset_funct
+eiu_conf_asset_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type
+            (Clight.genv_genv jet_elements_support_sha_linkage.sha_ge)
+            (Values.Vptr (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_confAsset)
+               Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function)
+            (@Ctypes.Internal Clight.function jets_elements.f_simplicity_sha256_confAsset))
+### C.jet_elements_input_utxo_prep.eiu_conf_amt_symbol
+eiu_conf_amt_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+            (Clight.genv_genv jet_elements_support_sha_linkage.sha_ge) jets_elements._simplicity_sha256_confAmt)
+         (@Some Values.block
+            (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_confAmt))
+### C.jet_elements_input_utxo_prep.eiu_conf_amt_funct
+eiu_conf_amt_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type
+            (Clight.genv_genv jet_elements_support_sha_linkage.sha_ge)
+            (Values.Vptr (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_confAmt)
+               Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function)
+            (@Ctypes.Internal Clight.function jets_elements.f_simplicity_sha256_confAmt))
+### C.jet_elements_input_utxo_prep.eiu_env
+eiu_env =
+fun bl bm bx br : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_elements.__res
+  (@pair Values.block Ctypes.type br (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+  (@Maps.PTree.set (prod Values.block Ctypes.type) jets_elements._ctx
+     (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+     (@Maps.PTree.set (prod Values.block Ctypes.type) jets_elements._midstate
+        (@pair Values.block Ctypes.type bm (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+        (@Maps.PTree.set (prod Values.block Ctypes.type) jets_elements._src
+           (@pair Values.block Ctypes.type bl (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)) Clight.empty_env)))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block), Clight.env
+
+Arguments eiu_env bl bm bx br
+### C.jet_elements_input_utxo_prep.eiu_temps
+eiu_temps =
+fun (env : Values.val) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_elements._env env
+  (@Maps.PTree.set Values.val jets_elements._src (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+     (@Maps.PTree.set Values.val jets_elements._dst (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+        (Clight.create_undef_temps (Clight.fn_temps jets_elements.f_simplicity_input_utxo_hash))))
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Clight.temp_env
+
+Arguments eiu_temps env bd dbase%Z_scope bs sbase%Z_scope
+### C.jet_elements_input_utxo_prep.eiu_then
+eiu_then =
+Clight.Ssequence
+  (Clight.Ssequence
+     (Clight.Sset jets_elements._t'3
+        (Clight.Efield
+           (Clight.Ederef
+              (Clight.Etempvar jets_elements._env (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._txEnv Ctypes.noattr)))
+              (Ctypes.Tstruct jets_elements._txEnv Ctypes.noattr)) jets_elements._tx
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr))))
+     (Clight.Ssequence
+        (Clight.Sset jets_elements._t'4
+           (Clight.Efield
+              (Clight.Ederef
+                 (Clight.Etempvar jets_elements._t'3
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr)))
+                 (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr)) jets_elements._input
+              (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigInput Ctypes.noattr))))
+        (Clight.Sset jets_elements._txo
+           (Clight.Eaddrof
+              (Clight.Efield
+                 (Clight.Ederef
+                    (Clight.Ebinop Cop.Oadd
+                       (Clight.Etempvar jets_elements._t'4
+                          (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigInput Ctypes.noattr)))
+                       (Clight.Etempvar jets_elements._i Ctypesdefs.tulong)
+                       (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigInput Ctypes.noattr)))
+                    (Ctypes.Tstruct jets_elements._sigInput Ctypes.noattr)) jets_elements._txo
+                 (Ctypes.Tstruct jets_elements._utxo Ctypes.noattr))
+              (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._utxo Ctypes.noattr))))))
+  (Clight.Ssequence
+     (Clight.Ssequence
+        (Clight.Scall (@None AST.ident)
+           (Clight.Evar jets_elements._sha256_init
+              (Ctypes.Tfunction
+                 (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+                    (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuint) Ctypes.Tnil)) Ctypesdefs.tvoid
+                 (AST.mkcallconv (@None BinNums.Z) false true)))
+           (@cons Clight.expr
+              (Clight.Eaddrof
+                 (Clight.Evar jets_elements.__res (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr)))
+              (@cons Clight.expr
+                 (Clight.Efield
+                    (Clight.Evar jets_elements._midstate (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+                    jets_elements._s
+                    (Ctypesdefs.tarray Ctypesdefs.tuint
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) (@nil Clight.expr))))
+        (Clight.Sassign (Clight.Evar jets_elements._ctx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+           (Clight.Evar jets_elements.__res (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))))
+     (Clight.Ssequence
+        (Clight.Scall (@None AST.ident)
+           (Clight.Evar jets_elements._simplicity_sha256_confAsset
+              (Ctypes.Tfunction
+                 (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+                    (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))
+                       Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+           (@cons Clight.expr
+              (Clight.Eaddrof
+                 (Clight.Evar jets_elements._ctx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr)))
+              (@cons Clight.expr
+                 (Clight.Eaddrof
+                    (Clight.Efield
+                       (Clight.Ederef
+                          (Clight.Etempvar jets_elements._txo
+                             (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._utxo Ctypes.noattr)))
+                          (Ctypes.Tstruct jets_elements._utxo Ctypes.noattr)) jets_elements._asset
+                       (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr))
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr)))
+                 (@nil Clight.expr))))
+        (Clight.Ssequence
+           (Clight.Scall (@None AST.ident)
+              (Clight.Evar jets_elements._simplicity_sha256_confAmt
+                 (Ctypes.Tfunction
+                    (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+                       (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._confAmount Ctypes.noattr))
+                          Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+              (@cons Clight.expr
+                 (Clight.Eaddrof
+                    (Clight.Evar jets_elements._ctx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr)))
+                 (@cons Clight.expr
+                    (Clight.Eaddrof
+                       (Clight.Efield
+                          (Clight.Ederef
+                             (Clight.Etempvar jets_elements._txo
+                                (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._utxo Ctypes.noattr)))
+                             (Ctypes.Tstruct jets_elements._utxo Ctypes.noattr)) jets_elements._amt
+                          (Ctypes.Tstruct jets_elements._confAmount Ctypes.noattr))
+                       (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._confAmount Ctypes.noattr)))
+                    (@nil Clight.expr))))
+           (Clight.Ssequence
+              (Clight.Scall (@None AST.ident)
+                 (Clight.Evar jets_elements._sha256_hash
+                    (Ctypes.Tfunction
+                       (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+                          (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+                             Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+                 (@cons Clight.expr
+                    (Clight.Eaddrof
+                       (Clight.Evar jets_elements._ctx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+                       (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr)))
+                    (@cons Clight.expr
+                       (Clight.Eaddrof
+                          (Clight.Efield
+                             (Clight.Ederef
+                                (Clight.Etempvar jets_elements._txo
+                                   (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._utxo Ctypes.noattr)))
+                                (Ctypes.Tstruct jets_elements._utxo Ctypes.noattr)) jets_elements._scriptPubKey
+                             (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+                          (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)))
+                       (@nil Clight.expr))))
+              (Clight.Ssequence
+                 (Clight.Scall (@None AST.ident)
+                    (Clight.Evar jets_elements._sha256_finalize
+                       (Ctypes.Tfunction
+                          (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+                             Ctypes.Tnil) Ctypesdefs.tbool AST.cc_default))
+                    (@cons Clight.expr
+                       (Clight.Eaddrof
+                          (Clight.Evar jets_elements._ctx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))
+                          (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr)))
+                       (@nil Clight.expr)))
+                 (Clight.Scall (@None AST.ident)
+                    (Clight.Evar jets_elements._writeHash
+                       (Ctypes.Tfunction
+                          (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+                             (Ctypes.Tcons
+                                (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+                                Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+                    (@cons Clight.expr
+                       (Clight.Etempvar jets_elements._dst
+                          (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+                       (@cons Clight.expr
+                          (Clight.Eaddrof
+                             (Clight.Evar jets_elements._midstate
+                                (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+                             (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)))
+                          (@nil Clight.expr)))))))))
+     : Clight.statement
+### C.jet_elements_input_utxo_prep.eiu_else
+eiu_else =
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_elements._skipBits
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+           (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Econst_int
+           (Integers.Int.repr
+              (BinNums.Zpos
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+           Ctypesdefs.tint) (@nil Clight.expr)))
+     : Clight.statement

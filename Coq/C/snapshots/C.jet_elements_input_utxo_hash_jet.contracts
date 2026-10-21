@@ -1,0 +1,82 @@
+### C.jet_elements_input_utxo_hash_jet.elements_input_utxo_hash_program_local_spec
+elements_input_utxo_hash_program_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_input_utxo_hash
+         jet_elements_support_sha_linkage.sha_ge jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) elements_input_utxo_hash_rep
+         (fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env) =>
+          @jet_elements_input_utxo_hash_spec.elements_input_utxo_hash_spec
+            (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_input_utxo_hash_jet.eiu_elem_rep
+eiu_elem_rep =
+fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput) =>
+and
+  (jet_elements_asset_jets.asset_rep m b
+     (BinInt.Z.add ofs (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+     (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
+  (and
+     (jet_elements_amount_jets.amount_rep m b
+        (BinInt.Z.add ofs
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (jet_elements_prim.utxoAmount (jet_elements_prim.sigTxiTxo txi)))
+     (jet_uint32_array_init.uint32_array_at m b ofs
+        (Digest.hash256_reg (Digest.byteStringHash (jet_elements_input_hash_jets.utxo_script_bytes txi)))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : jet_elements_prim.sigTxInput), Prop
+
+Arguments eiu_elem_rep m b ofs%Z_scope txi
+### C.jet_elements_input_utxo_hash_jet.elements_input_utxo_hash_rep
+elements_input_utxo_hash_rep =
+fun (m : Memory.Mem.mem) (env : Values.val) (e : jet_elements_prim.Elements.env)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun txbase : BinNums.Z =>
+            @ex Values.block
+              (fun bin : Values.block =>
+               @ex BinNums.Z
+                 (fun inbase : BinNums.Z =>
+                  @ex Integers.Int64.int
+                    (fun nI : Integers.Int64.int =>
+                     and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                       (and (BinInt.Z.le BinNums.Z0 ebase)
+                          (and
+                             (BinInt.Z.le
+                                (BinInt.Z.add ebase
+                                   (BinNums.Zpos
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                                Integers.Ptrofs.max_unsigned)
+                             (and (BinInt.Z.le BinNums.Z0 txbase)
+                                (and
+                                   (BinInt.Z.le
+                                      (BinInt.Z.add txbase
+                                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (...)))))))
+                                      Integers.Ptrofs.max_unsigned)
+                                   (and (BinInt.Z.le BinNums.Z0 inbase)
+                                      (and
+                                         (BinInt.Z.le
+                                            (BinInt.Z.add inbase
+                                               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (...)))
+                                                  (BinInt.Z.of_nat (@length jet_elements_prim.sigTxInput (...)))))
+                                            Integers.Ptrofs.max_unsigned)
+                                         (and
+                                            (@eq (option Values.val)
+                                               (Memory.Mem.load AST.Mptr m be (BinInt.Z.add ebase BinNums.Z0))
+                                               (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+                                            (and
+                                               (@eq (option Values.val)
+                                                  (Memory.Mem.load AST.Mptr m bt (BinInt.Z.add txbase BinNums.Z0))
+                                                  (@Some Values.val (Values.Vptr bin (...))))
+                                               (and
+                                                  (@eq (option Values.val) (Memory.Mem.load AST.Mint64 m bt (...))
+                                                     (@Some Values.val (...)))
+                                                  (and (@eq BinNums.Z (...) (...)) (and (...) (...)))))))))))))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments elements_input_utxo_hash_rep m env e fp%list_scope

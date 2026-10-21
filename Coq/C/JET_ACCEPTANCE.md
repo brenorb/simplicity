@@ -918,3 +918,35 @@ bash Coq/check-jets.sh --accept --jets=simplicity_tx_hash,simplicity_sig_all_has
 ```
 
 No production C, original specification, API or generation setting changed.
+
+## Candidate: computing Elements input UTXO hash
+
+`C.jet_elements_input_utxo_hash_literal.elements_input_utxo_hash_literal_local_spec`
+proves the whole original `simplicity_input_utxo_hash` against the literal
+primitive-bearing `inputUtxoHash` program: index/tag, context initialization,
+actual confidential asset/amount hashing, script digest, finalization,
+serialization and frees, plus the out-of-range skip branch. Arbitrary valid
+frame cursors, unknown old output contents, prefix/cursor preservation and
+external framing are retained.
+
+The initial `elements_input_utxo_hash_rep` relates the actual 544-byte input
+array, its UTXO at offset 136 and asset/amount/script fields to the raw primitive
+environment, and includes SHA readiness. No intermediate C execution or desired
+final digest is assumed. Builder/caller establishment and `memcpy_model` linkage
+remain obligations. The private SHA chain uses the existing general streaming
+lemma for both 74-byte explicit-amount and 98-byte confidential-amount messages.
+
+All four modules compile through the normal project. Reviewed snapshots cover
+23 theorems and eight definitions and compare without update flags. The literal
+bridge and parametricity are closed; the C endpoint retains the six inherited
+library assumptions and explicit `memcpy_model`. The existing source checker
+compares the full Core tree, Transaction amount route, public C boundary and
+initial representation, rejecting 24 new mutations. This candidate is not
+registered or accepted yet. After registration, run:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_input_utxo_hash
+```
+
+Production C, frozen specifications/domains/identities, API contracts and
+generation settings are unchanged.

@@ -2627,6 +2627,104 @@ def elements_transaction_signature_hashes(s):
         fp = [(be, ebase + delta, ebase + delta + 32)]''')
 
 
+def elements_single_utxo_hash(s):
+    """The computing indexed C jet, not a cache getter. Reuse the mandatory
+    serializer, SHA and primitive interpretation checks; compare the complete
+    composition and its initial-only memory relation here.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, name, expected):
+        if p.compact(hbody(s[key], name)) != p.compact(expected):
+            raise ValueError('Elements single UTXO binding differs: ' + name)
+
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('Elements single UTXO definition differs: ' + name)
+
+    def core(text, typed=False):
+        for op in ['comp', 'pair', 'take', 'drop', 'injl', 'injr', 'case']:
+            if typed:
+                text = replace(text, '@AC.' + op + ' ' + ('_ _ _ _' if op == 'case' else '_ _ _') + ' core',
+                               op + 'Node')
+            text = replace(text, 'Alg.Core.Combinators.' + op, op + 'Node')
+        for op in ['unit', 'iden']:
+            text = replace(text, '@AC.' + op + ' _ core', op)
+            text = replace(text, 'Alg.Core.Combinators.' + op, op)
+        return explicit_core_tree(expression(text),
+            {'unit', 'pm', 'pa', 'inputAmount', 'pScriptHash', 'ctx8Init',
+             'assetAmountHash', 'add32', 'ctx8Finalize', 'assertHash'})
+
+    binding('elements_catalog', 'specificationSigHash InputUtxoHash', 'SigHash.inputUtxoHash')
+    p.require(s['elements_catalog'], 'InputUtxoHash :: SigHashJet Word32 (S Word256)', 'single UTXO catalog type')
+    binding('elements_sighash_lib', 'inputUtxoHash', 'SigHash.inputUtxoHash SigHash.lib')
+    definition('eiu_amount_model', 'elements_input_amount_spec', '''
+      elements_amount_pair_spec (Primitive.Combinators.prim Elements.InputAmount)
+        (Primitive.Combinators.prim Elements.InputAsset)''')
+    transaction = s['eiu_transaction'].split('l@Lib{..} = Lib {', 1)[1]
+    pair = re.search(r'\binputAmount\s*=(.*?)\n\s*[,}]', transaction, re.S)
+    if not pair:
+        raise ValueError('missing canonical inputAmount')
+    hs_pair = replace(replace(pair[1], 'primitive InputAmount', 'pm'), 'primitive InputAsset', 'pa')
+    if expression(hs_pair) != core(p.definition(s['eiu_amount_model'], 'elements_amount_pair_spec')):
+        raise ValueError('Elements inputAmount complete route differs')
+    programs = s['elements_sighash'].split(
+        'mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    hs = re.search(r'\binputUtxoHash\s*=(.*?)\n\s*[,}]', programs, re.S)
+    if not hs:
+        raise ValueError('missing canonical inputUtxoHash')
+    hs = replace(replace(replace(hs[1], 'primitive InputScriptHash', 'pScriptHash'),
+                         '(drop . assert $ iden)', '(drop assertHash)'), 'ctx8Add32', 'add32')
+    prefix = '''let term := EFP.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in'''
+    port = p.definition(s['eiu_port'], 'literal_elements_input_utxo_hash')
+    if not p.compact(port).startswith(p.compact(prefix)):
+        raise ValueError('single UTXO algebra projection differs')
+    port = replace(port, prefix, '')
+    for old, new in [
+        ('@elements_input_amount_spec alg', 'inputAmount'),
+        ('@EFP.Combinators.prim _ _ alg Elements.InputScriptHash', 'pScriptHash'),
+        ('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+        ('@literal_elements_asset_amount_hash term', 'assetAmountHash'),
+        ('@literal_ctx8_addn 5 term', 'add32'),
+        ('@literal_ctx8_finalize term', 'ctx8Finalize'),
+        ('@assert_iden_spec (Word 8) term', 'assertHash'),
+    ]:
+        port = replace(port, old, new)
+    if expression(hs) != core(port, typed=True):
+        raise ValueError('canonical whole inputUtxoHash composition differs')
+    statement = re.search(r'Theorem elements_input_utxo_hash_literal_local_spec\s*:(.*?)\bProof\.',
+                          s['eiu_port'], re.S)
+    expected = '''memcpy_model ->
+      application_jet_local_spec_sep f_simplicity_input_utxo_hash elements_ge Elements.env
+        Word32 (Ty.Sum Ty.Unit Word256) elements_input_utxo_hash_rep
+        (fun a environment => @literal_elements_input_utxo_hash elements_hash_alg a environment).'''
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError('single UTXO complete C contract differs')
+    definition('eiu_jet', 'eiu_elem_rep', r'''
+      asset_rep m b (ofs + 32) (utxoAsset (sigTxiTxo txi)) /\
+      amount_rep m b (ofs + 72) (utxoAmount (sigTxiTxo txi)) /\
+      uint32_array_at m b ofs (hash256_reg (byteStringHash (utxo_script_bytes txi)))''')
+    definition('eiu_jet', 'elements_input_utxo_hash_rep', r'''
+      exists be ebase bt txbase bin inbase nI,
+        env = Vptr be (Ptrofs.repr ebase) /\
+        0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
+        0 <= txbase /\ txbase + 760 <= Ptrofs.max_unsigned /\
+        0 <= inbase /\
+        inbase + 544 * Z.of_nat (length (sigTxIn (Elements.envTx e))) <= Ptrofs.max_unsigned /\
+        Mem.load Mptr m be (ebase + 0) = Some (Vptr bt (Ptrofs.repr txbase)) /\
+        Mem.load Mptr m bt (txbase + 0) = Some (Vptr bin (Ptrofs.repr inbase)) /\
+        Mem.load Mint64 m bt (txbase + 696) = Some (Vlong nI) /\
+        Int64.unsigned nI = Z.of_nat (length (sigTxIn (Elements.envTx e))) /\
+        (forall j txi, nth_error (sigTxIn (Elements.envTx e)) j = Some txi ->
+          eiu_elem_rep m bin (inbase + 544 * Z.of_nat j + 136) txi) /\
+        sha_globals_ok m /\
+        fp = [(be, ebase, ebase + 8); (bt, txbase + 0, txbase + 8);
+              (bin, inbase, inbase + 544 * Z.of_nat (length (sigTxIn (Elements.envTx e))));
+              (GC, 0, 8); (GM, 0, 8)]''')
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -2724,6 +2822,10 @@ def sources():
         "elements_tx_port": COQ / "C/jet_elements_tx_hash_literal.v",
         "elements_sig_all_port": COQ / "C/jet_elements_sig_all_hash_literal.v",
         "elements_direct_getter": COQ / "C/jet_elements_direct_hash_getter.v",
+        "eiu_port": COQ / "C/jet_elements_input_utxo_hash_literal.v",
+        "eiu_jet": COQ / "C/jet_elements_input_utxo_hash_jet.v",
+        "eiu_amount_model": COQ / "C/jet_elements_amount_jets.v",
+        "eiu_transaction": REPO / "Haskell/Simplicity/Elements/Programs/Transaction.hs",
         "elements_annex_exec": COQ / "C/jet_elements_annex_context_exec.v",
         "elements_annex_context_port": COQ / "C/jet_elements_annex_context_literal.v",
         "elements_issuance_program": REPO / "Haskell/Simplicity/Elements/Programs/Issuance.hs",
@@ -2773,6 +2875,7 @@ def test():
     elements_tap_builders(s)
     elements_issuance_amount_hashes(s)
     elements_transaction_signature_hashes(s)
+    elements_single_utxo_hash(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -3853,6 +3956,67 @@ def test():
             continue
         raise ValueError('transaction/signature hash mutation escaped: ' + old)
     print('Elements transaction/signature full Core trees, primitives and C boundaries match;', len(changes), 'mutations rejected')
+
+    changes = [
+        ('elements_catalog', 'specificationSigHash InputUtxoHash = SigHash.inputUtxoHash',
+         'specificationSigHash InputUtxoHash = SigHash.inputHash'),
+        ('elements_catalog', 'InputUtxoHash :: SigHashJet Word32 (S Word256)',
+         'InputUtxoHash :: SigHashJet () (S Word256)'),
+        ('elements_sighash_lib', 'inputUtxoHash = SigHash.inputUtxoHash SigHash.lib',
+         'inputUtxoHash = SigHash.inputHash SigHash.lib'),
+        ('elements_sighash', '(inputAmount &&& primitive InputScriptHash)',
+         '(primitive InputScriptHash &&& inputAmount)'),
+        ('elements_sighash', '(drop . assert $ iden) >>> ctx8Add32',
+         '(take . assert $ iden) >>> ctx8Add32'),
+        ('eiu_port', '@elements_input_amount_spec alg', '@elements_output_amount_spec alg'),
+        ('eiu_port', '@EFP.Combinators.prim _ _ alg Elements.InputScriptHash',
+         '@EFP.Combinators.prim _ _ alg Elements.InputScriptSigHash'),
+        ('eiu_port', '@literal_ctx8_addn 5 term', '@literal_ctx8_addn 3 term'),
+        ('eiu_port', '@literal_elements_asset_amount_hash term', '@literal_elements_asset_hash term'),
+        ('eiu_port', '@AC.take _ _ _ core (@AC.iden _ core)', '@AC.drop _ _ _ core (@AC.iden _ core)'),
+        ('eiu_port', '@assert_iden_spec (Word 8) term', '@assert_iden_spec (Word 7) term'),
+        ('eiu_amount_model', 'Primitive.Combinators.prim Elements.InputAmount',
+         'Primitive.Combinators.prim Elements.OutputAmount'),
+        ('eiu_amount_model', 'Alg.Core.Combinators.pair (Alg.Core.Combinators.drop Alg.Core.Combinators.iden)',
+         'Alg.Core.Combinators.pair (Alg.Core.Combinators.take Alg.Core.Combinators.iden)'),
+        ('eiu_transaction', 'primitive InputAmount &&& primitive InputAsset',
+         'primitive InputAsset &&& primitive InputAmount'),
+        ('eiu_port', 'Theorem elements_input_utxo_hash_literal_local_spec :',
+         'Theorem elements_input_utxo_hash_literal_local_spec : False ->'),
+        ('eiu_port', 'f_simplicity_input_utxo_hash elements_ge Elements.env',
+         'f_simplicity_input_hash elements_ge Elements.env'),
+        ('eiu_port', 'Word32 (Ty.Sum Ty.Unit Word256) elements_input_utxo_hash_rep',
+         'Word32 (Ty.Sum Ty.Unit Word256) (fun m env e fp => False)'),
+        ('eiu_jet', 'asset_rep m b (ofs + 32)', 'asset_rep m b (ofs + 0)'),
+        ('eiu_jet', 'amount_rep m b (ofs + 72)', 'amount_rep m b (ofs + 32)'),
+        ('eiu_jet', 'uint32_array_at m b ofs (hash256_reg (byteStringHash (utxo_script_bytes txi)))', 'True'),
+        ('eiu_jet', 'Mem.load Mint64 m bt (txbase + 696)', 'Mem.load Mint64 m bt (txbase + 704)'),
+        ('eiu_jet', 'eiu_elem_rep m bin (inbase + 544 * Z.of_nat j + 136) txi', 'True'),
+        ('eiu_jet', 'sha_globals_ok m /\\', 'False /\\ sha_globals_ok m /\\'),
+        ('eiu_jet', '(GC, 0, 8); (GM, 0, 8)', '(GC, 0, 0); (GM, 0, 0)'),
+    ]
+    for key, old, new in changes:
+        if key == 'eiu_port':
+            body = p.definition(s[key], 'literal_elements_input_utxo_hash')
+            if old in body:
+                old, new = body, body.replace(old, new, 1)
+        if key == 'elements_sighash':
+            programs = s[key].split(
+                'mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+            body = re.search(r'\binputUtxoHash\s*=(.*?)\n\s*[,}]', programs, re.S)[1]
+            if old in body:
+                old, new = body, body.replace(old, new, 1)
+        if old not in s[key]:
+            raise ValueError('inactive single UTXO mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_single_utxo_hash(changed)
+        except ValueError:
+            continue
+        raise ValueError('single UTXO mutation escaped: ' + old)
+    print('Elements computing input UTXO full Core tree, amount route and C contract match;',
+          len(changes), 'mutations rejected')
 
 
 if __name__ == "__main__":
