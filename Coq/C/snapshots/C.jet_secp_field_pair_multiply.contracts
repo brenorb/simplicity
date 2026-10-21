@@ -102,9 +102,33 @@ eval_field_pair_multiply
                                     (jet_secp_multiply_finish_product.radix_value b))
                                  jet_secp_multiply_checkpoint_columns.field_prime))
                            (and (jet_secp_square_columns.square_input_bounds (field_pair_product a b))
-                              (jet_sx_mem.lframe
-                                 (fun (bx : Values.block) (_ : BinNums.Z) =>
-                                  and (not (@eq Values.block bx ba)) (not (@eq Values.block bx bb))) m mf))))))))
+                              (and
+                                 (forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+                                  and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned (field_pair_product a b i)))
+                                    (BinInt.Z.lt (Integers.Int64.unsigned (field_pair_product a b i))
+                                       match PeanoNat.Nat.eqb i (S (S (S (S O)))) return BinNums.Z with
+                                       | true =>
+                                           BinNums.Zpos
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))
+                                       | false =>
+                                           BinNums.Zpos
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))
+                                       end))
+                                 (jet_sx_mem.lframe
+                                    (fun (bx : Values.block) (_ : BinNums.Z) =>
+                                     and (not (@eq Values.block bx ba)) (not (@eq Values.block bx bb))) m mf)))))))))
 ### C.jet_secp_field_pair_multiply.field_pair_valuation
 field_pair_valuation =
 fun (a b : forall _ : nat, Integers.Int64.int) (n : nat) =>

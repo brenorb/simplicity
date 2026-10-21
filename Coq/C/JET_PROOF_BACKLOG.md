@@ -965,12 +965,22 @@ and is not a coverage registration. Keep this literal tree as the target,
 rather than replacing it by the numeric equation.
 
 `jet_secp_field_pair_multiply.v` now adapts the selected original C multiplier
-to two owned 40-byte fields. Its inputs may have the square contract's 49-bit
-top limb; it derives the original 56-/52-bit bounds, actual call, modular product,
-reusable output bounds, source preservation, both ownership ranges and framing.
-The normal build and reviewed contract/assumption comparisons pass. No fresh
-oracle, alternate multiplier, initialized-output or desired-result premise is
-introduced; no additional jet is registered.
+to two owned 40-byte fields with loose 56-/52-bit input bounds. It derives the
+actual call, modular product, tight 52-/49-bit output bounds, source preservation,
+both ownership ranges and framing. The in-place output initially contains the
+first input; in X-equivalence this input comes from the actual Z square. There
+is no separate zero-initialization or desired-result premise. The normal build,
+reviewed contract/assumption comparisons and recursive kernel check pass. No
+fresh oracle or alternate multiplier is introduced; no additional jet is registered.
+
+`jet_secp_x_equiv_copy.v` proves the original by-copy `r2 = a.x` assignment,
+including the typed field loads and ownership after the real byte copy.
+`jet_secp_x_equiv_tail.v` composes the original weak-normalize and equality
+calls. The product must retain the multiplier's tight output bounds: the
+looser `square_input_bounds` alone do not meet the comparison precondition.
+Both modules pass the normal build, reviewed contract/assumption comparisons
+and recursive kernel check with the six inherited library assumptions. These
+are helper results, not additional public-jet equivalence registrations.
 
 Next compose the original `secp256k1_gej_eq_x_var`: square Z, multiply the temporary by the separate X
 argument, copy the point's X to `r2`, weak-normalize it, compare, return and free.

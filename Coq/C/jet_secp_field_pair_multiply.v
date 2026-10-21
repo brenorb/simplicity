@@ -91,6 +91,8 @@ Theorem eval_field_pair_multiply a b m ba bb :
     Mem.range_perm mf ba 0 40 Cur Freeable /\ Mem.range_perm mf bb 0 40 Cur Freeable /\
     radix_value (field_pair_product a b) mod field_prime = (radix_value a * radix_value b) mod field_prime /\
     square_input_bounds (field_pair_product a b) /\
+    (forall i, (i<5)%nat -> 0<=Int64.unsigned (field_pair_product a b i)<
+      if Nat.eqb i 4 then 562949953421312 else 4503599627370496) /\
     lframe (fun bx _ => bx<>ba /\ bx<>bb) m mf.
 Proof.
   intros BA BB HNe HA HB HFA HFB.
@@ -102,6 +104,6 @@ Proof.
   exists mf. split; [exact HC|]. split; [exact HA'|]. split; [exact HB'|].
   split; [exact HFA'|]. split; [exact HFB'|]. split; [exact HV|]. split.
   - intros i HI. unfold field_pair_product. pose proof (HBnd i HI); destruct (Nat.eqb i 4);lia.
-  - exact (curve_frame_two field_mul_regs ba bb m mf eq_refl HF).
+  - split; [exact HBnd|]. exact (curve_frame_two field_mul_regs ba bb m mf eq_refl HF).
 Qed.
 Print Assumptions eval_field_pair_multiply.
