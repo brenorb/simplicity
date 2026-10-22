@@ -1465,10 +1465,19 @@ public caller's shape). Outputs are the exact machine-coordinate functions,
 flag, reusable bounds, ownership of the input point/affine allocations and all
 ten temporaries, plus external framing. No H/I branch restriction,
 intermediate execution or initialized-temporary premise is added.
-Next establish the actual function entry/ten allocations/return/ten frees,
-the literal specification bridge, and the complete public reader/helper/writer
-lifecycle before claiming public coverage. A body execution result alone is
-not the public C-to-Simplicity equivalence theorem.
+`jet_secp_mixed_function.v:eval_mixed_function` now wraps that body in the
+actual `Clight2.eval_funcall` for original `gej_add_ge_var` with r=a and NULL
+rzr. It constructs the ten allocations and proves their freshness, all four
+parameter bindings, the actual local environment and free-list order, the
+void result for every return outcome and all ten frees. It preserves the
+caller's point/affine ownership, coordinate outputs and flag/bounds, with
+external framing outside those two caller allocations. No allocation,
+intermediate-execution or freeing premise remains on this call theorem.
+The affine input flag is zero, as established by the actual public reader;
+the point's input infinity flag is unrestricted here. Next prove the literal
+specification bridge and complete public reader/helper/writer lifecycle
+before claiming public coverage. A C helper-call execution theorem is not
+yet the public C-to-Simplicity equivalence theorem.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1504,6 +1513,8 @@ JET_TARGETS=C/jet_secp_mixed_y_tail.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_y_tail
 JET_TARGETS=C/jet_secp_mixed_body.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_body
+JET_TARGETS=C/jet_secp_mixed_function.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_function
 ```
 
 ## Source-review question: Elements fee predicates
