@@ -1,11 +1,12 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 500 of the 533 header declarations.
+The current local-contract registry contains 501 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 33 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 32 declarations remain unregistered.
 The projective curve, doubling and mixed-addition endpoints passed ordinary
 scoped acceptance; accepted local-contract coverage is 500/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
+The newly registered square-root endpoint is awaiting scoped acceptance.
 
 The remaining work includes:
 
@@ -1572,125 +1573,40 @@ JET_TARGETS=C/jet_secp_mixed_literal_bridge.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_nonzero_literal C.jet_secp_mixed_literal_bridge
 ```
 
-## Next claimed target: fe_square_root
+## Registered, awaiting scoped acceptance: fe_square_root
 
-The main session reserves `simplicity_fe_square_root`. The requested result
-is the original public C jet against the fixed `fe_square_root` program in
-`Haskell/Core/Simplicity/Programs/LibSecp256k1.hs`, not a theorem that the
-specification computes mathematical square roots. The C implementation uses
-an addition chain, eleven bounded in-place squaring loops (maximum count 88),
-selected multiply/square calls and a final candidate equality test. Reuse the
-existing storage, copy, square and multiplication proofs and prove the repeated
-loop execution once, including signed-counter safety and memory preservation.
-Port the exact `tower` and candidate/check composition, preserving the
-right-associated nonempty `foldr1 (>>>)` square blocks. No primality or
-square-root-existence premise is needed to compare these two algorithms.
+`C.jet_secp_root_local.fe_square_root_literal_local_spec` proves the original
+public `simplicity_fe_square_root` against the fixed primitive-bearing
+`fe_square_root` program in
+`Haskell/Core/Simplicity/Programs/LibSecp256k1.hs`. This compares the actual
+algorithms; it is not a theorem about mathematical square roots or primality.
 
-The ordinary `jet_secp_root_literal`, `jet_secp_root_square_loop` and
-`jet_secp_root_square_bridge` modules now port the exact tower/candidate/check
-trees and prove the actual bounded loop execution, including initialization,
-signed-counter safety, reusable limb bounds, other-temporary preservation and
-external framing. `root_square_all_sources` identifies all eleven original
-Clight loops; `exec_root_square_for_literal` relates their repeated squares
-to the literal program modulo the field order. The source check in
-`secp-field-integration/check-rescale.py` also checks the fixed root/tower
-ports and rejects count, routing and branch mutations. These are internal
-results, **not** a public square-root equivalence or additional coverage.
-`jet_secp_root_stage` also composes the original struct copy, bounded loop and
-in-place multiplication, with no initialized destination premise. It preserves
-the two source fields, allocation permissions and non-counter temporaries;
-the copy source may also be the multiplier operand, as the actual chain
-requires. `root_stage_sources` identifies all ten such original C stages.
-The ordinary `jet_secp_root_chain_owned` module now executes the ten stages
-in succession from concrete initialized `x2`/`x3` storage and owned private
-locals. It derives subsequent stored values and bounds, preserves all private
-allocation permissions and other temporaries, and frames memory outside the
-private locals. The finite-state run premise of its generic induction is
-discharged in `exec_root_chain_owned`; `root_chain_body_source` identifies
-the exact original body segment, including its actual continuation.
-`jet_secp_root_tower_step` exposes the literal tower's routing;
-`jet_secp_root_chain_numeric` relates the chain's word functions, final
-candidate and checking square to that fixed program for arbitrary Word256
-inputs represented modulo the field order. This is not a mathematical
-square-root theorem and adds no primality premise. The final-state lookup
-lemmas tie the execution's stored fields to the same numeric word functions.
-`jet_secp_root_check` now proves that the final C equality/return fragment
-selects the literal program's success/failure branch. It consumes concrete
-storage for the checking square and input, derives the comparison execution
-from the selected equality-helper proof, and preserves the two allocations.
-Its `root_final_check_source` identifies the original suffix at statement 40;
-`root_result_matches` includes both branches and the success payload, without
-assuming that the computed candidate is a mathematical root.
-`jet_secp_root_call_state` lifts the selected separate-square and in-place
-multiply proofs into the same owned-private-field invariant.
-`jet_secp_root_prefix.exec_root_chain_from_input` now executes the retained
-assertion-disabled check, all four initial arithmetic calls and the ten chain
-stages from represented input storage alone. It derives `x2`/`x3` initialization,
-the final stored chain values, allocation permissions, unchanged input field,
-non-counter temporaries and external framing. No initialized private field or
-intermediate execution premise is assumed. `root_input_prefix_source` ties
-this sequence and its continuation to the exact original helper body.
-`jet_secp_root_candidate_state` reuses the selected calls for in-place square
-blocks and the separate caller-owned result, preserving the private-field
-invariant without requiring initialized result storage.
-`jet_secp_root_suffix.exec_root_complete_body` now proves execution of the
-**entire original helper body**, composing initialization, all chain stages,
-the remaining candidate/checking-square calls, equality and return. Its
-preconditions are represented input storage, the two distinct caller-owned
-fields, separated owned private locals, bindings and helper symbols;
-it assumes no intermediate arithmetic execution or candidate output. The
-result supplies the candidate field, comparison return, all private allocation
-permissions, both caller allocations and external framing. The numeric/branch
-bridges above connect these exact word functions to the literal program.
-`jet_secp_root_function.eval_root_function` now proves the complete original
-**helper function call**: concrete entry and parameter binding, all twelve
-40-byte local allocations, their separation and ownership, the entire body,
-integer result conversion and all twelve frees. It derives the body theorem's
-local premises from those allocations; they are not caller assumptions. The
-caller supplies only distinct owned input/result fields and the represented
-input, with no initialized-result premise. Candidate storage, both caller
-allocations and the external frame survive the frees. This reuses the
-allocation/freshness/free-list proof pattern from `jet_secp_mixed_function.v`.
-Next complete the public frame reader/conditional-writer wrapper and its
-local equivalence contract. The public jet remains unproved; these helper
-modules do not increase coverage.
-`jet_secp_root_function_literal.eval_root_function_literal` now specializes
-the complete helper call to the actual reader representation of every
-Word256 input. It proves the candidate's serialized field value equals the
-literal candidate and relates the return bit and both result branches to
-`literal_fe_square_root`, with no mathematical square-root premise.
-`jet_secp_owned_field_write` supplies the original bounded field writer after
-an arbitrary existing output prefix; `jet_secp_field_skip` executes the real
-`skip_fe`/`skipBits` chain and appends unconstrained padding cells.
-`jet_secp_root_result_write.eval_root_result_writes` composes actual tag and
-conditional payload calls with the full sum encoding, general cursors,
-preserved prefix bits and arbitrary initial output contents. These calls
-are derived, not assumed. The remaining composition is the public wrapper's
-entry/source-frame copy/read, its temporary assignments and conditional,
-helper call, writes, return and three local frees; it is not registered yet.
-`jet_secp_root_public_entry` now derives the public function entry (including
-its three actual temporaries), local ownership/separation and the exact
-three-block free list. `jet_secp_root_public_prepare` executes its by-value
-source-frame copy and establishes the output invariant without initializing
-either field. `jet_secp_root_public_body` identifies the exact original public
-AST and composes the reader/helper/tag/payload calls, temporary assignments,
-integer-to-bool cast and conditional, including failure padding. These ordinary
-modules compile and pass recursive kernel and focused snapshot checks. The
-remaining implication is to discharge those call premises together from the
-public frame preconditions, compose entry/body/frees, and register/check the
-resulting literal local contract. These adapters alone add no coverage.
+The proof reuses the selected multiplication, square, reader, writer and
+equality proofs. It executes the original addition chain, all eleven bounded
+squaring loops and final comparison; derives all twelve helper allocations
+and frees; and composes the public source-frame copy, reader, helper, temporary
+assignments, bool conversion, tag and conditional payload/padding, return and
+three outer frees. The standard local contract covers arbitrary Word256 inputs,
+general valid cursors, word crossings and unrelated initial output contents.
+Neither initialized-result storage, intermediate execution, mathematical
+square-root facts nor a libc model is an extra final premise. Its assumption
+snapshot retains the same six inherited execution assumptions.
+
+The `jet_secp_root_*` modules are ordinary project sources. The entry/copy/call
+adapters and the complete local endpoint compile in the normal build; focused
+snapshots were reviewed. The existing `secp-field-integration/check-rescale.py`
+checks the canonical catalog, exact tower/candidate/check ports and complete
+public contract; eighteen negative mutations must fail. Coverage must not be
+described as accepted until the following ordinary scoped check finishes:
 
 ```sh
-JET_TARGETS='C/jet_secp_root_function_literal.vo C/jet_secp_root_result_write.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_function_literal C.jet_secp_root_result_write
-python3 Coq/secp-field-integration/check-rescale.py
+JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_fe_square_root
 ```
 
 Leave `simplicity_gej_ge_add_ex` unresolved: its equal-point ratio disagrees
 with C on a legitimate noncanonical Word256 input, as documented in
 [JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md). Do not fix that
-target or restrict inputs while pursuing the independent square-root jet.
-
+target or restrict inputs while pursuing independent jets.
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

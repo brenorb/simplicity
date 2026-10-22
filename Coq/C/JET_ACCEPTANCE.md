@@ -2,10 +2,12 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 500/533 jets (364 without an extra libc
+The local-contract registry contains 501/533 jets (365 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
 500/533, including the computing issuance hash, affine/projective curve,
-projective X-equivalence, doubling and mixed-addition endpoints. The earlier 430-entry baseline passed
+projective X-equivalence, doubling and mixed-addition endpoints. The newly
+registered square-root endpoint is compiled but awaiting scoped acceptance.
+The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.

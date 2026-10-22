@@ -1,4 +1,4 @@
-"""Point contracts and field square-root ports; not C execution.
+"""Point and field square-root literal ports/public contracts; not C execution.
 
 Reuse the existing source parser.  Field multiply/square dependencies retain
 their own gates; this checks the new projections, cube and zinv composition.
@@ -185,7 +185,7 @@ def check_mixed(s):
 
 
 def check_root_ports(s):
-    """Check routing/counts of root ports; no public jet coverage is claimed."""
+    """Check routing/counts of the fixed square-root program and its port."""
     for fragment in [
         "FeSquareRoot :: Secp256k1Jet Secp256k1.FE (Either () Secp256k1.FE)",
         "specificationSecp256k1 FeSquareRoot = Secp256k1.fe_square_root",
@@ -252,6 +252,16 @@ iden &&& @literal_fe_tower term
         if p.compact(p.definition(s["root_port"], name)) != p.compact(expected):
             raise ValueError("literal square-root tree differs: " + name)
 
+
+def check_root(s):
+    check_root_ports(s)
+    statement = re.search(r"Theorem fe_square_root_literal_local_spec\s*:(.*?)\bProof\.", s["root_jet"], re.S)
+    expected = "secp_jet_local_spec f_simplicity_fe_square_root (Word 8) (Ty.Sum Ty.Unit (Word 8)) " \
+        "(@literal_fe_square_root Simplicity.Alg.CoreFunSem)."
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError("FeSquareRoot full public contract differs")
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -264,6 +274,7 @@ def test():
         "add_port": COQ / "C/jet_secp_add_literal.v",
         "mixed_jet": COQ / "C/jet_secp_mixed_local.v",
         "root_port": COQ / "C/jet_secp_root_literal.v",
+        "root_jet": COQ / "C/jet_secp_root_local.v",
     }.items()}
     check(s)
     mutations = [
@@ -385,7 +396,7 @@ def test():
             continue
         raise ValueError("accepted mixed-addition source mutation: " + old)
     print(f"GejGeAdd catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
-    check_root_ports(s)
+    check_root(s)
     mutations = [
         ("catalog", "specificationSecp256k1 FeSquareRoot = Secp256k1.fe_square_root",
                     "specificationSecp256k1 FeSquareRoot = Secp256k1.fe_square"),
@@ -403,6 +414,14 @@ def test():
         ("root_port", "iden &&& (@literal_fe_cube term)", "(@literal_fe_cube term) &&& iden"),
         ("root_port", ">>> O H &&& I ((O H", ">>> I H &&& I ((O H"),
         ("root_port", "Bit.cond (injr iden) (injl unit)", "Bit.cond (injl unit) (injr iden)"),
+        ("root_jet", "secp_jet_local_spec f_simplicity_fe_square_root",
+                     "secp_jet_local_spec f_simplicity_fe_normalize"),
+        ("root_jet", "(Word 8) (Ty.Sum Ty.Unit (Word 8))", "(Word 7) (Ty.Sum Ty.Unit (Word 8))"),
+        ("root_jet", "(Ty.Sum Ty.Unit (Word 8))", "(Word 8)"),
+        ("root_jet", "(@literal_fe_square_root Simplicity.Alg.CoreFunSem)",
+                     "(@literal_fe_square Simplicity.Alg.CoreFunSem)"),
+        ("root_jet", "secp_jet_local_spec f_simplicity_fe_square_root",
+                     "False -> secp_jet_local_spec f_simplicity_fe_square_root"),
     ]
     for key, old, new in mutations:
         if old not in s[key]:
@@ -410,11 +429,11 @@ def test():
         changed = dict(s)
         changed[key] = s[key].replace(old, new, 1)
         try:
-            check_root_ports(changed)
+            check_root(changed)
         except ValueError:
             continue
         raise ValueError("accepted root source mutation: " + old)
-    print(f"Square-root literal ports match; {len(mutations)} targeted mutations rejected; no public root coverage")
+    print(f"FeSquareRoot catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
 
 
 if __name__ == "__main__":
