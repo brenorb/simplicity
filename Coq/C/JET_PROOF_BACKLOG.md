@@ -1423,10 +1423,24 @@ by H, and square H into an uninitialized H2. It reuses
 `eval_square_separate_from_storage`; X/Y, H, ownership and precise external
 framing are preserved. The Z product and H square values/bounds are returned.
 `mixed_nonzero_prefix_source` identifies this exact prefix of the original
-remaining body. Next execute H2's in-place magnitude-one negation, the H3/T
-products and the remaining X/Y arithmetic. Then attach the whole nonzero
-tail to finite preparation, complete helper/public wrapper entry/return/free
-lifecycle and prove the literal specification bridge.
+remaining body.
+
+`jet_secp_field_negate_owned.v:eval_inplace_negate_tight_owned` adapts the
+already-checked original in-place negation to tight limbs (including a 49-bit
+top limb), with no new execution model. `jet_secp_field_product_owned.v`
+proves the original multiplication into an uninitialized private destination
+from two distinct private inputs, reusing the selected u128 execution
+oracles, event witnesses and multiplication arithmetic. No libc premise is
+introduced. `jet_secp_mixed_products.v:exec_mixed_products` derives the actual
+H2 negation, H3=H2*H and T=U1*H2 statements from owned fields.
+`jet_secp_mixed_nonzero_products.v:exec_mixed_nonzero_products` connects these
+to the H test, flag store, NULL-rzr skip, Z update and H square. It derives
+all intermediate bounds, preserves X/Y, H and U1 and returns exact Z/H2/H3/T
+words, six owned allocations, product bounds/residues and a precise frame.
+It does not assume initialized H2/H3/T contents or intermediate executions.
+Next execute the remaining X/Y arithmetic, attach the whole nonzero tail to
+finite preparation, complete helper/public wrapper entry/return/free lifecycle
+and prove the literal specification bridge.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1456,6 +1470,8 @@ JET_TARGETS=C/jet_secp_mixed_finite_return.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_finite_return
 JET_TARGETS=C/jet_secp_mixed_nonzero_start.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_nonzero_start
+JET_TARGETS=C/jet_secp_mixed_nonzero_products.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_nonzero_products
 ```
 
 ## Source-review question: Elements fee predicates

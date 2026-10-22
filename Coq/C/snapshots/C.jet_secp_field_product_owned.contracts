@@ -1,0 +1,514 @@
+### C.jet_secp_field_product_owned.field_product_run_eq
+field_product_run_eq
+     : @eq (option jet_sx_exec.res) field_product_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone field_product_state jet_sx_exec.ONormal))
+### C.jet_secp_field_product_owned.field_product_log_eq
+field_product_log_eq
+     : @eq (list jet_sx_eval.event) (jet_sx_eval.slog field_product_state) jet_secp_field_mul_word_model.fe_mul_log
+### C.jet_secp_field_product_owned.field_product_out_eq
+field_product_out_eq
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs field_product_state) field_product_out_regs
+### C.jet_secp_field_product_owned.field_product_return
+field_product_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps field_product_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_field_product_owned.eval_field_product_symbolic
+eval_field_product_symbolic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta field_product_regs m)
+         (_ : @List.Forall jet_sx_eval.event (jet_secp_u128_word_oracle.u128_evok rho)
+                jet_secp_field_mul_word_model.fe_mul_log),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O))))) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_sx_state.rep rho beta field_product_out_regs mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape field_product_regs) b pos)) m mf)))
+### C.jet_secp_field_product_owned.field_product_initial
+field_product_initial
+     : forall (a b : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bo ba bb : Values.block)
+         (_ : not (@eq Values.block bo ba)) (_ : not (@eq Values.block bo bb)) (_ : not (@eq Values.block ba bb))
+         (_ : Memory.Mem.range_perm m bo BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 a))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bb BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 b))
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       jet_sx_state.rep (jet_secp_point_mul_storage.point_mul_valuation a b)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bo BinNums.Z0)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+               (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bb BinNums.Z0)
+                  (@nil (prod Values.block BinNums.Z))))) field_product_regs m
+### C.jet_secp_field_product_owned.field_product_fields
+field_product_fields
+     : forall (a b : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bo ba bb : Values.block)
+         (_ : jet_sx_state.rep (jet_secp_point_mul_storage.point_mul_valuation a b)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bo BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bb BinNums.Z0)
+                         (@nil (prod Values.block BinNums.Z))))) field_product_out_regs m),
+       and
+         (jet_secp_fe_nv.fe_at m bo BinNums.Z0
+            (jet_secp_multiply_normalize_bridge.words5 (jet_secp_point_mul_storage.point_mul_words a b)))
+         (and (jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 a))
+            (and (jet_secp_fe_nv.fe_at m bb BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 b))
+               (and
+                  (Memory.Mem.range_perm m bo BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and
+                     (Memory.Mem.range_perm m ba BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (Memory.Mem.range_perm m bb BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)))))
+### C.jet_secp_field_product_owned.eval_field_product_owned
+eval_field_product_owned
+     : forall (a b : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bo ba bb : Values.block)
+         (_ : jet_secp_square_columns.square_input_bounds a) (_ : jet_secp_square_columns.square_input_bounds b)
+         (_ : not (@eq Values.block bo ba)) (_ : not (@eq Values.block bo bb)) (_ : not (@eq Values.block ba bb))
+         (_ : Memory.Mem.range_perm m bo BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 a))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bb BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 b))
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+               (@cons Values.val (Values.Vptr bo Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                     (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf bo BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5 (jet_secp_point_mul_storage.point_mul_words a b)))
+               (and (jet_secp_fe_nv.fe_at mf ba BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 a))
+                  (and (jet_secp_fe_nv.fe_at mf bb BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 b))
+                     (and
+                        (Memory.Mem.range_perm mf bo BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (Memory.Mem.range_perm mf ba BinNums.Z0
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and
+                              (Memory.Mem.range_perm mf bb BinNums.Z0
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                 Memtype.Cur Memtype.Freeable)
+                              (and
+                                 (@eq BinNums.Z
+                                    (BinInt.Z.modulo
+                                       (jet_secp_multiply_finish_product.radix_value
+                                          (jet_secp_point_mul_storage.point_mul_words a b)) jet_secp_fe_math.feP)
+                                    (BinInt.Z.modulo
+                                       (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value a)
+                                          (jet_secp_multiply_finish_product.radix_value b)) jet_secp_fe_math.feP))
+                                 (and
+                                    (jet_secp_field_mul_small.mul_small_input_bounds
+                                       (jet_secp_point_mul_storage.point_mul_words a b))
+                                    (jet_sx_mem.lframe
+                                       (fun (bx : Values.block) (_ : BinNums.Z) =>
+                                        and (not (@eq Values.block bx bo))
+                                          (and (not (@eq Values.block bx ba)) (not (@eq Values.block bx bb)))) m mf))))))))))
+### C.jet_secp_field_product_owned.field_product_regs
+field_product_regs =
+@cons jet_sx_state.region
+  (jet_secp_local_regions.free_region jet_secp_fe_b32.fe_undef
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+  (@cons jet_sx_state.region
+     (jet_secp_local_regions.free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 O))
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+     (@cons jet_sx_state.region
+        (jet_secp_local_regions.free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 (S (S (S (S (S O)))))))
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+        (@nil jet_sx_state.region)))
+     : list jet_sx_state.region
+### C.jet_secp_field_product_owned.field_product_args
+field_product_args =
+@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XP (S (S O)) BinNums.Z0) (@nil jet_sx_expr.sx)))
+     : list jet_sx_expr.sx
+### C.jet_secp_field_product_owned.field_product_run
+field_product_run =
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_point_mul_run.point_mul_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  jets_secp.f_secp256k1_fe_mul field_product_args field_product_regs (@nil jet_sx_eval.event)
+  (S (S (S (S (S (S (S (S (S (S O))))))))))
+     : option jet_sx_exec.res
+### C.jet_secp_field_product_owned.field_product_tree
+field_product_tree =
+@Some jet_sx_exec.res
+  (jet_sx_exec.RDone
+     (jet_sx_eval.mkst (@Maps.PTree.Empty jet_sx_expr.sx)
+        (@cons jet_sx_state.region
+           (jet_sx_state.mkreg
+              (@cons jet_sx_state.cell
+                 (jet_sx_state.mkcell BinNums.Z0 AST.Mint64
+                    (@Some jet_sx_expr.sx
+                       (jet_sx_expr.XLb jet_sx_expr.Band
+                          (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))
+                          (jet_sx_expr.XLc
+                             (Integers.Int64.mkint
+                                (BinNums.Zpos
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))
+                                (Integers.Int64.Z_mod_modulus_range'
+                                   (BinNums.Zpos
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))))))))))
+                 (@cons jet_sx_state.cell
+                    (jet_sx_state.mkcell (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) AST.Mint64
+                       (@Some jet_sx_expr.sx
+                          (jet_sx_expr.XLb jet_sx_expr.Band
+                             (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))
+                             (jet_sx_expr.XLc
+                                (Integers.Int64.mkint
+                                   (BinNums.Zpos
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))))
+                                   (Integers.Int64.Z_mod_modulus_range'
+                                      (BinNums.Zpos
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))
+                    (@cons jet_sx_state.cell
+                       (jet_sx_state.mkcell
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) AST.Mint64
+                          (@Some jet_sx_expr.sx
+                             (jet_sx_expr.XLb jet_sx_expr.Band
+                                (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))
+                                (jet_sx_expr.XLc
+                                   (Integers.Int64.mkint
+                                      (BinNums.Zpos
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))
+                                      (Integers.Int64.Z_mod_modulus_range'
+                                         (BinNums.Zpos
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))))))))
+                       (@cons jet_sx_state.cell
+                          (jet_sx_state.mkcell
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))) AST.Mint64
+                             (@Some jet_sx_expr.sx
+                                (jet_sx_expr.XLb jet_sx_expr.Band
+                                   (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (...))))))))))))
+                                   (jet_sx_expr.XLc
+                                      (Integers.Int64.mkint
+                                         (BinNums.Zpos
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))
+                                         (Integers.Int64.Z_mod_modulus_range'
+                                            (BinNums.Zpos
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))
+                          (@cons jet_sx_state.cell
+                             (jet_sx_state.mkcell
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                AST.Mint64
+                                (@Some jet_sx_expr.sx
+                                   (jet_sx_expr.XLb jet_sx_expr.Badd
+                                      (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (...)))))))))))
+                                      (jet_sx_expr.XLb jet_sx_expr.Band
+                                         (jet_sx_expr.XLb jet_sx_expr.Band
+                                            (jet_sx_expr.XLv (S (S (S (S (S (S (S (...)))))))))
+                                            (jet_sx_expr.XLc
+                                               (Integers.Int64.mkint
+                                                  (BinNums.Zpos
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))
+                                                  (Integers.Int64.Z_mod_modulus_range'
+                                                     (BinNums.Zpos
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))
+                                         (jet_sx_expr.XLsh jet_sx_expr.Hshru
+                                            (jet_sx_expr.XLc
+                                               (Integers.Int64.mkint
+                                                  (BinNums.Zpos
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))
+                                                  (Integers.Int64.Z_mod_modulus_range'
+                                                     (BinNums.Zpos
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))
+                                            (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                             (@nil jet_sx_state.cell)))))) true
+              (@Some BinNums.Z
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+           (@cons jet_sx_state.region
+              (jet_sx_state.mkreg
+                 (@cons jet_sx_state.cell
+                    (jet_sx_state.mkcell BinNums.Z0 AST.Mint64 (@Some jet_sx_expr.sx (jet_sx_expr.XLv O)))
+                    (@cons jet_sx_state.cell
+                       (jet_sx_state.mkcell (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) AST.Mint64
+                          (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S O))))
+                       (@cons jet_sx_state.cell
+                          (jet_sx_state.mkcell
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) AST.Mint64
+                             (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))))
+                          (@cons jet_sx_state.cell
+                             (jet_sx_state.mkcell
+                                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+                                AST.Mint64 (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O))))))
+                             (@cons jet_sx_state.cell
+                                (jet_sx_state.mkcell
+                                   (BinNums.Zpos
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                   AST.Mint64 (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S O)))))))
+                                (@nil jet_sx_state.cell)))))) true
+                 (@Some BinNums.Z
+                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+              (@cons jet_sx_state.region
+                 (jet_sx_state.mkreg
+                    (@cons jet_sx_state.cell
+                       (jet_sx_state.mkcell BinNums.Z0 AST.Mint64
+                          (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S O))))))))
+                       (@cons jet_sx_state.cell
+                          (jet_sx_state.mkcell (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                             AST.Mint64 (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S O)))))))))
+                          (@cons jet_sx_state.cell
+                             (jet_sx_state.mkcell
+                                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                AST.Mint64 (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S O))))))))))
+                             (@cons jet_sx_state.cell
+                                (jet_sx_state.mkcell
+                                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+                                   AST.Mint64
+                                   (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S O)))))))))))
+                                (@cons jet_sx_state.cell
+                                   (jet_sx_state.mkcell
+                                      (BinNums.Zpos
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                      AST.Mint64
+                                      (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (...))))))))))))
+                                   (@nil jet_sx_state.cell)))))) true
+                    (@Some BinNums.Z
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                 (@nil jet_sx_state.region))))
+        (@cons jet_sx_eval.event
+           (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))
+              (S (S (S (S (S (S (S (S (S (S O)))))))))) (S (S O))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S O))))))))) (@nil jet_sx_expr.sx))))
+           (@cons jet_sx_eval.event
+              (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))
+                 (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))) (S (S O))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+                       (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+                          (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S O)))))))) (@nil jet_sx_expr.sx))))))
+              (@cons jet_sx_eval.event
+                 (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))
+                    (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))) (S (S O))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+                       (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+                          (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+                             (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S O))))))) (@nil jet_sx_expr.sx))))))
+                 (@cons jet_sx_eval.event
+                    (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))
+                       (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))) (S (S O))
+                       (@cons jet_sx_expr.sx
+                          (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))
+                          (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))
+                             (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O))))
+                                (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S O)))))) (@nil jet_sx_expr.sx))))))
+                    (@cons jet_sx_eval.event
+                       (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))
+                          (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))) (S (S O))
+                          (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S O)))))
+                             (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S O))))))))))
+                                (@nil jet_sx_expr.sx))))
+                       (@cons jet_sx_eval.event
+                          (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))
+                             (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))) (S (S O))
+                             (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))
+                                (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (...))))))))))))
+                                   (@cons jet_sx_expr.sx
+                                      (jet_sx_expr.XLc
+                                         (Integers.Int64.mkint
+                                            (BinNums.Zpos
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (...)))))))))
+                                            (Integers.Int64.Z_mod_modulus_range'
+                                               (BinNums.Zpos
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (...)))))))))))
+                                      (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (...))))))))))
+                                         (@nil jet_sx_expr.sx))))))
+                          (@cons jet_sx_eval.event
+                             (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))
+                                (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))) (S (S O))
+                                (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (...))))))))))))
+                                   (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (...)))))))))))
+                                      (@nil jet_sx_expr.sx))))
+                             (@cons jet_sx_eval.event
+                                (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))
+                                   (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))) (S (S O))
+                                   (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (...)))))))))))
+                                      (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (...))))))))))
+                                         (@nil jet_sx_expr.sx))))
+                                (@cons jet_sx_eval.event
+                                   (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (S (S (...)))))))))))
+                                      (S (S (S (S (S (S (S (S (S (S (...))))))))))) (S (S O))
+                                      (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (...))))))))))
+                                         (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (...)))))))))
+                                            (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+                                               (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (...)))))))
+                                                  (@nil jet_sx_expr.sx))))))
+                                   (@cons jet_sx_eval.event
+                                      (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (S (...))))))))))
+                                         (S (S (S (S (S (S (S (S (S (...)))))))))) (S (S O))
+                                         (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (...)))))))))
+                                            (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (...))))))))
+                                               (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+                                                  (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (...))))))
+                                                     (@nil jet_sx_expr.sx))))))
+                                      (@cons jet_sx_eval.event
+                                         (jet_sx_eval.mkev (S (S (S (S (S (S (S (S (...)))))))))
+                                            (S (S (S (S (S (S (S (S (...))))))))) (S (S O))
+                                            (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (...))))))))
+                                               (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (...)))))))
+                                                  (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+                                                     (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (...)))))
+                                                        (@nil jet_sx_expr.sx))))))
+                                         (@cons jet_sx_eval.event
+                                            (jet_sx_eval.mkev (S (S (S (S (S (S (S (...))))))))
+                                               (S (S (S (S (S (S (S (...)))))))) (S (S O))
+                                               (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (...)))))))
+                                                  (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (...))))))
+                                                     (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O))))
+                                                        (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (...))))
+                                                           (@nil jet_sx_expr.sx))))))
+                                            (@cons jet_sx_eval.event
+                                               (jet_sx_eval.mkev (S (S (S (S (S (S (...)))))))
+                                                  (S (S (S (S (S (S (...))))))) (S (S O))
+                                                  (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (...))))))
+                                                     (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (...)))))
+                                                        (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (...))))
+                                                           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (...)))
+                                                              (@nil jet_sx_expr.sx))))))
+                                               (@cons jet_sx_eval.event
+                                                  (jet_sx_eval.mkev (S (S (S (S (S (...))))))
+                                                     (S (S (S (S (S (...)))))) (S (S O))
+                                                     (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (...)))))
+                                                        (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (...))))
+                                                           (@cons jet_sx_expr.sx
+                                                              (jet_sx_expr.XLsh jet_sx_expr.Hshl
+                                                                 (jet_sx_expr.XLc (...)) (BinNums.Zpos (...)))
+                                                              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (...))
+                                                                 (@nil jet_sx_expr.sx))))))
+                                                  (@cons jet_sx_eval.event
+                                                     (jet_sx_eval.mkev (S (S (S (S (...)))))
+                                                        (S (S (S (S (...))))) (S (S O))
+                                                        (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (...))))
+                                                           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (...)))
+                                                              (@nil jet_sx_expr.sx))))
+                                                     (@cons jet_sx_eval.event
+                                                        (jet_sx_eval.mkev (S (S (S (...))))
+                                                           (S (S (S (...)))) (S (S O))
+                                                           (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+                                                              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (...))
+                                                                 (@nil jet_sx_expr.sx))))
+                                                        (@cons jet_sx_eval.event
+                                                           (jet_sx_eval.mkev (S (S (...)))
+                                                              (S (S (...))) (S (S O))
+                                                              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (...))
+                                                                 (@cons jet_sx_expr.sx (...) (...))))
+                                                           (@cons jet_sx_eval.event
+                                                              (jet_sx_eval.mkev (S (...)) (S (...))
+                                                                 (S (...)) (@cons jet_sx_expr.sx (...) (...)))
+                                                              (@cons jet_sx_eval.event
+                                                                 (jet_sx_eval.mkev (...) (...) (...) (...))
+                                                                 (@cons jet_sx_eval.event (...) (...)))))))))))))))))))))
+        (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))) jet_sx_exec.ONormal)
+     : option jet_sx_exec.res
+### C.jet_secp_field_product_owned.field_product_state
+field_product_state =
+match field_product_tree return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ =>
+        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+    end
+| None => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : jet_sx_eval.sstate
+### C.jet_secp_field_product_owned.field_product_out_regs
+field_product_out_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 jet_secp_point_mul_run.point_mul_out) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region
+     (jet_secp_local_regions.free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 O))
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+     (@cons jet_sx_state.region
+        (jet_secp_local_regions.free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 (S (S (S (S (S O)))))))
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+        (@nil jet_sx_state.region)))
+     : list jet_sx_state.region
