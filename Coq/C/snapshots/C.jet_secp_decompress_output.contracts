@@ -1,0 +1,309 @@
+### C.jet_secp_decompress_output.decompress_input_limbs
+decompress_input_limbs
+     : forall w : forall _ : nat, Integers.Int64.int,
+       @eq (list Integers.Int64.int) (jet_secp_point_write_field.point_field_limbs (decompress_input_field w))
+         (jet_secp_multiply_normalize_bridge.words5 w)
+### C.jet_secp_decompress_output.decompress_parity_field_limbs
+decompress_parity_field_limbs
+     : forall (value : BinNums.Z) (odd : bool),
+       @eq (list Integers.Int64.int) (jet_secp_point_write_field.point_field_limbs (decompress_parity_field value odd))
+         (jet_secp_decompress_parity.decompress_parity_limbs value odd)
+### C.jet_secp_decompress_output.decompress_y_field_limbs
+decompress_y_field_limbs
+     : forall (w : forall _ : nat, Integers.Int64.int) (odd : bool),
+       @eq (list Integers.Int64.int) (jet_secp_point_write_field.point_field_limbs (decompress_y_field w odd))
+         (jet_secp_decompress_body.decompress_body_y w odd)
+### C.jet_secp_decompress_output.decompress_input_field_output
+decompress_input_field_output
+     : forall w : forall _ : nat, Integers.Int64.int,
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_point_write_field.point_field_output (decompress_input_field w))
+         (jet_secp_rescale_literal.rescale_field_output w)
+### C.jet_secp_decompress_output.decompress_normalize_fixed
+decompress_normalize_fixed
+     : forall (y : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : BinInt.Z.lt (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) y)
+                jet_secp_fe_math.feP),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem y) y
+### C.jet_secp_decompress_output.decompress_parity_field_output
+decompress_parity_field_output
+     : forall (y : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (odd : bool)
+         (_ : BinInt.Z.lt (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) y)
+                jet_secp_fe_math.feP),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_point_write_field.point_field_output
+            (decompress_parity_field (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) y) odd))
+         match
+           xorb (Bit.toBool (@jet_secp_canonical_odd.canonical_fe_is_odd Alg.CoreFunSem y)) odd
+           return (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         with
+         | true => @jet_secp_negate_literal_contract.literal_fe_negate Alg.CoreFunSem y
+         | false => y
+         end
+### C.jet_secp_decompress_output.decompress_input_matches
+decompress_input_matches
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_secp_root_chain_numeric.root_words_match w x),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_point_write_field.point_field_output (decompress_input_field w))
+         (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem x)
+### C.jet_secp_decompress_output.decompress_y_from_x_result
+decompress_y_from_x_result
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_secp_root_chain_numeric.root_words_match w x),
+       @eq (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_secp_decompress_literal.literal_y_from_x Alg.CoreFunSem x)
+         match
+           jet_secp_root_check.root_check_flag (jet_secp_decompress_numeric.decompress_root_words w)
+           return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         with
+         | true =>
+             @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (jet_secp_rescale_literal.rescale_field_output
+                  (jet_secp_root_chain_numeric.root_chain_candidate
+                     (jet_secp_decompress_numeric.decompress_root_words w)))
+         | false =>
+             @inl unit
+               (prod
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))))
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))))
+               tt
+         end
+### C.jet_secp_decompress_output.decompress_candidate_value
+decompress_candidate_value
+     : forall w : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (jet_secp_rescale_literal.rescale_field_output
+               (jet_secp_root_chain_numeric.root_chain_candidate (jet_secp_decompress_numeric.decompress_root_words w))))
+         (jet_secp_decompress_body.decompress_body_value w)
+### C.jet_secp_decompress_output.decompress_machine_matches_literal
+decompress_machine_matches_literal
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (odd : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (_ : jet_secp_root_chain_numeric.root_words_match w x),
+       @eq
+         (Ty.tySem
+            (Ty.Sum Ty.Unit
+               (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (decompress_machine_result w (Bit.toBool odd))
+         (@jet_secp_decompress_literal.literal_decompress Alg.CoreFunSem
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) odd x))
+### C.jet_secp_decompress_output.decompress_input_field_bounded
+decompress_input_field_bounded
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds w),
+       jet_secp_point_write_field.point_field_bounds (decompress_input_field w)
+### C.jet_secp_decompress_output.decompress_y_field_bounded
+decompress_y_field_bounded
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (odd : bool) (_ : jet_secp_root_chain_numeric.root_words_match w x),
+       jet_secp_point_write_field.point_field_bounds (decompress_y_field w odd)
+### C.jet_secp_decompress_output.decompress_return_matches_literal
+decompress_return_matches_literal
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (odd : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (_ : jet_secp_root_chain_numeric.root_words_match w x),
+       @eq Integers.Int.int (jet_secp_decompress_body.decompress_body_return w)
+         match
+           @jet_secp_decompress_literal.literal_decompress Alg.CoreFunSem
+             (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) odd x)
+           return Integers.Int.int
+         with
+         | inl _ => Integers.Int.zero
+         | inr _ => Integers.Int.one
+         end
+### C.jet_secp_decompress_output.decompress_input_field
+decompress_input_field =
+fun w : forall _ : nat, Integers.Int64.int =>
+jet_secp_point_write_field.mkpointfield (w O) (w (S O)) (w (S (S O))) (w (S (S (S O)))) (w (S (S (S (S O)))))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_point_write_field.point_field
+
+Arguments decompress_input_field w%function_scope
+### C.jet_secp_decompress_output.decompress_parity_field
+decompress_parity_field =
+fun (value : BinNums.Z) (odd : bool) =>
+match xorb (BinInt.Z.testbit value BinNums.Z0) odd return jet_secp_point_write_field.point_field with
+| true => jet_secp_point_field_bridge.point_negative_field value
+| false => jet_secp_point_field_bridge.point_canonical_field value
+end
+     : forall (_ : BinNums.Z) (_ : bool), jet_secp_point_write_field.point_field
+
+Arguments decompress_parity_field value%Z_scope odd%bool_scope
+### C.jet_secp_decompress_output.decompress_y_field
+decompress_y_field =
+fun (w : forall _ : nat, Integers.Int64.int) (odd : bool) =>
+match
+  jet_secp_root_check.root_check_flag (jet_secp_decompress_numeric.decompress_root_words w)
+  return jet_secp_point_write_field.point_field
+with
+| true => decompress_parity_field (jet_secp_decompress_body.decompress_body_value w) odd
+| false =>
+    decompress_input_field
+      (jet_secp_root_chain_numeric.root_chain_candidate (jet_secp_decompress_numeric.decompress_root_words w))
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool), jet_secp_point_write_field.point_field
+
+Arguments decompress_y_field w%function_scope odd%bool_scope
+### C.jet_secp_decompress_output.decompress_machine_result
+decompress_machine_result =
+fun (w : forall _ : nat, Integers.Int64.int) (odd : bool) =>
+match
+  jet_secp_root_check.root_check_flag (jet_secp_decompress_numeric.decompress_root_words w)
+  return
+    (Ty.tySem
+       (Ty.Sum Ty.Unit
+          (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+with
+| true =>
+    @inr unit
+      (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+      (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_point_write_field.point_field_output (decompress_input_field w))
+         (jet_secp_point_write_field.point_field_output (decompress_y_field w odd)))
+| false =>
+    @inl unit
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) tt
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool),
+       Ty.tySem
+         (Ty.Sum Ty.Unit
+            (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments decompress_machine_result w%function_scope odd%bool_scope

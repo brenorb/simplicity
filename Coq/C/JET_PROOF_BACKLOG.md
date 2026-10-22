@@ -85,16 +85,30 @@ It returns copied X, actual Y limbs (`decompress_body_y`), finite flag, caller
 ownership and external framing. Only represented input and caller storage are
 premises; private initial contents and intermediate execution are derived.
 
-Next relate the retained/negated canonical limbs to the literal decompression
-word, reusing the selected field-negation/normalization bridges. Then prove the
-public reader, success/failure writer (including failure padding), entry and
-free lifecycle for arbitrary valid 257-bit input/513-bit output frames.
+`jet_secp_decompress_output` now identifies the serialized C result with
+`literal_decompress` for every represented Word256 input and parity bit. It
+reuses the existing canonical/negative point-field output and bound lemmas;
+the root-result tag and both coordinates match the literal composition.
+`jet_secp_decompress_helper_literal.eval_decompress_helper_literal` composes
+that bridge with the complete original helper call. The returned point fields
+are bounded for the original writer, with actual ownership and framing.
+No curve/canonical-input condition, private initialization, intermediate call
+or extra library premise is added. This is the internal helper, not the public
+jet: it does not yet establish the public frame reads, tag/payload writes,
+padding, entry or outer frees.
+
+Next prove that public lifecycle for arbitrary valid 257-bit input/513-bit
+output frames. Reuse the core readBit contract and the capacity-independent
+field reader after the first bit. The writer needs the existing owned-field
+contracts with a one-bit output prefix; the fresh-output two-field wrapper
+alone is insufficient. The actual skip_ge body calls skip_fe twice, not
+skipBits(512); compose those two existing proofs rather than substitute a call.
 Register only that complete result, with the canonical-source gate extended to
 protect the exact composition. Reproduce the current internal build with:
 
 ```sh
-JET_TARGETS='C/jet_secp_decompress_root.vo C/jet_secp_affine_normalize_y.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_decompress_root C.jet_secp_affine_normalize_y
+JET_TARGETS='C/jet_secp_decompress_helper_literal.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_decompress_helper_literal
 ```
 
 [JET_INHERITED_REVIEW.md](JET_INHERITED_REVIEW.md),
