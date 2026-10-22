@@ -36,7 +36,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="jet-coverage-tests.") as work:
         project = Path(work)
         (project / "C").mkdir()
-        for name in ("jet_coverage.tsv", "jet_public_theorems.txt"):
+        for name in ("jet_coverage.tsv", "jet_public_theorems.txt", "JET_SECP_RATIO_MISMATCHES.md"):
             shutil.copy2(SOURCE / "C" / name, project / "C" / name)
         shutil.copy2(SOURCE / "scan-jet-proofs.py", project / "scan-jet-proofs.py")
         for _, module, _ in coverage.records(SOURCE / "C/jet_coverage.tsv", 3):
@@ -71,6 +71,40 @@ def main():
                 target.write_text(prefix + changed)
                 rejects(coverage.inventory, "not a direct canonical jet theorem")
             target.write_text(intact)
+        assert coverage.inventory() == rows
+        # A reported-mismatch entry keeps the unchanged literal target, the
+        # exact excluded set, its whole-domain evidence and its report.
+        for function, entry in coverage.REPORTED_MISMATCH_CONTRACTS.items():
+            row = next(r for r in rows if r["function"] == function)
+            assert row["condition"] == "reported_mismatch"
+            module, theorem = row["proof"].rsplit(".", 1)
+            target = project / (module.replace(".", "/") + ".v")
+            intact = target.read_text()
+            for old, new, message in (
+                    ("(fun a=>~gej_ge_add_ex_ratio_mismatch a)", "(fun a=>True)", "not a direct canonical jet theorem"),
+                    ("(fun a=>~gej_ge_add_ex_ratio_mismatch a)", "(fun a=>False)", "not a direct canonical jet theorem"),
+                    ("f_simplicity_gej_ge_add_ex\n    gej_ge_add_ex_literal.",
+                     "f_simplicity_gej_ge_add\n    gej_ge_add_ex_literal.", "not a direct canonical jet theorem"),
+                    ("@literal_gej_ge_add_ex Alg.CoreFunSem a.", "@literal_gej_ge_add Alg.CoreFunSem a.",
+                     "reported-mismatch definition changed"),
+                    ("feP <= @toZ", "0 <= @toZ", "reported-mismatch definition changed")):
+                assert old in intact, old
+                target.write_text(intact.replace(old, new, 1))
+                rejects(coverage.inventory, message)
+            target.write_text(intact)
+            report = project / entry["report"]
+            text = report.read_text()
+            for removed in (row["proof"],) + tuple(f"{module}.{t}" for t in entry["evidence"]):
+                report.write_text(text.replace(removed, "removed"))
+                rejects(coverage.inventory, "not documented")
+            report.unlink()
+            rejects(coverage.inventory, "not documented")
+            report.write_text(text)
+            audited = project / "C/jet_public_theorems.txt"
+            listed = audited.read_text()
+            audited.write_text(listed.replace(f"{module} {entry['evidence'][0]}\n", "", 1))
+            rejects(coverage.inventory, "evidence not publicly audited")
+            audited.write_text(listed)
         assert coverage.inventory() == rows
         # Regression for a contract merely occurring inside a weaker/vacuous
         # proposition. These are metadata tests, not compiled fake proofs.
