@@ -112,9 +112,21 @@ JET_TARGETS='C/jet_secp_decompress_result_write.vo' bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_decompress_result_write
 ```
 
-Next prove the public lifecycle for arbitrary valid 257-bit input/513-bit
-output frames. Reuse the core readBit contract and the field reader after the
-first bit, followed by the helper-literal and result-writing proofs above.
+`jet_secp_bit_reader_owned` transports the actual core readBit execution on
+an owned local source-frame copy. `jet_secp_decompress_reads` then composes
+the parity and field reads from the full encoded input. It establishes exactly
+the selected field representation consumed by the helper, preserving all
+three local owners and the untouched output frame. Normal build, recursive
+kernel checking and reviewed focused snapshot comparisons passed; no new
+assumption or library premise is added. Reproduce the input layer:
+
+```sh
+JET_TARGETS='C/jet_secp_decompress_reads.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_decompress_reads
+```
+
+Next compose the public lifecycle for arbitrary valid 257-bit input/513-bit
+output frames from these reads, the helper-literal and result-writing proofs.
 The actual public allocations are src=16, x=40 and r=88 bytes, in that order;
 do not reuse a wrapper allocating a 40-byte result as if it were an affine point.
 Register only that complete result, with the canonical-source gate extended to
