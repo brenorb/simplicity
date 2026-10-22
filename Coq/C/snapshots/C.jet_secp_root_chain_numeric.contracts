@@ -1,0 +1,928 @@
+### C.jet_secp_root_chain_numeric.root_square_match
+root_square_match
+     : forall (w : forall _ : nat, Integers.Int64.int) (a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : root_words_match w a),
+       root_words_match (jet_secp_square_numeric.square_words w)
+         (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem a)
+### C.jet_secp_root_chain_numeric.root_squares_match
+root_squares_match
+     : forall (n : nat) (w : forall _ : nat, Integers.Int64.int)
+         (a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : root_words_match w a),
+       root_words_match (jet_secp_root_square_loop.root_square_words n w)
+         (@jet_secp_root_literal.literal_fe_squares n Alg.CoreFunSem a)
+### C.jet_secp_root_chain_numeric.root_pair_match
+root_pair_match
+     : forall (w v : forall _ : nat, Integers.Int64.int) (a b : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : root_words_match w a) (_ : root_words_match v b),
+       root_words_match (jet_secp_field_pair_multiply.field_pair_product w v)
+         (@jet_secp_negate_literal_contract.literal_fe_multiply Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) b a))
+### C.jet_secp_root_chain_numeric.root_stage_match
+root_stage_match
+     : forall (n : nat) (w v : forall _ : nat, Integers.Int64.int)
+         (a b : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : root_words_match w a)
+         (_ : root_words_match v b),
+       root_words_match (jet_secp_root_stage.root_stage_words n w v)
+         (@jet_secp_negate_literal_contract.literal_fe_multiply Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) b
+               (@jet_secp_root_literal.literal_fe_squares n Alg.CoreFunSem a)))
+### C.jet_secp_root_chain_numeric.root_squares_two
+root_squares_two
+     : forall a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_secp_root_literal.literal_fe_squares (S (S O)) Alg.CoreFunSem a)
+         (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem
+            (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem a))
+### C.jet_secp_root_chain_numeric.root_squares_three
+root_squares_three
+     : forall a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_secp_root_literal.literal_fe_squares (S (S (S O))) Alg.CoreFunSem a)
+         (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem
+            (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem
+               (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem a)))
+### C.jet_secp_root_chain_numeric.root_chain_final_x2
+root_chain_final_x2
+     : forall w2 w3 : forall _ : nat, Integers.Int64.int,
+       @eq (option (forall _ : nat, Integers.Int64.int))
+         (@Maps.PTree.get (forall _ : nat, Integers.Int64.int) jets_secp._x2
+            (jet_secp_root_chain_owned.root_chain_final w2 w3)) (@Some (forall _ : nat, Integers.Int64.int) w2)
+### C.jet_secp_root_chain_numeric.root_chain_final_t1
+root_chain_final_t1
+     : forall w : forall _ : nat, Integers.Int64.int,
+       let w2 : forall _ : nat, Integers.Int64.int :=
+         jet_secp_field_pair_multiply.field_pair_product (jet_secp_square_numeric.square_words w) w in
+       let w3 : forall _ : nat, Integers.Int64.int :=
+         jet_secp_field_pair_multiply.field_pair_product (jet_secp_square_numeric.square_words w2) w in
+       @eq (option (forall _ : nat, Integers.Int64.int))
+         (@Maps.PTree.get (forall _ : nat, Integers.Int64.int) jets_secp._t1
+            (jet_secp_root_chain_owned.root_chain_final w2 w3))
+         (@Some (forall _ : nat, Integers.Int64.int)
+            (@snd (forall _ : nat, Integers.Int64.int) (forall _ : nat, Integers.Int64.int) (root_chain_window w)))
+### C.jet_secp_root_chain_numeric.root_chain_window_matches
+root_chain_window_matches
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : root_words_match w x),
+       and
+         (root_words_match
+            (@fst (forall _ : nat, Integers.Int64.int) (forall _ : nat, Integers.Int64.int) (root_chain_window w))
+            (@fst
+               (prod
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))))
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))))
+               (prod
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))))
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))))
+               (@jet_secp_root_literal.literal_fe_tower Alg.CoreFunSem x)))
+         (root_words_match
+            (jet_secp_root_square_loop.root_square_words (S (S (S (S (S O)))))
+               (@snd (forall _ : nat, Integers.Int64.int) (forall _ : nat, Integers.Int64.int) (root_chain_window w)))
+            (@snd
+               (prod
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))))
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))))
+               (prod
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))))
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))))
+               (@jet_secp_root_literal.literal_fe_tower Alg.CoreFunSem x)))
+### C.jet_secp_root_chain_numeric.root_chain_candidate_matches
+root_chain_candidate_matches
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : root_words_match w x), root_words_match (root_chain_candidate w) (literal_root_candidate x)
+### C.jet_secp_root_chain_numeric.root_chain_check_matches
+root_chain_check_matches
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : root_words_match w x),
+       root_words_match (jet_secp_square_numeric.square_words (root_chain_candidate w))
+         (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem (literal_root_candidate x))
+### C.jet_secp_root_chain_numeric.literal_root_result_step
+literal_root_result_step
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_secp_root_literal.literal_fe_square_root Alg.CoreFunSem x)
+         match
+           @jet_secp_canonical_zero.canonical_fe_is_zero Alg.CoreFunSem
+             (@jet_secp_literal_add_program.literal_fe_add Alg.CoreFunSem
+                (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                   (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                   (@jet_secp_negate_literal_contract.literal_fe_negate Alg.CoreFunSem x)
+                   (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem (literal_root_candidate x))))
+           return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         with
+         | inl _ =>
+             @inl unit
+               (prod
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))))
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))))
+               tt
+         | inr _ => @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (literal_root_candidate x)
+         end
+### C.jet_secp_root_chain_numeric.root_words_match
+root_words_match =
+fun (w : forall _ : nat, Integers.Int64.int) (a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) =>
+and (jet_secp_square_columns.square_input_bounds w)
+  (@eq BinNums.Z (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value w) jet_secp_fe_math.feP)
+     (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) a) jet_secp_fe_math.feP))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))),
+       Prop
+
+Arguments root_words_match w%function_scope a
+### C.jet_secp_root_chain_numeric.root_chain_window
+root_chain_window =
+fun w : forall _ : nat, Integers.Int64.int =>
+let x2 : forall _ : nat, Integers.Int64.int :=
+  jet_secp_field_pair_multiply.field_pair_product (jet_secp_square_numeric.square_words w) w in
+let x3 : forall _ : nat, Integers.Int64.int :=
+  jet_secp_field_pair_multiply.field_pair_product (jet_secp_square_numeric.square_words x2) w in
+let x6 : forall _ : nat, Integers.Int64.int := jet_secp_root_stage.root_stage_words (S (S (S O))) x3 x3 in
+let x9 : forall _ : nat, Integers.Int64.int := jet_secp_root_stage.root_stage_words (S (S (S O))) x6 x3 in
+let x11 : forall _ : nat, Integers.Int64.int := jet_secp_root_stage.root_stage_words (S (S O)) x9 x2 in
+let x22 : forall _ : nat, Integers.Int64.int :=
+  jet_secp_root_stage.root_stage_words (S (S (S (S (S (S (S (S (S (S (S O))))))))))) x11 x11 in
+let x44 : forall _ : nat, Integers.Int64.int :=
+  jet_secp_root_stage.root_stage_words (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))) x22
+    x22 in
+let x88 : forall _ : nat, Integers.Int64.int :=
+  jet_secp_root_stage.root_stage_words (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))) x44
+    x44 in
+let x176 : forall _ : nat, Integers.Int64.int :=
+  jet_secp_root_stage.root_stage_words (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))) x88 x88
+  in
+let x220 : forall _ : nat, Integers.Int64.int :=
+  jet_secp_root_stage.root_stage_words (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))) x176 x44
+  in
+let x223 : forall _ : nat, Integers.Int64.int := jet_secp_root_stage.root_stage_words (S (S (S O))) x220 x3 in
+@pair (forall _ : nat, Integers.Int64.int) (forall _ : nat, Integers.Int64.int) x2
+  (jet_secp_root_stage.root_stage_words (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))) x223 x22)
+     : forall _ : forall _ : nat, Integers.Int64.int,
+       prod (forall _ : nat, Integers.Int64.int) (forall _ : nat, Integers.Int64.int)
+
+Arguments root_chain_window w%function_scope
+### C.jet_secp_root_chain_numeric.literal_root_candidate
+literal_root_candidate =
+fun x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))) =>
+let t :
+  Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) :=
+  @jet_secp_root_literal.literal_fe_tower Alg.CoreFunSem x in
+@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem
+  (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem
+     (@jet_secp_negate_literal_contract.literal_fe_multiply Alg.CoreFunSem
+        (@pair
+           (prod
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (@fst
+              (prod
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end)
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end)
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+              (prod
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end)
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end)
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))) t)
+           (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem
+              (@snd
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                           match n return Ty.Ty with
+                           | O => X
+                           | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                           end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))) t)))))
+     : forall _ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments literal_root_candidate x
+### C.jet_secp_root_chain_numeric.root_chain_candidate
+root_chain_candidate =
+fun w : forall _ : nat, Integers.Int64.int =>
+let t : prod (forall _ : nat, Integers.Int64.int) (forall _ : nat, Integers.Int64.int) := root_chain_window w in
+jet_secp_square_numeric.square_words
+  (jet_secp_square_numeric.square_words
+     (jet_secp_field_pair_multiply.field_pair_product
+        (jet_secp_root_square_loop.root_square_words (S (S (S (S (S (S O))))))
+           (@snd (forall _ : nat, Integers.Int64.int) (forall _ : nat, Integers.Int64.int) t))
+        (@fst (forall _ : nat, Integers.Int64.int) (forall _ : nat, Integers.Int64.int) t)))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments root_chain_candidate w%function_scope n%nat_scope

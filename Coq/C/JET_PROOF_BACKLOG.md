@@ -1601,13 +1601,30 @@ in-place multiplication, with no initialized destination premise. It preserves
 the two source fields, allocation permissions and non-counter temporaries;
 the copy source may also be the multiplier operand, as the actual chain
 requires. `root_stage_sources` identifies all ten such original C stages.
-Next chain these stages with the initial/final square/multiply calls, function
-entry and frees, candidate equality test, and public reader/conditional writer.
+The ordinary `jet_secp_root_chain_owned` module now executes the ten stages
+in succession from concrete initialized `x2`/`x3` storage and owned private
+locals. It derives subsequent stored values and bounds, preserves all private
+allocation permissions and other temporaries, and frames memory outside the
+private locals. The finite-state run premise of its generic induction is
+discharged in `exec_root_chain_owned`; `root_chain_body_source` identifies
+the exact original body segment, including its actual continuation.
+`jet_secp_root_tower_step` exposes the literal tower's routing;
+`jet_secp_root_chain_numeric` relates the chain's word functions, final
+candidate and checking square to that fixed program for arbitrary Word256
+inputs represented modulo the field order. This is not a mathematical
+square-root theorem and adds no primality premise. The final-state lookup
+lemmas tie the execution's stored fields to the same numeric word functions.
+Next prove the initial four square/multiply calls establish this `x2`/`x3`
+storage, compose the final calls and equality test, then discharge function
+entry/frees and the public reader/conditional writer. The whole helper and
+public jet remain unproved; these modules do not increase coverage.
 
 ```sh
 JET_TARGETS='C/jet_secp_root_literal.vo C/jet_secp_root_square_loop.vo C/jet_secp_root_square_bridge.vo C/jet_secp_root_stage.vo' bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_literal C.jet_secp_root_square_loop C.jet_secp_root_square_bridge C.jet_secp_root_stage
 python3 Coq/secp-field-integration/check-rescale.py
+JET_TARGETS='C/jet_secp_root_tower_step.vo C/jet_secp_root_chain_owned.vo C/jet_secp_root_chain_numeric.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_tower_step C.jet_secp_root_chain_owned C.jet_secp_root_chain_numeric
 ```
 
 Leave `simplicity_gej_ge_add_ex` unresolved: its equal-point ratio disagrees
