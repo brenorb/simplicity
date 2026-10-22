@@ -5,9 +5,10 @@ Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 29 declarations lack a registered final proof.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
 and decompression endpoints passed ordinary scoped acceptance; accepted
-local-contract coverage is 503/533. The every-jet
+local-contract coverage is 504/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
-The registered projective-addition endpoint is pending scoped acceptance.
+Projective addition passed scoped acceptance on `ba6b19e8`; the exact scope
+and reproduction command are recorded in `JET_ACCEPTANCE.md`.
 
 The remaining work includes:
 
@@ -75,7 +76,18 @@ specifications/domains/identities, API contracts and generation settings fixed.
 
 ## Projective addition: current proof frontier
 
-`simplicity_gej_add` is now **registered, pending scoped acceptance**. The target is
+The reusable caller interface is
+`jet_secp_gej_add_generic_function.eval_gej_add_generic`. It derives the whole
+original in-place helper call from bounded machine fields and proved residues,
+rather than requiring those fields to have just come from a reader. Its result
+includes the exact stored infinity bit, needed by `gej_equiv`. The generic finite
+bridges and body proofs retain all control-flow, allocation and framing
+obligations; they add no assumptions. `jet_secp_gej_pair_reads` separates the
+six-word input width from the caller's required output space, including a
+one-bit predicate result. These are shared proof interfaces, not additional
+registered jets.
+
+`simplicity_gej_add` is now **registered and scoped-accepted on `ba6b19e8`**. The target is
 the original public `f_simplicity_gej_add`, with two unrestricted GEJ inputs
 and the existing primitive-bearing `literal_gej_add` result. The internal modules
 below passed ordinary compilation, recursive kernel checking and reviewed
