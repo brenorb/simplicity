@@ -385,6 +385,35 @@ Their presence does not register or accept additional jets. Current acceptance
 is reproduced with `bash Coq/check-jets.sh --accept`; old run records and
 continuation journals are not required.
 
+## Generation: checked scalar-splitting dependency, public proof missing
+
+`jet_secp_scalar_split128.eval_scalar_split128_owned` executes the actual
+`secp256k1_scalar_split_128` into two uninitialized, separate scalar objects.
+It exposes the exact four machine-word loads of each output, the low/high
+128-bit values and bounds, ownership of both destinations and an owned input,
+and framing. A shared boolean interface also permits a read-only input
+without assuming it writable or Freeable. The arithmetic covers every
+four-word input; normalization remains a separate caller obligation.
+
+Normal compilation, recursive kernel checking and reviewed no-update
+assumption/contract snapshots passed. The numeric decomposition is closed;
+execution inherits the six existing assumptions, with no libc-model premise.
+Reproduce with:
+
+```sh
+JET_TARGETS=C/jet_secp_scalar_split128.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_split128
+```
+
+This closes a concrete generator/ecmult preparation call, not `generate` or
+another public jet. Remaining obligations include the actual wNAF execution
+and digit/specification bridge, precomputed-table contents and their startup
+and preservation, the point-operation loop, literal program correspondence
+and public reader/writer/allocation lifecycle. The original wNAF also calls
+external `memset`; that library boundary is reported in
+[JET_SECP_EXTERNAL_MISMATCHES.md](JET_SECP_EXTERNAL_MISMATCHES.md), not assumed
+discharged by the splitting proof. Coverage remains 505/533.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the

@@ -8,3 +8,4 @@ instead of starting a parallel proof.
 | Jet (`jet_coverage.tsv` name) | Owner (agent/session) | Branch | Since |
 | --- | --- | --- | --- |
 | `simplicity_fe_invert` | Codex (current goal session) | `feat/jet-equivalence` | 2026-10-22 |
+| `simplicity_generate` | Codex (current goal session; shared scalar-splitting dependency) | `feat/jet-equivalence` | 2026-10-22 |
