@@ -105,6 +105,13 @@ the six inherited assumptions and add no libc premise.
   includes the infinity flags. It derives tight output bounds for the shared
   difference operations. Normal build, recursive kernel checking and reviewed
   no-update focused snapshots passed; no new assumption or libc premise is added.
+- `jet_secp_gej_add_finite_prepare.exec_gej_add_finite_prepare` composes the
+  actual two dispatches, both squares and all six multiplication calls. Its
+  premises are the original six represented coordinates and owned allocations;
+  both square factors and every intermediate execution are derived. It retains
+  the six original coordinates, exact U1/U2/S1/S2 fields, both squares, tight
+  bounds, eight owners and a frame including the infinity flags. Normal build,
+  recursive kernel checking and reviewed no-update focused snapshots passed.
 
 Reproduce this checked internal frontier:
 
@@ -122,9 +129,12 @@ JET_TARGETS='C/jet_secp_gej_add_preparation.vo' bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_add_preparation
 ```
 
-Next compose the checked finite start with that block, deriving its two square
-factors from original input storage. Then reuse the shared difference and
-zero-branch proofs. The nonzero branch has a
+Reproduce the connected prefix with `JET_TARGETS='C/jet_secp_gej_add_finite_prepare.vo'
+bash Coq/build-jets.sh -j2`, then `bash Coq/build-jets.sh --coqchk
+-bytecode-compiler yes -silent -o C.jet_secp_gej_add_finite_prepare`.
+
+Next compose the shared difference and zero-branch proofs after that prefix.
+The nonzero branch has a
 different Z prefix: actual T=H*Bz, optional ratio copy (NULL in this public
 caller), then Rz=Az*T; after that its H2/H3/T and X/Y blocks are identical to
 the checked mixed-addition blocks. Do not drop the Bz factor or substitute a
