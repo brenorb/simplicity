@@ -130,6 +130,13 @@ the six inherited assumptions and add no libc premise.
   restriction. Normal builds of this module and the existing mixed-addition
   and mixed-equivalence public endpoints, recursive kernel checks of their
   dependency closures and reviewed no-update focused snapshots passed.
+- `jet_secp_gej_z_product` derives the actual fresh T=H*Bz call, with H first
+  and the 128-byte point's Z second, reusing the selected multiplication log
+  and arithmetic lemmas. `jet_secp_gej_add_nonzero_start` composes the actual
+  nonzero guard, flag store, that fresh product, NULL ratio branch, Rz=Az*T
+  multiplication and H square. It derives output fields, bounds, five owners
+  and framing; T and H2 need no initialized contents. Normal compilation,
+  recursive kernel checking and reviewed no-update focused snapshots passed.
 
 Reproduce this checked internal frontier:
 
@@ -162,7 +169,12 @@ bash Coq/build-jets.sh -j2`, then `bash Coq/build-jets.sh --coqchk
 -bytecode-compiler yes -silent -o C.jet_secp_gej_add_finite_return
 C.jet_secp_mixed_local C.jet_secp_gej_ge_equiv_local`.
 
-Next prove and compose the finite H-nonzero execution.
+Reproduce the nonzero Z prefix with
+`JET_TARGETS='C/jet_secp_gej_add_nonzero_start.vo' bash Coq/build-jets.sh -j2`,
+then `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_gej_add_nonzero_start`.
+
+Next compose the finite H-nonzero prefix with the shared H2/H3/T and X/Y tail.
 The nonzero branch has a
 different Z prefix: actual T=H*Bz, optional ratio copy (NULL in this public
 caller), then Rz=Az*T; after that its H2/H3/T and X/Y blocks are identical to
