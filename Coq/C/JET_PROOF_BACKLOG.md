@@ -1642,13 +1642,18 @@ it assumes no intermediate arithmetic execution or candidate output. The
 result supplies the candidate field, comparison return, all private allocation
 permissions, both caller allocations and external framing. The numeric/branch
 bridges above connect these exact word functions to the literal program.
-Next discharge function entry/allocation and freeing, then the public
-reader/conditional writer. The whole helper **function call** and public jet
-remain unproved; these body/helper modules do not increase coverage.
-Reuse the concrete entry, freshness, allocation-frame and free-list pattern
-in `jet_secp_mixed_function.v`: this helper has twelve 40-byte private fields
-and two distinct caller-owned 40-byte fields. Its actual parameter list is
-`r,a`; both are pointer temporaries, not allocated local `Evar` fields.
+`jet_secp_root_function.eval_root_function` now proves the complete original
+**helper function call**: concrete entry and parameter binding, all twelve
+40-byte local allocations, their separation and ownership, the entire body,
+integer result conversion and all twelve frees. It derives the body theorem's
+local premises from those allocations; they are not caller assumptions. The
+caller supplies only distinct owned input/result fields and the represented
+input, with no initialized-result premise. Candidate storage, both caller
+allocations and the external frame survive the frees. This reuses the
+allocation/freshness/free-list proof pattern from `jet_secp_mixed_function.v`.
+Next complete the public frame reader/conditional-writer wrapper and its
+local equivalence contract. The public jet remains unproved; these helper
+modules do not increase coverage.
 
 ```sh
 JET_TARGETS='C/jet_secp_root_literal.vo C/jet_secp_root_square_loop.vo C/jet_secp_root_square_bridge.vo C/jet_secp_root_stage.vo' bash Coq/build-jets.sh -j2
@@ -1662,6 +1667,8 @@ JET_TARGETS='C/jet_secp_root_call_state.vo C/jet_secp_root_prefix.vo' bash Coq/b
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_call_state C.jet_secp_root_prefix
 JET_TARGETS='C/jet_secp_root_candidate_state.vo C/jet_secp_root_suffix.vo' bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_candidate_state C.jet_secp_root_suffix
+JET_TARGETS=C/jet_secp_root_function.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_function
 ```
 
 Leave `simplicity_gej_ge_add_ex` unresolved: its equal-point ratio disagrees
