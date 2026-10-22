@@ -1667,6 +1667,18 @@ reviewed focused assumption/contract comparisons:
   require only one bit of output capacity and retain generic valid frame
   cursors and contents. `eval_gej_ge_equiv_public_c_bit` writes the C-derived
   `gej_ge_equiv_reader_bit`; this is not yet the literal specification.
+- `jet_secp_gej_ge_equiv_dispatch` relates actual negated and weak-normalized
+  reader limbs to the literal negative field value, then derives both H/I
+  test correspondences. The generic residue-test adapters are reusable.
+  `jet_secp_gej_ge_equiv_flag` proves agreement with the literal program for
+  incoming infinity and both finite H=0 branches, including the actual
+  doubled-Z flag. Its `equiv_finite_nonzero_h_reduction` proves that C returns
+  false in the remaining branch while the literal program tests
+  `(h * normalized_z * (feP - 1)) mod feP = 0`. These internal branch lemmas
+  do not restrict the public input domain or complete public equivalence.
+  Normal compilation, recursive kernel checking and reviewed focused
+  assumption/contract comparisons passed. Pure bridges use at most the
+  already inherited functional extensionality, not an assumed primality fact.
 
 Execution retains the same six inherited assumptions and no extra libc model.
 These are internal C execution contracts, not replacement Simplicity targets
@@ -1684,6 +1696,12 @@ Next missing implications:
    derive the returned flag's agreement with the literal infinity test.
    Do not replace this with coordinate equality on curve points or add curve,
    canonical-input, intermediate-result or unproved field/primality premises.
+   Only the finite nonzero-H case remains in the pure identity: use
+   `equiv_finite_nonzero_h_reduction` and derive that its product cannot
+   vanish from the two nonzero residues. A checked fixed-modulus primality
+   certificate is one possible route, but no such result has been established
+   or added as a project dependency. Do not replay the completed zero-H or
+   incoming-infinity proofs.
 2. Use that pure identity to convert the checked public C-bit execution into
    the standard literal local contract. Reuse the complete wrapper above;
    do not replay its allocations, readers or helper bodies.
