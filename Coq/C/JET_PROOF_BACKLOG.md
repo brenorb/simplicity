@@ -3,8 +3,8 @@
 The current local-contract registry contains 502 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 31 declarations remain unregistered.
-The projective curve, doubling, mixed-addition and square-root endpoints passed
-ordinary scoped acceptance; accepted local-contract coverage is 501/533. The every-jet
+The projective curve, doubling, mixed-addition, square-root and mixed-equivalence endpoints passed
+ordinary scoped acceptance; accepted local-contract coverage is 502/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
 
 The remaining work includes:
@@ -1635,7 +1635,7 @@ with C on a legitimate noncanonical Word256 input, as documented in
 [JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md). Do not fix that
 target or restrict inputs while pursuing independent jets.
 
-## Registered mixed-equivalence endpoint: acceptance pending
+## Accepted mixed-equivalence endpoint
 
 The selected endpoint for `simplicity_gej_ge_equiv` uses the fixed program
 `take gej_negate &&& ih >>> gej_ge_add >>> gej_is_infinity`. The original C
@@ -1643,7 +1643,7 @@ helper `secp256k1_gej_eq_ge_var` allocates one fresh 128-byte temporary, negates
 the input into it, performs in-place mixed addition and returns its infinity
 flag. The public function reads a projective and an affine point and writes
 one bit. It is now registered: the registry contains 502/533 jets, while
-accepted local-contract coverage remains 501/533 pending scoped acceptance.
+accepted local-contract coverage is now 502/533 after scoped acceptance.
 
 Completed ordinary support, with normal builds, recursive kernel checking and
 reviewed focused assumption/contract comparisons:
@@ -1732,7 +1732,9 @@ JET_TARGETS='C/jet_secp_gej_ge_equiv_local.vo' bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_ge_equiv_local
 ```
 
-Next: run ordinary scoped acceptance without update flags:
+Scoped acceptance passed on `f1309893`, without update flags: 442 kernel-checked
+modules, 381 assumption records, 396 contract records, source/negative checks
+and all five original ASTs. Reproduce on that commit:
 
 ```sh
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_ge_equiv
