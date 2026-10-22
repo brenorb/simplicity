@@ -1479,6 +1479,23 @@ specification bridge and complete public reader/helper/writer lifecycle
 before claiming public coverage. A C helper-call execution theorem is not
 yet the public C-to-Simplicity equivalence theorem.
 
+`jet_secp_add_literal_step.v:literal_gej_add_finite_step` exposes the fixed
+literal program's finite dispatch and exact nonzero coordinate expressions,
+by reduction of the original tree (not a replacement specification).
+`jet_secp_mixed_dispatch_literal.v` relates the actual C H/I words to those
+literal tests on all reader inputs: the literal H is the negative of C H,
+so their zero tests agree; the I residues agree directly. The proved
+`mixed_finite_zero_reader_outputs_literal` then connects both finite H=0
+outcomes to the complete literal mixed-addition program: I=0 uses the
+already-checked doubling output bridge, while nonzero I uses the original
+writer's zero/infinity bridge. Its finite/H=0 hypotheses select internal
+branches, not restrictions for a public registration. This also covers
+off-curve inputs and the doubling path with zero Y; no on-curve or nonzero-Y
+assumption is introduced. The next missing implication is the nonzero-H
+machine-coordinate/writer bridge, followed by combining all branches with
+`eval_mixed_function` and the public reader/writer lifecycle. Coverage is
+unchanged until that complete public contract is proved and accepted.
+
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
 ```sh
@@ -1515,6 +1532,8 @@ JET_TARGETS=C/jet_secp_mixed_body.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_body
 JET_TARGETS=C/jet_secp_mixed_function.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_function
+JET_TARGETS=C/jet_secp_mixed_dispatch_literal.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_add_literal_step C.jet_secp_mixed_dispatch_literal
 ```
 
 ## Source-review question: Elements fee predicates
