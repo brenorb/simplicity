@@ -1491,10 +1491,29 @@ already-checked doubling output bridge, while nonzero I uses the original
 writer's zero/infinity bridge. Its finite/H=0 hypotheses select internal
 branches, not restrictions for a public registration. This also covers
 off-curve inputs and the doubling path with zero Y; no on-curve or nonzero-Y
-assumption is introduced. The next missing implication is the nonzero-H
-machine-coordinate/writer bridge, followed by combining all branches with
-`eval_mixed_function` and the public reader/writer lifecycle. Coverage is
-unchanged until that complete public contract is proved and accepted.
+assumption is introduced. The nonzero-H bridge and branch composition are
+described below. Coverage is unchanged until the complete public contract
+is proved and accepted.
+
+`jet_secp_mixed_nonzero_literal.v` now proves the nonzero-H X/Y/Z bridges,
+reusing the selected square/multiply numeric results and the checked sum
+bounds. It accounts for the literal H's opposite sign, the C negated H2,
+H3/T products, the updated T used by Y, and the literal negative affine Z.
+The named literal T/X/TX/Y/Z values are abbreviations for the exact expressions
+exposed by `literal_gej_add_finite_step`, not alternative jet specifications.
+`jet_secp_mixed_literal_bridge.v:mixed_nonzero_reader_outputs_literal`
+instantiates them on actual reader words and proves equality to the full
+literal mixed-addition program. `mixed_reader_outputs_literal` combines this
+with both H=0 paths and incoming infinity, with no branch or input restriction.
+`eval_mixed_literal` then composes the original helper's complete call theorem:
+from the reader fields and flags, distinct owned point/affine storage, it
+derives actual `Clight2.eval_funcall`, all output fields and reusable bounds,
+the literal-program output, retained ownership and external framing. It has
+no allocation, intermediate-execution or output-value premise and adds no
+libc model. This is the complete helper-to-literal bridge, not yet the public
+jet contract. Next compose the actual public read_gej/read_ge/helper/write_gej
+statements, return and outer allocation/free lifecycle over general frames;
+then run full scoped acceptance and register only that complete endpoint.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1534,6 +1553,8 @@ JET_TARGETS=C/jet_secp_mixed_function.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_function
 JET_TARGETS=C/jet_secp_mixed_dispatch_literal.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_add_literal_step C.jet_secp_mixed_dispatch_literal
+JET_TARGETS=C/jet_secp_mixed_literal_bridge.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_nonzero_literal C.jet_secp_mixed_literal_bridge
 ```
 
 ## Source-review question: Elements fee predicates
