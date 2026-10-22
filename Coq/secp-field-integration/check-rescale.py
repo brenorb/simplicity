@@ -185,18 +185,31 @@ def check_mixed(s):
 
 
 def check_gej_ge_equiv_ports(s):
-    """The next helper composition's port; not a public equivalence proof."""
+    """Exact canonical mixed-equivalence composition and representation."""
     for fragment in [
         "GejGeEquiv :: Secp256k1Jet (Secp256k1.GEJ, Secp256k1.GE) Bit",
         "specificationSecp256k1 GejGeEquiv = Secp256k1.gej_ge_equiv",
+        "implementationSecp256k1 GejGeEquiv = \\(a,b) -> return . toBit $ LibSecp256k1.gej_ge_equiv (fromGEJ a) (fromGE b)",
     ]:
         p.require(s["catalog"], fragment, "GejGeEquiv catalog")
+    for declaration in ["type FE = Word256", "type GE = (FE, FE)", "type GEJ = (GE, FE)"]:
+        p.require(s["types"], declaration, "mixed-equivalence representation")
     impl = s["program"].split("lib@Lib{..} = Lib {", 1)[1]
     p.exact_program(impl, "gej_ge_equiv", "gej_x_equiv",
                     "take (gej_negate) &&& ih >>> gej_ge_add >>> gej_is_infinity")
     expected = "O (@literal_gej_negate term) &&& I H >>> @literal_gej_ge_add term >>> @literal_gej_is_infinity term"
     if p.compact(p.definition(s["equiv_port"], "literal_gej_ge_equiv")) != p.compact(expected):
         raise ValueError("literal mixed-equivalence tree differs")
+
+
+def check_gej_ge_equiv(s):
+    check_gej_ge_equiv_ports(s)
+    statement = re.search(r"Theorem gej_ge_equiv_literal_local_spec\s*:(.*?)\bProof\.", s["equiv_jet"], re.S)
+    expected = "secp_jet_local_spec f_simplicity_gej_ge_equiv " \
+        "(Ty.Prod (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) (Ty.Prod (Word 8) (Word 8))) " \
+        "(Ty.Sum Ty.Unit Ty.Unit) (@literal_gej_ge_equiv Alg.CoreFunSem)."
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError("GejGeEquiv full public contract differs")
 
 
 def check_root_ports(s):
@@ -291,6 +304,7 @@ def test():
         "root_port": COQ / "C/jet_secp_root_literal.v",
         "root_jet": COQ / "C/jet_secp_root_local.v",
         "equiv_port": COQ / "C/jet_secp_gej_ge_equiv_literal.v",
+        "equiv_jet": COQ / "C/jet_secp_gej_ge_equiv_local.v",
     }.items()}
     check(s)
     mutations = [
@@ -450,7 +464,7 @@ def test():
             continue
         raise ValueError("accepted root source mutation: " + old)
     print(f"FeSquareRoot catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
-    check_gej_ge_equiv_ports(s)
+    check_gej_ge_equiv(s)
     mutations = [
         ("catalog", "specificationSecp256k1 GejGeEquiv = Secp256k1.gej_ge_equiv",
                     "specificationSecp256k1 GejGeEquiv = Secp256k1.gej_equiv"),
@@ -460,6 +474,15 @@ def test():
         ("equiv_port", "O (@literal_gej_negate term)", "I (@literal_gej_negate term)"),
         ("equiv_port", ">>> @literal_gej_ge_add term", ">>> @literal_gej_add term"),
         ("equiv_port", ">>> @literal_gej_is_infinity term", ">>> @literal_gej_x_equiv term"),
+        ("catalog", "implementationSecp256k1 GejGeEquiv = \\(a,b) -> return . toBit $ LibSecp256k1.gej_ge_equiv",
+                    "implementationSecp256k1 GejGeEquiv = \\(a,b) -> return . toBit $ LibSecp256k1.gej_equiv"),
+        ("types", "type GEJ = (GE, FE)", "type GEJ = (FE, GE)"),
+        ("equiv_jet", "secp_jet_local_spec f_simplicity_gej_ge_equiv",
+                      "False -> secp_jet_local_spec f_simplicity_gej_ge_equiv"),
+        ("equiv_jet", "f_simplicity_gej_ge_equiv", "f_simplicity_gej_equiv"),
+        ("equiv_jet", "(Word 8)", "(Word 7)"),
+        ("equiv_jet", "(Ty.Sum Ty.Unit Ty.Unit)", "(Word 8)"),
+        ("equiv_jet", "@literal_gej_ge_equiv Alg.CoreFunSem", "@literal_gej_x_equiv Alg.CoreFunSem"),
     ]
     for key, old, new in mutations:
         if old not in s[key]:
@@ -467,11 +490,11 @@ def test():
         changed = dict(s)
         changed[key] = s[key].replace(old, new, 1)
         try:
-            check_gej_ge_equiv_ports(changed)
+            check_gej_ge_equiv(changed)
         except ValueError:
             continue
         raise ValueError("accepted mixed-equivalence source mutation: " + old)
-    print(f"GejGeEquiv literal port matches; {len(mutations)} targeted mutations rejected; no public equivalence coverage")
+    print(f"GejGeEquiv catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
 
 
 if __name__ == "__main__":

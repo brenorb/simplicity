@@ -2,10 +2,13 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 501/533 jets (365 without an extra libc
+The local-contract registry contains 502/533 jets (366 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
 501/533, including the computing issuance hash, affine/projective curve,
 projective X-equivalence, doubling, mixed-addition and square-root endpoints.
+The newly registered `gej_ge_equiv` endpoint has passed normal compilation,
+recursive kernel checking and focused assumption/contract comparisons; ordinary
+scoped acceptance is pending, so it is not yet included in the accepted count.
 The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add

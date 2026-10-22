@@ -2,7 +2,7 @@
 
 The current local-contract registry contains 501 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 32 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 31 declarations remain unregistered.
 The projective curve, doubling, mixed-addition and square-root endpoints passed
 ordinary scoped acceptance; accepted local-contract coverage is 501/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
@@ -1609,14 +1609,15 @@ with C on a legitimate noncanonical Word256 input, as documented in
 [JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md). Do not fix that
 target or restrict inputs while pursuing independent jets.
 
-## Next claimed target: gej_ge_equiv
+## Registered mixed-equivalence endpoint: acceptance pending
 
-The main session reserves `simplicity_gej_ge_equiv`. Its fixed program is
+The selected endpoint for `simplicity_gej_ge_equiv` uses the fixed program
 `take gej_negate &&& ih >>> gej_ge_add >>> gej_is_infinity`. The original C
 helper `secp256k1_gej_eq_ge_var` allocates one fresh 128-byte temporary, negates
 the input into it, performs in-place mixed addition and returns its infinity
 flag. The public function reads a projective and an affine point and writes
-one bit. This jet remains **unregistered**; coverage is still 501/533.
+one bit. It is now registered: the registry contains 502/533 jets, while
+accepted local-contract coverage remains 501/533 pending scoped acceptance.
 
 Completed ordinary support, with normal builds, recursive kernel checking and
 reviewed focused assumption/contract comparisons:
@@ -1696,18 +1697,23 @@ reviewed focused assumption/contract comparisons:
   storage, intermediate execution or primality premise is added.
 
 Execution retains the same six inherited assumptions and no extra libc model.
-The complete theorem uses the fixed literal Simplicity target, but is not yet
-registered or accepted as additional coverage. Reproduce its checked closure:
+The complete theorem uses the fixed literal Simplicity target. Its exact
+whole-contract and canonical-port gate rejects thirteen targeted mutations,
+and the registry selects this endpoint. Reproduce its checked closure:
 
 ```sh
 JET_TARGETS='C/jet_secp_gej_ge_equiv_local.vo' bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_ge_equiv_local
 ```
 
-Next: add the exact full-contract and mutation checks to the existing gate,
-register this endpoint, then run ordinary scoped acceptance without update
-flags. Keep production C, specifications, API contracts and generation settings
-fixed. Do not replay the completed public wrapper or pure identity.
+Next: run ordinary scoped acceptance without update flags:
+
+```sh
+JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_ge_equiv
+```
+
+Keep production C, specifications, API contracts and generation settings fixed.
+Do not replay the completed public wrapper or pure identity.
 
 Do not apply the earlier `eval_mixed_literal` directly to negation's output:
 its positioned-`fe_limbs_ok` Y premise is too restrictive. The loose-input
