@@ -5,12 +5,12 @@ Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 28 declarations lack a registered final proof.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
 and decompression endpoints passed ordinary scoped acceptance; accepted
-local-contract coverage is 504/533. The every-jet
+local-contract coverage is 505/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
 Projective addition passed scoped acceptance on `ba6b19e8`; the exact scope
 and reproduction command are recorded in `JET_ACCEPTANCE.md`.
-Projective equivalence is registered and kernel-checked, pending ordinary
-scoped acceptance; it is not yet included in the accepted count.
+Projective equivalence passed ordinary scoped acceptance on `0cb928b9`;
+it is included in the accepted count.
 
 The remaining work includes:
 
@@ -274,7 +274,7 @@ It checked 450 kernel modules, 389 assumption records, 404 contract records,
 negative tests and all five regenerated ASTs, on unchanged audit inputs.
 The every-jet goal remains incomplete.
 
-## Projective equivalence: registered, scoped acceptance pending
+## Projective equivalence: scoped-accepted on `0cb928b9`
 
 `jet_secp_gej_equiv_local.gej_equiv_literal_local_spec` covers the complete
 original public C jet against the exact fixed `gej_negate`/`gej_add`/
@@ -294,7 +294,9 @@ Reproduce scoped acceptance on its registration commit with:
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_equiv
 ```
 
-Do not count it as accepted until that command passes on unchanged inputs.
+On `0cb928b9`, the command passed on unchanged inputs: 472 kernel modules,
+411 assumption records, 426 contract records, negative tests and all five
+regenerated ASTs. The every-jet goal remains incomplete.
 
 Field inversion is a separate, later dependency: the actual `fe_inv_var`
 uses signed62 conversion and `modinv64_var`, not the square-root addition
