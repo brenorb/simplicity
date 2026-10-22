@@ -1438,9 +1438,21 @@ to the H test, flag store, NULL-rzr skip, Z update and H square. It derives
 all intermediate bounds, preserves X/Y, H and U1 and returns exact Z/H2/H3/T
 words, six owned allocations, product bounds/residues and a precise frame.
 It does not assume initialized H2/H3/T contents or intermediate executions.
-Next execute the remaining X/Y arithmetic, attach the whole nonzero tail to
-finite preparation, complete helper/public wrapper entry/return/free lifecycle
-and prove the literal specification bridge.
+`jet_secp_mixed_x_tail.v:exec_mixed_x_tail` derives the actual five statements
+X=I^2, X+=H3, X+=T twice, T+=X from owned fields; X need not be initialized.
+It preserves I/H3, ownership and the point's untouched slices, and derives
+scaled bounds 4 for X and 5 for the updated T with exact radix values.
+`jet_secp_mixed_y_tail.v:exec_mixed_y_tail` derives the final Y=T*I, H3*=S1,
+Y+=H3 calls, using the original point-Y and in-place private multiplication
+proofs. `exec_mixed_xy_tail` composes all eight X/Y statements directly as
+`mixed_after_products`, including the actual final call (no omitted return or
+extra C statement). It derives the intervening T bound, preserves I/S1 and
+all five allocations, returns exact X/Y/T/H3 words, reusable X/Y/T bounds
+and a frame protecting Z and the flag. All arithmetic calls in the nonzero
+path now have storage-derived execution results, but the H-through-products
+prefix and X/Y tail still need composing with each other and with finite
+preparation. Complete that composition, helper/public wrapper entry/return/free
+lifecycle and the literal specification bridge before claiming public coverage.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1472,6 +1484,8 @@ JET_TARGETS=C/jet_secp_mixed_nonzero_start.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_nonzero_start
 JET_TARGETS=C/jet_secp_mixed_nonzero_products.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_nonzero_products
+JET_TARGETS=C/jet_secp_mixed_y_tail.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_y_tail
 ```
 
 ## Source-review question: Elements fee predicates
