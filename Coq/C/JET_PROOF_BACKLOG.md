@@ -476,6 +476,31 @@ loop and relating that loop to the literal point program, remain public-proof
 obligations. The external `memset` boundary and the other generation obligations
 above remain unresolved. Neither reader increases coverage.
 
+`jet_secp_wnaf_digit.exec_wnaf_window_digit` now composes the original window
+reader call with the actual word addition, signed carry extraction, digit
+subtraction and output-array store. It covers `2 <= w <= 31`, positive window
+width at most `w`, and a window ending within the 256-bit scalar. Its carry is
+0 or 1, the stored digit has the original sign multiplier, and the digit
+before that multiplier is odd and strictly between `-2^(w-1)` and `2^(w-1)`.
+
+The weighted-value equation is derived together with the concrete execution
+and store. In particular, a shorter final window has no spurious carry at
+the full window width. The low-bit/carry mismatch premise is the nonzero
+branch's condition, not a restriction on scalar inputs. The predecessor still
+has to establish that condition through its actual read and branch. The
+output store is constructed from writable-cell access, not assumed; scalar
+bytes and the reader's result are supplied by the existing storage model and
+checked call theorem. Source identities tie the selected statements to the
+original wNAF loop, and the sequence-association proof preserves its actual
+call/add grouping. No external-library model is added.
+
+This is the internal reader-to-store phase, not a complete iteration, loop,
+wNAF/specification correspondence, or public jet. Window selection, skipped-bit
+control flow, last-set-bit/counter updates, invariant establishment/preservation,
+termination and return, startup, and the external `memset` boundary remain.
+Reproduce the checked phase with the same build/kernel commands above, using
+`jet_secp_wnaf_digit`. Coverage remains 505/533.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
