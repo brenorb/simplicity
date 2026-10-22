@@ -97,12 +97,26 @@ or extra library premise is added. This is the internal helper, not the public
 jet: it does not yet establish the public frame reads, tag/payload writes,
 padding, entry or outer frees.
 
-Next prove that public lifecycle for arbitrary valid 257-bit input/513-bit
-output frames. Reuse the core readBit contract and the capacity-independent
-field reader after the first bit. The writer needs the existing owned-field
-contracts with a one-bit output prefix; the fresh-output two-field wrapper
-alone is insufficient. The actual skip_ge body calls skip_fe twice, not
-skipBits(512); compose those two existing proofs rather than substitute a call.
+`jet_secp_affine_write_prefix` extends the existing owned-field execution
+proofs to an arbitrary already-written prefix, then composes the actual
+`write_ge` body. `jet_secp_affine_skip` executes the actual two `skip_fe` calls
+in `skip_ge`. `jet_secp_decompress_result_write` composes the real tag and
+payload/padding calls for both outcomes, preserving 88-byte point ownership
+and framing. These proofs cover arbitrary valid output cursors and unrelated
+output contents. Normal build, recursive kernel checking and reviewed focused
+assumption/contract comparisons passed; the execution results retain the six
+inherited assumptions and add no libc premise. Reproduce this output layer:
+
+```sh
+JET_TARGETS='C/jet_secp_decompress_result_write.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_decompress_result_write
+```
+
+Next prove the public lifecycle for arbitrary valid 257-bit input/513-bit
+output frames. Reuse the core readBit contract and the field reader after the
+first bit, followed by the helper-literal and result-writing proofs above.
+The actual public allocations are src=16, x=40 and r=88 bytes, in that order;
+do not reuse a wrapper allocating a 40-byte result as if it were an affine point.
 Register only that complete result, with the canonical-source gate extended to
 protect the exact composition. Reproduce the current internal build with:
 
