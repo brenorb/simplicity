@@ -70,9 +70,17 @@ the low-bit result, unchanged represented field, 88-byte ownership and X/flag
 framing. It reuses the normalizer's field-region shape and the existing low-limb
 parity bridge; no fresh arithmetic implementation is used.
 
-Next compose normalization/parity/magnitude-one negation and successful return
-on the remaining branch of the real `ge_set_xo_var` statement tree.
-Reuse the existing affine negation and owned struct-copy proofs. Then prove the
+`jet_secp_decompress_parity.exec_decompress_parity_owned` now composes the
+actual parity call, integer inequality, conditional magnitude-one negation and
+skip branch. `exec_decompress_success_tail` adds the real normalization and
+successful return. Its postcondition is the exact resulting C limb list
+(`decompress_parity_limbs`), with ownership and X/flag framing; it is not yet a
+claim that this list serializes to the literal Simplicity output.
+
+Next join the root conditional and success tail into the complete all-branch
+helper body, then prove its two private allocations/frees and function entry.
+Relate the retained/negated canonical limbs to the literal decompression word,
+reusing the selected field-negation/normalization bridges. Then prove the
 public reader, success/failure writer (including failure padding), entry and
 free lifecycle for arbitrary valid 257-bit input/513-bit output frames.
 Register only that complete result, with the canonical-source gate extended to
