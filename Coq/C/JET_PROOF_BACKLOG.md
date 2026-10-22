@@ -541,11 +541,39 @@ actual function prefix, including its external `memset`. This theorem therefore
 does not add a libc model or discharge that boundary.
 
 Reproduce these internal loop-and-return results with the same build/kernel
-commands, using `jet_secp_wnaf_loop`. They are not a whole wNAF function proof,
-a literal point-program correspondence, or a public jet. Initial-state
-establishment and composition, precomputed tables and startup, the
-point-operation loop, literal program bridge and public lifecycle above remain.
-Coverage remains 505/533.
+commands, using `jet_secp_wnaf_loop`.
+
+`jet_secp_wnaf_prepare.exec_wnaf_post_memset_small` composes the actual scalar
+assignment, top-bit reader/branch, loop and return for `0 <= n < 2^255`.
+`exec_wnaf_scalar_copy` derives the four destination limb loads from readable
+source storage and writable local space using Clight's actual 32-byte
+loadbytes/storebytes assignment, not a library-copy premise. The top-bit test
+is executed and returns zero from that copied storage. Copying preserves the
+output array's zero loads and writable access, and the resulting phase exposes
+the final scalar/array state, carry range, weighted equation, return bound,
+all memory permissions, allocation frontier and loads outside the local scalar
+and output blocks. The small-bound reconstruction conclusion is preserved.
+
+This starts after the original external `memset`; zero cells, the actual
+initial temporaries and writable local storage are still premises at that
+internal boundary. The `n < 2^255` branch covers both 128-bit split values used
+by `generate`, but the original high-top-bit/negation branch is not proved by
+this phase. Reproduce with the same build/kernel commands, using
+`jet_secp_wnaf_prepare`. No whole wNAF function, literal point-program
+correspondence or public jet is registered. Remaining obligations include
+entry/initial-temporary establishment and local freeing, the external call,
+the other sign branch, composition with the actual split caller/storage,
+precomputed tables/startup, the point-operation loop, literal bridge and public
+lifecycle above. Coverage remains 505/533.
+
+Next prioritize exact digit correspondence with the fixed literal `wnaf15`
+program in `Haskell/Core/Simplicity/Programs/LibSecp256k1.hs`, for each of the
+two 128-bit split values. The bridge must identify the complete 129-digit
+vector, its order and signed encoding, and connect it to the actual C
+recurrence. Weighted reconstruction and odd-digit bounds alone do not identify
+that vector. This is independent of the external-call boundary and is needed
+before composing the literal `generate` point loop. The generic high-top-bit
+branch can wait: it is not needed for these split values.
 
 ## Completed: `simplicity_gej_rescale`
 
