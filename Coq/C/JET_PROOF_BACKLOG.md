@@ -3,10 +3,10 @@
 The current local-contract registry contains 503 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 30 declarations lack a registered final proof.
-The projective curve, doubling, mixed-addition, square-root and mixed-equivalence endpoints passed
-ordinary scoped acceptance; accepted local-contract coverage is 502/533. The every-jet
+The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
+and decompression endpoints passed ordinary scoped acceptance; accepted
+local-contract coverage is 503/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
-The newly registered decompression endpoint awaits its scoped acceptance run.
 
 The remaining work includes:
 
@@ -20,8 +20,10 @@ The remaining work includes:
 
 The complete original public C jet is proved by
 `jet_secp_decompress_local.decompress_literal_local_spec`, against the
-primitive-bearing `literal_decompress` composition. It is now registered,
-with **scoped acceptance pending**.
+primitive-bearing `literal_decompress` composition. It is registered and
+**passed ordinary scoped acceptance on `e32e7638`**: 416 kernel modules,
+355 assumption records, 370 contract records, source and negative checks, all
+five regenerated ASTs, and identical audit inputs before/after the run.
 Normal compilation, recursive kernel checking and reviewed no-update focused
 assumption/contract comparisons passed for this endpoint and its six new
 public-wrapper modules. It retains the six inherited assumptions and adds no
@@ -61,14 +63,14 @@ The existing `secp-field-integration/check-rescale.py` canonical-source and
 whole-contract gate checks its catalog/type declarations, root input, parity
 xor routing, exact literal composition and complete public theorem. It rejects
 15 targeted mutations; the inventory's whole-contract regression checks pass.
-Run ordinary scoped acceptance, without update flags:
+Reproduce ordinary scoped acceptance on that commit, without update flags:
 
 ```sh
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_decompress
 ```
 
-Do not conflate the checked endpoint with accepted registry coverage before
-that run succeeds.
+The every-jet goal remains incomplete. Keep production C, original
+specifications/domains/identities, API contracts and generation settings fixed.
 
 [JET_INHERITED_REVIEW.md](JET_INHERITED_REVIEW.md),
 [JET_FIDELITY_REVIEW.md](JET_FIDELITY_REVIEW.md) and the `JET_*_MISMATCHES.md`

@@ -4,17 +4,20 @@ The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
 The local-contract registry contains 503/533 jets (367 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
-502/533, including the computing issuance hash, affine/projective curve,
+503/533, including the computing issuance hash, affine/projective curve,
 projective X-equivalence, doubling, mixed-addition, square-root and mixed
-equivalence endpoints. On `f1309893`, `JOBS=2 bash Coq/check-jets.sh --accept
+equivalence and decompression endpoints. On `f1309893`, `JOBS=2 bash Coq/check-jets.sh --accept
 --jets=simplicity_gej_ge_equiv` passed: 442 kernel-checked modules, 381 assumption
 records, 396 contract records, all source/negative checks and all five ASTs.
 This is scoped acceptance, not a new whole-repository acceptance claim.
-The decompression endpoint is additionally registered after normal compilation,
-recursive kernel checking and reviewed focused snapshot comparisons, with no
-extra libc premise. Its canonical-source/full-contract gate rejects 15 targeted
-mutations. Ordinary scoped acceptance is pending; until that run succeeds,
-accepted coverage remains 502/533. Reproduce the pending check:
+On `e32e7638`, the complete decompression endpoint passed ordinary scoped
+acceptance: 416 kernel modules, 355 assumption records, 370 contract records,
+all source and negative checks, and all five regenerated ASTs. Audit inputs
+were unchanged. It adds no libc premise; its canonical-source/full-contract
+gate rejects 15 targeted mutations. Accepted local-contract coverage is now
+503/533 (367 without an extra libc premise, 136 conditional on `memcpy_model`),
+with 30 header declarations still lacking a registered final proof. Reproduce
+on that commit:
 
 ```sh
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_decompress
