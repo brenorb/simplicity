@@ -1668,6 +1668,17 @@ preserved prefix bits and arbitrary initial output contents. These calls
 are derived, not assumed. The remaining composition is the public wrapper's
 entry/source-frame copy/read, its temporary assignments and conditional,
 helper call, writes, return and three local frees; it is not registered yet.
+`jet_secp_root_public_entry` now derives the public function entry (including
+its three actual temporaries), local ownership/separation and the exact
+three-block free list. `jet_secp_root_public_prepare` executes its by-value
+source-frame copy and establishes the output invariant without initializing
+either field. `jet_secp_root_public_body` identifies the exact original public
+AST and composes the reader/helper/tag/payload calls, temporary assignments,
+integer-to-bool cast and conditional, including failure padding. These ordinary
+modules compile and pass recursive kernel and focused snapshot checks. The
+remaining implication is to discharge those call premises together from the
+public frame preconditions, compose entry/body/frees, and register/check the
+resulting literal local contract. These adapters alone add no coverage.
 
 ```sh
 JET_TARGETS='C/jet_secp_root_function_literal.vo C/jet_secp_root_result_write.vo' bash Coq/build-jets.sh -j2
