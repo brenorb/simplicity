@@ -1,0 +1,618 @@
+### C.jet_secp_wnaf_control.wnaf_dispatch_source
+wnaf_dispatch_source
+     : @eq Clight.statement jet_secp_wnaf_digit.wnaf_loop_body (Clight.Ssequence wnaf_dispatch wnaf_nonzero_body)
+### C.jet_secp_wnaf_control.wnaf_bit_call_source
+wnaf_bit_call_source
+     : @eq Clight.statement wnaf_bit_call
+         (jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_get_bits
+            jets_secp.f_secp256k1_scalar_get_bits (@Some AST.ident jets_secp._t'2)
+            (@cons Clight.expr
+               (Clight.Eaddrof (Clight.Evar jets_secp._s (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))
+                  (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr)))
+               (@cons Clight.expr (Clight.Etempvar jets_secp._bit Ctypesdefs.tint)
+                  (@cons Clight.expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) (@nil Clight.expr)))))
+### C.jet_secp_wnaf_control.wnaf_bit_if_source
+wnaf_bit_if_source
+     : @eq Clight.statement wnaf_bit_if
+         (Clight.Sifthenelse
+            (Clight.Ebinop Cop.Oeq (Clight.Etempvar jets_secp._t'2 Ctypesdefs.tuint)
+               (Clight.Ecast (Clight.Etempvar jets_secp._carry Ctypesdefs.tint) Ctypesdefs.tuint) Ctypesdefs.tint)
+            (Clight.Ssequence
+               (Clight.Sset jets_secp._bit
+                  (Clight.Ebinop Cop.Oadd (Clight.Etempvar jets_secp._bit Ctypesdefs.tint)
+                     (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint)) Clight.Scontinue)
+            Clight.Sskip)
+### C.jet_secp_wnaf_control.wnaf_now_sources
+wnaf_now_sources
+     : and
+         (@eq Clight.statement wnaf_now_set (Clight.Sset jets_secp._now (Clight.Etempvar jets_secp._w Ctypesdefs.tint)))
+         (@eq Clight.statement wnaf_now_clamp
+            (Clight.Sifthenelse
+               (Clight.Ebinop Cop.Ogt (Clight.Etempvar jets_secp._now Ctypesdefs.tint)
+                  (Clight.Ebinop Cop.Osub (Clight.Etempvar jets_secp._len Ctypesdefs.tint)
+                     (Clight.Etempvar jets_secp._bit Ctypesdefs.tint) Ctypesdefs.tint) Ctypesdefs.tint)
+               (Clight.Sset jets_secp._now
+                  (Clight.Ebinop Cop.Osub (Clight.Etempvar jets_secp._len Ctypesdefs.tint)
+                     (Clight.Etempvar jets_secp._bit Ctypesdefs.tint) Ctypesdefs.tint)) Clight.Sskip))
+### C.jet_secp_wnaf_control.wnaf_after_digit_source
+wnaf_after_digit_source
+     : @eq Clight.statement jet_secp_wnaf_digit.wnaf_after_digit
+         (Clight.Ssequence (Clight.Sset jets_secp._last_set_bit (Clight.Etempvar jets_secp._bit Ctypesdefs.tint))
+            (Clight.Sset jets_secp._bit
+               (Clight.Ebinop Cop.Oadd (Clight.Etempvar jets_secp._bit Ctypesdefs.tint)
+                  (Clight.Etempvar jets_secp._now Ctypesdefs.tint) Ctypesdefs.tint)))
+### C.jet_secp_wnaf_control.wnaf_skip_value
+wnaf_skip_value
+     : forall (n bit carry : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 bit)
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                   (BinNums.Zpos (BinNums.xO BinNums.xH))) carry),
+       @eq BinNums.Z (BinInt.Z.add (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit)) carry)
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinInt.Z.add
+               (BinInt.Z.div n
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.add bit (BinNums.Zpos BinNums.xH))))
+               carry))
+### C.jet_secp_wnaf_control.wnaf_window_bounds
+wnaf_window_bounds
+     : forall (bit len w : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 bit) (BinInt.Z.lt bit len))
+         (_ : BinInt.Z.le len
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) w)
+                (BinInt.Z.le w (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))),
+       and
+         (and (BinInt.Z.le (BinNums.Zpos BinNums.xH) (BinInt.Z.min w (BinInt.Z.sub len bit)))
+            (BinInt.Z.le (BinInt.Z.min w (BinInt.Z.sub len bit)) w))
+         (and (BinInt.Z.le (BinInt.Z.add bit (BinInt.Z.min w (BinInt.Z.sub len bit))) len)
+            (and (BinInt.Z.lt bit (BinInt.Z.add bit (BinInt.Z.min w (BinInt.Z.sub len bit))))
+               (BinInt.Z.le (BinInt.Z.add bit (BinInt.Z.min w (BinInt.Z.sub len bit))) len)))
+### C.jet_secp_wnaf_control.exec_wnaf_bit_read
+exec_wnaf_bit_read
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bs : Values.block) (n bit : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit)
+                (BinInt.Z.lt bit
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr bit))))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_wnaf_digit.wnaf_env bs) le m wnaf_bit_call
+         Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'2
+            (Values.Vint
+               (Integers.Int.repr
+                  (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                     (BinNums.Zpos (BinNums.xO BinNums.xH))))) le) m ClightBigstep.Out_normal
+### C.jet_secp_wnaf_control.eval_wnaf_bit_compare
+eval_wnaf_bit_compare
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (low carry : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'2 le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr low))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._carry le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr carry))))
+         (_ : and (BinInt.Z.le BinNums.Z0 low) (BinInt.Z.lt low (BinNums.Zpos (BinNums.xO BinNums.xH))))
+         (_ : and (BinInt.Z.le BinNums.Z0 carry) (BinInt.Z.lt carry (BinNums.Zpos (BinNums.xO BinNums.xH)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (Clight.Ebinop Cop.Oeq (Clight.Etempvar jets_secp._t'2 Ctypesdefs.tuint)
+            (Clight.Ecast (Clight.Etempvar jets_secp._carry Ctypesdefs.tint) Ctypesdefs.tuint) Ctypesdefs.tint)
+         (Values.Val.of_bool match Coqlib.zeq low carry return bool with
+                             | left _ => true
+                             | right _ => false
+                             end)
+### C.jet_secp_wnaf_control.exec_wnaf_dispatch_skip
+exec_wnaf_dispatch_skip
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bs : Values.block) (n bit carry : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit)
+                (BinInt.Z.lt bit
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                   (BinNums.Zpos (BinNums.xO BinNums.xH))) carry)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr bit))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._carry le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr carry))))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_wnaf_digit.wnaf_env bs) le m wnaf_dispatch
+         Events.E0
+         (@Maps.PTree.set Values.val jets_secp._bit
+            (Values.Vint (Integers.Int.repr (BinInt.Z.add bit (BinNums.Zpos BinNums.xH))))
+            (@Maps.PTree.set Values.val jets_secp._t'2 (Values.Vint (Integers.Int.repr carry)) le)) m
+         ClightBigstep.Out_continue
+### C.jet_secp_wnaf_control.exec_wnaf_dispatch_nonzero
+exec_wnaf_dispatch_nonzero
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bs : Values.block) (n bit carry : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit)
+                (BinInt.Z.lt bit
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                      (BinNums.Zpos (BinNums.xO BinNums.xH))) carry))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr bit))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._carry le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr carry))))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_wnaf_digit.wnaf_env bs) le m wnaf_dispatch
+         Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'2
+            (Values.Vint
+               (Integers.Int.repr
+                  (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                     (BinNums.Zpos (BinNums.xO BinNums.xH))))) le) m ClightBigstep.Out_normal
+### C.jet_secp_wnaf_control.eval_wnaf_clamp_guard
+eval_wnaf_clamp_guard
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bit len w : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 bit) (BinInt.Z.lt bit len))
+         (_ : BinInt.Z.le len
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) w)
+                (BinInt.Z.le w (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr bit))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._now le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr w)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (Clight.Ebinop Cop.Ogt (Clight.Etempvar jets_secp._now Ctypesdefs.tint)
+            (Clight.Ebinop Cop.Osub (Clight.Etempvar jets_secp._len Ctypesdefs.tint)
+               (Clight.Etempvar jets_secp._bit Ctypesdefs.tint) Ctypesdefs.tint) Ctypesdefs.tint)
+         (Values.Val.of_bool
+            match Coqlib.zlt (BinInt.Z.sub len bit) w return bool with
+            | left _ => true
+            | right _ => false
+            end)
+### C.jet_secp_wnaf_control.exec_wnaf_select
+exec_wnaf_select
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bit len w : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 bit) (BinInt.Z.lt bit len))
+         (_ : BinInt.Z.le len
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) w)
+                (BinInt.Z.le w (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr bit))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._w le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr w)))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m wnaf_window_select Events.E0
+         (wnaf_select_temps le bit len w) m ClightBigstep.Out_normal
+### C.jet_secp_wnaf_control.wnaf_select_now
+wnaf_select_now
+     : forall (le : Maps.PTree.tree Values.val) (bit len w : BinNums.Z),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._now (wnaf_select_temps le bit len w))
+         (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.min w (BinInt.Z.sub len bit)))))
+### C.jet_secp_wnaf_control.wnaf_select_other
+wnaf_select_other
+     : forall (le : Maps.PTree.tree Values.val) (bit len w : BinNums.Z) (id : AST.ident)
+         (_ : not (@eq AST.ident id jets_secp._now)),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (wnaf_select_temps le bit len w))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_wnaf_control.exec_wnaf_after_digit
+exec_wnaf_after_digit
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bit width : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 bit)
+                (BinInt.Z.lt bit
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) width)
+                (BinInt.Z.le width (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : BinInt.Z.le (BinInt.Z.add bit width)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr bit))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._now le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr width)))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_wnaf_digit.wnaf_after_digit Events.E0
+         (wnaf_after_temps le bit width) m ClightBigstep.Out_normal
+### C.jet_secp_wnaf_control.exec_wnaf_sequence_append
+exec_wnaf_sequence_append
+     : forall (e : Clight.env) (prefix : list Clight.statement) (last tail : Clight.statement)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (le1 : Clight.temp_env) (m1 : Memory.Mem.mem)
+         (le2 : Clight.temp_env) (m2 : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                (jet_secp_statement_prefix.statement_sequence prefix last) Events.E0 le1 m1 ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le1 m1 tail Events.E0 le2 m2 out),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (jet_secp_statement_prefix.statement_sequence prefix (Clight.Ssequence last tail)) Events.E0 le2 m2 out
+### C.jet_secp_wnaf_control.wnaf_nonzero_body_source
+wnaf_nonzero_body_source
+     : @eq Clight.statement wnaf_nonzero_body
+         (Clight.Ssequence wnaf_now_set
+            (Clight.Ssequence wnaf_now_clamp
+               (Clight.Ssequence
+                  (Clight.Ssequence jet_secp_wnaf_digit.wnaf_window_call jet_secp_wnaf_digit.wnaf_word_add)
+                  (Clight.Ssequence jet_secp_wnaf_digit.wnaf_carry_set
+                     (Clight.Ssequence jet_secp_wnaf_digit.wnaf_digit_set
+                        (Clight.Ssequence jet_secp_wnaf_digit.wnaf_digit_store jet_secp_wnaf_digit.wnaf_after_digit))))))
+### C.jet_secp_wnaf_control.wnaf_digit_other
+wnaf_digit_other
+     : forall (le : Maps.PTree.tree Values.val) (word w : BinNums.Z) (id : AST.ident)
+         (_ : not (@eq AST.ident id jets_secp._word)) (_ : not (@eq AST.ident id jets_secp._carry)),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (jet_secp_wnaf_digit.wnaf_digit_final le word w))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_wnaf_control.wnaf_after_other
+wnaf_after_other
+     : forall (le : Maps.PTree.tree Values.val) (bit width : BinNums.Z) (id : AST.ident)
+         (_ : not (@eq AST.ident id jets_secp._bit)) (_ : not (@eq AST.ident id jets_secp._last_set_bit)),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (wnaf_after_temps le bit width))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_wnaf_control.wnaf_scalar_store_preserved
+wnaf_scalar_store_preserved
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (v : Values.val)
+         (bs : Values.block) (n : BinNums.Z)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.store AST.Mint32 m b ofs v) (@Some Memory.Mem.mem mf))
+         (_ : not (@eq Values.block b bs))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))),
+       jet_secp_scalar_get_b32_storage.scalar_at mf bs BinNums.Z0
+         (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+            (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))
+### C.jet_secp_wnaf_control.exec_wnaf_nonzero_body
+exec_wnaf_nonzero_body
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (n bit len w carry sign : BinNums.Z)
+         (b : Values.block) (base : BinNums.Z) (bs : Values.block) (last : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit) (BinInt.Z.lt bit len))
+         (_ : BinInt.Z.le len
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) w)
+                (BinInt.Z.le w (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                      (BinNums.Zpos (BinNums.xO BinNums.xH))) carry))
+         (_ : or (@eq BinNums.Z sign (BinNums.Zpos BinNums.xH)) (@eq BinNums.Z sign (BinNums.Zneg BinNums.xH)))
+         (_ : wnaf_loop_fields le bit len w carry sign b base last)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.valid_access m AST.Mint32 b
+                (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_wnaf_digit.wnaf_env bs) le m
+               wnaf_nonzero_body Events.E0 (wnaf_nonzero_temps le n bit len w carry) mf ClightBigstep.Out_normal)
+            (and
+               (@eq (option Memory.Mem.mem)
+                  (Memory.Mem.store AST.Mint32 m b
+                     (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                     (Values.Vint
+                        (Integers.Int.repr
+                           (BinInt.Z.mul sign
+                              (jet_secp_wnaf_digit.wnaf_digit
+                                 (jet_secp_wnaf_digit.wnaf_word n bit (BinInt.Z.min w (BinInt.Z.sub len bit)) carry) w)))))
+                  (@Some Memory.Mem.mem mf))
+               (and
+                  (wnaf_loop_fields (wnaf_nonzero_temps le n bit len w carry)
+                     (BinInt.Z.add bit (BinInt.Z.min w (BinInt.Z.sub len bit))) len w
+                     (jet_secp_wnaf_digit.wnaf_carry
+                        (jet_secp_wnaf_digit.wnaf_word n bit (BinInt.Z.min w (BinInt.Z.sub len bit)) carry) w) sign b
+                     base bit)
+                  (and
+                     (or
+                        (@eq BinNums.Z
+                           (jet_secp_wnaf_digit.wnaf_carry
+                              (jet_secp_wnaf_digit.wnaf_word n bit (BinInt.Z.min w (BinInt.Z.sub len bit)) carry) w)
+                           BinNums.Z0)
+                        (@eq BinNums.Z
+                           (jet_secp_wnaf_digit.wnaf_carry
+                              (jet_secp_wnaf_digit.wnaf_word n bit (BinInt.Z.min w (BinInt.Z.sub len bit)) carry) w)
+                           (BinNums.Zpos BinNums.xH)))
+                     (and
+                        (and
+                           (BinInt.Z.lt
+                              (BinInt.Z.opp
+                                 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                    (BinInt.Z.sub w (BinNums.Zpos BinNums.xH))))
+                              (jet_secp_wnaf_digit.wnaf_digit
+                                 (jet_secp_wnaf_digit.wnaf_word n bit (BinInt.Z.min w (BinInt.Z.sub len bit)) carry) w))
+                           (BinInt.Z.lt
+                              (jet_secp_wnaf_digit.wnaf_digit
+                                 (jet_secp_wnaf_digit.wnaf_word n bit (BinInt.Z.min w (BinInt.Z.sub len bit)) carry) w)
+                              (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                 (BinInt.Z.sub w (BinNums.Zpos BinNums.xH)))))
+                        (and
+                           (@eq BinNums.Z
+                              (BinInt.Z.modulo
+                                 (jet_secp_wnaf_digit.wnaf_digit
+                                    (jet_secp_wnaf_digit.wnaf_word n bit (BinInt.Z.min w (BinInt.Z.sub len bit)) carry)
+                                    w) (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))
+                           (@eq BinNums.Z
+                              (BinInt.Z.add (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                                 carry)
+                              (BinInt.Z.add
+                                 (jet_secp_wnaf_digit.wnaf_digit
+                                    (jet_secp_wnaf_digit.wnaf_word n bit (BinInt.Z.min w (BinInt.Z.sub len bit)) carry)
+                                    w)
+                                 (BinInt.Z.mul
+                                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                       (BinInt.Z.min w (BinInt.Z.sub len bit)))
+                                    (BinInt.Z.add
+                                       (BinInt.Z.div n
+                                          (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                             (BinInt.Z.add bit (BinInt.Z.min w (BinInt.Z.sub len bit)))))
+                                       (jet_secp_wnaf_digit.wnaf_carry
+                                          (jet_secp_wnaf_digit.wnaf_word n bit (BinInt.Z.min w (BinInt.Z.sub len bit))
+                                             carry) w)))))))))))
+### C.jet_secp_wnaf_control.wnaf_skip_fields
+wnaf_skip_fields
+     : forall (le : Maps.PTree.tree Values.val) (bit len w carry sign : BinNums.Z) (b : Values.block)
+         (base last : BinNums.Z) (_ : wnaf_loop_fields le bit len w carry sign b base last),
+       wnaf_loop_fields
+         (@Maps.PTree.set Values.val jets_secp._bit
+            (Values.Vint (Integers.Int.repr (BinInt.Z.add bit (BinNums.Zpos BinNums.xH))))
+            (@Maps.PTree.set Values.val jets_secp._t'2 (Values.Vint (Integers.Int.repr carry)) le))
+         (BinInt.Z.add bit (BinNums.Zpos BinNums.xH)) len w carry sign b base last
+### C.jet_secp_wnaf_control.exec_wnaf_loop_body_step
+exec_wnaf_loop_body_step
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (n bit len w carry sign : BinNums.Z)
+         (b : Values.block) (base : BinNums.Z) (bs : Values.block) (last : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit) (BinInt.Z.lt bit len))
+         (_ : BinInt.Z.le len
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) w)
+                (BinInt.Z.le w (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : and (BinInt.Z.le (BinNums.Zneg BinNums.xH) last) (BinInt.Z.lt last bit))
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : or (@eq BinNums.Z sign (BinNums.Zpos BinNums.xH)) (@eq BinNums.Z sign (BinNums.Zneg BinNums.xH)))
+         (_ : wnaf_loop_fields le bit len w carry sign b base last)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))) (_ : not (@eq Values.block b bs))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.valid_access m AST.Mint32 b
+                (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                Memtype.Writable),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             @ex BinNums.Z
+               (fun bit' : BinNums.Z =>
+                @ex BinNums.Z
+                  (fun carry' : BinNums.Z =>
+                   @ex BinNums.Z
+                     (fun digit : BinNums.Z =>
+                      @ex BinNums.Z
+                        (fun last' : BinNums.Z =>
+                         @ex ClightBigstep.outcome
+                           (fun out : ClightBigstep.outcome =>
+                            and
+                              (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                                 (jet_secp_wnaf_digit.wnaf_env bs) le m jet_secp_wnaf_digit.wnaf_loop_body Events.E0
+                                 le' mf out)
+                              (and (wnaf_loop_fields le' bit' len w carry' sign b base last')
+                                 (and (and (BinInt.Z.lt bit bit') (BinInt.Z.le bit' len))
+                                    (and (and (BinInt.Z.le (BinNums.Zneg BinNums.xH) last') (BinInt.Z.lt last' bit'))
+                                       (and
+                                          (or (@eq BinNums.Z carry' BinNums.Z0)
+                                             (@eq BinNums.Z carry' (BinNums.Zpos BinNums.xH)))
+                                          (and
+                                             (jet_secp_scalar_get_b32_storage.scalar_at mf bs BinNums.Z0
+                                                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                                                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n)))
+                                             (and
+                                                (or (@eq ClightBigstep.outcome out ClightBigstep.Out_normal)
+                                                   (@eq ClightBigstep.outcome out ClightBigstep.Out_continue))
+                                                (and
+                                                   (@eq BinNums.Z
+                                                      (BinInt.Z.add
+                                                         (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos ...) bit)) carry)
+                                                      (BinInt.Z.add digit
+                                                         (BinInt.Z.mul
+                                                            (BinInt.Z.pow (BinNums.Zpos ...) (BinInt.Z.sub bit' bit))
+                                                            (BinInt.Z.add (BinInt.Z.div n ...) carry'))))
+                                                   (or
+                                                      (and (@eq BinNums.Z digit BinNums.Z0)
+                                                         (and (@eq Memory.Mem.mem mf m) (@eq BinNums.Z last' last)))
+                                                      (and
+                                                         (@eq BinNums.Z (BinInt.Z.modulo digit (BinNums.Zpos ...))
+                                                            (BinNums.Zpos BinNums.xH))
+                                                         (and (and (BinInt.Z.lt ... digit) (BinInt.Z.lt digit ...))
+                                                            (and (@eq ... ... ...) (@eq BinNums.Z last' bit)))))))))))))))))))
+### C.jet_secp_wnaf_control.wnaf_dispatch
+wnaf_dispatch =
+@List.nth Clight.statement O jet_secp_wnaf_digit.wnaf_loop_statements Clight.Sskip
+     : Clight.statement
+### C.jet_secp_wnaf_control.wnaf_bit_call
+wnaf_bit_call =
+match wnaf_dispatch return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence call _ => call
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_wnaf_control.wnaf_bit_if
+wnaf_bit_if =
+match wnaf_dispatch return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ branch => branch
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_wnaf_control.wnaf_now_set
+wnaf_now_set =
+@List.nth Clight.statement (S O) jet_secp_wnaf_digit.wnaf_loop_statements Clight.Sskip
+     : Clight.statement
+### C.jet_secp_wnaf_control.wnaf_now_clamp
+wnaf_now_clamp =
+@List.nth Clight.statement (S (S O)) jet_secp_wnaf_digit.wnaf_loop_statements Clight.Sskip
+     : Clight.statement
+### C.jet_secp_wnaf_control.wnaf_window_select
+wnaf_window_select = Clight.Ssequence wnaf_now_set wnaf_now_clamp
+     : Clight.statement
+### C.jet_secp_wnaf_control.wnaf_nonzero_body
+wnaf_nonzero_body =
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement (S O) jet_secp_wnaf_digit.wnaf_loop_statements)
+  (@snd (list Clight.statement) Clight.statement
+     (jet_secp_statement_prefix.split_statement_last jet_secp_wnaf_digit.wnaf_loop_body))
+     : Clight.statement
+### C.jet_secp_wnaf_control.wnaf_select_temps
+wnaf_select_temps =
+fun (le : Maps.PTree.tree Values.val) (bit len w : BinNums.Z) =>
+let lw : Maps.PTree.tree Values.val := @Maps.PTree.set Values.val jets_secp._now (Values.Vint (Integers.Int.repr w)) le
+  in
+match Coqlib.zlt (BinInt.Z.sub len bit) w return (Maps.PTree.tree Values.val) with
+| left _ => @Maps.PTree.set Values.val jets_secp._now (Values.Vint (Integers.Int.repr (BinInt.Z.sub len bit))) lw
+| right _ => lw
+end
+     : forall (_ : Maps.PTree.tree Values.val) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z),
+       Maps.PTree.tree Values.val
+
+Arguments wnaf_select_temps le (bit len w)%Z_scope
+### C.jet_secp_wnaf_control.wnaf_after_temps
+wnaf_after_temps =
+fun (le : Maps.PTree.tree Values.val) (bit width : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_secp._bit (Values.Vint (Integers.Int.repr (BinInt.Z.add bit width)))
+  (@Maps.PTree.set Values.val jets_secp._last_set_bit (Values.Vint (Integers.Int.repr bit)) le)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : BinNums.Z) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments wnaf_after_temps le (bit width)%Z_scope
+### C.jet_secp_wnaf_control.wnaf_loop_fields
+wnaf_loop_fields =
+fun (le : Maps.PTree.tree Values.val) (bit len w carry sign : BinNums.Z) (b : Values.block) (base last : BinNums.Z) =>
+and
+  (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+     (@Some Values.val (Values.Vint (Integers.Int.repr bit))))
+  (and
+     (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le)
+        (@Some Values.val (Values.Vint (Integers.Int.repr len))))
+     (and
+        (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._w le)
+           (@Some Values.val (Values.Vint (Integers.Int.repr w))))
+        (and
+           (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._carry le)
+              (@Some Values.val (Values.Vint (Integers.Int.repr carry))))
+           (and
+              (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._sign le)
+                 (@Some Values.val (Values.Vint (Integers.Int.repr sign))))
+              (and
+                 (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._wnaf le)
+                    (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+                 (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._last_set_bit le)
+                    (@Some Values.val (Values.Vint (Integers.Int.repr last)))))))))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z)
+         (_ : BinNums.Z) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z), Prop
+
+Arguments wnaf_loop_fields le (bit len w carry sign)%Z_scope b (base last)%Z_scope
+### C.jet_secp_wnaf_control.wnaf_nonzero_temps
+wnaf_nonzero_temps =
+fun (le : Maps.PTree.tree Values.val) (n bit len w carry : BinNums.Z) =>
+let width : BinNums.Z := BinInt.Z.min w (BinInt.Z.sub len bit) in
+wnaf_after_temps
+  (jet_secp_wnaf_digit.wnaf_digit_final
+     (@Maps.PTree.set Values.val jets_secp._t'3
+        (Values.Vint
+           (Integers.Int.repr
+              (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) width)))) (wnaf_select_temps le bit len w))
+     (jet_secp_wnaf_digit.wnaf_word n bit width carry) w) bit width
+     : forall (_ : Maps.PTree.tree Values.val) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z)
+         (_ : BinNums.Z) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments wnaf_nonzero_temps le (n bit len w carry)%Z_scope

@@ -494,12 +494,29 @@ checked call theorem. Source identities tie the selected statements to the
 original wNAF loop, and the sequence-association proof preserves its actual
 call/add grouping. No external-library model is added.
 
-This is the internal reader-to-store phase, not a complete iteration, loop,
-wNAF/specification correspondence, or public jet. Window selection, skipped-bit
-control flow, last-set-bit/counter updates, invariant establishment/preservation,
-termination and return, startup, and the external `memset` boundary remain.
-Reproduce the checked phase with the same build/kernel commands above, using
-`jet_secp_wnaf_digit`. Coverage remains 505/533.
+Reproduce this internal reader-to-store phase with the same build/kernel
+commands above, using `jet_secp_wnaf_digit`.
+
+`jet_secp_wnaf_control.exec_wnaf_loop_body_step` composes that phase with the
+original low-bit read and branch, actual window clamp, skipped-bit `continue`,
+and last-set-bit/counter assignments. It executes one complete original loop
+body, for either branch, and constructs the resulting memory and temporaries.
+The bit index strictly increases without exceeding `len`; the carry remains
+0 or 1, the last-set-bit bound is preserved, and the weighted residual equation
+holds. A skipped bit leaves memory unchanged. A nonzero step performs exactly
+the signed-digit store exposed by the phase theorem. Distinct output/scalar
+blocks preserve concrete scalar storage through that store. Writable access
+and the output address bound are premises for the current cell, not an assumed
+execution or store result. The caller still has to supply them for every
+iteration. No external-library model is added.
+
+The complete body step is an internal execution/invariant theorem, not the
+whole loop, a wNAF/specification correspondence, or a public jet. Next are the
+whole-loop induction and output-array representation (including unwritten zero
+digits), establishment of the initial state, termination/return, and the literal
+point-program bridge. Startup, external `memset`, and the other generator
+obligations above remain unresolved. Reproduce the body step with the same
+build/kernel commands, using `jet_secp_wnaf_control`. Coverage remains 505/533.
 
 ## Completed: `simplicity_gej_rescale`
 
