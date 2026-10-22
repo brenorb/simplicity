@@ -181,6 +181,7 @@ def main():
             ("jet_secp_gej_curve_local.v", "gej_is_on_curve_literal_local_spec", "simplicity_gej_is_on_curve"),
             ("jet_secp_double_local.v", "gej_double_literal_local_spec", "simplicity_gej_double"),
             ("jet_secp_mixed_local.v", "gej_ge_add_literal_local_spec", "simplicity_gej_ge_add"),
+            ("jet_secp_gej_add_local.v", "gej_add_literal_local_spec", "simplicity_gej_add"),
             ("jet_secp_gej_ge_equiv_local.v", "gej_ge_equiv_literal_local_spec", "simplicity_gej_ge_equiv"),
             ("jet_secp_root_local.v", "fe_square_root_literal_local_spec", "simplicity_fe_square_root"),
             ("jet_secp_decompress_local.v", "decompress_literal_local_spec", "simplicity_decompress"),

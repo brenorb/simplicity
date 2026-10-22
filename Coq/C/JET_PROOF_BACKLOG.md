@@ -1,12 +1,13 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 503 of the 533 header declarations.
+The current local-contract registry contains 504 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 30 declarations lack a registered final proof.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 29 declarations lack a registered final proof.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
 and decompression endpoints passed ordinary scoped acceptance; accepted
 local-contract coverage is 503/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
+The registered projective-addition endpoint is pending scoped acceptance.
 
 The remaining work includes:
 
@@ -74,9 +75,9 @@ specifications/domains/identities, API contracts and generation settings fixed.
 
 ## Projective addition: current proof frontier
 
-`simplicity_gej_add` is claimed and remains **unregistered**. The target is
+`simplicity_gej_add` is now **registered, pending scoped acceptance**. The target is
 the original public `f_simplicity_gej_add`, with two unrestricted GEJ inputs
-and the existing primitive-bearing `literal_gej_add` result. The new modules
+and the existing primitive-bearing `literal_gej_add` result. The internal modules
 below passed ordinary compilation, recursive kernel checking and reviewed
 no-update focused assumption/contract comparisons. Execution results retain
 the six inherited assumptions and add no libc premise.
@@ -238,12 +239,25 @@ inherited assumptions and no extra libc premise. Reproduce with
 `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
 C.jet_secp_gej_add_function`.
 
-Next compose both public GEJ reads, this helper call and the existing writer,
-with the actual public source-frame copy and three local allocations/frees.
-The general Z bridge
-retains the extra Bz factor: the executed prefix computes T=H*Bz, skips the
-NULL ratio write, then Rz=Az*T. Do not substitute a mixed-addition call.
-Remaining work also includes canonical whole-contract gating and scoped acceptance.
+`jet_secp_gej_add_local.gej_add_literal_local_spec` proves the complete public
+jet. Its seven public modules derive both original GEJ reads, the helper call,
+the original writer and true return, the actual source-frame copy and all three
+public allocations/frees (16/128/128 bytes). Inputs span 1536 bits, outputs 768;
+valid cursors and unrelated output contents are arbitrary. No curve or
+canonical-input restriction and no libc premise is added. Normal compilation
+and reviewed no-update focused snapshots passed. The existing canonical-source
+gate now checks the GejAdd catalog route, shared literal tree and complete
+public type, rejecting ten targeted mutations; inventory regressions pass.
+
+The remaining acceptance step is the full scoped check on the registration
+commit, without update flags:
+
+```sh
+JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_add
+```
+
+Do not count this endpoint as accepted until that command terminates
+successfully on unchanged inputs. The every-jet goal remains incomplete.
 
 Field inversion is a separate, later dependency: the actual `fe_inv_var`
 uses signed62 conversion and `modinv64_var`, not the square-root addition

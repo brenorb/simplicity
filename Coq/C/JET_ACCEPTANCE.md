@@ -2,7 +2,7 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 503/533 jets (367 without an extra libc
+The local-contract registry contains 504/533 jets (368 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
 503/533, including the computing issuance hash, affine/projective curve,
 projective X-equivalence, doubling, mixed-addition, square-root and mixed
@@ -21,6 +21,20 @@ on that commit:
 
 ```sh
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_decompress
+```
+
+The projective-addition public theorem
+`C.jet_secp_gej_add_local.gej_add_literal_local_spec` is now registered, bringing
+the registry to 504/533 (29 declarations without a registered final proof).
+It proves the original full public C call against `literal_gej_add`, with no
+extra libc premise or input restriction. Its public modules passed normal
+compilation and reviewed no-update focused snapshots; the canonical catalog,
+literal and whole-contract gate rejects ten targeted mutations and inventory
+regressions pass. **Scoped acceptance is pending**; accepted coverage remains
+503/533 until the following command succeeds on the registration commit:
+
+```sh
+JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_add
 ```
 
 The earlier 430-entry baseline passed

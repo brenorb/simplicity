@@ -184,6 +184,26 @@ def check_mixed(s):
         raise ValueError("GejGeAdd full public contract differs")
 
 
+def check_projective(s):
+    """Canonical two-projective-point dispatch and the unrestricted public type."""
+    check_addition_ports(s)
+    for fragment in [
+        "GejAdd :: Secp256k1Jet (Secp256k1.GEJ,Secp256k1.GEJ) Secp256k1.GEJ",
+        "specificationSecp256k1 GejAdd = Secp256k1.gej_add",
+        "implementationSecp256k1 GejAdd = FFI.gej_add",
+    ]:
+        p.require(s["catalog"], fragment, "GejAdd catalog")
+    for declaration in ["type FE = Word256", "type GE = (FE, FE)", "type GEJ = (GE, FE)"]:
+        p.require(s["types"], declaration, "projective-addition representation")
+    statement = re.search(r"Theorem gej_add_literal_local_spec\s*:(.*?)\bProof\.", s["projective_jet"], re.S)
+    expected = "secp_jet_local_spec f_simplicity_gej_add " \
+        "(Ty.Prod (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) " \
+        "(Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8))) " \
+        "(Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) (@literal_gej_add Alg.CoreFunSem)."
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError("GejAdd full public contract differs")
+
+
 def check_gej_ge_equiv_ports(s):
     """Exact canonical mixed-equivalence composition and representation."""
     for fragment in [
@@ -344,6 +364,7 @@ def test():
         "double_jet": COQ / "C/jet_secp_double_local.v",
         "add_port": COQ / "C/jet_secp_add_literal.v",
         "mixed_jet": COQ / "C/jet_secp_mixed_local.v",
+        "projective_jet": COQ / "C/jet_secp_gej_add_local.v",
         "root_port": COQ / "C/jet_secp_root_literal.v",
         "root_jet": COQ / "C/jet_secp_root_local.v",
         "equiv_port": COQ / "C/jet_secp_gej_ge_equiv_literal.v",
@@ -578,6 +599,35 @@ def test():
             continue
         raise ValueError("accepted decompression source mutation: " + old)
     print(f"Decompress catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
+
+    check_projective(s)
+    mutations = [
+        ("catalog", "specificationSecp256k1 GejAdd = Secp256k1.gej_add",
+                    "specificationSecp256k1 GejAdd = Secp256k1.gej_ge_add"),
+        ("catalog", "implementationSecp256k1 GejAdd = FFI.gej_add",
+                    "implementationSecp256k1 GejAdd = FFI.gej_ge_add"),
+        ("catalog", "GejAdd :: Secp256k1Jet (Secp256k1.GEJ,Secp256k1.GEJ) Secp256k1.GEJ",
+                    "GejAdd :: Secp256k1Jet (Secp256k1.GEJ,Secp256k1.GE) Secp256k1.GEJ"),
+        ("types", "type GEJ = (GE, FE)", "type GEJ = (FE, GE)"),
+        ("program", "gej_add = gej_add_ex >>> ih", "gej_add = gej_add_ex >>> oh"),
+        ("add_port", "@literal_gej_add_ex term >>> I H", "@literal_gej_add_ex term >>> O H"),
+        ("projective_jet", "secp_jet_local_spec f_simplicity_gej_add",
+                           "False -> secp_jet_local_spec f_simplicity_gej_add"),
+        ("projective_jet", "f_simplicity_gej_add", "f_secp256k1_gej_add_var"),
+        ("projective_jet", "(Word 8)", "(Word 7)"),
+        ("projective_jet", "@literal_gej_add Alg.CoreFunSem", "@literal_gej_ge_add Alg.CoreFunSem"),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError("inactive projective-addition mutation fixture: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_projective(changed)
+        except ValueError:
+            continue
+        raise ValueError("accepted projective-addition source mutation: " + old)
+    print(f"GejAdd catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
 
 
 if __name__ == "__main__":
