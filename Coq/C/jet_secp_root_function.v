@@ -10,18 +10,18 @@ Import ListNotations Ctypes Values.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 Local Opaque secp_ge root_chain_candidate.
-Definition root_helper_env b2 b3 b6 b9 b11 b22 b44 b88 b176 b220 b223 bt := 
- PTree.set _t1 (bt,curve_fe_type) 
-  (PTree.set _x223 (b223,curve_fe_type) 
-  (PTree.set _x220 (b220,curve_fe_type) 
-  (PTree.set _x176 (b176,curve_fe_type) 
-  (PTree.set _x88 (b88,curve_fe_type) 
-  (PTree.set _x44 (b44,curve_fe_type) 
-  (PTree.set _x22 (b22,curve_fe_type) 
-  (PTree.set _x11 (b11,curve_fe_type) 
-  (PTree.set _x9 (b9,curve_fe_type) 
-  (PTree.set _x6 (b6,curve_fe_type) 
-  (PTree.set _x3 (b3,curve_fe_type) 
+Definition root_helper_env b2 b3 b6 b9 b11 b22 b44 b88 b176 b220 b223 bt :=
+ PTree.set _t1 (bt,curve_fe_type)
+  (PTree.set _x223 (b223,curve_fe_type)
+  (PTree.set _x220 (b220,curve_fe_type)
+  (PTree.set _x176 (b176,curve_fe_type)
+  (PTree.set _x88 (b88,curve_fe_type)
+  (PTree.set _x44 (b44,curve_fe_type)
+  (PTree.set _x22 (b22,curve_fe_type)
+  (PTree.set _x11 (b11,curve_fe_type)
+  (PTree.set _x9 (b9,curve_fe_type)
+  (PTree.set _x6 (b6,curve_fe_type)
+  (PTree.set _x3 (b3,curve_fe_type)
   (PTree.set _x2 (b2,curve_fe_type) (empty_env)))))))))))).
 Definition root_helper_bindings b2 b3 b6 b9 b11 b22 b44 b88 b176 b220 b223 bt : list (ident*block) := [(_x2,b2);(_x3,b3);(_x6,b6);(_x9,b9);(_x11,b11);(_x22,b22);(_x44,b44);(_x88,b88);(_x176,b176);(_x220,b220);(_x223,b223);(_t1,bt)].
 Definition root_entry_temps br ba := PTree.set _a (Vptr ba Ptrofs.zero)

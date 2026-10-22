@@ -1654,21 +1654,25 @@ allocation/freshness/free-list proof pattern from `jet_secp_mixed_function.v`.
 Next complete the public frame reader/conditional-writer wrapper and its
 local equivalence contract. The public jet remains unproved; these helper
 modules do not increase coverage.
+`jet_secp_root_function_literal.eval_root_function_literal` now specializes
+the complete helper call to the actual reader representation of every
+Word256 input. It proves the candidate's serialized field value equals the
+literal candidate and relates the return bit and both result branches to
+`literal_fe_square_root`, with no mathematical square-root premise.
+`jet_secp_owned_field_write` supplies the original bounded field writer after
+an arbitrary existing output prefix; `jet_secp_field_skip` executes the real
+`skip_fe`/`skipBits` chain and appends unconstrained padding cells.
+`jet_secp_root_result_write.eval_root_result_writes` composes actual tag and
+conditional payload calls with the full sum encoding, general cursors,
+preserved prefix bits and arbitrary initial output contents. These calls
+are derived, not assumed. The remaining composition is the public wrapper's
+entry/source-frame copy/read, its temporary assignments and conditional,
+helper call, writes, return and three local frees; it is not registered yet.
 
 ```sh
-JET_TARGETS='C/jet_secp_root_literal.vo C/jet_secp_root_square_loop.vo C/jet_secp_root_square_bridge.vo C/jet_secp_root_stage.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_literal C.jet_secp_root_square_loop C.jet_secp_root_square_bridge C.jet_secp_root_stage
+JET_TARGETS='C/jet_secp_root_function_literal.vo C/jet_secp_root_result_write.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_function_literal C.jet_secp_root_result_write
 python3 Coq/secp-field-integration/check-rescale.py
-JET_TARGETS='C/jet_secp_root_tower_step.vo C/jet_secp_root_chain_owned.vo C/jet_secp_root_chain_numeric.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_tower_step C.jet_secp_root_chain_owned C.jet_secp_root_chain_numeric
-JET_TARGETS=C/jet_secp_root_check.vo bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_check
-JET_TARGETS='C/jet_secp_root_call_state.vo C/jet_secp_root_prefix.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_call_state C.jet_secp_root_prefix
-JET_TARGETS='C/jet_secp_root_candidate_state.vo C/jet_secp_root_suffix.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_candidate_state C.jet_secp_root_suffix
-JET_TARGETS=C/jet_secp_root_function.vo bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_function
 ```
 
 Leave `simplicity_gej_ge_add_ex` unresolved: its equal-point ratio disagrees
