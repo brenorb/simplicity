@@ -1614,10 +1614,18 @@ candidate and checking square to that fixed program for arbitrary Word256
 inputs represented modulo the field order. This is not a mathematical
 square-root theorem and adds no primality premise. The final-state lookup
 lemmas tie the execution's stored fields to the same numeric word functions.
+`jet_secp_root_check` now proves that the final C equality/return fragment
+selects the literal program's success/failure branch. It consumes concrete
+storage for the checking square and input, derives the comparison execution
+from the selected equality-helper proof, and preserves the two allocations.
+Its `root_final_check_source` identifies the original suffix at statement 40;
+`root_result_matches` includes both branches and the success payload, without
+assuming that the computed candidate is a mathematical root.
 Next prove the initial four square/multiply calls establish this `x2`/`x3`
-storage, compose the final calls and equality test, then discharge function
-entry/frees and the public reader/conditional writer. The whole helper and
-public jet remain unproved; these modules do not increase coverage.
+storage, execute the remaining candidate/checking-square calls, then compose
+the equality fragment and discharge function entry/frees and the public
+reader/conditional writer. The whole helper and public jet remain unproved;
+these modules do not increase coverage.
 
 ```sh
 JET_TARGETS='C/jet_secp_root_literal.vo C/jet_secp_root_square_loop.vo C/jet_secp_root_square_bridge.vo C/jet_secp_root_stage.vo' bash Coq/build-jets.sh -j2
@@ -1625,6 +1633,8 @@ bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_roo
 python3 Coq/secp-field-integration/check-rescale.py
 JET_TARGETS='C/jet_secp_root_tower_step.vo C/jet_secp_root_chain_owned.vo C/jet_secp_root_chain_numeric.vo' bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_tower_step C.jet_secp_root_chain_owned C.jet_secp_root_chain_numeric
+JET_TARGETS=C/jet_secp_root_check.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_check
 ```
 
 Leave `simplicity_gej_ge_add_ex` unresolved: its equal-point ratio disagrees
