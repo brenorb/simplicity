@@ -443,6 +443,24 @@ external `memset`; that library boundary is reported in
 [JET_SECP_EXTERNAL_MISMATCHES.md](JET_SECP_EXTERNAL_MISMATCHES.md), not assumed
 discharged by the splitting proof. Coverage remains 505/533.
 
+`jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
+original single-word bit-reader call from concrete `scalar_at` storage for
+any 256-bit value. For offsets in `[0,256)`, counts in `[0,32]`, and a window
+contained in one 64-bit limb, it returns the represented value
+`(value / 2^offset) mod 2^count`, with the exact same memory and an empty
+trace. This covers wNAF's top-bit read at `(255,1)` and its one-bit loop reads.
+The proof includes the actual no-op assertion loop, field/index load, shift
+guards, mask, return cast and function lifecycle. It reuses the checked
+repacking mask and unsigned-shift lemmas, adds no external model, and does
+not require a canonical scalar or writable storage.
+
+This is a helper, not public coverage or the cross-word `scalar_get_bits_var`
+result. The latter and its window-composition bridge are the next reader
+obligations. The original external `memset` boundary and the other public
+generation obligations above remain unresolved. Reproduce this helper with
+the two commands above, replacing `jet_secp_scalar_split128` with
+`jet_secp_scalar_get_bits`.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
