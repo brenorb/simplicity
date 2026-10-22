@@ -138,6 +138,24 @@ the six inherited assumptions and add no libc premise.
   and framing; T and H2 need no initialized contents. Normal compilation,
   recursive kernel checking and reviewed no-update focused snapshots passed.
 
+The complete finite helper body is now connected:
+
+- `jet_secp_gej_add_nonzero_tail` executes the entire actual H-nonzero tail,
+  using the projective Z prefix above and the already-checked shared H2/H3/T
+  and X/Y statements. It adds no intermediate-execution premise.
+- `jet_secp_gej_add_finite_nonzero` composes that tail with the first 14
+  statements, deriving the final fields, flag, bounds, all thirteen owners and
+  framing from the six original coordinates and uninitialized private fields.
+- `jet_secp_gej_add_finite_body.exec_gej_add_finite_body` combines the H=0 and
+  H-nonzero cases, removing the H-case premise. It proves execution of the
+  whole original helper body for both finite input flags, with exact machine
+  output words, all eleven local owners, both point owners and framing.
+  Ordinary compilation, recursive kernel checking of the full dependency
+  closure and reviewed no-update focused assumption/contract comparisons
+  passed for these three modules. The result retains the six inherited
+  assumptions and no extra libc premise. It is not yet a public equivalence
+  theorem: the finite literal bridge and function/public lifecycles remain.
+
 Reproduce this checked internal frontier:
 
 ```sh
@@ -174,12 +192,18 @@ Reproduce the nonzero Z prefix with
 then `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
 C.jet_secp_gej_add_nonzero_start`.
 
-Next compose the finite H-nonzero prefix with the shared H2/H3/T and X/Y tail.
-The nonzero branch has a
-different Z prefix: actual T=H*Bz, optional ratio copy (NULL in this public
-caller), then Rz=Az*T; after that its H2/H3/T and X/Y blocks are identical to
-the checked mixed-addition blocks. Do not drop the Bz factor or substitute a
-mixed-addition call. Remaining work includes the finite literal bridge, all
+Reproduce the unified finite body with
+`JET_TARGETS='C/jet_secp_gej_add_finite_body.vo' bash Coq/build-jets.sh -j2`,
+then `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_gej_add_finite_body`.
+
+Next connect its exact reader-derived output words and H/I dispatch to the
+fixed literal Simplicity result. Reuse `literal_gej_add_finite_step` (already
+general in both points), `mixed_x_matches_literal`, `mixed_y_matches_literal`
+and the existing doubling/zero writer bridges. The general Z bridge must
+retain the extra Bz factor: the executed prefix computes T=H*Bz, skips the
+NULL ratio write, then Rz=Az*T. Do not substitute a mixed-addition call.
+Remaining work includes that finite literal bridge, all
 eleven helper-local allocations/frees, both public GEJ reads, the writer and
 outer lifecycle, canonical whole-contract gating and scoped acceptance.
 
