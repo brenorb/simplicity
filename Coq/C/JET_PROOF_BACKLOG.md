@@ -1615,68 +1615,75 @@ The main session reserves `simplicity_gej_ge_equiv`. Its fixed program is
 `take gej_negate &&& ih >>> gej_ge_add >>> gej_is_infinity`. The original C
 helper `secp256k1_gej_eq_ge_var` allocates one fresh 128-byte temporary, negates
 the input into it, performs in-place mixed addition and returns its infinity
-flag. Reuse the existing two readers, mixed-addition and flag accessor proofs;
-the public function writes a single bit.
+flag. The public function reads a projective and an affine point and writes
+one bit. This jet remains **unregistered**; coverage is still 501/533.
 
-`jet_secp_gej_ge_equiv_literal` ports that exact program and proves its
-parametricity/composition. `jet_secp_gej_negate_separate_copy` reuses the
-verified field-struct copy to execute the three original copies between
-distinct points, preserving permissions and the infinity-flag slot.
-`jet_secp_gej_negate_separate.eval_gej_negate_separate` now derives the full
-original negation call into an uninitialized distinct destination, including
-source flag copy, X/Y/Z copies, both Y arithmetic calls, entry and return.
-It supplies all three result fields, flag, allocation permissions and framing
-outside the result point. These are internal support results, not public
-mixed-equivalence coverage. Their normal build, recursive kernel check and
-focused assumption/contract comparisons passed. The literal port's two lemmas
-are closed; execution keeps the same six inherited assumptions and no libc
-premise. The existing correspondence gate rejects six mutations of this new
-port; the coverage count remains 501/533.
+Completed ordinary support, with normal builds, recursive kernel checking and
+reviewed focused assumption/contract comparisons:
+
+- `jet_secp_gej_ge_equiv_literal` ports the exact program and proves its
+  parametricity/composition (closed). The existing correspondence gate rejects
+  six mutations; this is not a public equivalence proof.
+- `jet_secp_gej_negate_separate.eval_gej_negate_separate` derives the full
+  original negation call into an uninitialized distinct destination: flag
+  copy, three field copies, both Y arithmetic calls, entry and return.
+  It returns all fields, flag, ownership and outside-result framing.
+- `jet_secp_field_weak_loose` executes the actual weak-normalizer on limbs
+  bounded by 2^60, retaining its changed output as `weak_loose_words`.
+  It proves modular-value preservation and downstream `mul_small_input_bounds`
+  (52-bit lower limbs and a 49-bit upper limb), without assuming canonical or
+  positioned output. Its closed negated-reader lemmas identify the preceding
+  negation's output and discharge the interval bounds.
+- `jet_secp_mixed_copy_weak_loose` and `jet_secp_mixed_preparation_loose`
+  derive the actual copy/normalize pairs and seven preparation statements.
+  `jet_secp_mixed_finite_loose` composes both flag checks, the initial Z square,
+  preparation and H/I differences. Raw point Y is preserved; S1 contains the
+  actual normalized value, and I is derived from S1.
+- `jet_secp_mixed_return_loose` covers H=0, including doubling and
+  infinity-setting. `jet_secp_mixed_body_loose` covers every finite H/I
+  branch and the incoming-infinity branch of the original body.
+  Crucially, doubling consumes raw point Y while nonzero Y arithmetic uses
+  normalized S1; neither representation is silently substituted for the other.
+- `jet_secp_mixed_function_loose.eval_mixed_function_loose` derives the
+  **complete original mixed-addition helper call** with NULL rzr, including all
+  ten actual allocations/frees and return conversion. It needs only the two
+  separated caller-owned points, represented inputs and their machine bounds;
+  no initialized private field, intermediate execution or arithmetic result
+  is a premise. It returns all result coordinates, the actual infinity flag,
+  caller allocation ownership, output bounds and external framing.
+
+Execution retains the same six inherited assumptions and no extra libc model.
+These are internal C execution contracts, not replacement Simplicity targets
+or additional public coverage. Reproduce the latest helper closure with:
 
 ```sh
-JET_TARGETS='C/jet_secp_gej_ge_equiv_literal.vo C/jet_secp_gej_negate_separate.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_ge_equiv_literal C.jet_secp_gej_negate_separate
+JET_TARGETS='C/jet_secp_gej_negate_separate.vo C/jet_secp_mixed_function_loose.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_negate_separate C.jet_secp_mixed_function_loose
 ```
 
-`jet_secp_field_weak_loose` now executes the original weak-normalizer on limbs
-bounded by 2^60 and retains its actual changed output as `weak_loose_words`.
-It proves modular-value preservation and the downstream `mul_small_input_bounds`
-(52-bit lower limbs and a 49-bit upper limb), without assuming canonical or
-positioned output. Its closed negated-reader lemmas identify the preceding
-negation's concrete output and discharge these machine bounds for every input.
-`jet_secp_mixed_copy_weak_loose` derives the original copy/normalize pair while
-preserving the raw source coordinate. `exec_mixed_preparation_loose` composes
-the exact seven preparation statements, tracking raw point Y separately from
-normalized S1. These ordinary modules passed normal compilation, recursive
-kernel checking and reviewed focused snapshots, with the same inherited
-assumptions and no new libc premise. Reproduce this internal result with:
+Next missing implications:
 
-```sh
-JET_TARGETS=C/jet_secp_mixed_preparation_loose.vo bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_preparation_loose
-```
+1. Compose the three actual calls in `secp256k1_gej_eq_ge_var`, deriving
+   negation's loose Y bounds from the actual reader representation. Prove its
+   fresh temporary's allocation/free, result conversion and external frame.
+   Reuse the checked helper calls above rather than replaying their bodies.
+2. Relate the resulting word/flag model to `literal_gej_ge_equiv` for all
+   Word256 coordinates. Use the proved weak-normalization residue bridge, and
+   derive the returned flag's agreement with the literal infinity test.
+   Do not replace this with coordinate equality on curve points or add curve,
+   canonical-input, intermediate-result or unproved field/primality premises.
+3. Compose the public entry, by-value source-frame copy, two readers, helper,
+   bit writer, return and outer frees. The output capacity is **one bit**:
+   use the capacity-independent reader infrastructure (as in
+   `jet_secp_x_equiv_public_reads.v`), not the unrelated 768-bit output
+   precondition of the earlier mixed-addition reader adapter.
+4. Only after the complete standard local contract exists, register it and
+   run ordinary scoped acceptance without update flags. Keep production C,
+   specifications, API contracts and generation settings fixed.
 
-The next missing implication is the rest of mixed addition on this **actual
-negated representation**, followed by the flag-to-literal bridge. Do not apply
-`eval_mixed_literal` blindly: `eval_mixed_function` currently requires positioned
-`fe_limbs_ok` X/Y inputs, whereas C negation emits magnitude-two limbs
-(`4*negate_mask - limb`). Use the generalized preparation above for these limbs;
-its output needs the looser arithmetic bounds, not the old positioned identity.
-Do not insert a new normalization call or assume a canonical intermediate.
-Then derive the actual returned infinity flag's agreement with the literal
-test, including zero/noncanonical/off-curve inputs; compose the helper's one
-allocation/free and the public wrapper. No curve or new algebraic assumption
-may be added to the final standard local contract.
-
-`jet_secp_mixed_finite_loose` now derives the original finite prefix through
-the two flag checks, initial Z square, all preparation calls and H/I
-differences. Its normal build, recursive kernel check and focused snapshot
-comparisons passed. It preserves raw Y in the point, retains `weak_loose_words y`
-in S1, and derives I from that actual normalized temporary, including its
-value and arithmetic bounds. No private field is assumed initialized. Next
-compose the existing H=0/other suffix proofs with this state; doubling must
-consume the raw point Y while the nonzero Y formula consumes normalized S1.
-
+Do not apply the earlier `eval_mixed_literal` directly to negation's output:
+its positioned-`fe_limbs_ok` Y premise is too restrictive. The loose-input
+execution path above is the checked replacement for that internal boundary.
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:
