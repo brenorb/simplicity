@@ -1,0 +1,89 @@
+### C.jet_secp_divstep_bounds.inv_log2_abs_double
+inv_log2_abs_double
+     : forall (a : BinNums.Z) (_ : not (@eq BinNums.Z a BinNums.Z0)),
+       @eq BinNums.Z (BinInt.Z.log2 (BinInt.Z.abs (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) a)))
+         (BinInt.Z.add (BinNums.Zpos BinNums.xH) (BinInt.Z.log2 (BinInt.Z.abs a)))
+### C.jet_secp_divstep_bounds.inv_live_eta_range
+inv_live_eta_range
+     : forall (B : BinNums.Z) (st : divstep.State) (_ : inv_live_delta_bound B st),
+       and (BinInt.Z.le (BinInt.Z.sub (BinInt.Z.opp B) (BinNums.Zpos BinNums.xH)) (divstep.eta st))
+         (BinInt.Z.le (divstep.eta st) B)
+### C.jet_secp_divstep_bounds.inv_live_batch_eta
+inv_live_batch_eta
+     : forall (B : BinNums.Z) (st : divstep.State) (k : nat) (_ : inv_live_delta_bound B st)
+         (_ : le k (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       and
+         (BinInt.Z.le
+            (BinInt.Z.opp
+               (BinInt.Z.add B
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+            (divstep.eta (@fst divstep.State (list divstep.Step) (divstep.stepN k st))))
+         (BinInt.Z.lt (divstep.eta (@fst divstep.State (list divstep.Step) (divstep.stepN k st)))
+            (BinInt.Z.add B
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+### C.jet_secp_divstep_bounds.inv_initial_delta_bound
+inv_initial_delta_bound
+     : forall (B : BinNums.Z) (st : divstep.State) (_ : BinInt.Z.le BinNums.Z0 B)
+         (_ : @eq BinNums.Z (divstep.delta st) (BinNums.Zpos BinNums.xH))
+         (_ : BinInt.Z.le (BinInt.Z.abs (divstep.g st)) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) B)),
+       inv_live_delta_bound B st
+### C.jet_secp_divstep_bounds.inv_live_delta_step
+inv_live_delta_step
+     : forall (B : BinNums.Z) (st : divstep.State) (_ : BinInt.Z.le BinNums.Z0 B)
+         (_ : BinInt.Z.le (BinInt.Z.abs (divstep.f st)) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) B))
+         (_ : BinInt.Z.le (BinInt.Z.abs (divstep.g st)) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) B))
+         (_ : inv_live_delta_bound B st)
+         (_ : not (@eq BinNums.Z (divstep.g (@fst divstep.State divstep.Step (divstep.step st))) BinNums.Z0)),
+       inv_live_delta_bound B (@fst divstep.State divstep.Step (divstep.step st))
+### C.jet_secp_divstep_bounds.inv_live_delta_trajectory
+inv_live_delta_trajectory
+     : forall (B : BinNums.Z) (st : divstep.State) (n : nat) (_ : BinInt.Z.le BinNums.Z0 B)
+         (_ : BinInt.Z.le (BinInt.Z.abs (divstep.f st)) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) B))
+         (_ : BinInt.Z.le (BinInt.Z.abs (divstep.g st)) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) B))
+         (_ : inv_live_delta_bound B st)
+         (_ : not (@eq BinNums.Z (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) BinNums.Z0)),
+       inv_live_delta_bound B (@fst divstep.State (list divstep.Step) (divstep.stepN n st))
+### C.jet_secp_divstep_bounds.inv_256_batch_eta_safe
+inv_256_batch_eta_safe
+     : forall (st : divstep.State) (n k : nat) (_ : @eq BinNums.Z (divstep.delta st) (BinNums.Zpos BinNums.xH))
+         (_ : BinInt.Z.le (BinInt.Z.abs (divstep.f st))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : BinInt.Z.le (BinInt.Z.abs (divstep.g st))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : or (@eq nat n O)
+                (not
+                   (@eq BinNums.Z (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) BinNums.Z0)))
+         (_ : le k (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       and
+         (BinInt.Z.le
+            (BinNums.Zneg
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+            (divstep.eta
+               (@fst divstep.State (list divstep.Step)
+                  (divstep.stepN k (@fst divstep.State (list divstep.Step) (divstep.stepN n st))))))
+         (BinInt.Z.lt
+            (divstep.eta
+               (@fst divstep.State (list divstep.Step)
+                  (divstep.stepN k (@fst divstep.State (list divstep.Step) (divstep.stepN n st)))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_divstep_bounds.inv_live_delta_bound
+inv_live_delta_bound =
+fun (B : BinNums.Z) (st : divstep.State) =>
+and (BinInt.Z.le (BinInt.Z.opp B) (divstep.delta st))
+  (BinInt.Z.le (BinInt.Z.add (divstep.delta st) (BinInt.Z.log2 (BinInt.Z.abs (divstep.g st))))
+     (BinInt.Z.add B (BinNums.Zpos BinNums.xH)))
+     : forall (_ : BinNums.Z) (_ : divstep.State), Prop
+
+Arguments inv_live_delta_bound B%Z_scope st

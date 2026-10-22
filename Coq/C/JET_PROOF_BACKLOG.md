@@ -320,8 +320,8 @@ bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_sig
 
 These are preparation results, not an inversion jet proof: the structural body
 composition still takes the modular-inverse call as an internal premise.
-Remaining obligations include actual production divstep batches and their
-termination and machine-safe bounds, signed128 updates, length shrinking,
+Remaining obligations include actual production divstep batches and lifting
+arithmetic termination to their execution, signed128 updates, length shrinking,
 sparse-modulus normalization, the canonical word-level Bezout bridge, and the
 complete public caller with allocation/freeing and frame preservation. No
 inversion registration or coverage increase is claimed.
@@ -340,6 +340,19 @@ definitions-only shell and Nix dependency builds passed; neither compiles the
 724-step certificate. This removes the arithmetic termination obligation, not
 the pending production-loop execution, machine-bound or specification bridge
 obligations.
+
+`jet_secp_divstep_bounds.inv_256_batch_eta_safe` additionally proves
+`-320 <= eta < 320` throughout any 62-step batch started by a 256-bit
+trajectory: the initial batch may have zero input, and subsequent batches
+require precisely the nonzero-`g` continuation test. The bound includes the
+trailing steps of a batch after `g` reaches zero. It follows from a preserved
+`delta + log2(abs(g))` bound, not a fixed iteration certificate. All seven
+exported lemmas are closed; normal compilation, recursive kernel checking and
+reviewed no-update snapshots passed. Reproduce using the same focused commands
+above with `jet_secp_divstep_bounds` in place of `jet_secp_divstep_termination`.
+This supplies the arithmetic `eta` bound for a future execution invariant; it
+does not establish that the C batch implements the transition, or prove its
+other machine-operation and storage obligations.
 
 The older VST development under `C/secp256k1/` supplies reusable pure arithmetic,
 but its VERIFY translation unit is not the production program. Its canonical
