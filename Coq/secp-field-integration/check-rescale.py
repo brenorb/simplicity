@@ -184,6 +184,21 @@ def check_mixed(s):
         raise ValueError("GejGeAdd full public contract differs")
 
 
+def check_gej_ge_equiv_ports(s):
+    """The next helper composition's port; not a public equivalence proof."""
+    for fragment in [
+        "GejGeEquiv :: Secp256k1Jet (Secp256k1.GEJ, Secp256k1.GE) Bit",
+        "specificationSecp256k1 GejGeEquiv = Secp256k1.gej_ge_equiv",
+    ]:
+        p.require(s["catalog"], fragment, "GejGeEquiv catalog")
+    impl = s["program"].split("lib@Lib{..} = Lib {", 1)[1]
+    p.exact_program(impl, "gej_ge_equiv", "gej_x_equiv",
+                    "take (gej_negate) &&& ih >>> gej_ge_add >>> gej_is_infinity")
+    expected = "O (@literal_gej_negate term) &&& I H >>> @literal_gej_ge_add term >>> @literal_gej_is_infinity term"
+    if p.compact(p.definition(s["equiv_port"], "literal_gej_ge_equiv")) != p.compact(expected):
+        raise ValueError("literal mixed-equivalence tree differs")
+
+
 def check_root_ports(s):
     """Check routing/counts of the fixed square-root program and its port."""
     for fragment in [
@@ -275,6 +290,7 @@ def test():
         "mixed_jet": COQ / "C/jet_secp_mixed_local.v",
         "root_port": COQ / "C/jet_secp_root_literal.v",
         "root_jet": COQ / "C/jet_secp_root_local.v",
+        "equiv_port": COQ / "C/jet_secp_gej_ge_equiv_literal.v",
     }.items()}
     check(s)
     mutations = [
@@ -434,6 +450,28 @@ def test():
             continue
         raise ValueError("accepted root source mutation: " + old)
     print(f"FeSquareRoot catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
+    check_gej_ge_equiv_ports(s)
+    mutations = [
+        ("catalog", "specificationSecp256k1 GejGeEquiv = Secp256k1.gej_ge_equiv",
+                    "specificationSecp256k1 GejGeEquiv = Secp256k1.gej_equiv"),
+        ("catalog", "GejGeEquiv :: Secp256k1Jet (Secp256k1.GEJ, Secp256k1.GE) Bit",
+                    "GejGeEquiv :: Secp256k1Jet (Secp256k1.GEJ, Secp256k1.GE) Word256"),
+        ("program", "gej_ge_equiv = take (gej_negate)", "gej_ge_equiv = drop (gej_negate)"),
+        ("equiv_port", "O (@literal_gej_negate term)", "I (@literal_gej_negate term)"),
+        ("equiv_port", ">>> @literal_gej_ge_add term", ">>> @literal_gej_add term"),
+        ("equiv_port", ">>> @literal_gej_is_infinity term", ">>> @literal_gej_x_equiv term"),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError("inactive mixed-equivalence mutation fixture: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_gej_ge_equiv_ports(changed)
+        except ValueError:
+            continue
+        raise ValueError("accepted mixed-equivalence source mutation: " + old)
+    print(f"GejGeEquiv literal port matches; {len(mutations)} targeted mutations rejected; no public equivalence coverage")
 
 
 if __name__ == "__main__":

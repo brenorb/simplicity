@@ -1609,6 +1609,47 @@ with C on a legitimate noncanonical Word256 input, as documented in
 [JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md). Do not fix that
 target or restrict inputs while pursuing independent jets.
 
+## Next claimed target: gej_ge_equiv
+
+The main session reserves `simplicity_gej_ge_equiv`. Its fixed program is
+`take gej_negate &&& ih >>> gej_ge_add >>> gej_is_infinity`. The original C
+helper `secp256k1_gej_eq_ge_var` allocates one fresh 128-byte temporary, negates
+the input into it, performs in-place mixed addition and returns its infinity
+flag. Reuse the existing two readers, mixed-addition and flag accessor proofs;
+the public function writes a single bit.
+
+`jet_secp_gej_ge_equiv_literal` ports that exact program and proves its
+parametricity/composition. `jet_secp_gej_negate_separate_copy` reuses the
+verified field-struct copy to execute the three original copies between
+distinct points, preserving permissions and the infinity-flag slot.
+`jet_secp_gej_negate_separate.eval_gej_negate_separate` now derives the full
+original negation call into an uninitialized distinct destination, including
+source flag copy, X/Y/Z copies, both Y arithmetic calls, entry and return.
+It supplies all three result fields, flag, allocation permissions and framing
+outside the result point. These are internal support results, not public
+mixed-equivalence coverage. Their normal build, recursive kernel check and
+focused assumption/contract comparisons passed. The literal port's two lemmas
+are closed; execution keeps the same six inherited assumptions and no libc
+premise. The existing correspondence gate rejects six mutations of this new
+port; the coverage count remains 501/533.
+
+```sh
+JET_TARGETS='C/jet_secp_gej_ge_equiv_literal.vo C/jet_secp_gej_negate_separate.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_ge_equiv_literal C.jet_secp_gej_negate_separate
+```
+
+The next missing implication is mixed addition on this **actual negated
+representation**, followed by the flag-to-literal bridge. Do not apply
+`eval_mixed_literal` blindly: `eval_mixed_function` currently requires positioned
+`fe_limbs_ok` X/Y inputs, whereas C negation emits magnitude-two limbs
+(`4*negate_mask - limb`). Generalize the relevant preparation/weak-normalization
+proof to execute the existing C weak-normalization call on these loose limbs.
+Do not insert a new normalization call or assume a canonical intermediate.
+Then derive the actual returned infinity flag's agreement with the literal
+test, including zero/noncanonical/off-curve inputs; compose the helper's one
+allocation/free and the public wrapper. No curve or new algebraic assumption
+may be added to the final standard local contract.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:
