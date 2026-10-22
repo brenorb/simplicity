@@ -510,13 +510,35 @@ and the output address bound are premises for the current cell, not an assumed
 execution or store result. The caller still has to supply them for every
 iteration. No external-library model is added.
 
-The complete body step is an internal execution/invariant theorem, not the
-whole loop, a wNAF/specification correspondence, or a public jet. Next are the
-whole-loop induction and output-array representation (including unwritten zero
-digits), establishment of the initial state, termination/return, and the literal
-point-program bridge. Startup, external `memset`, and the other generator
-obligations above remain unresolved. Reproduce the body step with the same
-build/kernel commands, using `jet_secp_wnaf_control`. Coverage remains 505/533.
+Reproduce the body step with the same build/kernel commands, using
+`jet_secp_wnaf_control`.
+
+`jet_secp_wnaf_loop.exec_wnaf_loop` now derives execution and termination of
+the complete original loop from a concrete array invariant. Its induction uses
+the decreasing number of remaining bit positions; it does not assume a loop
+execution or a fixed number of successful stores. The invariant connects each
+logical digit to its actual signed `Mint32` load, keeps unvisited cells zero,
+preserves writable access for subsequent iterations, and identifies the highest
+nonzero digit. All digits are zero or odd in the strict window bounds. The
+weighted digit sum and residual value are preserved together with scalar
+storage, all memory permissions, the allocation frontier, and loads outside the
+output block.
+
+`exec_wnaf_loop_zero` specializes this to initially zero cells and the original
+bit/carry/last-set-bit state, then executes the original return statement. It
+returns the last nonzero index plus one in `[0,len]`, with exact output-array
+loads. The equation retains the final residual and carry explicitly; this does
+not yet prove that either vanishes for the signed/split scalars of the callers.
+Zero loads and the initial scalar/frame state must still be derived from the
+actual function prefix, including its external `memset`. This theorem therefore
+does not add a libc model or discharge that boundary.
+
+Reproduce these internal loop-and-return results with the same build/kernel
+commands, using `jet_secp_wnaf_loop`. They are not a whole wNAF function proof,
+a literal point-program correspondence, or a public jet. Initial-state
+establishment, caller residual bounds, precomputed tables and startup, the
+point-operation loop, literal program bridge and public lifecycle above remain.
+Coverage remains 505/533.
 
 ## Completed: `simplicity_gej_rescale`
 
