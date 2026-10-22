@@ -1668,6 +1668,15 @@ test, including zero/noncanonical/off-curve inputs; compose the helper's one
 allocation/free and the public wrapper. No curve or new algebraic assumption
 may be added to the final standard local contract.
 
+`jet_secp_mixed_finite_loose` now derives the original finite prefix through
+the two flag checks, initial Z square, all preparation calls and H/I
+differences. Its normal build, recursive kernel check and focused snapshot
+comparisons passed. It preserves raw Y in the point, retains `weak_loose_words y`
+in S1, and derives I from that actual normalized temporary, including its
+value and arithmetic bounds. No private field is assumed initialized. Next
+compose the existing H=0/other suffix proofs with this state; doubling must
+consume the raw point Y while the nonzero Y formula consumes normalized S1.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:
