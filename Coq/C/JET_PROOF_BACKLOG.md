@@ -382,6 +382,13 @@ whose pinned CompCert lookup returns `None` and hence uses abstract external
 semantics. The diagnostic module `jet_secp_ctz_semantics_gap` checks that
 dispatch and proves that generic external-call properties alone do not imply
 even a return for valid argument 1. It adds no ctz premise or jet coverage.
+The checked `jet_secp_ctz_external_call` now establishes this boundary through
+the actual helper execution: any completed `ctz64_var` call entails an
+external call on the same argument and initial memory; a supplied integer
+external result with empty trace suffices to execute the complete helper.
+This is an explicit unresolved dependency, not a counting model or public
+inversion theorem. The necessity result has not yet been lifted through a
+divstep batch or public jet. Neither direction adds coverage.
 See [JET_SECP_EXTERNAL_MISMATCHES.md](JET_SECP_EXTERNAL_MISMATCHES.md) for the
 precise formal evidence, the related wNAF `memset` boundary, and the distinction
 between this model gap and a demonstrated native C/specification bug. Do not

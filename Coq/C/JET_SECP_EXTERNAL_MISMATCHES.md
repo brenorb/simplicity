@@ -36,6 +36,19 @@ establishes that those generic properties alone cannot discharge the required
 execution premise. The countermodel is diagnostic only, not a substitute
 implementation or a semantics used by a registered jet proof.
 
+`jet_secp_ctz_external_call.v` additionally proves the dependency through the
+actual helper's execution, not merely its syntax. `eval_ctz64_requires_external`
+extracts an `external_functions_sem "__builtin_ctzl"` call from any completed
+execution of the original `secp256k1_ctz64_var`, with the same argument and
+initial memory. It does not identify the extracted call's trace, result or
+final memory with those of the complete helper. Conversely,
+`eval_ctz64_from_external` constructs the complete original helper execution
+when given an empty-trace external call returning an integer. That premise
+remains explicit and unresolved; it does not assert a counting law, memory
+preservation, or that such a call exists. These results use six inherited
+assumptions, without the external-call determinism axioms. They do not yet
+extract this call from a complete divstep batch or public inversion jet.
+
 ## Generation: wNAF also calls external memset
 
 The original `secp256k1_ecmult_wnaf` calls `memset` to initialize its digit
@@ -54,6 +67,8 @@ With the pinned dependencies from `Coq/JET_BUILD.md`:
 ```sh
 JET_TARGETS=C/jet_secp_ctz_semantics_gap.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_ctz_semantics_gap
+JET_TARGETS=C/jet_secp_ctz_external_call.vo bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_ctz_external_call
 ```
 
 Inspect the named statements or the reviewed snapshots for their exact scope.
