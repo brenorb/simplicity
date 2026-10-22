@@ -1,0 +1,85 @@
+### C.jet_secp_gej_add_statements.gej_add_body_source
+gej_add_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_gej_add_var) (gej_add_after O)
+### C.jet_secp_gej_add_statements.gej_add_prepare_source
+gej_add_prepare_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_gej_add_var)
+         (jet_secp_statement_prefix.statement_sequence
+            (@List.firstn Clight.statement (S (S (S (S (S (S (S (S (S (S O)))))))))) gej_add_statements)
+            (gej_add_after (S (S (S (S (S (S (S (S (S (S O))))))))))))
+### C.jet_secp_gej_add_statements.gej_add_differences_shared
+gej_add_differences_shared
+     : @eq Clight.statement (gej_add_after (S (S (S (S (S (S (S (S (S (S O)))))))))))
+         (jet_secp_statement_prefix.statement_sequence jet_secp_mixed_difference.mixed_difference_statements
+            (gej_add_after (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+### C.jet_secp_gej_add_statements.gej_add_guard_shared
+gej_add_guard_shared
+     : @eq Clight.statement
+         (@List.nth Clight.statement (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))) gej_add_statements
+            Clight.Sskip) jet_secp_mixed_zero.mixed_zero_head
+### C.jet_secp_gej_add_statements.gej_add_zero_branch_shared
+gej_add_zero_branch_shared
+     : @eq Clight.statement
+         match
+           @List.nth Clight.statement (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))) gej_add_statements
+             Clight.Sskip return Clight.statement
+         with
+         | Clight.Sskip => Clight.Sskip
+         | Clight.Sassign _ _ => Clight.Sskip
+         | Clight.Sset _ _ => Clight.Sskip
+         | Clight.Scall _ _ _ => Clight.Sskip
+         | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+         | Clight.Ssequence _ s0 =>
+             match s0 return Clight.statement with
+             | Clight.Sskip => Clight.Sskip
+             | Clight.Sassign _ _ => Clight.Sskip
+             | Clight.Sset _ _ => Clight.Sskip
+             | Clight.Scall _ _ _ => Clight.Sskip
+             | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+             | Clight.Ssequence _ _ => Clight.Sskip
+             | Clight.Sifthenelse _ branch _ => branch
+             | Clight.Sloop _ _ => Clight.Sskip
+             | Clight.Sbreak => Clight.Sskip
+             | Clight.Scontinue => Clight.Sskip
+             | Clight.Sreturn _ => Clight.Sskip
+             | Clight.Sswitch _ _ => Clight.Sskip
+             | Clight.Slabel _ _ => Clight.Sskip
+             | Clight.Sgoto _ => Clight.Sskip
+             end
+         | Clight.Sifthenelse _ _ _ => Clight.Sskip
+         | Clight.Sloop _ _ => Clight.Sskip
+         | Clight.Sbreak => Clight.Sskip
+         | Clight.Scontinue => Clight.Sskip
+         | Clight.Sreturn _ => Clight.Sskip
+         | Clight.Sswitch _ _ => Clight.Sskip
+         | Clight.Slabel _ _ => Clight.Sskip
+         | Clight.Sgoto _ => Clight.Sskip
+         end jet_secp_mixed_zero.mixed_zero_branch
+### C.jet_secp_gej_add_statements.gej_add_products_shared
+gej_add_products_shared
+     : @eq Clight.statement
+         (gej_add_after (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))))))
+         (jet_secp_statement_prefix.statement_sequence jet_secp_mixed_products.mixed_product_statements
+            (gej_add_after (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+### C.jet_secp_gej_add_statements.gej_add_xy_tail_shared
+gej_add_xy_tail_shared
+     : @eq Clight.statement
+         (gej_add_after (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+         jet_secp_mixed_products.mixed_after_products
+### C.jet_secp_gej_add_statements.gej_add_statements
+gej_add_statements =
+@fst (list Clight.statement) Clight.statement
+  (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_gej_add_var))
+     : list Clight.statement
+### C.jet_secp_gej_add_statements.gej_add_last
+gej_add_last =
+@snd (list Clight.statement) Clight.statement
+  (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_gej_add_var))
+     : Clight.statement
+### C.jet_secp_gej_add_statements.gej_add_after
+gej_add_after =
+fun n : nat =>
+jet_secp_statement_prefix.statement_sequence (@List.skipn Clight.statement n gej_add_statements) gej_add_last
+     : forall _ : nat, Clight.statement
+
+Arguments gej_add_after n%nat_scope

@@ -72,6 +72,56 @@ JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_decompress
 The every-jet goal remains incomplete. Keep production C, original
 specifications/domains/identities, API contracts and generation settings fixed.
 
+## Projective addition: current proof frontier
+
+`simplicity_gej_add` is claimed and remains **unregistered**. The target is
+the original public `f_simplicity_gej_add`, with two unrestricted GEJ inputs
+and the existing primitive-bearing `literal_gej_add` result. The new modules
+below passed ordinary compilation, recursive kernel checking and reviewed
+no-update focused assumption/contract comparisons. Execution results retain
+the six inherited assumptions and add no libc premise.
+
+- `jet_secp_gej_add_statements` proves exact AST sharing with mixed addition:
+  the difference operations, H/I guard and zero branch, H2/H3/T products and
+  final X/Y tail. These seven source identities are closed.
+- `jet_secp_gej_add_finite_start` executes the actual two finite dispatches
+  and both Z squares, deriving the two squared fields, bounds, all four owners
+  and precise external framing from storage. It reuses the selected coordinate
+  square execution; the remaining preparation multiplications are not assumed.
+- `jet_secp_gej_copy_owned` derives the actual 128-byte Clight struct copy,
+  with all three field representations, infinity flag, ownership and framing.
+- `jet_secp_gej_add_infinite` executes both early-return branches of the whole
+  original helper body in place at A. B-infinity uses the existing sound
+  self-copy proof, not a replacement skip. `jet_secp_gej_add_infinite_literal`
+  connects both branches' serialized reader fields to `literal_gej_add`.
+  The branch conditions are internal case splits, not a restricted public domain.
+- `jet_secp_gej_fresh_product` reuses the actual affine-coordinate multiply
+  proof for X/Y and restores the projective input's full 128-byte owner by
+  precise framing. Its call adapter takes the real point/local identifiers.
+
+Reproduce this checked internal frontier:
+
+```sh
+JET_TARGETS='C/jet_secp_gej_add_infinite_literal.vo C/jet_secp_gej_fresh_product.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_add_infinite_literal C.jet_secp_gej_fresh_product
+```
+
+Next compose the six preparation multiplications: U1=Ax*Bz^2, U2=Bx*Az^2,
+S1=(Ay*Bz^2)*Bz, S2=(By*Az^2)*Az. Reuse the fresh X/Y products above and
+`eval_field_point_mul_numeric PointZ` for the two in-place products. Then
+reuse the shared difference and zero-branch proofs. The nonzero branch has a
+different Z prefix: actual T=H*Bz, optional ratio copy (NULL in this public
+caller), then Rz=Az*T; after that its H2/H3/T and X/Y blocks are identical to
+the checked mixed-addition blocks. Do not drop the Bz factor or substitute a
+mixed-addition call. Remaining work includes the finite literal bridge, all
+eleven helper-local allocations/frees, both public GEJ reads, the writer and
+outer lifecycle, canonical whole-contract gating and scoped acceptance.
+
+Field inversion is a separate, later dependency: the actual `fe_inv_var`
+uses signed62 conversion and `modinv64_var`, not the square-root addition
+chain. Existing VST proofs under `C/secp256k1/` may be useful; no new inversion
+execution or public equivalence is claimed here.
+
 [JET_INHERITED_REVIEW.md](JET_INHERITED_REVIEW.md),
 [JET_FIDELITY_REVIEW.md](JET_FIDELITY_REVIEW.md) and the `JET_*_MISMATCHES.md`
 reports describe these boundaries. Production C, canonical Haskell and the
