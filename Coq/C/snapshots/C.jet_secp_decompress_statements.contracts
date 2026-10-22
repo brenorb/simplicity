@@ -1,0 +1,144 @@
+### C.jet_secp_decompress_statements.decompress_helper_body_source
+decompress_helper_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_ge_set_xo_var)
+         (jet_secp_statement_prefix.statement_sequence decompress_prefix decompress_rest)
+### C.jet_secp_decompress_statements.eval_decompress_field
+eval_decompress_field
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (br : Values.block)
+         (fid : AST.ident) (delta : BinNums.Z) (ty : Ctypes.type)
+         (_ : @List.In (prod AST.ident BinNums.Z) (@pair AST.ident BinNums.Z fid delta)
+                (@cons (prod AST.ident BinNums.Z) (@pair AST.ident BinNums.Z jets_secp._x BinNums.Z0)
+                   (@cons (prod AST.ident BinNums.Z)
+                      (@pair AST.ident BinNums.Z jets_secp._y
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                      (@cons (prod AST.ident BinNums.Z)
+                         (@pair AST.ident BinNums.Z jets_secp._infinity
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                         (@nil (prod AST.ident BinNums.Z))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero))),
+       Clight.eval_lvalue jet_secp_linkage.secp_ge e le m (decompress_point_field fid ty) br
+         (Integers.Ptrofs.repr delta) Ctypes.Full
+### C.jet_secp_decompress_statements.eval_decompress_field_address
+eval_decompress_field_address
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (br : Values.block)
+         (fid : AST.ident) (delta : BinNums.Z)
+         (_ : @List.In (prod AST.ident BinNums.Z) (@pair AST.ident BinNums.Z fid delta)
+                (@cons (prod AST.ident BinNums.Z) (@pair AST.ident BinNums.Z jets_secp._x BinNums.Z0)
+                   (@cons (prod AST.ident BinNums.Z)
+                      (@pair AST.ident BinNums.Z jets_secp._y
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                      (@nil (prod AST.ident BinNums.Z)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (decompress_point_address fid)
+         (Values.Vptr br (Integers.Ptrofs.repr delta))
+### C.jet_secp_decompress_statements.decompress_source
+decompress_source =
+Clight.Etempvar jets_secp._x (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type)
+     : Clight.expr
+### C.jet_secp_decompress_statements.decompress_point_field
+decompress_point_field =
+fun (fid : AST.ident) (ty : Ctypes.type) =>
+Clight.Efield
+  (Clight.Ederef (Clight.Etempvar jets_secp._r (Ctypesdefs.tptr jet_secp_curve_statements.curve_ge_type))
+     jet_secp_curve_statements.curve_ge_type) fid ty
+     : forall (_ : AST.ident) (_ : Ctypes.type), Clight.expr
+
+Arguments decompress_point_field fid ty
+### C.jet_secp_decompress_statements.decompress_point_address
+decompress_point_address =
+fun fid : AST.ident =>
+Clight.Eaddrof (decompress_point_field fid jet_secp_curve_statements.curve_fe_type)
+  (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type)
+     : forall _ : AST.ident, Clight.expr
+
+Arguments decompress_point_address fid
+### C.jet_secp_decompress_statements.decompress_copy_stmt
+decompress_copy_stmt =
+Clight.Sassign (decompress_point_field jets_secp._x jet_secp_curve_statements.curve_fe_type)
+  (Clight.Ederef decompress_source jet_secp_curve_statements.curve_fe_type)
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_square_stmt
+decompress_square_stmt =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_sqr jets_secp.f_secp256k1_fe_sqr
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._x2)
+     (@cons Clight.expr decompress_source (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_cube_stmt
+decompress_cube_stmt =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_mul jets_secp.f_secp256k1_fe_mul
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._x3)
+     (@cons Clight.expr decompress_source
+        (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._x2) (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_finite_stmt
+decompress_finite_stmt =
+Clight.Sassign (decompress_point_field jets_secp._infinity Ctypesdefs.tint)
+  (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_add_stmt
+decompress_add_stmt =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_add_int jets_secp.f_secp256k1_fe_add_int
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._x3)
+     (@cons Clight.expr
+        (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))) Ctypesdefs.tint)
+        (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_root_call
+decompress_root_call =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_sqrt_var jets_secp.f_secp256k1_fe_sqrt_var
+  (@Some AST.ident jets_secp._t'1)
+  (@cons Clight.expr (decompress_point_address jets_secp._y)
+     (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._x3) (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_root_test
+decompress_root_test =
+Clight.Ssequence decompress_root_call
+  (Clight.Sifthenelse (Clight.Eunop Cop.Onotbool (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tint) Ctypesdefs.tint)
+     (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint))) Clight.Sskip)
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_normalize_stmt
+decompress_normalize_stmt =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_normalize_var jets_secp.f_secp256k1_fe_normalize_var
+  (@None AST.ident) (@cons Clight.expr (decompress_point_address jets_secp._y) (@nil Clight.expr))
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_odd_call
+decompress_odd_call =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_is_odd jets_secp.f_secp256k1_fe_is_odd
+  (@Some AST.ident jets_secp._t'2) (@cons Clight.expr (decompress_point_address jets_secp._y) (@nil Clight.expr))
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_negate_stmt
+decompress_negate_stmt =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_negate jets_secp.f_secp256k1_fe_negate
+  (@None AST.ident)
+  (@cons Clight.expr (decompress_point_address jets_secp._y)
+     (@cons Clight.expr (decompress_point_address jets_secp._y)
+        (@cons Clight.expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_odd_test
+decompress_odd_test =
+Clight.Ssequence decompress_odd_call
+  (Clight.Sifthenelse
+     (Clight.Ebinop Cop.One (Clight.Etempvar jets_secp._t'2 Ctypesdefs.tint)
+        (Clight.Etempvar jets_secp._odd Ctypesdefs.tint) Ctypesdefs.tint) decompress_negate_stmt Clight.Sskip)
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_rest
+decompress_rest =
+Clight.Ssequence decompress_root_test
+  (Clight.Ssequence decompress_normalize_stmt
+     (Clight.Ssequence decompress_odd_test
+        (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint)))))
+     : Clight.statement
+### C.jet_secp_decompress_statements.decompress_prefix
+decompress_prefix =
+@cons Clight.statement decompress_copy_stmt
+  (@cons Clight.statement decompress_square_stmt
+     (@cons Clight.statement decompress_cube_stmt
+        (@cons Clight.statement decompress_finite_stmt
+           (@cons Clight.statement decompress_add_stmt (@nil Clight.statement)))))
+     : list Clight.statement

@@ -49,9 +49,16 @@ fixed field prime, preserves X/flag bytes and retains the whole allocation.
 The existing generic normalization theorem alone did not expose this ownership
 fact. The original arithmetic proof is reused through shifted symbolic cells.
 
-Next compose the real `ge_set_xo_var` statement tree: X copy, X square, cubic
-multiply into its separate temporary, finite-flag store, +7, root failure
-return or normalization/parity/magnitude-one negation and successful return.
+`jet_secp_decompress_statements` matches the exact original helper body and
+derives its point-field addresses. The whole five-statement prefix is now
+proved by `jet_secp_decompress_prefix.exec_decompress_prefix_owned`: actual X
+copy, X square, separate-output cubic multiplication, finite-flag store and +7.
+From represented input and the four separated caller allocations it establishes
+the root temporary's exact contents, copied X, finite flag, all allocation
+ownership and outside framing. No intermediate call or output is a premise.
+
+Next compose the root failure return or normalization/parity/magnitude-one
+negation and successful return of the real `ge_set_xo_var` statement tree.
 Reuse the existing affine negation and owned struct-copy proofs. Then prove the
 public reader, success/failure writer (including failure padding), entry and
 free lifecycle for arbitrary valid 257-bit input/513-bit output frames.
