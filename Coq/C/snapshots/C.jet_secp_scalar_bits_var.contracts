@@ -1,0 +1,767 @@
+### C.jet_secp_scalar_bits_var.scalar_var_source
+scalar_var_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_scalar_get_bits_var)
+         (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+            (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+               (Clight.Sifthenelse scalar_var_guard scalar_var_then scalar_var_else)))
+### C.jet_secp_scalar_bits_var.scalar_var_else_source
+scalar_var_else_source
+     : @eq Clight.statement scalar_var_else
+         (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+            (Clight.Ssequence (Clight.Sset jets_secp._t'2 jet_secp_scalar_get_bits.scalar_bits_load_expr)
+               (Clight.Ssequence (Clight.Sset jets_secp._t'3 scalar_var_high_expr)
+                  (Clight.Sreturn (@Some Clight.expr scalar_var_result_expr)))))
+### C.jet_secp_scalar_bits_var.scalar_var_then_source
+scalar_var_then_source
+     : @eq Clight.statement scalar_var_then
+         (Clight.Ssequence
+            (jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_get_bits
+               jets_secp.f_secp256k1_scalar_get_bits (@Some AST.ident jets_secp._t'1)
+               (@cons Clight.expr
+                  (Clight.Etempvar jets_secp._a (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr)))
+                  (@cons Clight.expr (Clight.Etempvar jets_secp._offset Ctypesdefs.tuint)
+                     (@cons Clight.expr (Clight.Etempvar jets_secp._count Ctypesdefs.tuint) (@nil Clight.expr)))))
+            (Clight.Sreturn (@Some Clight.expr (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tuint))))
+### C.jet_secp_scalar_bits_var.scalar_var_join_value
+scalar_var_join_value
+     : forall (lo hi : Integers.Int64.int) (shift count : BinNums.Z)
+         (_ : and (BinInt.Z.lt BinNums.Z0 shift)
+                (BinInt.Z.lt shift
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 count)
+                (BinInt.Z.lt count
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (Integers.Int64.and
+               (Integers.Int64.or (Integers.Int64.shru lo (Integers.Int64.repr shift))
+                  (Integers.Int64.shl hi
+                     (Integers.Int64.repr
+                        (BinInt.Z.sub
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                           shift))))
+               (Integers.Int64.repr
+                  (BinInt.Z.sub (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) count) (BinNums.Zpos BinNums.xH)))))
+         (BinInt.Z.modulo
+            (BinInt.Z.div
+               (BinInt.Z.add (Integers.Int64.unsigned lo)
+                  (BinInt.Z.mul (Integers.Int64.unsigned hi)
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) shift))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) count))
+### C.jet_secp_scalar_bits_var.scalar_var_two_limbs
+scalar_var_two_limbs
+     : forall (value i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 i) (BinInt.Z.lt i (BinNums.Zpos (BinNums.xI BinNums.xH)))),
+       @eq BinNums.Z
+         (BinInt.Z.add
+            (@List.nth BinNums.Z (BinInt.Z.to_nat i) (jet_secp_scalar_get_b32_numeric.scalar_limbs_of value) BinNums.Z0)
+            (BinInt.Z.mul
+               (@List.nth BinNums.Z (BinInt.Z.to_nat (BinInt.Z.add i (BinNums.Zpos BinNums.xH)))
+                  (jet_secp_scalar_get_b32_numeric.scalar_limbs_of value) BinNums.Z0)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (BinInt.Z.modulo
+            (BinInt.Z.div value
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinInt.Z.mul
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) i)))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_scalar_bits_var.scalar_var_array_load
+scalar_var_array_load
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (base : BinNums.Z) (ix : Clight.expr) (idx : Integers.Int.int) (limb : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : @eq Ctypes.type (Clight.typeof ix) Ctypesdefs.tuint)
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m ix (Values.Vint idx)) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (Integers.Int.unsigned idx))) Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (Integers.Int.unsigned idx)))) (@Some Values.val (Values.Vlong limb))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (scalar_var_array_expr ix) (Values.Vlong limb)
+### C.jet_secp_scalar_bits_var.scalar_var_entry
+scalar_var_entry
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z) (off count : Integers.Int.int),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_scalar_get_bits_var
+         (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vint off) (@cons Values.val (Values.Vint count) (@nil Values.val)))) m
+         Clight.empty_env (scalar_var_temps b base off count) m
+### C.jet_secp_scalar_bits_var.eval_scalar_var_guard
+eval_scalar_var_guard
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (off count : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._offset le)
+                (@Some Values.val (Values.Vint off)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._count le)
+                (@Some Values.val (Values.Vint count))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m scalar_var_guard
+         (Values.Val.of_bool (scalar_var_test off count))
+### C.jet_secp_scalar_bits_var.scalar_var_test_numeric
+scalar_var_test_numeric
+     : forall (off count : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 off)
+                (BinInt.Z.lt off
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) count)
+                (BinInt.Z.lt count
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+       @eq bool (scalar_var_test (Integers.Int.repr off) (Integers.Int.repr count))
+         match
+           Coqlib.zeq
+             (BinInt.Z.div (BinInt.Z.sub (BinInt.Z.add off count) (BinNums.Zpos BinNums.xH))
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+             (BinInt.Z.div off
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+           return bool
+         with
+         | left _ => true
+         | right _ => false
+         end
+### C.jet_secp_scalar_bits_var.scalar_var_branch_bounds
+scalar_var_branch_bounds
+     : forall (off count : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 off)
+                (BinInt.Z.lt off
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) count)
+                (BinInt.Z.lt count
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : BinInt.Z.le (BinInt.Z.add off count)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq BinNums.Z
+                (BinInt.Z.div (BinInt.Z.sub (BinInt.Z.add off count) (BinNums.Zpos BinNums.xH))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (BinInt.Z.div off
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       BinInt.Z.le
+         (BinInt.Z.add
+            (BinInt.Z.modulo off
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+            count)
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+### C.jet_secp_scalar_bits_var.scalar_var_cross_bounds
+scalar_var_cross_bounds
+     : forall (off count : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 off)
+                (BinInt.Z.lt off
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) count)
+                (BinInt.Z.lt count
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : BinInt.Z.le (BinInt.Z.add off count)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.div (BinInt.Z.sub (BinInt.Z.add off count) (BinNums.Zpos BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                   (BinInt.Z.div off
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       and
+         (and
+            (BinInt.Z.lt BinNums.Z0
+               (BinInt.Z.modulo off
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+            (BinInt.Z.lt
+               (BinInt.Z.modulo off
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (and
+            (BinInt.Z.le BinNums.Z0
+               (BinInt.Z.div off
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+            (BinInt.Z.lt
+               (BinInt.Z.div off
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+               (BinNums.Zpos (BinNums.xI BinNums.xH))))
+### C.jet_secp_scalar_bits_var.eval_scalar_var_high
+eval_scalar_var_high
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (base off : BinNums.Z) (hi : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._offset le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr off))))
+         (_ : and (BinInt.Z.le BinNums.Z0 off)
+                (BinInt.Z.lt off
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add
+                         (BinInt.Z.div off
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                         (BinNums.Zpos BinNums.xH)))) Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add
+                            (BinInt.Z.div off
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                            (BinNums.Zpos BinNums.xH))))) (@Some Values.val (Values.Vlong hi))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m scalar_var_high_expr (Values.Vlong hi)
+### C.jet_secp_scalar_bits_var.eval_scalar_var_result
+eval_scalar_var_result
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (lo hi : Integers.Int64.int)
+         (off count : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'2 le)
+                (@Some Values.val (Values.Vlong lo)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'3 le)
+                (@Some Values.val (Values.Vlong hi)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._offset le)
+                (@Some Values.val (Values.Vint off)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._count le)
+                (@Some Values.val (Values.Vint count)))
+         (_ : and (BinInt.Z.lt BinNums.Z0 (jet_secp_scalar_get_bits.scalar_bits_shift off))
+                (BinInt.Z.lt (jet_secp_scalar_get_bits.scalar_bits_shift off)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : BinInt.Z.lt (Integers.Int.unsigned count)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m scalar_var_result_expr
+         (Values.Vlong (Integers.Int64.and (scalar_var_join lo hi off) (scalar_var_mask count)))
+### C.jet_secp_scalar_bits_var.scalar_var_result_numeric
+scalar_var_result_numeric
+     : forall (value off count : BinNums.Z) (lo hi : Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 off)
+                (BinInt.Z.lt off
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) count)
+                (BinInt.Z.lt count
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : BinInt.Z.le (BinInt.Z.add off count)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.div (BinInt.Z.sub (BinInt.Z.add off count) (BinNums.Zpos BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                   (BinInt.Z.div off
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned lo)
+                (@List.nth BinNums.Z
+                   (BinInt.Z.to_nat
+                      (BinInt.Z.div off
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of value) BinNums.Z0))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned hi)
+                (@List.nth BinNums.Z
+                   (BinInt.Z.to_nat
+                      (BinInt.Z.add
+                         (BinInt.Z.div off
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                         (BinNums.Zpos BinNums.xH))) (jet_secp_scalar_get_b32_numeric.scalar_limbs_of value) BinNums.Z0)),
+       @eq Integers.Int.int
+         (Integers.Int64.loword
+            (Integers.Int64.and (scalar_var_join lo hi (Integers.Int.repr off))
+               (scalar_var_mask (Integers.Int.repr count))))
+         (Integers.Int.repr
+            (BinInt.Z.modulo (BinInt.Z.div value (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) off))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) count)))
+### C.jet_secp_scalar_bits_var.eval_scalar_var_then
+eval_scalar_var_then
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (off count result : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._offset le)
+                (@Some Values.val (Values.Vint off)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._count le)
+                (@Some Values.val (Values.Vint count)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_get_bits)
+                (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base))
+                   (@cons Values.val (Values.Vint off) (@cons Values.val (Values.Vint count) (@nil Values.val))))
+                Events.E0 m (Values.Vint result)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m scalar_var_then Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint result) le) m
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type) (@pair Values.val Ctypes.type (Values.Vint result) Ctypesdefs.tuint)))
+### C.jet_secp_scalar_bits_var.eval_scalar_var_from_branch
+eval_scalar_var_from_branch
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z) (off count : Integers.Int.int)
+         (le : Clight.temp_env) (out : ClightBigstep.outcome) (result : Integers.Int.int)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env
+                (scalar_var_temps b base off count) m
+                match scalar_var_test off count return Clight.statement with
+                | true => scalar_var_then
+                | false => scalar_var_else
+                end Events.E0 le m out)
+         (_ : ClightBigstep.outcome_result_value out Ctypesdefs.tuint (Values.Vint result) m),
+       ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+         (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_get_bits_var)
+         (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vint off) (@cons Values.val (Values.Vint count) (@nil Values.val)))) Events.E0 m
+         (Values.Vint result)
+### C.jet_secp_scalar_bits_var.exec_scalar_var_else
+exec_scalar_var_else
+     : forall (m : Memory.Mem.mem) (le : Maps.PTree.tree Values.val) (b : Values.block) (base off : BinNums.Z)
+         (count : Integers.Int.int) (lo hi : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._offset le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr off))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._count le)
+                (@Some Values.val (Values.Vint count)))
+         (_ : and (BinInt.Z.le BinNums.Z0 off)
+                (BinInt.Z.lt off
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and
+                (BinInt.Z.lt BinNums.Z0
+                   (BinInt.Z.modulo off
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                (BinInt.Z.lt
+                   (BinInt.Z.modulo off
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : BinInt.Z.lt (Integers.Int.unsigned count)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add
+                         (BinInt.Z.div off
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                         (BinNums.Zpos BinNums.xH)))) Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.div off
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (@Some Values.val (Values.Vlong lo)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add
+                            (BinInt.Z.div off
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                            (BinNums.Zpos BinNums.xH))))) (@Some Values.val (Values.Vlong hi))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m scalar_var_else Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'3 (Values.Vlong hi)
+            (@Maps.PTree.set Values.val jets_secp._t'2 (Values.Vlong lo) le)) m
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type
+                  (Values.Vlong
+                     (Integers.Int64.and (scalar_var_join lo hi (Integers.Int.repr off)) (scalar_var_mask count)))
+                  Ctypesdefs.tulong)))
+### C.jet_secp_scalar_bits_var.scalar_var_storage_limb
+scalar_var_storage_limb
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base value i : BinNums.Z)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m b base
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of value)))
+         (_ : and (BinInt.Z.le BinNums.Z0 i) (BinInt.Z.lt i (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m b
+            (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) i)))
+         (@Some Values.val
+            (Values.Vlong
+               (Integers.Int64.repr
+                  (@List.nth BinNums.Z (BinInt.Z.to_nat i) (jet_secp_scalar_get_b32_numeric.scalar_limbs_of value)
+                     BinNums.Z0))))
+### C.jet_secp_scalar_bits_var.eval_scalar_get_bits_var_slice
+eval_scalar_get_bits_var_slice
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base value off count : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 off)
+                (BinInt.Z.lt off
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) count)
+                (BinInt.Z.lt count
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : BinInt.Z.le (BinInt.Z.add off count)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m b base
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of value))),
+       ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+         (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_get_bits_var)
+         (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vint (Integers.Int.repr off))
+               (@cons Values.val (Values.Vint (Integers.Int.repr count)) (@nil Values.val)))) Events.E0 m
+         (Values.Vint
+            (Integers.Int.repr
+               (BinInt.Z.modulo (BinInt.Z.div value (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) off))
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) count))))
+### C.jet_secp_scalar_bits_var.scalar_var_index_expr
+scalar_var_index_expr =
+Clight.Ebinop Cop.Oshr (Clight.Etempvar jets_secp._offset Ctypesdefs.tuint)
+  (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))) Ctypesdefs.tint)
+  Ctypesdefs.tuint
+     : Clight.expr
+### C.jet_secp_scalar_bits_var.scalar_var_array_expr
+scalar_var_array_expr =
+fun ix : Clight.expr =>
+Clight.Ederef
+  (Clight.Ebinop Cop.Oadd
+     (Clight.Efield
+        (Clight.Ederef (Clight.Etempvar jets_secp._a (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr)))
+           (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr)) jets_secp._d
+        (Ctypesdefs.tarray Ctypesdefs.tulong (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))) ix
+     (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong
+     : forall _ : Clight.expr, Clight.expr
+
+Arguments scalar_var_array_expr ix
+### C.jet_secp_scalar_bits_var.scalar_var_high_expr
+scalar_var_high_expr =
+scalar_var_array_expr
+  (Clight.Ebinop Cop.Oadd scalar_var_index_expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tuint)
+     : Clight.expr
+### C.jet_secp_scalar_bits_var.scalar_var_guard
+scalar_var_guard =
+match Clight.fn_body jets_secp.f_secp256k1_scalar_get_bits_var return Clight.expr with
+| Clight.Sskip => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sassign _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sset _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Scall _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sbuiltin _ _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.expr with
+    | Clight.Sskip => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sassign _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sset _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Scall _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sbuiltin _ _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.expr with
+        | Clight.Sskip => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sassign _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sset _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Scall _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sbuiltin _ _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Ssequence _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sifthenelse guard _ _ => guard
+        | Clight.Sloop _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sbreak => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Scontinue => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sreturn _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sswitch _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Slabel _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sgoto _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sloop _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sbreak => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Scontinue => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sreturn _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sswitch _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Slabel _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sgoto _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sloop _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sbreak => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Scontinue => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sreturn _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sswitch _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Slabel _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sgoto _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+end
+     : Clight.expr
+### C.jet_secp_scalar_bits_var.scalar_var_then
+scalar_var_then =
+match Clight.fn_body jets_secp.f_secp256k1_scalar_get_bits_var return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ _ => Clight.Sskip
+        | Clight.Sifthenelse _ yes _ => yes
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_scalar_bits_var.scalar_var_else
+scalar_var_else =
+match Clight.fn_body jets_secp.f_secp256k1_scalar_get_bits_var return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ _ => Clight.Sskip
+        | Clight.Sifthenelse _ _ no => no
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_scalar_bits_var.scalar_var_result_expr
+scalar_var_result_expr =
+match scalar_var_else return Clight.expr with
+| Clight.Sskip => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sassign _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sset _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Scall _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sbuiltin _ _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.expr with
+    | Clight.Sskip => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sassign _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sset _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Scall _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sbuiltin _ _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.expr with
+        | Clight.Sskip => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sassign _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sset _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Scall _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sbuiltin _ _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Ssequence _ s4 =>
+            match s4 return Clight.expr with
+            | Clight.Sskip => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Sassign _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Sset _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Scall _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Sbuiltin _ _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Ssequence _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Sifthenelse _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Sloop _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Sbreak => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Scontinue => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Sreturn o =>
+                match o return Clight.expr with
+                | Some result => result
+                | None => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+                end
+            | Clight.Sswitch _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Slabel _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            | Clight.Sgoto _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+            end
+        | Clight.Sifthenelse _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sloop _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sbreak => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Scontinue => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sreturn _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sswitch _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Slabel _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        | Clight.Sgoto _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sloop _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sbreak => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Scontinue => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sreturn _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sswitch _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Slabel _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    | Clight.Sgoto _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sloop _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sbreak => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Scontinue => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sreturn _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sswitch _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Slabel _ _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+| Clight.Sgoto _ => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+end
+     : Clight.expr
+### C.jet_secp_scalar_bits_var.scalar_var_test
+scalar_var_test =
+fun off count : Integers.Int.int =>
+Integers.Int.eq
+  (Integers.Int.shru (Integers.Int.sub (Integers.Int.add off count) Integers.Int.one)
+     (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))))
+  (Integers.Int.shru off (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))))
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int), bool
+
+Arguments scalar_var_test off count
+### C.jet_secp_scalar_bits_var.scalar_var_mask
+scalar_var_mask =
+fun count : Integers.Int.int =>
+Integers.Int64.sub (Integers.Int64.shl Integers.Int64.one (Integers.Int64.repr (Integers.Int.unsigned count)))
+  Integers.Int64.one
+     : forall _ : Integers.Int.int, Integers.Int64.int
+
+Arguments scalar_var_mask count
+### C.jet_secp_scalar_bits_var.scalar_var_join
+scalar_var_join =
+fun (lo hi : Integers.Int64.int) (off : Integers.Int.int) =>
+Integers.Int64.or (Integers.Int64.shru lo (Integers.Int64.repr (jet_secp_scalar_get_bits.scalar_bits_shift off)))
+  (Integers.Int64.shl hi
+     (Integers.Int64.repr
+        (BinInt.Z.sub
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+           (jet_secp_scalar_get_bits.scalar_bits_shift off))))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int.int), Integers.Int64.int
+
+Arguments scalar_var_join lo hi off
+### C.jet_secp_scalar_bits_var.scalar_var_temps
+scalar_var_temps =
+fun (b : Values.block) (base : BinNums.Z) (off count : Integers.Int.int) =>
+@Maps.PTree.set Values.val jets_secp._count (Values.Vint count)
+  (@Maps.PTree.set Values.val jets_secp._offset (Values.Vint off)
+     (@Maps.PTree.set Values.val jets_secp._a (Values.Vptr b (Integers.Ptrofs.repr base))
+        (Clight.create_undef_temps (Clight.fn_temps jets_secp.f_secp256k1_scalar_get_bits_var))))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Integers.Int.int) (_ : Integers.Int.int),
+       Maps.PTree.tree Values.val
+
+Arguments scalar_var_temps b base%Z_scope off count

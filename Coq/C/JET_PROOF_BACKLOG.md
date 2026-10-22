@@ -454,12 +454,27 @@ guards, mask, return cast and function lifecycle. It reuses the checked
 repacking mask and unsigned-shift lemmas, adds no external model, and does
 not require a canonical scalar or writable storage.
 
-This is a helper, not public coverage or the cross-word `scalar_get_bits_var`
-result. The latter and its window-composition bridge are the next reader
-obligations. The original external `memset` boundary and the other public
-generation obligations above remain unresolved. Reproduce this helper with
+This is a helper, not public coverage. Reproduce this helper with
 the two commands above, replacing `jet_secp_scalar_split128` with
 `jet_secp_scalar_get_bits`.
+
+`jet_secp_scalar_bits_var.eval_scalar_get_bits_var_slice` now also derives the
+complete original cross-word reader, for any 256-bit value, offsets in
+`[0,256)`, counts in `[1,32)`, and `offset + count <= 256`. The result is again
+`(value / 2^offset) mod 2^count`, with the exact original memory and empty trace.
+The same-word branch calls the original reader through checked linkage; the
+cross-word branch loads both actual limbs and combines their shifted parts.
+The proof derives the branch condition, nonzero shift/complement bounds, and
+second-limb bounds, rather than assuming a favorable branch or read result.
+It reuses the existing mask, shift, radix-slice and single-word execution
+lemmas, with no external model or canonical-scalar premise. Reproduce it with
+the same commands, replacing the module name with `jet_secp_scalar_bits_var`.
+
+These are internal reader contracts. Proving that the actual wNAF caller
+maintains their count/offset/storage premises, then executing its carry/digit
+loop and relating that loop to the literal point program, remain public-proof
+obligations. The external `memset` boundary and the other generation obligations
+above remain unresolved. Neither reader increases coverage.
 
 ## Completed: `simplicity_gej_rescale`
 
