@@ -1651,6 +1651,14 @@ reviewed focused assumption/contract comparisons:
   no initialized private field, intermediate execution or arithmetic result
   is a premise. It returns all result coordinates, the actual infinity flag,
   caller allocation ownership, output bounds and external framing.
+- `jet_secp_gej_ge_equiv_function.eval_gej_ge_equiv_function` now derives the
+  complete original `secp256k1_gej_eq_ge_var` call. It allocates its fresh
+  128-byte temporary, derives negation's loose Y bounds, composes the three
+  actual helper calls, converts the integer return and frees the temporary.
+  It preserves both input allocations and external framing. The result is
+  `gej_ge_equiv_result`, the actual C word/flag model, **not yet** the literal
+  Simplicity program. Normal compilation, recursive kernel and focused
+  snapshot checks passed with the same inherited assumptions.
 
 Execution retains the same six inherited assumptions and no extra libc model.
 These are internal C execution contracts, not replacement Simplicity targets
@@ -1663,10 +1671,9 @@ bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej
 
 Next missing implications:
 
-1. Compose the three actual calls in `secp256k1_gej_eq_ge_var`, deriving
-   negation's loose Y bounds from the actual reader representation. Prove its
-   fresh temporary's allocation/free, result conversion and external frame.
-   Reuse the checked helper calls above rather than replaying their bodies.
+1. Specialize the complete helper call above to the five actual reader
+   outputs, derive its 0/1 return and compose the public wrapper. Reuse the
+   checked helper calls above rather than replaying their bodies.
 2. Relate the resulting word/flag model to `literal_gej_ge_equiv` for all
    Word256 coordinates. Use the proved weak-normalization residue bridge, and
    derive the returned flag's agreement with the literal infinity test.
