@@ -243,7 +243,9 @@ mods=$(grep -E '^C/.*\.v$' _CoqProject.jets | sed 's/\.v$//; s|/|.|g' | sort -u)
 if [[ -n "$jets" ]]; then mods=$(comm -12 <(echo "$mods") <(sort "$work/scope.txt")); fi
 mods=$(echo "$mods" | tr '\n' ' ')
 # shellcheck disable=SC2086
-if ! bash build-jets.sh --coqchk -silent -o $mods > "$work/coqchk.out" 2>&1; then
+# Keep VM conversion enabled when rechecking closed computational certificates.
+# This is checked reduction, not -admit/-norec: every dependency is still checked.
+if ! bash build-jets.sh --coqchk -bytecode-compiler yes -silent -o $mods > "$work/coqchk.out" 2>&1; then
   cat "$work/coqchk.out" >&2
   exit 1
 fi
