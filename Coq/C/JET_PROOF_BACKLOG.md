@@ -1638,12 +1638,30 @@ JET_TARGETS='C/jet_secp_gej_ge_equiv_literal.vo C/jet_secp_gej_negate_separate.v
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_ge_equiv_literal C.jet_secp_gej_negate_separate
 ```
 
-The next missing implication is mixed addition on this **actual negated
-representation**, followed by the flag-to-literal bridge. Do not apply
+`jet_secp_field_weak_loose` now executes the original weak-normalizer on limbs
+bounded by 2^60 and retains its actual changed output as `weak_loose_words`.
+It proves modular-value preservation and the downstream `mul_small_input_bounds`
+(52-bit lower limbs and a 49-bit upper limb), without assuming canonical or
+positioned output. Its closed negated-reader lemmas identify the preceding
+negation's concrete output and discharge these machine bounds for every input.
+`jet_secp_mixed_copy_weak_loose` derives the original copy/normalize pair while
+preserving the raw source coordinate. `exec_mixed_preparation_loose` composes
+the exact seven preparation statements, tracking raw point Y separately from
+normalized S1. These ordinary modules passed normal compilation, recursive
+kernel checking and reviewed focused snapshots, with the same inherited
+assumptions and no new libc premise. Reproduce this internal result with:
+
+```sh
+JET_TARGETS=C/jet_secp_mixed_preparation_loose.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_preparation_loose
+```
+
+The next missing implication is the rest of mixed addition on this **actual
+negated representation**, followed by the flag-to-literal bridge. Do not apply
 `eval_mixed_literal` blindly: `eval_mixed_function` currently requires positioned
 `fe_limbs_ok` X/Y inputs, whereas C negation emits magnitude-two limbs
-(`4*negate_mask - limb`). Generalize the relevant preparation/weak-normalization
-proof to execute the existing C weak-normalization call on these loose limbs.
+(`4*negate_mask - limb`). Use the generalized preparation above for these limbs;
+its output needs the looser arithmetic bounds, not the old positioned identity.
 Do not insert a new normalization call or assume a canonical intermediate.
 Then derive the actual returned infinity flag's agreement with the literal
 test, including zero/noncanonical/off-curve inputs; compose the helper's one
