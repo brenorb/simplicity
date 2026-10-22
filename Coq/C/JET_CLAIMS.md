@@ -9,3 +9,4 @@ instead of starting a parallel proof.
 | --- | --- | --- | --- |
 | `simplicity_fe_invert` | Codex (current goal session) | `feat/jet-equivalence` | 2026-10-22 |
 | `simplicity_generate` | Codex (current goal session; shared scalar-splitting dependency) | `feat/jet-equivalence` | 2026-10-22 |
+| `simplicity_gej_ge_add_ex` | Codex (whole-public Clight mismatch witness, not positive coverage) | `feat/jet-equivalence` | 2026-10-22 |

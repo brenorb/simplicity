@@ -1,4 +1,4 @@
-(** Exact original NULL-rzr dispatch, separated from arithmetic and storage. *)
+(** Exact original double_var dispatch, separated from arithmetic and storage. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Values Events.
 Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_fns C.jet_secp_curve_statements
@@ -14,6 +14,10 @@ Definition double_var_head := match fn_body f_secp256k1_gej_double_var with
   | Ssequence h _ => h | _ => Sskip end.
 Definition double_var_tail := match fn_body f_secp256k1_gej_double_var with
   | Ssequence _ t => t | _ => Sskip end.
+Definition double_var_post_ratio := match double_var_tail with
+  | Ssequence _ t => t | _ => Sskip end.
+Definition double_var_ratio_guard := match double_var_tail with
+  | Ssequence h _ => h | _ => Sskip end.
 Lemma double_var_source : fn_body f_secp256k1_gej_double_var =
   Ssequence double_var_head double_var_tail.
 Proof. reflexivity. Qed.
@@ -44,25 +48,19 @@ Proof.
     + apply exec_Sskip.
 Qed.
 
-Lemma exec_double_var_tail_from_calls e le m md mz mf ba flag :
+Lemma exec_double_var_post_ratio_from_calls e le m md mz mf ba flag :
   le!_a=Some (Vptr ba Ptrofs.zero) -> le!_r=Some (Vptr ba Ptrofs.zero) ->
-  le!_rzr=Some (Vlong Int64.zero) ->
   e!_secp256k1_gej_double=None -> e!_secp256k1_fe_normalizes_to_zero_var=None ->
   Clight2.eval_funcall secp_ge m (Internal f_secp256k1_gej_double)
     [Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero] E0 md Vundef ->
   Clight2.eval_funcall secp_ge md (Internal f_secp256k1_fe_normalizes_to_zero_var)
     [Vptr ba (Ptrofs.repr 80)] E0 mz (Vint flag) ->
   Mem.store Mint32 mz ba 120 (Vint flag)=Some mf ->
-  Clight2.exec_stmt secp_ge e le m double_var_tail E0
+  Clight2.exec_stmt secp_ge e le m double_var_post_ratio E0
     (PTree.set _t'1 (Vint flag) le) mf Out_normal.
 Proof.
-  intros HA HR HN HD HZ CD CZ HS;unfold double_var_tail.
-  eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=m) (le1:=le).
-  - eapply exec_Sifthenelse with (v1:=Vint Int.zero) (b:=false).
-    + apply eval_double_var_null_test;exact HN.
-    + reflexivity.
-    + apply exec_Sskip.
-  - eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=md) (le1:=le).
+  intros HA HR HD HZ CD CZ HS;unfold double_var_post_ratio,double_var_tail.
+  eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=md) (le1:=le).
     + change (Clight2.exec_stmt secp_ge e le m
         (curve_call _secp256k1_gej_double f_secp256k1_gej_double None
           [Etempvar _r (tptr (Tstruct __6123 noattr));Etempvar _a (tptr (Tstruct __6123 noattr))]) E0 le md Out_normal).
@@ -84,6 +82,31 @@ Proof.
         -- reflexivity.
         -- eapply assign_loc_value with (chunk:=Mint32);[reflexivity|].
            change (Mem.store Mint32 mz ba 120 (Vint flag)=Some mf);exact HS.
+Qed.
+
+Lemma exec_double_var_tail_from_calls e le m md mz mf ba flag :
+  le!_a=Some (Vptr ba Ptrofs.zero) -> le!_r=Some (Vptr ba Ptrofs.zero) ->
+  le!_rzr=Some (Vlong Int64.zero) ->
+  e!_secp256k1_gej_double=None -> e!_secp256k1_fe_normalizes_to_zero_var=None ->
+  Clight2.eval_funcall secp_ge m (Internal f_secp256k1_gej_double)
+    [Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero] E0 md Vundef ->
+  Clight2.eval_funcall secp_ge md (Internal f_secp256k1_fe_normalizes_to_zero_var)
+    [Vptr ba (Ptrofs.repr 80)] E0 mz (Vint flag) ->
+  Mem.store Mint32 mz ba 120 (Vint flag)=Some mf ->
+  Clight2.exec_stmt secp_ge e le m double_var_tail E0
+    (PTree.set _t'1 (Vint flag) le) mf Out_normal.
+Proof.
+  intros HA HR HN HD HZ CD CZ HS.
+  change (Clight2.exec_stmt secp_ge e le m
+    (Ssequence double_var_ratio_guard double_var_post_ratio)
+    E0 (PTree.set _t'1 (Vint flag) le) mf Out_normal).
+  eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=m) (le1:=le).
+  - unfold double_var_ratio_guard,double_var_tail.
+    eapply exec_Sifthenelse with (v1:=Vint Int.zero) (b:=false).
+    + apply eval_double_var_null_test;exact HN.
+    + reflexivity.
+    + apply exec_Sskip.
+  - exact (exec_double_var_post_ratio_from_calls e le m md mz mf ba flag HA HR HD HZ CD CZ HS).
 Qed.
 
 Lemma exec_double_var_head_infinite e le m mf ba flag :

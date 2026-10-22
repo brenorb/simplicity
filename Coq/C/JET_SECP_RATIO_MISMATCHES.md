@@ -65,6 +65,27 @@ They are **not** a completed Clight execution counterexample for the whole
 public extended jet. The latter remains a verification limit, not an assumed
 premise or a reason to narrow the requested input domain.
 
+The ordinary proof module `jet_secp_double_var_ratio.v` now proves the complete
+original `secp256k1_gej_double_var` call with a non-NULL ratio pointer on the
+finite-point path and positioned Y limbs (including public-reader outputs).
+It derives the actual struct copy, weak normalization, point doubling, Z test
+and flag store from owned storage, preserving the separate ratio field and
+both objects' ownership. No intermediate execution or libc model is assumed.
+The common post-ratio suffix is shared with the existing NULL-ratio proof.
+Normal compilation and recursive kernel checking passed; the execution result
+retains the six inherited assumptions. Reproduce this helper check with:
+
+```sh
+JET_TARGETS=C/jet_secp_double_var_ratio.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_var_ratio
+```
+
+This is **not yet the whole-public counterexample**. Remaining composition:
+the mixed-addition H=I=0 dispatch and its ten local allocations/frees, the
+extended public wrapper's readers and ratio/point writers, and a concrete
+valid-frame instantiation for the witness above. The helper's positioned-Y
+premise is not a proposed restriction on the public jet's input type.
+
 The production C and canonical Haskell were unchanged in the proof commit
 `63aa1380`; the existing 240-file source/configuration fidelity gate passed.
 This discrepancy is not caused by a production/specification edit made for
