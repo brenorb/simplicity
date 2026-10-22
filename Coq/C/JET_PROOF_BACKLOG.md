@@ -154,7 +154,8 @@ The complete finite helper body is now connected:
   closure and reviewed no-update focused assumption/contract comparisons
   passed for these three modules. The result retains the six inherited
   assumptions and no extra libc premise. It is not yet a public equivalence
-  theorem: the finite literal bridge and function/public lifecycles remain.
+  theorem: function/public lifecycles remain; the finite literal bridge is
+  described below.
 
 `jet_secp_gej_add_dispatch_literal` now connects the U1/U2/S1/S2 preparation
 residues and H/I bounds to the literal finite-tree operands, for arbitrary
@@ -166,6 +167,21 @@ the inherited functional-extensionality assumption. Reproduce with
 `JET_TARGETS='C/jet_secp_gej_add_dispatch_literal.vo' bash Coq/build-jets.sh -j2`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
 C.jet_secp_gej_add_dispatch_literal`.
+
+`jet_secp_gej_add_finite_literal` connects all three actual finite output-word
+functions to the fixed `literal_gej_add` result, including doubling/infinity
+branches and the extra Bz factor in the nonzero Z path. It reuses the existing
+X/Y and doubling writer bridges. `jet_secp_gej_add_finite_body_literal` composes
+that result with execution of the whole original finite C body, deriving the
+serialized specification result, bounds, all thirteen owners and framing from
+reader storage. The finite flags are internal dispatch cases; no curve or
+canonical-word restriction is imposed. Both modules passed normal compilation,
+recursive kernel checking and reviewed no-update focused snapshots. The value
+bridge retains only inherited functional extensionality, and the execution
+bridge retains the six inherited assumptions with no extra libc premise.
+Reproduce with `JET_TARGETS='C/jet_secp_gej_add_finite_body_literal.vo'
+bash Coq/build-jets.sh -j2` and `bash Coq/build-jets.sh --coqchk
+-bytecode-compiler yes -silent -o C.jet_secp_gej_add_finite_body_literal`.
 
 Reproduce this checked internal frontier:
 
@@ -208,14 +224,11 @@ Reproduce the unified finite body with
 then `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
 C.jet_secp_gej_add_finite_body`.
 
-Next connect its exact reader-derived output words and H/I dispatch to the
-fixed literal Simplicity result. Reuse `literal_gej_add_finite_step` (already
-general in both points), `mixed_x_matches_literal`, `mixed_y_matches_literal`
-and the existing doubling/zero writer bridges. The general Z bridge must
-retain the extra Bz factor: the executed prefix computes T=H*Bz, skips the
+Next compose the existing infinity and finite literal-body branches, then
+discharge all eleven helper-local allocations/frees. The general Z bridge
+retains the extra Bz factor: the executed prefix computes T=H*Bz, skips the
 NULL ratio write, then Rz=Az*T. Do not substitute a mixed-addition call.
-Remaining work includes that finite literal bridge, all
-eleven helper-local allocations/frees, both public GEJ reads, the writer and
+Remaining work also includes both public GEJ reads, the writer and
 outer lifecycle, canonical whole-contract gating and scoped acceptance.
 
 Field inversion is a separate, later dependency: the actual `fe_inv_var`
