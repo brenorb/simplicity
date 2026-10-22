@@ -3,10 +3,9 @@
 The current local-contract registry contains 501 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 32 declarations remain unregistered.
-The projective curve, doubling and mixed-addition endpoints passed ordinary
-scoped acceptance; accepted local-contract coverage is 500/533. The every-jet
+The projective curve, doubling, mixed-addition and square-root endpoints passed
+ordinary scoped acceptance; accepted local-contract coverage is 501/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
-The newly registered square-root endpoint is awaiting scoped acceptance.
 
 The remaining work includes:
 
@@ -1573,7 +1572,7 @@ JET_TARGETS=C/jet_secp_mixed_literal_bridge.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_nonzero_literal C.jet_secp_mixed_literal_bridge
 ```
 
-## Registered, awaiting scoped acceptance: fe_square_root
+## Completed: fe_square_root
 
 `C.jet_secp_root_local.fe_square_root_literal_local_spec` proves the original
 public `simplicity_fe_square_root` against the fixed primitive-bearing
@@ -1596,8 +1595,10 @@ The `jet_secp_root_*` modules are ordinary project sources. The entry/copy/call
 adapters and the complete local endpoint compile in the normal build; focused
 snapshots were reviewed. The existing `secp-field-integration/check-rescale.py`
 checks the canonical catalog, exact tower/candidate/check ports and complete
-public contract; eighteen negative mutations must fail. Coverage must not be
-described as accepted until the following ordinary scoped check finishes:
+public contract and rejects eighteen negative mutations. The proof inputs at
+`fd51b860` passed ordinary scoped acceptance: 355 kernel modules, 294 assumption
+modules, 309 contract modules, negative tests and all five AST regenerations,
+with identical audit inputs before and after. Reproduce with:
 
 ```sh
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_fe_square_root
@@ -1607,6 +1608,7 @@ Leave `simplicity_gej_ge_add_ex` unresolved: its equal-point ratio disagrees
 with C on a legitimate noncanonical Word256 input, as documented in
 [JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md). Do not fix that
 target or restrict inputs while pursuing independent jets.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:

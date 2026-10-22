@@ -4,9 +4,8 @@ The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
 The local-contract registry contains 501/533 jets (365 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
-500/533, including the computing issuance hash, affine/projective curve,
-projective X-equivalence, doubling and mixed-addition endpoints. The newly
-registered square-root endpoint is compiled but awaiting scoped acceptance.
+501/533, including the computing issuance hash, affine/projective curve,
+projective X-equivalence, doubling, mixed-addition and square-root endpoints.
 The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
@@ -1128,6 +1127,38 @@ and 136 conditional on `memcpy_model`. The remaining 36 declarations and the
 shared fidelity/domain/caller obligations are not completed by this result.
 Production C, original specifications/domains/identities, API contracts and
 generation settings are unchanged.
+
+## Accepted: original field square-root jet
+
+`C.jet_secp_root_local.fe_square_root_literal_local_spec` proves the complete
+original public `simplicity_fe_square_root` against the fixed literal
+Simplicity program. It covers arbitrary Word256 inputs, general valid frame
+cursors and word crossings, arbitrary unrelated destination contents, and both
+sum-result branches. It derives all actual helper calls and their storage
+invariants, the addition chain and eleven squaring loops, comparison, tag and
+conditional payload/padding, integer-to-bool conversion, successful public
+return, twelve helper allocations/frees and three outer allocations/frees.
+No mathematical square-root, initialized-result, intermediate execution,
+curve-membership or extra libc-model premise is added. The same six inherited
+execution assumptions remain.
+
+The proof inputs committed at `fd51b860` passed ordinary scoped acceptance:
+355 kernel modules, 294 assumption modules, 309 contract modules, gate negative
+tests and all five AST regenerations, with identical audit inputs before and
+after the run. The existing source-correspondence gate checks the canonical
+catalog, exact tower/candidate/check ports and complete public contract, and
+rejects eighteen targeted mutations. Reproduce with Coq 8.17.1 and the prepared
+dependencies:
+
+```sh
+JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_fe_square_root
+```
+
+Accepted local-contract coverage is 501/533: 365 without an extra libc premise,
+136 conditional on `memcpy_model`, and 32 declarations remaining. Shared
+fidelity/domain/caller obligations remain unfinished. Production C, original
+specifications/domains/identities, API contracts and generation settings are
+unchanged; the every-jet goal is not complete.
 
 ## Accepted: original projective curve check
 
