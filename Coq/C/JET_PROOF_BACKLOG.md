@@ -57,8 +57,16 @@ From represented input and the four separated caller allocations it establishes
 the root temporary's exact contents, copied X, finite flag, all allocation
 ownership and outside framing. No intermediate call or output is a premise.
 
-Next compose the root failure return or normalization/parity/magnitude-one
-negation and successful return of the real `ge_set_xo_var` statement tree.
+`jet_secp_decompress_root_test.exec_decompress_root_test_owned` now executes
+the actual root call and conditional for both outcomes. Its
+`exec_decompress_failure_body` composes the prefix with the complete original
+body on the failing-root branch and proves the zero return and canonical
+`y_from_x = inl tt`, with copied X, finite flag, ownership and framing retained.
+The explicit false-flag premise is an internal branch split, not a restriction
+on a registered public theorem. No decompression jet is registered yet.
+
+Next compose normalization/parity/magnitude-one negation and successful return
+on the remaining branch of the real `ge_set_xo_var` statement tree.
 Reuse the existing affine negation and owned struct-copy proofs. Then prove the
 public reader, success/failure writer (including failure padding), entry and
 free lifecycle for arbitrary valid 257-bit input/513-bit output frames.
