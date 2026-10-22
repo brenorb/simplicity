@@ -1,4 +1,4 @@
-"""Point rescale/doubling contracts and addition ports; not C execution.
+"""Point rescale/doubling/mixed-addition contracts and ports; not C execution.
 
 Reuse the existing source parser.  Field multiply/square dependencies retain
 their own gates; this checks the new projections, cube and zinv composition.
@@ -104,7 +104,7 @@ def check_double(s):
 
 
 def check_addition_ports(s):
-    """Freeze addition routing before composing the C mixed-addition proof.
+    """Freeze addition routing used by the C mixed-addition proof.
 
     No public addition contract or coverage is asserted by this helper check.
     The existing field/doubling checks retain responsibility for callees.
@@ -166,6 +166,24 @@ def check_addition_ports(s):
             raise ValueError("literal addition tree differs: " + name)
 
 
+def check_mixed(s):
+    check_addition_ports(s)
+    for fragment in [
+        "GejGeAdd :: Secp256k1Jet (Secp256k1.GEJ,Secp256k1.GE) Secp256k1.GEJ",
+        "specificationSecp256k1 GejGeAdd = Secp256k1.gej_ge_add",
+        "implementationSecp256k1 GejGeAdd = FFI.gej_ge_add",
+    ]:
+        p.require(s["catalog"], fragment, "GejGeAdd catalog")
+    for declaration in ["type FE = Word256", "type GE = (FE, FE)", "type GEJ = (GE, FE)"]:
+        p.require(s["types"], declaration, "mixed-addition representation")
+    statement = re.search(r"Theorem gej_ge_add_literal_local_spec\s*:(.*?)\bProof\.", s["mixed_jet"], re.S)
+    expected = "secp_jet_local_spec f_simplicity_gej_ge_add " \
+        "(Ty.Prod (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) (Ty.Prod (Word 8) (Word 8))) " \
+        "(Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) (@literal_gej_ge_add Alg.CoreFunSem)."
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError("GejGeAdd full public contract differs")
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -176,6 +194,7 @@ def test():
         "double_port": COQ / "C/jet_secp_double_literal.v",
         "double_jet": COQ / "C/jet_secp_double_local.v",
         "add_port": COQ / "C/jet_secp_add_literal.v",
+        "mixed_jet": COQ / "C/jet_secp_mixed_local.v",
     }.items()}
     check(s)
     mutations = [
@@ -271,7 +290,32 @@ def test():
         except ValueError:
             continue
         raise ValueError("accepted addition source mutation: " + old)
-    print(f"Addition literal ports match; {len(mutations)} targeted mutations rejected; no public addition coverage claimed")
+    print(f"Addition literal ports match; {len(mutations)} targeted mutations rejected")
+    check_mixed(s)
+    mutations = [
+        ("catalog", "GejGeAdd :: Secp256k1Jet (Secp256k1.GEJ,Secp256k1.GE) Secp256k1.GEJ",
+                    "GejGeAdd :: Secp256k1Jet (Secp256k1.GE,Secp256k1.GEJ) Secp256k1.GEJ"),
+        ("catalog", "specificationSecp256k1 GejGeAdd = Secp256k1.gej_ge_add",
+                    "specificationSecp256k1 GejGeAdd = Secp256k1.gej_add"),
+        ("catalog", "implementationSecp256k1 GejGeAdd = FFI.gej_ge_add",
+                    "implementationSecp256k1 GejGeAdd = FFI.gej_add"),
+        ("types", "type GEJ = (GE, FE)", "type GEJ = (FE, GE)"),
+        ("mixed_jet", "secp_jet_local_spec f_simplicity_gej_ge_add", "False -> secp_jet_local_spec f_simplicity_gej_ge_add"),
+        ("mixed_jet", "f_simplicity_gej_ge_add", "f_secp256k1_gej_add_ge_var"),
+        ("mixed_jet", "(Word 8)", "(Word 7)"),
+        ("mixed_jet", "@literal_gej_ge_add Alg.CoreFunSem", "@literal_gej_ge_add_ex Alg.CoreFunSem"),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError("inactive mixed-addition mutation fixture: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_mixed(changed)
+        except ValueError:
+            continue
+        raise ValueError("accepted mixed-addition source mutation: " + old)
+    print(f"GejGeAdd catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
 
 
 if __name__ == "__main__":

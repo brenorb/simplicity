@@ -1,10 +1,12 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 499 of the 533 header declarations.
+The current local-contract registry contains 500 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 34 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 33 declarations remain unregistered.
 The projective curve and doubling endpoints passed ordinary scoped acceptance;
 accepted local-contract coverage is 499/533. The every-jet goal remains incomplete.
+The new mixed-addition endpoint is compiled and registered as a candidate;
+ordinary scoped acceptance is pending. Do not count it as accepted yet.
 
 The remaining work includes:
 
@@ -1511,9 +1513,22 @@ derives actual `Clight2.eval_funcall`, all output fields and reusable bounds,
 the literal-program output, retained ownership and external framing. It has
 no allocation, intermediate-execution or output-value premise and adds no
 libc model. This is the complete helper-to-literal bridge, not yet the public
-jet contract. Next compose the actual public read_gej/read_ge/helper/write_gej
-statements, return and outer allocation/free lifecycle over general frames;
-then run full scoped acceptance and register only that complete endpoint.
+jet contract by itself. The public composition is now supplied by
+`jet_secp_mixed_public_{reads,entry,body,prepare,rest,call}.v`:
+both actual readers, all helper and writer calls, by-value frame copy, Boolean
+return, three outer allocations and their exact frees are derived from
+the standard general-frame preconditions. `jet_secp_point_output_literal.v`
+reuses the original general writer for any proved literal output triple.
+`jet_secp_mixed_local.v:gej_ge_add_literal_local_spec` closes the full original
+public C-to-literal-Simplicity contract for arbitrary Word256 inputs,
+including zero and off-curve coordinates, general valid cursors and unrelated
+initial destination bits. No extra execution/output/library premise is added;
+the theorem has the same six inherited execution assumptions. The endpoint
+is normally compiled and its reviewed snapshots are generated; full ordinary
+scoped acceptance is pending. The existing point source gate also checks the
+GejGeAdd catalog mapping and exact public statement, rejecting eight new
+targeted mutations. Reproduce acceptance with
+`JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_ge_add`.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
