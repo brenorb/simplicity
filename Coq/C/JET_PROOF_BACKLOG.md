@@ -1415,8 +1415,18 @@ computed H is zero modulo p. It derives its H/I storage and bounds, returns
 the actual conditional coordinates/flag, all nine named allocations' ownership
 and an external frame. This is an internal branch theorem: finite flags and
 H=0 select this path; they are not restrictions on a registered public jet.
-Next prove the nonzero-H arithmetic, complete helper/public wrapper
-entry/return/free lifecycle and the literal specification bridge.
+`jet_secp_mixed_nonzero_start.v:exec_mixed_nonzero_prefix` now derives the H
+test and the first four nonzero-H statements from initial owned fields:
+clear the infinity flag, skip the NULL-rzr copy, multiply the actual point Z
+by H, and square H into an uninitialized H2. It reuses
+`double_var_store_flag`, `eval_point_mul_numeric` and
+`eval_square_separate_from_storage`; X/Y, H, ownership and precise external
+framing are preserved. The Z product and H square values/bounds are returned.
+`mixed_nonzero_prefix_source` identifies this exact prefix of the original
+remaining body. Next execute H2's in-place magnitude-one negation, the H3/T
+products and the remaining X/Y arithmetic. Then attach the whole nonzero
+tail to finite preparation, complete helper/public wrapper entry/return/free
+lifecycle and prove the literal specification bridge.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1444,6 +1454,8 @@ JET_TARGETS=C/jet_secp_mixed_zero_branch.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_zero_branch
 JET_TARGETS=C/jet_secp_mixed_finite_return.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_finite_return
+JET_TARGETS=C/jet_secp_mixed_nonzero_start.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_nonzero_start
 ```
 
 ## Source-review question: Elements fee predicates
