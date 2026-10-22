@@ -1,0 +1,127 @@
+### C.jet_secp_divstep_termination.inv_stepN_start
+inv_stepN_start
+     : forall (n : nat) (st : divstep.State),
+       @eq divstep.State (@fst divstep.State (list divstep.Step) (divstep.stepN (S n) st))
+         (@fst divstep.State (list divstep.Step) (divstep.stepN n (@fst divstep.State divstep.Step (divstep.step st))))
+### C.jet_secp_divstep_termination.inv_equal_g_step
+inv_equal_g_step
+     : forall (st : divstep.State) (_ : @eq BinNums.Z (divstep.g st) (divstep.f st)),
+       and
+         (forall _ : BinInt.Z.lt BinNums.Z0 (divstep.delta st),
+          @eq BinNums.Z (divstep.g (@fst divstep.State divstep.Step (divstep.step st))) BinNums.Z0)
+         (forall _ : BinInt.Z.le (divstep.delta st) BinNums.Z0,
+          and (@eq BinNums.Z (divstep.f (@fst divstep.State divstep.Step (divstep.step st))) (divstep.f st))
+            (and (@eq BinNums.Z (divstep.g (@fst divstep.State divstep.Step (divstep.step st))) (divstep.f st))
+               (@eq BinNums.Z (divstep.delta (@fst divstep.State divstep.Step (divstep.step st)))
+                  (BinInt.Z.add (BinNums.Zpos BinNums.xH) (divstep.delta st)))))
+### C.jet_secp_divstep_termination.inv_equal_g_terminates
+inv_equal_g_terminates
+     : forall (st : divstep.State) (_ : @eq BinNums.Z (divstep.g st) (divstep.f st)),
+       @ex nat
+         (fun n : nat =>
+          @eq BinNums.Z (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) BinNums.Z0)
+### C.jet_secp_divstep_termination.inv_even_values
+inv_even_values
+     : forall (st : divstep.State) (_ : Zeven.Zeven (divstep.g st)),
+       and (@eq BinNums.Z (divstep.f (@fst divstep.State divstep.Step (divstep.step st))) (divstep.f st))
+         (and
+            (@eq BinNums.Z (divstep.delta (@fst divstep.State divstep.Step (divstep.step st)))
+               (BinInt.Z.add (BinNums.Zpos BinNums.xH) (divstep.delta st)))
+            (@eq BinNums.Z (divstep.g (@fst divstep.State divstep.Step (divstep.step st)))
+               (BinInt.Z.div (divstep.g st) (BinNums.Zpos (BinNums.xO BinNums.xH)))))
+### C.jet_secp_divstep_termination.inv_even_half_abs
+inv_even_half_abs
+     : forall (a : BinNums.Z) (_ : Zeven.Zeven a) (_ : not (@eq BinNums.Z a BinNums.Z0)),
+       BinInt.Z.lt (BinInt.Z.abs (BinInt.Z.div a (BinNums.Zpos (BinNums.xO BinNums.xH)))) (BinInt.Z.abs a)
+### C.jet_secp_divstep_termination.inv_positive_odd_phase
+inv_positive_odd_phase
+     : forall (st : divstep.State) (_ : BinInt.Z.lt BinNums.Z0 (divstep.delta st)),
+       @ex nat
+         (fun n : nat =>
+          and (@eq BinNums.Z (divstep.f (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) (divstep.f st))
+            (and (BinInt.Z.lt BinNums.Z0 (divstep.delta (@fst divstep.State (list divstep.Step) (divstep.stepN n st))))
+               (or (@eq BinNums.Z (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) BinNums.Z0)
+                  (Zeven.Zodd (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n st)))))))
+### C.jet_secp_divstep_termination.inv_nonpositive_f
+inv_nonpositive_f
+     : forall (st : divstep.State) (n : nat) (_ : BinInt.Z.le BinNums.Z0 (divstep.eta st))
+         (_ : BinInt.Z.le (BinInt.Z.of_nat n) (BinInt.Z.add (BinNums.Zpos BinNums.xH) (divstep.eta st))),
+       @eq BinNums.Z (divstep.f (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) (divstep.f st)
+### C.jet_secp_divstep_termination.inv_positive_start
+inv_positive_start
+     : forall st : divstep.State,
+       @ex nat
+         (fun n : nat =>
+          and (@eq BinNums.Z (divstep.f (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) (divstep.f st))
+            (BinInt.Z.lt BinNums.Z0 (divstep.delta (@fst divstep.State (list divstep.Step) (divstep.stepN n st)))))
+### C.jet_secp_divstep_termination.inv_odd_phase
+inv_odd_phase
+     : forall st : divstep.State,
+       @ex nat
+         (fun n : nat =>
+          and (@eq BinNums.Z (divstep.f (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) (divstep.f st))
+            (and (BinInt.Z.lt BinNums.Z0 (divstep.delta (@fst divstep.State (list divstep.Step) (divstep.stepN n st))))
+               (or (@eq BinNums.Z (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) BinNums.Z0)
+                  (Zeven.Zodd (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n st)))))))
+### C.jet_secp_divstep_termination.inv_opposite_g_step
+inv_opposite_g_step
+     : forall (st : divstep.State) (_ : @eq BinNums.Z (divstep.g st) (BinInt.Z.opp (divstep.f st))),
+       and
+         (forall _ : BinInt.Z.le (divstep.delta st) BinNums.Z0,
+          @eq BinNums.Z (divstep.g (@fst divstep.State divstep.Step (divstep.step st))) BinNums.Z0)
+         (forall _ : BinInt.Z.lt BinNums.Z0 (divstep.delta st),
+          @eq BinNums.Z (divstep.g (@fst divstep.State divstep.Step (divstep.step st)))
+            (divstep.f (@fst divstep.State divstep.Step (divstep.step st))))
+### C.jet_secp_divstep_termination.inv_balanced_terminates
+inv_balanced_terminates
+     : forall (st : divstep.State) (_ : @eq BinNums.Z (BinInt.Z.abs (divstep.f st)) (BinInt.Z.abs (divstep.g st))),
+       @ex nat
+         (fun n : nat =>
+          @eq BinNums.Z (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) BinNums.Z0)
+### C.jet_secp_divstep_termination.inv_phase_rank_nonneg
+inv_phase_rank_nonneg
+     : forall st : divstep.State, BinInt.Z.le BinNums.Z0 (inv_phase_rank st)
+### C.jet_secp_divstep_termination.inv_positive_odd_f
+inv_positive_odd_f
+     : forall (st : divstep.State) (_ : BinInt.Z.lt BinNums.Z0 (divstep.delta st)) (_ : Zeven.Zodd (divstep.g st)),
+       @eq BinNums.Z (divstep.f (@fst divstep.State divstep.Step (divstep.step st))) (divstep.g st)
+### C.jet_secp_divstep_termination.inv_phase_rank_drop
+inv_phase_rank_drop
+     : forall (st u : divstep.State) (_ : @eq BinNums.Z (divstep.f u) (divstep.f st))
+         (_ : BinInt.Z.le (BinInt.Z.abs (divstep.g u))
+                (BinInt.Z.max (BinInt.Z.abs (divstep.f st)) (BinInt.Z.abs (divstep.g st))))
+         (_ : forall _ : BinInt.Z.lt (BinInt.Z.abs (divstep.g st)) (BinInt.Z.abs (divstep.f st)),
+              BinInt.Z.lt (BinInt.Z.abs (divstep.g u)) (BinInt.Z.abs (divstep.f st)))
+         (_ : not (@eq BinNums.Z (BinInt.Z.abs (divstep.f u)) (BinInt.Z.abs (divstep.g u))))
+         (_ : BinInt.Z.lt BinNums.Z0 (divstep.delta u)) (_ : Zeven.Zodd (divstep.g u)),
+       BinInt.Z.lt (inv_phase_rank (@fst divstep.State divstep.Step (divstep.step u))) (inv_phase_rank st)
+### C.jet_secp_divstep_termination.inv_divstep_terminates
+inv_divstep_terminates
+     : forall st : divstep.State,
+       @ex nat
+         (fun n : nat =>
+          @eq BinNums.Z (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n st))) BinNums.Z0)
+### C.jet_secp_divstep_termination.inv_divstep_batches_terminate
+inv_divstep_batches_terminate
+     : forall st : divstep.State,
+       @ex nat
+         (fun batches : nat =>
+          @eq BinNums.Z
+            (divstep.g
+               (@fst divstep.State (list divstep.Step)
+                  (divstep.stepN
+                     (Nat.mul (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))) batches) st)))
+            BinNums.Z0)
+### C.jet_secp_divstep_termination.inv_phase_rank
+inv_phase_rank =
+fun st : divstep.State =>
+BinInt.Z.add
+  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinInt.Z.max (BinInt.Z.abs (divstep.f st)) (BinInt.Z.abs (divstep.g st))))
+  match BinInt.Z.ltb (BinInt.Z.abs (divstep.f st)) (BinInt.Z.abs (divstep.g st)) return BinNums.Z with
+  | true => BinNums.Zpos BinNums.xH
+  | false => BinNums.Z0
+  end
+     : forall _ : divstep.State, BinNums.Z
+
+Arguments inv_phase_rank st

@@ -54,6 +54,7 @@ let hp = nixpkgs.haskell.packages.${ghc};
   coqJets = nixpkgs.callPackage ./Simplicity.Coq.Jets.nix {
     inherit (cp) coq;
     inherit compcert coqprime;
+    safegcd-definitions = safegcd-bounds.override { cheating = false; definitionsOnly = true; };
     vst = vst.override { shaOnly = true; };
   };
 

@@ -5,7 +5,8 @@
 #   * the part of VST 2.14 that Simplicity.Word imports (the sha library and
 #     the VST modules it needs), built against that CompCert;
 #   * the standard-integer Pocklington certificate checker from CoqPrime,
-#     without its bignums-based accelerated checker or certificate generator.
+#     without its bignums-based accelerated checker or certificate generator;
+#   * only divsteps_def.v of the already pinned safegcd source, for C.divstep.
 #
 # The target configuration describes the machine whose C semantics is being
 # reasoned about; it is independent of the host that runs Coq.  The host only
@@ -14,15 +15,18 @@
 #
 # Usage: Coq/jet-deps.sh          (uses JET_DEPS, default ~/.cache/simplicity-jet-deps)
 #        Coq/jet-deps.sh --coqprime-only   (preserves existing CompCert/VST trees)
+#        Coq/jet-deps.sh --safegcd-only    (builds only divsteps_def.v)
 # Afterwards the other scripts find the result through JET_DEPS.
 set -euo pipefail
 coqprime_only=false
+safegcd_only=false
 case "${1:-}" in
   "") ;;
   --coqprime-only) coqprime_only=true ;;
-  *) echo "usage: $0 [--coqprime-only]" >&2; exit 2 ;;
+  --safegcd-only) safegcd_only=true ;;
+  *) echo "usage: $0 [--coqprime-only|--safegcd-only]" >&2; exit 2 ;;
 esac
-[[ "$#" -le 1 ]] || { echo "usage: $0 [--coqprime-only]" >&2; exit 2; }
+[[ "$#" -le 1 ]] || { echo "usage: $0 [--coqprime-only|--safegcd-only]" >&2; exit 2; }
 
 COQ_VERSION=8.17.1
 COMPCERT_VERSION=3.14
@@ -38,6 +42,9 @@ VST_TARGETS="sha/general_lemmas.vo sha/SHA256.vo sha/functional_prog.vo"
 COQPRIME_COMMIT=431d7a66877cbe8688fc8864ef892369401440e1
 COQPRIME_URL=https://github.com/thery/coqprime/archive/${COQPRIME_COMMIT}.tar.gz
 COQPRIME_SHA256=cfd5845d37987cff2c0f028b3f9f18a80716e255ac6379b41af1ebfffae88d90
+SAFEGCD_COMMIT=06abb7f7aba9b00eb4ead96bdd7dbcc04ec45c4f
+SAFEGCD_URL=https://raw.githubusercontent.com/sipa/safegcd-bounds/${SAFEGCD_COMMIT}/coq/divsteps/divsteps_def.v
+SAFEGCD_SHA256=f8450b0068947b1fbc184b8565511ca3e28fcfaa8395bc0c5da2096d82aaff06
 
 JET_DEPS=${JET_DEPS:-${XDG_CACHE_HOME:-$HOME/.cache}/simplicity-jet-deps}
 jobs=${JOBS:-$( (nproc || sysctl -n hw.ncpu) 2>/dev/null || echo 2)}
@@ -57,14 +64,25 @@ fetch() { # url sha256 file
     printf 'Checksum mismatch for %s\n' "$3" >&2; rm -f "$JET_DEPS/src/$3"; exit 1
   fi
 }
-if ! $coqprime_only; then
+if ! $coqprime_only && ! $safegcd_only; then
   fetch "$COMPCERT_URL" "$COMPCERT_SHA256" compcert-$COMPCERT_VERSION.tar.gz
   fetch "$VST_URL" "$VST_SHA256" vst-2.14.tar.gz
 fi
-fetch "$COQPRIME_URL" "$COQPRIME_SHA256" coqprime-8.17.tar.gz
+if ! $safegcd_only; then
+  fetch "$COQPRIME_URL" "$COQPRIME_SHA256" coqprime-8.17.tar.gz
+fi
+if ! $coqprime_only; then
+  fetch "$SAFEGCD_URL" "$SAFEGCD_SHA256" safegcd-${SAFEGCD_COMMIT}-divsteps_def.v
+  safegcd_dir=$JET_DEPS/safegcd-definitions-06abb7f7
+  mkdir -p "$safegcd_dir"
+  # Always compile the verified source with the active baseline compiler.
+  cp "$JET_DEPS/src/safegcd-${SAFEGCD_COMMIT}-divsteps_def.v" "$safegcd_dir/divsteps_def.v"
+  coqc -q -R "$safegcd_dir" divsteps "$safegcd_dir/divsteps_def.v"
+  printf 'Safegcd definitions (commit %s, no 724 certificate): %s\n' "$SAFEGCD_COMMIT" "$safegcd_dir"
+fi
 
 cc_dir=$JET_DEPS/compcert-$COMPCERT_VERSION
-if ! $coqprime_only && [[ ! -f "$cc_dir/.built" ]]; then
+if ! $coqprime_only && ! $safegcd_only && [[ ! -f "$cc_dir/.built" ]]; then
   rm -rf "$cc_dir"; mkdir -p "$cc_dir"
   tar -xzf "$JET_DEPS/src/compcert-$COMPCERT_VERSION.tar.gz" -C "$cc_dir" --strip-components=1
   ( cd "$cc_dir"
@@ -77,7 +95,7 @@ if ! $coqprime_only && [[ ! -f "$cc_dir/.built" ]]; then
 fi
 
 vst_dir=$JET_DEPS/vst-2.14
-if ! $coqprime_only && [[ ! -f "$vst_dir/.built" ]]; then
+if ! $coqprime_only && ! $safegcd_only && [[ ! -f "$vst_dir/.built" ]]; then
   rm -rf "$vst_dir"; mkdir -p "$vst_dir"
   tar -xzf "$JET_DEPS/src/vst-2.14.tar.gz" -C "$vst_dir" --strip-components=1
   # The v2.14 tag records version 2.13 and pins CompCert 3.13 in its metadata;
@@ -89,20 +107,22 @@ if ! $coqprime_only && [[ ! -f "$vst_dir/.built" ]]; then
 fi
 
 prime_dir=$JET_DEPS/coqprime-8.17
-if [[ ! -f "$prime_dir/src/Coqprime/PrimalityTest/PocklingtonCertificat.vo" ]]; then
+if ! $safegcd_only && [[ ! -f "$prime_dir/src/Coqprime/PrimalityTest/PocklingtonCertificat.vo" ]]; then
   mkdir -p "$prime_dir"
   tar -xzf "$JET_DEPS/src/coqprime-8.17.tar.gz" -C "$prime_dir" --strip-components=1
   ( cd "$prime_dir"
     make -j"$jobs" src/Coqprime/PrimalityTest/PocklingtonCertificat.vo )
 fi
 
-if ! $coqprime_only; then
+if ! $coqprime_only && ! $safegcd_only; then
   cat <<MSG
 CompCert $COMPCERT_VERSION (x86_64-linux target): $cc_dir
 VST ${VST_TAG} (commit $VST_COMMIT, sha subset):   $vst_dir
 MSG
 fi
+if ! $safegcd_only; then
 cat <<MSG
 CoqPrime v8.17 (commit $COQPRIME_COMMIT, standard-integer checker): $prime_dir
-Use with: JET_DEPS=$JET_DEPS bash Coq/build-jets.sh
 MSG
+fi
+printf 'Use with: JET_DEPS=%s bash Coq/build-jets.sh\n' "$JET_DEPS"

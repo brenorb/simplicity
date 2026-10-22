@@ -13,6 +13,7 @@ if [[ "${JET_USE_COQPATH:-0}" != 1 ]]; then
   COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14}
   VST=${VST:-$JET_DEPS/vst-2.14}
   COQPRIME=${COQPRIME:-$JET_DEPS/coqprime-8.17}
+  SAFEGCD=${SAFEGCD:-$JET_DEPS/safegcd-definitions-06abb7f7}
   if [[ ! -f "$COMPCERT/compcert.config" || ! -d "$VST/sha" ]]; then
     echo "CompCert/VST not found; run Coq/jet-deps.sh (see Coq/JET_BUILD.md)" >&2
     exit 1
@@ -30,6 +31,11 @@ if [[ "${JET_USE_COQPATH:-0}" != 1 ]]; then
     exit 1
   fi
   jet_flags+=(-R "$COQPRIME/src/Coqprime" Coqprime)
+  if [[ ! -f "$SAFEGCD/divsteps_def.vo" ]]; then
+    echo "Safegcd definitions not found; run Coq/jet-deps.sh --safegcd-only (see Coq/JET_BUILD.md)" >&2
+    exit 1
+  fi
+  jet_flags+=(-R "$SAFEGCD" divsteps)
 fi
 
 # Reuse the exact project load paths for a short proof/debug/check cycle.

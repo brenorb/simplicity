@@ -326,6 +326,21 @@ sparse-modulus normalization, the canonical word-level Bezout bridge, and the
 complete public caller with allocation/freeing and frame preservation. No
 inversion registration or coverage increase is claimed.
 
+`jet_secp_divstep_termination.inv_divstep_terminates` now proves that the
+existing integer divstep transition reaches `g = 0` for every state (whose
+record requires odd `f`), and `inv_divstep_batches_terminate` lifts this to
+62-step boundaries using zero stability. All sixteen exported lemmas are
+closed; normal compilation, recursive kernel checking and reviewed no-update
+snapshots passed. Reproduce with
+`JET_TARGETS=C/jet_secp_divstep_termination.vo bash Coq/build-jets.sh -j2` and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_divstep_termination`.
+The normal build reuses unmodified `extraMath.v`, `modinv.v` and `divstep.v`,
+with only `divsteps_def.v` from the existing pinned safegcd source. The
+definitions-only shell and Nix dependency builds passed; neither compiles the
+724-step certificate. This removes the arithmetic termination obligation, not
+the pending production-loop execution, machine-bound or specification bridge
+obligations.
+
 The older VST development under `C/secp256k1/` supplies reusable pure arithmetic,
 but its VERIFY translation unit is not the production program. Its canonical
 modinfo representation also differs from the actual field constant's negative
