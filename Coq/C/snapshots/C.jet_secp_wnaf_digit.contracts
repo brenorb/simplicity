@@ -503,6 +503,30 @@ exec_wnaf_window_digit
                                        (BinInt.Z.div n
                                           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.add bit width)))
                                        (wnaf_carry (wnaf_word n bit width carry) w)))))))))))
+### C.jet_secp_wnaf_digit.wnaf_top_quotient_bound
+wnaf_top_quotient_bound
+     : forall (n bit len : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 bit) (BinInt.Z.lt bit len))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub len (BinNums.Zpos BinNums.xH))))),
+       and (BinInt.Z.le BinNums.Z0 (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit)))
+         (BinInt.Z.lt (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinInt.Z.sub (BinInt.Z.sub len bit) (BinNums.Zpos BinNums.xH))))
+### C.jet_secp_wnaf_digit.wnaf_finishing_carry_zero
+wnaf_finishing_carry_zero
+     : forall (n bit len width w carry : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 bit) (BinInt.Z.lt bit len))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub len (BinNums.Zpos BinNums.xH)))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) width) (BinInt.Z.le width w))
+         (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) w) (_ : @eq BinNums.Z (BinInt.Z.add bit width) len)
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                      (BinNums.Zpos (BinNums.xO BinNums.xH))) carry)),
+       @eq BinNums.Z (wnaf_carry (wnaf_word n bit width carry) w) BinNums.Z0
 ### C.jet_secp_wnaf_digit.wnaf_word
 wnaf_word =
 fun n bit width carry : BinNums.Z =>

@@ -527,8 +527,15 @@ output block.
 `exec_wnaf_loop_zero` specializes this to initially zero cells and the original
 bit/carry/last-set-bit state, then executes the original return statement. It
 returns the last nonzero index plus one in `[0,len]`, with exact output-array
-loads. The equation retains the final residual and carry explicitly; this does
-not yet prove that either vanishes for the signed/split scalars of the callers.
+loads. The general equation retains the final residual and carry explicitly.
+The strengthened conclusion proves that under `n < 2^(len-1)`, the final carry
+is zero and the weighted digit sum is exactly `n`. The finishing-step proof
+covers both the skipped-bit and nonzero branches, including shortened final
+windows, and is propagated through the actual loop induction. This adds a
+conditional conclusion, not a new premise or input restriction on the general
+execution theorems. For the `len = 129` calls after scalar splitting, the bound
+is precisely the existing `n < 2^128` result of `eval_scalar_split128_owned`;
+composing that caller and its storage representations is still pending.
 Zero loads and the initial scalar/frame state must still be derived from the
 actual function prefix, including its external `memset`. This theorem therefore
 does not add a libc model or discharge that boundary.
@@ -536,7 +543,7 @@ does not add a libc model or discharge that boundary.
 Reproduce these internal loop-and-return results with the same build/kernel
 commands, using `jet_secp_wnaf_loop`. They are not a whole wNAF function proof,
 a literal point-program correspondence, or a public jet. Initial-state
-establishment, caller residual bounds, precomputed tables and startup, the
+establishment and composition, precomputed tables and startup, the
 point-operation loop, literal program bridge and public lifecycle above remain.
 Coverage remains 505/533.
 

@@ -162,7 +162,9 @@ exec_wnaf_array_step
                                                          (BinInt.Z.add (BinInt.Z.div n (BinInt.Z.pow ... bit')) carry')))
                                                    target)
                                                 (and (wnaf_memory_effect b m mf)
-                                                   (ClightBigstep.out_normal_or_continue out)))))))))))))))
+                                                   (and (ClightBigstep.out_normal_or_continue out)
+                                                      (forall (_ : BinInt.Z.lt n (BinInt.Z.pow (...) (...)))
+                                                         (_ : @eq BinNums.Z bit' len), @eq BinNums.Z carry' BinNums.Z0))))))))))))))))
 ### C.jet_secp_wnaf_loop.exec_wnaf_loop_bounded
 exec_wnaf_loop_bounded
      : forall (fuel : nat) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (n bit len w carry sign : BinNums.Z)
@@ -225,7 +227,14 @@ exec_wnaf_loop_bounded
                                                 (BinInt.Z.add
                                                    (BinInt.Z.div n
                                                       (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) len)) carryf)))
-                                          target) (wnaf_memory_effect b m mf)))))))))))
+                                          target)
+                                       (and (wnaf_memory_effect b m mf)
+                                          (forall
+                                             (_ : BinInt.Z.lt n
+                                                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                                       (BinInt.Z.sub len (BinNums.Zpos BinNums.xH))))
+                                             (_ : or (BinInt.Z.lt bit len) (@eq BinNums.Z carry BinNums.Z0)),
+                                           @eq BinNums.Z carryf BinNums.Z0))))))))))))
 ### C.jet_secp_wnaf_loop.exec_wnaf_loop
 exec_wnaf_loop
      : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (n bit len w carry sign : BinNums.Z)
@@ -287,7 +296,14 @@ exec_wnaf_loop
                                                 (BinInt.Z.add
                                                    (BinInt.Z.div n
                                                       (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) len)) carryf)))
-                                          target) (wnaf_memory_effect b m mf)))))))))))
+                                          target)
+                                       (and (wnaf_memory_effect b m mf)
+                                          (forall
+                                             (_ : BinInt.Z.lt n
+                                                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                                       (BinInt.Z.sub len (BinNums.Zpos BinNums.xH))))
+                                             (_ : or (BinInt.Z.lt bit len) (@eq BinNums.Z carry BinNums.Z0)),
+                                           @eq BinNums.Z carryf BinNums.Z0))))))))))))
 ### C.jet_secp_wnaf_loop.wnaf_return_source
 wnaf_return_source
      : @eq Clight.statement
@@ -405,7 +421,13 @@ exec_wnaf_loop_zero
                                        (and
                                           (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.add last (BinNums.Zpos BinNums.xH)))
                                              (BinInt.Z.le (BinInt.Z.add last (BinNums.Zpos BinNums.xH)) len))
-                                          (wnaf_memory_effect b m mf))))))))))))
+                                          (and (wnaf_memory_effect b m mf)
+                                             (forall
+                                                _ : BinInt.Z.lt n
+                                                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                                         (BinInt.Z.sub len (BinNums.Zpos BinNums.xH))),
+                                              and (@eq BinNums.Z carry BinNums.Z0)
+                                                (@eq BinNums.Z (wnaf_weighted digits (BinInt.Z.to_nat len)) n))))))))))))))
 ### C.jet_secp_wnaf_loop.wnaf_update
 wnaf_update =
 fun (digits : forall _ : BinNums.Z, BinNums.Z) (bit digit i : BinNums.Z) =>

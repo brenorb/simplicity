@@ -484,14 +484,16 @@ exec_wnaf_loop_body_step
                                                          (BinInt.Z.mul
                                                             (BinInt.Z.pow (BinNums.Zpos ...) (BinInt.Z.sub bit' bit))
                                                             (BinInt.Z.add (BinInt.Z.div n ...) carry'))))
-                                                   (or
-                                                      (and (@eq BinNums.Z digit BinNums.Z0)
-                                                         (and (@eq Memory.Mem.mem mf m) (@eq BinNums.Z last' last)))
-                                                      (and
-                                                         (@eq BinNums.Z (BinInt.Z.modulo digit (BinNums.Zpos ...))
-                                                            (BinNums.Zpos BinNums.xH))
-                                                         (and (and (BinInt.Z.lt ... digit) (BinInt.Z.lt digit ...))
-                                                            (and (@eq ... ... ...) (@eq BinNums.Z last' bit)))))))))))))))))))
+                                                   (and
+                                                      (or
+                                                         (and (@eq BinNums.Z digit BinNums.Z0)
+                                                            (and (@eq Memory.Mem.mem mf m) (@eq BinNums.Z last' last)))
+                                                         (and
+                                                            (@eq BinNums.Z (BinInt.Z.modulo digit ...)
+                                                               (BinNums.Zpos BinNums.xH))
+                                                            (and (and ... ...) (and ... ...))))
+                                                      (forall (_ : BinInt.Z.lt n (BinInt.Z.pow (...) (...)))
+                                                         (_ : @eq BinNums.Z bit' len), @eq BinNums.Z carry' BinNums.Z0))))))))))))))))
 ### C.jet_secp_wnaf_control.wnaf_dispatch
 wnaf_dispatch =
 @List.nth Clight.statement O jet_secp_wnaf_digit.wnaf_loop_statements Clight.Sskip

@@ -1,6 +1,7 @@
 (** Execution of the original wNAF loop and return, after caller initialization.
-    The weighted equation retains the final residual and carry; neither is
-    assumed zero. The initial zero loads must still be established by the
+    The general weighted equation retains the final residual and carry; neither
+    is assumed zero. The stronger conclusion for n < 2^(len-1) proves zero
+    carry and exact reconstruction. Initial zero loads must be established by the
     actual caller. This is not a whole-function or public jet theorem. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Clightdefs
@@ -156,7 +157,8 @@ Theorem exec_wnaf_array_step le m n bit len w carry sign b base bs last digits t
     scalar_at mf bs 0 (map Int64.repr (scalar_limbs_of n)) /\
     wnaf_array_state mf b base len w sign bit' last' digits' /\
     wnaf_weighted digits' (Z.to_nat len)+2^bit'*(n/2^bit'+carry')=target /\
-    wnaf_memory_effect b m mf /\ out_normal_or_continue out.
+    wnaf_memory_effect b m mf /\ out_normal_or_continue out /\
+    (n<2^(len-1) -> bit'=len -> carry'=0).
 Proof.
   intros N Bit Len W Carry Sign Fields Storage Separate Base Max Array Weighted.
   pose proof (wnaf_array_last _ _ _ _ _ _ _ _ _ Array) as Last.
@@ -165,7 +167,7 @@ Proof.
     N Bit Len W Last Carry Sign Fields Storage Separate Base ltac:(lia)
     (wnaf_array_access _ _ _ _ _ _ _ _ _ Array bit Bit))
     as (le' & mf & bit' & carry' & digit & last' & out & Exec & Fields' & Advance & Last' &
-      Carry' & Storage' & Out & Value & Effect).
+      Carry' & Storage' & Out & Value & Effect & Finish).
   assert (Normal : out_normal_or_continue out) by (destruct Out as [-> | ->];constructor).
   destruct Effect as [(Zero & Same & LastSame)|(Odd & Bounds & Store & LastSame)].
   - subst digit mf last'.
@@ -176,7 +178,7 @@ Proof.
     + split.
       * eapply wnaf_weighted_step with (bit:=bit) (carry:=carry) (digit:=0);
           [lia| |exact Value|exact Weighted];ring.
-      * split;[apply wnaf_memory_refl|exact Normal].
+      * split;[apply wnaf_memory_refl|];split;[exact Normal|exact Finish].
   - subst last'.
     exists le',mf,bit',carry',bit,(wnaf_update digits bit digit),out.
     split;[exact Exec|];split;[exact Fields'|];split;[exact Advance|];split;[exact Carry'|].
@@ -188,7 +190,7 @@ Proof.
           [lia| |exact Value|exact Weighted].
         rewrite wnaf_weighted_update by (rewrite Z2Nat.id by lia;exact Bit).
         rewrite (wnaf_array_suffix _ _ _ _ _ _ _ _ _ Array bit ltac:(lia));ring.
-      * split;[eapply wnaf_memory_store;exact Store|exact Normal].
+      * split;[eapply wnaf_memory_store;exact Store|];split;[exact Normal|exact Finish].
 Qed.
 
 Theorem exec_wnaf_loop_bounded fuel : forall le m n bit len w carry sign b base bs last digits target,
@@ -207,7 +209,8 @@ Theorem exec_wnaf_loop_bounded fuel : forall le m n bit len w carry sign b base 
     scalar_at mf bs 0 (map Int64.repr (scalar_limbs_of n)) /\
     wnaf_array_state mf b base len w sign len lastf digitsf /\
     wnaf_weighted digitsf (Z.to_nat len)+2^len*(n/2^len+carryf)=target /\
-    wnaf_memory_effect b m mf.
+    wnaf_memory_effect b m mf /\
+    (n<2^(len-1) -> (bit<len \/ carry=0) -> carryf=0).
 Proof.
   induction fuel as [|fuel IH];intros le m n bit len w carry sign b base bs last digits target
     Fuel N Bit Len W Carry Sign Fields Storage Separate Base Max Array Weighted;
@@ -220,18 +223,19 @@ Proof.
         (proj1 Fields) (proj1 (proj2 Fields))) as Guard;
         rewrite Z.ltb_irrefl in Guard;exact Guard|reflexivity|constructor]
     |split;[exact Fields|];split;[exact Carry|];split;[exact Storage|];split;[exact Array|];
-      split;[exact Weighted|apply wnaf_memory_refl]]).
+      split;[exact Weighted|];split;[apply wnaf_memory_refl|];
+      intros Small Start;destruct Start;[lia|assumption]]).
   - cbn in Fuel;lia.
   - assert (Before : 0<=bit<len) by lia.
     destruct (exec_wnaf_array_step le m n bit len w carry sign b base bs last digits target
       N Before Len W Carry Sign Fields Storage Separate Base Max Array Weighted)
       as (lei & mi & biti & carryi & lasti & digitsi & out & Body & FieldsI & Advance &
-        CarryI & StorageI & ArrayI & WeightedI & EffectI & Normal).
+        CarryI & StorageI & ArrayI & WeightedI & EffectI & Normal & Finish).
     destruct (IH lei mi n biti len w carryi sign b base bs lasti digitsi target
       ltac:(rewrite Nat2Z.inj_succ in Fuel;lia) N ltac:(lia) Len W CarryI Sign FieldsI
       StorageI Separate Base Max ArrayI WeightedI)
       as (lef & mf & carryf & lastf & digitsf & Rest & FieldsF & CarryF & StorageF &
-        ArrayF & WeightedF & EffectF).
+        ArrayF & WeightedF & EffectF & FinishF).
     exists lef,mf,carryf,lastf,digitsf;split.
     + rewrite wnaf_loop_body_source in Rest |- *.
       eapply exec_Sloop_loop with (t1:=E0) (t2:=E0) (t3:=E0)
@@ -246,7 +250,10 @@ Proof.
       * constructor.
       * exact Rest.
     + split;[exact FieldsF|];split;[exact CarryF|];split;[exact StorageF|];split;[exact ArrayF|].
-      split;[exact WeightedF|];eapply wnaf_memory_trans;eassumption.
+      split;[exact WeightedF|];split;[eapply wnaf_memory_trans;eassumption|].
+      intros Small Start;apply FinishF;[exact Small|].
+      destruct (zlt biti len) as [BeforeI|DoneI];[left;exact BeforeI|].
+      right;apply Finish;[exact Small|lia].
 Qed.
 
 Theorem exec_wnaf_loop le m n bit len w carry sign b base bs last digits target :
@@ -264,7 +271,8 @@ Theorem exec_wnaf_loop le m n bit len w carry sign b base bs last digits target 
     scalar_at mf bs 0 (map Int64.repr (scalar_limbs_of n)) /\
     wnaf_array_state mf b base len w sign len lastf digitsf /\
     wnaf_weighted digitsf (Z.to_nat len)+2^len*(n/2^len+carryf)=target /\
-    wnaf_memory_effect b m mf.
+    wnaf_memory_effect b m mf /\
+    (n<2^(len-1) -> (bit<len \/ carry=0) -> carryf=0).
 Proof.
   intros N Bit Len W Carry Sign Fields Storage Separate Base Max Array Weighted.
   eapply exec_wnaf_loop_bounded with (fuel:=Z.to_nat (len-bit));try eassumption.
@@ -320,7 +328,8 @@ Theorem exec_wnaf_loop_zero le m n len w sign b base bs :
     scalar_at mf bs 0 (map Int64.repr (scalar_limbs_of n)) /\
     wnaf_array_state mf b base len w sign len last digits /\
     wnaf_weighted digits (Z.to_nat len)+2^len*(n/2^len+carry)=n /\
-    0<=last+1<=len /\ wnaf_memory_effect b m mf.
+    0<=last+1<=len /\ wnaf_memory_effect b m mf /\
+    (n<2^(len-1) -> carry=0 /\ wnaf_weighted digits (Z.to_nat len)=n).
 Proof.
   intros N Len W Sign Fields Storage Separate Base Max Access Load.
   assert (Array : wnaf_array_state m b base len w sign 0 (-1) (fun _=>0))
@@ -329,12 +338,22 @@ Proof.
   { rewrite wnaf_weighted_zero;change (2^0) with 1;rewrite Z.div_1_r;ring. }
   destruct (exec_wnaf_loop le m n 0 len w 0 sign b base bs (-1) (fun _=>0) n
     N ltac:(lia) ltac:(lia) W (or_introl eq_refl) Sign Fields Storage Separate Base Max Array Weighted)
-    as (lef & mf & carry & last & digits & Exec & Final & Carry & StorageF & ArrayF & Value & Effect).
+    as (lef & mf & carry & last & digits & Exec & Final & Carry & StorageF & ArrayF & Value & Effect & Finish).
   pose proof (wnaf_array_last _ _ _ _ _ _ _ _ _ ArrayF) as [Last _].
   exists lef,mf,carry,last,digits;split.
   - unfold wnaf_loop_return;eapply exec_Sseq_1 with (t1:=E0) (t2:=E0);[exact Exec|].
     apply exec_wnaf_return;[lia|].
     destruct Final as (_ & _ & _ & _ & _ & _ & HT);exact HT.
   - split;[exact Final|];split;[exact Carry|];split;[exact StorageF|];split;[exact ArrayF|].
-    split;[exact Value|];split;[lia|exact Effect].
+    split;[exact Value|];split;[lia|];split;[exact Effect|].
+    intro Small.
+    assert (CarryZero : carry=0) by (apply Finish;[exact Small|right;reflexivity]).
+    assert (Positive : 1<=len).
+    { destruct (Z.eq_dec len 0) as [Zero|NE];[subst len;cbn in Small;lia|lia]. }
+    assert (QuotientZero : n/2^len=0).
+    { apply Z.div_small;split;[lia|].
+      eapply Z.lt_le_trans;[exact Small|apply Z.pow_le_mono_r;lia]. }
+    split;[exact CarryZero|].
+    replace (2^len*(n/2^len+carry)) with 0 in Value by (rewrite QuotientZero,CarryZero;ring).
+    rewrite Z.add_0_r in Value;exact Value.
 Qed.

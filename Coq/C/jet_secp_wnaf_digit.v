@@ -452,3 +452,42 @@ Proof.
   - split;[exact Store|];split;[exact Load|];split;[exact NewCarry|];
       split;[exact Digit|];split;assumption.
 Qed.
+
+Lemma wnaf_top_quotient_bound n bit len :
+  0<=bit<len -> 0<=n<2^(len-1) ->
+  0<=n/2^bit<2^(len-bit-1).
+Proof.
+  intros Bit N.
+  assert (Power : 2^(len-1)=2^bit*2^(len-bit-1)).
+  { replace (len-1) with (bit+(len-bit-1)) at 1 by lia;
+      rewrite Z.pow_add_r by lia;reflexivity. }
+  split;[apply Z.div_pos;[lia|apply Z.pow_pos_nonneg;lia]|].
+  apply Z.div_lt_upper_bound;[apply Z.pow_pos_nonneg;lia|rewrite <-Power;lia].
+Qed.
+
+Lemma wnaf_finishing_carry_zero n bit len width w carry :
+  0<=bit<len -> 0<=n<2^(len-1) -> 1<=width<=w -> 2<=w -> bit+width=len ->
+  (carry=0 \/ carry=1) -> (n/2^bit) mod 2<>carry ->
+  wnaf_carry (wnaf_word n bit width carry) w=0.
+Proof.
+  intros Bit N Width W End Carry Different.
+  destruct (wnaf_word_bounds n bit width carry ltac:(lia) ltac:(lia) Carry Different)
+    as (Word & Odd).
+  assert (Half : 0<2^(w-1)) by (apply Z.pow_pos_nonneg;lia).
+  assert (Upper : wnaf_word n bit width carry<2^(w-1)).
+  { destruct (Z.eq_dec width w) as [Same|Smaller].
+    - subst width.
+      pose proof (wnaf_top_quotient_bound n bit len Bit N) as Quotient.
+      replace (len-bit-1) with (w-1) in Quotient by lia.
+      assert (Power : 2^(w-1)<=2^w) by (apply Z.pow_le_mono_r;lia).
+      assert (Even : 2^(w-1) mod 2=0).
+      { replace (w-1) with ((w-2)+1) at 1 by lia.
+        rewrite Z.pow_add_r by lia;change (2^1) with 2;apply Z.mod_mul;lia. }
+      assert (Bound : wnaf_word n bit w carry<=2^(w-1)).
+      { unfold wnaf_word;rewrite Z.mod_small by lia;destruct Carry;lia. }
+      assert (NE : wnaf_word n bit w carry<>2^(w-1)) by
+        (intro E;rewrite E,Even in Odd;discriminate).
+      lia.
+    - assert (Power : 2^width<=2^(w-1)) by (apply Z.pow_le_mono_r;lia);lia. }
+  unfold wnaf_carry;apply Z.div_small;lia.
+Qed.

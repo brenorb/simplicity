@@ -392,7 +392,8 @@ Theorem exec_wnaf_loop_body_step le m n bit len w carry sign b base bs last :
     n/2^bit+carry=digit+2^(bit'-bit)*(n/2^bit'+carry') /\
     ((digit=0 /\ mf=m /\ last'=last) \/
       (digit mod 2=1 /\ -2^(w-1)<digit<2^(w-1) /\
-        Mem.store Mint32 m b (base+4*bit) (Vint (Int.repr (sign*digit)))=Some mf /\ last'=bit)).
+        Mem.store Mint32 m b (base+4*bit) (Vint (Int.repr (sign*digit)))=Some mf /\ last'=bit)) /\
+    (n<2^(len-1) -> bit'=len -> carry'=0).
 Proof.
   intros N Bit Len W Last Carry Sign Fields Storage Separate Base Max Writable.
   destruct Fields as (HB & HL & HW & HC & HS & HP & HLast).
@@ -409,7 +410,11 @@ Proof.
       split;[right;reflexivity|];split.
       * replace (bit+1-bit) with 1 by lia;change (2^1) with 2;rewrite Z.add_0_l.
         apply wnaf_skip_value;try assumption;lia.
-      * left;repeat split;reflexivity.
+      * split.
+        -- left;repeat split;reflexivity.
+        -- intros Small Finish.
+           assert (bit=len-1) by lia;subst bit.
+           rewrite Z.div_small in Same by lia;cbn in Same;lia.
   - pose (lr:=PTree.set _t'2 (Vint (Int.repr ((n/2^bit) mod 2))) le).
     assert (Read : Clight2.exec_stmt secp_ge (wnaf_env bs) le m wnaf_dispatch E0 lr m Out_normal)
       by (apply exec_wnaf_dispatch_nonzero with (carry:=carry);try assumption;lia).
@@ -431,5 +436,8 @@ Proof.
       * eapply wnaf_scalar_store_preserved;[exact Store|exact Separate|exact Storage].
       * split;[left;reflexivity|];split.
         -- replace (bit+width-bit) with width by lia;exact Weighted.
-        -- right;split;[exact Odd|];split;[exact Digit|];split;[exact Store|reflexivity].
+        -- split.
+           ++ right;split;[exact Odd|];split;[exact Digit|];split;[exact Store|reflexivity].
+           ++ intros Small Finish;apply wnaf_finishing_carry_zero with (len:=len);
+                try assumption;lia.
 Qed.
