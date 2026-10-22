@@ -1621,9 +1621,17 @@ from the selected equality-helper proof, and preserves the two allocations.
 Its `root_final_check_source` identifies the original suffix at statement 40;
 `root_result_matches` includes both branches and the success payload, without
 assuming that the computed candidate is a mathematical root.
-Next prove the initial four square/multiply calls establish this `x2`/`x3`
-storage, execute the remaining candidate/checking-square calls, then compose
-the equality fragment and discharge function entry/frees and the public
+`jet_secp_root_call_state` lifts the selected separate-square and in-place
+multiply proofs into the same owned-private-field invariant.
+`jet_secp_root_prefix.exec_root_chain_from_input` now executes the retained
+assertion-disabled check, all four initial arithmetic calls and the ten chain
+stages from represented input storage alone. It derives `x2`/`x3` initialization,
+the final stored chain values, allocation permissions, unchanged input field,
+non-counter temporaries and external framing. No initialized private field or
+intermediate execution premise is assumed. `root_input_prefix_source` ties
+this sequence and its continuation to the exact original helper body.
+Next execute the remaining candidate/checking-square calls, compose the
+equality fragment, and discharge function entry/frees and the public
 reader/conditional writer. The whole helper and public jet remain unproved;
 these modules do not increase coverage.
 
@@ -1635,6 +1643,8 @@ JET_TARGETS='C/jet_secp_root_tower_step.vo C/jet_secp_root_chain_owned.vo C/jet_
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_tower_step C.jet_secp_root_chain_owned C.jet_secp_root_chain_numeric
 JET_TARGETS=C/jet_secp_root_check.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_check
+JET_TARGETS='C/jet_secp_root_call_state.vo C/jet_secp_root_prefix.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_call_state C.jet_secp_root_prefix
 ```
 
 Leave `simplicity_gej_ge_add_ex` unresolved: its equal-point ratio disagrees

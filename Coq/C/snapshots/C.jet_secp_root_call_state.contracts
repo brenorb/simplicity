@@ -1,0 +1,126 @@
+### C.jet_secp_root_call_state.root_call_preserves
+root_call_preserves
+     : forall (e : Clight.env) (m mf : Memory.Mem.mem) (s : Maps.PTree.t (forall _ : nat, Integers.Int64.int))
+         (id : AST.ident) (bd bs : Values.block) (source out : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_root_chain_owned.root_locals_separated e) (_ : jet_secp_root_chain_owned.root_locals_owned e m)
+         (_ : jet_secp_root_chain_owned.root_values_at e m s)
+         (_ : @List.In AST.ident id jet_secp_root_chain_owned.root_private_ids)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bd jet_secp_curve_statements.curve_fe_type)))
+         (_ : jet_secp_square_columns.square_input_bounds out)
+         (_ : jet_secp_fe_nv.fe_at mf bd BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 out))
+         (_ : Memory.Mem.range_perm mf bd BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 source))
+         (_ : jet_secp_fe_nv.fe_at mf bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 source))
+         (_ : Memory.Mem.range_perm mf bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 and (not (@eq Values.block b bd)) (not (@eq Values.block b bs))) m mf),
+       and (jet_secp_root_chain_owned.root_locals_owned e mf)
+         (jet_secp_root_chain_owned.root_values_at e mf (@Maps.PTree.set (forall _ : nat, Integers.Int64.int) id out s))
+### C.jet_secp_root_call_state.exec_root_square_state
+exec_root_square_state
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (s : Maps.PTree.t (forall _ : nat, Integers.Int64.int)) (id : AST.ident) (bd bs : Values.block)
+         (source : Clight.expr) (w : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_root_chain_owned.root_locals_separated e) (_ : jet_secp_root_chain_owned.root_locals_owned e m)
+         (_ : jet_secp_root_chain_owned.root_values_at e m s)
+         (_ : @List.In AST.ident id jet_secp_root_chain_owned.root_private_ids)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bd jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_sqr e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq Ctypes.type (Clight.typeof source) (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m source (Values.Vptr bs Integers.Ptrofs.zero))
+         (_ : not (@eq Values.block bd bs)) (_ : jet_secp_square_columns.square_input_bounds w)
+         (_ : jet_secp_fe_nv.fe_at m bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (root_square_stmt id source) Events.E0 le
+               mf ClightBigstep.Out_normal)
+            (and (jet_secp_root_chain_owned.root_locals_owned e mf)
+               (and
+                  (jet_secp_root_chain_owned.root_values_at e mf
+                     (@Maps.PTree.set (forall _ : nat, Integers.Int64.int) id (jet_secp_square_numeric.square_words w)
+                        s))
+                  (and (jet_secp_fe_nv.fe_at mf bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+                     (and
+                        (Memory.Mem.range_perm mf bs BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (_ : BinNums.Z) =>
+                            and (not (@eq Values.block b bd)) (not (@eq Values.block b bs))) m mf))))))
+### C.jet_secp_root_call_state.exec_root_multiply_state
+exec_root_multiply_state
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (s : Maps.PTree.t (forall _ : nat, Integers.Int64.int)) (id : AST.ident) (bd bs : Values.block)
+         (source : Clight.expr) (w v : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_root_chain_owned.root_locals_separated e) (_ : jet_secp_root_chain_owned.root_locals_owned e m)
+         (_ : jet_secp_root_chain_owned.root_values_at e m s)
+         (_ : @List.In AST.ident id jet_secp_root_chain_owned.root_private_ids)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bd jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_mul e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq Ctypes.type (Clight.typeof source) (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m source (Values.Vptr bs Integers.Ptrofs.zero))
+         (_ : not (@eq Values.block bd bs))
+         (_ : @eq (option (forall _ : nat, Integers.Int64.int))
+                (@Maps.PTree.get (forall _ : nat, Integers.Int64.int) id s)
+                (@Some (forall _ : nat, Integers.Int64.int) w)) (_ : jet_secp_square_columns.square_input_bounds v)
+         (_ : jet_secp_fe_nv.fe_at m bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 v))
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (root_multiply_stmt id source) Events.E0
+               le mf ClightBigstep.Out_normal)
+            (and (jet_secp_root_chain_owned.root_locals_owned e mf)
+               (and
+                  (jet_secp_root_chain_owned.root_values_at e mf
+                     (@Maps.PTree.set (forall _ : nat, Integers.Int64.int) id
+                        (jet_secp_field_pair_multiply.field_pair_product w v) s))
+                  (and (jet_secp_fe_nv.fe_at mf bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 v))
+                     (and
+                        (Memory.Mem.range_perm mf bs BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (_ : BinNums.Z) =>
+                            and (not (@eq Values.block b bd)) (not (@eq Values.block b bs))) m mf))))))
+### C.jet_secp_root_call_state.root_square_stmt
+root_square_stmt =
+fun (dst : AST.ident) (source : Clight.expr) =>
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_sqr jets_secp.f_secp256k1_fe_sqr
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address dst) (@cons Clight.expr source (@nil Clight.expr)))
+     : forall (_ : AST.ident) (_ : Clight.expr), Clight.statement
+
+Arguments root_square_stmt dst source
+### C.jet_secp_root_call_state.root_multiply_stmt
+root_multiply_stmt =
+fun (dst : AST.ident) (source : Clight.expr) =>
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_mul jets_secp.f_secp256k1_fe_mul
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address dst)
+     (@cons Clight.expr (jet_secp_curve_statements.curve_local_address dst)
+        (@cons Clight.expr source (@nil Clight.expr))))
+     : forall (_ : AST.ident) (_ : Clight.expr), Clight.statement
+
+Arguments root_multiply_stmt dst source
