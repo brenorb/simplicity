@@ -1,0 +1,119 @@
+### C.jet_secp_root_affine_y_state.affine_y_square_outside
+affine_y_square_outside
+     : forall (br bs b : Values.block) (pos : BinNums.Z) (_ : root_y_outside br bs b pos),
+       not
+         (jet_sx_state.foot
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z br BinNums.Z0)
+               (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bs BinNums.Z0)
+                  (@nil (prod Values.block BinNums.Z))))
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+               jet_secp_square_affine_y.affine_y_square_regs) b pos)
+### C.jet_secp_root_affine_y_state.curve_y_square_outside
+curve_y_square_outside
+     : forall (br bd b : Values.block) (pos : BinNums.Z) (_ : root_y_outside br bd b pos),
+       not
+         (jet_sx_state.foot
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bd BinNums.Z0)
+               (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z br BinNums.Z0)
+                  (@nil (prod Values.block BinNums.Z))))
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+               (jet_secp_curve_square.curve_square_regs true)) b pos)
+### C.jet_secp_root_affine_y_state.exec_root_square_from_affine_y_state
+exec_root_square_from_affine_y_state
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (s : Maps.PTree.t (forall _ : nat, Integers.Int64.int)) (id : AST.ident) (bd br : Values.block)
+         (source : Clight.expr) (w : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_root_chain_owned.root_locals_separated e) (_ : jet_secp_root_chain_owned.root_locals_owned e m)
+         (_ : jet_secp_root_chain_owned.root_values_at e m s)
+         (_ : @List.In AST.ident id jet_secp_root_chain_owned.root_private_ids)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bd jet_secp_curve_statements.curve_fe_type)))
+         (_ : jet_secp_root_chain_owned.root_chain_frame e br BinNums.Z0)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_sqr e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq Ctypes.type (Clight.typeof source) (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m source
+                (Values.Vptr br
+                   (Integers.Ptrofs.repr
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (_ : jet_secp_square_columns.square_input_bounds w)
+         (_ : jet_secp_fe_nv.fe_at m br
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+               (jet_secp_root_call_state.root_square_stmt id source) Events.E0 le mf ClightBigstep.Out_normal)
+            (and (jet_secp_root_chain_owned.root_locals_owned e mf)
+               (and
+                  (jet_secp_root_chain_owned.root_values_at e mf
+                     (@Maps.PTree.set (forall _ : nat, Integers.Int64.int) id (jet_secp_square_numeric.square_words w)
+                        s))
+                  (and
+                     (jet_secp_fe_nv.fe_at mf br
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        (jet_secp_multiply_normalize_bridge.words5 w))
+                     (and
+                        (Memory.Mem.range_perm mf br BinNums.Z0
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                           Memtype.Cur Memtype.Freeable) (jet_sx_mem.lframe (root_y_outside br bd) m mf))))))
+### C.jet_secp_root_affine_y_state.exec_root_square_out_affine_y_state
+exec_root_square_out_affine_y_state
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (s : Maps.PTree.t (forall _ : nat, Integers.Int64.int)) (id : BinNums.positive) (bs br : Values.block)
+         (dest : Clight.expr) (w : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_root_chain_owned.root_locals_owned e m) (_ : jet_secp_root_chain_owned.root_values_at e m s)
+         (_ : @eq (option (forall _ : nat, Integers.Int64.int))
+                (@Maps.PTree.get (forall _ : nat, Integers.Int64.int) id s)
+                (@Some (forall _ : nat, Integers.Int64.int) w))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bs jet_secp_curve_statements.curve_fe_type)))
+         (_ : jet_secp_root_chain_owned.root_chain_frame e br BinNums.Z0)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_sqr e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq Ctypes.type (Clight.typeof dest) (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m dest
+                (Values.Vptr br
+                   (Integers.Ptrofs.repr
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+               (jet_secp_root_candidate_state.root_square_out_stmt dest id) Events.E0 le mf ClightBigstep.Out_normal)
+            (and (jet_secp_root_chain_owned.root_locals_owned e mf)
+               (and (jet_secp_root_chain_owned.root_values_at e mf s)
+                  (and
+                     (jet_secp_fe_nv.fe_at mf br
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        (jet_secp_multiply_normalize_bridge.words5 (jet_secp_square_numeric.square_words w)))
+                     (and
+                        (Memory.Mem.range_perm mf br BinNums.Z0
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                           Memtype.Cur Memtype.Freeable) (jet_sx_mem.lframe (root_y_outside br bs) m mf))))))
+### C.jet_secp_root_affine_y_state.root_y_outside
+root_y_outside =
+fun (br bs b : Values.block) (pos : BinNums.Z) =>
+and (not (@eq Values.block b bs))
+  (or (not (@eq Values.block b br))
+     (or (BinInt.Z.lt pos (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+        (BinInt.Z.le
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))) pos)))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments root_y_outside br bs b pos%Z_scope

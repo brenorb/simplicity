@@ -1,0 +1,60 @@
+### C.jet_secp_decompress_numeric.add7_tight_no_wrap
+add7_tight_no_wrap
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_field_mul_small.mul_small_input_bounds w),
+       BinInt.Z.le (BinInt.Z.add (Integers.Int64.unsigned (w O)) (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH))))
+         Integers.Int64.max_unsigned
+### C.jet_secp_decompress_numeric.add7_tight_square_bounds
+add7_tight_square_bounds
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_field_mul_small.mul_small_input_bounds w),
+       jet_secp_square_columns.square_input_bounds (jet_secp_field_add7.add7_words w)
+### C.jet_secp_decompress_numeric.decompress_cubic_tight
+decompress_cubic_tight
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds w),
+       jet_secp_field_mul_small.mul_small_input_bounds (decompress_cubic_words w)
+### C.jet_secp_decompress_numeric.decompress_literal_cube_step
+decompress_literal_cube_step
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_secp_rescale_literal.literal_fe_cube Alg.CoreFunSem x)
+         (@jet_secp_negate_literal_contract.literal_fe_multiply Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) x
+               (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem x)))
+### C.jet_secp_decompress_numeric.decompress_cubic_matches
+decompress_cubic_matches
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_secp_root_chain_numeric.root_words_match w x),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value (decompress_cubic_words w))
+            jet_secp_fe_math.feP)
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (@jet_secp_rescale_literal.literal_fe_cube Alg.CoreFunSem x))
+### C.jet_secp_decompress_numeric.decompress_root_matches
+decompress_root_matches
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_secp_root_chain_numeric.root_words_match w x),
+       jet_secp_root_chain_numeric.root_words_match (decompress_root_words w) (decompress_root_input x)
+### C.jet_secp_decompress_numeric.decompress_cubic_words
+decompress_cubic_words =
+fun w : forall _ : nat, Integers.Int64.int =>
+jet_secp_point_mul_storage.point_mul_words w (jet_secp_square_numeric.square_words w)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments decompress_cubic_words w%function_scope i%nat_scope
+### C.jet_secp_decompress_numeric.decompress_root_words
+decompress_root_words =
+fun w : forall _ : nat, Integers.Int64.int => jet_secp_field_add7.add7_words (decompress_cubic_words w)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments decompress_root_words w%function_scope i%nat_scope
+### C.jet_secp_decompress_numeric.decompress_root_input
+decompress_root_input =
+fun x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))) =>
+@jet_secp_literal_add_program.literal_fe_add Alg.CoreFunSem
+  (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_secp_curve_literal.curve_seven_word
+     (@jet_secp_rescale_literal.literal_fe_cube Alg.CoreFunSem x))
+     : forall _ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments decompress_root_input x

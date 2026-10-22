@@ -29,17 +29,39 @@ decodes the five output limbs using the existing square arithmetic, preserves
 ownership and frames bytes outside the actual field footprints. It introduces
 no new axiom or libc premise. This is an execution helper, not new jet coverage.
 
-Next adapt the square-root result boundary to that actual destination: reuse
-the existing private addition-chain prefix, use the new square-to-Y helper
-for the candidate, and `eval_curve_square_from_storage true` to square Y back
-into the private checking field. Preserve the surrounding point X and flag
-through the suffix, private allocation/free lifecycle and caller composition.
-Do not substitute a square-root call to a separate field followed by an extra
-copy: the original C writes the candidate directly into `r->y`.
-The later obligations are the real `ge_set_xo_var` calls, cubic-plus-seven
-numeric bridge, normalization/parity/negation, failure padding, and the public
-257-bit input/513-bit output frame theorem. Register only that complete result,
-with the canonical-source gate extended to protect this composition.
+`jet_secp_root_affine_y_{state,suffix,function}` now composes those two actual
+square calls with the existing private addition-chain prefix and equality test.
+`eval_root_affine_y_function` proves the complete original square-root call
+directly at `r->y`, including all twelve private allocations/frees and the
+integer return. Its frame preserves X and the flag in the enclosing point;
+the point retains its full 88-byte ownership. No extra C copy is introduced.
+
+`jet_secp_decompress_numeric` derives the cubic-plus-seven input's bounds and
+residue correspondence from an arbitrary represented field input, reusing the
+selected multiplication/square bridges. `jet_secp_decompress_root` combines
+that with the complete helper call: `eval_decompress_root` identifies its success
+bit and serialized candidate with canonical `y_from_x`. Its internal caller
+must still establish the represented cubic-plus-seven field in actual memory.
+
+`jet_secp_affine_normalize_y.eval_affine_nv_y_words` proves the next real
+normalization call on loose limbs. It returns the canonical limbs modulo the
+fixed field prime, preserves X/flag bytes and retains the whole allocation.
+The existing generic normalization theorem alone did not expose this ownership
+fact. The original arithmetic proof is reused through shifted symbolic cells.
+
+Next compose the real `ge_set_xo_var` statement tree: X copy, X square, cubic
+multiply into its separate temporary, finite-flag store, +7, root failure
+return or normalization/parity/magnitude-one negation and successful return.
+Reuse the existing affine negation and owned struct-copy proofs. Then prove the
+public reader, success/failure writer (including failure padding), entry and
+free lifecycle for arbitrary valid 257-bit input/513-bit output frames.
+Register only that complete result, with the canonical-source gate extended to
+protect the exact composition. Reproduce the current internal build with:
+
+```sh
+JET_TARGETS='C/jet_secp_decompress_root.vo C/jet_secp_affine_normalize_y.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_decompress_root C.jet_secp_affine_normalize_y
+```
 
 [JET_INHERITED_REVIEW.md](JET_INHERITED_REVIEW.md),
 [JET_FIDELITY_REVIEW.md](JET_FIDELITY_REVIEW.md) and the `JET_*_MISMATCHES.md`
