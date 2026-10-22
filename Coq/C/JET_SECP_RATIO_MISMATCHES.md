@@ -80,11 +80,41 @@ JET_TARGETS=C/jet_secp_double_var_ratio.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_var_ratio
 ```
 
+`jet_secp_mixed_equal_ratio.v` composes that doubling result with the actual
+mixed-addition arithmetic prefix, both H/I tests and the equal-point return.
+`jet_secp_mixed_ratio_function.v` closes the complete original
+`secp256k1_gej_add_ge_var` call on this path, including all ten actual local
+allocations and frees. From positioned initial X/Y, bounded Z/affine
+coordinates and H=I=0 modulo p, it derives the final point, exact ratio Y,
+all three caller-owned objects and external framing. The ratio destination
+may initially be uninitialized. The original helper's environment, entry
+allocation derivation and free-list ordering are reused; no intermediate
+call is a premise of the complete result. Here Y is the initial five-limb
+field value, not the untouched public input word AY: the public reader
+normalizes AY=p to zero before this helper is called. Normal compilation,
+recursive kernel checking and reviewed no-update assumption/contract checks
+passed for both modules, retaining the same six inherited assumptions.
+
 This is **not yet the whole-public counterexample**. Remaining composition:
-the mixed-addition H=I=0 dispatch and its ten local allocations/frees, the
-extended public wrapper's readers and ratio/point writers, and a concrete
-valid-frame instantiation for the witness above. The helper's positioned-Y
+the extended public wrapper's readers and ratio/point writers, and a concrete
+valid-frame instantiation for the witness above. The helpers' positioned-Y
 premise is not a proposed restriction on the public jet's input type.
+
+Reproduce the complete helper's normal and recursive kernel checks with:
+
+```sh
+JET_TARGETS=C/jet_secp_mixed_ratio_function.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_ratio_function
+```
+
+For the remaining public composition, reuse `eval_mixed_public_reads` (its
+output-capacity parameter already permits 1024 bits) and the owned field
+writer with size 40 for the ratio. The public AST allocates src/point/affine/
+ratio objects of sizes 16/128/88/40, clears the ratio before reading, then
+writes the ratio before the point. Extend the existing three-coordinate
+writer to an already-written prefix, as done for the affine writer; do not
+reorder the actual calls. `jet_frames_constructible` can instantiate disjoint
+1280-bit input/1024-bit output frames after the wrapper is proved.
 
 The production C and canonical Haskell were unchanged in the proof commit
 `63aa1380`; the existing 240-file source/configuration fidelity gate passed.
