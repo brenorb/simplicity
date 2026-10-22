@@ -2,7 +2,7 @@
 # the Simplicity library plus Coq/C/jet_*.v, without the secp256k1 and modinv
 # verifications of the full `coq` derivation. Runs coqchk over every built jet
 # module and compares the reviewed public contracts and assumptions.
-{ coq, vst, compcert, lib, stdenv, python3 }:
+{ coq, vst, compcert, coqprime, lib, stdenv, python3 }:
 stdenv.mkDerivation {
   name = "Simplicity-coq-jets-0.0.0";
   # Source checks read C, Haskell and Coq through their shared repository root.
@@ -16,7 +16,7 @@ stdenv.mkDerivation {
 
   buildInputs = [ coq ];
   nativeBuildInputs = [ python3 ];
-  propagatedBuildInputs = [ vst compcert ];
+  propagatedBuildInputs = [ vst compcert coqprime ];
   enableParallelBuilding = true;
   makefile = "CoqMakefile";
 

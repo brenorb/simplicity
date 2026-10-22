@@ -47,13 +47,13 @@ let hp = nixpkgs.haskell.packages.${ghc};
   coq = nixpkgs.callPackage ./Simplicity.Coq.nix {
     alectryon = if withAlectryon then pp.alectryon else null;
     inherit (cp) coq serapi;
-    inherit safegcd-bounds vst;
+    inherit safegcd-bounds vst coqprime;
   };
 
   # Focused target for the jet proofs (see Coq/JET_BUILD.md).
   coqJets = nixpkgs.callPackage ./Simplicity.Coq.Jets.nix {
     inherit (cp) coq;
-    inherit compcert;
+    inherit compcert coqprime;
     vst = vst.override { shaOnly = true; };
   };
 
@@ -71,6 +71,10 @@ let hp = nixpkgs.haskell.packages.${ghc};
     inherit (cp) coq flocq;
     inherit (cp.coq.ocamlPackages) ocaml menhir menhirLib findlib;
     ccomp-platform = "x86_64-linux";
+  };
+
+  coqprime = nixpkgs.callPackage ./coqprime.nix {
+    inherit (cp) coq;
   };
 
   pdf = nixpkgs.runCommand "Simplicity-TR" {} ''

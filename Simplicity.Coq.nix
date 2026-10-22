@@ -1,4 +1,4 @@
-{ coq, safegcd-bounds, lib, vst, stdenv, python3
+{ coq, safegcd-bounds, lib, vst, coqprime, stdenv, python3
 , alectryon ? null
 , serapi ? null
 }:
@@ -20,7 +20,7 @@ stdenv.mkDerivation {
 
   buildInputs = [ coq ];
   nativeBuildInputs = [ python3 ] ++ lib.optional (alectryon != null) serapi;
-  propagatedBuildInputs = [ safegcd-bounds vst ];
+  propagatedBuildInputs = [ safegcd-bounds vst coqprime ];
   enableParallelBuilding = true;
   makefile = "CoqMakefile";
   postBuild = lib.optional (alectryon != null) ''

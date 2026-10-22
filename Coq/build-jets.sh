@@ -12,6 +12,7 @@ if [[ "${JET_USE_COQPATH:-0}" != 1 ]]; then
   JET_DEPS=${JET_DEPS:-${XDG_CACHE_HOME:-$HOME/.cache}/simplicity-jet-deps}
   COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14}
   VST=${VST:-$JET_DEPS/vst-2.14}
+  COQPRIME=${COQPRIME:-$JET_DEPS/coqprime-8.17}
   if [[ ! -f "$COMPCERT/compcert.config" || ! -d "$VST/sha" ]]; then
     echo "CompCert/VST not found; run Coq/jet-deps.sh (see Coq/JET_BUILD.md)" >&2
     exit 1
@@ -24,6 +25,11 @@ if [[ "${JET_USE_COQPATH:-0}" != 1 ]]; then
     jet_flags+=(-Q "$VST/$dir" "VST.$dir")
   done
   jet_flags+=(-Q "$VST/sha" sha)
+  if [[ ! -f "$COQPRIME/src/Coqprime/PrimalityTest/PocklingtonCertificat.vo" ]]; then
+    echo "CoqPrime checker not found; run Coq/jet-deps.sh (see Coq/JET_BUILD.md)" >&2
+    exit 1
+  fi
+  jet_flags+=(-R "$COQPRIME/src/Coqprime" Coqprime)
 fi
 
 # Reuse the exact project load paths for a short proof/debug/check cycle.

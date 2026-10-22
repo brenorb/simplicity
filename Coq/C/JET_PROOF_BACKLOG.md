@@ -1679,35 +1679,35 @@ reviewed focused assumption/contract comparisons:
   Normal compilation, recursive kernel checking and reviewed focused
   assumption/contract comparisons passed. Pure bridges use at most the
   already inherited functional extensionality, not an assumed primality fact.
+- `jet_secp_field_prime` checks a Pocklington certificate for the unchanged
+  fixed modulus and derives reusable nonzero-product lemmas. All three
+  theorem assumption records are **closed**. Normal build, recursive kernel
+  and reviewed focused snapshot comparisons passed. The checksum-pinned
+  CoqPrime v8.17 standard-integer checker subset builds under the existing
+  Coq/OCaml baseline, both through the shell bootstrap and Nix; its accelerated
+  bignums/native checker and certificate generator are not dependencies.
+- `jet_secp_gej_ge_equiv_bridge.gej_ge_equiv_reader_matches_literal` closes
+  the pure identity for every Word256 input, using the certified nonzero
+  product fact in the finite nonzero-H case. The complete public theorem
+  `jet_secp_gej_ge_equiv_local.gej_ge_equiv_literal_local_spec` composes it
+  with the original public C execution and standard frame contract. Normal
+  compilation, recursive kernel checking and reviewed focused assumption and
+  contract comparisons passed. No curve, canonical-input, initialized-private
+  storage, intermediate execution or primality premise is added.
 
 Execution retains the same six inherited assumptions and no extra libc model.
-These are internal C execution contracts, not replacement Simplicity targets
-or additional public coverage. Reproduce the latest helper closure with:
+The complete theorem uses the fixed literal Simplicity target, but is not yet
+registered or accepted as additional coverage. Reproduce its checked closure:
 
 ```sh
-JET_TARGETS='C/jet_secp_gej_ge_equiv_public_call.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_ge_equiv_public_call
+JET_TARGETS='C/jet_secp_gej_ge_equiv_local.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_ge_equiv_local
 ```
 
-Next missing implications:
-
-1. Relate the resulting word/flag model to `literal_gej_ge_equiv` for all
-   Word256 coordinates. Use the proved weak-normalization residue bridge, and
-   derive the returned flag's agreement with the literal infinity test.
-   Do not replace this with coordinate equality on curve points or add curve,
-   canonical-input, intermediate-result or unproved field/primality premises.
-   Only the finite nonzero-H case remains in the pure identity: use
-   `equiv_finite_nonzero_h_reduction` and derive that its product cannot
-   vanish from the two nonzero residues. A checked fixed-modulus primality
-   certificate is one possible route, but no such result has been established
-   or added as a project dependency. Do not replay the completed zero-H or
-   incoming-infinity proofs.
-2. Use that pure identity to convert the checked public C-bit execution into
-   the standard literal local contract. Reuse the complete wrapper above;
-   do not replay its allocations, readers or helper bodies.
-3. Only after the complete standard local contract exists, register it and
-   run ordinary scoped acceptance without update flags. Keep production C,
-   specifications, API contracts and generation settings fixed.
+Next: add the exact full-contract and mutation checks to the existing gate,
+register this endpoint, then run ordinary scoped acceptance without update
+flags. Keep production C, specifications, API contracts and generation settings
+fixed. Do not replay the completed public wrapper or pure identity.
 
 Do not apply the earlier `eval_mixed_literal` directly to negation's output:
 its positioned-`fe_limbs_ok` Y premise is too restrictive. The loose-input

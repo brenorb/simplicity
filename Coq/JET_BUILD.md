@@ -86,11 +86,21 @@ bash Coq/jet-deps.sh          # downloads, verifies and builds; ~4 minutes
 | --- | --- | --- |
 | CompCert | 3.14, tarball SHA-256 `5588747d…af20` (the hash pinned in `compcert-opensource.nix`) | configured `x86_64-linux`, with `clightgen` |
 | VST | tag `v2.14`, commit `e1db53a4e22ddd3f8223532ba73127b706faf1b3`, tarball SHA-256 `c11551c4…6c06` | only the `sha` library that `Simplicity.Word` imports is built |
+| CoqPrime | tag `v8.17`, commit `431d7a66877cbe8688fc8864ef892369401440e1`, tarball SHA-256 `cfd5845d…8d90` | only `PocklingtonCertificat.vo` and its standard-integer dependency closure; no bignums/native checker or generator |
 
 The VST tag records version 2.13 and CompCert 3.13 in its metadata; it builds
 against CompCert 3.14 with `IGNORECOMPCERTVERSION=true FLOCQ=bundled`, which the
 script sets. Downloads are checksum-verified before use. A stale or partial
 download is rejected.
+
+The CoqPrime subset checks the fixed secp256k1 modulus certificate used by
+implementation-to-specification bridges. Candidate factors and witnesses are
+untrusted data; ordinary checked `vm_compute` verifies their equations and
+`coqchk` checks the resulting proof. No new primality assumption, unchecked cast,
+or change to the Coq/OCaml baseline is involved. `COQPRIME` may override the
+source-tree location, just as `COMPCERT` and `VST` do.
+For an existing CompCert/VST setup, run `bash Coq/jet-deps.sh --coqprime-only`
+to add just this dependency without rebuilding those trees.
 
 ## Build and check
 
