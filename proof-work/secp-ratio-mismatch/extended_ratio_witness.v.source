@@ -1,0 +1,89 @@
+(** Literal-program boundary witness. No actual C execution is claimed here. *)
+From Coq Require Import ZArith Lia.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Alg.
+Require Simplicity.Bit.
+Require Import C.jet_secp_add_literal C.jet_secp_mixed_dispatch_literal C.jet_secp_literal_gej_predicate
+ C.jet_secp_canonical_zero C.jet_secp_canonical_normalize C.jet_secp_curve_literal
+ C.jet_secp_literal_add_program C.jet_secp_literal_add_numeric C.jet_secp_literal_infinity
+ C.jet_secp_negate_literal_contract C.jet_secp_square_execution C.jet_secp_multiply_literal_spec
+ C.jet_secp_rescale_literal C.jet_secp_double_literal C.jet_secp_fe_math C.jet_secp_write_fe_wide_exec.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque literal_fe_add literal_fe_multiply literal_fe_square literal_fe_cube literal_fe_negate
+ literal_fe_multiply_int canonical_fe_is_zero canonical_fe_normalize literal_fe_one256
+ literal_fe_zero256 literal_gej_double literal_gej_infinity literal_gej_is_infinity.
+
+Lemma extended_ratio_equal_branch (ax ay az bx byword : Ty.tySem (Word 8)) :
+ @literal_gej_is_infinity Alg.CoreFunSem ((ax,ay),az)=inl tt ->
+ @canonical_fe_is_zero Alg.CoreFunSem (mixed_literal_h ax az bx)=inr tt ->
+ @canonical_fe_is_zero Alg.CoreFunSem (mixed_literal_i ay az byword)=inr tt ->
+ fst (@literal_gej_ge_add_ex Alg.CoreFunSem (((ax,ay),az),(bx,byword)))=ay.
+Proof.
+ intros HA HH HI.
+ change (fst (@literal_gej_add_ex Alg.CoreFunSem
+   (((ax,ay),az),((bx,byword),@literal_fe_one256 Alg.CoreFunSem tt)))=ay).
+ unfold literal_gej_add_ex.
+ cbn -[literal_fe_add literal_fe_multiply literal_fe_square literal_fe_cube literal_fe_negate
+  literal_fe_multiply_int canonical_fe_is_zero canonical_fe_normalize literal_fe_one256
+  literal_fe_zero256 literal_gej_double literal_gej_infinity literal_gej_is_infinity].
+ match goal with |- fst (match ?c with inl _ => _ | inr _ => _ end)=_ =>
+   assert (HC : c=inl tt) by exact HA;rewrite HC end.
+ match goal with |- fst (match ?c with inl _ => _ | inr _ => _ end)=_ =>
+   assert (HC' : c=inl tt) by exact mixed_literal_one_finite;rewrite HC' end.
+ match goal with |- fst (match ?c with inl _ => _ | inr _ => _ end)=_ =>
+   assert (HC'' : c=inr tt) by exact HH;rewrite HC'' end.
+ match goal with |- fst (match ?c with inl _ => _ | inr _ => _ end)=_ =>
+   assert (HC''' : c=inr tt) by exact HI;rewrite HC''' end.
+ reflexivity.
+Qed.
+
+Theorem extended_ratio_p_witness :
+ @toZ (WordToZ 8) (fst (@literal_gej_ge_add_ex Alg.CoreFunSem
+  (((@literal_fe_zero256 Alg.CoreFunSem tt,canonical_field_word),@literal_fe_one256 Alg.CoreFunSem tt),
+   (@literal_fe_zero256 Alg.CoreFunSem tt,@literal_fe_zero256 Alg.CoreFunSem tt))))=canonical_field_order.
+Proof.
+ assert (HZ : @toZ (WordToZ 8) (@literal_fe_zero256 Alg.CoreFunSem tt)=0).
+ { change (@toZ (WordToZ 8) (@Word.zero 8 Alg.CoreFunSem tt)=0);rewrite Word.zero_correct;reflexivity. }
+ assert (HRH : @toZ (WordToZ 8) (mixed_literal_h (@literal_fe_zero256 Alg.CoreFunSem tt)
+   (@literal_fe_one256 Alg.CoreFunSem tt) (@literal_fe_zero256 Alg.CoreFunSem tt)) mod feP=0).
+ { rewrite mixed_literal_h_numeric,HZ,literal_fe_one256_value.
+   change ((0 mod feP) mod feP=0);rewrite !Z.mod_0_l by (unfold feP,feR;lia);reflexivity. }
+ assert (HRI : @toZ (WordToZ 8) (mixed_literal_i canonical_field_word
+   (@literal_fe_one256 Alg.CoreFunSem tt) (@literal_fe_zero256 Alg.CoreFunSem tt)) mod feP=0).
+ { rewrite mixed_literal_i_numeric,HZ,literal_fe_one256_value,canonical_field_word_value,canonical_field_order_matches_limb_model.
+   change ((feP mod feP) mod feP=0);rewrite Z.mod_same,Z.mod_0_l by (unfold feP,feR;lia);reflexivity. }
+ rewrite extended_ratio_equal_branch;[exact canonical_field_word_value| | |].
+ - rewrite literal_gej_is_infinity_value;exact mixed_literal_one_finite.
+ - pose proof (literal_curve_zero_numeric (mixed_literal_h (@literal_fe_zero256 Alg.CoreFunSem tt)
+     (@literal_fe_one256 Alg.CoreFunSem tt) (@literal_fe_zero256 Alg.CoreFunSem tt))) as HH.
+   rewrite HRH,Z.eqb_refl in HH.
+   destruct (@canonical_fe_is_zero Alg.CoreFunSem (mixed_literal_h (@literal_fe_zero256 Alg.CoreFunSem tt)
+     (@literal_fe_one256 Alg.CoreFunSem tt) (@literal_fe_zero256 Alg.CoreFunSem tt))) as [u|u];destruct u;
+     [discriminate HH|reflexivity].
+ - pose proof (literal_curve_zero_numeric (mixed_literal_i canonical_field_word
+     (@literal_fe_one256 Alg.CoreFunSem tt) (@literal_fe_zero256 Alg.CoreFunSem tt))) as HI.
+   rewrite HRI,Z.eqb_refl in HI.
+   destruct (@canonical_fe_is_zero Alg.CoreFunSem (mixed_literal_i canonical_field_word
+     (@literal_fe_one256 Alg.CoreFunSem tt) (@literal_fe_zero256 Alg.CoreFunSem tt))) as [u|u];destruct u;
+     [discriminate HI|reflexivity].
+Qed.
+
+Theorem extended_ratio_p_normalizes_to_zero :
+ @toZ (WordToZ 8) (@canonical_fe_normalize Alg.CoreFunSem canonical_field_word)=0.
+Proof.
+ rewrite canonical_fe_normalize_numeric,canonical_field_word_value,Z.mod_same;
+   [reflexivity|pose proof canonical_field_order_range;lia].
+Qed.
+Print Assumptions extended_ratio_p_witness.
+
+Theorem extended_ratio_p_not_writer_output t0 t1 t2 t3 t4 :
+ wide_fe_output t0 t1 t2 t3 t4<>canonical_field_word.
+Proof.
+ intro HE;apply (f_equal (@toZ (WordToZ 8))) in HE.
+ rewrite wide_fe_output_value,canonical_field_word_value,canonical_field_order_matches_limb_model in HE.
+ pose proof (Z.mod_pos_bound
+   (fe_val (Integers.Int64.unsigned t0) (Integers.Int64.unsigned t1)
+     (Integers.Int64.unsigned t2) (Integers.Int64.unsigned t3) (Integers.Int64.unsigned t4))
+   feP ltac:(unfold feP,feR;lia)) as HB;lia.
+Qed.
+Print Assumptions extended_ratio_p_not_writer_output.
