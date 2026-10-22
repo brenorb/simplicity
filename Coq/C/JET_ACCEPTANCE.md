@@ -2,10 +2,10 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 499/533 jets (363 without an extra libc
+The local-contract registry contains 500/533 jets (364 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
-499/533, including the computing issuance hash, affine/projective curve,
-projective X-equivalence and doubling endpoints. The earlier 430-entry baseline passed
+500/533, including the computing issuance hash, affine/projective curve,
+projective X-equivalence, doubling and mixed-addition endpoints. The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
@@ -1190,3 +1190,39 @@ and 136 conditional on `memcpy_model`. The remaining 34 declarations and
 shared fidelity/domain/caller obligations remain unfinished. Production C,
 original specifications/domains/identities, API contracts and generation
 settings are unchanged.
+
+## Accepted: original mixed projective/affine addition
+
+`C.jet_secp_mixed_local.gej_ge_add_literal_local_spec` proves the original
+public `simplicity_gej_ge_add` against the complete fixed literal Simplicity
+program. It derives the by-value frame copy, both actual readers, the original
+in-place NULL-rzr helper on all branches, actual XYZ writing, successful return,
+all private helper allocations/frees and all three outer allocations/frees.
+It reuses the selected field multiply/square and accepted doubling proofs.
+
+The standard local contract retains arbitrary Word256 coordinates, including
+zero/off-curve inputs, general valid cursors, word crossings and unrelated
+initial destination contents. No canonical-input, curve-membership,
+intermediate-execution, output-value or extra libc-model premise is added.
+The six inherited execution assumptions are unchanged.
+
+The proof inputs committed at `63aa1380` passed ordinary scoped acceptance:
+431 kernel modules, 370 assumption modules, 385 contract modules, negative
+tests and all five regenerated ASTs, with identical audit inputs before and
+after the run. The existing point correspondence gate checks the canonical
+catalog, all four addition ports and the exact mixed-addition public contract;
+it rejects 13 addition-port and eight public mixed-addition mutations.
+Reproduce with Coq 8.17.1 and the prepared dependencies:
+
+```sh
+JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_ge_add
+```
+
+Accepted local-contract coverage is 500/533: 364 without an extra libc premise,
+136 conditional on `memcpy_model`, and 33 declarations remaining. Shared
+fidelity/domain/caller obligations remain unfinished as well. The separate
+**unregistered extended** jet `simplicity_gej_ge_add_ex` has a reported ratio
+normalization mismatch; see [JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md).
+Its diagnostic witness is not an equivalence theorem or extra coverage.
+Production C, original specifications/domains/identities, API contracts and
+generation settings are unchanged.

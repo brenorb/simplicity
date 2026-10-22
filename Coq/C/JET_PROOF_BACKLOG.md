@@ -3,10 +3,9 @@
 The current local-contract registry contains 500 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 33 declarations remain unregistered.
-The projective curve and doubling endpoints passed ordinary scoped acceptance;
-accepted local-contract coverage is 499/533. The every-jet goal remains incomplete.
-The new mixed-addition endpoint is compiled and registered as a candidate;
-ordinary scoped acceptance is pending. Do not count it as accepted yet.
+The projective curve, doubling and mixed-addition endpoints passed ordinary
+scoped acceptance; accepted local-contract coverage is 500/533. The every-jet
+goal remains incomplete, including shared obligations for conditional entries.
 
 The remaining work includes:
 
@@ -1277,10 +1276,10 @@ finite-input Y=0 case; its final infinity flag can be true while the stored
 X/Y are nonzero. The input-infinity branch explicitly sets all coordinates to
 zero. These cases are included in the accepted theorem.
 
-## Next claimed target: gej_ge_add
+## Completed: gej_ge_add
 
-The main session claims `simplicity_gej_ge_add`, the original mixed
-projective/affine addition jet. Reuse the accepted doubling helper for its
+The main session completed `simplicity_gej_ge_add`, the original mixed
+projective/affine addition jet. It reuses the accepted doubling helper for its
 equal-point branch and the selected multiply/square infrastructure. The
 public affine reader establishes a zero infinity flag for B; derive that
 fact from the reader rather than adding a public input restriction.
@@ -1524,8 +1523,9 @@ public C-to-literal-Simplicity contract for arbitrary Word256 inputs,
 including zero and off-curve coordinates, general valid cursors and unrelated
 initial destination bits. No extra execution/output/library premise is added;
 the theorem has the same six inherited execution assumptions. The endpoint
-is normally compiled and its reviewed snapshots are generated; full ordinary
-scoped acceptance is pending. The existing point source gate also checks the
+passed full ordinary scoped acceptance on the proof inputs of `63aa1380`:
+431 kernel modules, 370 assumption modules, 385 contract modules, negative
+tests and all five regenerated ASTs. The existing point source gate also checks the
 GejGeAdd catalog mapping and exact public statement, rejecting eight new
 targeted mutations. Reproduce acceptance with
 `JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_ge_add`.
@@ -1571,6 +1571,25 @@ bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_add
 JET_TARGETS=C/jet_secp_mixed_literal_bridge.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_nonzero_literal C.jet_secp_mixed_literal_bridge
 ```
+
+## Next claimed target: fe_square_root
+
+The main session reserves `simplicity_fe_square_root`. The requested result
+is the original public C jet against the fixed `fe_square_root` program in
+`Haskell/Core/Simplicity/Programs/LibSecp256k1.hs`, not a theorem that the
+specification computes mathematical square roots. The C implementation uses
+an addition chain, eleven bounded in-place squaring loops (maximum count 88),
+selected multiply/square calls and a final candidate equality test. Reuse the
+existing storage, copy, square and multiplication proofs and prove the repeated
+loop execution once, including signed-counter safety and memory preservation.
+Port the exact `tower` and candidate/check composition, preserving the
+right-associated nonempty `foldr1 (>>>)` square blocks. No primality or
+square-root-existence premise is needed to compare these two algorithms.
+
+Leave `simplicity_gej_ge_add_ex` unresolved: its equal-point ratio disagrees
+with C on a legitimate noncanonical Word256 input, as documented in
+[JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md). Do not fix that
+target or restrict inputs while pursuing the independent square-root jet.
 
 ## Source-review question: Elements fee predicates
 
