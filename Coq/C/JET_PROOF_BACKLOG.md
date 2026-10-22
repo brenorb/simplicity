@@ -17,125 +17,49 @@ The remaining work includes:
 
 ## Decompression: current proof frontier
 
-`simplicity_decompress` is claimed but unregistered. The ordinary build now
-contains `jet_secp_decompress_literal`, a port of the canonical `decompress`,
-its `y_from_x` expression and parity selection. These pure stepping and
-parametricity lemmas are not an implementation-to-specification endpoint.
+The complete original public C jet is proved by
+`jet_secp_decompress_local.decompress_literal_local_spec`, against the
+primitive-bearing `literal_decompress` composition. It is currently
+**unregistered**, pending the canonical-source gate and scoped acceptance.
+Normal compilation, recursive kernel checking and reviewed no-update focused
+assumption/contract comparisons passed for this endpoint and its six new
+public-wrapper modules. It retains the six inherited assumptions and adds no
+libc model, curve-input restriction or intermediate-execution premise.
 
-`jet_secp_square_affine_y{,_caller}` proves the original optimized field square
-with destination at offset 40 in an owned 88-byte affine-point allocation.
-It constructs the symbolic frame from caller storage, allows uninitialized Y,
-decodes the five output limbs using the existing square arithmetic, preserves
-ownership and frames bytes outside the actual field footprints. It introduces
-no new axiom or libc premise. This is an execution helper, not new jet coverage.
+The public proof covers arbitrary valid 257-bit input/513-bit output cursors
+and unrelated output contents. It derives the real by-value source-frame copy
+and all three local allocations (src=16, x=40, r=88), reads parity and the field,
+executes the original `ge_set_xo_var`, writes the result tag and either the
+actual two-coordinate payload or two-field padding, returns true and frees all
+locals. The failed-root outcome is an encoded `inl tt`, not a C jet failure.
 
-`jet_secp_root_affine_y_{state,suffix,function}` now composes those two actual
-square calls with the existing private addition-chain prefix and equality test.
-`eval_root_affine_y_function` proves the complete original square-root call
-directly at `r->y`, including all twelve private allocations/frees and the
-integer return. Its frame preserves X and the flag in the enclosing point;
-the point retains its full 88-byte ownership. No extra C copy is introduced.
+The shared structure is reused rather than replaced:
 
-`jet_secp_decompress_numeric` derives the cubic-plus-seven input's bounds and
-residue correspondence from an arbitrary represented field input, reusing the
-selected multiplication/square bridges. `jet_secp_decompress_root` combines
-that with the complete helper call: `eval_decompress_root` identifies its success
-bit and serialized candidate with canonical `y_from_x`. Its internal caller
-must still establish the represented cubic-plus-seven field in actual memory.
+- `jet_secp_decompress_reads` composes the original core bit reader and field
+  reader and establishes `square_reader_rho`.
+- `jet_secp_decompress_helper_literal` composes the actual copy, square,
+  multiplication, +7, square-root chain, normalization, parity and conditional
+  magnitude-one negation with their selected arithmetic/serialization bridges.
+- `jet_secp_affine_write_prefix` generalizes the owned-field writer to an
+  already-written prefix. `jet_secp_affine_skip` proves the actual two
+  `skip_fe` calls; no substitute `skipBits(512)` call is used.
+- `jet_secp_decompress_result_write` handles the tag, payload/padding,
+  ownership and external framing.
+- `jet_secp_decompress_public_{entry,prepare,body,rest,call}` discharges the
+  public lifecycle and `jet_secp_decompress_local` exports the usual complete
+  `secp_jet_local_spec`.
 
-`jet_secp_affine_normalize_y.eval_affine_nv_y_words` proves the next real
-normalization call on loose limbs. It returns the canonical limbs modulo the
-fixed field prime, preserves X/flag bytes and retains the whole allocation.
-The existing generic normalization theorem alone did not expose this ownership
-fact. The original arithmetic proof is reused through shifted symbolic cells.
-
-`jet_secp_decompress_statements` matches the exact original helper body and
-derives its point-field addresses. The whole five-statement prefix is now
-proved by `jet_secp_decompress_prefix.exec_decompress_prefix_owned`: actual X
-copy, X square, separate-output cubic multiplication, finite-flag store and +7.
-From represented input and the four separated caller allocations it establishes
-the root temporary's exact contents, copied X, finite flag, all allocation
-ownership and outside framing. No intermediate call or output is a premise.
-
-`jet_secp_decompress_root_test.exec_decompress_root_test_owned` now executes
-the actual root call and conditional for both outcomes. Its
-`exec_decompress_failure_body` composes the prefix with the complete original
-body on the failing-root branch and proves the zero return and canonical
-`y_from_x = inl tt`, with copied X, finite flag, ownership and framing retained.
-The explicit false-flag premise is an internal branch split, not a restriction
-on a registered public theorem. No decompression jet is registered yet.
-
-`jet_secp_affine_odd_y` proves the actual parity helper call at affine Y, with
-the low-bit result, unchanged represented field, 88-byte ownership and X/flag
-framing. It reuses the normalizer's field-region shape and the existing low-limb
-parity bridge; no fresh arithmetic implementation is used.
-
-`jet_secp_decompress_parity.exec_decompress_parity_owned` now composes the
-actual parity call, integer inequality, conditional magnitude-one negation and
-skip branch. `exec_decompress_success_tail` adds the real normalization and
-successful return. Its postcondition is the exact resulting C limb list
-(`decompress_parity_limbs`), with ownership and X/flag framing; it is not yet a
-claim that this list serializes to the literal Simplicity output.
-
-`jet_secp_decompress_body.exec_decompress_body_owned` now joins every branch,
-with no root/parity branch premise. `jet_secp_decompress_function` proves the
-complete original `ge_set_xo_var` call: real parameter binding, both fresh
-40-byte local allocations, the body, integer return conversion and both frees.
-It returns copied X, actual Y limbs (`decompress_body_y`), finite flag, caller
-ownership and external framing. Only represented input and caller storage are
-premises; private initial contents and intermediate execution are derived.
-
-`jet_secp_decompress_output` now identifies the serialized C result with
-`literal_decompress` for every represented Word256 input and parity bit. It
-reuses the existing canonical/negative point-field output and bound lemmas;
-the root-result tag and both coordinates match the literal composition.
-`jet_secp_decompress_helper_literal.eval_decompress_helper_literal` composes
-that bridge with the complete original helper call. The returned point fields
-are bounded for the original writer, with actual ownership and framing.
-No curve/canonical-input condition, private initialization, intermediate call
-or extra library premise is added. This is the internal helper, not the public
-jet: it does not yet establish the public frame reads, tag/payload writes,
-padding, entry or outer frees.
-
-`jet_secp_affine_write_prefix` extends the existing owned-field execution
-proofs to an arbitrary already-written prefix, then composes the actual
-`write_ge` body. `jet_secp_affine_skip` executes the actual two `skip_fe` calls
-in `skip_ge`. `jet_secp_decompress_result_write` composes the real tag and
-payload/padding calls for both outcomes, preserving 88-byte point ownership
-and framing. These proofs cover arbitrary valid output cursors and unrelated
-output contents. Normal build, recursive kernel checking and reviewed focused
-assumption/contract comparisons passed; the execution results retain the six
-inherited assumptions and add no libc premise. Reproduce this output layer:
+Reproduce the checked endpoint with Coq 8.17.1 and prepared dependencies:
 
 ```sh
-JET_TARGETS='C/jet_secp_decompress_result_write.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_decompress_result_write
+JET_TARGETS='C/jet_secp_decompress_local.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_decompress_local
 ```
 
-`jet_secp_bit_reader_owned` transports the actual core readBit execution on
-an owned local source-frame copy. `jet_secp_decompress_reads` then composes
-the parity and field reads from the full encoded input. It establishes exactly
-the selected field representation consumed by the helper, preserving all
-three local owners and the untouched output frame. Normal build, recursive
-kernel checking and reviewed focused snapshot comparisons passed; no new
-assumption or library premise is added. Reproduce the input layer:
-
-```sh
-JET_TARGETS='C/jet_secp_decompress_reads.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_decompress_reads
-```
-
-Next compose the public lifecycle for arbitrary valid 257-bit input/513-bit
-output frames from these reads, the helper-literal and result-writing proofs.
-The actual public allocations are src=16, x=40 and r=88 bytes, in that order;
-do not reuse a wrapper allocating a 40-byte result as if it were an affine point.
-Register only that complete result, with the canonical-source gate extended to
-protect the exact composition. Reproduce the current internal build with:
-
-```sh
-JET_TARGETS='C/jet_secp_decompress_helper_literal.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_decompress_helper_literal
-```
+Next extend the existing canonical-source/whole-contract gate to this exact
+composition, register only the complete public theorem and run ordinary scoped
+acceptance. Do not conflate the checked endpoint with accepted registry
+coverage before that run succeeds.
 
 [JET_INHERITED_REVIEW.md](JET_INHERITED_REVIEW.md),
 [JET_FIDELITY_REVIEW.md](JET_FIDELITY_REVIEW.md) and the `JET_*_MISMATCHES.md`

@@ -1,0 +1,352 @@
+### C.jet_secp_decompress_public_body.decompress_public_body_source
+decompress_public_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_simplicity_decompress)
+         (Clight.Ssequence jet_secp_decompress_public_prepare.decompress_public_copy decompress_public_rest)
+### C.jet_secp_decompress_public_body.decompress_public_symbols
+decompress_public_symbols
+     : and
+         (@ex Values.block
+            (fun b : Values.block =>
+             and
+               (@eq (option Values.block)
+                  (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+                     jets_secp._readBit) (@Some Values.block b))
+               (@eq (option Clight.fundef)
+                  (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                     (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+                  (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_readBit)))))
+         (and
+            (@ex Values.block
+               (fun b : Values.block =>
+                and
+                  (@eq (option Values.block)
+                     (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                        (Clight.genv_genv jet_secp_linkage.secp_ge) jets_secp._read_fe) (@Some Values.block b))
+                  (@eq (option Clight.fundef)
+                     (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                        (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+                     (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_secp.f_read_fe)))))
+            (and
+               (@ex Values.block
+                  (fun b : Values.block =>
+                   and
+                     (@eq (option Values.block)
+                        (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                           (Clight.genv_genv jet_secp_linkage.secp_ge) jets_secp._secp256k1_ge_set_xo_var)
+                        (@Some Values.block b))
+                     (@eq (option Clight.fundef)
+                        (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                           (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+                        (@Some (Ctypes.fundef Clight.function)
+                           (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_set_xo_var)))))
+               (and
+                  (@ex Values.block
+                     (fun b : Values.block =>
+                      and
+                        (@eq (option Values.block)
+                           (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                              (Clight.genv_genv jet_secp_linkage.secp_ge) jets_secp._writeBit)
+                           (@Some Values.block b))
+                        (@eq (option Clight.fundef)
+                           (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                              (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+                           (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_writeBit)))))
+                  (and
+                     (@ex Values.block
+                        (fun b : Values.block =>
+                         and
+                           (@eq (option Values.block)
+                              (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                                 (Clight.genv_genv jet_secp_linkage.secp_ge) jets_secp._write_ge)
+                              (@Some Values.block b))
+                           (@eq (option Clight.fundef)
+                              (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                                 (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+                              (@Some (Ctypes.fundef Clight.function)
+                                 (@Ctypes.Internal Clight.function jets_secp.f_write_ge)))))
+                     (@ex Values.block
+                        (fun b : Values.block =>
+                         and
+                           (@eq (option Values.block)
+                              (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                                 (Clight.genv_genv jet_secp_linkage.secp_ge) jets_secp._skip_ge)
+                              (@Some Values.block b))
+                           (@eq (option Clight.fundef)
+                              (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                                 (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+                              (@Some (Ctypes.fundef Clight.function)
+                                 (@Ctypes.Internal Clight.function jets_secp.f_skip_ge)))))))))
+### C.jet_secp_decompress_public_body.exec_decompress_public_parity
+exec_decompress_public_parity
+     : forall (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bl bx br : Values.block) (odd : bool)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets.f_readBit)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf
+                (Values.Vint
+                   match odd return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_decompress_public_entry.decompress_public_env bl bx br) le m decompress_public_parity Events.E0
+         (decompress_parity_temps le odd) mf ClightBigstep.Out_normal
+### C.jet_secp_decompress_public_body.exec_decompress_public_helper
+exec_decompress_public_helper
+     : forall (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bl bx br : Values.block)
+         (odd bit : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._y le)
+                (@Some Values.val
+                   (Values.Vint
+                      match odd return Integers.Int.int with
+                      | true => Integers.Int.one
+                      | false => Integers.Int.zero
+                      end)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_set_xo_var)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                      (@cons Values.val
+                         (Values.Vint
+                            match odd return Integers.Int.int with
+                            | true => Integers.Int.one
+                            | false => Integers.Int.zero
+                            end) (@nil Values.val)))) Events.E0 mf
+                (Values.Vint
+                   match bit return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_decompress_public_entry.decompress_public_env bl bx br) le m decompress_public_helper Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'2
+            (Values.Vint
+               match bit return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end) le) mf ClightBigstep.Out_normal
+### C.jet_secp_decompress_public_body.exec_decompress_public_tag
+exec_decompress_public_tag
+     : forall (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bl bx br bd : Values.block)
+         (base : BinNums.Z) (bit : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'2 le)
+                (@Some Values.val
+                   (Values.Vint
+                      match bit return Integers.Int.int with
+                      | true => Integers.Int.one
+                      | false => Integers.Int.zero
+                      end)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets.f_writeBit)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                   (@cons Values.val
+                      (Values.Vint
+                         match bit return Integers.Int.int with
+                         | true => Integers.Int.one
+                         | false => Integers.Int.zero
+                         end) (@nil Values.val))) Events.E0 mf
+                (Values.Vint
+                   match bit return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_decompress_public_entry.decompress_public_env bl bx br) le m decompress_public_tag Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'3
+            (Values.Vint
+               match bit return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end) le) mf ClightBigstep.Out_normal
+### C.jet_secp_decompress_public_body.exec_decompress_public_payload
+exec_decompress_public_payload
+     : forall (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bl bx br bd : Values.block)
+         (base : BinNums.Z) (bit : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function
+                   match bit return Clight.function with
+                   | true => jets_secp.f_write_ge
+                   | false => jets_secp.f_skip_ge
+                   end)
+                match bit return (list Values.val) with
+                | true =>
+                    @cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                      (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))
+                | false => @cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base)) (@nil Values.val)
+                end Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_decompress_public_entry.decompress_public_env bl bx br) le m
+         match bit return Clight.statement with
+         | true => decompress_public_payload
+         | false => decompress_public_padding
+         end Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_decompress_public_body.exec_decompress_public_rest_from_calls
+exec_decompress_public_rest_from_calls
+     : forall (le : Maps.PTree.tree Values.val) (m mp mr mn mt mf : Memory.Mem.mem) (bl bx br bd : Values.block)
+         (base : BinNums.Z) (odd bit : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets.f_readBit)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mp
+                (Values.Vint
+                   match odd return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mp
+                (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+                (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mr
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mr
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_set_xo_var)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                      (@cons Values.val
+                         (Values.Vint
+                            match odd return Integers.Int.int with
+                            | true => Integers.Int.one
+                            | false => Integers.Int.zero
+                            end) (@nil Values.val)))) Events.E0 mn
+                (Values.Vint
+                   match bit return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mn
+                (@Ctypes.Internal Clight.function jets.f_writeBit)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                   (@cons Values.val
+                      (Values.Vint
+                         match bit return Integers.Int.int with
+                         | true => Integers.Int.one
+                         | false => Integers.Int.zero
+                         end) (@nil Values.val))) Events.E0 mt
+                (Values.Vint
+                   match bit return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mt
+                (@Ctypes.Internal Clight.function
+                   match bit return Clight.function with
+                   | true => jets_secp.f_write_ge
+                   | false => jets_secp.f_skip_ge
+                   end)
+                match bit return (list Values.val) with
+                | true =>
+                    @cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                      (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))
+                | false => @cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base)) (@nil Values.val)
+                end Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_decompress_public_entry.decompress_public_env bl bx br) le m decompress_public_rest Events.E0
+         (decompress_final_temps le odd bit) mf
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.one) Ctypesdefs.tint)))
+### C.jet_secp_decompress_public_body.decompress_public_bit
+decompress_public_bit =
+Clight.Scall (@Some AST.ident jets_secp._t'1) (Clight.Evar jets_secp._readBit (Clight.type_of_function jets.f_readBit))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets_secp._src (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))) (@nil Clight.expr))
+     : Clight.statement
+### C.jet_secp_decompress_public_body.decompress_public_parity
+decompress_public_parity =
+Clight.Ssequence decompress_public_bit
+  (Clight.Sset jets_secp._y (Clight.Ecast (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tbool) Ctypesdefs.tbool))
+     : Clight.statement
+### C.jet_secp_decompress_public_body.decompress_public_read
+decompress_public_read =
+jet_secp_rescale_public_body.rescale_local_call jets_secp._read_fe (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr)
+  (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr) jets_secp._x jets_secp._src
+     : Clight.statement
+### C.jet_secp_decompress_public_body.decompress_public_helper
+decompress_public_helper =
+Clight.Scall (@Some AST.ident jets_secp._t'2)
+  (Clight.Evar jets_secp._secp256k1_ge_set_xo_var (Clight.type_of_function jets_secp.f_secp256k1_ge_set_xo_var))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets_secp._r (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Eaddrof (Clight.Evar jets_secp._x (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr)))
+        (@cons Clight.expr (Clight.Etempvar jets_secp._y Ctypesdefs.tbool) (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_secp_decompress_public_body.decompress_public_tag
+decompress_public_tag =
+Clight.Scall (@Some AST.ident jets_secp._t'3)
+  (Clight.Evar jets_secp._writeBit (Clight.type_of_function jets.f_writeBit))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_secp._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr)))
+     (@cons Clight.expr (Clight.Etempvar jets_secp._t'2 Ctypesdefs.tint) (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_decompress_public_body.decompress_public_payload
+decompress_public_payload =
+Clight.Scall (@None AST.ident) (Clight.Evar jets_secp._write_ge (Clight.type_of_function jets_secp.f_write_ge))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_secp._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Eaddrof (Clight.Evar jets_secp._r (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr))) (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_decompress_public_body.decompress_public_padding
+decompress_public_padding =
+Clight.Scall (@None AST.ident) (Clight.Evar jets_secp._skip_ge (Clight.type_of_function jets_secp.f_skip_ge))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_secp._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr)))
+     (@nil Clight.expr))
+     : Clight.statement
+### C.jet_secp_decompress_public_body.decompress_public_rest
+decompress_public_rest =
+Clight.Ssequence decompress_public_parity
+  (Clight.Ssequence decompress_public_read
+     (Clight.Ssequence
+        (Clight.Ssequence (Clight.Ssequence decompress_public_helper decompress_public_tag)
+           (Clight.Sifthenelse (Clight.Etempvar jets_secp._t'3 Ctypesdefs.tbool) decompress_public_payload
+              decompress_public_padding))
+        (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint)))))
+     : Clight.statement
+### C.jet_secp_decompress_public_body.decompress_parity_temps
+decompress_parity_temps =
+fun (le : Maps.PTree.tree Values.val) (odd : bool) =>
+@Maps.PTree.set Values.val jets_secp._y
+  (Values.Vint match odd return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end)
+  (@Maps.PTree.set Values.val jets_secp._t'1
+     (Values.Vint match odd return Integers.Int.int with
+                  | true => Integers.Int.one
+                  | false => Integers.Int.zero
+                  end) le)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : bool), Maps.PTree.tree Values.val
+
+Arguments decompress_parity_temps le odd%bool_scope
+### C.jet_secp_decompress_public_body.decompress_result_temps
+decompress_result_temps =
+fun (le : Maps.PTree.tree Values.val) (odd bit : bool) =>
+@Maps.PTree.set Values.val jets_secp._t'2
+  (Values.Vint match bit return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end) (decompress_parity_temps le odd)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : bool) (_ : bool), Maps.PTree.tree Values.val
+
+Arguments decompress_result_temps le (odd bit)%bool_scope
+### C.jet_secp_decompress_public_body.decompress_final_temps
+decompress_final_temps =
+fun (le : Maps.PTree.tree Values.val) (odd bit : bool) =>
+@Maps.PTree.set Values.val jets_secp._t'3
+  (Values.Vint match bit return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end) (decompress_result_temps le odd bit)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : bool) (_ : bool), Maps.PTree.tree Values.val
+
+Arguments decompress_final_temps le (odd bit)%bool_scope
