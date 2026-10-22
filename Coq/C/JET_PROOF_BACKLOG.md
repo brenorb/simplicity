@@ -1448,11 +1448,27 @@ proofs. `exec_mixed_xy_tail` composes all eight X/Y statements directly as
 `mixed_after_products`, including the actual final call (no omitted return or
 extra C statement). It derives the intervening T bound, preserves I/S1 and
 all five allocations, returns exact X/Y/T/H3 words, reusable X/Y/T bounds
-and a frame protecting Z and the flag. All arithmetic calls in the nonzero
-path now have storage-derived execution results, but the H-through-products
-prefix and X/Y tail still need composing with each other and with finite
-preparation. Complete that composition, helper/public wrapper entry/return/free
-lifecycle and the literal specification bridge before claiming public coverage.
+and a frame protecting Z and the flag.
+
+`jet_secp_mixed_nonzero_tail.v:exec_mixed_nonzero_tail` composes the H test,
+H-through-products prefix and X/Y suffix as the complete original nonzero-H
+tail, deriving all intermediate storage/bounds and preserving Z/flag through
+the X/Y operations. `jet_secp_mixed_finite_body.v:exec_mixed_finite_body`
+attaches finite preparation and covers both H outcomes, from initial
+point/affine fields and ten uninitialized owned temporaries. The H=0 path
+reuses `exec_mixed_finite_zero_body` and preserves the three unused temporaries;
+the nonzero path derives H/I and every later call from preparation.
+`jet_secp_mixed_body.v:exec_mixed_body_owned` adds the actual incoming-infinity
+branch. It executes the complete original `gej_add_ge_var` body for either
+input flag, with r=a, NULL rzr and the affine input flag zero (the actual
+public caller's shape). Outputs are the exact machine-coordinate functions,
+flag, reusable bounds, ownership of the input point/affine allocations and all
+ten temporaries, plus external framing. No H/I branch restriction,
+intermediate execution or initialized-temporary premise is added.
+Next establish the actual function entry/ten allocations/return/ten frees,
+the literal specification bridge, and the complete public reader/helper/writer
+lifecycle before claiming public coverage. A body execution result alone is
+not the public C-to-Simplicity equivalence theorem.
 
 With the baseline Coq 8.17.1 and prepared jet dependencies, reproduce:
 
@@ -1486,6 +1502,8 @@ JET_TARGETS=C/jet_secp_mixed_nonzero_products.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_nonzero_products
 JET_TARGETS=C/jet_secp_mixed_y_tail.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_y_tail
+JET_TARGETS=C/jet_secp_mixed_body.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_body
 ```
 
 ## Source-review question: Elements fee predicates
