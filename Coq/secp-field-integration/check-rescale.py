@@ -290,6 +290,49 @@ def check_root(s):
         raise ValueError("FeSquareRoot full public contract differs")
 
 
+def check_decompress(s):
+    """Freeze parity routing, optional payload and the entire public contract."""
+    for fragment in [
+        "Decompress :: Secp256k1Jet Secp256k1.Point (Either () Secp256k1.GE)",
+        "specificationSecp256k1 Decompress = Secp256k1.decompress",
+        "implementationSecp256k1 Decompress = FFI.decompress",
+    ]:
+        p.require(s["catalog"], fragment, "Decompress catalog")
+    for declaration in ["type FE = Word256", "type Point = (Bit, FE)", "type GE = (FE, FE)"]:
+        p.require(s["types"], declaration, "decompression representation")
+    impl = s["program"].split("lib@Lib{..} = Lib {", 1)[1]
+    p.exact_program(impl, "decompress", "point_check_1", """
+      let
+        k = drop (drop fe_normalize) &&& (xor (take fe_is_odd) ioh &&& oh >>> cond fe_negate iden)
+      in
+        drop y_from_x &&& iden >>> match (injl unit) (injr k)
+    """)
+    root_input = re.search(r"\by_from_x\s*=(.*?)\n\s*fe_cube\s*=", impl, re.S)
+    if not root_input or p.compact(root_input[1]) != p.compact(
+            "(unit >>> scribe256 7) &&& fe_cube >>> fe_add >>> fe_square_root"):
+        raise ValueError("canonical decompression root input differs")
+    p.require(s["bit_program"], "xor s t = s &&& iden >>> cond (not t) t", "decompression parity xor")
+    expected_ports = {
+        "literal_y_from_x": "((unit >>> Alg.scribe curve_seven_word) &&& @literal_fe_cube term) "
+                             ">>> @literal_fe_add term >>> @literal_fe_square_root term",
+        "literal_decompress_flip": "(O (@canonical_fe_is_odd term) &&& iden) "
+                                   ">>> Bit.cond (Bit.not (I (O H))) (I (O H))",
+        "literal_decompress_point": "I (I (@canonical_fe_normalize term)) &&& "
+                                    "((@literal_decompress_flip term &&& O H) >>> Bit.cond (@literal_fe_negate term) iden)",
+        "literal_decompress": "I (@literal_y_from_x term) &&& iden >>> "
+                              "case (injl unit) (injr (@literal_decompress_point term))",
+    }
+    for name, expected in expected_ports.items():
+        if p.compact(p.definition(s["decompress_port"], name)) != p.compact(expected):
+            raise ValueError("literal decompression tree differs: " + name)
+    statement = re.search(r"Theorem decompress_literal_local_spec\s*:(.*?)\bProof\.", s["decompress_jet"], re.S)
+    expected = "secp_jet_local_spec f_simplicity_decompress " \
+        "(Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word 8)) (Ty.Sum Ty.Unit (Ty.Prod (Word 8) (Word 8))) " \
+        "(@literal_decompress Simplicity.Alg.CoreFunSem)."
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError("Decompress full public contract differs")
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -305,6 +348,9 @@ def test():
         "root_jet": COQ / "C/jet_secp_root_local.v",
         "equiv_port": COQ / "C/jet_secp_gej_ge_equiv_literal.v",
         "equiv_jet": COQ / "C/jet_secp_gej_ge_equiv_local.v",
+        "bit_program": REPO / "Haskell/Core/Simplicity/Programs/Bit.hs",
+        "decompress_port": COQ / "C/jet_secp_decompress_literal.v",
+        "decompress_jet": COQ / "C/jet_secp_decompress_local.v",
     }.items()}
     check(s)
     mutations = [
@@ -495,6 +541,43 @@ def test():
             continue
         raise ValueError("accepted mixed-equivalence source mutation: " + old)
     print(f"GejGeEquiv catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
+
+    check_decompress(s)
+    mutations = [
+        ("catalog", "specificationSecp256k1 Decompress = Secp256k1.decompress",
+                    "specificationSecp256k1 Decompress = Secp256k1.ge_normalize"),
+        ("catalog", "implementationSecp256k1 Decompress = FFI.decompress",
+                    "implementationSecp256k1 Decompress = FFI.ge_negate"),
+        ("catalog", "Decompress :: Secp256k1Jet Secp256k1.Point (Either () Secp256k1.GE)",
+                    "Decompress :: Secp256k1Jet Secp256k1.Point Secp256k1.GE"),
+        ("types", "type Point = (Bit, FE)", "type Point = (FE, Bit)"),
+        ("program", "k = drop (drop fe_normalize)", "k = take (drop fe_normalize)"),
+        ("program", "cond fe_negate iden)", "cond iden fe_negate)"),
+        ("program", "y_from_x = (unit >>> scribe256 7)", "y_from_x = (unit >>> scribe256 8)"),
+        ("bit_program", "xor s t = s &&& iden >>> cond (not t) t",
+                        "xor s t = s &&& iden >>> cond t (not t)"),
+        ("decompress_port", "Bit.not (I (O H))", "Bit.not (O (I H))"),
+        ("decompress_port", "I (I (@canonical_fe_normalize term))", "O (I (@canonical_fe_normalize term))"),
+        ("decompress_port", "case (injl unit) (injr (@literal_decompress_point term))",
+                            "case (injr (@literal_decompress_point term)) (injl unit)"),
+        ("decompress_jet", "secp_jet_local_spec f_simplicity_decompress",
+                           "False -> secp_jet_local_spec f_simplicity_decompress"),
+        ("decompress_jet", "f_simplicity_decompress", "f_simplicity_ge_negate"),
+        ("decompress_jet", "(Word 8)", "(Word 7)"),
+        ("decompress_jet", "(@literal_decompress Simplicity.Alg.CoreFunSem)",
+                           "(@literal_y_from_x Simplicity.Alg.CoreFunSem)"),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError("inactive decompression mutation fixture: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_decompress(changed)
+        except ValueError:
+            continue
+        raise ValueError("accepted decompression source mutation: " + old)
+    print(f"Decompress catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
 
 
 if __name__ == "__main__":

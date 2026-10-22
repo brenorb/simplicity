@@ -183,6 +183,7 @@ def main():
             ("jet_secp_mixed_local.v", "gej_ge_add_literal_local_spec", "simplicity_gej_ge_add"),
             ("jet_secp_gej_ge_equiv_local.v", "gej_ge_equiv_literal_local_spec", "simplicity_gej_ge_equiv"),
             ("jet_secp_root_local.v", "fe_square_root_literal_local_spec", "simplicity_fe_square_root"),
+            ("jet_secp_decompress_local.v", "decompress_literal_local_spec", "simplicity_decompress"),
             ("jet_secp_x_equiv_local.v", "gej_x_equiv_literal_local_spec", "simplicity_gej_x_equiv"),
             ("jet_secp_scalar_zero_local.v", "scalar_zero_local_spec", "simplicity_scalar_is_zero"),
             ("jet_secp_scalar_normalize_local.v", "scalar_normalize_local_spec", "simplicity_scalar_normalize"),

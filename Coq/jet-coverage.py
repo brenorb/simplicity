@@ -60,6 +60,10 @@ RECOVERED_CONTRACTS = {'simplicity_asset_amount_hash': 'memcpy_model -> asset_el
                          '(@literal_fe_square Alg.CoreFunSem).',
  'simplicity_fe_square_root': 'secp_jet_local_spec f_simplicity_fe_square_root (Word 8) (Ty.Sum Ty.Unit (Word 8)) '
                               '(@literal_fe_square_root Simplicity.Alg.CoreFunSem).',
+ 'simplicity_decompress': 'secp_jet_local_spec f_simplicity_decompress '
+                          '(Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word 8)) '
+                          '(Ty.Sum Ty.Unit (Ty.Prod (Word 8) (Word 8))) '
+                          '(@literal_decompress Simplicity.Alg.CoreFunSem).',
  'simplicity_ge_is_on_curve': 'secp_jet_local_spec f_simplicity_ge_is_on_curve '
                             '(Ty.Prod (Word 8) (Word 8)) (Ty.Sum Ty.Unit Ty.Unit) '
                             '(@literal_ge_is_on_curve Alg.CoreFunSem).',
