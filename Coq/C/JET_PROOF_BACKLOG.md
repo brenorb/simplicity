@@ -77,10 +77,16 @@ successful return. Its postcondition is the exact resulting C limb list
 (`decompress_parity_limbs`), with ownership and X/flag framing; it is not yet a
 claim that this list serializes to the literal Simplicity output.
 
-Next join the root conditional and success tail into the complete all-branch
-helper body, then prove its two private allocations/frees and function entry.
-Relate the retained/negated canonical limbs to the literal decompression word,
-reusing the selected field-negation/normalization bridges. Then prove the
+`jet_secp_decompress_body.exec_decompress_body_owned` now joins every branch,
+with no root/parity branch premise. `jet_secp_decompress_function` proves the
+complete original `ge_set_xo_var` call: real parameter binding, both fresh
+40-byte local allocations, the body, integer return conversion and both frees.
+It returns copied X, actual Y limbs (`decompress_body_y`), finite flag, caller
+ownership and external framing. Only represented input and caller storage are
+premises; private initial contents and intermediate execution are derived.
+
+Next relate the retained/negated canonical limbs to the literal decompression
+word, reusing the selected field-negation/normalization bridges. Then prove the
 public reader, success/failure writer (including failure padding), entry and
 free lifecycle for arbitrary valid 257-bit input/513-bit output frames.
 Register only that complete result, with the canonical-source gate extended to
