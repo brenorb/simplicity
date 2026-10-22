@@ -156,6 +156,17 @@ The complete finite helper body is now connected:
   assumptions and no extra libc premise. It is not yet a public equivalence
   theorem: the finite literal bridge and function/public lifecycles remain.
 
+`jet_secp_gej_add_dispatch_literal` now connects the U1/U2/S1/S2 preparation
+residues and H/I bounds to the literal finite-tree operands, for arbitrary
+reader words. Its reader-test theorems prove that C's negated H and same-sign I
+take the same zero branches as the specification. Normal compilation,
+recursive kernel checking and reviewed no-update focused snapshots passed.
+The machine residue/bound lemmas are closed; the literal bridges retain only
+the inherited functional-extensionality assumption. Reproduce with
+`JET_TARGETS='C/jet_secp_gej_add_dispatch_literal.vo' bash Coq/build-jets.sh -j2`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_gej_add_dispatch_literal`.
+
 Reproduce this checked internal frontier:
 
 ```sh
