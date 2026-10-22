@@ -104,9 +104,19 @@ The formal execution is for the pinned x86-64 Clight program and its recorded
 RECKLESS generation configuration. It is not an assertion-enabled Clight
 proof, a proof of reachability through the full evaluator, or a native-machine
 code refinement theorem. Native sanitizer observations remain separate.
+The theorem exhibits a disagreeing successful execution; it does not itself
+state `~secp_jet_local_spec`. No additional execution-determinism argument
+turning this witness into a negation of that existential contract is claimed.
 No production C, original specification, API contract or generation setting
 is corrected or narrowed here. Which target should change remains a separate
 upstream decision.
+
+On `070782b0`, the ordinary rebuild of the existing public negate, rescale,
+double, projective-addition, mixed-addition, projective-equivalence and
+mixed-equivalence modules passed serially, and their seven no-update
+assumption/contract snapshots matched. This checks regression of those public
+proofs after the shared prefix-writer refactoring; it is not a full acceptance
+run for all 533 declarations.
 The production C and canonical Haskell were unchanged in the proof commit
 `63aa1380`; the existing 240-file source/configuration fidelity gate passed.
 This discrepancy is not caused by a production/specification edit made for
