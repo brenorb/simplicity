@@ -1586,6 +1586,30 @@ Port the exact `tower` and candidate/check composition, preserving the
 right-associated nonempty `foldr1 (>>>)` square blocks. No primality or
 square-root-existence premise is needed to compare these two algorithms.
 
+The ordinary `jet_secp_root_literal`, `jet_secp_root_square_loop` and
+`jet_secp_root_square_bridge` modules now port the exact tower/candidate/check
+trees and prove the actual bounded loop execution, including initialization,
+signed-counter safety, reusable limb bounds, other-temporary preservation and
+external framing. `root_square_all_sources` identifies all eleven original
+Clight loops; `exec_root_square_for_literal` relates their repeated squares
+to the literal program modulo the field order. The source check in
+`secp-field-integration/check-rescale.py` also checks the fixed root/tower
+ports and rejects count, routing and branch mutations. These are internal
+results, **not** a public square-root equivalence or additional coverage.
+`jet_secp_root_stage` also composes the original struct copy, bounded loop and
+in-place multiplication, with no initialized destination premise. It preserves
+the two source fields, allocation permissions and non-counter temporaries;
+the copy source may also be the multiplier operand, as the actual chain
+requires. `root_stage_sources` identifies all ten such original C stages.
+Next chain these stages with the initial/final square/multiply calls, function
+entry and frees, candidate equality test, and public reader/conditional writer.
+
+```sh
+JET_TARGETS='C/jet_secp_root_literal.vo C/jet_secp_root_square_loop.vo C/jet_secp_root_square_bridge.vo C/jet_secp_root_stage.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_literal C.jet_secp_root_square_loop C.jet_secp_root_square_bridge C.jet_secp_root_stage
+python3 Coq/secp-field-integration/check-rescale.py
+```
+
 Leave `simplicity_gej_ge_add_ex` unresolved: its equal-point ratio disagrees
 with C on a legitimate noncanonical Word256 input, as documented in
 [JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md). Do not fix that

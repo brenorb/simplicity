@@ -1,4 +1,4 @@
-"""Point rescale/doubling/mixed-addition contracts and ports; not C execution.
+"""Point contracts and field square-root ports; not C execution.
 
 Reuse the existing source parser.  Field multiply/square dependencies retain
 their own gates; this checks the new projections, cube and zinv composition.
@@ -184,6 +184,74 @@ def check_mixed(s):
         raise ValueError("GejGeAdd full public contract differs")
 
 
+def check_root_ports(s):
+    """Check routing/counts of root ports; no public jet coverage is claimed."""
+    for fragment in [
+        "FeSquareRoot :: Secp256k1Jet Secp256k1.FE (Either () Secp256k1.FE)",
+        "specificationSecp256k1 FeSquareRoot = Secp256k1.fe_square_root",
+        "implementationSecp256k1 FeSquareRoot = FFI.fe_square_root",
+    ]:
+        p.require(s["catalog"], fragment, "FeSquareRoot catalog")
+    p.require(s["types"], "type FE = Word256", "root field representation")
+    impl = s["program"].split("lib@Lib{..} = Lib {", 1)[1]
+    p.exact_program(impl, "fe_square_root", "fe_is_quad", """
+      iden &&& tower
+      >>> oh &&& drop ((oh &&& drop fe_square >>> fe_multiply) >>> fe_square >>> fe_square)
+      >>> (take fe_negate &&& drop fe_square >>> fe_add >>> fe_is_zero) &&& ih
+      >>> cond (injr iden) (injl unit)
+    """)
+    tower = re.search(r"\btower\s*=(.*?)\n\s*zinv\s*=", impl, re.S)
+    expected_tower = """
+iden &&& fe_cube
+        >>> ih &&& (oh &&& drop fe_square >>> fe_multiply)
+        >>> oh &&& ((ih &&& (oh &&& (drop (iden &&& (iden &&& (fe_square >>> fe_square >>> fe_square) >>> fe_multiply >>> fe_square >>> fe_square >>> fe_square) >>> fe_multiply) >>> fe_square >>> fe_square) >>> fe_multiply
+                          >>> iden &&& foldr1 (>>>) (replicate 11 fe_square) >>> fe_multiply))
+                 >>> ih &&& (oh &&& drop (iden &&& foldr1 (>>>) (replicate 22 fe_square) >>> fe_multiply
+                                     >>> (iden &&& (iden &&& foldr1 (>>>) (replicate 44 fe_square) >>> fe_multiply
+                                                 >>> iden &&& foldr1 (>>>) (replicate 88 fe_square) >>> fe_multiply
+                                           >>> foldr1 (>>>) (replicate 44 fe_square)) >>> fe_multiply)
+                                    >>> fe_square >>> fe_square >>> fe_square) >>> fe_multiply
+                           >>> foldr1 (>>>) (replicate 23 fe_square)) >>> fe_multiply
+                 >>> foldr1 (>>>) (replicate 5 fe_square))
+    """
+    if not tower or p.compact(tower[1]) != p.compact(expected_tower):
+        raise ValueError("canonical square-root tower differs")
+    expected_ports = {
+        "literal_fe_squares": """
+match n with
+ | Datatypes.O => iden
+ | S k => match k with
+   | Datatypes.O => @literal_fe_square term
+   | S _ => @literal_fe_square term >>> @literal_fe_squares k term
+   end
+ end
+        """,
+        "literal_fe_tower": """
+iden &&& (@literal_fe_cube term)
+        >>> I H &&& (O H &&& I (@literal_fe_square term) >>> (@literal_fe_multiply term))
+        >>> O H &&& ((I H &&& (O H &&& (I (iden &&& (iden &&& ((@literal_fe_square term) >>> (@literal_fe_square term) >>> (@literal_fe_square term)) >>> (@literal_fe_multiply term) >>> (@literal_fe_square term) >>> (@literal_fe_square term) >>> (@literal_fe_square term)) >>> (@literal_fe_multiply term)) >>> (@literal_fe_square term) >>> (@literal_fe_square term)) >>> (@literal_fe_multiply term)
+                          >>> iden &&& (@literal_fe_squares 11 term) >>> (@literal_fe_multiply term)))
+                 >>> I H &&& (O H &&& I (iden &&& (@literal_fe_squares 22 term) >>> (@literal_fe_multiply term)
+                                     >>> (iden &&& (iden &&& (@literal_fe_squares 44 term) >>> (@literal_fe_multiply term)
+                                                 >>> iden &&& (@literal_fe_squares 88 term) >>> (@literal_fe_multiply term)
+                                           >>> (@literal_fe_squares 44 term)) >>> (@literal_fe_multiply term))
+                                    >>> (@literal_fe_square term) >>> (@literal_fe_square term) >>> (@literal_fe_square term)) >>> (@literal_fe_multiply term)
+                           >>> (@literal_fe_squares 23 term)) >>> (@literal_fe_multiply term)
+                 >>> (@literal_fe_squares 5 term))
+        """,
+        "literal_fe_square_root": """
+iden &&& @literal_fe_tower term
+ >>> O H &&& I ((O H &&& I (@literal_fe_square term) >>> @literal_fe_multiply term)
+               >>> @literal_fe_square term >>> @literal_fe_square term)
+ >>> (O (@literal_fe_negate term) &&& I (@literal_fe_square term) >>> @literal_fe_add term
+      >>> @canonical_fe_is_zero term) &&& I H
+ >>> Bit.cond (injr iden) (injl unit)
+        """,
+    }
+    for name, expected in expected_ports.items():
+        if p.compact(p.definition(s["root_port"], name)) != p.compact(expected):
+            raise ValueError("literal square-root tree differs: " + name)
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -195,6 +263,7 @@ def test():
         "double_jet": COQ / "C/jet_secp_double_local.v",
         "add_port": COQ / "C/jet_secp_add_literal.v",
         "mixed_jet": COQ / "C/jet_secp_mixed_local.v",
+        "root_port": COQ / "C/jet_secp_root_literal.v",
     }.items()}
     check(s)
     mutations = [
@@ -316,6 +385,36 @@ def test():
             continue
         raise ValueError("accepted mixed-addition source mutation: " + old)
     print(f"GejGeAdd catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
+    check_root_ports(s)
+    mutations = [
+        ("catalog", "specificationSecp256k1 FeSquareRoot = Secp256k1.fe_square_root",
+                    "specificationSecp256k1 FeSquareRoot = Secp256k1.fe_square"),
+        ("catalog", "implementationSecp256k1 FeSquareRoot = FFI.fe_square_root",
+                    "implementationSecp256k1 FeSquareRoot = FFI.fe_square"),
+        ("catalog", "FeSquareRoot :: Secp256k1Jet Secp256k1.FE (Either () Secp256k1.FE)",
+                    "FeSquareRoot :: Secp256k1Jet Secp256k1.FE Secp256k1.FE"),
+        ("program", "replicate 88 fe_square", "replicate 87 fe_square"),
+        ("program", "tower = iden &&& fe_cube", "tower = fe_cube &&& iden"),
+        ("program", ">>> oh &&& drop ((oh &&& drop fe_square", ">>> ih &&& drop ((oh &&& drop fe_square"),
+        ("program", ">>> cond (injr iden) (injl unit)", ">>> cond (injl unit) (injr iden)"),
+        ("root_port", "| Datatypes.O => iden", "| Datatypes.O => @literal_fe_square term"),
+        ("root_port", "| Datatypes.O => @literal_fe_square term", "| Datatypes.O => iden"),
+        ("root_port", "@literal_fe_squares 88 term", "@literal_fe_squares 87 term"),
+        ("root_port", "iden &&& (@literal_fe_cube term)", "(@literal_fe_cube term) &&& iden"),
+        ("root_port", ">>> O H &&& I ((O H", ">>> I H &&& I ((O H"),
+        ("root_port", "Bit.cond (injr iden) (injl unit)", "Bit.cond (injl unit) (injr iden)"),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError("inactive root mutation fixture: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_root_ports(changed)
+        except ValueError:
+            continue
+        raise ValueError("accepted root source mutation: " + old)
+    print(f"Square-root literal ports match; {len(mutations)} targeted mutations rejected; no public root coverage")
 
 
 if __name__ == "__main__":
