@@ -1,5 +1,27 @@
 # Jet proof integrity
 
+## Task scope
+
+These rules apply when the current task is formal verification: developing,
+debugging, reviewing or auditing Coq/Rocq proofs of an existing implementation
+against an existing specification. They also apply when that verification task
+would require edits outside this directory.
+
+During such a task, treat the implementation, generated ASTs and canonical
+specifications (including `Coq/Simplicity`) as read-only verification targets.
+Proof scripts, auxiliary lemmas, faithful proof adapters and mismatch reports
+may be edited, but must not change the target's behavior, specification or
+required theorem assumptions to make a proof pass.
+
+This is a task-specific boundary, not a repository-wide code freeze. It does
+not prohibit implementation or specification changes in a task explicitly
+requesting development, improvement or a mismatch fix, even if that task also
+updates proofs. Reading this file or working near proof files does not by
+itself make a task formal verification. A verification failure alone is not
+authorization to switch to fixing the implementation or specification.
+
+## Verification workflow
+
 Preserve the public theorem and canonical specification being proved. Do not
 replace a required execution, output or framing fact with an assumed premise.
 Explicit external-library models are conditional results and must remain
@@ -23,9 +45,19 @@ of cached hash values or their environment projection.
 
 Mismatches between upstream sources (production C, canonical Haskell, the
 frozen `Coq/Simplicity` model, or between any two of them) are evidence of
-possible upstream bugs for the Simplicity developers to evaluate. Report them,
-with closed evidence, in a `C/JET_*_MISMATCHES.md` report. Never correct the
-frozen sources, and never relax a gate to hide a mismatch. Gates fail on any
+possible upstream bugs for the Simplicity developers to evaluate. Record them
+in an existing relevant `Coq/C/JET_*_MISMATCHES.md` report, or create one for
+the affected family (paths are relative to the repository root). Include the
+exact source locations and revision, expected versus actual behavior, a
+reproducible command or witness, and the effect on the theorem and proof
+coverage. Distinguish suspected mismatches from those established by closed
+evidence; do not present an unproved observation as a verified result.
+
+During formal verification, report mismatches instead of correcting the
+verification targets on the spot. Leave the affected obligation explicitly
+unproved or conditional, and continue unaffected proof work. Fixing a target
+requires a separate explicit development request as described above. Never
+relax a gate to hide a mismatch. Gates fail on any
 mismatch that is not documented in a report. A documented mismatch is listed
 exactly and printed on every run, and it does not block unrelated work.
 
