@@ -107,14 +107,22 @@ JET_TARGETS=C/jet_secp_mixed_ratio_function.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_ratio_function
 ```
 
-For the remaining public composition, reuse `eval_mixed_public_reads` (its
+The shared `eval_write_gej_general_prefix` now serializes the point after an
+arbitrary already-written prefix, preserving the old writer contracts as
+empty-prefix specializations. `jet_secp_mixed_ex_public_{body,entry,prepare}`
+provide the exact extended public statement tree, typed call adapters, all
+four actual local allocations/frees and the by-value source-frame copy.
+These are public-wrapper components, **not** a completed execution: the
+call-composition lemma's intermediate calls must still be derived from the
+initial storage, input and frame predicates.
+
+For that remaining composition, reuse `eval_mixed_public_reads` (its
 output-capacity parameter already permits 1024 bits) and the owned field
 writer with size 40 for the ratio. The public AST allocates src/point/affine/
 ratio objects of sizes 16/128/88/40, clears the ratio before reading, then
-writes the ratio before the point. Extend the existing three-coordinate
-writer to an already-written prefix, as done for the affine writer; do not
-reorder the actual calls. `jet_frames_constructible` can instantiate disjoint
-1280-bit input/1024-bit output frames after the wrapper is proved.
+writes the ratio before the point; do not reorder these calls.
+`jet_frames_constructible` can instantiate disjoint 1280-bit input/1024-bit
+output frames after the wrapper is proved.
 
 The production C and canonical Haskell were unchanged in the proof commit
 `63aa1380`; the existing 240-file source/configuration fidelity gate passed.

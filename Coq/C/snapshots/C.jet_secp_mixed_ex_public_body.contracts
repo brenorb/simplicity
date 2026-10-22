@@ -1,0 +1,175 @@
+### C.jet_secp_mixed_ex_public_body.mixed_ex_public_source
+mixed_ex_public_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_simplicity_gej_ge_add_ex)
+         (Clight.Ssequence jet_secp_rescale_public_body.rescale_public_copy mixed_ex_public_rest)
+### C.jet_secp_mixed_ex_public_body.mixed_ex_public_symbols
+mixed_ex_public_symbols
+     : and
+         (@ex Values.block
+            (fun b : Values.block =>
+             and
+               (@eq (option Values.block)
+                  (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+                     jets_secp._secp256k1_fe_clear) (@Some Values.block b))
+               (@eq (option Clight.fundef)
+                  (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                     (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+                  (@Some (Ctypes.fundef Clight.function)
+                     (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_clear)))))
+         (@ex Values.block
+            (fun b : Values.block =>
+             and
+               (@eq (option Values.block)
+                  (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+                     jets_secp._write_fe) (@Some Values.block b))
+               (@eq (option Clight.fundef)
+                  (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                     (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+                  (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_secp.f_write_fe)))))
+### C.jet_secp_mixed_ex_public_body.exec_mixed_ex_public_clear
+exec_mixed_ex_public_clear
+     : forall (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bl bp ba br : Values.block)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_clear)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (mixed_ex_public_env bl bp ba br) le m
+         mixed_ex_public_clear Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_mixed_ex_public_body.exec_mixed_ex_public_helper
+exec_mixed_ex_public_helper
+     : forall (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bl bp ba br : Values.block)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_gej_add_ge_var)
+                (@cons Values.val (Values.Vptr bp Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bp Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                         (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (mixed_ex_public_env bl bp ba br) le m
+         mixed_ex_public_helper Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_mixed_ex_public_body.exec_mixed_ex_public_writer
+exec_mixed_ex_public_writer
+     : forall (fid : AST.ident) (fd : Clight.function) (id : BinNums.positive) (ty : Ctypes.type)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (b bd : Values.block) (dbase : BinNums.Z)
+         (_ : @ex Values.block
+                (fun bf : Values.block =>
+                 and
+                   (@eq (option Values.block)
+                      (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                         (Clight.genv_genv jet_secp_linkage.secp_ge) fid) (@Some Values.block bf))
+                   (@eq (option Clight.fundef)
+                      (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                         (Clight.genv_genv jet_secp_linkage.secp_ge) bf)
+                      (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function fd)))))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) fid e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq Ctypes.type (Clight.type_of_fundef (@Ctypes.Internal Clight.function fd))
+                (Ctypes.Tfunction
+                   (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))
+                      (Ctypes.Tcons (Ctypesdefs.tptr ty) Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m (@Ctypes.Internal Clight.function fd)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (mixed_ex_public_writer fid fd id ty) Events.E0
+         le mf ClightBigstep.Out_normal
+### C.jet_secp_mixed_ex_public_body.exec_mixed_ex_rest_from_calls
+exec_mixed_ex_rest_from_calls
+     : forall (le : Maps.PTree.tree Values.val) (m mc mr ms mn mw mf : Memory.Mem.mem) (bl bp ba br bd : Values.block)
+         (dbase : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_clear)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mc Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mc
+                (@Ctypes.Internal Clight.function jets_secp.f_read_gej)
+                (@cons Values.val (Values.Vptr bp Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mr
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mr
+                (@Ctypes.Internal Clight.function jets_secp.f_read_ge)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 ms
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge ms
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_gej_add_ge_var)
+                (@cons Values.val (Values.Vptr bp Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bp Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                         (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))))) Events.E0 mn
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mn
+                (@Ctypes.Internal Clight.function jets_secp.f_write_fe)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mw
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mw
+                (@Ctypes.Internal Clight.function jets_secp.f_write_gej)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr bp Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (mixed_ex_public_env bl bp ba br) le m
+         mixed_ex_public_rest Events.E0 le mf
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.one) Ctypesdefs.tint)))
+### C.jet_secp_mixed_ex_public_body.mixed_ex_public_env
+mixed_ex_public_env =
+fun bl bp ba br : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._rzr
+  (@pair Values.block Ctypes.type br jet_secp_curve_statements.curve_fe_type)
+  (jet_secp_mixed_public_entry.mixed_public_env bl bp ba)
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block),
+       Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments mixed_ex_public_env bl bp ba br
+### C.jet_secp_mixed_ex_public_body.mixed_ex_public_clear
+mixed_ex_public_clear =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_clear jets_secp.f_secp256k1_fe_clear
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._rzr) (@nil Clight.expr))
+     : Clight.statement
+### C.jet_secp_mixed_ex_public_body.mixed_ex_public_helper
+mixed_ex_public_helper =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_gej_add_ge_var jets_secp.f_secp256k1_gej_add_ge_var
+  (@None AST.ident)
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets_secp._a (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Eaddrof (Clight.Evar jets_secp._a (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)))
+        (@cons Clight.expr
+           (Clight.Eaddrof (Clight.Evar jets_secp._b (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr))
+              (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr)))
+           (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._rzr) (@nil Clight.expr)))))
+     : Clight.statement
+### C.jet_secp_mixed_ex_public_body.mixed_ex_public_writer
+mixed_ex_public_writer =
+fun (fid : AST.ident) (fd : Clight.function) (id : AST.ident) (ty : Ctypes.type) =>
+jet_secp_curve_statements.curve_call fid fd (@None AST.ident)
+  (@cons Clight.expr
+     (Clight.Etempvar jets_secp._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr)))
+     (@cons Clight.expr (Clight.Eaddrof (Clight.Evar id ty) (Ctypesdefs.tptr ty)) (@nil Clight.expr)))
+     : forall (_ : AST.ident) (_ : Clight.function) (_ : AST.ident) (_ : Ctypes.type), Clight.statement
+
+Arguments mixed_ex_public_writer fid fd id ty
+### C.jet_secp_mixed_ex_public_body.mixed_ex_public_rest
+mixed_ex_public_rest =
+Clight.Ssequence mixed_ex_public_clear
+  (Clight.Ssequence jet_secp_mixed_public_body.mixed_public_read_point
+     (Clight.Ssequence jet_secp_mixed_public_body.mixed_public_read_affine
+        (Clight.Ssequence mixed_ex_public_helper
+           (Clight.Ssequence
+              (mixed_ex_public_writer jets_secp._write_fe jets_secp.f_write_fe jets_secp._rzr
+                 jet_secp_curve_statements.curve_fe_type)
+              (Clight.Ssequence
+                 (mixed_ex_public_writer jets_secp._write_gej jets_secp.f_write_gej jets_secp._a
+                    (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))
+                 (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint))))))))
+     : Clight.statement
