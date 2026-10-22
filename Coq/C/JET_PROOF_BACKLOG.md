@@ -65,6 +65,11 @@ body on the failing-root branch and proves the zero return and canonical
 The explicit false-flag premise is an internal branch split, not a restriction
 on a registered public theorem. No decompression jet is registered yet.
 
+`jet_secp_affine_odd_y` proves the actual parity helper call at affine Y, with
+the low-bit result, unchanged represented field, 88-byte ownership and X/flag
+framing. It reuses the normalizer's field-region shape and the existing low-limb
+parity bridge; no fresh arithmetic implementation is used.
+
 Next compose normalization/parity/magnitude-one negation and successful return
 on the remaining branch of the real `ge_set_xo_var` statement tree.
 Reuse the existing affine negation and owned struct-copy proofs. Then prove the
