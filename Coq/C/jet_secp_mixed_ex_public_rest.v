@@ -1,0 +1,178 @@
+(** Derive all six original public calls on the finite equal-point path. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Values Events.
+Require Import Simplicity.Ty Simplicity.Word.
+Require Simplicity.Alg Simplicity.Bit Simplicity.Translate.
+Require Import C.jet_exec C.jet_encoding C.jet_readBit_layout C.jet_frame_layout C.jet_input_layout C.jet_output_layout C.jet_frame_inv
+  C.jet_sx_mem C.jet_sx_exec C.jet_sx_state C.jet_secp_linkage C.jets_secp C.jet_secp_frame
+  C.jet_secp_fe_nv C.jet_secp_fe_math C.jet_secp_fe_clear_memory C.jet_secp_multiply_normalize_bridge
+  C.jet_secp_multiply_finish_product C.jet_secp_multiply_writer_bridge C.jet_secp_square_spec_bridge
+  C.jet_secp_square_columns C.jet_secp_field_weak_tight C.jet_secp_mixed_finite_return
+  C.jet_secp_mixed_ratio_function C.jet_secp_mixed_public_reads C.jet_secp_rescale_public_reads
+  C.jet_secp_mixed_ex_public_body C.jet_secp_curve_frame C.jet_secp_field_read_preservation
+  C.jet_secp_rescale_writer C.jet_secp_point_three_general_writes C.jet_secp_point_write_run
+  C.jet_secp_owned_write_field C.jet_secp_owned_write_preservation C.jet_secp_canonical_zero
+  C.jet_secp_double_all_calls C.jet_secp_curve_statements C.jet_secp_rescale_literal
+  C.jet_secp_point_write_field C.jet_secp_local_regions.
+Import ListNotations Ctypes Values.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge Simplicity.Translate.encode.
+
+Definition mixed_ex_public_outside m0 bd bw bi bp ba bl br b (_ : Z) :=
+  b<>bp /\ b<>ba /\ b<>bl /\ b<>br /\ ~extA m0 bd bw bi b.
+Definition mixed_ex_equal_output (x y z : Ty.tySem (Word 8)) :=
+  Simplicity.Translate.encode (rescale_field_output (square_reader_rho y)) ++
+  ((Simplicity.Translate.encode (rescale_field_output (double_output_x_words (square_reader_rho x) (square_reader_rho y))) ++
+    Simplicity.Translate.encode (rescale_field_output (double_output_y_words (square_reader_rho x) (square_reader_rho y)))) ++
+    Simplicity.Translate.encode (rescale_field_output (double_output_z_words (square_reader_rho y) (square_reader_rho z)))).
+
+Lemma eval_mixed_ex_clear_owned m br : Mem.range_perm m br 0 40 Cur Freeable ->
+  exists mf,
+  Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_clear) [Vptr br Ptrofs.zero] E0 mf Vundef /\
+  Mem.range_perm mf br 0 40 Cur Freeable /\ lframe (fun b _=>b<>br) m mf.
+Proof.
+  intro RF.
+  destruct (eval_fe_clear_owned m br 0 ltac:(lia) ltac:(exists 0;reflexivity)
+    ltac:(change (40<=18446744073709551615);lia) (freeable_range_writable _ _ _ _ RF))
+    as (mf & HC & Field & Loads & Perms & Valid).
+  exists mf;split;[exact HC|];split.
+  - intros pos HP;apply (proj2 (Perms br pos Cur Freeable));apply RF;exact HP.
+  - split.
+    + intros ch b ofs HV HO;apply Loads;left;apply (HO ofs).
+      pose proof (size_chunk_pos ch);lia.
+    + split;[intros b pos k p HV HO HP;apply (proj2 (Perms b pos k p));exact HP|exact Valid].
+Qed.
+
+Local Ltac keep_ex_field F Frame :=
+  eapply field_at_lframe;[exact F|exact Frame|];intros;repeat split;congruence.
+Local Ltac keep_ex_free F Frame :=
+  eapply curve_keep_free;[lia|exact F|exact Frame|];intros;repeat split;congruence.
+
+Theorem exec_mixed_ex_equal_rest le m0 bd dbase bw outedge cursor N bi edge rc
+    (x y z u v : Ty.tySem (Word 8)) m bp ba bl br :
+  le!_dst=Some (Vptr bd (Ptrofs.repr dbase)) ->
+  write_frame_at m0 bd dbase bw outedge cursor N -> 1024<=N ->
+  frame_input_cells_at m0 bi edge rc (map Some (frame_input_word_bits x)) ->
+  frame_input_cells_at m0 bi edge (rc+256) (map Some (frame_input_word_bits y)) ->
+  frame_input_cells_at m0 bi edge (rc+512) (map Some (frame_input_word_bits z)) ->
+  frame_input_cells_at m0 bi edge (rc+768) (map Some (frame_input_word_bits u)) ->
+  frame_input_cells_at m0 bi edge (rc+1024) (map Some (frame_input_word_bits v)) ->
+  0<=rc -> rc+1280<=Int64.max_unsigned ->
+  @canonical_fe_is_zero Simplicity.Alg.CoreFunSem z=inl tt ->
+  radix_value (mixed_h_words (square_reader_rho x) (square_reader_rho z) (square_reader_rho u)) mod feP=0 ->
+  radix_value (mixed_i_words (square_reader_rho y) (square_reader_rho z) (square_reader_rho v)) mod feP=0 ->
+  NoDup [bl;bp;ba;br] ->
+  Mem.range_perm m bp 0 128 Cur Freeable -> Mem.range_perm m ba 0 88 Cur Freeable ->
+  Mem.range_perm m bl 0 16 Cur Freeable -> Mem.range_perm m br 0 40 Cur Freeable ->
+  frame_fields_at m bl 0 bi edge rc ->
+  xsep (extA m0 bd bw bi) [(bp,0);(ba,0);(bl,0);(br,0)] ->
+  finv m0 bd dbase bw outedge cursor N bi m false [] ->
+  exists mf,
+  Clight2.exec_stmt secp_ge (mixed_ex_public_env bl bp ba br) le m mixed_ex_public_rest E0 le mf
+    (Out_return (Some (Vint Int.one,tint))) /\
+  finv m0 bd dbase bw outedge cursor N bi mf true (mixed_ex_equal_output x y z) /\
+  Mem.range_perm mf bp 0 128 Cur Freeable /\ Mem.range_perm mf ba 0 88 Cur Freeable /\
+  Mem.range_perm mf bl 0 16 Cur Freeable /\ Mem.range_perm mf br 0 40 Cur Freeable /\
+  lframe (mixed_ex_public_outside m0 bd bw bi bp ba bl br) m mf.
+Proof.
+  intros HD HO HN HX HY HZ HU HV Hrc HM Finite H0 I0 Sep FP FA FL FR Source HSep Fin.
+  pose proof Sep as Sep0;repeat rewrite NoDup_cons_iff in Sep0;cbn [In] in Sep0.
+  assert (SPL : bp<>bl) by intuition congruence.
+  assert (SAL : ba<>bl) by intuition congruence.
+  assert (SPA : bp<>ba) by intuition congruence.
+  assert (SPR : bp<>br) by intuition congruence.
+  assert (SAR : ba<>br) by intuition congruence.
+  assert (SLR : bl<>br) by intuition congruence.
+  assert (NotR : ~extA m0 bd bw bi br) by (exact (HSep 3%nat ltac:(cbn;lia))).
+  assert (NotP : ~extA m0 bd bw bi bp) by (exact (HSep 0%nat ltac:(cbn;lia))).
+  assert (NotA : ~extA m0 bd bw bi ba) by (exact (HSep 1%nat ltac:(cbn;lia))).
+  assert (NotL : ~extA m0 bd bw bi bl) by (exact (HSep 2%nat ltac:(cbn;lia))).
+  destruct (eval_mixed_ex_clear_owned m br FR) as (mc & CC & FRC & FC).
+  assert (FPC : Mem.range_perm mc bp 0 128 Cur Freeable) by (keep_ex_free FP FC).
+  assert (FAC : Mem.range_perm mc ba 0 88 Cur Freeable) by (keep_ex_free FA FC).
+  assert (FLC : Mem.range_perm mc bl 0 16 Cur Freeable) by (keep_ex_free FL FC).
+  assert (SourceC : frame_fields_at mc bl 0 bi edge rc).
+  { destruct Source as (SE & SC);split;rewrite (proj1 FC);try assumption;
+      [eapply Mem.perm_valid_block;apply (FL 0);lia|intros;exact SLR|
+       eapply Mem.perm_valid_block;apply (FL 0);lia|intros;exact SLR]. }
+  assert (FinC : finv m0 bd dbase bw outedge cursor N bi mc false []).
+  { eapply finv_stable;[exact HO|exact Fin|].
+    eapply lframe_implies;[exact FC|];intros b pos HE HVB;intro EQ;subst b;apply NotR;exact HE. }
+  assert (Sep3 : xsep (extA m0 bd bw bi) [(bp,0);(ba,0);(bl,0)]).
+  { intros [|[|[|r]]] HI;[exact (HSep 0%nat ltac:(cbn;lia))|exact (HSep 1%nat ltac:(cbn;lia))|
+      exact (HSep 2%nat ltac:(cbn;lia))|cbn in HI;lia]. }
+  destruct (eval_mixed_public_reads m0 bd dbase bw outedge cursor N bi edge rc x y z u v mc bp ba bl
+    HO ltac:(lia) HX HY HZ HU HV Hrc HM FPC FAC FLC SourceC SPL SAL SPA Sep3 FinC)
+    as (mr & ms & CR & CA & X & Y & Z & U & V & FlagP & FlagA & FPS & FAS & FLS & FinS & FS).
+  assert (FRS : Mem.range_perm ms br 0 40 Cur Freeable).
+  { eapply curve_keep_free;[lia|exact FRC|exact FS|];intros;unfold rescale_locals_outside;repeat split;congruence. }
+  rewrite Finite in FlagP.
+  change (Mem.load Mint32 ms bp 120=Some (Vint Int.zero)) in FlagP.
+  assert (SepH : NoDup [bp;ba;br]) by (repeat constructor;cbn [In];intuition congruence).
+  destruct (eval_mixed_equal_ratio_function (square_reader_rho x) (square_reader_rho y)
+    (square_reader_rho z) (square_reader_rho u) (square_reader_rho v) ms bp ba br SepH
+    (square_reader_positioned x) (square_reader_positioned y) (square_reader_bounds z)
+    (square_reader_bounds u) (square_reader_bounds v) H0 I0 FlagP FlagA X Y Z U V FPS FAS FRS)
+    as (mn & CH & OX & OY & OZ & FlagN & FPN & FAN & BX & BY & BZ & RY & FRN & FH).
+  assert (FLN : Mem.range_perm mn bl 0 16 Cur Freeable) by (keep_ex_free FLS FH).
+  assert (FinN : finv m0 bd dbase bw outedge cursor N bi mn false []).
+  { eapply finv_stable;[exact HO|exact FinS|].
+    eapply lframe_implies;[exact FH|];intros b pos HE HVB;repeat split;intro EQ;subst b;
+      [apply NotP|apply NotA|apply NotR];exact HE. }
+  set (ratio := rescale_point_field (square_reader_rho y)).
+  set (outs := Simplicity.Translate.encode (point_field_output ratio)).
+  assert (Len : length outs=256%nat) by (unfold outs;rewrite Simplicity.Translate.encode_length;reflexivity).
+  assert (InvR : invA m0 bd dbase bw outedge cursor N bi rc false [] 256 (point_field_rho ratio rc) [] mn).
+  { change (Int64.repr rc=Int64.repr rc /\ finv m0 bd dbase bw outedge cursor N bi mn false [] /\
+      0+256<=N /\ 0<=256);split;[reflexivity|];split;[exact FinN|];split;lia. }
+  assert (SepR : xsep (extA m0 bd bw bi) [(br,0)]).
+  { intros [|r] HI;[exact NotR|cbn in HI;lia]. }
+  destruct (eval_owned_bounded_field_write 40 m0 bd dbase bw outedge cursor N bi rc ratio false [] PointX mn br
+    ltac:(cbn;lia) HO (rescale_point_bounds _ (square_reader_bounds y)) RY FRN SepR InvR)
+    as (mw & CW & FinW & FRW & FWR).
+  change (finv m0 bd dbase bw outedge cursor N bi mw true outs) in FinW.
+  pose proof (owned_write_outside_owner 40 mn mw m0 bd bw bi br PointX FWR) as FW.
+  assert (XW : fe_at mw bp 0 (words5 (double_output_x_words (square_reader_rho x) (square_reader_rho y))))
+    by (eapply field_at_lframe;[exact OX|exact FW|];intros;split;assumption).
+  assert (YW : fe_at mw bp 40 (words5 (double_output_y_words (square_reader_rho x) (square_reader_rho y))))
+    by (eapply field_at_lframe;[exact OY|exact FW|];intros;split;assumption).
+  assert (ZW : fe_at mw bp 80 (words5 (double_output_z_words (square_reader_rho y) (square_reader_rho z))))
+    by (eapply field_at_lframe;[exact OZ|exact FW|];intros;split;assumption).
+  assert (FPW : Mem.range_perm mw bp 0 128 Cur Freeable).
+  { eapply curve_keep_free;[lia|exact FPN|exact FW|];intros;split;assumption. }
+  assert (FAW : Mem.range_perm mw ba 0 88 Cur Freeable).
+  { eapply curve_keep_free;[lia|exact FAN|exact FW|];intros;split;assumption. }
+  assert (FLW : Mem.range_perm mw bl 0 16 Cur Freeable).
+  { eapply curve_keep_free;[lia|exact FLN|exact FW|];intros;split;assumption. }
+  assert (SepP : xsep (extA m0 bd bw bi) [(bp,0)]).
+  { intros [|r] HI;[exact NotP|cbn in HI;lia]. }
+  destruct (eval_write_gej_general_prefix m0 bd dbase bw outedge cursor N bi rc true outs mw bp
+    (rescale_point_field (double_output_x_words (square_reader_rho x) (square_reader_rho y)))
+    (rescale_point_field (double_output_y_words (square_reader_rho x) (square_reader_rho y)))
+    (rescale_point_field (double_output_z_words (square_reader_rho y) (square_reader_rho z)))
+    HO ltac:(rewrite Len;lia) FinW (rescale_point_bounds _ BX) (rescale_point_bounds _ BY) (rescale_point_bounds _ BZ)
+    XW YW ZW FPW SepP) as (mf & CP & FinF & FPF & FPFrame).
+  assert (FAF : Mem.range_perm mf ba 0 88 Cur Freeable).
+  { eapply curve_keep_free;[lia|exact FAW|exact FPFrame|];intros;split;congruence. }
+  assert (FLF : Mem.range_perm mf bl 0 16 Cur Freeable).
+  { eapply curve_keep_free;[lia|exact FLW|exact FPFrame|];intros;split;congruence. }
+  assert (FRF : Mem.range_perm mf br 0 40 Cur Freeable).
+  { eapply curve_keep_free;[lia|exact FRW|exact FPFrame|];intros;split;congruence. }
+  exists mf;split.
+  - eapply exec_mixed_ex_rest_from_calls;eassumption.
+  - split.
+    + unfold mixed_ex_equal_output,outs,ratio in *.
+      rewrite !rescale_point_output in FinF;exact FinF.
+    + split;[exact FPF|];split;[exact FAF|];split;[exact FLF|];split;[exact FRF|].
+      eapply lframe_trans.
+      * eapply lframe_implies;[exact FC|];intros b pos (NP & NA & NL & NR & NE) HVB;exact NR.
+      * eapply lframe_trans.
+        -- eapply lframe_implies;[exact FS|];intros b pos (NP & NA & NL & NR & NE) HVB;
+             unfold rescale_locals_outside;repeat split;assumption.
+        -- eapply lframe_trans.
+           ++ eapply lframe_implies;[exact FH|];intros b pos (NP & NA & NL & NR & NE) HVB;repeat split;assumption.
+           ++ eapply lframe_trans;
+                [eapply lframe_implies;[exact FW|]|eapply lframe_implies;[exact FPFrame|]];
+                intros b pos (NP & NA & NL & NR & NE) HVB;split;assumption.
+Qed.

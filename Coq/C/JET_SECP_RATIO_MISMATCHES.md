@@ -1,6 +1,6 @@
 # Extended mixed-addition ratio: noncanonical equal-point Y
 
-Status: implementation-to-specification mismatch observed for the **unregistered**
+Status: implementation-to-specification mismatch formally established for the **unregistered**
 `simplicity_gej_ge_add_ex` jet. Do not register an unrestricted equivalence theorem
 or exclude the witness to make one pass. No target correction is made here.
 The non-extended `simplicity_gej_ge_add` drops the ratio and is not contradicted.
@@ -14,6 +14,7 @@ the secp256k1 field modulus. Use the five 256-bit input words
 | Result | Ratio (first 256 of 1024 output bits) |
 | --- | --- |
 | Fixed literal Simplicity program | `p` |
+| Original C jet, checked Clight execution | `0` |
 | Original C jet, native execution | `0` |
 
 `FE` is `Word256` in the fixed program, so `p` is a representable input;
@@ -60,70 +61,52 @@ The complete diagnostic sources are in
   This does not assert equivalence of native builds to the pinned x86-64
   CompCert configuration.
 
-These establish a formal specification result plus a native C discrepancy.
-They are **not** a completed Clight execution counterexample for the whole
-public extended jet. The latter remains a verification limit, not an assumed
-premise or a reason to narrow the requested input domain.
+The archived witness established the formal specification result and the
+native discrepancy, but not whole-public Clight execution. That historical
+verification limit is now superseded by
+`jet_secp_mixed_ex_counterexample.gej_ge_add_ex_public_counterexample`.
 
-The ordinary proof module `jet_secp_double_var_ratio.v` now proves the complete
-original `secp256k1_gej_double_var` call with a non-NULL ratio pointer on the
-finite-point path and positioned Y limbs (including public-reader outputs).
-It derives the actual struct copy, weak normalization, point doubling, Z test
-and flag store from owned storage, preserving the separate ratio field and
-both objects' ownership. No intermediate execution or libc model is assumed.
-The common post-ratio suffix is shared with the existing NULL-ratio proof.
-Normal compilation and recursive kernel checking passed; the execution result
-retains the six inherited assumptions. Reproduce this helper check with:
+For the exact input above and any environment argument, the ordinary Coq
+theorem constructs a successful execution of the **original public Clight
+function** and proves its resulting output memory cannot contain the fixed
+literal program's encoded result. It establishes:
 
-```sh
-JET_TARGETS=C/jet_secp_double_var_ratio.vo bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_double_var_ratio
-```
+- existence of the original program's `Genv.init_mem`, using the existing
+  checked initialization theorem;
+- freshly allocated, disjoint 1280-bit input/1024-bit output frames, preserving
+  all loads in the initial program memory and exposing their freshness;
+- the actual public function entry and four local allocations of sizes
+  16/128/88/40, the by-value source-frame copy and the original ratio clear;
+- both actual readers, the original non-NULL mixed-addition helper, both
+  writers in their original order, successful return and all local frees;
+- a fully consumed output cursor, a zero numeric ratio, and a first output bit
+  of false, whereas the literal specification's first bit is true.
 
-`jet_secp_mixed_equal_ratio.v` composes that doubling result with the actual
-mixed-addition arithmetic prefix, both H/I tests and the equal-point return.
-`jet_secp_mixed_ratio_function.v` closes the complete original
-`secp256k1_gej_add_ge_var` call on this path, including all ten actual local
-allocations and frees. From positioned initial X/Y, bounded Z/affine
-coordinates and H=I=0 modulo p, it derives the final point, exact ratio Y,
-all three caller-owned objects and external framing. The ratio destination
-may initially be uninitialized. The original helper's environment, entry
-allocation derivation and free-list ordering are reused; no intermediate
-call is a premise of the complete result. Here Y is the initial five-limb
-field value, not the untouched public input word AY: the public reader
-normalizes AY=p to zero before this helper is called. Normal compilation,
-recursive kernel checking and reviewed no-update assumption/contract checks
-passed for both modules, retaining the same six inherited assumptions.
+The final counterexample has no intermediate-execution, H/I-test, caller,
+canonical-input or libc-model premise. Both H/I conditions and the finite-Z
+condition are discharged for the witness. The result retains the six inherited
+assumptions; the pure bit disagreement is proved separately. Normal compilation,
+recursive kernel checking, and reviewed no-update assumption/contract checks
+passed for the ordinary counterexample and its public-call modules. This is negative
+correspondence evidence, not positive jet coverage: accepted coverage remains
+505/533 and this jet remains unresolved.
 
-This is **not yet the whole-public counterexample**. Remaining composition:
-the extended public wrapper's readers and ratio/point writers, and a concrete
-valid-frame instantiation for the witness above. The helpers' positioned-Y
-premise is not a proposed restriction on the public jet's input type.
+The implementation proof reuses the original non-NULL doubling result in
+`jet_secp_double_var_ratio.v`, the H/I arithmetic and equal-point dispatch in
+`jet_secp_mixed_equal_ratio.v`, and the complete helper lifecycle in
+`jet_secp_mixed_ratio_function.v`. The shared point writer now supports an
+already-written prefix, leaving its old empty-prefix contracts intact.
+`jet_secp_mixed_ex_public_{body,entry,prepare,rest,call}.v` discharges the
+public wrapper. Y in these helper contracts is the reader-produced five-limb
+field value: for public AY=p, that value is zero, not the untouched word p.
 
-Reproduce the complete helper's normal and recursive kernel checks with:
-
-```sh
-JET_TARGETS=C/jet_secp_mixed_ratio_function.vo bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_ratio_function
-```
-
-The shared `eval_write_gej_general_prefix` now serializes the point after an
-arbitrary already-written prefix, preserving the old writer contracts as
-empty-prefix specializations. `jet_secp_mixed_ex_public_{body,entry,prepare}`
-provide the exact extended public statement tree, typed call adapters, all
-four actual local allocations/frees and the by-value source-frame copy.
-These are public-wrapper components, **not** a completed execution: the
-call-composition lemma's intermediate calls must still be derived from the
-initial storage, input and frame predicates.
-
-For that remaining composition, reuse `eval_mixed_public_reads` (its
-output-capacity parameter already permits 1024 bits) and the owned field
-writer with size 40 for the ratio. The public AST allocates src/point/affine/
-ratio objects of sizes 16/128/88/40, clears the ratio before reading, then
-writes the ratio before the point; do not reorder these calls.
-`jet_frames_constructible` can instantiate disjoint 1280-bit input/1024-bit
-output frames after the wrapper is proved.
-
+The formal execution is for the pinned x86-64 Clight program and its recorded
+RECKLESS generation configuration. It is not an assertion-enabled Clight
+proof, a proof of reachability through the full evaluator, or a native-machine
+code refinement theorem. Native sanitizer observations remain separate.
+No production C, original specification, API contract or generation setting
+is corrected or narrowed here. Which target should change remains a separate
+upstream decision.
 The production C and canonical Haskell were unchanged in the proof commit
 `63aa1380`; the existing 240-file source/configuration fidelity gate passed.
 This discrepancy is not caused by a production/specification edit made for
@@ -145,7 +128,15 @@ observations are `returned=1`, `remaining=0`, and 64 zero hex digits for both
 the AY=0 control and AY=p witness. The literal program instead returns the
 64-hex-digit word p for the latter.
 
-With the repository's baseline Coq 8.17.1 and prepared proof dependencies:
+With the repository's baseline Coq 8.17.1 and prepared proof dependencies,
+the ordinary whole-public proof is reproduced by:
+
+```sh
+JET_TARGETS=C/jet_secp_mixed_ex_counterexample.vo bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_ex_counterexample
+```
+
+The original archived literal-only witness remains reproducible separately:
 
 ```sh
 JET_TARGETS=C/jet_secp_mixed_dispatch_literal.vo bash Coq/build-jets.sh -j2

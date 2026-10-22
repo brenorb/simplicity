@@ -298,6 +298,21 @@ On `0cb928b9`, the command passed on unchanged inputs: 472 kernel modules,
 411 assumption records, 426 contract records, negative tests and all five
 regenerated ASTs. The every-jet goal remains incomplete.
 
+## Extended mixed-addition ratio: formal obstruction
+
+`jet_secp_mixed_ex_counterexample.gej_ge_add_ex_public_counterexample`
+constructs the full original public Clight execution on fresh disjoint frames
+over initialized program memory for A=((0,p),1), B=(0,0), and proves its output
+memory contradicts the fixed literal specification. C returns ratio zero;
+the specification returns the noncanonical word p. All public calls, local
+allocations/frees and witness conditions are discharged. Normal compilation,
+recursive kernel checking and reviewed assumption/contract checks passed.
+No target or input-domain correction is made; this jet remains unresolved
+and coverage stays 505/533. See [JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md)
+for the exact theorem, reproduction commands, historical native evidence and
+verification limits. The investigation claim is released; do not register a
+restricted or corrected-target equivalence as if it resolved this mismatch.
+
 ## Field inversion: checked preparation, public proof still missing
 
 The actual `fe_inv_var` uses signed62 conversion and `modinv64_var`, not the
