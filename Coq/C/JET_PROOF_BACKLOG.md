@@ -224,12 +224,26 @@ Reproduce the unified finite body with
 then `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
 C.jet_secp_gej_add_finite_body`.
 
-Next compose the existing infinity and finite literal-body branches, then
-discharge all eleven helper-local allocations/frees. The general Z bridge
+`jet_secp_gej_add_body_literal` composes the infinity and finite branches
+without excluding any reader inputs, and derives actual void-result conversion.
+`jet_secp_gej_add_function_entry` proves the exact eleven-local entry and free
+list (closed). `jet_secp_gej_add_function.eval_gej_add_literal` derives the whole
+original `gej_add_var` call from reader storage: all eleven allocations, the
+body, result conversion and eleven frees. It returns represented, bounded
+coordinates matching `literal_gej_add`, both point owners and external framing.
+These three modules passed normal compilation, recursive kernel checking and
+reviewed no-update focused snapshots; the execution proofs retain the six
+inherited assumptions and no extra libc premise. Reproduce with
+`JET_TARGETS='C/jet_secp_gej_add_function.vo' bash Coq/build-jets.sh -j2` and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_gej_add_function`.
+
+Next compose both public GEJ reads, this helper call and the existing writer,
+with the actual public source-frame copy and three local allocations/frees.
+The general Z bridge
 retains the extra Bz factor: the executed prefix computes T=H*Bz, skips the
 NULL ratio write, then Rz=Az*T. Do not substitute a mixed-addition call.
-Remaining work also includes both public GEJ reads, the writer and
-outer lifecycle, canonical whole-contract gating and scoped acceptance.
+Remaining work also includes canonical whole-contract gating and scoped acceptance.
 
 Field inversion is a separate, later dependency: the actual `fe_inv_var`
 uses signed62 conversion and `modinv64_var`, not the square-root addition
