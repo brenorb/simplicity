@@ -1,0 +1,183 @@
+### C.jet_secp_signed62_assign.copy40_cast_self
+copy40_cast_self
+     : forall (ty : Ctypes.type) (m : Memory.Mem.mem) (b : Values.block)
+         (_ : @eq Ctypes.mode (Ctypes.access_mode ty) Ctypes.By_copy),
+       @eq (option Values.val) (Cop.sem_cast (Values.Vptr b Integers.Ptrofs.zero) ty ty m)
+         (@Some Values.val (Values.Vptr b Integers.Ptrofs.zero))
+### C.jet_secp_signed62_assign.fe_copy40_field
+fe_copy40_field
+     : forall (m mf : Memory.Mem.mem) (bs bd : Values.block) (bytes : list Memdata.memval)
+         (w : forall _ : nat, Integers.Int64.int)
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes m bs BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes mf bd BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : Memory.Mem.range_perm mf bd BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : forall (i : nat) (v : Integers.Int64.int)
+                (_ : @eq (option Integers.Int64.int)
+                       (@List.nth_error Integers.Int64.int (jet_secp_multiply_normalize_bridge.words5 w) i)
+                       (@Some Integers.Int64.int v)),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bs
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vlong v))),
+       jet_secp_fe_nv.fe_at mf bd BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w)
+### C.jet_secp_signed62_assign.exec_fe_copy40_owned
+exec_fe_copy40_owned
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (src dst : Clight.expr)
+         (ty : Ctypes.type) (bs bd : Values.block) (w : forall _ : nat, Integers.Int64.int)
+         (_ : @eq Ctypes.type (Clight.typeof src) ty) (_ : @eq Ctypes.type (Clight.typeof dst) ty)
+         (_ : @eq Ctypes.mode (Ctypes.access_mode ty) Ctypes.By_copy)
+         (_ : @eq BinNums.Z (Ctypes.sizeof (Clight.genv_cenv jet_secp_linkage.secp_ge) ty)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+         (_ : @eq BinNums.Z (Ctypes.alignof_blockcopy (Clight.genv_cenv jet_secp_linkage.secp_ge) ty)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m src (Values.Vptr bs Integers.Ptrofs.zero))
+         (_ : Clight.eval_lvalue jet_secp_linkage.secp_ge e le m dst bd Integers.Ptrofs.zero Ctypes.Full)
+         (_ : not (@eq Values.block bs bd))
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bd BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (Clight.Sassign dst src) Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (and (jet_secp_fe_nv.fe_at mf bd BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+               (and (jet_secp_fe_nv.fe_at mf bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+                  (and
+                     (Memory.Mem.range_perm mf bs BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf bd BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bd)) m mf))))))
+### C.jet_secp_signed62_assign.exec_fe_copy40_readable
+exec_fe_copy40_readable
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (src dst : Clight.expr)
+         (ty : Ctypes.type) (bs bd : Values.block) (w : forall _ : nat, Integers.Int64.int)
+         (_ : @eq Ctypes.type (Clight.typeof src) ty) (_ : @eq Ctypes.type (Clight.typeof dst) ty)
+         (_ : @eq Ctypes.mode (Ctypes.access_mode ty) Ctypes.By_copy)
+         (_ : @eq BinNums.Z (Ctypes.sizeof (Clight.genv_cenv jet_secp_linkage.secp_ge) ty)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+         (_ : @eq BinNums.Z (Ctypes.alignof_blockcopy (Clight.genv_cenv jet_secp_linkage.secp_ge) ty)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m src (Values.Vptr bs Integers.Ptrofs.zero))
+         (_ : Clight.eval_lvalue jet_secp_linkage.secp_ge e le m dst bd Integers.Ptrofs.zero Ctypes.Full)
+         (_ : not (@eq Values.block bs bd))
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Readable)
+         (_ : Memory.Mem.range_perm m bd BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : forall (i : nat) (v : Integers.Int64.int)
+                (_ : @eq (option Integers.Int64.int)
+                       (@List.nth_error Integers.Int64.int (jet_secp_multiply_normalize_bridge.words5 w) i)
+                       (@Some Integers.Int64.int v)),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bs
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vlong v))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (Clight.Sassign dst src) Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (and (jet_secp_fe_nv.fe_at mf bd BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+               (and
+                  (Memory.Mem.range_perm mf bd BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bd)) m mf))))
+### C.jet_secp_signed62_assign.eval_signed62_assign_readable
+eval_signed62_assign_readable
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bout bin : Values.block)
+         (_ : not (@eq Values.block bout bin))
+         (_ : Memory.Mem.range_perm m bout BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bin BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Readable)
+         (_ : forall (i : nat) (v : Integers.Int64.int)
+                (_ : @eq (option Integers.Int64.int)
+                       (@List.nth_error Integers.Int64.int (jet_secp_multiply_normalize_bridge.words5 w) i)
+                       (@Some Integers.Int64.int v)),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bin
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vlong v))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_signed62_assign)
+               (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bin Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_secp_fe_nv.fe_at mf bout BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+               (and
+                  (Memory.Mem.range_perm mf bout BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bout)) m mf))))
+### C.jet_secp_signed62_assign.signed62_assign_entry
+signed62_assign_entry
+     : forall (m : Memory.Mem.mem) (bd bs : Values.block),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_modinv64_signed62_assign
+         (@cons Values.val (Values.Vptr bd Integers.Ptrofs.zero)
+            (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero) (@nil Values.val))) m Clight.empty_env
+         (signed62_assign_temps bd bs) m
+### C.jet_secp_signed62_assign.eval_signed62_assign_from_storage
+eval_signed62_assign_from_storage
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bout bin : Values.block)
+         (_ : not (@eq Values.block bout bin))
+         (_ : Memory.Mem.range_perm m bout BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bin BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bin BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_signed62_assign)
+               (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bin Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_secp_fe_nv.fe_at mf bout BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+               (and (jet_secp_fe_nv.fe_at mf bin BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+                  (and
+                     (Memory.Mem.range_perm mf bout BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf bin BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bout)) m
+                           mf))))))
+### C.jet_secp_signed62_assign.signed62_assign_temps
+signed62_assign_temps =
+fun bd bs : Values.block =>
+@Maps.PTree.set Values.val jets_secp._src (Values.Vptr bs Integers.Ptrofs.zero)
+  (@Maps.PTree.set Values.val jets_secp._dst (Values.Vptr bd Integers.Ptrofs.zero)
+     (Clight.create_undef_temps (Clight.fn_temps jets_secp.f_secp256k1_modinv64_signed62_assign)))
+     : forall (_ : Values.block) (_ : Values.block), Maps.PTree.tree Values.val
+
+Arguments signed62_assign_temps bd bs

@@ -298,10 +298,40 @@ On `0cb928b9`, the command passed on unchanged inputs: 472 kernel modules,
 411 assumption records, 426 contract records, negative tests and all five
 regenerated ASTs. The every-jet goal remains incomplete.
 
-Field inversion is a separate, later dependency: the actual `fe_inv_var`
-uses signed62 conversion and `modinv64_var`, not the square-root addition
-chain. Existing VST proofs under `C/secp256k1/` may be useful; no new inversion
-execution or public equivalence is claimed here.
+## Field inversion: checked preparation, public proof still missing
+
+The actual `fe_inv_var` uses signed62 conversion and `modinv64_var`, not the
+square-root addition chain. Seven ordinary modules now establish the actual
+conversion calls, exact numeric values and limb ranges, their round trip,
+40-byte Clight struct copying, the production modulus global and its initial
+memory, and the exact inversion entry/body composition. In particular,
+`jet_secp_modinfo_fe_copy` executes the first modular-inverse copy from the
+readonly sparse modulus; it does not require that source to be writable or
+canonically represented. The numeric bridge lemmas are closed. Execution
+inherits the existing assumptions and introduces no external-library model.
+Normal compilation, recursive kernel checking and reviewed no-update
+assumption/contract snapshots passed for the seven-module dependency chain.
+Reproduce the focused build and kernel check with:
+
+```sh
+JET_TARGETS="C/jet_secp_signed62_storage.vo C/jet_secp_modinfo_fe_copy.vo C/jet_secp_fe_inv_statements.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_signed62_storage C.jet_secp_modinfo_fe_copy C.jet_secp_fe_inv_statements
+```
+
+These are preparation results, not an inversion jet proof: the structural body
+composition still takes the modular-inverse call as an internal premise.
+Remaining obligations include actual production divstep batches and their
+termination and machine-safe bounds, signed128 updates, length shrinking,
+sparse-modulus normalization, the canonical word-level Bezout bridge, and the
+complete public caller with allocation/freeing and frame preservation. No
+inversion registration or coverage increase is claimed.
+
+The older VST development under `C/secp256k1/` supplies reusable pure arithmetic,
+but its VERIFY translation unit is not the production program. Its canonical
+modinfo representation also differs from the actual field constant's negative
+low limb and sparse high limb. Reuse proved arithmetic with explicit adapters;
+do not assume that its execution theorem applies unchanged or replace the
+fixed Bezout specification with exponentiation.
 
 [JET_INHERITED_REVIEW.md](JET_INHERITED_REVIEW.md),
 [JET_FIDELITY_REVIEW.md](JET_FIDELITY_REVIEW.md) and the `JET_*_MISMATCHES.md`
