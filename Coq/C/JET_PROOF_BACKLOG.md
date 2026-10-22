@@ -313,6 +313,13 @@ for the exact theorem, reproduction commands, historical native evidence and
 verification limits. The investigation claim is released; do not register a
 restricted or corrected-target equivalence as if it resolved this mismatch.
 
+The separate `jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`
+also refutes the exact existential local-spec contract by reusing the existing
+Clight uniqueness theorem. It additionally inherits CompCert's two standard
+external-call property axioms; the original counterexample retains its six
+assumptions. Neither statement permits changing the targets or counting this
+jet as accepted. See the mismatch report for the precise distinction.
+
 ## Field inversion: checked preparation, public proof still missing
 
 The actual `fe_inv_var` uses signed62 conversion and `modinv64_var`, not the

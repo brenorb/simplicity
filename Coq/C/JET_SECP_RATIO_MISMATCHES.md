@@ -104,9 +104,28 @@ The formal execution is for the pinned x86-64 Clight program and its recorded
 RECKLESS generation configuration. It is not an assertion-enabled Clight
 proof, a proof of reachability through the full evaluator, or a native-machine
 code refinement theorem. Native sanitizer observations remain separate.
-The theorem exhibits a disagreeing successful execution; it does not itself
-state `~secp_jet_local_spec`. No additional execution-determinism argument
-turning this witness into a negation of that existential contract is claimed.
+The original six-assumption counterexample theorem exhibits a disagreeing
+successful execution; it does not itself state `~secp_jet_local_spec`.
+The separate theorem
+`jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec` now proves
+that negation for the fixed function, full input/output types and literal
+program. It reuses the existing `jet_clight_determinism.eval_funcall_unique`:
+any execution promised by the putative contract must have the very same final
+memory as the checked disagreeing execution, contradicting its output cells.
+
+The stronger refutation uses eight inherited assumptions: the counterexample's
+six plus CompCert's standing `Events.external_functions_properties` and
+`Events.inline_assembly_properties`, used by the existing general determinism
+proof. No new axiom, counting contract or library-behavior model is declared.
+The original six-assumption counterexample is unchanged. Keep these two
+statements and their assumption sets distinct. Normal compilation, recursive
+kernel checking and reviewed no-update assumption/contract checks passed for
+the separate refutation module as well.
+
+Consequently, 533/533 unrestricted equivalence contracts cannot be obtained
+with this function, its literal target and the full input type all fixed.
+This is a proved obstruction, not just a missing tactic. A target correction
+requires separate explicit approval; unaffected proof work remains in scope.
 No production C, original specification, API contract or generation setting
 is corrected or narrowed here. Which target should change remains a separate
 upstream decision.
@@ -144,6 +163,13 @@ the ordinary whole-public proof is reproduced by:
 ```sh
 JET_TARGETS=C/jet_secp_mixed_ex_counterexample.vo bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_ex_counterexample
+```
+
+The separate existential-contract refutation is reproduced by:
+
+```sh
+JET_TARGETS=C/jet_secp_mixed_ex_refutation.vo bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_mixed_ex_refutation
 ```
 
 The original archived literal-only witness remains reproducible separately:
