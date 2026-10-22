@@ -99,6 +99,8 @@ untrusted data; ordinary checked `vm_compute` verifies their equations and
 `coqchk` checks the resulting proof. No new primality assumption, unchecked cast,
 or change to the Coq/OCaml baseline is involved. `COQPRIME` may override the
 source-tree location, just as `COMPCERT` and `VST` do.
+The integrated checker enables `coqchk -bytecode-compiler yes` for checked VM
+conversion of these certificates; it still recursively checks every dependency.
 For an existing CompCert/VST setup, run `bash Coq/jet-deps.sh --coqprime-only`
 to add just this dependency without rebuilding those trees.
 
