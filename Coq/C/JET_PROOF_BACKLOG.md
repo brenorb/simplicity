@@ -1,14 +1,16 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 504 of the 533 header declarations.
+The current local-contract registry contains 505 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 29 declarations lack a registered final proof.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 28 declarations lack a registered final proof.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
 and decompression endpoints passed ordinary scoped acceptance; accepted
 local-contract coverage is 504/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
 Projective addition passed scoped acceptance on `ba6b19e8`; the exact scope
 and reproduction command are recorded in `JET_ACCEPTANCE.md`.
+Projective equivalence is registered and kernel-checked, pending ordinary
+scoped acceptance; it is not yet included in the accepted count.
 
 The remaining work includes:
 
@@ -261,15 +263,38 @@ and reviewed no-update focused snapshots passed. The existing canonical-source
 gate now checks the GejAdd catalog route, shared literal tree and complete
 public type, rejecting ten targeted mutations; inventory regressions pass.
 
-The remaining acceptance step is the full scoped check on the registration
-commit, without update flags:
+The full scoped check passed on the exact registration commit `ba6b19e8`,
+without update flags:
 
 ```sh
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_add
 ```
 
-Do not count this endpoint as accepted until that command terminates
-successfully on unchanged inputs. The every-jet goal remains incomplete.
+It checked 450 kernel modules, 389 assumption records, 404 contract records,
+negative tests and all five regenerated ASTs, on unchanged audit inputs.
+The every-jet goal remains incomplete.
+
+## Projective equivalence: registered, scoped acceptance pending
+
+`jet_secp_gej_equiv_local.gej_equiv_literal_local_spec` covers the complete
+original public C jet against the exact fixed `gej_negate`/`gej_add`/
+`gej_is_infinity` composition. It accepts all six Word256 coordinates and
+general valid frame cursors and output contents; no curve, canonical-coordinate
+or enlarged-output-space restriction is imposed. The generic addition contract
+handles the actual non-reader limbs produced by negation and proves the stored
+infinity flag, rather than inferring that flag from an unproved representation
+invariant. Both GEJ reads use the output-width-parameterized shared reader proof.
+Normal build, recursive kernel checking and reviewed no-update focused
+snapshots passed. Execution inherits the six existing assumptions and adds no
+libc premise. Its canonical-source gate checks catalog dispatch, representation,
+literal composition and the whole public contract, rejecting 13 mutations.
+Reproduce scoped acceptance on its registration commit with:
+
+```sh
+JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_equiv
+```
+
+Do not count it as accepted until that command passes on unchanged inputs.
 
 Field inversion is a separate, later dependency: the actual `fe_inv_var`
 uses signed62 conversion and `modinv64_var`, not the square-root addition
