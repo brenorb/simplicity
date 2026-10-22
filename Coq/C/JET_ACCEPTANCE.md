@@ -4,7 +4,7 @@ The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
 The local-contract registry contains 504/533 jets (368 without an extra libc
 premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
-503/533, including the computing issuance hash, affine/projective curve,
+504/533, including the computing issuance hash, affine/projective curve,
 projective X-equivalence, doubling, mixed-addition, square-root and mixed
 equivalence and decompression endpoints. On `f1309893`, `JOBS=2 bash Coq/check-jets.sh --accept
 --jets=simplicity_gej_ge_equiv` passed: 442 kernel-checked modules, 381 assumption
@@ -30,8 +30,13 @@ It proves the original full public C call against `literal_gej_add`, with no
 extra libc premise or input restriction. Its public modules passed normal
 compilation and reviewed no-update focused snapshots; the canonical catalog,
 literal and whole-contract gate rejects ten targeted mutations and inventory
-regressions pass. **Scoped acceptance is pending**; accepted coverage remains
-503/533 until the following command succeeds on the registration commit:
+regressions pass. On `ba6b19e8`, scoped acceptance passed: 450 kernel-checked
+modules, 389 assumption records, 404 contract records, all source and negative
+checks, and all five regenerated ASTs. The audit input fingerprint was unchanged.
+Accepted local-contract coverage is 504/533 (368 without an extra libc premise;
+136 conditional on `memcpy_model`), with 29 declarations without a registered
+final proof. This receipt applies to that exact commit, not subsequent proof
+changes. Reproduce on `ba6b19e8`:
 
 ```sh
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_add
