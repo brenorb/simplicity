@@ -1659,32 +1659,35 @@ reviewed focused assumption/contract comparisons:
   `gej_ge_equiv_result`, the actual C word/flag model, **not yet** the literal
   Simplicity program. Normal compilation, recursive kernel and focused
   snapshot checks passed with the same inherited assumptions.
+- `jet_secp_gej_ge_equiv_reader` specializes that call to all five arbitrary
+  Word256 reader outputs and proves the integer result is exactly zero or one.
+  The `jet_secp_gej_ge_equiv_public_{reads,body,rest,call}` modules derive the
+  **complete original public C call**, including entry, source-frame copy,
+  both readers, helper, bit writer, return and all three outer frees. They
+  require only one bit of output capacity and retain generic valid frame
+  cursors and contents. `eval_gej_ge_equiv_public_c_bit` writes the C-derived
+  `gej_ge_equiv_reader_bit`; this is not yet the literal specification.
 
 Execution retains the same six inherited assumptions and no extra libc model.
 These are internal C execution contracts, not replacement Simplicity targets
 or additional public coverage. Reproduce the latest helper closure with:
 
 ```sh
-JET_TARGETS='C/jet_secp_gej_negate_separate.vo C/jet_secp_mixed_function_loose.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_negate_separate C.jet_secp_mixed_function_loose
+JET_TARGETS='C/jet_secp_gej_ge_equiv_public_call.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_ge_equiv_public_call
 ```
 
 Next missing implications:
 
-1. Specialize the complete helper call above to the five actual reader
-   outputs, derive its 0/1 return and compose the public wrapper. Reuse the
-   checked helper calls above rather than replaying their bodies.
-2. Relate the resulting word/flag model to `literal_gej_ge_equiv` for all
+1. Relate the resulting word/flag model to `literal_gej_ge_equiv` for all
    Word256 coordinates. Use the proved weak-normalization residue bridge, and
    derive the returned flag's agreement with the literal infinity test.
    Do not replace this with coordinate equality on curve points or add curve,
    canonical-input, intermediate-result or unproved field/primality premises.
-3. Compose the public entry, by-value source-frame copy, two readers, helper,
-   bit writer, return and outer frees. The output capacity is **one bit**:
-   use the capacity-independent reader infrastructure (as in
-   `jet_secp_x_equiv_public_reads.v`), not the unrelated 768-bit output
-   precondition of the earlier mixed-addition reader adapter.
-4. Only after the complete standard local contract exists, register it and
+2. Use that pure identity to convert the checked public C-bit execution into
+   the standard literal local contract. Reuse the complete wrapper above;
+   do not replay its allocations, readers or helper bodies.
+3. Only after the complete standard local contract exists, register it and
    run ordinary scoped acceptance without update flags. Keep production C,
    specifications, API contracts and generation settings fixed.
 
