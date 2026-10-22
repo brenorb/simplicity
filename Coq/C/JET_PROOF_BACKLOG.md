@@ -120,6 +120,16 @@ the six inherited assumptions and add no libc premise.
   Ordinary compilation, recursive kernel checking and reviewed no-update
   focused assumption/contract comparisons passed. No intermediate execution
   or result is a premise.
+- `jet_secp_mixed_zero_return.exec_mixed_zero_head_return` exposes the actual
+  returning H guard for reuse; the existing `exec_mixed_zero_return` type and
+  all its definitions are unchanged. `jet_secp_gej_add_finite_return` composes
+  it with the connected prefix to execute the whole original projective helper
+  body when H=0, covering both I-dependent doubling and infinity returns. It
+  derives final coordinates, flags, bounds, all ten owners and framing from
+  initial storage. H=0 is an internal case condition, not a public-domain
+  restriction. Normal builds of this module and the existing mixed-addition
+  and mixed-equivalence public endpoints, recursive kernel checks of their
+  dependency closures and reviewed no-update focused snapshots passed.
 
 Reproduce this checked internal frontier:
 
@@ -146,7 +156,13 @@ Reproduce the H/I frontier with
 then `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
 C.jet_secp_gej_add_finite_difference`.
 
-Next compose the shared zero-branch proof after that connected prefix.
+Reproduce that whole-body zero case with
+`JET_TARGETS='C/jet_secp_gej_add_finite_return.vo C/jet_secp_mixed_local.vo C/jet_secp_gej_ge_equiv_local.vo'
+bash Coq/build-jets.sh -j2`, then `bash Coq/build-jets.sh --coqchk
+-bytecode-compiler yes -silent -o C.jet_secp_gej_add_finite_return
+C.jet_secp_mixed_local C.jet_secp_gej_ge_equiv_local`.
+
+Next prove and compose the finite H-nonzero execution.
 The nonzero branch has a
 different Z prefix: actual T=H*Bz, optional ratio copy (NULL in this public
 caller), then Rz=Az*T; after that its H2/H3/T and X/Y blocks are identical to
