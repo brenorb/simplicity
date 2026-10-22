@@ -1630,10 +1630,25 @@ the final stored chain values, allocation permissions, unchanged input field,
 non-counter temporaries and external framing. No initialized private field or
 intermediate execution premise is assumed. `root_input_prefix_source` ties
 this sequence and its continuation to the exact original helper body.
-Next execute the remaining candidate/checking-square calls, compose the
-equality fragment, and discharge function entry/frees and the public
-reader/conditional writer. The whole helper and public jet remain unproved;
-these modules do not increase coverage.
+`jet_secp_root_candidate_state` reuses the selected calls for in-place square
+blocks and the separate caller-owned result, preserving the private-field
+invariant without requiring initialized result storage.
+`jet_secp_root_suffix.exec_root_complete_body` now proves execution of the
+**entire original helper body**, composing initialization, all chain stages,
+the remaining candidate/checking-square calls, equality and return. Its
+preconditions are represented input storage, the two distinct caller-owned
+fields, separated owned private locals, bindings and helper symbols;
+it assumes no intermediate arithmetic execution or candidate output. The
+result supplies the candidate field, comparison return, all private allocation
+permissions, both caller allocations and external framing. The numeric/branch
+bridges above connect these exact word functions to the literal program.
+Next discharge function entry/allocation and freeing, then the public
+reader/conditional writer. The whole helper **function call** and public jet
+remain unproved; these body/helper modules do not increase coverage.
+Reuse the concrete entry, freshness, allocation-frame and free-list pattern
+in `jet_secp_mixed_function.v`: this helper has twelve 40-byte private fields
+and two distinct caller-owned 40-byte fields. Its actual parameter list is
+`r,a`; both are pointer temporaries, not allocated local `Evar` fields.
 
 ```sh
 JET_TARGETS='C/jet_secp_root_literal.vo C/jet_secp_root_square_loop.vo C/jet_secp_root_square_bridge.vo C/jet_secp_root_stage.vo' bash Coq/build-jets.sh -j2
@@ -1645,6 +1660,8 @@ JET_TARGETS=C/jet_secp_root_check.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_check
 JET_TARGETS='C/jet_secp_root_call_state.vo C/jet_secp_root_prefix.vo' bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_call_state C.jet_secp_root_prefix
+JET_TARGETS='C/jet_secp_root_candidate_state.vo C/jet_secp_root_suffix.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_root_candidate_state C.jet_secp_root_suffix
 ```
 
 Leave `simplicity_gej_ge_add_ex` unresolved: its equal-point ratio disagrees
