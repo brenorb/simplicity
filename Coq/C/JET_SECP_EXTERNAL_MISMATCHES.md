@@ -1,0 +1,72 @@
+# Secp external-call semantics gaps
+
+This is a proof-model limitation, **not a demonstrated mismatch between the
+production C and the fixed Simplicity specification**. No implementation,
+specification, API contract, generated AST or generation setting is changed.
+The affected jets remain unresolved; these diagnostics add no coverage.
+
+## Inversion: counting trailing zeroes is an abstract external call
+
+Directly affected: `simplicity_fe_invert` and `simplicity_scalar_invert`.
+Their C helpers call `secp256k1_modinv64_var`, whose divstep batches call
+`secp256k1_ctz64_var`. Callers needing those inversions inherit this boundary;
+this is not an exhaustive downstream call-graph claim.
+
+For a nonzero 64-bit word, the needed helper contract is the number of trailing
+zero bits, with unchanged memory and an empty trace. For example, argument 1
+must return 0. The frozen production translation does not use the software
+de Bruijn fallback: its unsigned-long-width guard is true and selects
+`__builtin_ctzl`. The generated declaration is `EF_builtin "__builtin_ctzl"`
+with signature `[Tlong] -> Tint`.
+
+In the pinned CompCert 3.14, lookup for that name/signature returns `None`.
+The alternate `__builtin_ctzll` also returns `None`. `builtin_or_external_sem`
+therefore dispatches to the parameter `Events.external_functions_sem`, not to
+a known counting function. The generic external-call properties specify no
+ctz result and do not even guarantee that a call can return.
+
+`jet_secp_ctz_semantics_gap.v` provides formal evidence for the actual guard,
+callee and external declaration, both failed builtin lookups, and the dispatch
+equation. Its `ctz_generic_properties_insufficient` is a closed countermodel
+argument: the empty call relation satisfies `extcall_properties` but cannot
+supply a result even for argument 1. This does **not** assign that relation to
+CompCert's actual abstract parameter, demonstrate a stuck execution under a
+chosen concrete library, or demonstrate an incorrect native C result. It
+establishes that those generic properties alone cannot discharge the required
+execution premise. The countermodel is diagnostic only, not a substitute
+implementation or a semantics used by a registered jet proof.
+
+## Generation: wNAF also calls external memset
+
+The original `secp256k1_ecmult_wnaf` calls `memset` to initialize its digit
+array. The generated declaration is `EF_external "memset"`, with signature
+`[Tlong; Tint; Tlong] -> Tlong`. The same diagnostic module formally checks
+the declaration and the call in the actual helper body. Its mere presence
+does not prove the zeroing behavior or the validity of a particular call's
+arguments. `generate` and other ecmult callers still need a discharged
+external-library boundary in addition to their arithmetic and execution
+proofs. The scalar-splitting helper proof does not rely on memset or ctz.
+
+## Reproduction and limits
+
+With the pinned dependencies from `Coq/JET_BUILD.md`:
+
+```sh
+JET_TARGETS=C/jet_secp_ctz_semantics_gap.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_ctz_semantics_gap
+```
+
+Inspect the named statements or the reviewed snapshots for their exact scope.
+The lookup/countermodel evidence is formal. No native reproducer or native
+wrong-result observation is claimed. In particular, this report does not
+claim that a zero word is passed to a compiler builtin with a nonzero-input
+contract; the divstep code adds a sentinel before counting.
+
+The worst established consequence is an unresolved acceptance boundary for
+the affected implementation-to-specification proofs, not a demonstrated
+runtime failure, consensus discrepancy or exploit. A complete result needs
+justified concrete external semantics/linkage; adding an unproved ctz or
+memset premise would not meet the goal. Switching the production AST to a
+fallback, changing compiler/generation configuration, or changing the target
+would require separate explicit approval and is not done here.
+

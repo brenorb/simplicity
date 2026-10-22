@@ -63,6 +63,13 @@ on `0cb928b9`:
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_equiv
 ```
 
+After the definitions-only safegcd dependency and arithmetic inversion helpers
+were integrated, the same command also passed on `c704be90`: 472 kernel
+modules, 411 assumption records, 426 contract records, negative tests and all
+five regenerated ASTs, with unchanged audit inputs. This is a scoped
+integration check on that exact commit; it does not register inversion or
+establish a new public jet proof.
+
 The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add

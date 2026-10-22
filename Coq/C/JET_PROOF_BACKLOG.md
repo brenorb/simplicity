@@ -354,6 +354,18 @@ This supplies the arithmetic `eta` bound for a future execution invariant; it
 does not establish that the C batch implements the transition, or prove its
 other machine-operation and storage obligations.
 
+There is also a fixed-program external-call boundary, independently of the
+remaining arithmetic. The production `ctz64_var` selects `__builtin_ctzl`,
+whose pinned CompCert lookup returns `None` and hence uses abstract external
+semantics. The diagnostic module `jet_secp_ctz_semantics_gap` checks that
+dispatch and proves that generic external-call properties alone do not imply
+even a return for valid argument 1. It adds no ctz premise or jet coverage.
+See [JET_SECP_EXTERNAL_MISMATCHES.md](JET_SECP_EXTERNAL_MISMATCHES.md) for the
+precise formal evidence, the related wNAF `memset` boundary, and the distinction
+between this model gap and a demonstrated native C/specification bug. Do not
+switch to a different generated fallback or count a new external-model
+assumption as a discharged public equivalence proof.
+
 The older VST development under `C/secp256k1/` supplies reusable pure arithmetic,
 but its VERIFY translation unit is not the production program. Its canonical
 modinfo representation also differs from the actual field constant's negative
