@@ -112,6 +112,14 @@ the six inherited assumptions and add no libc premise.
   the six original coordinates, exact U1/U2/S1/S2 fields, both squares, tight
   bounds, eight owners and a frame including the infinity flags. Normal build,
   recursive kernel checking and reviewed no-update focused snapshots passed.
+- `jet_secp_gej_add_finite_difference.exec_gej_add_finite_difference` extends
+  that connected execution through the four actual H/I difference statements,
+  reusing `exec_mixed_differences`. It derives both differences and their
+  bounds from the original six coordinates, retaining those coordinates,
+  U1/U2/S1/S2, both infinity flags, all ten owners and external framing.
+  Ordinary compilation, recursive kernel checking and reviewed no-update
+  focused assumption/contract comparisons passed. No intermediate execution
+  or result is a premise.
 
 Reproduce this checked internal frontier:
 
@@ -133,7 +141,12 @@ Reproduce the connected prefix with `JET_TARGETS='C/jet_secp_gej_add_finite_prep
 bash Coq/build-jets.sh -j2`, then `bash Coq/build-jets.sh --coqchk
 -bytecode-compiler yes -silent -o C.jet_secp_gej_add_finite_prepare`.
 
-Next compose the shared difference and zero-branch proofs after that prefix.
+Reproduce the H/I frontier with
+`JET_TARGETS='C/jet_secp_gej_add_finite_difference.vo' bash Coq/build-jets.sh -j2`,
+then `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_gej_add_finite_difference`.
+
+Next compose the shared zero-branch proof after that connected prefix.
 The nonzero branch has a
 different Z prefix: actual T=H*Bz, optional ratio copy (NULL in this public
 caller), then Rz=Az*T; after that its H2/H3/T and X/Y blocks are identical to
