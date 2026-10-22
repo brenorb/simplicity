@@ -98,6 +98,13 @@ the six inherited assumptions and add no libc premise.
 - `jet_secp_gej_fresh_product` reuses the actual affine-coordinate multiply
   proof for X/Y and restores the projective input's full 128-byte owner by
   precise framing. Its call adapter takes the real point/local identifiers.
+- `jet_secp_gej_add_s_calls` proves both original S1/S2 two-call sequences
+  through one identifier-parameterized proof. `jet_secp_gej_add_preparation`
+  composes all six real preparation multiplications, preserving all six
+  source coordinates, the two squared factors, eight owners and a frame that
+  includes the infinity flags. It derives tight output bounds for the shared
+  difference operations. Normal build, recursive kernel checking and reviewed
+  no-update focused snapshots passed; no new assumption or libc premise is added.
 
 Reproduce this checked internal frontier:
 
@@ -106,10 +113,18 @@ JET_TARGETS='C/jet_secp_gej_add_infinite_literal.vo C/jet_secp_gej_fresh_product
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_add_infinite_literal C.jet_secp_gej_fresh_product
 ```
 
-Next compose the six preparation multiplications: U1=Ax*Bz^2, U2=Bx*Az^2,
-S1=(Ay*Bz^2)*Bz, S2=(By*Az^2)*Az. Reuse the fresh X/Y products above and
-`eval_field_point_mul_numeric PointZ` for the two in-place products. Then
-reuse the shared difference and zero-branch proofs. The nonzero branch has a
+The preparation block computes U1=Ax*Bz^2, U2=Bx*Az^2,
+S1=(Ay*Bz^2)*Bz, S2=(By*Az^2)*Az, reusing
+`eval_field_point_mul_numeric PointZ` for the two in-place products. Reproduce:
+
+```sh
+JET_TARGETS='C/jet_secp_gej_add_preparation.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_add_preparation
+```
+
+Next compose the checked finite start with that block, deriving its two square
+factors from original input storage. Then reuse the shared difference and
+zero-branch proofs. The nonzero branch has a
 different Z prefix: actual T=H*Bz, optional ratio copy (NULL in this public
 caller), then Rz=Az*T; after that its H2/H3/T and X/Y blocks are identical to
 the checked mixed-addition blocks. Do not drop the Bz factor or substitute a
