@@ -1,6 +1,6 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 501 of the 533 header declarations.
+The current local-contract registry contains 502 of the 533 header declarations.
 Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 31 declarations remain unregistered.
 The projective curve, doubling, mixed-addition and square-root endpoints passed
@@ -14,6 +14,32 @@ The remaining work includes:
 - general caller startup and persistent SHA/global-state readiness;
 - libc implementation proofs where a contract assumes `memcpy_model`;
 - raw transaction/taproot projections for cached Bitcoin environment fields.
+
+## Decompression: current proof frontier
+
+`simplicity_decompress` is claimed but unregistered. The ordinary build now
+contains `jet_secp_decompress_literal`, a port of the canonical `decompress`,
+its `y_from_x` expression and parity selection. These pure stepping and
+parametricity lemmas are not an implementation-to-specification endpoint.
+
+`jet_secp_square_affine_y{,_caller}` proves the original optimized field square
+with destination at offset 40 in an owned 88-byte affine-point allocation.
+It constructs the symbolic frame from caller storage, allows uninitialized Y,
+decodes the five output limbs using the existing square arithmetic, preserves
+ownership and frames bytes outside the actual field footprints. It introduces
+no new axiom or libc premise. This is an execution helper, not new jet coverage.
+
+Next adapt the square-root result boundary to that actual destination: reuse
+the existing private addition-chain prefix, use the new square-to-Y helper
+for the candidate, and `eval_curve_square_from_storage true` to square Y back
+into the private checking field. Preserve the surrounding point X and flag
+through the suffix, private allocation/free lifecycle and caller composition.
+Do not substitute a square-root call to a separate field followed by an extra
+copy: the original C writes the candidate directly into `r->y`.
+The later obligations are the real `ge_set_xo_var` calls, cubic-plus-seven
+numeric bridge, normalization/parity/negation, failure padding, and the public
+257-bit input/513-bit output frame theorem. Register only that complete result,
+with the canonical-source gate extended to protect this composition.
 
 [JET_INHERITED_REVIEW.md](JET_INHERITED_REVIEW.md),
 [JET_FIDELITY_REVIEW.md](JET_FIDELITY_REVIEW.md) and the `JET_*_MISMATCHES.md`
