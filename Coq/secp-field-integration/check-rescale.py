@@ -204,6 +204,30 @@ def check_projective(s):
         raise ValueError("GejAdd full public contract differs")
 
 
+def check_gej_equiv(s):
+    """Exact two-projective-point predicate and unrestricted public contract."""
+    check_projective(s)
+    for fragment in [
+        "GejEquiv :: Secp256k1Jet (Secp256k1.GEJ, Secp256k1.GEJ) Bit",
+        "specificationSecp256k1 GejEquiv = Secp256k1.gej_equiv",
+        "implementationSecp256k1 GejEquiv = \\(a,b) -> return . toBit $ LibSecp256k1.gej_equiv (fromGEJ a) (fromGEJ b)",
+    ]:
+        p.require(s["catalog"], fragment, "GejEquiv catalog")
+    impl = s["program"].split("lib@Lib{..} = Lib {", 1)[1]
+    p.exact_program(impl, "gej_equiv", "gej_ge_equiv",
+                    "take (gej_negate) &&& ih >>> gej_add >>> gej_is_infinity")
+    expected = "O (@literal_gej_negate term) &&& I H >>> @literal_gej_add term >>> @literal_gej_is_infinity term"
+    if p.compact(p.definition(s["projective_equiv_port"], "literal_gej_equiv")) != p.compact(expected):
+        raise ValueError("literal projective-equivalence tree differs")
+    statement = re.search(r"Theorem gej_equiv_literal_local_spec\s*:(.*?)\bProof\.", s["projective_equiv_jet"], re.S)
+    expected = "secp_jet_local_spec f_simplicity_gej_equiv " \
+        "(Ty.Prod (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) " \
+        "(Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8))) " \
+        "(Ty.Sum Ty.Unit Ty.Unit) (@literal_gej_equiv Alg.CoreFunSem)."
+    if not statement or p.compact(statement[1]) != p.compact(expected):
+        raise ValueError("GejEquiv full public contract differs")
+
+
 def check_gej_ge_equiv_ports(s):
     """Exact canonical mixed-equivalence composition and representation."""
     for fragment in [
@@ -369,6 +393,8 @@ def test():
         "root_jet": COQ / "C/jet_secp_root_local.v",
         "equiv_port": COQ / "C/jet_secp_gej_ge_equiv_literal.v",
         "equiv_jet": COQ / "C/jet_secp_gej_ge_equiv_local.v",
+        "projective_equiv_port": COQ / "C/jet_secp_gej_equiv_literal.v",
+        "projective_equiv_jet": COQ / "C/jet_secp_gej_equiv_local.v",
         "bit_program": REPO / "Haskell/Core/Simplicity/Programs/Bit.hs",
         "decompress_port": COQ / "C/jet_secp_decompress_literal.v",
         "decompress_jet": COQ / "C/jet_secp_decompress_local.v",
@@ -628,6 +654,39 @@ def test():
             continue
         raise ValueError("accepted projective-addition source mutation: " + old)
     print(f"GejAdd catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
+
+    check_gej_equiv(s)
+    mutations = [
+        ("catalog", "specificationSecp256k1 GejEquiv = Secp256k1.gej_equiv",
+                    "specificationSecp256k1 GejEquiv = Secp256k1.gej_ge_equiv"),
+        ("catalog", "GejEquiv :: Secp256k1Jet (Secp256k1.GEJ, Secp256k1.GEJ) Bit",
+                    "GejEquiv :: Secp256k1Jet (Secp256k1.GEJ, Secp256k1.GE) Bit"),
+        ("catalog", "LibSecp256k1.gej_equiv (fromGEJ a) (fromGEJ b)",
+                    "LibSecp256k1.gej_equiv (fromGEJ a) (fromGE b)"),
+        ("program", "gej_equiv = take (gej_negate)", "gej_equiv = drop (gej_negate)"),
+        ("program", "gej_equiv = take (gej_negate) &&& ih >>> gej_add",
+                    "gej_equiv = take (gej_negate) &&& ih >>> gej_ge_add"),
+        ("projective_equiv_port", "O (@literal_gej_negate term)", "I (@literal_gej_negate term)"),
+        ("projective_equiv_port", ">>> @literal_gej_add term", ">>> @literal_gej_ge_add term"),
+        ("projective_equiv_port", ">>> @literal_gej_is_infinity term", ">>> @literal_gej_x_equiv term"),
+        ("projective_equiv_jet", "secp_jet_local_spec f_simplicity_gej_equiv",
+                               "False -> secp_jet_local_spec f_simplicity_gej_equiv"),
+        ("projective_equiv_jet", "f_simplicity_gej_equiv", "f_secp256k1_gej_eq_var"),
+        ("projective_equiv_jet", "(Word 8)", "(Word 7)"),
+        ("projective_equiv_jet", "(Ty.Sum Ty.Unit Ty.Unit)", "(Word 8)"),
+        ("projective_equiv_jet", "@literal_gej_equiv Alg.CoreFunSem", "@literal_gej_ge_equiv Alg.CoreFunSem"),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError("inactive projective-equivalence mutation fixture: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_gej_equiv(changed)
+        except ValueError:
+            continue
+        raise ValueError("accepted projective-equivalence source mutation: " + old)
+    print(f"GejEquiv catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
 
 
 if __name__ == "__main__":
