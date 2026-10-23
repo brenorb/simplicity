@@ -1,4 +1,14 @@
-# Writable-word exclusive-end support (unintegrated)
+# Writable-word exclusive-end support
+
+The shared generalization is integrated in `58f36fe9`, following whole-project
+acceptance of the exact candidate inputs at `6a227e8b`. All 2,109 C modules,
+reviewed assumption/contract records, negative tests and five regenerated AST
+comparisons passed. This is a proof-contract generalization, not a change to
+the C, specification, API or generation settings. The isolated work below is
+retained as historical evidence; its former pending status is superseded by
+the integrated result described at the end of this file.
+
+## Historical isolated proof
 
 The later concrete witness is now complete as well:
 
@@ -6,8 +16,8 @@ The later concrete witness is now complete as well:
 block ending at `max_unsigned + 1` and storing the metadata, cursor and an
 arbitrary initial word. For either Boolean bit, it derives the full original
 `writeBit` call, output/load/bit, prefix, cursor, outside loads, permissions and
-block validity, and proves that the current `write_frame_at` rejects the initial
-state. Thus the wider predicate's additional case is inhabited in the formal
+block validity, and proves that the then-current `write_frame_at` rejects
+the initial state. Thus the wider predicate's additional case is inhabited in the formal
 memory model, not merely arithmetic or a conditional execution theorem.
 This still does not assert reachability by the Linux allocator/evaluator.
 
@@ -39,16 +49,14 @@ type-in-type, unsafe fixpoints and assumed positivity are all absent. The
 arithmetic witness is closed; the execution theorem retains six inherited
 assumptions. This does not certify a reachable Linux allocation at that address.
 
-Reproducible checks from that dependency directory, with the project Coq PATH:
-
-The two running checkout/negation audits are not modified by this work. No
-accepted predicate or coverage changes. Generalizing the accepted shared
-contract still requires the other reader/writer/pointer/copy callers, actual
+At that isolated stage, the two running checkout/negation audits were not
+modified, and no accepted predicate or coverage changed. Generalizing the shared
+contract still required the other reader/writer/pointer/copy callers, actual
 domain review, reviewed snapshot differences and separate full acceptance.
 Reuse the successful bit-writer proof; do not infer that widening its bound
 automatically repairs every dependent caller or the evaluator boundary.
 
-## Normal-module generalization candidate
+## Integrated normal-module generalization
 
 Branch `codex/write-word-endpoint` widens only the proof-side exclusive-end
 bound in `write_frame` / `write_frame_at` and the bit/byte/wide raw writers.
@@ -56,8 +64,8 @@ The original C, specifications, API and generation settings are unchanged.
 The original public constant, one, add and increment contracts at all four
 arithmetic widths compile unchanged with the wider input predicate. Their
 execution, encoded output, prefix, cursor and memory-framing conclusions are
-unchanged. Whole-consumer rebuilding and acceptance are still required before
-integrating this candidate.
+unchanged. The subsequent whole-consumer build and acceptance passed at
+`6a227e8b`; the candidate is merged in `58f36fe9`.
 
 `C.jet_word_endpoint_constants.last_word_frame_constructible` reuses the
 archived memory construction for arbitrary initial contents of the final word.
@@ -85,5 +93,13 @@ verification inputs. No unsafe kernel features or extra library axioms occur.
 This is not whole-consumer acceptance. The Bitcoin/Elements raw writer
 transports now compile with only the same exclusive-end premises widened;
 their axiom records are unchanged and the four recorded type changes are only
-the added one-past byte. Whole-consumer compilation and checking remain pending.
-It adds no registered jet and leaves the twenty unproved jets unresolved.
+the added one-past byte. The later ordinary `check-jets.sh --accept` run passed
+for all 2,109 C modules, 1,861 assumption records and 1,924 contract records,
+including negative tests and all five AST comparisons, on unchanged
+`6a227e8b` inputs. See `Coq/C/JET_ACCEPTANCE.md` for the reproduction command
+and distinction from checks of later-added modules.
+
+The frame generalization adds no jet. Separately, the integrated coverage
+tool now counts the checked whole-public ratio divergence, as requested:
+514/533 proof entries (513 equivalence, one divergence), with 19 jets lacking
+either outcome. Existing libc and evaluator/caller qualifications remain.

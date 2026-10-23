@@ -1,5 +1,41 @@
 # Integration and pending-jet reconciliation
 
+## Current whole-project acceptance and writable-word integration
+
+The exact proof inputs at `6a227e8b` passed ordinary whole-project acceptance
+with Coq 8.17.1: all 2,109 C modules were recursively kernel-checked, 1,861
+assumption-module and 1,924 contract-module records matched, negative tests
+passed, and all five regenerated ASTs matched. All 104 global source/mutation
+checks passed, and the audit input fingerprint was unchanged throughout.
+Reproduce with the pinned dependencies from `Coq/JET_BUILD.md`:
+
+```sh
+JOBS=12 bash Coq/check-jets.sh --accept
+```
+
+That candidate is integrated by signed merge `58f36fe9`. It generalizes only
+the proof-side exclusive end of writable words to `max_unsigned + 1`, retains
+all public execution/output/framing conclusions, transports the corresponding
+writer/copy contracts, and adds complete low/high executions on a constructed
+last-word memory. This is an abstract CompCert-memory witness, not a claim of
+allocator or evaluator reachability. The C, original specifications, API
+contracts and generation configuration are unchanged.
+
+Proof coverage is 514/533: 513 equivalence contracts (375 without an extra
+library premise, 138 conditional on `memcpy_model`) and one checked whole-public
+divergence for `gej_ge_add_ex`. The divergence and equivalence classifications
+remain separate; the restricted positive ratio theorem alone does not count.
+Nineteen jets still lack either outcome, and shared conditional/domain/caller
+qualifications remain. The goal is not complete.
+
+The full acceptance statement above applies to `6a227e8b`, not automatically
+to later additions. The null-overlap counterexample and field-normalization
+modules added afterwards have separate focused build, kernel and record checks.
+The normalizer is an internal inversion dependency, not an additional jet;
+the aliasing counterexample does not refute an accepted separated-frame contract.
+
+## Earlier integration history
+
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
 The local-contract registry contains 513/533 jets (375 without an extra libc

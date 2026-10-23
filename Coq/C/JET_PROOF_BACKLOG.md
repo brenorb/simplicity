@@ -13,8 +13,10 @@ The inventory currently has 513 equivalence entries (138 with the existing
 explicit `memcpy_model` premise) and one checked whole-public refutation,
 `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
 514/533 proof entries, with 19 jets still lacking either result. Registration
-is not fresh acceptance; the endpoint-generalization integration check is
-still pending. Historical equivalence-only counts and the obstruction to
+is not fresh acceptance. The endpoint-generalization candidate passed full
+ordinary acceptance at `6a227e8b` and is integrated in `58f36fe9`; later-added
+modules are checked separately as described in `JET_ACCEPTANCE.md`.
+Historical equivalence-only counts and the obstruction to
 533 positive equivalences below are retained as such, not as an obstruction
 to the newly clarified mixed-outcome proof goal.
 
@@ -50,7 +52,26 @@ The remaining work includes:
 - libc implementation proofs where a contract assumes `memcpy_model`;
 - raw transaction/taproot projections for cached Bitcoin environment fields.
 
-## Completion constraints on the remaining twenty jets
+## Current inversion dependency (no additional jet coverage)
+
+Reuse the completed signed62 conversion/storage and literal EEA bridges;
+do not rebuild them. The original field `normalize_62` call is now proved
+through `jet_secp_modinv_normalize62_{exec,global,words,numeric}`. The final
+`eval_field_norm62_numeric` contract derives the actual call, canonical
+signed62 output with value `(sign*input) mod p`, output ownership, retained
+48-byte modulus metadata and byte-range framing. Its internal preconditions
+match the C helper's stated limb/value bounds; the public inverse loop must
+derive them, not assume them of arbitrary Word256 inputs. The numeric bridge
+lemmas are closed; the call retains six inherited assumptions and no libc model.
+
+The next missing implication remains execution and numeric invariants of the
+actual modular-inverse batch/loop, including derivation of those normalization
+bounds and connection to the existing literal inverse bridge. The ctz
+external-call boundary is still open; proving an internal normalizer does not
+discharge it or establish the complete `fe_invert` jet. See
+`JET_SECP_EXTERNAL_MISMATCHES.md` for precise results and reproduction commands.
+
+## Completion constraints on the remaining nineteen jets and one proved divergence
 
 A read-only Astra Medium strategy review, followed by inspection of the
 existing refutation/report, confirms that changing the next jet alone does
