@@ -1520,11 +1520,30 @@ the call theorem derives the call and applies this effect result, preserving
 the source scalar's permissions for later cleanup. Three source/foot facts
 are closed; the effect and C execution results use the existing six inherited
 assumptions without a libc premise. Normal compilation and reviewed no-update
-focused audits pass; independent recursive checking is pending. Reproduce
+focused audits pass. Independent recursive kernel checking and no-update
+focused audits pass on `83f174c0` in the task-owned verification worktree. Reproduce
 with target/module `C/jet_secp_generator_split_call.vo` /
 `C.jet_secp_generator_split_call`, selecting it and
 `C.jet_secp_scalar_split128_effects` for focused audits. This is not the
 whole guarded branch or public `generate`, and adds no coverage row.
+
+`jet_secp_generator_entry_split.generator_entry_and_scalar_split` now composes
+the actual entry/preparation with that original split call. Its initial
+conditions are the readonly fixed zero scalar, the caller's two state-pointer
+loads and the normalized scalar storage already produced by the original
+reader. It derives all nine local allocations, separation and ownership,
+preservation of input storage through preparation, and the real ng guard's
+truth from a weak-valid-pointer proof (not merely the Vptr constructor).
+It returns both literal halves, denominator one, all local ownership, the
+source scalar's old permissions and framing of other old memory. There is
+no intermediate execution or result premise. The complete theorem has the
+same six inherited assumptions and no libc model. Normal compilation and
+reviewed no-update focused audits pass; independent recursive checking is
+pending. Reproduce with target/module
+`C/jet_secp_generator_entry_split.vo` / `C.jet_secp_generator_entry_split`.
+This is explicitly entry, preparation, guard and split, not the following
+two wNAF calls or the complete guarded branch. Their memset boundary remains
+unresolved; public coverage stays 513/533.
 
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for

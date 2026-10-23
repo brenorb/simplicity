@@ -1,0 +1,60 @@
+### C.jet_secp_generator_entry_split.generator_entry_and_scalar_split
+generator_entry_and_scalar_split
+     : forall (m : Memory.Mem.mem) (bs bx ba : Values.block) (r a : Values.val) (bng : Values.block)
+         (base : BinNums.Z) (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_secp_generator_zero_global.generator_zero_global_state m)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m bs BinNums.Z0)
+                (@Some Values.val (Values.Vptr bx Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mptr m bs (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@Some Values.val (Values.Vptr ba Integers.Ptrofs.zero)))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bng base
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                         (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem value))))),
+       @ex Memory.Mem.mem
+         (fun mi : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mp : Memory.Mem.mem =>
+             @ex Memory.Mem.mem
+               (fun mf : Memory.Mem.mem =>
+                @ex Values.block
+                  (fun bt : Values.block =>
+                   @ex Values.block
+                     (fun bz : Values.block =>
+                      @ex Values.block
+                        (fun b0 : Values.block =>
+                         @ex Values.block
+                           (fun b128 : Values.block =>
+                            @ex Values.block
+                              (fun bw0 : Values.block =>
+                               @ex Values.block
+                                 (fun bw128 : Values.block =>
+                                  @ex Values.block
+                                    (fun bj : Values.block =>
+                                     @ex Values.block
+                                       (fun bn : Values.block =>
+                                        @ex Values.block
+                                          (fun bl : Values.block =>
+                                           let e : Maps.PTree.tree (prod Values.block Ctypes.type) :=
+                                             jet_secp_generator_entry.generator_local_env bt bz b0 b128 bw0 bw128 bj bn
+                                               bl in
+                                           let le : Maps.PTree.tree Values.val :=
+                                             jet_secp_generator_entry.generator_entry_temps bs r a
+                                               (Values.Vptr bng (Integers.Ptrofs.repr base)) in
+                                           let lr : Maps.PTree.tree Values.val :=
+                                             jet_secp_generator_initialize.generator_ready_temps le
+                                               (Values.Vptr ba Integers.Ptrofs.zero)
+                                               (Values.Vptr bx Integers.Ptrofs.zero) in
+                                           and
+                                             (Clight.function_entry2 jet_secp_linkage.secp_ge
+                                                jets_secp.f_secp256k1_ecmult_strauss_wnaf
+                                                (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+                                                   (@cons Values.val r ...)) m e le mi)
+                                             (and
+                                                (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le mi
+                                                   jet_secp_generator_initialize.generator_prepare_non_generator
+                                                   Events.E0 lr mp ClightBigstep.Out_normal)
+                                                (and (Clight.eval_expr jet_secp_linkage.secp_ge e lr mp ... ...)
+                                                   (and ... ...)))))))))))))))
