@@ -883,6 +883,11 @@ size facts and restricts block-separation search to `Sep`. Normal compilation
 and existing no-update assumption/contract records pass without a timeout,
 statement, assumption or target change. The full point check remains pending;
 entry/split/count-control checks below do not replace it.
+The next rebuild on `aee7badb` exposed another context-heavy search in
+`zinv_finite`'s `SepP` assertion (again exit 2 before kernel checking). Its
+repair uses `NoDup_app_remove_r` for the actual list prefix, limits the other
+separation assertion to `SepAll`, and isolates closed ownership sizes. Normal
+compilation and unchanged no-update snapshots pass for this repair too.
 Reproduce its check with:
 
 ```sh

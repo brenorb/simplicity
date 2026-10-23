@@ -48,7 +48,7 @@ Local Ltac separate_blocks Sep :=
    assert (HP:~P) by (intro;apply HC;left;assumption);
    assert (HQ:~Q) by (intro;apply HC;right;assumption);clear HC end.
 Local Ltac keep_owned HF Frame :=
- eapply curve_keep_free;[lia|exact HF|exact Frame|];intro pos;repeat split;try (left;congruence);congruence.
+ eapply curve_keep_free;[clear;lia|exact HF|exact Frame|];intro pos;repeat split;try (left;congruence);congruence.
 Local Ltac outside_preparation := unfold zinv_difference_frame,zinv_start_frame;
  repeat split;try (left;congruence);congruence.
 
@@ -86,9 +86,9 @@ Proof.
    BX BY BZ BU BV BInv Flag X Y ZAt U V Inv (Owned & HF & IF & F2 & F3 & FK).
  pose proof Sep as SepAll;separate_blocks Sep.
  assert (SepP : NoDup [bp;ba;bb;baz;bz;bu;bv;bs;bt;bh;bi]) by
-   (repeat rewrite NoDup_cons_iff;cbn [In];intuition congruence).
+   exact (@NoDup_app_remove_r block [bp;ba;bb;baz;bz;bu;bv;bs;bt;bh;bi] [b2;b3;bk] SepAll).
  assert (SepN : NoDup [bp;bh;b2;b3;bk;bu;bi;bs]) by
-   (repeat rewrite NoDup_cons_iff;cbn [In];intuition congruence).
+   (clear -SepAll;repeat rewrite NoDup_cons_iff in *;cbn [In] in *;intuition congruence).
  destruct (exec_zinv_difference_prefix x y z u v inv e le m bp ba bb baz bz bu bv bs bt bh bi
    HA HB HInv EU EV ES ET EZ EAZ EH EI EW EM EQ EN EA SepP
    ltac:(intros j HJ;pose proof (square_input56 x BX j HJ);lia)
@@ -98,11 +98,11 @@ Proof.
  destruct Fields as (XP & YP & ZP & UP & VP & InvP & AZP & Z12P & U1P & U2P & S1P & S2P).
  destruct OwnedP as (PFP & AFP & InvFP & AZFP & ZFP & UFP & VFP & SFP & TFP).
  assert (F2P : Mem.range_perm mp b2 0 40 Cur Freeable).
- { eapply curve_keep_free;[lia|exact F2|exact FP|];intro pos;outside_preparation. }
+ { eapply curve_keep_free;[clear;lia|exact F2|exact FP|];intro pos;outside_preparation. }
  assert (F3P : Mem.range_perm mp b3 0 40 Cur Freeable).
- { eapply curve_keep_free;[lia|exact F3|exact FP|];intro pos;outside_preparation. }
+ { eapply curve_keep_free;[clear;lia|exact F3|exact FP|];intro pos;outside_preparation. }
  assert (FKP : Mem.range_perm mp bk 0 40 Cur Freeable).
- { eapply curve_keep_free;[lia|exact FK|exact FP|];intro pos;outside_preparation. }
+ { eapply curve_keep_free;[clear;lia|exact FK|exact FP|];intro pos;outside_preparation. }
  assert (FlagP : Mem.load Mint32 mp bp 120=Some (Vint Int.zero)).
  { rewrite (proj1 FP Mint32 bp 120);[exact Flag| |].
    - destruct Owned as (PF & Rest);eapply Mem.perm_valid_block;apply (PF 0);lia.
