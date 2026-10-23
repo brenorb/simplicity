@@ -1,0 +1,149 @@
+### C.jet_secp_invert_literal.literal_inverse_body_fun
+literal_inverse_body_fun
+     : forall (W : Ty.Ty) (p : Ty.tySem W)
+         (bez : Alg.Core.domain Alg.CoreFunSem (Ty.Prod W W) (Ty.Sum (Ty.Prod W W) (Ty.Prod W W)))
+         (neg : Alg.Core.domain Alg.CoreFunSem W W) (x : Ty.tySem W),
+       @eq (Ty.tySem W) (@literal_inverse_body W Alg.CoreFunSem p bez neg x)
+         (inverse_select W neg (bez (@pair (Ty.tySem W) (Ty.tySem W) p x)))
+### C.jet_secp_invert_literal.eea_word_modulus256
+eea_word_modulus256
+     : @eq BinNums.Z (jet_predicate_spec.word_modulus (S (S (S (S (S (S (S (S O)))))))))
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_invert_literal.literal_fe_invert_step
+literal_fe_invert_step
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@literal_fe_invert Alg.CoreFunSem x)
+         (literal_inverse_select
+            (@jet_secp_eea_literal.literal_bezout (S (S (S (S (S (S (S (S O)))))))) Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  jet_secp_canonical_normalize.canonical_field_word x)))
+### C.jet_secp_invert_literal.literal_fe_invert_numeric
+literal_fe_invert_numeric
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) (@literal_fe_invert Alg.CoreFunSem x))
+         (literal_invert_numeric (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x))
+### C.jet_secp_invert_literal.literal_invert_numeric_zero
+literal_invert_numeric_zero
+     : @eq BinNums.Z (literal_invert_numeric BinNums.Z0) BinNums.Z0
+### C.jet_secp_invert_literal.literal_invert_numeric_one
+literal_invert_numeric_one
+     : @eq BinNums.Z (literal_invert_numeric (BinNums.Zpos BinNums.xH)) (BinNums.Zpos BinNums.xH)
+### C.jet_secp_invert_literal.literal_invert_numeric_two
+literal_invert_numeric_two
+     : @eq BinNums.Z (literal_invert_numeric (BinNums.Zpos (BinNums.xO BinNums.xH)))
+         (BinInt.Z.div (BinInt.Z.add jet_secp_canonical_normalize.canonical_field_order (BinNums.Zpos BinNums.xH))
+            (BinNums.Zpos (BinNums.xO BinNums.xH)))
+### C.jet_secp_invert_literal.literal_fe_invert_word
+literal_fe_invert_word
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@literal_fe_invert Alg.CoreFunSem x)
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (literal_invert_numeric (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)))
+### C.jet_secp_invert_literal.literal_fe_invert_zero
+literal_fe_invert_zero
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@literal_fe_invert Alg.CoreFunSem (@Word.zero (S (S (S (S (S (S (S (S O)))))))) Alg.CoreFunSem tt))
+         (@Word.zero (S (S (S (S (S (S (S (S O)))))))) Alg.CoreFunSem tt)
+### C.jet_secp_invert_literal.literal_fe_invert_one
+literal_fe_invert_one
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@literal_fe_invert Alg.CoreFunSem
+            (@jet_secp_eea_literal.literal_eea_one (S (S (S (S (S (S (S (S O)))))))) Alg.CoreFunSem tt))
+         (@jet_secp_eea_literal.literal_eea_one (S (S (S (S (S (S (S (S O)))))))) Alg.CoreFunSem tt)
+### C.jet_secp_invert_literal.literal_fe_invert_two
+literal_fe_invert_two
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@literal_fe_invert Alg.CoreFunSem
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (BinNums.Zpos (BinNums.xO BinNums.xH))))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (BinInt.Z.div (BinInt.Z.add jet_secp_canonical_normalize.canonical_field_order (BinNums.Zpos BinNums.xH))
+               (BinNums.Zpos (BinNums.xO BinNums.xH))))
+### C.jet_secp_invert_literal.literal_inverse_body
+literal_inverse_body =
+fun (W : Ty.Ty) (term : Alg.Core.Algebra) (p : Ty.tySem W)
+  (bez : Alg.Core.domain term (Ty.Prod W W) (Ty.Sum (Ty.Prod W W) (Ty.Prod W W))) (neg : Alg.Core.domain term W W) =>
+@Alg.Core.Combinators.comp W (Ty.Prod W W) W term
+  (@Alg.Core.Combinators.pair W W W term
+     (@Alg.Core.Combinators.comp W Ty.Unit W term (@Alg.Core.Combinators.unit W term) (@Alg.scribe Ty.Unit W p term))
+     (@Alg.Core.Combinators.iden W term))
+  (@Alg.Core.Combinators.comp (Ty.Prod W W) (Ty.Sum (Ty.Prod W W) (Ty.Prod W W)) W term bez
+     (@Alg.Core.Combinators.copair (Ty.Prod W W) (Ty.Prod W W) W term (@Alg.Core.Combinators.drop W W W term neg)
+        (@Alg.Core.Combinators.drop W W W term (@Alg.Core.Combinators.iden W term))))
+     : forall (W : Ty.Ty) (term : Alg.Core.Algebra) (_ : Ty.tySem W)
+         (_ : Alg.Core.domain term (Ty.Prod W W) (Ty.Sum (Ty.Prod W W) (Ty.Prod W W))) (_ : Alg.Core.domain term W W),
+       Alg.Core.domain term W W
+
+Arguments literal_inverse_body W%ty_scope {term} p bez neg
+### C.jet_secp_invert_literal.inverse_select
+inverse_select =
+fun (W : Ty.Ty) (neg : Ty.Arrow W W) (v : Ty.tySem (Ty.Sum (Ty.Prod W W) (Ty.Prod W W))) =>
+match v return (Ty.tySem W) with
+| inl t => match t return (Ty.tySem W) with
+           | pair _ b => neg b
+           end
+| inr t => match t return (Ty.tySem W) with
+           | pair _ e => e
+           end
+end
+     : forall (W : Ty.Ty) (_ : Ty.Arrow W W) (_ : Ty.tySem (Ty.Sum (Ty.Prod W W) (Ty.Prod W W))), Ty.tySem W
+
+Arguments inverse_select W%ty_scope neg v
+### C.jet_secp_invert_literal.literal_fe_invert
+literal_fe_invert =
+fun term : Alg.Core.Algebra =>
+@literal_inverse_body (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  jet_secp_canonical_normalize.canonical_field_word
+  (@jet_secp_eea_literal.literal_bezout (S (S (S (S (S (S (S (S O)))))))) term)
+  (@jet_secp_negate_literal_contract.literal_fe_negate term)
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments literal_fe_invert {term}
+### C.jet_secp_invert_literal.literal_invert_numeric
+literal_invert_numeric =
+fun x : BinNums.Z =>
+match
+  jet_secp_eea_numeric.eea_bezout_numeric
+    (jet_secp_eea_numeric.eea_run_numeric
+       (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+          (BinNums.Zpos
+             (BinNums.xO
+                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+       (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))
+       (@pair (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+          (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z (BinNums.Zpos BinNums.xH) BinNums.Z0)
+             jet_secp_canonical_normalize.canonical_field_order)
+          (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))
+             x))) return BinNums.Z
+with
+| inl p =>
+    match p return BinNums.Z with
+    | pair _ b =>
+        BinInt.Z.modulo (BinInt.Z.sub jet_secp_canonical_normalize.canonical_field_order b)
+          jet_secp_canonical_normalize.canonical_field_order
+    end
+| inr p => match p return BinNums.Z with
+           | pair _ e => e
+           end
+end
+     : forall _ : BinNums.Z, BinNums.Z
+
+Arguments literal_invert_numeric x%Z_scope
+### C.jet_secp_invert_literal.literal_inverse_select
+literal_inverse_select =
+inverse_select (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (@jet_secp_negate_literal_contract.literal_fe_negate Alg.CoreFunSem)
+     : forall
+         _ : Ty.tySem
+               (Ty.Sum
+                  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))),
+       Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments literal_inverse_select v

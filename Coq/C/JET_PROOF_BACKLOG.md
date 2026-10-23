@@ -197,10 +197,29 @@ JET_TARGETS=C/jet_secp_eea_numeric.vo bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_eea_numeric
 ```
 
-Next connect the literal field-inversion wrapper to this evaluator and measure
-small checked word256 cases before building the table normalization checker.
-This stage does not establish the C inversion jet, its external ctz obligation,
-the table/literal correspondence, or public `generate` equivalence.
+`jet_secp_invert_literal` now connects the exact Haskell field-inversion
+wrapper to that evaluator. `literal_fe_invert_numeric` and
+`literal_fe_invert_word` hold for **every** Word256 input and preserve the
+signed coefficient selection: the left branch negates its second coefficient
+modulo the field order, while the right branch returns its actual second
+word without adding a normalization that is absent from the specification.
+The closed numeric checks for inputs0,1,2 reduce in roughly 0--0.11 seconds
+locally, and the lifted word equalities are checked. This is a small evaluator
+benchmark, not a complete table certificate or a general inverse-uniqueness
+theorem. Normal build, recursive kernel checking and reviewed no-update
+focused assumption/contract comparisons pass. Generic selection, routing and
+numeric sample certificates are closed; whole-program numeric/word bridges
+use only inherited functional extensionality. Reproduce with target/module
+`C/jet_secp_invert_literal.vo` / `C.jet_secp_invert_literal` as above.
+
+Avoid a conversion proof that compares pattern matching on an unknown
+coefficient pair with `snd`: that can force evaluation of the entire literal
+EEA. The generic `literal_inverse_body_fun` proves this routing once by
+destructing symbolic coefficients, without reducing the actual program.
+Next compose literal `zinv`/`gej_norm` with the numeric inverse evaluator and
+build small table-normalization certificates. These stages do not establish
+the C inversion jet, its external ctz obligation, the table/literal
+correspondence, or public `generate` equivalence.
 
 ## Decompression: current proof frontier
 
