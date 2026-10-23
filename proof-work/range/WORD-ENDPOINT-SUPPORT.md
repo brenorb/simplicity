@@ -77,6 +77,13 @@ relaxed. Reproduce normal compilation with:
 JET_TARGETS=C/jet_word_endpoint_constants.vo bash Coq/build-jets.sh -j2
 ```
 
-Compilation and reviewed candidate snapshots are not independent kernel checking
-or whole-consumer acceptance. This strengthens existing memory-layout coverage;
-it adds no registered jet and leaves the twenty unproved jets unresolved.
+The first candidate at `10a1dc50` passes normal compilation and independent
+recursive kernel checking of its 127-C-module closure. Existing no-update
+assumption records across 32 modules and contract records across 43 modules
+match; all 240 frozen inputs and the proof-source scan pass, with unchanged
+verification inputs. No unsafe kernel features or extra library axioms occur.
+This is not whole-consumer acceptance. The Bitcoin/Elements raw writer
+transports now compile with only the same exclusive-end premises widened;
+their axiom records are unchanged and the four recorded type changes are only
+the added one-past byte. Whole-consumer compilation and checking remain pending.
+It adds no registered jet and leaves the twenty unproved jets unresolved.
