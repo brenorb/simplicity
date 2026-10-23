@@ -875,6 +875,10 @@ interrupted (exit 130) after more than 22 minutes of CPU-progressing execution
 to prioritize independent public-jet acceptance. This is not a proof failure
 or a successful kernel check; do not treat the earlier loop-only receipt as
 checking these additional inputs.
+The full build/recursive check is now running again on immutable `1bb2a995`
+inputs in the task-owned verification worktree. It remains pending until that
+run and its no-update focused audits finish; entry/split/count-control checks
+below do not replace it.
 Reproduce its check with:
 
 ```sh
@@ -1555,8 +1559,9 @@ existing internal wNAF return bounds, not a restriction on public scalar
 inputs. Its generic one-update lemma is shared by the two concrete fields.
 Three source/map facts are closed, the comparison uses four inherited
 assumptions, and both execution results use six without a libc premise.
-Normal compilation and reviewed no-update focused audits pass; independent
-recursive checking is pending. Reproduce with target/module
+Normal compilation and reviewed no-update focused audits pass. Independent
+recursive kernel checking and no-update focused audits pass on `1bb2a995`
+in the task-owned verification worktree. Reproduce with target/module
 `C/jet_secp_generator_bits_max.vo` / `C.jet_secp_generator_bits_max`.
 This closes the final count-control segment needed by the existing point
 stage, not the preceding two actual wNAF calls or their memset boundary.
