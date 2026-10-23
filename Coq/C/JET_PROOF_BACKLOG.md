@@ -556,8 +556,23 @@ and reviewed no-update focused audits pass; reproduce with target/module
 `C/jet_secp_zinv_differences.vo` / `C.jet_secp_zinv_differences` as above.
 This is helper progress, not new accepted public coverage (still 505/533).
 
-Next derive the actual H/I zero-test control, including zinv's literal NULL
-doubling argument (not the older mixed-addition helper's `_rzr` temporary).
+`jet_secp_zinv_zero` now derives the actual H/I tests and both H=0 early
+returns, including zinv's literal NULL doubling argument (not the older
+mixed-addition helper's `_rzr` temporary). The H=0/I=0 path reuses the original
+owned doubling call; H=0/I!=0 reuses the original infinity initializer. Raw
+point fields, square-input bounds, the finite flag and owned H/I storage
+suffice: neither test nor branch execution is assumed. The nonzero-H guard
+is also derived. Exact coordinate words, flags, downstream bounds, allocation
+ownership and framing are retained. Three source identities are closed;
+execution retains six inherited assumptions. Normal build, recursive kernel
+checking and reviewed no-update focused audits pass; reproduce with
+target/module `C/jet_secp_zinv_zero.vo` / `C.jet_secp_zinv_zero` as above.
+These are post-preparation control results, not the full helper or public jet.
+
+Next compose the thirteen-statement prefix with this control and the nonzero
+arithmetic suffix. After zinv's three statements clearing the flag, multiplying
+Z by H and squaring H, the remaining source is exactly `mixed_after_h_square`;
+reuse the existing product and X/Y execution lemmas.
 For the later doubling branch, use the caller's square-input bounds on the
 **raw** X/Y/Z; do not replace raw coordinates with the normalized temporaries.
 Then discharge both flag
