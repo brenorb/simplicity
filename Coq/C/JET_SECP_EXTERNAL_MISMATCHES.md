@@ -126,6 +126,29 @@ JET_TARGETS=C/jet_secp_modinv_normalize62_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_normalize62_numeric
 ```
 
+## Internal signed128 carry dependency
+
+`jet_secp_i128_shift62.eval_i128_shift62_from_storage` executes the original
+`secp256k1_i128_rshift` at the actual inverse-batch count 62, on arbitrary
+initial 64-bit low/high words in writable 16-byte storage. Both stores are
+derived from the initial permissions. It returns the exact cross-word low
+result and the arithmetic-right-shifted high word, retaining permissions and
+byte-range framing. In particular, the high-word shift is signed, not the
+logical shift used by the existing unsigned shift helpers.
+
+The symbolic-store adapter and `i128_shift62_oracle_correct` prove a summary
+of that actual C call for use inside inverse batches; they do not postulate
+an external implementation or add a libc premise. This reuses the existing
+unsigned-shift proof structure and shared region/store lemmas. The complete
+batch execution, loop invariants and public inversion composition remain
+open, as does the ctz boundary above. This internal helper adds no jet coverage.
+Reproduce with the pinned dependencies:
+
+```sh
+JET_TARGETS=C/jet_secp_i128_shift62_oracle.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_i128_shift62_oracle
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
