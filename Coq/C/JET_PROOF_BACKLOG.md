@@ -621,6 +621,16 @@ This is a finite-input C helper call, not all flags or a literal/public jet
 equivalence. The fourth argument is an inverse-Z field pointer, not a NULL
 ratio pointer.
 
+`jet_secp_point_affine_product.eval_point_affine_product` now derives the
+original multiplication from either affine X/Y into the matching point field.
+It reuses the existing verified multiplier/log and undefined-point storage
+lemma, retaining the true 128-byte destination ownership, both inputs,
+product residue, square-input bounds and precise source/destination framing.
+No initialized destination or multiplication call is assumed. Normal build,
+recursive kernel checking and reviewed no-update focused audits pass with
+target/module `C/jet_secp_point_affine_product.vo` /
+`C.jet_secp_point_affine_product`; execution retains six inherited assumptions.
+
 The infinity-input branches remain open: the first branch computes scaled
 affine X/Y using bzinv2/bzinv3 and sets Z from the copied flag; it is not a
 `gej_set_ge` call. The affine-infinity branch is also source-distinct from
