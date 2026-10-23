@@ -207,17 +207,15 @@ if [[ -n "$missing" ]]; then
 fi
 if [[ -n "$jets" ]]; then
   roots=$(python3 - "$jets" <<'PY'
+import runpy
 import sys
 want = [j for j in sys.argv[1].split(",") if j]
-rows = {}
-for line in open("C/jet_coverage.tsv"):
-    parts = line.split()
-    if len(parts) == 3 and not line.startswith("#"):
-        rows[parts[0]] = parts[1]
-missing = [j for j in want if j not in rows]
-if missing:
-    sys.exit("jets not in C/jet_coverage.tsv: " + ", ".join(missing))
-print(" ".join(sorted({rows[j] for j in want})))
+coverage = runpy.run_path("jet-coverage.py")
+try:
+    roots = coverage["proof_roots"](coverage["inventory"](), want)
+except (ValueError, OSError) as error:
+    sys.exit(str(error))
+print(" ".join(sorted(roots)))
 PY
 )
   # shellcheck disable=SC2086

@@ -49,7 +49,7 @@ Hypothesis Hsrc : forall q, 64 * k1 + 64 - ss <= q < 64 * k1 + 64 - ss + n1 ->
   exists S, Mem.load Mint64 m0 bi (edge - 8 * (1 + q / 64)) = Some (Vlong S) /\
     Mem.load Mint64 m1 bi (edge - 8 * (1 + q / 64)) = Some (Vlong S).
 Hypothesis Hdst : forall p, 64 * (dA + 1) - n1 <= p < 64 * (dA + 1) ->
-  0 <= outedge + 8 * (p / 64) /\ outedge + 8 * (p / 64) + 8 <= Ptrofs.max_unsigned /\
+  0 <= outedge + 8 * (p / 64) /\ outedge + 8 * (p / 64) + 8 <= Ptrofs.max_unsigned + 1 /\
   Mem.valid_access m1 Mint64 bw (outedge + 8 * (p / 64)) Writable.
 Hypothesis Hsep : forall q p,
   64 * k1 + 64 - ss <= q < 64 * k1 + 64 - ss + n1 -> 64 * (dA + 1) - n1 <= p < 64 * (dA + 1) ->
@@ -83,7 +83,7 @@ Qed.
 (** Destination word [dA - j], writable whenever some needed position lies in it. *)
 Lemma tail_dst_word j :
   0 <= j -> 64 * j < n1 ->
-  0 <= outedge + 8 * (dA - j) /\ outedge + 8 * (dA - j) + 8 <= Ptrofs.max_unsigned /\
+  0 <= outedge + 8 * (dA - j) /\ outedge + 8 * (dA - j) + 8 <= Ptrofs.max_unsigned + 1 /\
   Mem.valid_access m1 Mint64 bw (outedge + 8 * (dA - j)) Writable.
 Proof.
   intros Hj Hn1.

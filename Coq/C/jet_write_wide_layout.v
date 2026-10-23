@@ -32,7 +32,7 @@ Lemma eval_write_wide_crossing_raw s m mh mo ml mf bf base bw edge cursor k oldh
   frame_base_valid base -> wide_bits s <= cursor <= Int64.max_unsigned ->
   1 <= k < wide_bits s -> write_word_shift cursor = k ->
   0 <= edge -> 8 <= write_word_address edge cursor ->
-  write_word_address edge cursor + 8 <= Ptrofs.max_unsigned ->
+  write_word_address edge cursor + 8 <= Ptrofs.max_unsigned + 1 ->
   frame_fields_at m bf base bw edge cursor ->
   Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong oldhigh) ->
   Mem.store Mint64 m bw (write_word_address edge cursor)
@@ -112,7 +112,7 @@ Qed.
 Lemma eval_write_wide_non_crossing_raw s m mw mf bf base bw edge cursor old x :
   frame_base_valid base -> wide_bits s <= cursor <= Int64.max_unsigned ->
   wide_bits s <= write_word_shift cursor ->
-  0 <= edge -> write_word_address edge cursor + 8 <= Ptrofs.max_unsigned ->
+  0 <= edge -> write_word_address edge cursor + 8 <= Ptrofs.max_unsigned + 1 ->
   frame_fields_at m bf base bw edge cursor ->
   Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong old) ->
   Mem.store Mint64 m bw (write_word_address edge cursor)

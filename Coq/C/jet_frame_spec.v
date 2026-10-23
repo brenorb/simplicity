@@ -32,7 +32,7 @@ Definition write_frame (m : mem) (bf bw : block) (edge cursor count : Z) : Prop 
   Mem.valid_access m Mint64 bf 8 Writable /\
   (forall i, 0 <= i < count ->
     let addr := write_cell_address edge cursor i in
-    0 <= addr /\ addr + 8 <= Ptrofs.max_unsigned /\
+    0 <= addr /\ addr + 8 <= Ptrofs.max_unsigned + 1 /\
     Mem.valid_access m Mint64 bw addr Writable /\
     exists w, Mem.load Mint64 m bw addr = Some (Vlong w)).
 

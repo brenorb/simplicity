@@ -172,7 +172,7 @@ Qed.
 Lemma memcpy_two_words_effect (Hmodel : memcpy_model) m bi src bw dst v0 v1 :
   Mem.load Mint64 m bi src = Some (Vlong v0) -> Mem.load Mint64 m bi (src + 8) = Some (Vlong v1) ->
   Mem.valid_access m Mint64 bw dst Writable -> Mem.valid_access m Mint64 bw (dst + 8) Writable ->
-  0 <= src -> src + 16 <= Ptrofs.max_unsigned -> 0 <= dst -> dst + 16 <= Ptrofs.max_unsigned ->
+  0 <= src -> src + 16 <= Ptrofs.max_unsigned -> 0 <= dst -> dst + 16 <= Ptrofs.max_unsigned + 1 ->
   (bi <> bw \/ src + 16 <= dst \/ dst + 16 <= src) ->
   exists m',
     external_call (EF_external "memcpy" memcpy_sig) ge0

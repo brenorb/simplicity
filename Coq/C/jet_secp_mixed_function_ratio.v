@@ -1,7 +1,7 @@
 (** Complete original non-NULL-ratio mixed-addition helper: the incoming-
     infinity branch and every finite H/I branch, with all ten allocations and
     frees. Unlike the equal-point-only ratio function, nothing is excluded. *)
-From Coq Require Import ZArith List Lia.
+From Coq Require Import ZArith List Lia Sorting.Permutation.
 From compcert Require Import Coqlib Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Values Events.
 Require Import C.jet_sx_exec C.jet_sx_mem C.jet_secp_linkage C.jets_secp C.jet_secp_curve_statements
   C.jet_secp_fe_nv C.jet_secp_fe_math C.jet_secp_square_columns C.jet_secp_multiply_normalize_bridge
@@ -207,7 +207,22 @@ Proof.
   pose proof SepAll as SepAll0;separate_ratio_blocks SepAll0.
   destruct (free_list_exists [(bt,0,40);(bs,0,40);(bi,0,40);(bv,0,40);(bu,0,40);(b2,0,40);(bh,0,40);(b3,0,40);(bk,0,40);(bz,0,40)] mo)
     as (mf & Free & Unchanged).
-  - cbn;repeat constructor;cbn;intuition congruence.
+  - clear -SepAll; cbn.
+    assert (NDFree : NoDup [bt;bs;bi;bv;bu;b2;bh;b3;bk;bz]).
+    { pose proof (@NoDup_remove_1 block
+        [bp;ba;bu;bv;bs;bt;bz;bh;bi;b2;b3;bk] [] br SepAll) as WithoutRatio.
+      pose proof (@NoDup_app_remove_l block [bp;ba]
+        [bu;bv;bs;bt;bz;bh;bi;b2;b3;bk] WithoutRatio) as Locals.
+      eapply (@Permutation_NoDup block
+        [bu;bv;bs;bt;bz;bh;bi;b2;b3;bk]
+        [bt;bs;bi;bv;bu;b2;bh;b3;bk;bz]).
+      - apply NoDup_Permutation_bis; [exact Locals|cbn;lia|].
+        intros value HIn; cbn in HIn |- *; tauto.
+      - exact Locals. }
+    clear -NDFree.
+    assert (Convert : forall xs : list block, NoDup xs -> list_norepet xs).
+    { intros xs ND; induction ND; constructor; assumption. }
+    exact (Convert _ NDFree).
   - intros b lo hi Hin;cbn [In] in Hin.
     repeat match type of Hin with _ \/ _ => destruct Hin as [Hin|Hin] end;
       try contradiction;inversion Hin;subst b lo hi;assumption.

@@ -1,5 +1,5 @@
 (** Original zinv function entry: all thirteen local allocations. *)
-From Coq Require Import ZArith List Lia.
+From Coq Require Import ZArith List Lia Sorting.Permutation.
 From compcert Require Import Coqlib Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Values Events.
 Require Import C.jet_sx_exec C.jet_sx_mem C.jet_secp_linkage C.jets_secp C.jet_secp_curve_statements
  C.jet_secp_fe_nv C.jet_secp_fe_math C.jet_secp_square_columns C.jet_secp_multiply_normalize_bridge
@@ -175,8 +175,20 @@ Proof.
  { eapply curve_keep_free;[lia|exact F12I|exact FB|];intro pos;unfold zinv_finite_frame;
    repeat split;try (left;congruence);congruence. }
  destruct (free_list_exists [(bt,0,40);(bs,0,40);(bi,0,40);(baz,0,40);(bv,0,40);(bu,0,40);(b2,0,40);(bh,0,40);(b3,0,40);(bk,0,40);(bz,0,40);(binv2,0,40);(binv3,0,40)] mo) as (mf & Free & Unchanged).
- - clear - SepAll;separate_blocks SepAll.
-   cbn;repeat constructor;cbn;intuition congruence.
+ - clear - SepAll; cbn.
+   assert (NDFree : NoDup [bt;bs;bi;baz;bv;bu;b2;bh;b3;bk;bz;binv2;binv3]).
+   { pose proof (@NoDup_app_remove_l block [bp;ba;bb]
+       [baz;bz;bu;bv;bs;bt;bh;bi;b2;b3;bk;binv2;binv3] SepAll) as Locals.
+     eapply (@Permutation_NoDup block
+       [baz;bz;bu;bv;bs;bt;bh;bi;b2;b3;bk;binv2;binv3]
+       [bt;bs;bi;baz;bv;bu;b2;bh;b3;bk;bz;binv2;binv3]).
+     - apply NoDup_Permutation_bis; [exact Locals|cbn;lia|].
+       intros value HIn; cbn in HIn |- *; tauto.
+     - exact Locals. }
+   clear -NDFree.
+   assert (Convert : forall xs : list block, NoDup xs -> list_norepet xs).
+   { intros xs ND; induction ND; constructor; assumption. }
+   exact (Convert _ NDFree).
  - intros b lo hi Hin;cbn [In] in Hin.
    repeat match type of Hin with _ \/ _ => destruct Hin as [Hin|Hin] end;
     try contradiction;inversion Hin;subst b lo hi;assumption.

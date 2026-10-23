@@ -24,7 +24,11 @@ Proof.
  unfold generator_block16_check.
  rewrite <- generator_prefix_fast_check_matches.
  unfold generator_block16_seed; rewrite <- generator_bits_fast_matches.
- destruct high,neg; vm_compute;reflexivity.
+ destruct high,neg.
+ - vm_compute;reflexivity.
+ - vm_compute;reflexivity.
+ - vm_compute;reflexivity.
+ - vm_compute;reflexivity.
 Qed.
 Theorem generator_block16_values high neg :
  generator_block16_rows high neg=generator_prefix_values 4

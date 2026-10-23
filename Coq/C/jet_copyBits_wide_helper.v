@@ -94,7 +94,7 @@ Qed.
 
 Lemma wh_dst p :
   cursor - n <= p < cursor ->
-  0 <= outedge + 8 * (p / 64) /\ outedge + 8 * (p / 64) + 8 <= Ptrofs.max_unsigned /\
+  0 <= outedge + 8 * (p / 64) /\ outedge + 8 * (p / 64) + 8 <= Ptrofs.max_unsigned + 1 /\
   Mem.valid_access m Mint64 bw (outedge + 8 * (p / 64)) Writable /\
   exists w, Mem.load Mint64 m bw (outedge + 8 * (p / 64)) = Some (Vlong w).
 Proof.

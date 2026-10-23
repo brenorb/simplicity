@@ -11,7 +11,7 @@ state. Thus the wider predicate's additional case is inhabited in the formal
 memory model, not merely arithmetic or a conditional execution theorem.
 This still does not assert reachability by the Linux allocator/evaluator.
 
-The current `write_frame_at` requires every accessed word's exclusive end to be
+At the `1471be3d` integration baseline, `write_frame_at` requires every accessed word's exclusive end to be
 at most `Ptrofs.max_unsigned`. The separate `endpoint_write_frame_at` changes
 only that bound to `max_unsigned + 1`. All cursor, metadata, range-separation,
 writable-access and initial-load requirements remain identical.
@@ -47,3 +47,43 @@ contract still requires the other reader/writer/pointer/copy callers, actual
 domain review, reviewed snapshot differences and separate full acceptance.
 Reuse the successful bit-writer proof; do not infer that widening its bound
 automatically repairs every dependent caller or the evaluator boundary.
+
+## Normal-module generalization candidate
+
+Branch `codex/write-word-endpoint` widens only the proof-side exclusive-end
+bound in `write_frame` / `write_frame_at` and the bit/byte/wide raw writers.
+The original C, specifications, API and generation settings are unchanged.
+The original public constant, one, add and increment contracts at all four
+arithmetic widths compile unchanged with the wider input predicate. Their
+execution, encoded output, prefix, cursor and memory-framing conclusions are
+unchanged. Whole-consumer rebuilding and acceptance are still required before
+integrating this candidate.
+
+`C.jet_word_endpoint_constants.last_word_frame_constructible` reuses the
+archived memory construction for arbitrary initial contents of the final word.
+`constants_run_at_last_word` applies the original complete public contracts for
+all ten low/high jets, with an arbitrary environment argument, to that initial
+memory. The actual C call and every output/framing observation are conclusions,
+not premises. The frame witness retains four inherited assumptions and the
+complete C executions retain the same six, without an added libc premise.
+This is still an abstract-memory boundary witness, not a Linux allocation claim.
+
+The new address definition is included in the existing definition audit. Its
+theorem snapshots print without abbreviation: the framing interval is simplified
+using the proved 1..64-bit width bound. No printer setting or checker gate is
+relaxed. Reproduce normal compilation with:
+
+```sh
+JET_TARGETS=C/jet_word_endpoint_constants.vo bash Coq/build-jets.sh -j2
+```
+
+The first candidate at `10a1dc50` passes normal compilation and independent
+recursive kernel checking of its 127-C-module closure. Existing no-update
+assumption records across 32 modules and contract records across 43 modules
+match; all 240 frozen inputs and the proof-source scan pass, with unchanged
+verification inputs. No unsafe kernel features or extra library axioms occur.
+This is not whole-consumer acceptance. The Bitcoin/Elements raw writer
+transports now compile with only the same exclusive-end premises widened;
+their axiom records are unchanged and the four recorded type changes are only
+the added one-past byte. Whole-consumer compilation and checking remain pending.
+It adds no registered jet and leaves the twenty unproved jets unresolved.
