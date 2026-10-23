@@ -30,7 +30,20 @@ qualifications remain. The goal is not complete.
 
 The full acceptance statement above applies to `6a227e8b`, not automatically
 to later additions. The null-overlap counterexample and field-normalization
-modules added afterwards have separate focused build, kernel and record checks.
+modules added afterwards passed separate focused validation on unchanged
+`58f36fe9` inputs: normal compilation of the two roots below and their complete
+dependencies, recursive kernel checking with the unchanged library allowlist
+and no unsafe features, and matching no-update assumption/contract records
+across all seven added modules. The post-merge coverage regression tests and
+240-file frozen-target check also passed. This is combined phase validation,
+not a new whole-project `--accept` run at the merged tip. Reproduce the added
+proof closure with:
+
+```sh
+JET_TARGETS="C/jet_elements_null_overlap_counterexample.vo C/jet_secp_modinv_normalize62_numeric.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_null_overlap_counterexample C.jet_secp_modinv_normalize62_numeric
+```
+
 The normalizer is an internal inversion dependency, not an additional jet;
 the aliasing counterexample does not refute an accepted separated-frame contract.
 
