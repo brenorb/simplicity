@@ -28,7 +28,8 @@ Local Ltac separate_blocks Sep :=
  repeat match goal with H : _ /\ _ |- _ => destruct H end;
  repeat match goal with H : ~(?P \/ ?Q) |- _ =>
    let H1 := fresh "Sep" in let H2 := fresh "Sep" in
-   assert (H1 : ~P) by tauto;assert (H2 : ~Q) by tauto;clear H end.
+   assert (H1 : ~P) by (exact (fun HP => H (or_introl HP)));
+   assert (H2 : ~Q) by (exact (fun HQ => H (or_intror HQ)));clear H end.
 Local Ltac geometry arithmetic :=
  cbn [curve_square_offset];try unfold gej_add_s_frame;
  lazymatch goal with
