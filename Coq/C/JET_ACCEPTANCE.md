@@ -1318,8 +1318,15 @@ JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_gej_ge_add
 Accepted local-contract coverage is 500/533: 364 without an extra libc premise,
 136 conditional on `memcpy_model`, and 33 declarations remaining. Shared
 fidelity/domain/caller obligations remain unfinished as well. The separate
-**unregistered extended** jet `simplicity_gej_ge_add_ex` has a reported ratio
-normalization mismatch; see [JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md).
-Its diagnostic witness is not an equivalence theorem or extra coverage.
-Production C, original specifications/domains/identities, API contracts and
-generation settings are unchanged.
+extended jet `simplicity_gej_ge_add_ex` has a reported ratio normalization
+mismatch; see [JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md).
+It is now registered only through
+`C.jet_secp_mixed_ex_local.gej_ge_add_ex_literal_local_spec_off_mismatch`: the
+unchanged literal contract on every input outside the exactly characterized
+mismatch set (equal-point branch with an unreduced input Y word). The
+whole-domain theorem `gej_ge_add_ex_normalized_local_spec` states the output
+for every input. `jet-coverage.py` counts this entry separately ("proved only
+outside a reported specification mismatch") and prints the mismatch on every
+run. Production C, original specifications/domains/identities, API contracts
+and generation settings are unchanged. Reproduce with
+`bash Coq/check-jets.sh --accept --jets=simplicity_gej_ge_add_ex`.

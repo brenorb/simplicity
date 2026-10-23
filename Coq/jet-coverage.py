@@ -253,6 +253,28 @@ for stem, offset in [("input_outpoints", 112), ("input_annexes", 272), ("inputs"
         f"(fun a environment => @literal_bitcoin_{stem}_hash raw_fullalg a environment).")
 
 
+# Reported specification mismatches: reported, never corrected. The entry is
+# the UNCHANGED literal contract on every input outside an exactly defined,
+# decidable mismatch set; the report and the whole-domain theorems describing
+# that set are required, and the entry is counted and printed separately.
+REPORTED_MISMATCH_CONTRACTS = {
+    "simplicity_gej_ge_add_ex": {
+        "contract": "secp_jet_local_spec_on (fun a => ~gej_ge_add_ex_ratio_mismatch a) "
+                    "f_simplicity_gej_ge_add_ex gej_ge_add_ex_literal.",
+        "definitions": (
+            "Definition gej_ge_add_ex_literal (a : Ty.tySem gej_ge_add_ex_input) := "
+            "@literal_gej_ge_add_ex Alg.CoreFunSem a.",
+            "Definition gej_ge_add_ex_ratio_mismatch (a : Ty.tySem gej_ge_add_ex_input) : Prop := "
+            "feP <= @toZ (WordToZ 8) (fst (gej_ge_add_ex_literal a)).",
+        ),
+        "evidence": ("gej_ge_add_ex_normalized_local_spec", "gej_ge_add_ex_mismatch_domain"),
+        "report": "C/JET_SECP_RATIO_MISMATCHES.md",
+        "summary": "literal ratio differs from C only when the equal-point branch returns an "
+                   "unreduced input Y word (C writes its normalization)",
+    },
+}
+
+
 def records(path, fields):
     result = []
     for number, line in enumerate(path.read_text().splitlines(), 1):
@@ -336,6 +358,25 @@ def inventory():
             raise ValueError(f"coverage theorem not publicly audited: {module}.{theorem}")
         code = checked_source_code((COQ / (module.replace(".", "/") + ".v")).read_text())
         statement = re.search(rf"\b(?:Theorem|Lemma|Corollary)\s+{re.escape(theorem)}\s*:(.*?)\bProof\.", code, re.S)
+        if name in REPORTED_MISMATCH_CONTRACTS:
+            entry = REPORTED_MISMATCH_CONTRACTS[name]
+            compact = lambda text: re.sub(r"\s+", "", text)
+            body = statement[1].strip() if statement else ""
+            if compact(body) != compact(entry["contract"]):
+                raise ValueError(f"coverage entry is not a direct canonical jet theorem: {module}.{theorem}")
+            for definition in entry["definitions"]:
+                if compact(definition) not in compact(code):
+                    raise ValueError(f"reported-mismatch definition changed: {module}: {definition}")
+            for evidence in entry["evidence"]:
+                if (module, evidence) not in audited:
+                    raise ValueError(f"reported-mismatch evidence not publicly audited: {module}.{evidence}")
+            report = COQ / entry["report"]
+            if not report.exists() or any(f"{module}.{t}" not in report.read_text()
+                                          for t in (theorem,) + entry["evidence"]):
+                raise ValueError(f"reported mismatch not documented in {entry['report']}: {name}")
+            jets[name]["proof"] = f"{module}.{theorem}"
+            jets[name]["condition"] = "reported_mismatch"
+            continue
         if name in RECOVERED_CONTRACTS:
             body = statement[1].strip() if statement else ""
             compact = lambda text: re.sub(r"\s+", "", text)
@@ -506,15 +547,22 @@ def main():
         for family in HEADERS:
             rows = [row for row in jets if row["family"] == family]
             direct = sum(bool(row["proof"]) and not row["condition"] for row in rows)
-            conditional = sum(bool(row["condition"]) for row in rows)
+            conditional = sum(row["condition"] == "memcpy_model" for row in rows)
+            reported = sum(row["condition"] == "reported_mismatch" for row in rows)
             print(f"{family}: {direct} proof entries without an extra library premise; "
-                  f"{conditional} conditional; {len(rows)} declared")
+                  f"{conditional} conditional; {reported} outside a reported mismatch; {len(rows)} declared")
         missing = sum(not row["proof"] for row in jets)
-        conditional = sum(bool(row["condition"]) for row in jets)
+        conditional = sum(row["condition"] == "memcpy_model" for row in jets)
+        reported = [row for row in jets if row["condition"] == "reported_mismatch"]
         unregistered = sum(not row["registrations"] for row in jets)
         print(f"total: {len(jets) - missing}/{len(jets)}; remaining: {missing}; unregistered declarations: {unregistered}")
-        print(f"Of these entries: {len(jets) - missing - conditional} without an extra library premise, "
-              f"{conditional} conditional on memcpy_model (libc implementation not proved).")
+        print(f"Of these entries: {len(jets) - missing - conditional - len(reported)} without an extra library premise, "
+              f"{conditional} conditional on memcpy_model (libc implementation not proved), "
+              f"{len(reported)} proved only outside a reported specification mismatch.")
+        for row in reported:
+            entry = REPORTED_MISMATCH_CONTRACTS[row["function"]]
+            print(f"REPORTED mismatch (not corrected): {row['function']}: {entry['summary']}; "
+                  f"literal contract {row['proof']} excludes exactly that set ({entry['report']})")
         print("Scope: public jet declarations in all three C headers. Proof validity requires check-jets.sh.")
     if args.require_complete and any(not row["proof"] for row in jets):
         sys.exit("Every-jet goal is incomplete: declared C jets lack registered final equivalence proofs.")

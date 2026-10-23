@@ -1,9 +1,41 @@
 # Extended mixed-addition ratio: noncanonical equal-point Y
 
-Status: implementation-to-specification mismatch formally established for the **unregistered**
-`simplicity_gej_ge_add_ex` jet. Do not register an unrestricted equivalence theorem
-or exclude the witness to make one pass. No target correction is made here.
+Status: implementation-to-specification mismatch formally established for
+`simplicity_gej_ge_add_ex`, **reported, not corrected**. The jet is registered
+only with the unchanged literal contract outside the exactly characterized
+mismatch set below; it is counted separately from unrestricted coverage and the
+coverage gate prints this report on every run. Do not register an unrestricted
+equivalence theorem: it is proved false. No target correction is made here.
 The non-extended `simplicity_gej_ge_add` drops the ratio and is not contradicted.
+
+## Proved scope against the unchanged target
+
+Production C, the generated Clight, the fixed literal program
+`literal_gej_ge_add_ex` and the full Word256 input type are unchanged. The
+module `C.jet_secp_mixed_ex_local` proves, for the original public function on
+general valid frame layouts (actual entry, four allocations, ratio clear, both
+readers, the original non-NULL-ratio `secp256k1_gej_add_ge_var` with its ten
+allocations and frees on every branch, both writers, cursor advancement,
+memory preservation, return and frees):
+
+- `C.jet_secp_mixed_ex_local.gej_ge_add_ex_normalized_local_spec`: for **every**
+  input, the output is the literal output whose ratio component is replaced by
+  `canonical_fe_normalize` of the literal ratio; the point is always the
+  literal point.
+- `C.jet_secp_mixed_ex_local.gej_ge_add_ex_literal_local_spec_off_mismatch`: the
+  unchanged literal contract holds for every input `a` with
+  `~gej_ge_add_ex_ratio_mismatch a`, where the mismatch set is the decidable
+  condition `p <= toZ (fst (literal_gej_ge_add_ex a))`.
+- `C.jet_secp_mixed_ex_local.gej_ge_add_ex_mismatch_domain`: that set is exactly
+  the inputs with a finite incoming point, H = 0 and I = 0 modulo p (the
+  equal-point branch), and an input Y word `>= p`. Every other branch returns an
+  already reduced ratio, so normalization is the identity there.
+- `C.jet_secp_mixed_ex_local.gej_ge_add_ex_witness_is_mismatch`: the witness
+  `A=((0,p),1), B=(0,0)` lies in that set.
+
+These theorems use the same six inherited assumptions as the registered
+`gej_ge_add_literal_local_spec` (no new axiom, no `memcpy_model` premise). They
+do not decide which source should change; that remains an upstream decision.
 
 ## Expected versus actual
 
