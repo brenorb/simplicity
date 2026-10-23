@@ -569,10 +569,21 @@ checking and reviewed no-update focused audits pass; reproduce with
 target/module `C/jet_secp_zinv_zero.vo` / `C.jet_secp_zinv_zero` as above.
 These are post-preparation control results, not the full helper or public jet.
 
-Next compose the thirteen-statement prefix with this control and the nonzero
-arithmetic suffix. After zinv's three statements clearing the flag, multiplying
-Z by H and squaring H, the remaining source is exactly `mixed_after_h_square`;
-reuse the existing product and X/Y execution lemmas.
+`jet_secp_zinv_nonzero.exec_zinv_nonzero_tail` now derives the entire original
+nonzero-H continuation: the H test, flag clear, actual Z-first multiplication,
+H square, H2 negation, H3/T products and final X/Y writes. Its source equality
+shows that after zinv's three start statements, the continuation is exactly
+`mixed_after_h_square`. The reusable
+`jet_secp_mixed_after_square.exec_mixed_after_h_square` composes existing
+`exec_mixed_products` and `exec_mixed_xy_tail` rather than reproving arithmetic.
+Exact output words, flag, square-input bounds, all eight allocations and
+framing are retained, with no initialized private output or execution premise.
+Two source identities are closed; execution retains six inherited assumptions.
+Normal builds, recursive kernel checking and reviewed no-update focused audits
+pass; reproduce with targets/modules `C/jet_secp_mixed_after_square.vo` and
+`C/jet_secp_zinv_nonzero.vo` / their `C.*` module names as above.
+
+Next compose the thirteen-statement prefix with both complete continuations.
 For the later doubling branch, use the caller's square-input bounds on the
 **raw** X/Y/Z; do not replace raw coordinates with the normalized temporaries.
 Then discharge both flag
