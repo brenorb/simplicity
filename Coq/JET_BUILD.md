@@ -28,11 +28,12 @@ This checks the selected dependency closure with the same source, kernel and
 contract requirements. It does not accept or increase coverage for other jets.
 
 `memcpy_model` remains an explicit premise, with valid source/destination blocks,
-readability, destination permissions, positive representable sizes, non-overlap
-and address ranges without wraparound. All three model application sites have
-compiled proofs of these facts from their existing preconditions. The builtin
-copy witness does not prove external libc. Inherited Coq/CompCert assumptions and
-physical/logical environment and global-state boundaries remain explicit.
+readability, destination permissions, positive representable sizes of at most
+64 bytes, non-overlap and address ranges without wraparound. Every model
+application must derive these facts from its existing preconditions. The complete call inventory, scope limits and implementation
+research are in [C/JET_MEMCPY_BOUND_REVIEW.md](C/JET_MEMCPY_BOUND_REVIEW.md).
+The builtin copy witness does not prove external libc. Inherited Coq/CompCert
+assumptions and physical/logical environment and global-state boundaries remain explicit.
 
 The extended Bitcoin module preserves primitive names/types/tags. Its cached-hash
 fields still require a semantic projection from canonical raw transaction/taproot

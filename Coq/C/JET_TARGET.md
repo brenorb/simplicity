@@ -45,11 +45,13 @@ In these ASTs memcpy is `EF_external "memcpy"`, with three arguments and a
 pointer result. Its implementation is absent from CompCert's semantics.
 `memcpy_model` is an explicit theorem premise, not an added axiom. Callers must
 derive valid source/destination blocks, readable source bytes, writable destination
-ranges, positive and representable sizes, address ranges without wraparound, and
-absence of overlap from their legitimate input/frame contracts. The strengthened
-contract requires these facts explicitly. The one-word, two-word and SHA byte-copy
+ranges, positive and representable sizes of at most 64 bytes, address ranges
+without wraparound, and absence of overlap from their legitimate input/frame
+contracts. The contract requires these facts explicitly. The one-word, two-word and SHA byte-copy
 callers derive them from their existing loads, alignment and range permissions;
-zero-size SHA branches do not invoke the external call.
+zero-size SHA branches do not invoke the external call. See
+[JET_MEMCPY_BOUND_REVIEW.md](JET_MEMCPY_BOUND_REVIEW.md) for the complete
+jet-call inventory and the limits of this bound.
 Permission, load and valid-block preservation follow from the model's storebytes
 memory effect. The separately proved CompCert builtin copy witness has a different
 ABI and does not discharge this library premise.

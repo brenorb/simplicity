@@ -44,15 +44,17 @@ uc_memcpy_exec
          (_ : not
                 (@eq Values.block
                    (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bo))
-         (n : AST.ident) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (ob oa : Integers.Ptrofs.int)
+         (n : AST.ident) (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (ob oa : Integers.Ptrofs.int)
          (vn : Integers.Int64.int) (xs : list Integers.Int.int)
-         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._block le)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._block le0)
                 (@Some Values.val (Values.Vptr bx ob)))
-         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._arr le)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._arr le0)
                 (@Some Values.val (Values.Vptr ba oa)))
-         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val n le) (@Some Values.val (Values.Vlong vn)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val n le0) (@Some Values.val (Values.Vlong vn)))
          (_ : @eq BinNums.Z (Integers.Int64.unsigned vn) (BinInt.Z.of_nat (@length Integers.Int.int xs)))
-         (_ : lt O (@length Integers.Int.int xs))
+         (_ : and (lt O (@length Integers.Int.int xs))
+                (le (@length Integers.Int.int xs)
+                   (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
          (_ : BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned oa) (BinInt.Z.of_nat (@length Integers.Int.int xs)))
                 Integers.Ptrofs.max_unsigned)
          (_ : BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned ob) (BinInt.Z.of_nat (@length Integers.Int.int xs)))
@@ -68,8 +70,8 @@ uc_memcpy_exec
        @ex Memory.Mem.mem
          (fun m' : Memory.Mem.mem =>
           and
-            (ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge Clight.empty_env le m
-               (uc_memcpy n) Events.E0 le m' ClightBigstep.Out_normal)
+            (ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge Clight.empty_env le0 m
+               (uc_memcpy n) Events.E0 le0 m' ClightBigstep.Out_normal)
             (and
                (forall (i : nat) (_ : lt i (@length Integers.Int.int xs)),
                 @eq (option Values.val)

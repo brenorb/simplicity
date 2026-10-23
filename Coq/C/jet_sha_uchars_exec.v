@@ -301,7 +301,7 @@ Proof.
       rewrite HZ. reflexivity.
     - rewrite <- Erem in *.
       destruct (uc_memcpy_exec Hmodel bx bo ba Hox Hax Hao Hgx Hgo _len le5 m5 ob5 oa5 vl5 rem1 Hblock5 Harr5 Hlen5 Hvl5
-        ltac:(rewrite Erem; cbn [length]; lia) ltac:(rewrite Hoa5; exact HaM1)
+        ltac:(split; [rewrite Erem; cbn [length]; lia|lia]) ltac:(rewrite Hoa5; exact HaM1)
         ltac:(rewrite Hob5; lia))
         as (m6 & HE6 & HD6 & HF6 & HP6 & HV6).
       { intros i Hi. rewrite Hoa5. apply HRem5. exact Hi. }
