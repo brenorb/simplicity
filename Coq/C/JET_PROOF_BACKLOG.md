@@ -1496,8 +1496,10 @@ intermediate executions are not premises. The proof reuses the existing
 allocation/framing tactic structure from mixed-addition lifecycle proofs.
 The two entry/layout facts are closed; the complete entry/prefix result uses
 the same six inherited assumptions, without a libc model. Normal compilation
-and reviewed no-update focused audits pass; independent recursive checking is
-pending for this extension. Reproduce with target/module
+and reviewed no-update focused audits pass. Independent recursive kernel
+checking and no-update focused audits pass on `7fa7fb44` in the task-owned
+verification worktree. The existing coverage regression suite also passes;
+helpers are not counted as complete jet equivalences. Reproduce with target/module
 `C/jet_secp_generator_entry.vo` / `C.jet_secp_generator_entry`.
 
 Next compose the scalar-split and wNAF stages with this actual entry/prefix,
