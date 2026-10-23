@@ -82,9 +82,18 @@ The two registrations are pending ordinary scoped acceptance and are **not**
 included in the accepted 511/533 count. They retain the reported frozen Bitcoin
 domain and LockTime commitment-identity limits: value computations are proved,
 not Coq/Haskell primitive identity equality. The dedicated task-owned
-`jet-acceptance` worktree is preparing a clean source build for the next audit,
-so its audited commit can stay fixed while development continues in the main
-checkout. It uses the existing verifier and unchanged generation settings.
+`jet-acceptance` worktree completed its clean six-jet dependency build and is
+running the existing verifier on the fixed `f59d2305` commit (294-module
+dependency closure). Do not edit that worktree until the run is terminal;
+development can continue independently in the main checkout. Its command is:
+
+```sh
+JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_tx_hash,simplicity_bitcoin_sig_all_hash
+```
+
+This changes verification parallelism only, not generation settings or checked
+inputs. Hardware was checked before increasing parallelism. The run's receipt
+must remain scoped to that exact commit and input set.
 
 ## Active `generate` frontier
 
@@ -3295,3 +3304,16 @@ counterexample or a demonstrated wrong result**. Do not assume digest-preimage
 uniqueness or redefine the flag's representation to hide the obligation. Keep
 these unregistered targets unresolved while investigating or reporting closed
 evidence, and continue independent jets.
+
+The current independent C-side task is the **processed** `sigOutput` classifier
+`jets_elements.f_isFee` (`jets_elements.v:38964`), then its indexed public wrapper.
+The archived `elements-env/.../jet_elements_env_isfee.v.source` is about a
+different raw-output helper (script length and byte pointers); do not import it
+as an execution proof of this function. Reuse the current Elements field and
+indexed-wrapper infrastructure instead. Closed layout checks in temporary
+`/private/tmp/jet-zinv-literal.zLYHFg/fee_layout.v` establish emptyScript=241,
+asset=0, amount=104, and both prefix fields at +32. These are layout results,
+not classifier execution or additional jet coverage. The actual C-side value
+uses the raw-script-empty flag and explicit prefixes; do not change that flag's
+representation to hash equality. The full canonical empty-digest converse above
+remains open even after the C execution proof is completed.
