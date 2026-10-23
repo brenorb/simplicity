@@ -105,9 +105,11 @@ The full original 129-cell wNAF loop/return now matches the decoded literal
 phase after memset is composed (`jet_secp_wnaf_literal_prepare`). Do not
 restart either proof. The descending generator point loop now has a checked
 execution theorem and a bridge to the literal step129 program (details below).
-Caller zeroing, function entry/freeing, canonical scalar normalization/split
-composition, establishment of the loop's wNAF/denominator premises through
-that caller, and the public writer remain open.
+The original eight-statement preparation prefix now derives no=0 and the
+denominator-one field from the caller's initial storage (details below).
+Caller entry/setup/freeing, composition with scalar splitting and both wNAF
+calls, original external memset/zeroing, establishment of the point-stage
+premises through that caller, and the public writer remain open.
 
 `jet_secp_wnaf_literal_values` proves every reachable literal `Some` digit
 is odd and nonzero in the signed range, zero C integers correspond exactly
@@ -1374,7 +1376,7 @@ entry, actual temp-only body and release, not by assuming a no-write effect.
 Normal compilation and reviewed no-update focused snapshots pass. Four
 computed support exports are closed, the representation lemma has four
 inherited assumptions, and execution/memory identity has six. Independent
-recursive checking of this new helper is the next integration check. This
+recursive checking and no-update focused audits pass on `80a813b8`. This
 discharges the readonly zero-scalar call needed to skip Strauss preprocessing;
 it does not register another jet or establish the whole caller.
 
@@ -1403,8 +1405,8 @@ all old contents and permissions in both directions (new private blocks may
 have been allocated and freed). Normal compilation and reviewed no-update
 focused audits pass; source/block metadata is closed, and execution retains
 six inherited assumptions without a libc premise. Independent recursive
-checking is the next integration check; the public caller still needs its
-real state-field loads and linkage composed.
+checking and no-update focused audits pass on `a43f28e4`; the real caller's
+state-field loads and linkage are composed in the following module.
 
 `jet_secp_generator_globalz_call.exec_generator_no_points` now composes the
 three original statements before generator splitting: preprocessing, state
@@ -1419,8 +1421,35 @@ to compose. It adds no public-input scalar restriction, no helper execution
 or result premise, and no libc model. Normal compilation and reviewed
 no-update focused snapshots pass; five source/lookup exports are closed,
 two expression exports use four inherited assumptions, and all three
-execution exports use six. Recursive kernel checking of this phase and the
-zero-length helper is the next integration check. No coverage row is added.
+execution exports use six. Recursive kernel checking and no-update focused
+audits pass for this phase and the zero-length helper on `a43f28e4` in the
+task-owned verification worktree. No coverage row is added.
+
+`jet_secp_generator_initialize.exec_generator_prepare_non_generator` now
+derives the **entire original first eight statements**: actual counter/no
+initialization, original fe_set_int(1) on the real 40-byte Z object, and the
+three-statement no-points phase. It does not assume initialized counters,
+initial Z contents or represented denominator one. It derives the zero-scalar
+storage and state-pointer loads after the setter using its checked separation
+frame. The result retains the exact denominator-one words, its Freeable40
+ownership, exact temporary updates and framing outside Z. The initial local
+environment, fresh Z object, fixed readable zero scalar, num=1 and state
+pointer fields are still entry/setup obligations, not new public input
+restrictions. Normal compilation and reviewed no-update focused snapshots
+pass. Four source/lookup exports are closed and three execution exports retain
+the existing six assumptions, with no libc model. Recursive checking of this
+new composed prefix is the next integration check. Reproduce with the normal
+target/module `C/jet_secp_generator_initialize.vo` /
+`C.jet_secp_generator_initialize`, as for the other generator modules above.
+
+The unchanged fe_set_owned and scalar-read framing dependencies were rebuilt
+from source under pinned Coq 8.17.1 / OCaml 4.14.4 after their old objects
+reported inconsistent assumptions over the proof-only u128-layout refactor.
+No source, theorem or target was changed to accept those old objects. Next
+derive caller entry/setup (including the actual readonly zero-scalar global),
+compose this prefix with scalar splitting and both original wNAF calls, then
+reuse the existing point-stage proof and public writer. The original external
+memset boundary remains explicitly unresolved. Coverage is still 513/533.
 
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
