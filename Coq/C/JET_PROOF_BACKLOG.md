@@ -60,6 +60,40 @@ rows also retain their explicitly reported libc obligation. Continue safe
 proof/verification work, but do not hide these boundaries with another model
 premise or substitute implementation.
 
+## Bounded memcpy premise integrated
+
+`1471be3d` integrates the reviewed `codex/bounded-memcpy-assumption` change:
+the existing explicit library premise now guarantees copies of 1..64 bytes,
+rather than every positive representable size. This assumes less library
+behavior; the SHA helpers derive each new bound from their existing block
+invariants. Public jet input, output and framing contracts are unchanged.
+The library premise is still not discharged. The original review and source
+inventories are in [JET_MEMCPY_BOUND_REVIEW.md](JET_MEMCPY_BOUND_REVIEW.md).
+
+The current dependency inventory selects all 179 registered consumers of the
+model (714 C modules), plus eight additional manifest roots. Including the
+latter's dependencies gives 1,006 C modules, not merely 714 + 8. Validation of
+these exact proof inputs passes: full affected build, independent recursive
+kernel checking, matching assumption records across 818 modules and contract
+records across 872 modules, gate-regression tests, all 104 global source/negative checks and all
+five regenerated AST comparisons. There are no unsafe kernel features or
+library axioms outside the existing allowlist, and verification inputs stayed
+unchanged throughout the completed checks.
+
+The first ordinary acceptance attempt passed its source checks, then stopped
+on cached objects compiled with OCaml 4.14.1. The affected sources were rebuilt
+under the existing Coq 8.17.1 / OCaml 4.14.4 toolchain; the remaining validation
+phases then passed using the existing build, kernel, record and AST tools.
+No proof source or target was changed to repair that cache mismatch. This is
+combined phase validation of the complete affected scope, not a claim that
+the interrupted command passed or that the entire repository was reaccepted.
+The reproduction commands in the bounded-premise review derive the registered
+scope from the current dependency graph and include the extra roots.
+
+Coverage remains 513/533, including the same 138 conditional entries. Neither
+this integration nor its larger checked dependency closure proves another jet
+or resolves the reported ctz/memset, fee-hash or ratio boundaries.
+
 ## Fresh-frame witnesses for accepted secp contracts
 
 `jet_secp_executable_registry` reuses the existing constructive frame theorem
