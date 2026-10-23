@@ -77,11 +77,14 @@ Theorem exec_gej_add_finite_nonzero_body e le m pa pb pu pv ps pt p12 p22 bh bi 
 Proof.
  intros PA PB PR PN EU EV ES ET E12 E22 EH EI E2 E3 ETemp EQ EM EN EA E0N ED EF
    Sep FlagA FlagB BX BY BZ BU BV BW HNZ AX AY AZ BXf BYf BZf FA FB FU FV FS FT F12 F22 FH FI F2 F3 FTemp.
- separate_blocks Sep.
- assert (SepP : NoDup [pa;pb;pu;pv;ps;pt;p12;p22;bh;bi]) by
-   (repeat rewrite NoDup_cons_iff;cbn [In];repeat split;try apply NoDup_nil;intuition congruence).
+ pose proof Sep as SepAll;separate_blocks Sep.
+ assert (SepP : NoDup [pa;pb;pu;pv;ps;pt;p12;p22;bh;bi]).
+ { exact (@NoDup_app_remove_r block [pa;pb;pu;pv;ps;pt;p12;p22;bh;bi]
+     [b2;b3;bt] SepAll). }
  assert (SepN : NoDup [pa;pb;bh;b2;b3;bt;pu;bi;ps]) by
-   (repeat rewrite NoDup_cons_iff;cbn [In];repeat split;try apply NoDup_nil;intuition congruence).
+   (clear -SepAll;separate_blocks SepAll;
+    repeat rewrite NoDup_cons_iff;repeat rewrite not_in_cons;
+    repeat split;try apply NoDup_nil;try apply in_nil;congruence).
  destruct (exec_gej_add_finite_difference e le m pa pb pu pv ps pt p12 p22 bh bi x y z u v w
    PA PB EU EV ES ET E12 E22 EH EI EQ EM EN EA SepP FlagA FlagB BX BY BZ BU BV BW AX AY AZ BXf BYf BZf
    FA FB FU FV FS FT F12 F22 FH FI)
