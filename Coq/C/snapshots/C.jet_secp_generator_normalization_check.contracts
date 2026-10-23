@@ -1,0 +1,112 @@
+### C.jet_secp_generator_normalization_check.inverse_coordinate_cancel
+inverse_coordinate_cancel
+     : forall (p z v x t : BinNums.Z) (_ : not (@eq BinNums.Z p BinNums.Z0))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (BinInt.Z.mul v z) p) (BinNums.Zpos BinNums.xH))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (BinInt.Z.mul t z) p) (BinInt.Z.modulo x p)),
+       @eq BinNums.Z (BinInt.Z.modulo (BinInt.Z.mul x v) p) (BinInt.Z.modulo t p)
+### C.jet_secp_generator_normalization_check.literal_norm_fast_rescaled
+literal_norm_fast_rescaled
+     : forall (x y z tx ty : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 z)
+                (BinInt.Z.lt z
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : not (@eq BinNums.Z (BinInt.Z.modulo z jet_secp_fe_math.feP) BinNums.Z0))
+         (_ : and (BinInt.Z.le BinNums.Z0 tx) (BinInt.Z.lt tx jet_secp_fe_math.feP))
+         (_ : and (BinInt.Z.le BinNums.Z0 ty) (BinInt.Z.lt ty jet_secp_fe_math.feP))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (BinInt.Z.mul (BinInt.Z.mul tx z) z) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo x jet_secp_fe_math.feP))
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (BinInt.Z.mul (BinInt.Z.mul (BinInt.Z.mul ty z) z) z) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo y jet_secp_fe_math.feP)),
+       @eq (prod BinNums.Z BinNums.Z)
+         (jet_secp_generate_numeric.literal_norm_fast
+            (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z x y) z))
+         (@pair BinNums.Z BinNums.Z tx ty)
+### C.jet_secp_generator_normalization_check.generator_normalization_check_sound
+generator_normalization_check_sound
+     : forall (x y z tx ty : BinNums.Z) (_ : @eq bool (generator_normalization_check x y z tx ty) true),
+       @eq (prod BinNums.Z BinNums.Z)
+         (jet_secp_generate_numeric.literal_norm_fast
+            (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z x y) z))
+         (@pair BinNums.Z BinNums.Z tx ty)
+### C.jet_secp_generator_normalization_check.literal_gej_norm_fast_word
+literal_gej_norm_fast_word
+     : forall x y z : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq
+         (Ty.tySem
+            (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_secp_gej_norm_literal.literal_gej_norm Alg.CoreFunSem
+            (@pair
+               (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) x y) z))
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@fst BinNums.Z BinNums.Z
+                  (jet_secp_generate_numeric.literal_norm_fast
+                     (@pair (prod BinNums.Z BinNums.Z) BinNums.Z
+                        (@pair BinNums.Z BinNums.Z
+                           (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)
+                           (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) y))
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) z)))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@snd BinNums.Z BinNums.Z
+                  (jet_secp_generate_numeric.literal_norm_fast
+                     (@pair (prod BinNums.Z BinNums.Z) BinNums.Z
+                        (@pair BinNums.Z BinNums.Z
+                           (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)
+                           (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) y))
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) z))))))
+### C.jet_secp_generator_normalization_check.generator_normalization_check_literal
+generator_normalization_check_literal
+     : forall (x y z : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (tx ty : BinNums.Z)
+         (_ : @eq bool
+                (generator_normalization_check
+                   (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)
+                   (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) y)
+                   (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) z) tx ty) true),
+       @eq
+         (Ty.tySem
+            (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_secp_gej_norm_literal.literal_gej_norm Alg.CoreFunSem
+            (@pair
+               (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) x y) z))
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) tx)
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) ty))
+### C.jet_secp_generator_normalization_check.generator_normalization_check
+generator_normalization_check =
+fun x y z tx ty : BinNums.Z =>
+andb (BinInt.Z.leb BinNums.Z0 z)
+  (andb
+     (BinInt.Z.ltb z
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+     (andb (negb (BinInt.Z.eqb (BinInt.Z.modulo z jet_secp_fe_math.feP) BinNums.Z0))
+        (andb (BinInt.Z.leb BinNums.Z0 tx)
+           (andb (BinInt.Z.ltb tx jet_secp_fe_math.feP)
+              (andb (BinInt.Z.leb BinNums.Z0 ty)
+                 (andb (BinInt.Z.ltb ty jet_secp_fe_math.feP)
+                    (andb
+                       (BinInt.Z.eqb (BinInt.Z.modulo (BinInt.Z.mul (BinInt.Z.mul tx z) z) jet_secp_fe_math.feP)
+                          (BinInt.Z.modulo x jet_secp_fe_math.feP))
+                       (BinInt.Z.eqb
+                          (BinInt.Z.modulo (BinInt.Z.mul (BinInt.Z.mul (BinInt.Z.mul ty z) z) z) jet_secp_fe_math.feP)
+                          (BinInt.Z.modulo y jet_secp_fe_math.feP)))))))))
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z), bool
+
+Arguments generator_normalization_check (x y z tx ty)%Z_scope

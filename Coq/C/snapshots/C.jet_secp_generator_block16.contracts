@@ -1,0 +1,45 @@
+### C.jet_secp_generator_block16.generator_block16_checked
+generator_block16_checked
+     : forall high neg : bool,
+       @eq (option (list (prod BinNums.Z BinNums.Z))) (generator_block16_check high neg)
+         (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z)))
+### C.jet_secp_generator_block16.generator_block16_values
+generator_block16_values
+     : forall high neg : bool,
+       @eq (list (prod BinNums.Z BinNums.Z)) (generator_block16_rows high neg)
+         (jet_secp_generator_prefix.generator_prefix_values (S (S (S (S O))))
+            (jet_secp_generate_numeric.literal_affine_denote
+               (jet_secp_generate_literal.literal_generator_base_word high)) (generator_block16_seed high neg))
+### C.jet_secp_generator_block16.generator_block16_rows
+generator_block16_rows =
+fun high neg : bool =>
+let rows : list (prod BinNums.Z BinNums.Z) :=
+  @List.map (list AST.init_data) (prod BinNums.Z BinNums.Z)
+    (fun row : list AST.init_data => jet_secp_generator_rows.generator_row_signed_numeric row neg)
+    (@List.firstn (list AST.init_data) (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+       (jet_secp_generator_rows.generator_table_rows high)) in
+match neg return (list (prod BinNums.Z BinNums.Z)) with
+| true => @List.rev (prod BinNums.Z BinNums.Z) rows
+| false => rows
+end
+     : forall (_ : bool) (_ : bool), list (prod BinNums.Z BinNums.Z)
+
+Arguments generator_block16_rows (high neg)%bool_scope
+### C.jet_secp_generator_block16.generator_block16_seed
+generator_block16_seed =
+fun high neg : bool =>
+jet_secp_generator_bits.literal_generate_bits
+  (jet_secp_generate_numeric.literal_affine_denote (jet_secp_generate_literal.literal_generator_base_word high))
+  (@List.repeat bool neg (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+     : forall (_ : bool) (_ : bool), prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments generator_block16_seed (high neg)%bool_scope
+### C.jet_secp_generator_block16.generator_block16_check
+generator_block16_check =
+fun high neg : bool =>
+jet_secp_generator_prefix_check.generator_prefix_rows_check (S (S (S (S O))))
+  (jet_secp_generate_numeric.literal_affine_denote (jet_secp_generate_literal.literal_generator_base_word high))
+  (generator_block16_seed high neg) (generator_block16_rows high neg)
+     : forall (_ : bool) (_ : bool), option (list (prod BinNums.Z BinNums.Z))
+
+Arguments generator_block16_check (high neg)%bool_scope

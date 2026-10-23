@@ -1,0 +1,64 @@
+### C.jet_secp_generator_prefix_check.generator_leaf_check_sound
+generator_leaf_check_sound
+     : forall (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (expected : prod BinNums.Z BinNums.Z) (_ : @eq bool (generator_leaf_check base a expected) true),
+       @eq (prod BinNums.Z BinNums.Z) (jet_secp_generator_prefix.generator_odd_leaf base a) expected
+### C.jet_secp_generator_prefix_check.generator_prefix_rows_check_sound
+generator_prefix_rows_check_sound
+     : forall (depth : nat) (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (rows rest : list (prod BinNums.Z BinNums.Z))
+         (_ : @eq (option (list (prod BinNums.Z BinNums.Z))) (generator_prefix_rows_check depth base a rows)
+                (@Some (list (prod BinNums.Z BinNums.Z)) rest)),
+       @eq (list (prod BinNums.Z BinNums.Z)) rows
+         (@app (prod BinNums.Z BinNums.Z) (jet_secp_generator_prefix.generator_prefix_values depth base a) rest)
+### C.jet_secp_generator_prefix_check.generator_prefix_rows_check_consumed
+generator_prefix_rows_check_consumed
+     : forall (depth : nat) (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (rows : list (prod BinNums.Z BinNums.Z))
+         (_ : @eq (option (list (prod BinNums.Z BinNums.Z))) (generator_prefix_rows_check depth base a rows)
+                (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z)))),
+       @eq (list (prod BinNums.Z BinNums.Z)) rows (jet_secp_generator_prefix.generator_prefix_values depth base a)
+### C.jet_secp_generator_prefix_check.generator_leaf_check
+generator_leaf_check =
+fun (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+  (expected : prod BinNums.Z BinNums.Z) =>
+match jet_secp_generator_bits.literal_generate_bit base a true return bool with
+| pair p z =>
+    match p return bool with
+    | pair x y =>
+        match expected return bool with
+        | pair tx ty => jet_secp_generator_normalization_check.generator_normalization_check x y z tx ty
+        end
+    end
+end
+     : forall (_ : prod BinNums.Z BinNums.Z) (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (_ : prod BinNums.Z BinNums.Z), bool
+
+Arguments generator_leaf_check base a expected
+### C.jet_secp_generator_prefix_check.generator_prefix_rows_check
+generator_prefix_rows_check =
+fix generator_prefix_rows_check
+  (depth : nat) (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+  (rows : list (prod BinNums.Z BinNums.Z)) {struct depth} : option (list (prod BinNums.Z BinNums.Z)) :=
+  match depth return (option (list (prod BinNums.Z BinNums.Z))) with
+  | O =>
+      match rows return (option (list (prod BinNums.Z BinNums.Z))) with
+      | nil => @None (list (prod BinNums.Z BinNums.Z))
+      | cons expected tail =>
+          match generator_leaf_check base a expected return (option (list (prod BinNums.Z BinNums.Z))) with
+          | true => @Some (list (prod BinNums.Z BinNums.Z)) tail
+          | false => @None (list (prod BinNums.Z BinNums.Z))
+          end
+      end
+  | S k =>
+      let doubled : prod (prod BinNums.Z BinNums.Z) BinNums.Z := jet_secp_generate_numeric.literal_double_eval a in
+      match generator_prefix_rows_check k base doubled rows return (option (list (prod BinNums.Z BinNums.Z))) with
+      | Some rest =>
+          generator_prefix_rows_check k base (jet_secp_generate_numeric.literal_mixed_eval doubled base) rest
+      | None => @None (list (prod BinNums.Z BinNums.Z))
+      end
+  end
+     : forall (_ : nat) (_ : prod BinNums.Z BinNums.Z) (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (_ : list (prod BinNums.Z BinNums.Z)), option (list (prod BinNums.Z BinNums.Z))
+
+Arguments generator_prefix_rows_check depth%nat_scope base a rows%list_scope

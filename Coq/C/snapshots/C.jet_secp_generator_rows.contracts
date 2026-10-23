@@ -1,0 +1,191 @@
+### C.jet_secp_generator_rows.generator_chunks8_exact
+@generator_chunks8_exact
+     : forall (A : Type) (n : nat) (ds : list A)
+         (_ : @eq nat (@length A ds) (Nat.mul (S (S (S (S (S (S (S (S O)))))))) n)),
+       and (@eq (list A) (@List.concat A (@generator_chunks8 A ds)) ds)
+         (@eq nat (@length (list A) (@generator_chunks8 A ds)) n)
+### C.jet_secp_generator_rows.generator_chunks8_word
+@generator_chunks8_word
+     : forall (A : Type) (n : nat) (ds : list A) (default : A)
+         (_ : @eq nat (@length A ds) (Nat.mul (S (S (S (S (S (S (S (S O)))))))) n)) (i j : nat)
+         (_ : lt i n) (_ : lt j (S (S (S (S (S (S (S (S O))))))))),
+       @eq A (@List.nth A (Nat.add (Nat.mul (S (S (S (S (S (S (S (S O)))))))) i) j) ds default)
+         (@List.nth A j (@List.nth (list A) i (@generator_chunks8 A ds) (@nil A)) default)
+### C.jet_secp_generator_rows.generator_table_chunk_size
+generator_table_chunk_size
+     : forall high : bool,
+       @eq nat (@length AST.init_data (jet_secp_generator_globals.generator_table_init high))
+         (Nat.mul (S (S (S (S (S (S (S (S O))))))))
+            (BinInt.Z.to_nat
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))
+### C.jet_secp_generator_rows.generator_table_rows_exact
+generator_table_rows_exact
+     : forall high : bool,
+       and
+         (@eq (list AST.init_data) (@List.concat AST.init_data (generator_table_rows high))
+            (jet_secp_generator_globals.generator_table_init high))
+         (@eq BinNums.Z (BinInt.Z.of_nat (@length (list AST.init_data) (generator_table_rows high)))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+### C.jet_secp_generator_rows.generator_table_row_word
+generator_table_row_word
+     : forall (high : bool) (index j : nat)
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat index)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+         (_ : lt j (S (S (S (S (S (S (S (S O))))))))),
+       @eq Integers.Int64.int
+         (generator_row_word (@List.nth (list AST.init_data) index (generator_table_rows high) (@nil AST.init_data)) j)
+         (jet_secp_generator_globals.generator_entry_words high index j)
+### C.jet_secp_generator_rows.generator_table_row_numeric
+generator_table_row_numeric
+     : forall (high : bool) (index : nat)
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat index)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))),
+       @eq (prod BinNums.Z BinNums.Z)
+         (generator_row_numeric (@List.nth (list AST.init_data) index (generator_table_rows high) (@nil AST.init_data)))
+         (jet_secp_generator_table_samples.generator_entry_numeric high index)
+### C.jet_secp_generator_rows.generator_table_row_signed_numeric
+generator_table_row_signed_numeric
+     : forall (high : bool) (index : nat) (neg : bool)
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat index)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))),
+       @eq (prod BinNums.Z BinNums.Z)
+         (generator_row_signed_numeric
+            (@List.nth (list AST.init_data) index (generator_table_rows high) (@nil AST.init_data)) neg)
+         (jet_secp_generator_table_samples.generator_entry_signed_numeric high index neg)
+### C.jet_secp_generator_rows.generator_chunks8
+generator_chunks8 =
+fix generator_chunks8 (A : Type) (ds : list A) {struct ds} : list (list A) :=
+  match ds return (list (list A)) with
+  | nil => @nil (list A)
+  | cons a l =>
+      match l return (list (list A)) with
+      | nil => @nil (list A)
+      | cons b l0 =>
+          match l0 return (list (list A)) with
+          | nil => @nil (list A)
+          | cons c l1 =>
+              match l1 return (list (list A)) with
+              | nil => @nil (list A)
+              | cons d l2 =>
+                  match l2 return (list (list A)) with
+                  | nil => @nil (list A)
+                  | cons e l3 =>
+                      match l3 return (list (list A)) with
+                      | nil => @nil (list A)
+                      | cons f l4 =>
+                          match l4 return (list (list A)) with
+                          | nil => @nil (list A)
+                          | cons g l5 =>
+                              match l5 return (list (list A)) with
+                              | nil => @nil (list A)
+                              | cons h tail =>
+                                  @cons (list A)
+                                    (@cons A a
+                                       (@cons A b
+                                          (@cons A c
+                                             (@cons A d (@cons A e (@cons A f (@cons A g (@cons A h (@nil A)))))))))
+                                    (generator_chunks8 A tail)
+                              end
+                          end
+                      end
+                  end
+              end
+          end
+      end
+  end
+     : forall (A : Type) (_ : list A), list (list A)
+
+Arguments generator_chunks8 {A}%type_scope ds%list_scope
+### C.jet_secp_generator_rows.generator_table_rows
+generator_table_rows =
+fun high : bool => @generator_chunks8 AST.init_data (jet_secp_generator_globals.generator_table_init high)
+     : forall _ : bool, list (list AST.init_data)
+
+Arguments generator_table_rows high%bool_scope
+### C.jet_secp_generator_rows.generator_row_word
+generator_row_word =
+fun (row : list AST.init_data) (i : nat) =>
+jet_secp_generator_globals.init_word64 (@List.nth AST.init_data i row (AST.Init_int64 Integers.Int64.zero))
+     : forall (_ : list AST.init_data) (_ : nat), Integers.Int64.int
+
+Arguments generator_row_word row%list_scope i%nat_scope
+### C.jet_secp_generator_rows.generator_row_numeric
+generator_row_numeric =
+fun row : list AST.init_data =>
+@pair BinNums.Z BinNums.Z (jet_secp_storage_numeric.field_storage_value (generator_row_word row))
+  (jet_secp_storage_numeric.field_storage_value (fun i : nat => generator_row_word row (Nat.add (S (S (S (S O)))) i)))
+     : forall _ : list AST.init_data, prod BinNums.Z BinNums.Z
+
+Arguments generator_row_numeric row%list_scope
+### C.jet_secp_generator_rows.generator_row_signed_numeric
+generator_row_signed_numeric =
+fun (row : list AST.init_data) (neg : bool) =>
+match generator_row_numeric row return (prod BinNums.Z BinNums.Z) with
+| pair x y =>
+    @pair BinNums.Z BinNums.Z x
+      match neg return BinNums.Z with
+      | true => BinInt.Z.modulo (BinInt.Z.sub jet_secp_fe_math.feP y) jet_secp_fe_math.feP
+      | false => y
+      end
+end
+     : forall (_ : list AST.init_data) (_ : bool), prod BinNums.Z BinNums.Z
+
+Arguments generator_row_signed_numeric row%list_scope neg%bool_scope
+### C.jet_secp_generator_rows.generator_table_signed_rows
+generator_table_signed_rows =
+fun high neg : bool =>
+let rows : list (prod BinNums.Z BinNums.Z) :=
+  @List.map (list AST.init_data) (prod BinNums.Z BinNums.Z)
+    (fun row : list AST.init_data => generator_row_signed_numeric row neg) (generator_table_rows high) in
+match neg return (list (prod BinNums.Z BinNums.Z)) with
+| true => @List.rev (prod BinNums.Z BinNums.Z) rows
+| false => rows
+end
+     : forall (_ : bool) (_ : bool), list (prod BinNums.Z BinNums.Z)
+
+Arguments generator_table_signed_rows (high neg)%bool_scope

@@ -330,10 +330,38 @@ build, recursive kernel checking and reviewed no-update focused
 assumption/contract comparisons pass. Reproduce with target/module
 `C/jet_secp_invert_modinv.vo` / `C.jet_secp_invert_modinv` as above.
 
-Next integrate rescaled-coordinate normalization and complete-consumption
-prefix checkers, then benchmark a structurally decoded table block before
-scaling. The bridge is from the literal computation, not an additional
-assumed inverse premise.
+`jet_secp_generator_normalization_check` now proves sound rescaled-coordinate
+certificates for the exact literal normalization. Its checker verifies the
+Z-word bound, nonzero field Z, canonical table coordinates and both rescaled
+equalities; inverse correctness is derived from the actual EEA bridge, not
+assumed. `jet_secp_generator_prefix_check` proves successful exact consumption
+of a prefix block equals the existing literal-normalized value list, with no
+skipped branches or unconsumed rows. `jet_secp_generator_rows` traverses the
+actual initializer once in eight-word rows, proves complete payload/8192-row
+length and indexed equality with every existing table word/numeric value.
+`jet_secp_generator_block16` checks the first sixteen actual entries for
+both signed paths and both bases (64 cases), and derives their exact existing
+prefix-value lists. It is explicitly a block sample, **not all table entries**.
+All fifteen arithmetic/decoder/checker/block exports are closed; the two
+literal normalization-word lifts retain only inherited functional
+extensionality. Normal builds, recursive kernel checking and reviewed
+no-update focused assumption/contract comparisons pass. Reproduce the batch:
+
+```sh
+JET_TARGETS='C/jet_secp_generator_prefix_check.vo C/jet_secp_generator_rows.vo C/jet_secp_generator_block16.vo' bash Coq/build-jets.sh -j1
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_generator_prefix_check C.jet_secp_generator_rows C.jet_secp_generator_block16
+```
+
+Next scale to both complete signed tables and connect the bit-prefix ordinal
+to every valid raw wNAF digit/table index. The improved 128-entry scratch block
+passed for both signs at roughly eighteen seconds each; direct Z.modulo field
+evaluation is now the measured scaling cost, not inversion or repeated table
+indexing. A verified evaluator-only pseudo-Mersenne reduction (equal to
+ordinary modulo for **all** integers, retaining a fallback) can accelerate
+these checks without changing the original numeric/literal programs or C.
+Keep the proof of point/checker equivalence when adding such an evaluator;
+do not treat benchmark success as a complete table certificate.
 These stages do not establish the C inversion jet, its external ctz
 obligation, the table/literal correspondence, or public `generate`
 equivalence; accepted coverage remains 505/533.
