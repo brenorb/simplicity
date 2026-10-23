@@ -65,11 +65,13 @@ Proof.
    intros pos Range;unfold zinv_coordinate_frame,curve_square_offset;repeat split;
      try (intuition congruence);right;right;lia. }
  assert (SFI : Mem.range_perm mi bs 0 40 Cur Freeable).
- { eapply curve_keep_free;[lia|exact SF|exact FX|].
-   intro pos;unfold zinv_coordinate_frame;repeat split;try (left;intuition congruence);intuition congruence. }
+ { eapply curve_keep_free;[clear;lia|exact SF|exact FX|].
+   intro pos;unfold zinv_coordinate_frame;repeat split;
+     first [solve [left;clear -Sep;intuition congruence]|solve [clear -Sep;intuition congruence]]. }
  assert (TFI : Mem.range_perm mi bt 0 40 Cur Freeable).
- { eapply curve_keep_free;[lia|exact TF|exact FX|].
-   intro pos;unfold zinv_coordinate_frame;repeat split;try (left;intuition congruence);intuition congruence. }
+ { eapply curve_keep_free;[clear;lia|exact TF|exact FX|].
+   intro pos;unfold zinv_coordinate_frame;repeat split;
+     first [solve [left;clear -Sep;intuition congruence]|solve [clear -Sep;intuition congruence]]. }
  destruct (exec_zinv_coordinate true y v t e le mi bp ba bs bt bz HA HB ES ET EZ EW EM
    SepY BY BV BT YI VI TI PFI AFI SFI TFI ZFI)
    as (mf & CY & YF & VFinal & TOut & S1F & S2F & PFF & AFF & SFF & TFF & ZFF & VY & TY & VV & TV & FY).
@@ -86,8 +88,8 @@ Proof.
  { intro pos;unfold zinv_coordinate_frame;repeat split;try (left;intuition congruence);intuition congruence. }
  pose proof (field_at_lframe _ _ _ _ _ _ U1I FY OutU1) as U1F.
  pose proof (field_at_lframe _ _ _ _ _ _ U2I FY OutU2) as U2F.
- pose proof (curve_keep_free _ _ _ _ 40 ltac:(lia) UFI FY OutU1) as UFF.
- pose proof (curve_keep_free _ _ _ _ 40 ltac:(lia) VFI FY OutU2) as VFF.
+ pose proof (curve_keep_free _ _ _ _ 40 ltac:(clear;lia) UFI FY OutU1) as UFF.
+ pose proof (curve_keep_free _ _ _ _ 40 ltac:(clear;lia) VFI FY OutU2) as VFF.
  exists mf;split.
  - unfold zinv_shared_preparation.
    change (Clight2.exec_stmt secp_ge e le m (statement_sequence (zinv_coordinate_statements false)

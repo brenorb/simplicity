@@ -875,10 +875,14 @@ interrupted (exit 130) after more than 22 minutes of CPU-progressing execution
 to prioritize independent public-jet acceptance. This is not a proof failure
 or a successful kernel check; do not treat the earlier loop-only receipt as
 checking these additional inputs.
-The full build/recursive check is now running again on immutable `1bb2a995`
-inputs in the task-owned verification worktree. It remains pending until that
-run and its no-update focused audits finish; entry/split/count-control checks
-below do not replace it.
+The follow-up on immutable `1bb2a995` inputs terminated with exit 2 during
+normal rebuilding, before kernel checking: `zinv_shared_preparation` timed
+out on the closed `0 < 40` goal because `lia` processed the large unrelated
+arithmetic context. The proof-only repair clears that context for closed
+size facts and restricts block-separation search to `Sep`. Normal compilation
+and existing no-update assumption/contract records pass without a timeout,
+statement, assumption or target change. The full point check remains pending;
+entry/split/count-control checks below do not replace it.
 Reproduce its check with:
 
 ```sh
