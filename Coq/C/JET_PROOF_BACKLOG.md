@@ -445,6 +445,17 @@ These stages establish the table/literal correspondence and complete lookup
 helper, not public `generate`, the C inversion jet or the external ctz/memset
 obligations. Accepted coverage remains 505/533.
 
+`jet_secp_wnaf_return_length` now derives the exact leading-zero prefix that
+the original C return length omits from the already-proved literal 129-digit
+vector. This follows from the existing `wnaf_last`/array invariant, including
+the all-zero input; it adds no input restriction. The two pure list lemmas
+are closed; the memory-invariant corollary retains the four inherited
+logical assumptions of that invariant. Normal compilation, recursive kernel
+checking and reviewed no-update focused audits pass. Reproduce using target
+`C/jet_secp_wnaf_return_length.vo` and kernel module
+`C.jet_secp_wnaf_return_length`. The actual descending C loop and its
+point-arithmetic calls remain to be composed.
+
 ## Decompression: current proof frontier
 
 The complete original public C jet is proved by

@@ -1,0 +1,48 @@
+### C.jet_secp_wnaf_return_length.wnaf_above_last_zero
+wnaf_above_last_zero
+     : forall (digits : forall _ : BinNums.Z, BinNums.Z) (bit last : BinNums.Z)
+         (_ : jet_secp_wnaf_loop.wnaf_last digits bit last) (i : BinNums.Z) (_ : BinInt.Z.lt last i)
+         (_ : and (BinInt.Z.le BinNums.Z0 i) (BinInt.Z.lt i bit)), @eq BinNums.Z (digits i) BinNums.Z0
+### C.jet_secp_wnaf_return_length.wnaf_return_length_slice
+wnaf_return_length_slice
+     : forall (count : nat) (digits : forall _ : BinNums.Z, BinNums.Z) (last : BinNums.Z)
+         (_ : jet_secp_wnaf_loop.wnaf_last digits (BinInt.Z.of_nat count) last),
+       @eq (list BinNums.Z) (@List.rev BinNums.Z (jet_secp_wnaf_literal_array.wnaf_slice count digits BinNums.Z0))
+         (@app BinNums.Z
+            (@List.repeat BinNums.Z BinNums.Z0
+               (Nat.sub count (BinInt.Z.to_nat (BinInt.Z.add last (BinNums.Zpos BinNums.xH)))))
+            (@List.rev BinNums.Z
+               (jet_secp_wnaf_literal_array.wnaf_slice (BinInt.Z.to_nat (BinInt.Z.add last (BinNums.Zpos BinNums.xH)))
+                  digits BinNums.Z0)))
+### C.jet_secp_wnaf_return_length.wnaf_literal_return_length
+wnaf_literal_return_length
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z) (digits : forall _ : BinNums.Z, BinNums.Z)
+         (last : BinNums.Z) (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+         (_ : jet_secp_wnaf_loop.wnaf_array_state m b base
+                (BinNums.Zpos
+                   (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))) (BinNums.Zpos BinNums.xH)
+                (BinNums.Zpos
+                   (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                last digits)
+         (_ : @eq (list BinNums.Z)
+                (@List.map (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit) BinNums.Z
+                   jet_secp_wnaf_literal_array.wnaf_literal_value
+                   (jet_secp_wnaf_literal.literal_wnaf15_digits
+                      (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+                         (@inl unit unit tt) word)))
+                (@List.rev BinNums.Z
+                   (@List.map nat BinNums.Z (fun i : nat => digits (BinInt.Z.of_nat i))
+                      (List.seq O (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq (list BinNums.Z)
+         (@List.map (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit) BinNums.Z
+            jet_secp_wnaf_literal_array.wnaf_literal_value
+            (jet_secp_wnaf_literal.literal_wnaf15_digits
+               (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))) (@inl unit unit tt) word)))
+         (@app BinNums.Z
+            (@List.repeat BinNums.Z BinNums.Z0
+               (Nat.sub (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))
+                  (BinInt.Z.to_nat (BinInt.Z.add last (BinNums.Zpos BinNums.xH)))))
+            (@List.rev BinNums.Z
+               (jet_secp_wnaf_literal_array.wnaf_slice (BinInt.Z.to_nat (BinInt.Z.add last (BinNums.Zpos BinNums.xH)))
+                  digits BinNums.Z0)))
