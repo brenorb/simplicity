@@ -633,6 +633,31 @@ connect a C window jump to that odd step followed by the intervening literal
 zero steps; then discharge the final truncated-window case and compose the
 whole array/vector invariant. The point loop remains a subsequent obligation.
 
+`jet_secp_wnaf_literal_zeros.literal_wnaf_window15` proves the full C-sized
+window's literal transition: the odd digit followed by fourteen zero digits,
+with next value exactly `n / 2^(bit+15) + new_carry`. Its generic
+`literal_wnaf_zero_power` derives arbitrary intervening zero runs.
+`jet_secp_wnaf_literal_tail.literal_wnaf_last_window` proves the final short
+window using the scalar top bound before adding carry, including the case
+`bit=128, carry=1`; it derives a zero final residual and C carry. All six
+exported lemmas are closed. Normal builds, recursive kernel checking and
+focused no-update assumption/contract comparisons pass. Reproduce with the
+same commands using `jet_secp_wnaf_literal_tail` (which includes zeros).
+
+A read-only Astra Medium strategy review confirmed these boundaries match
+the actual `len=129, w=15` split128 calls. Do not infer vector identity from
+weighted reconstruction: the current array/loop endpoints hide branch jump
+equations and visited-prefix spacing. Next add a branch-exact execution
+wrapper using `exec_wnaf_dispatch_skip`, `exec_wnaf_dispatch_nonzero` and
+`exec_wnaf_nonzero_body`, reusing `wnaf_array_skip`, `wnaf_array_store` and
+memory-effect lemmas. Lift it through the existing decreasing-fuel loop
+skeleton with an additive invariant carrying the raw literal prefix and
+current Word128 residual. Target `exec_wnaf_loop_zero_literal15`: retain
+the actual loop/return, complete array and framing conclusions and add
+decoded literal digits equal to the reversed 129 C array entries. The final
+canonical scalar-normalization/split caller composition and external memset
+boundary remain separate, as does the generator point loop.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
