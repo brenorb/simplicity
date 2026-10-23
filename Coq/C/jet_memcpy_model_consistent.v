@@ -33,7 +33,7 @@ Definition memcpy_model_for (sem : extcall_sem) : Prop :=
     Mem.range_perm m bd (Ptrofs.unsigned od) (Ptrofs.unsigned od + n) Cur Writable ->
     (bs <> bd \/ Ptrofs.unsigned os + n <= Ptrofs.unsigned od \/
       Ptrofs.unsigned od + n <= Ptrofs.unsigned os) ->
-    0 < n <= Int64.max_unsigned ->
+    (0 < n <= Int64.max_unsigned /\ n <= 64) ->
     Ptrofs.unsigned os + n <= Ptrofs.max_unsigned + 1 ->
     Ptrofs.unsigned od + n <= Ptrofs.max_unsigned + 1 ->
     exists m', Mem.storebytes m bd (Ptrofs.unsigned od) bytes = Some m' /\

@@ -88,7 +88,7 @@ Qed.
 
 Lemma memcpy_bytes_effect (Hmodel : memcpy_model) (ge : Senv.t) m bs os bd od (xs : list int) :
   let n := Z.of_nat (length xs) in
-  0 < n -> Ptrofs.unsigned os + n <= Ptrofs.max_unsigned -> Ptrofs.unsigned od + n <= Ptrofs.max_unsigned ->
+  0 < n <= 64 -> Ptrofs.unsigned os + n <= Ptrofs.max_unsigned -> Ptrofs.unsigned od + n <= Ptrofs.max_unsigned ->
   (forall i, (i < length xs)%nat ->
      Mem.load Mint8unsigned m bs (Ptrofs.unsigned os + Z.of_nat i) = Some (Vint (nth i xs Int.zero))) ->
   Mem.range_perm m bd (Ptrofs.unsigned od) (Ptrofs.unsigned od + n) Cur Writable ->

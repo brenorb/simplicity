@@ -123,7 +123,7 @@ Qed.
 
 Lemma uc_memcpy_exec (n : ident) le m ob oa vn (xs : list int) :
   le!_block = Some (Vptr bx ob) -> le!_arr = Some (Vptr ba oa) -> le!n = Some (Vlong vn) ->
-  Int64.unsigned vn = Z.of_nat (length xs) -> (0 < length xs)%nat ->
+  Int64.unsigned vn = Z.of_nat (length xs) -> (0 < length xs <= 64)%nat ->
   Ptrofs.unsigned oa + Z.of_nat (length xs) <= Ptrofs.max_unsigned ->
   Ptrofs.unsigned ob + Z.of_nat (length xs) <= Ptrofs.max_unsigned ->
   (forall i, (i < length xs)%nat ->
@@ -184,7 +184,7 @@ Proof.
   assert (Hb2 : length rem = (d + length b2)%nat) by (rewrite Hrem at 1; rewrite app_length, Hb1; reflexivity).
   (* memcpy *)
   destruct (uc_memcpy_exec _delta le m ob oa vd b1 Hblock Harr Hdelta
-    ltac:(rewrite Hvd, Hb1; unfold d; lia) ltac:(lia) ltac:(rewrite Hb1; lia)
+    ltac:(rewrite Hvd, Hb1; unfold d; lia) ltac:(rewrite Hb1; unfold d; lia) ltac:(rewrite Hb1; lia)
     ltac:(rewrite Hob', Hb1; unfold d; lia))
     as (m1 & HE1 & HD1 & HF1 & HP1 & HV1).
   { intros i Hi. rewrite Hoa. rewrite (HRem i ltac:(lia)). rewrite Hrem at 1.

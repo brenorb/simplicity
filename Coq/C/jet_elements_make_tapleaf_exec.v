@@ -233,7 +233,7 @@ Proof.
     cbn [In] in HIn.
     destruct HIn as [E|[E|[E|[E|[E|[E|[]]]]]]]; injection E as <- <- <-;
       [apply PC10|apply PC0|apply PR20|apply PR10|apply PT0|apply PRes0]; exact Hr. }
-  { cbn [map fst]. el_nd6. }
+  { clear -N1 N2 N3 N4 N5. cbn [map fst]. el_nd6. }
   cbn [map fst] in HLf, HPf.
   assert (HNl : forall b, Mem.valid_block m b -> ~ In b [bC1; bC; bR2; bR1; bT; bRes]).
   { intros b Hb HIn. apply (FRh b Hb). cbn [In] in HIn |- *. tauto. }

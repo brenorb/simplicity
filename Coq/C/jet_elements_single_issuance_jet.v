@@ -488,7 +488,7 @@ Proof.
   { intros b0 lo hi HIn ofs Hr1. apply HPerm, Pm1, Pr. cbn [In] in HIn.
     destruct HIn as [E|[E|[E|[E|[E|[E|[E|[E|[]]]]]]]]]; injection E as <- <- <-;
       [apply PX0|apply PL0|apply PM0|apply PZ0|apply PT0|apply PB0|apply PA0|apply PR0]; exact Hr1. }
-  { cbn [map fst]. nd6. }
+  { clear -N1 N2 N3 N4 N5 N6 N7. cbn [map fst]. nd6. }
   cbn [map fst] in HLf.
   assert (HNl : forall b0, Mem.valid_block m b0 -> ~ In b0 [bx; bl; bm; bZ; bT; bB; bA; br]).
   { intros b0 Hb0 HIn. apply (FRh b0 Hb0). cbn [In] in HIn |- *. tauto. }
