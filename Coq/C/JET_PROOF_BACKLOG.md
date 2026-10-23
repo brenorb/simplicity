@@ -604,13 +604,22 @@ ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_zinv_finite
 ```
 
-Next prove the real function-call boundary, reusing the allocation/free
-structure of `jet_secp_mixed_function_loose`: allocate **all thirteen** locals
-in the original `fn_vars` order (az first, then z12/U/S/H/I/H2/H3/T, then
-bzinv2/bzinv3), derive the local environment and all separation/ownership facts,
-execute the checked body and free every local. The two locals unused on the
-finite path remain owned by its frame and still must be freed. The fourth
-argument is an inverse-Z field pointer, not a NULL ratio pointer.
+`jet_secp_zinv_function.eval_zinv_function_finite` now derives the actual
+finite-input function call: entry, **all thirteen** original local allocations,
+the whole body, void return conversion and all thirteen frees. Initial caller
+field contents/bounds, both finite flags and three distinct owned caller
+allocations suffice; no local allocation, intermediate execution or desired
+output is assumed. Exact coordinate words, output flag, unchanged affine and
+inverse-Z fields, caller ownership, downstream bounds and external framing
+survive the frees. The two locals unused on the finite path are still actually
+allocated, kept owned and freed. Entry/metadata exports are closed; result
+conversion retains four inherited logical assumptions and execution the same
+six inherited assumptions. Normal build, recursive kernel checking and
+reviewed no-update focused audits pass; reproduce with target/module
+`C/jet_secp_zinv_function.vo` / `C.jet_secp_zinv_function` as above.
+This is a finite-input C helper call, not all flags or a literal/public jet
+equivalence. The fourth argument is an inverse-Z field pointer, not a NULL
+ratio pointer.
 
 The infinity-input branches remain open: the first branch computes scaled
 affine X/Y using bzinv2/bzinv3 and sets Z from the copied flag; it is not a
@@ -621,7 +630,7 @@ and literal-coordinate correspondence, the descending generator loop and
 public writer. `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
 must establish that its initialized Z=1 persists; do not assume it.
-These body proofs are not a whole helper call or public-jet coverage;
+These results do not establish all-input helper or public-jet equivalence;
 accepted coverage remains 505/533 and the all-jet goal stays active.
 
 ## Decompression: current proof frontier
