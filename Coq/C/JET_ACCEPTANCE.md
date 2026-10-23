@@ -4,7 +4,7 @@ The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
 The local-contract registry contains 513/533 jets (375 without an extra libc
 premise; 138 conditional on `memcpy_model`). Accepted local-contract coverage is
-511/533, including the computing issuance hash, affine/projective curve,
+513/533, including the computing issuance hash, affine/projective curve,
 projective X-equivalence, doubling, mixed-addition, square-root and mixed
 equivalence and decompression endpoints. On `f1309893`, `JOBS=2 bash Coq/check-jets.sh --accept
 --jets=simplicity_gej_ge_equiv` passed: 442 kernel-checked modules, 381 assumption
@@ -26,12 +26,20 @@ Reproduce on `b42762b6`:
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_output_values_hash,simplicity_bitcoin_input_values_hash,simplicity_bitcoin_outputs_hash,simplicity_bitcoin_input_utxos_hash,simplicity_bitcoin_output_hash,simplicity_bitcoin_input_utxo_hash
 ```
 
-The transaction/signature-hash pair in `jet_bitcoin_tx_sig_hash_literal` has
-normal compiled literal/raw endpoints and reviewed focused snapshots; ordinary
-scoped acceptance is pending. Both add no libc premise and preserve the existing
-environment contracts, frozen Bitcoin domain and documented LockTime identity
-discrepancy. The source gate rejects 22 targeted mutations. These two registry
-entries are not included in the accepted 511/533 count.
+The transaction/signature-hash pair in `jet_bitcoin_tx_sig_hash_literal` passed
+ordinary scoped acceptance on `f59d2305`: 294 recursively kernel-checked modules,
+165 assumption records, 188 contract records, all source/negative checks and all
+five regenerated ASTs, with unchanged audit inputs. Both add no libc premise
+and preserve the existing environment contracts, frozen Bitcoin domain and
+documented LockTime identity discrepancy. The source gate rejects 22 targeted
+mutations. Accepted local-contract coverage is 513/533: 375 without an extra
+libc premise and 138 conditional on `memcpy_model`, with 20 declarations still
+unresolved. The full goal, including shared conditional obligations, is not
+complete. Reproduce in a checkout of `f59d2305`:
+
+```sh
+JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_tx_hash,simplicity_bitcoin_sig_all_hash
+```
 
 On `e32e7638`, the complete decompression endpoint passed ordinary scoped
 acceptance: 416 kernel modules, 355 assumption records, 370 contract records,

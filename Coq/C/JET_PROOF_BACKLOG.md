@@ -8,7 +8,7 @@ Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 20 declarations lack a registered final proof.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
 and decompression endpoints passed ordinary scoped acceptance; accepted
-local-contract coverage is 511/533. The every-jet
+local-contract coverage is 513/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
 Projective addition passed scoped acceptance on `ba6b19e8`; the exact scope
 and reproduction command are recorded in `JET_ACCEPTANCE.md`.
@@ -78,14 +78,17 @@ algebra arguments in the SHA rewrites avoid a generic-rewrite timeout. The
 existing source gate rejects 22 mutations of routing, widths, cache offsets,
 primitive semantics and complete boundaries.
 
-The two registrations are pending ordinary scoped acceptance and are **not**
-included in the accepted 511/533 count. They retain the reported frozen Bitcoin
+The two registrations passed ordinary scoped acceptance on `f59d2305`:
+294 recursively kernel-checked modules, 165 assumption records, 188 contract
+records, all source/negative checks and all five regenerated ASTs, with unchanged
+audit inputs. Accepted local-contract coverage is now 513/533 (375 without an
+extra libc premise; 138 conditional on `memcpy_model`). They retain the frozen Bitcoin
 domain and LockTime commitment-identity limits: value computations are proved,
 not Coq/Haskell primitive identity equality. The dedicated task-owned
 `jet-acceptance` worktree completed its clean six-jet dependency build and is
-running the existing verifier on the fixed `f59d2305` commit (294-module
-dependency closure). Do not edit that worktree until the run is terminal;
-development can continue independently in the main checkout. Its command is:
+passed the existing verifier on the fixed `f59d2305` commit (294-module
+dependency closure). Keep future audited worktrees immutable until their runs
+are terminal; development can continue independently in main. Reproduce with:
 
 ```sh
 JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_tx_hash,simplicity_bitcoin_sig_all_hash
