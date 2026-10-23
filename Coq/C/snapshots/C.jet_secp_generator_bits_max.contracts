@@ -1,0 +1,171 @@
+### C.jet_secp_generator_bits_max.generator_bits_max_source
+generator_bits_max_source
+     : @eq Clight.statement generator_bits_max
+         (Clight.Ssequence (generator_raise_bits false) (generator_raise_bits true))
+### C.jet_secp_generator_bits_max.eval_generator_raise_guard
+eval_generator_raise_guard
+     : forall (high : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (current candidate : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 current)
+                (BinInt.Z.le current
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 candidate)
+                (BinInt.Z.le candidate
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr current))))
+         (_ : @eq (option Values.val)
+                (@Maps.PTree.get Values.val
+                   match high return BinNums.positive with
+                   | true => jets_secp._bits_ng_128
+                   | false => jets_secp._bits_ng_1
+                   end le) (@Some Values.val (Values.Vint (Integers.Int.repr candidate)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (Clight.Ebinop Cop.Ogt
+            (Clight.Etempvar
+               match high return AST.ident with
+               | true => jets_secp._bits_ng_128
+               | false => jets_secp._bits_ng_1
+               end Ctypesdefs.tint) (Clight.Etempvar jets_secp._bits Ctypesdefs.tint) Ctypesdefs.tint)
+         (Values.Vint
+            match BinInt.Z.ltb current candidate return Integers.Int.int with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+### C.jet_secp_generator_bits_max.exec_generator_raise_bits
+exec_generator_raise_bits
+     : forall (high : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (current candidate : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 current)
+                (BinInt.Z.le current
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 candidate)
+                (BinInt.Z.le candidate
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr current))))
+         (_ : @eq (option Values.val)
+                (@Maps.PTree.get Values.val
+                   match high return BinNums.positive with
+                   | true => jets_secp._bits_ng_128
+                   | false => jets_secp._bits_ng_1
+                   end le) (@Some Values.val (Values.Vint (Integers.Int.repr candidate)))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (generator_raise_bits high) Events.E0
+         (generator_raise_temps le current candidate) m ClightBigstep.Out_normal
+### C.jet_secp_generator_bits_max.generator_raise_bits_value
+generator_raise_bits_value
+     : forall (le : Maps.PTree.tree Values.val) (current candidate : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr current)))),
+       @eq (option Values.val)
+         (@Maps.PTree.get Values.val jets_secp._bits (generator_raise_temps le current candidate))
+         (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.max current candidate))))
+### C.jet_secp_generator_bits_max.generator_raise_bits_other
+generator_raise_bits_other
+     : forall (le : Clight.temp_env) (current candidate : BinNums.Z) (id : AST.ident)
+         (_ : not (@eq AST.ident id jets_secp._bits)),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (generator_raise_temps le current candidate))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_generator_bits_max.exec_generator_bits_max
+exec_generator_bits_max
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (low high : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 low)
+                (BinInt.Z.le low
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 high)
+                (BinInt.Z.le high
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits le)
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits_ng_1 le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr low))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits_ng_128 le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr high)))),
+       and
+         (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m generator_bits_max Events.E0
+            (generator_bits_max_temps le low high) m ClightBigstep.Out_normal)
+         (and
+            (@eq (option Values.val)
+               (@Maps.PTree.get Values.val jets_secp._bits (generator_bits_max_temps le low high))
+               (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.max low high)))))
+            (forall (id : AST.ident) (_ : not (@eq AST.ident id jets_secp._bits)),
+             @eq (option Values.val) (@Maps.PTree.get Values.val id (generator_bits_max_temps le low high))
+               (@Maps.PTree.get Values.val id le)))
+### C.jet_secp_generator_bits_max.generator_raise_bits
+generator_raise_bits =
+fun high : bool =>
+let id : AST.ident :=
+  match high return AST.ident with
+  | true => jets_secp._bits_ng_128
+  | false => jets_secp._bits_ng_1
+  end in
+Clight.Sifthenelse
+  (Clight.Ebinop Cop.Ogt (Clight.Etempvar id Ctypesdefs.tint) (Clight.Etempvar jets_secp._bits Ctypesdefs.tint)
+     Ctypesdefs.tint) (Clight.Sset jets_secp._bits (Clight.Etempvar id Ctypesdefs.tint)) Clight.Sskip
+     : forall _ : bool, Clight.statement
+
+Arguments generator_raise_bits high%bool_scope
+### C.jet_secp_generator_bits_max.generator_bits_max
+generator_bits_max =
+match jet_secp_generator_split_call.generator_wnaf_setup return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ tail => tail
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_generator_bits_max.generator_raise_temps
+generator_raise_temps =
+fun (le : Clight.temp_env) (current candidate : BinNums.Z) =>
+match BinInt.Z.ltb current candidate return (Maps.PTree.tree Values.val) with
+| true => @Maps.PTree.set Values.val jets_secp._bits (Values.Vint (Integers.Int.repr candidate)) le
+| false => le
+end
+     : forall (_ : Clight.temp_env) (_ : BinNums.Z) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments generator_raise_temps le (current candidate)%Z_scope
+### C.jet_secp_generator_bits_max.generator_bits_max_temps
+generator_bits_max_temps =
+fun (le : Clight.temp_env) (low high : BinNums.Z) =>
+generator_raise_temps (generator_raise_temps le BinNums.Z0 low) low high
+     : forall (_ : Clight.temp_env) (_ : BinNums.Z) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments generator_bits_max_temps le (low high)%Z_scope

@@ -1538,12 +1538,28 @@ It returns both literal halves, denominator one, all local ownership, the
 source scalar's old permissions and framing of other old memory. There is
 no intermediate execution or result premise. The complete theorem has the
 same six inherited assumptions and no libc model. Normal compilation and
-reviewed no-update focused audits pass; independent recursive checking is
-pending. Reproduce with target/module
+reviewed no-update focused audits pass. Independent recursive kernel checking
+and no-update focused audits pass on `a50ef23d` in the task-owned verification
+worktree. Reproduce with target/module
 `C/jet_secp_generator_entry_split.vo` / `C.jet_secp_generator_entry_split`.
 This is explicitly entry, preparation, guard and split, not the following
 two wNAF calls or the complete guarded branch. Their memset boundary remains
 unresolved; public coverage stays 513/533.
+
+`jet_secp_generator_bits_max.exec_generator_bits_max` now derives the two
+original count-maximum updates after the wNAF calls. For actual returned
+counts in `[0,129]` and initial bits=0, it executes both signed comparisons
+and conditional assignments, derives bits=`Z.max low high`, preserves every
+other temporary, and leaves memory exactly unchanged. The bounds are the
+existing internal wNAF return bounds, not a restriction on public scalar
+inputs. Its generic one-update lemma is shared by the two concrete fields.
+Three source/map facts are closed, the comparison uses four inherited
+assumptions, and both execution results use six without a libc premise.
+Normal compilation and reviewed no-update focused audits pass; independent
+recursive checking is pending. Reproduce with target/module
+`C/jet_secp_generator_bits_max.vo` / `C.jet_secp_generator_bits_max`.
+This closes the final count-control segment needed by the existing point
+stage, not the preceding two actual wNAF calls or their memset boundary.
 
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
