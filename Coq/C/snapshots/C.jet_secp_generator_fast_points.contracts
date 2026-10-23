@@ -1,0 +1,301 @@
+### C.jet_secp_generator_fast_points.generator_halve_fast_matches
+generator_halve_fast_matches
+     : forall x : BinNums.Z,
+       @eq BinNums.Z (generator_halve_fast x) (jet_secp_generator_point_numeric.literal_halve_numeric x)
+### C.jet_secp_generator_fast_points.generator_double_body_fast_matches
+generator_double_body_fast_matches
+     : forall x y z : BinNums.Z,
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (generator_double_body_fast x y z)
+         (jet_secp_generator_point_numeric.literal_double_body_numeric x y z)
+### C.jet_secp_generator_fast_points.generator_double_fast_matches
+generator_double_fast_matches
+     : forall x y z : BinNums.Z,
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (generator_double_fast x y z)
+         (jet_secp_generator_point_numeric.literal_double_numeric x y z)
+### C.jet_secp_generator_fast_points.generator_mixed_values_fast_matches
+generator_mixed_values_fast_matches
+     : forall x y z bx byword : BinNums.Z,
+       @eq (prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) BinNums.Z) (generator_mixed_values_fast x y z bx byword)
+         (jet_secp_generator_point_numeric.literal_mixed_values x y z bx byword)
+### C.jet_secp_generator_fast_points.generator_mixed_nonzero_fast_matches
+generator_mixed_nonzero_fast_matches
+     : forall u v h i z : BinNums.Z,
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (generator_mixed_nonzero_fast u v h i z)
+         (jet_secp_generator_point_numeric.literal_mixed_nonzero_numeric u v h i z)
+### C.jet_secp_generator_fast_points.generator_mixed_fast_matches
+generator_mixed_fast_matches
+     : forall x y z bx byword : BinNums.Z,
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (generator_mixed_fast x y z bx byword)
+         (jet_secp_generator_point_numeric.literal_mixed_numeric x y z bx byword)
+### C.jet_secp_generator_fast_points.generator_normalization_fast_matches
+generator_normalization_fast_matches
+     : forall x y z tx ty : BinNums.Z,
+       @eq bool (generator_normalization_fast x y z tx ty)
+         (jet_secp_generator_normalization_check.generator_normalization_check x y z tx ty)
+### C.jet_secp_generator_fast_points.generator_double_fast_eval_matches
+generator_double_fast_eval_matches
+     : forall a : prod (prod BinNums.Z BinNums.Z) BinNums.Z,
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (generator_double_fast_eval a)
+         (jet_secp_generate_numeric.literal_double_eval a)
+### C.jet_secp_generator_fast_points.generator_mixed_fast_eval_matches
+generator_mixed_fast_eval_matches
+     : forall (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z) (b : prod BinNums.Z BinNums.Z),
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (generator_mixed_fast_eval a b)
+         (jet_secp_generate_numeric.literal_mixed_eval a b)
+### C.jet_secp_generator_fast_points.generator_bit_fast_matches
+generator_bit_fast_matches
+     : forall (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z) (bit : bool),
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (generator_bit_fast base a bit)
+         (jet_secp_generator_bits.literal_generate_bit base a bit)
+### C.jet_secp_generator_fast_points.generator_fold_fast_matches
+generator_fold_fast_matches
+     : forall (base : prod BinNums.Z BinNums.Z) (bits : list bool) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z),
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (@List.fold_left (prod (prod BinNums.Z BinNums.Z) BinNums.Z) bool (generator_bit_fast base) bits a)
+         (@List.fold_left (prod (prod BinNums.Z BinNums.Z) BinNums.Z) bool
+            (jet_secp_generator_bits.literal_generate_bit base) bits a)
+### C.jet_secp_generator_fast_points.generator_bits_fast_matches
+generator_bits_fast_matches
+     : forall (base : prod BinNums.Z BinNums.Z) (bits : list bool),
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (generator_bits_fast base bits)
+         (jet_secp_generator_bits.literal_generate_bits base bits)
+### C.jet_secp_generator_fast_points.generator_halve_fast
+generator_halve_fast =
+fun x : BinNums.Z =>
+match BinInt.Z.eqb (BinInt.Z.modulo x (BinNums.Zpos (BinNums.xO BinNums.xH))) BinNums.Z0 return BinNums.Z with
+| true => BinInt.Z.div x (BinNums.Zpos (BinNums.xO BinNums.xH))
+| false =>
+    jet_secp_generator_fast_field.generator_mod_fast
+      (BinInt.Z.add
+         (BinInt.Z.div (BinInt.Z.add jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH))
+            (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinInt.Z.div x (BinNums.Zpos (BinNums.xO BinNums.xH))))
+end
+     : forall _ : BinNums.Z, BinNums.Z
+
+Arguments generator_halve_fast x%Z_scope
+### C.jet_secp_generator_fast_points.generator_double_body_fast
+generator_double_body_fast =
+fun x y z : BinNums.Z =>
+let s : BinNums.Z := jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul y y) in
+let l : BinNums.Z :=
+  generator_halve_fast
+    (jet_secp_generator_fast_field.generator_mod_fast
+       (BinInt.Z.mul (BinNums.Zpos (BinNums.xI BinNums.xH))
+          (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul x x)))) in
+let t : BinNums.Z :=
+  jet_secp_generator_fast_field.generator_mod_fast
+    (BinInt.Z.sub jet_secp_fe_math.feP (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul s x))) in
+let rx : BinNums.Z :=
+  jet_secp_generator_fast_field.generator_mod_fast
+    (BinInt.Z.add
+       (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) t))
+       (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul l l))) in
+@pair (prod BinNums.Z BinNums.Z) BinNums.Z
+  (@pair BinNums.Z BinNums.Z rx
+     (jet_secp_generator_fast_field.generator_mod_fast
+        (BinInt.Z.sub jet_secp_fe_math.feP
+           (jet_secp_generator_fast_field.generator_mod_fast
+              (BinInt.Z.add
+                 (jet_secp_generator_fast_field.generator_mod_fast
+                    (BinInt.Z.mul l (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.add rx t))))
+                 (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul s s)))))))
+  (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul y z))
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z), prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments generator_double_body_fast (x y z)%Z_scope
+### C.jet_secp_generator_fast_points.generator_double_fast
+generator_double_fast =
+fun x y z : BinNums.Z =>
+match
+  orb (BinInt.Z.eqb z BinNums.Z0) (BinInt.Z.eqb z jet_secp_fe_math.feP)
+  return (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+with
+| true => @pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z BinNums.Z0 BinNums.Z0) BinNums.Z0
+| false => generator_double_body_fast x y z
+end
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z), prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments generator_double_fast (x y z)%Z_scope
+### C.jet_secp_generator_fast_points.generator_mixed_values_fast
+generator_mixed_values_fast =
+fun x y z bx byword : BinNums.Z =>
+let u : BinNums.Z :=
+  jet_secp_generator_fast_field.generator_mod_fast
+    (BinInt.Z.mul x
+       (jet_secp_generator_fast_field.generator_mod_fast
+          (BinInt.Z.mul (BinNums.Zpos BinNums.xH) (BinNums.Zpos BinNums.xH)))) in
+let v : BinNums.Z :=
+  jet_secp_generator_fast_field.generator_mod_fast
+    (BinInt.Z.mul y
+       (jet_secp_generator_fast_field.generator_mod_fast
+          (BinInt.Z.mul (BinInt.Z.mul (BinNums.Zpos BinNums.xH) (BinNums.Zpos BinNums.xH)) (BinNums.Zpos BinNums.xH))))
+  in
+let h : BinNums.Z :=
+  jet_secp_generator_fast_field.generator_mod_fast
+    (BinInt.Z.add u
+       (jet_secp_generator_fast_field.generator_mod_fast
+          (BinInt.Z.mul (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.sub jet_secp_fe_math.feP bx))
+             (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul z z))))) in
+let i : BinNums.Z :=
+  jet_secp_generator_fast_field.generator_mod_fast
+    (BinInt.Z.add v
+       (jet_secp_generator_fast_field.generator_mod_fast
+          (BinInt.Z.mul (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.sub jet_secp_fe_math.feP byword))
+             (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul (BinInt.Z.mul z z) z))))) in
+@pair (prod (prod BinNums.Z BinNums.Z) BinNums.Z) BinNums.Z
+  (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z u v) h) i
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z),
+       prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) BinNums.Z
+
+Arguments generator_mixed_values_fast (x y z bx byword)%Z_scope
+### C.jet_secp_generator_fast_points.generator_mixed_nonzero_fast
+generator_mixed_nonzero_fast =
+fun u v h i z : BinNums.Z =>
+let t : BinNums.Z :=
+  jet_secp_generator_fast_field.generator_mod_fast
+    (BinInt.Z.mul (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul h h)) u) in
+let g : BinNums.Z := jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul (BinInt.Z.mul h h) h) in
+let rx : BinNums.Z :=
+  jet_secp_generator_fast_field.generator_mod_fast
+    (BinInt.Z.add
+       (jet_secp_generator_fast_field.generator_mod_fast
+          (BinInt.Z.add g
+             (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) t))))
+       (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul i i))) in
+@pair (prod BinNums.Z BinNums.Z) BinNums.Z
+  (@pair BinNums.Z BinNums.Z rx
+     (jet_secp_generator_fast_field.generator_mod_fast
+        (BinInt.Z.add (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul g v))
+           (jet_secp_generator_fast_field.generator_mod_fast
+              (BinInt.Z.mul i
+                 (jet_secp_generator_fast_field.generator_mod_fast
+                    (BinInt.Z.add rx
+                       (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.sub jet_secp_fe_math.feP t)))))))))
+  (jet_secp_generator_fast_field.generator_mod_fast
+     (BinInt.Z.mul (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul h z))
+        (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH)))))
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z),
+       prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments generator_mixed_nonzero_fast (u v h i z)%Z_scope
+### C.jet_secp_generator_fast_points.generator_mixed_fast
+generator_mixed_fast =
+fun x y z bx byword : BinNums.Z =>
+match jet_secp_generator_point_numeric.literal_zero_numeric z return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+| true =>
+    @pair (prod BinNums.Z BinNums.Z) BinNums.Z
+      (@pair BinNums.Z BinNums.Z (jet_secp_generator_fast_field.generator_mod_fast bx)
+         (jet_secp_generator_fast_field.generator_mod_fast byword)) (BinNums.Zpos BinNums.xH)
+| false =>
+    match generator_mixed_values_fast x y z bx byword return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+    | pair p i =>
+        match p return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+        | pair p0 h =>
+            match p0 return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+            | pair u v =>
+                match
+                  jet_secp_generator_point_numeric.literal_zero_numeric h
+                  return (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+                with
+                | true =>
+                    match
+                      jet_secp_generator_point_numeric.literal_zero_numeric i
+                      return (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+                    with
+                    | true => generator_double_fast x y z
+                    | false =>
+                        @pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z BinNums.Z0 BinNums.Z0)
+                          BinNums.Z0
+                    end
+                | false => generator_mixed_nonzero_fast u v h i z
+                end
+            end
+        end
+    end
+end
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z),
+       prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments generator_mixed_fast (x y z bx byword)%Z_scope
+### C.jet_secp_generator_fast_points.generator_normalization_fast
+generator_normalization_fast =
+fun x y z tx ty : BinNums.Z =>
+andb (BinInt.Z.leb BinNums.Z0 z)
+  (andb (BinInt.Z.ltb z jet_secp_generator_fast_field.generator_mod_word_modulus)
+     (andb (negb (BinInt.Z.eqb (jet_secp_generator_fast_field.generator_mod_fast z) BinNums.Z0))
+        (andb (BinInt.Z.leb BinNums.Z0 tx)
+           (andb (BinInt.Z.ltb tx jet_secp_fe_math.feP)
+              (andb (BinInt.Z.leb BinNums.Z0 ty)
+                 (andb (BinInt.Z.ltb ty jet_secp_fe_math.feP)
+                    (andb
+                       (BinInt.Z.eqb
+                          (jet_secp_generator_fast_field.generator_mod_fast (BinInt.Z.mul (BinInt.Z.mul tx z) z))
+                          (jet_secp_generator_fast_field.generator_mod_fast x))
+                       (BinInt.Z.eqb
+                          (jet_secp_generator_fast_field.generator_mod_fast
+                             (BinInt.Z.mul (BinInt.Z.mul (BinInt.Z.mul ty z) z) z))
+                          (jet_secp_generator_fast_field.generator_mod_fast y)))))))))
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z), bool
+
+Arguments generator_normalization_fast (x y z tx ty)%Z_scope
+### C.jet_secp_generator_fast_points.generator_double_fast_eval
+generator_double_fast_eval =
+fun a : prod (prod BinNums.Z BinNums.Z) BinNums.Z =>
+match a return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+| pair p z =>
+    match p return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+    | pair x y => generator_double_fast x y z
+    end
+end
+     : forall _ : prod (prod BinNums.Z BinNums.Z) BinNums.Z, prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments generator_double_fast_eval a
+### C.jet_secp_generator_fast_points.generator_mixed_fast_eval
+generator_mixed_fast_eval =
+fun (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z) (b : prod BinNums.Z BinNums.Z) =>
+match a return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+| pair p z =>
+    match p return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+    | pair x y =>
+        match b return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+        | pair bx byword => generator_mixed_fast x y z bx byword
+        end
+    end
+end
+     : forall (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z) (_ : prod BinNums.Z BinNums.Z),
+       prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments generator_mixed_fast_eval a b
+### C.jet_secp_generator_fast_points.generator_bit_fast
+generator_bit_fast =
+fun (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z) (bit : bool) =>
+let doubled : prod (prod BinNums.Z BinNums.Z) BinNums.Z := generator_double_fast_eval a in
+match bit return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+| true => generator_mixed_fast_eval doubled base
+| false => doubled
+end
+     : forall (_ : prod BinNums.Z BinNums.Z) (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z) (_ : bool),
+       prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments generator_bit_fast base a bit%bool_scope
+### C.jet_secp_generator_fast_points.generator_bits_fast
+generator_bits_fast =
+fun (base : prod BinNums.Z BinNums.Z) (bits : list bool) =>
+match bits return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+| nil => @pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z BinNums.Z0 BinNums.Z0) BinNums.Z0
+| cons sign tail =>
+    @List.fold_left (prod (prod BinNums.Z BinNums.Z) BinNums.Z) bool (generator_bit_fast base) tail
+      match sign return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+      | true =>
+          @pair (prod BinNums.Z BinNums.Z) BinNums.Z
+            (@pair BinNums.Z BinNums.Z
+               (jet_secp_generator_fast_field.generator_mod_fast (@fst BinNums.Z BinNums.Z base))
+               (jet_secp_generator_fast_field.generator_mod_fast
+                  (BinInt.Z.sub jet_secp_fe_math.feP (@snd BinNums.Z BinNums.Z base)))) (BinNums.Zpos BinNums.xH)
+      | false =>
+          @pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z BinNums.Z0 BinNums.Z0) BinNums.Z0
+      end
+end
+     : forall (_ : prod BinNums.Z BinNums.Z) (_ : list bool), prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments generator_bits_fast base bits%list_scope

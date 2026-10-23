@@ -362,6 +362,27 @@ ordinary modulo for **all** integers, retaining a fallback) can accelerate
 these checks without changing the original numeric/literal programs or C.
 Keep the proof of point/checker equivalence when adding such an evaluator;
 do not treat benchmark success as a complete table certificate.
+
+That evaluator is now checked in `jet_secp_generator_fast_{field,points,check}`.
+The fold/clip/fuel-bounded reduction equals Z.modulo for **every** integer;
+negative and large values retain total behavior via a fallback. The point,
+bit-fold and complete prefix-checker functions are proved exactly equal to
+the existing numeric evaluators for all inputs, including every exceptional
+branch. This changes no C, literal term, generation configuration or admitted
+input domain. All nineteen exports are closed. Normal build, recursive kernel
+checking and reviewed no-update focused assumption/contract comparisons pass.
+Reproduce with target/module `C/jet_secp_generator_fast_check.vo` /
+`C.jet_secp_generator_fast_check` as above. A scratch first-128-entry check
+using this evaluator passed for both signs, about 3.4--4.4 seconds per case
+locally; this measurement is not an all-table certificate.
+
+The next certificate should use depth13, the exact two-bit signed seed
+`[neg;neg]`, and **all** 8192 decoded rows (reverse the rows for the negative
+path). Prove the valid raw wNAF digit's two equal top bits, thirteen middle
+bits and final odd bit, then relate its middle-bit ordinal to the original
+signed table index. Complete checks are required for both signs and both
+bases. The full original generator call and external ctz/memset boundaries
+remain separate from these table certificates.
 These stages do not establish the C inversion jet, its external ctz
 obligation, the table/literal correspondence, or public `generate`
 equivalence; accepted coverage remains 505/533.

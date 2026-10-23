@@ -1,0 +1,91 @@
+### C.jet_secp_generator_fast_field.generator_mod_fold_matches
+generator_mod_fold_matches
+     : forall x : BinNums.Z,
+       @eq BinNums.Z (BinInt.Z.modulo (generator_mod_fold x) jet_secp_fe_math.feP)
+         (BinInt.Z.modulo x jet_secp_fe_math.feP)
+### C.jet_secp_generator_fast_field.generator_mod_clip_matches
+generator_mod_clip_matches
+     : forall x : BinNums.Z, @eq BinNums.Z (generator_mod_clip x) (BinInt.Z.modulo x jet_secp_fe_math.feP)
+### C.jet_secp_generator_fast_field.generator_mod_reduce_matches
+generator_mod_reduce_matches
+     : forall (fuel : nat) (x : BinNums.Z),
+       @eq BinNums.Z (generator_mod_reduce fuel x) (BinInt.Z.modulo x jet_secp_fe_math.feP)
+### C.jet_secp_generator_fast_field.generator_mod_fast_matches
+generator_mod_fast_matches
+     : forall x : BinNums.Z, @eq BinNums.Z (generator_mod_fast x) (BinInt.Z.modulo x jet_secp_fe_math.feP)
+### C.jet_secp_generator_fast_field.generator_mod_word_modulus
+generator_mod_word_modulus =
+BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+  (BinNums.Zpos
+     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+     : BinNums.Z
+### C.jet_secp_generator_fast_field.generator_mod_mask
+generator_mod_mask = BinInt.Z.sub generator_mod_word_modulus (BinNums.Zpos BinNums.xH)
+     : BinNums.Z
+### C.jet_secp_generator_fast_field.generator_mod_fold
+generator_mod_fold =
+fun x : BinNums.Z =>
+BinInt.Z.add (BinInt.Z.land x generator_mod_mask)
+  (BinInt.Z.mul jet_secp_fe_math.feR
+     (BinInt.Z.shiftr x
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+     : forall _ : BinNums.Z, BinNums.Z
+
+Arguments generator_mod_fold x%Z_scope
+### C.jet_secp_generator_fast_field.generator_mod_clip
+generator_mod_clip =
+fun x : BinNums.Z =>
+match BinInt.Z.ltb x BinNums.Z0 return BinNums.Z with
+| true =>
+    match BinInt.Z.leb (BinInt.Z.opp jet_secp_fe_math.feP) x return BinNums.Z with
+    | true => BinInt.Z.add x jet_secp_fe_math.feP
+    | false =>
+        match
+          BinInt.Z.leb (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) jet_secp_fe_math.feP) x return BinNums.Z
+        with
+        | true => BinInt.Z.add x (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_fe_math.feP)
+        | false => BinInt.Z.modulo x jet_secp_fe_math.feP
+        end
+    end
+| false =>
+    match BinInt.Z.ltb x jet_secp_fe_math.feP return BinNums.Z with
+    | true => x
+    | false =>
+        match
+          BinInt.Z.ltb x (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_fe_math.feP) return BinNums.Z
+        with
+        | true => BinInt.Z.sub x jet_secp_fe_math.feP
+        | false => BinInt.Z.modulo x jet_secp_fe_math.feP
+        end
+    end
+end
+     : forall _ : BinNums.Z, BinNums.Z
+
+Arguments generator_mod_clip x%Z_scope
+### C.jet_secp_generator_fast_field.generator_mod_reduce
+generator_mod_reduce =
+fix generator_mod_reduce (fuel : nat) (x : BinNums.Z) {struct fuel} : BinNums.Z :=
+  match BinInt.Z.ltb x BinNums.Z0 return BinNums.Z with
+  | true => generator_mod_clip x
+  | false =>
+      match
+        BinInt.Z.ltb x (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_fe_math.feP) return BinNums.Z
+      with
+      | true => generator_mod_clip x
+      | false =>
+          match fuel return BinNums.Z with
+          | O => BinInt.Z.modulo x jet_secp_fe_math.feP
+          | S k => generator_mod_reduce k (generator_mod_fold x)
+          end
+      end
+  end
+     : forall (_ : nat) (_ : BinNums.Z), BinNums.Z
+
+Arguments generator_mod_reduce fuel%nat_scope x%Z_scope
+### C.jet_secp_generator_fast_field.generator_mod_fast
+generator_mod_fast = fun x : BinNums.Z => generator_mod_reduce (S (S (S O))) x
+     : forall _ : BinNums.Z, BinNums.Z
+
+Arguments generator_mod_fast x%Z_scope
