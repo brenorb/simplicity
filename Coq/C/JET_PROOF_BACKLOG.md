@@ -98,6 +98,20 @@ the readonly bounds and typed loads from the original table initializers;
 the decoder contracts do not themselves establish either initializer facts
 or the table/specification bridge below.
 
+The signed lookup's two reusable phases are now checked:
+`jet_secp_table_index` derives the actual signed C division and scaled pointer
+addition with index `(abs n-1)/2` in [0,8192) for 0<abs n<16384.
+`jet_secp_table_decode.eval_table_decode_signed` derives the decoder and,
+for a negative digit, the actual magnitude-one field negation. It retains X,
+infinity=0, owned destination88, all source typed loads, readonly permission
+bounds and full framing outside the written destination84. No normalized-
+coordinate or generator-table correctness fact is assumed. Normal builds,
+recursive kernel checks and reviewed no-update focused assumption/contract
+comparisons pass. The pure arithmetic adapters are closed; expression
+execution uses four inherited assumptions and combined table execution uses
+the same eight standing assumptions as the readonly decoder. These phases
+are not a public `generate` theorem or additional coverage.
+
 The two 8192-entry tables still need checked initializer loads and a formal
 bridge to the exact literal `generateSmall` / `generate128Small` results for
 each signed digit; neither registration nor "odd multiples of G" alone
