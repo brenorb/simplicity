@@ -1507,6 +1507,25 @@ then reuse the existing point-stage proof and public writer/cleanup. The
 actual external memset boundary remains separate; these entry/setup proofs
 do not register `generate` or increase the accepted count.
 
+`jet_secp_generator_split_call.exec_generator_scalar_split` now derives the
+actual original call inside the nonnull-ng branch, from the caller's local
+bindings, owned destinations and represented normalized scalar. It reuses
+the checked C split/literal bridge and returns both exact literal 128-bit
+words, destination ownership and framing outside the three scalar blocks.
+Its source equations retain the following original wNAF setup as a separate,
+unexecuted suffix. `jet_secp_scalar_split128_effects.scalar_split128_permissions`
+derives unchanged nextblock and all permissions by inverting the original
+function entry, eight-store body and empty release. It assumes no effect law;
+the call theorem derives the call and applies this effect result, preserving
+the source scalar's permissions for later cleanup. Three source/foot facts
+are closed; the effect and C execution results use the existing six inherited
+assumptions without a libc premise. Normal compilation and reviewed no-update
+focused audits pass; independent recursive checking is pending. Reproduce
+with target/module `C/jet_secp_generator_split_call.vo` /
+`C.jet_secp_generator_split_call`, selecting it and
+`C.jet_secp_scalar_split128_effects` for focused audits. This is not the
+whole guarded branch or public `generate`, and adds no coverage row.
+
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
 any 256-bit value. For offsets in `[0,256)`, counts in `[0,32]`, and a window
