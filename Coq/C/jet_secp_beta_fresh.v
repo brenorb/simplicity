@@ -95,8 +95,10 @@ Qed.
 Theorem beta_runs_from_actual_init (value : Ty.tySem (Word 8)) env :
  exists mi m bd bs bi bw edge mf,
  Genv.init_mem jets_secp.prog = Some mi /\ beta_initialized mi /\
+ beta_initialized m /\
  frame_fields_at m bs 0 bi edge 0 /\ frame_input_cells_at m bi edge 0 (encode value) /\
  write_frame_at m bd 0 bw 0 256 256 /\
+ (forall b chunk ofs, Mem.valid_block mi b -> Mem.load chunk m b ofs = Mem.load chunk mi b ofs) /\
  Clight2.eval_funcall secp_ge m (Internal f_simplicity_fe_multiply_beta)
    [Vptr bd Ptrofs.zero; Vptr bs Ptrofs.zero; env] E0 mf (Vint Int.one) /\
  finv m bd 0 bw 0 256 256 bi mf true (encode (@literal_fe_multiply_beta Alg.CoreFunSem value)) /\
@@ -107,7 +109,7 @@ Proof.
  destruct (beta_runs_from_initialized value env mi Ready)
    as (m & bd & bs & bi & bw & edge & mf & ReadyM & Fields & Input & Output & Before & Call & Final & ReadyF & After).
  exists mi,m,bd,bs,bi,bw,edge,mf.
- exact (conj Init (conj Ready (conj Fields (conj Input (conj Output
-   (conj Call (conj Final (conj ReadyF After)))))))).
+ exact (conj Init (conj Ready (conj ReadyM (conj Fields (conj Input (conj Output
+   (conj Before (conj Call (conj Final (conj ReadyF After)))))))))).
 Qed.
 
