@@ -60,6 +60,43 @@ rows also retain their explicitly reported libc obligation. Continue safe
 proof/verification work, but do not hide these boundaries with another model
 premise or substitute implementation.
 
+## Fresh-frame witnesses for accepted secp contracts
+
+`jet_secp_executable_registry` reuses the existing constructive frame theorem
+for all 25 later frame-only secp registrations: field/scalar arithmetic,
+point operations, predicates, equivalences and decompression. Together with
+the three original instances in `jet_frame_constructible_secp`, this covers
+all 28 currently registered frame-only secp jets. The two initialized-global
+contracts and the restricted ratio contract are deliberately not treated as
+frame-only results.
+
+For every value of each original input type, arbitrary environment argument
+and starting memory, the theorem constructs fresh input/output frames and a
+complete call of the actual C jet, returning 1 and the encoded original
+specification result, while preserving all pre-existing loads. No frame or
+intermediate execution premise is left to the caller. These existential fresh
+layouts do not replace the original general local contracts or prove whole
+evaluator admissibility, and add no jet coverage.
+
+Normal compilation and reviewed focused no-update statement/definition and
+assumption checks pass. All 29 audited exports (the generic adapter, three
+original instances and 25 new instances) retain exactly the same six inherited
+assumptions, with no extra libc model. Independent recursive kernel checking
+is pending. Reproduce the build/check with:
+
+```sh
+JET_TARGETS=C/jet_secp_executable_registry.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_executable_registry
+```
+
+Rebuilding this closure exposed context-heavy separation searches and a large
+closed symbolic-output comparison in existing dependencies. The proof-only
+repairs use structural NoDup prefix facts, explicit disjunction cases, the
+existing proved symbolic-expression recognizer, and explicit congruence types.
+Their original statements, definitions, assumptions and timeouts are unchanged;
+normal compilation and their existing no-update records pass. No target or
+generation setting was changed.
+
 ## Bitcoin value/script hash frontier
 
 `jet_bitcoin_value_hash_literal` now composes the checked original C getters

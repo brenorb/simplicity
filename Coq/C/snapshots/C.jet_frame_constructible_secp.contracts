@@ -1,0 +1,52 @@
+### C.jet_frame_constructible_secp.secp_jet_local_spec_executable
+secp_jet_local_spec_executable
+     : forall (f : Clight.function) (A B : Ty.Ty) (spec : forall _ : Ty.tySem A, Ty.tySem B)
+         (_ : jet_secp_normalize_local.secp_jet_local_spec f A B spec)
+         (_ : BinInt.Z.le (BinInt.Z.of_nat (Translate.bitSize A)) Integers.Int64.max_unsigned)
+         (_ : BinInt.Z.le (BinInt.Z.of_nat (Translate.bitSize B)) Integers.Int64.max_unsigned),
+       secp_jet_runs_on_fresh_frames f A B spec
+### C.jet_frame_constructible_secp.fe_normalize_local_spec_executable
+fe_normalize_local_spec_executable
+     : secp_jet_runs_on_fresh_frames jets_secp.f_simplicity_fe_normalize (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem)
+### C.jet_frame_constructible_secp.fe_odd_local_spec_executable
+fe_odd_local_spec_executable
+     : secp_jet_runs_on_fresh_frames jets_secp.f_simplicity_fe_is_odd (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (Ty.Sum Ty.Unit Ty.Unit) (@jet_secp_canonical_odd.canonical_fe_is_odd Alg.CoreFunSem)
+### C.jet_frame_constructible_secp.fe_zero_local_spec_executable
+fe_zero_local_spec_executable
+     : secp_jet_runs_on_fresh_frames jets_secp.f_simplicity_fe_is_zero (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (Ty.Sum Ty.Unit Ty.Unit) (@jet_secp_canonical_zero.canonical_fe_is_zero Alg.CoreFunSem)
+### C.jet_frame_constructible_secp.secp_jet_runs_on_fresh_frames
+secp_jet_runs_on_fresh_frames =
+fun (f : Clight.function) (A B : Ty.Ty) (spec : forall _ : Ty.tySem A, Ty.tySem B) =>
+forall (a : Ty.tySem A) (env : Values.val) (m0 : Memory.Mem.mem),
+@ex Memory.Mem.mem
+  (fun m : Memory.Mem.mem =>
+   @ex Values.block
+     (fun bd : Values.block =>
+      @ex Values.block
+        (fun bs : Values.block =>
+         @ex Values.block
+           (fun bw : Values.block =>
+            @ex Memory.Mem.mem
+              (fun mf : Memory.Mem.mem =>
+               and
+                 (forall (b : Values.block) (chunk : AST.memory_chunk) (ofs : BinNums.Z)
+                    (_ : Memory.Mem.valid_block m0 b),
+                  @eq (option Values.val) (Memory.Mem.load chunk m b ofs) (Memory.Mem.load chunk m0 b ofs))
+                 (and
+                    (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m (@Ctypes.Internal Clight.function f)
+                       (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr BinNums.Z0))
+                          (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr BinNums.Z0))
+                             (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+                    (and
+                       (jet_encoding.frame_output_cells_at mf bw BinNums.Z0 (BinInt.Z.of_nat (Translate.bitSize B))
+                          (@Translate.encode B (spec a)))
+                       (forall (b : Values.block) (chunk : AST.memory_chunk) (ofs : BinNums.Z)
+                          (_ : Memory.Mem.valid_block m0 b),
+                        @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m0 b ofs)))))))))
+     : forall (_ : Clight.function) (A B : Ty.Ty) (_ : forall _ : Ty.tySem A, Ty.tySem B), Prop
+
+Arguments secp_jet_runs_on_fresh_frames f (A B)%ty_scope spec%function_scope
