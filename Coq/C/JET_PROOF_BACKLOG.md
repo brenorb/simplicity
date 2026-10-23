@@ -259,11 +259,46 @@ comparisons pass for all three modules. Reproduce with target/module
 `C/jet_secp_generate_numeric.vo` / `C.jet_secp_generate_numeric` as above;
 its closure includes both supporting modules.
 
-Next build small checked table-normalization certificates, then explicitly
-share exact signed binary prefixes and traverse the table rows structurally
-before scaling to both complete frozen tables. Avoid repeated large `nth`
-lookups and recomputing an entire signed generation for each entry. A few
-successful entries do not constitute the all-digit table bridge.
+`jet_secp_generator_table_samples` now proves exact literal word equalities
+for the actual first two frozen entries, for both signs and both tables
+(digits +1,+3,-1,-3). Its numeric certificates are closed; its literal lifts
+use only inherited functional extensionality. These eight cases are **not**
+an exhaustive table certificate or a public C `generate` theorem.
+
+`jet_secp_generator_bits` derives serial bit-fold evaluation and exact unsigned
+bit values from the existing signed recursion at every width.
+`jet_secp_generator_prefix.generator_prefix_values_lookup` proves the shared
+prefix evaluator's indexed result for **every** bit path of its depth. Each
+node computes one double and shares it across its zero/one continuations;
+negative prefixes retain their exact Jacobian state. All ten bit/prefix
+exports are closed. Normal compilation, recursive kernel checking and
+reviewed no-update focused assumption/contract comparisons pass for these
+three modules. Reproduce the combined closure:
+
+```sh
+JET_TARGETS='C/jet_secp_generator_prefix.vo C/jet_secp_generator_table_samples.vo' bash Coq/build-jets.sh -j1
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_generator_prefix C.jet_secp_generator_table_samples
+```
+
+Next traverse the initializer structurally in eight-word rows (prove complete
+length and indexed correspondence), connect the signed bit-prefix ordinal to
+the actual table index, and certify both complete tables. Avoid repeated large
+`nth` lookups. Exploratory shared-prefix blocks show that direct literal EEA
+evaluation is still expensive: a four-entry block passed for both signs/bases,
+but a sixteen-entry negative block exceeded the ten-second exploratory limit.
+Do not launch the full table sweep without addressing that measured cost.
+
+A useful next optimization is a proved inverse bridge for the **actual** EEA
+run on canonical nonzero Z, then table-leaf checks by nonzero Z, canonical
+table-coordinate bounds and rescaled-coordinate equalities. This avoids
+evaluating an entire Bezout run at every leaf, but requires a real EEA proof,
+not an assumed inverse: initial rows satisfy `a*p-b*z=c`, `d*p-e*z=-f`,
+`a*f+d*c=z` and `b*f+e*c=p`. Prove preservation, coefficient bounds (hence
+no word-wrap), termination within the actual 512 steps and coefficient
+selection/range; reuse the checked field-prime result for inverse uniqueness.
+The existing exact numeric evaluator and small samples remain valid if this
+optimization is developed; do not replace the frozen literal term.
 These stages do not establish the C inversion jet, its external ctz
 obligation, the table/literal correspondence, or public `generate`
 equivalence; accepted coverage remains 505/533.

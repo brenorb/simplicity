@@ -1,0 +1,59 @@
+### C.jet_secp_generator_prefix.generator_path_index_bound
+generator_path_index_bound
+     : forall bits : list bool, lt (generator_path_index bits) (PeanoNat.Nat.pow (S (S O)) (@length bool bits))
+### C.jet_secp_generator_prefix.generator_prefix_values_length
+generator_prefix_values_length
+     : forall (depth : nat) (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z),
+       @eq nat (@length (prod BinNums.Z BinNums.Z) (generator_prefix_values depth base a))
+         (PeanoNat.Nat.pow (S (S O)) depth)
+### C.jet_secp_generator_prefix.generator_prefix_values_lookup
+generator_prefix_values_lookup
+     : forall (depth : nat) (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (bits : list bool) (default : prod BinNums.Z BinNums.Z) (_ : @eq nat (@length bool bits) depth),
+       @eq (prod BinNums.Z BinNums.Z)
+         (@List.nth (prod BinNums.Z BinNums.Z) (generator_path_index bits) (generator_prefix_values depth base a)
+            default)
+         (generator_odd_leaf base
+            (@List.fold_left (prod (prod BinNums.Z BinNums.Z) BinNums.Z) bool
+               (jet_secp_generator_bits.literal_generate_bit base) bits a))
+### C.jet_secp_generator_prefix.generator_path_index_value
+generator_path_index_value
+     : forall bits : list bool,
+       @eq BinNums.Z (BinInt.Z.of_nat (generator_path_index bits)) (jet_secp_generator_bits.generator_bits_value bits)
+### C.jet_secp_generator_prefix.generator_path_index
+generator_path_index =
+fix generator_path_index (bits : list bool) : nat :=
+  match bits return nat with
+  | nil => O
+  | cons bit tail =>
+      Nat.add match bit return nat with
+              | true => PeanoNat.Nat.pow (S (S O)) (@length bool tail)
+              | false => O
+              end (generator_path_index tail)
+  end
+     : forall _ : list bool, nat
+
+Arguments generator_path_index bits%list_scope
+### C.jet_secp_generator_prefix.generator_odd_leaf
+generator_odd_leaf =
+fun (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z) =>
+jet_secp_generate_numeric.literal_norm_fast (jet_secp_generator_bits.literal_generate_bit base a true)
+     : forall (_ : prod BinNums.Z BinNums.Z) (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z), prod BinNums.Z BinNums.Z
+
+Arguments generator_odd_leaf base a
+### C.jet_secp_generator_prefix.generator_prefix_values
+generator_prefix_values =
+fix generator_prefix_values
+  (depth : nat) (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z) {struct depth} :
+    list (prod BinNums.Z BinNums.Z) :=
+  match depth return (list (prod BinNums.Z BinNums.Z)) with
+  | O => @cons (prod BinNums.Z BinNums.Z) (generator_odd_leaf base a) (@nil (prod BinNums.Z BinNums.Z))
+  | S k =>
+      let doubled : prod (prod BinNums.Z BinNums.Z) BinNums.Z := jet_secp_generate_numeric.literal_double_eval a in
+      @app (prod BinNums.Z BinNums.Z) (generator_prefix_values k base doubled)
+        (generator_prefix_values k base (jet_secp_generate_numeric.literal_mixed_eval doubled base))
+  end
+     : forall (_ : nat) (_ : prod BinNums.Z BinNums.Z) (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z),
+       list (prod BinNums.Z BinNums.Z)
+
+Arguments generator_prefix_values depth%nat_scope base a

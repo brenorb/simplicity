@@ -1,0 +1,142 @@
+### C.jet_secp_generator_bits.literal_generator_bits_length
+literal_generator_bits_length
+     : forall (n : nat) (word : Ty.tySem (Word.Word n)),
+       @eq nat (@length bool (literal_generator_bits n word)) (PeanoNat.Nat.pow (S (S O)) n)
+### C.jet_secp_generator_bits.literal_generator_bits_nonempty
+literal_generator_bits_nonempty
+     : forall (n : nat) (word : Ty.tySem (Word.Word n)),
+       not (@eq (list bool) (literal_generator_bits n word) (@nil bool))
+### C.jet_secp_generator_bits.literal_scale_numeric_bits
+literal_scale_numeric_bits
+     : forall (n : nat) (base : prod BinNums.Z BinNums.Z) (word : Ty.tySem (Word.Word n))
+         (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z),
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (jet_secp_generate_numeric.literal_scale_numeric n base word a)
+         (@List.fold_left (prod (prod BinNums.Z BinNums.Z) BinNums.Z) bool (literal_generate_bit base)
+            (literal_generator_bits n word) a)
+### C.jet_secp_generator_bits.literal_generate_signed_numeric_bits
+literal_generate_signed_numeric_bits
+     : forall (n : nat) (base : prod BinNums.Z BinNums.Z) (word : Ty.tySem (Word.Word n)),
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (jet_secp_generate_numeric.literal_generate_signed_numeric n base word)
+         (literal_generate_bits base (literal_generator_bits n word))
+### C.jet_secp_generator_bits.generator_bits_value_app
+generator_bits_value_app
+     : forall xs ys : list bool,
+       @eq BinNums.Z (generator_bits_value (@app bool xs ys))
+         (BinInt.Z.add
+            (BinInt.Z.mul (generator_bits_value xs)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat (@length bool ys))))
+            (generator_bits_value ys))
+### C.jet_secp_generator_bits.literal_generator_bits_value
+literal_generator_bits_value
+     : forall (n : nat) (word : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z (generator_bits_value (literal_generator_bits n word))
+         (@Word.ToZ.Theory.toZ (Word.WordToZ n) word)
+### C.jet_secp_generator_bits.literal_generator_bits
+literal_generator_bits =
+fix literal_generator_bits (n : nat) : forall _ : Ty.tySem (Word.Word n), list bool :=
+  match n as k return (forall _ : Ty.tySem (Word.Word k), list bool) with
+  | O => fun bit : Ty.tySem (Word.Word O) => @cons bool (Bit.toBool bit) (@nil bool)
+  | S k =>
+      fun word : Ty.tySem (Word.Word (S k)) =>
+      @app bool
+        (literal_generator_bits k
+           (@fst
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k))
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k)) word))
+        (literal_generator_bits k
+           (@snd
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k))
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k)) word))
+  end
+     : forall (n : nat) (_ : Ty.tySem (Word.Word n)), list bool
+
+Arguments literal_generator_bits n%nat_scope _
+### C.jet_secp_generator_bits.literal_generate_bit
+literal_generate_bit =
+fun (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z) (bit : bool) =>
+let doubled : prod (prod BinNums.Z BinNums.Z) BinNums.Z := jet_secp_generate_numeric.literal_double_eval a in
+match bit return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+| true => jet_secp_generate_numeric.literal_mixed_eval doubled base
+| false => doubled
+end
+     : forall (_ : prod BinNums.Z BinNums.Z) (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z) (_ : bool),
+       prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments literal_generate_bit base a bit%bool_scope
+### C.jet_secp_generator_bits.literal_generate_bits
+literal_generate_bits =
+fun (base : prod BinNums.Z BinNums.Z) (bits : list bool) =>
+match bits return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+| nil => @pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z BinNums.Z0 BinNums.Z0) BinNums.Z0
+| cons sign tail =>
+    @List.fold_left (prod (prod BinNums.Z BinNums.Z) BinNums.Z) bool (literal_generate_bit base) tail
+      match sign return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+      | true =>
+          @pair (prod BinNums.Z BinNums.Z) BinNums.Z
+            (@pair BinNums.Z BinNums.Z (BinInt.Z.modulo (@fst BinNums.Z BinNums.Z base) jet_secp_fe_math.feP)
+               (BinInt.Z.modulo (BinInt.Z.sub jet_secp_fe_math.feP (@snd BinNums.Z BinNums.Z base))
+                  jet_secp_fe_math.feP)) (BinNums.Zpos BinNums.xH)
+      | false =>
+          @pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z BinNums.Z0 BinNums.Z0) BinNums.Z0
+      end
+end
+     : forall (_ : prod BinNums.Z BinNums.Z) (_ : list bool), prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments literal_generate_bits base bits%list_scope
+### C.jet_secp_generator_bits.generator_bits_value
+generator_bits_value =
+fix generator_bits_value (bits : list bool) : BinNums.Z :=
+  match bits return BinNums.Z with
+  | nil => BinNums.Z0
+  | cons bit tail =>
+      BinInt.Z.add
+        (BinInt.Z.mul match bit return BinNums.Z with
+                      | true => BinNums.Zpos BinNums.xH
+                      | false => BinNums.Z0
+                      end (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat (@length bool tail))))
+        (generator_bits_value tail)
+  end
+     : forall _ : list bool, BinNums.Z
+
+Arguments generator_bits_value bits%list_scope

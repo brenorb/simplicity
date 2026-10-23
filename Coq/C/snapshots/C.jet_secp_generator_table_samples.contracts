@@ -1,0 +1,76 @@
+### C.jet_secp_generator_table_samples.generator_table_first_numeric
+generator_table_first_numeric
+     : forall high neg : bool,
+       @eq (prod BinNums.Z BinNums.Z)
+         (jet_secp_generate_numeric.literal_generate_small_fast high
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+               match neg return BinNums.Z with
+               | true => BinNums.Zneg BinNums.xH
+               | false => BinNums.Zpos BinNums.xH
+               end)) (generator_entry_signed_numeric high O neg)
+### C.jet_secp_generator_table_samples.generator_table_second_numeric
+generator_table_second_numeric
+     : forall high neg : bool,
+       @eq (prod BinNums.Z BinNums.Z)
+         (jet_secp_generate_numeric.literal_generate_small_fast high
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+               match neg return BinNums.Z with
+               | true => BinNums.Zneg (BinNums.xI BinNums.xH)
+               | false => BinNums.Zpos (BinNums.xI BinNums.xH)
+               end)) (generator_entry_signed_numeric high (S O) neg)
+### C.jet_secp_generator_table_samples.generator_table_first_literal
+generator_table_first_literal
+     : forall high neg : bool,
+       @eq (Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (@jet_secp_generate_literal.literal_generate_small high Alg.CoreFunSem
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+               match neg return BinNums.Z with
+               | true => BinNums.Zneg BinNums.xH
+               | false => BinNums.Zpos BinNums.xH
+               end))
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@fst BinNums.Z BinNums.Z (generator_entry_signed_numeric high O neg)))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@snd BinNums.Z BinNums.Z (generator_entry_signed_numeric high O neg))))
+### C.jet_secp_generator_table_samples.generator_table_second_literal
+generator_table_second_literal
+     : forall high neg : bool,
+       @eq (Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (@jet_secp_generate_literal.literal_generate_small high Alg.CoreFunSem
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+               match neg return BinNums.Z with
+               | true => BinNums.Zneg (BinNums.xI BinNums.xH)
+               | false => BinNums.Zpos (BinNums.xI BinNums.xH)
+               end))
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@fst BinNums.Z BinNums.Z (generator_entry_signed_numeric high (S O) neg)))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@snd BinNums.Z BinNums.Z (generator_entry_signed_numeric high (S O) neg))))
+### C.jet_secp_generator_table_samples.generator_entry_numeric
+generator_entry_numeric =
+fun (high : bool) (index : nat) =>
+@pair BinNums.Z BinNums.Z
+  (jet_secp_storage_numeric.field_storage_value (jet_secp_generator_globals.generator_entry_words high index))
+  (jet_secp_storage_numeric.field_storage_value
+     (fun i : nat => jet_secp_generator_globals.generator_entry_words high index (Nat.add (S (S (S (S O)))) i)))
+     : forall (_ : bool) (_ : nat), prod BinNums.Z BinNums.Z
+
+Arguments generator_entry_numeric high%bool_scope index%nat_scope
+### C.jet_secp_generator_table_samples.generator_entry_signed_numeric
+generator_entry_signed_numeric =
+fun (high : bool) (index : nat) (neg : bool) =>
+match generator_entry_numeric high index return (prod BinNums.Z BinNums.Z) with
+| pair x y =>
+    @pair BinNums.Z BinNums.Z x
+      match neg return BinNums.Z with
+      | true => BinInt.Z.modulo (BinInt.Z.sub jet_secp_fe_math.feP y) jet_secp_fe_math.feP
+      | false => y
+      end
+end
+     : forall (_ : bool) (_ : nat) (_ : bool), prod BinNums.Z BinNums.Z
+
+Arguments generator_entry_signed_numeric high%bool_scope index%nat_scope neg%bool_scope
