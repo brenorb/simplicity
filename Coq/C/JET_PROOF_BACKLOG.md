@@ -92,12 +92,6 @@ JET_TARGETS=C/jet_secp_affine_storage_frame.vo bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_affine_storage_frame
 ```
 
-Next compose signed `ecmult_table_get_ge_storage` with the exact decoder and
-magnitude-one negation, including the real index arithmetic. Also derive
-the readonly bounds and typed loads from the original table initializers;
-the decoder contracts do not themselves establish either initializer facts
-or the table/specification bridge below.
-
 The signed lookup's two reusable phases are now checked:
 `jet_secp_table_index` derives the actual signed C division and scaled pointer
 addition with index `(abs n-1)/2` in [0,8192) for 0<abs n<16384.
@@ -111,6 +105,28 @@ comparisons pass. The pure arithmetic adapters are closed; expression
 execution uses four inherited assumptions and combined table execution uses
 the same eight standing assumptions as the readonly decoder. These phases
 are not a public `generate` theorem or additional coverage.
+
+`jet_secp_table_call.eval_ecmult_table_get_ge_storage` now derives the whole
+original lookup call at the generator caller's width15: entry, all three
+original assertion loops, signed branch/index computation, original decoder,
+optional original Y negation, void return and empty-local release. It accepts
+every 0<abs n<16384 (in particular every reachable nonzero wNAF15 digit), with
+the selected eight readable words and actual readonly block bounds. No helper
+call, desired coordinate, execution or intermediate memory is an input
+premise. It retains exact signed-coordinate machine limbs, infinity=0,
+destination ownership, source loads, readonly bounds and full external
+framing. Normal build, recursive kernel checking and reviewed no-update
+focused assumption/contract comparisons pass; its combined endpoint uses the
+same eight standing inherited assumptions as the table decoder. Reproduce:
+
+```sh
+JET_TARGETS=C/jet_secp_table_call.vo bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_table_call
+```
+
+Next derive source loads and readonly bounds from the actual initializers,
+and prove the table/specification bridge below. Full public `generate`
+equivalence is not yet established.
 
 The two 8192-entry tables still need checked initializer loads and a formal
 bridge to the exact literal `generateSmall` / `generate128Small` results for

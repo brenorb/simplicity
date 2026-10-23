@@ -1,0 +1,386 @@
+### C.jet_secp_table_call.table_lookup_body_source
+table_lookup_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_ecmult_table_get_ge_storage) table_lookup_body
+### C.jet_secp_table_call.table_positive_value
+table_positive_value
+     : forall (n : BinNums.Z) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr n))))
+         (_ : and
+                (BinInt.Z.lt
+                   (BinNums.Zneg
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+                   n)
+                (BinInt.Z.lt n
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m table_positive_expr
+         (Values.Vint
+            match BinInt.Z.ltb BinNums.Z0 n return Integers.Int.int with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+### C.jet_secp_table_call.exec_table_decode_call
+exec_table_decode_call
+     : forall (neg : bool) (n : BinNums.Z) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (bout bin : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr bout Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._pre le)
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr n))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 (jet_secp_table_index.table_magnitude neg n))
+                (BinInt.Z.lt (jet_secp_table_index.table_magnitude neg n)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                         (jet_secp_table_index.table_storage_index n)))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_from_storage)
+                (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      (Values.Vptr bin
+                         (Integers.Ptrofs.repr
+                            (BinInt.Z.add base
+                               (BinInt.Z.mul
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                  (jet_secp_table_index.table_storage_index n))))) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m (table_decode_stmt neg) Events.E0
+         le mf ClightBigstep.Out_normal
+### C.jet_secp_table_call.exec_table_negate_call
+exec_table_negate_call
+     : forall (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bout : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr bout Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_negate)
+                (@cons Values.val
+                   (Values.Vptr bout
+                      (Integers.Ptrofs.repr
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                   (@cons Values.val
+                      (Values.Vptr bout
+                         (Integers.Ptrofs.repr
+                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                      (@cons Values.val (Values.Vint Integers.Int.one) (@nil Values.val)))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m table_negate_stmt Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_secp_table_call.exec_table_lookup_branch
+exec_table_lookup_branch
+     : forall (n : BinNums.Z) (le : Maps.PTree.tree Values.val) (m md mf : Memory.Mem.mem)
+         (bout bin : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr bout Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._pre le)
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr n))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 (BinInt.Z.abs n))
+                (BinInt.Z.lt (BinInt.Z.abs n)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                         (jet_secp_table_index.table_storage_index n)))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_from_storage)
+                (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      (Values.Vptr bin
+                         (Integers.Ptrofs.repr
+                            (BinInt.Z.add base
+                               (BinInt.Z.mul
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                  (jet_secp_table_index.table_storage_index n))))) (@nil Values.val))) Events.E0 md
+                Values.Vundef)
+         (_ : match negb (BinInt.Z.ltb BinNums.Z0 n) return Prop with
+              | true =>
+                  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge md
+                    (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_negate)
+                    (@cons Values.val
+                       (Values.Vptr bout
+                          (Integers.Ptrofs.repr
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                       (@cons Values.val
+                          (Values.Vptr bout
+                             (Integers.Ptrofs.repr
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                          (@cons Values.val (Values.Vint Integers.Int.one) (@nil Values.val)))) Events.E0 mf
+                    Values.Vundef
+              | false => @eq Memory.Mem.mem mf md
+              end),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m table_lookup_branch Events.E0 le
+         mf ClightBigstep.Out_normal
+### C.jet_secp_table_call.exec_table_lookup_body
+exec_table_lookup_body
+     : forall (n : BinNums.Z) (le : Maps.PTree.tree Values.val) (m md mf : Memory.Mem.mem)
+         (bout bin : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr bout Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._pre le)
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr n))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 (BinInt.Z.abs n))
+                (BinInt.Z.lt (BinInt.Z.abs n)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                         (jet_secp_table_index.table_storage_index n)))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_from_storage)
+                (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      (Values.Vptr bin
+                         (Integers.Ptrofs.repr
+                            (BinInt.Z.add base
+                               (BinInt.Z.mul
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                  (jet_secp_table_index.table_storage_index n))))) (@nil Values.val))) Events.E0 md
+                Values.Vundef)
+         (_ : match negb (BinInt.Z.ltb BinNums.Z0 n) return Prop with
+              | true =>
+                  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge md
+                    (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_negate)
+                    (@cons Values.val
+                       (Values.Vptr bout
+                          (Integers.Ptrofs.repr
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                       (@cons Values.val
+                          (Values.Vptr bout
+                             (Integers.Ptrofs.repr
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                          (@cons Values.val (Values.Vint Integers.Int.one) (@nil Values.val)))) Events.E0 mf
+                    Values.Vundef
+              | false => @eq Memory.Mem.mem mf md
+              end),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m table_lookup_body Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_secp_table_call.table_lookup_entry
+table_lookup_entry
+     : forall (n : BinNums.Z) (m : Memory.Mem.mem) (bout bin : Values.block) (base : BinNums.Z),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_ecmult_table_get_ge_storage
+         (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+            (@cons Values.val (Values.Vptr bin (Integers.Ptrofs.repr base))
+               (@cons Values.val (Values.Vint (Integers.Int.repr n))
+                  (@cons Values.val
+                     (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                     (@nil Values.val))))) m Clight.empty_env (table_lookup_temps n bout bin base) m
+### C.jet_secp_table_call.eval_ecmult_table_get_ge_storage
+eval_ecmult_table_get_ge_storage
+     : forall (n : BinNums.Z) (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem)
+         (bout bin : Values.block) (base lo hi : BinNums.Z)
+         (_ : and (BinInt.Z.lt BinNums.Z0 (BinInt.Z.abs n))
+                (BinInt.Z.lt (BinInt.Z.abs n)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 base) (_ : not (@eq Values.block bout bin))
+         (_ : Memory.Mem.range_perm m bout BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : jet_secp_affine_storage.affine_storage_readable m bin
+                (BinInt.Z.add base
+                   (BinInt.Z.mul
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (jet_secp_table_index.table_storage_index n))) w)
+         (_ : jet_clight_readonly_frame.readonly_region_bounds m bin lo hi),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ecmult_table_get_ge_storage)
+               (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bin (Integers.Ptrofs.repr base))
+                     (@cons Values.val (Values.Vint (Integers.Int.repr n))
+                        (@cons Values.val
+                           (Values.Vint
+                              (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                           (@nil Values.val))))) Events.E0 mf Values.Vundef)
+            (and
+               (Memory.Mem.range_perm mf bout BinNums.Z0
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                  Memtype.Cur Memtype.Freeable)
+               (and
+                  (forall k : bool,
+                   jet_secp_fe_nv.fe_at mf bout
+                     match k return BinNums.Z with
+                     | true => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+                     | false => BinNums.Z0
+                     end (jet_secp_table_decode.table_signed_coordinate w (negb (BinInt.Z.ltb BinNums.Z0 n)) k))
+                  (and
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint32 mf bout
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (@Some Values.val (Values.Vint Integers.Int.zero)))
+                     (and
+                        (jet_secp_affine_storage.affine_storage_readable mf bin
+                           (BinInt.Z.add base
+                              (BinInt.Z.mul
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                 (jet_secp_table_index.table_storage_index n))) w)
+                        (and (jet_clight_readonly_frame.readonly_region_bounds mf bin lo hi)
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (pos : BinNums.Z) =>
+                               or (not (@eq Values.block b bout))
+                                 (or (BinInt.Z.lt pos BinNums.Z0)
+                                    (BinInt.Z.le
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                       pos))) m mf)))))))
+### C.jet_secp_table_call.table_positive_expr
+table_positive_expr =
+Clight.Ebinop Cop.Ogt (Clight.Etempvar jets_secp._n Ctypesdefs.tint)
+  (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_secp_table_call.table_decode_stmt
+table_decode_stmt =
+fun neg : bool =>
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_ge_from_storage jets_secp.f_secp256k1_ge_from_storage
+  (@None AST.ident)
+  (@cons Clight.expr (Clight.Etempvar jets_secp._r (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr)))
+     (@cons Clight.expr (jet_secp_table_index.table_entry_expr neg) (@nil Clight.expr)))
+     : forall _ : bool, Clight.statement
+
+Arguments table_decode_stmt neg%bool_scope
+### C.jet_secp_table_call.table_y_expr
+table_y_expr =
+Clight.Eaddrof
+  (Clight.Efield
+     (Clight.Ederef (Clight.Etempvar jets_secp._r (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr)))
+        (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr)) jets_secp._y (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr))
+  (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr))
+     : Clight.expr
+### C.jet_secp_table_call.table_negate_stmt
+table_negate_stmt =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_negate jets_secp.f_secp256k1_fe_negate
+  (@None AST.ident)
+  (@cons Clight.expr table_y_expr
+     (@cons Clight.expr table_y_expr
+        (@cons Clight.expr (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint)
+           (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_secp_table_call.table_lookup_branch
+table_lookup_branch =
+Clight.Sifthenelse table_positive_expr (table_decode_stmt false)
+  (Clight.Ssequence (table_decode_stmt true) table_negate_stmt)
+     : Clight.statement
+### C.jet_secp_table_call.table_lookup_body
+table_lookup_body =
+Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+  (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+     (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak) table_lookup_branch))
+     : Clight.statement
+### C.jet_secp_table_call.table_lookup_temps
+table_lookup_temps =
+fun (n : BinNums.Z) (bout bin : Values.block) (base : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_secp._w
+  (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+  (@Maps.PTree.set Values.val jets_secp._n (Values.Vint (Integers.Int.repr n))
+     (@Maps.PTree.set Values.val jets_secp._pre (Values.Vptr bin (Integers.Ptrofs.repr base))
+        (@Maps.PTree.set Values.val jets_secp._r (Values.Vptr bout Integers.Ptrofs.zero)
+           (Clight.create_undef_temps (@nil (prod AST.ident Ctypes.type))))))
+     : forall (_ : BinNums.Z) (_ : Values.block) (_ : Values.block) (_ : BinNums.Z), Clight.temp_env
+
+Arguments table_lookup_temps n%Z_scope bout bin base%Z_scope
