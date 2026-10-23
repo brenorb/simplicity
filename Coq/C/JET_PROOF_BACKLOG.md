@@ -600,6 +600,18 @@ the commands above with `jet_secp_wnaf_literal_skip` in place of
 `jet_secp_wnaf_literal`. Odd-digit next-state/encoding and full-vector
 composition remain unfinished.
 
+`jet_secp_wnaf_literal_mask.exec_wnaf_literal_digit15` executes the original
+full 15-bit window reader and digit store, deriving that the stored signed
+integer equals the exact literal step's raw Word16 digit. The pure mask,
+low-word projection, oddness and residual-word bridges are closed; execution
+retains six inherited assumptions. Normal build, recursive kernel checking
+and focused no-update assumption/contract comparisons pass; reproduce with
+the same commands using `jet_secp_wnaf_literal_mask`. The endpoint needs
+the current positive literal payload represented by `n / 2^bit + carry`;
+it derives the digit, not the literal next state. Truncated final windows,
+the odd next-state equation and full-vector composition remain unfinished;
+there is no new public-jet coverage.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the

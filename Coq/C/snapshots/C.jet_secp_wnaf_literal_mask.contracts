@@ -1,0 +1,539 @@
+### C.jet_secp_wnaf_literal_mask.wnaf_mask_arithmetic
+wnaf_mask_arithmetic
+     : forall (hi sign tail : BinNums.Z)
+         (_ : or (@eq BinNums.Z hi BinNums.Z0) (@eq BinNums.Z hi (BinNums.Zpos BinNums.xH)))
+         (_ : or (@eq BinNums.Z sign BinNums.Z0) (@eq BinNums.Z sign (BinNums.Zpos BinNums.xH)))
+         (_ : and (BinInt.Z.le BinNums.Z0 tail)
+                (BinInt.Z.lt tail
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))),
+       @eq BinNums.Z
+         (jet_secp_wnaf_digit.wnaf_digit
+            (BinInt.Z.modulo
+               (BinInt.Z.add
+                  (BinInt.Z.add
+                     (BinInt.Z.mul
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))
+                        hi)
+                     (BinInt.Z.mul
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+                        sign)) tail)
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+            (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))
+         (BinInt.Z.sub tail
+            (BinInt.Z.mul
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+               sign))
+### C.jet_secp_wnaf_literal_mask.literal_wnaf_low16_value
+literal_wnaf_low16_value
+     : forall word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))),
+       @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S O))))) (literal_wnaf_low16 word))
+         (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))))
+### C.jet_secp_wnaf_literal_mask.literal_wnaf15_odd_digit
+literal_wnaf15_odd_digit
+     : forall (sign : sum unit unit)
+         (word : Ty.tySem (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+         (_ : @eq (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+                (@Word.rightmost (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))) Alg.CoreFunSem word)
+                (@inr unit unit tt)),
+       @eq
+         (sum unit
+            ((fix tySem (X : Ty.Ty) : Set :=
+                match X return Set with
+                | Ty.Unit => unit
+                | Ty.Sum A B => sum (tySem A) (tySem B)
+                | Ty.Prod A B => prod (tySem A) (tySem B)
+                end) (Word.Word (S (S (S (S O)))))))
+         (@snd
+            (prod (sum unit unit)
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) (Word.Word (S (S (S (S (S (S (S O))))))))))
+            (sum unit
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) (Word.Word (S (S (S (S O)))))))
+            (@jet_secp_wnaf_literal.literal_wnaf15_step Alg.CoreFunSem
+               (@pair (sum unit unit) (Ty.tySem (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                  sign word)))
+         (@inr unit (Ty.tySem (Word.Word (S (S (S (S O))))))
+            (@jet_secp_wnaf_literal.literal_wnaf_mask15 Alg.CoreFunSem (literal_wnaf_low16 word)))
+### C.jet_secp_wnaf_literal_mask.literal_wnaf_mask15_signed
+literal_wnaf_mask15_signed
+     : forall word : Ty.tySem (Word.Word (S (S (S (S O))))),
+       @eq BinNums.Z (literal_wnaf_signed16 (@jet_secp_wnaf_literal.literal_wnaf_mask15 Alg.CoreFunSem word))
+         (jet_secp_wnaf_digit.wnaf_digit
+            (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S O))))) word)
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+            (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))
+### C.jet_secp_wnaf_literal_mask.literal_wnaf15_odd_digit_numeric
+literal_wnaf15_odd_digit_numeric
+     : forall (sign : sum unit unit)
+         (word : Ty.tySem (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+         (_ : @eq (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+                (@Word.rightmost (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))) Alg.CoreFunSem word)
+                (@inr unit unit tt)),
+       @ex (Ty.tySem (Word.Word (S (S (S (S O))))))
+         (fun digit : Ty.tySem (Word.Word (S (S (S (S O))))) =>
+          and
+            (@eq
+               (sum unit
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S O)))))))
+               (@snd
+                  (prod (sum unit unit)
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S (S O))))))))))
+                  (sum unit
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S O)))))))
+                  (@jet_secp_wnaf_literal.literal_wnaf15_step Alg.CoreFunSem
+                     (@pair (sum unit unit)
+                        (Ty.tySem (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))) sign word)))
+               (@inr unit (Ty.tySem (Word.Word (S (S (S (S O)))))) digit))
+            (@eq BinNums.Z (literal_wnaf_signed16 digit)
+               (jet_secp_wnaf_digit.wnaf_digit
+                  (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+### C.jet_secp_wnaf_literal_mask.wnaf_nonzero_residual_word
+wnaf_nonzero_residual_word
+     : forall (n bit carry : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 bit)
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                      (BinNums.Zpos (BinNums.xO BinNums.xH))) carry)),
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (BinInt.Z.add (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit)) carry)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+         (jet_secp_wnaf_digit.wnaf_word n bit (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))) carry)
+### C.jet_secp_wnaf_literal_mask.wnaf_nonzero_literal_odd
+wnaf_nonzero_literal_odd
+     : forall (n bit carry : BinNums.Z) (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                      (BinNums.Zpos (BinNums.xO BinNums.xH))) carry))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+                (BinInt.Z.add (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit)) carry)),
+       @eq (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (@Word.rightmost (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))) Alg.CoreFunSem word)
+         (@inr unit unit tt)
+### C.jet_secp_wnaf_literal_mask.exec_wnaf_literal_digit15
+exec_wnaf_literal_digit15
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (n bit carry : BinNums.Z)
+         (b : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit)
+                (BinInt.Z.lt bit
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : BinInt.Z.le (BinInt.Z.add bit (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                      (BinNums.Zpos (BinNums.xO BinNums.xH))) carry))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+                (BinInt.Z.add (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit)) carry))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._now le)
+                (@Some Values.val
+                   (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._carry le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr carry))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._w le)
+                (@Some Values.val
+                   (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._wnaf le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr bit))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._sign le)
+                (@Some Values.val (Values.Vint Integers.Int.one)))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.valid_access m AST.Mint32 b
+                (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex
+            (prod
+               (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                  (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+               (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                  (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+            (fun
+               digit : prod
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))) =>
+             and
+               (@eq
+                  (sum unit
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S O)))))))
+                  (@snd
+                     (prod (sum unit unit)
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end) (Word.Word (S (S (S (S (S (S (S O))))))))))
+                     (sum unit
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end) (Word.Word (S (S (S (S O)))))))
+                     (@jet_secp_wnaf_literal.literal_wnaf15_step Alg.CoreFunSem
+                        (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+                           (@inl unit unit tt) word)))
+                  (@inr unit
+                     (prod
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))) digit))
+               (and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_wnaf_digit.wnaf_env bs) le m
+                     jet_secp_wnaf_digit.wnaf_window_digit Events.E0
+                     (jet_secp_wnaf_digit.wnaf_digit_final
+                        (@Maps.PTree.set Values.val jets_secp._t'3
+                           (Values.Vint
+                              (Integers.Int.repr
+                                 (BinInt.Z.modulo
+                                    (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                       (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))) le)
+                        (jet_secp_wnaf_digit.wnaf_word n bit
+                           (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))) carry)
+                        (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))) mf ClightBigstep.Out_normal)
+                  (and
+                     (@eq (option Memory.Mem.mem)
+                        (Memory.Mem.store AST.Mint32 m b
+                           (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                           (Values.Vint (Integers.Int.repr (literal_wnaf_signed16 digit))))
+                        (@Some Memory.Mem.mem mf))
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint32 mf b
+                           (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit)))
+                        (@Some Values.val (Values.Vint (Integers.Int.repr (literal_wnaf_signed16 digit)))))))))
+### C.jet_secp_wnaf_literal_mask.literal_wnaf_signed16
+literal_wnaf_signed16 =
+fun word : Ty.tySem (Word.Word (S (S (S (S O))))) =>
+BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S O))))) word)
+  (BinInt.Z.mul
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+     (@Word.ToZ.Theory.toZ Word.BitToZ (@Word.leftmost (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S O)))) Alg.CoreFunSem word)))
+     : forall _ : Ty.tySem (Word.Word (S (S (S (S O))))), BinNums.Z
+
+Arguments literal_wnaf_signed16 word
+### C.jet_secp_wnaf_literal_mask.literal_wnaf_low16
+literal_wnaf_low16 =
+fun word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))) =>
+@snd
+  (prod
+     ((fix tySem (X : Ty.Ty) : Set :=
+         match X return Set with
+         | Ty.Unit => unit
+         | Ty.Sum A B => sum (tySem A) (tySem B)
+         | Ty.Prod A B => prod (tySem A) (tySem B)
+         end)
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+     ((fix tySem (X : Ty.Ty) : Set :=
+         match X return Set with
+         | Ty.Unit => unit
+         | Ty.Sum A B => sum (tySem A) (tySem B)
+         | Ty.Prod A B => prod (tySem A) (tySem B)
+         end)
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))))
+  (prod
+     ((fix tySem (X : Ty.Ty) : Set :=
+         match X return Set with
+         | Ty.Unit => unit
+         | Ty.Sum A B => sum (tySem A) (tySem B)
+         | Ty.Prod A B => prod (tySem A) (tySem B)
+         end)
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+     ((fix tySem (X : Ty.Ty) : Set :=
+         match X return Set with
+         | Ty.Unit => unit
+         | Ty.Sum A B => sum (tySem A) (tySem B)
+         | Ty.Prod A B => prod (tySem A) (tySem B)
+         end)
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))))
+  (@snd
+     (prod
+        ((fix tySem (X : Ty.Ty) : Set :=
+            match X return Set with
+            | Ty.Unit => unit
+            | Ty.Sum A B => sum (tySem A) (tySem B)
+            | Ty.Prod A B => prod (tySem A) (tySem B)
+            end)
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S O))))))
+        ((fix tySem (X : Ty.Ty) : Set :=
+            match X return Set with
+            | Ty.Unit => unit
+            | Ty.Sum A B => sum (tySem A) (tySem B)
+            | Ty.Prod A B => prod (tySem A) (tySem B)
+            end)
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S O)))))))
+     (prod
+        ((fix tySem (X : Ty.Ty) : Set :=
+            match X return Set with
+            | Ty.Unit => unit
+            | Ty.Sum A B => sum (tySem A) (tySem B)
+            | Ty.Prod A B => prod (tySem A) (tySem B)
+            end)
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S O))))))
+        ((fix tySem (X : Ty.Ty) : Set :=
+            match X return Set with
+            | Ty.Unit => unit
+            | Ty.Sum A B => sum (tySem A) (tySem B)
+            | Ty.Prod A B => prod (tySem A) (tySem B)
+            end)
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S O)))))))
+     (@snd
+        (prod
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))))))
+        (prod
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))))) word))
+     : forall _ : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))), Ty.tySem (Word.Word (S (S (S (S O)))))
+
+Arguments literal_wnaf_low16 word
