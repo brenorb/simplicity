@@ -10,11 +10,14 @@ Lemma secp_u128_composite_fields :
     co_su co = Struct /\
     co_members co = [Member_plain jets_secp._lo tulong; Member_plain jets_secp._hi tulong].
 Proof.
-  eexists; split.
-  - (* Closed lookup: materializing the dependent composite includes its
-       environment consistency certificate, whose prior check exceeded 10s. *)
-    Timeout 60 vm_compute; reflexivity.
-  - split; reflexivity.
-Set Default Timeout 60.
+  (* Compute just the relevant metadata, not the dependent consistency
+     certificate stored in the generated composite record. *)
+  assert (View : option_map (fun co => (co_su co, co_members co))
+    ((genv_cenv secp_ge)!jets_secp._secp256k1_uint128) =
+    Some (Struct, [Member_plain jets_secp._lo tulong; Member_plain jets_secp._hi tulong])).
+  { vm_compute; reflexivity. }
+  destruct ((genv_cenv secp_ge)!jets_secp._secp256k1_uint128) as [co|] eqn:Lookup;
+    [|discriminate].
+  exists co; split; [reflexivity|].
+  cbn [option_map] in View; inversion View; split; reflexivity.
 Qed.
-Set Default Timeout 10.
