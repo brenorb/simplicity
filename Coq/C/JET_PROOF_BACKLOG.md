@@ -1479,15 +1479,31 @@ No local allocation, initialized pointer or helper execution is assumed by
 this combined theorem. Source/layout/allocation facts are closed; the three
 C execution facts use the same six inherited assumptions without a libc
 model. Normal compilation and reviewed no-update focused audits pass.
-Independent recursive checking is pending. Reproduce with target/module
+Independent recursive kernel checking and no-update focused audits pass on
+`5d036c28` in the task-owned verification worktree. Reproduce with target/module
 `C/jet_secp_ecmult_entry.vo` / `C.jet_secp_ecmult_entry`; focused audits select
 both `C.jet_secp_ecmult_state` and `C.jet_secp_ecmult_entry`.
 
-Next derive the actual Strauss entry/locals and use the caller's established
-state fields and readonly scalar to instantiate its checked first-eight-
-statement prefix. Then compose the scalar-split and wNAF stages. The actual
-external memset boundary remains separate; these entry/setup proofs do not
-register `generate` or increase the accepted count.
+`jet_secp_generator_entry.generator_entry_and_prepare` now derives the actual
+Strauss function entry, all nine original local allocations and the checked
+first-eight-statement prefix. It takes only the fixed readonly auxiliary
+scalar state and the caller's two pointer loads (established by the actual
+ecmult setup above), with arbitrary result/point/generator argument values.
+It derives denominator one, exact ready temporaries, pairwise and old-memory
+separation, all nine Freeable ownership ranges and framing outside the new Z
+object. Initial counters, local contents, local allocation/ownership and
+intermediate executions are not premises. The proof reuses the existing
+allocation/framing tactic structure from mixed-addition lifecycle proofs.
+The two entry/layout facts are closed; the complete entry/prefix result uses
+the same six inherited assumptions, without a libc model. Normal compilation
+and reviewed no-update focused audits pass; independent recursive checking is
+pending for this extension. Reproduce with target/module
+`C/jet_secp_generator_entry.vo` / `C.jet_secp_generator_entry`.
+
+Next compose the scalar-split and wNAF stages with this actual entry/prefix,
+then reuse the existing point-stage proof and public writer/cleanup. The
+actual external memset boundary remains separate; these entry/setup proofs
+do not register `generate` or increase the accepted count.
 
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
