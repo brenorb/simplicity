@@ -229,7 +229,18 @@ pass. Reproduce with target/module `C/jet_secp_gej_norm_literal.vo` /
 `C.jet_secp_gej_norm_literal` as above (its dependency closure includes the
 EEA-parametric module).
 
-Next port the signed generator recursion and build small checked
+`jet_secp_generate_literal` now ports the exact `scaleConstant`,
+`generateSigned` / `generate128Signed` recursion and both literal affine bases,
+with `generateSmall` / `generate128Small` selected by a bool. The structural
+evaluation bridge is proved for every word width, preserving the high-half
+before low-half processing and the negative sign-bit initialization; it does
+not assume negation commutes with point arithmetic. All eight exports,
+including the algebra-independent term proofs, are closed. Normal build,
+recursive kernel checking and reviewed no-update focused assumption/contract
+comparisons pass. Reproduce with target/module
+`C/jet_secp_generate_literal.vo` / `C.jet_secp_generate_literal` as above.
+The structural evaluator still calls the original literal point operations.
+Next derive its numeric point-operation evaluator and build small checked
 table-normalization certificates before scaling to both frozen tables.
 These stages do not establish the C inversion jet, its external ctz
 obligation, the table/literal correspondence, or public `generate`

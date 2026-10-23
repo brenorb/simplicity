@@ -1,0 +1,449 @@
+### C.jet_secp_generate_literal.literal_generator_base_fun
+literal_generator_base_fun
+     : forall second : bool,
+       @eq (Ty.tySem literal_generator_point) (@literal_generator_base second Alg.CoreFunSem tt)
+         (literal_generator_base_word second)
+### C.jet_secp_generate_literal.literal_scale_constant_run
+literal_scale_constant_run
+     : forall (n : nat) (base : Alg.Core.domain Alg.CoreFunSem Ty.Unit literal_generator_point)
+         (word : (fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end) (Word.Word n))
+         (a : prod
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end) literal_generator_point)
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))),
+       @eq (Ty.tySem literal_generator_jacobian)
+         (@literal_scale_constant n Alg.CoreFunSem base
+            (@pair
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) (Word.Word n))
+               (prod
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) literal_generator_point)
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) word a))
+         (literal_scale_run n (base tt) word a)
+### C.jet_secp_generate_literal.literal_generate_signed_run_matches
+literal_generate_signed_run_matches
+     : forall (n : nat) (base : Alg.Core.domain Alg.CoreFunSem Ty.Unit literal_generator_point)
+         (word : Ty.tySem (Word.Word n)),
+       @eq (Ty.tySem literal_generator_jacobian) (@literal_generate_signed n Alg.CoreFunSem base word)
+         (literal_generate_signed_run n (base tt) word)
+### C.jet_secp_generate_literal.literal_generate_small_run
+literal_generate_small_run
+     : forall (second : bool) (word : Ty.tySem (Word.Word (S (S (S (S O)))))),
+       @eq (Ty.tySem literal_generator_point) (@literal_generate_small second Alg.CoreFunSem word)
+         (@jet_secp_gej_norm_literal.literal_gej_norm Alg.CoreFunSem
+            (literal_generate_signed_run (S (S (S (S O)))) (literal_generator_base_word second) word))
+### C.jet_secp_generate_literal.literal_generator_base_parametric
+literal_generator_base_parametric
+     : forall second : bool, @Alg.Core.Parametric Ty.Unit literal_generator_point (@literal_generator_base second)
+### C.jet_secp_generate_literal.literal_scale_constant_parametric
+literal_scale_constant_parametric
+     : forall (n : nat) (base : forall term : Alg.Core.Algebra, Alg.Core.domain term Ty.Unit literal_generator_point)
+         (_ : @Alg.Core.Parametric Ty.Unit literal_generator_point base),
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) literal_generator_jacobian) literal_generator_jacobian
+         (fun term : Alg.Core.Algebra => @literal_scale_constant n term (base term))
+### C.jet_secp_generate_literal.literal_generate_signed_parametric
+literal_generate_signed_parametric
+     : forall (n : nat) (base : forall term : Alg.Core.Algebra, Alg.Core.domain term Ty.Unit literal_generator_point)
+         (_ : @Alg.Core.Parametric Ty.Unit literal_generator_point base),
+       @Alg.Core.Parametric (Word.Word n) literal_generator_jacobian
+         (fun term : Alg.Core.Algebra => @literal_generate_signed n term (base term))
+### C.jet_secp_generate_literal.literal_generate_small_parametric
+literal_generate_small_parametric
+     : forall second : bool,
+       @Alg.Core.Parametric (Word.Word (S (S (S (S O))))) literal_generator_point (@literal_generate_small second)
+### C.jet_secp_generate_literal.literal_generator_point
+literal_generator_point =
+Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     : Ty.Ty
+### C.jet_secp_generate_literal.literal_generator_jacobian
+literal_generator_jacobian = Ty.Prod literal_generator_point (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     : Ty.Ty
+### C.jet_secp_generate_literal.literal_generator_base_word
+literal_generator_base_word =
+fun second : bool =>
+match second return (Ty.tySem literal_generator_point) with
+| true =>
+    @pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+      (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+      (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xI
+                  (BinNums.xO
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xO
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))))))))))
+      (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xI
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))))))
+| false =>
+    @pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+      (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+      (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))))))))
+      (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))))))))
+end
+     : forall _ : bool, Ty.tySem literal_generator_point
+
+Arguments literal_generator_base_word second%bool_scope
+### C.jet_secp_generate_literal.literal_generator_base
+literal_generator_base =
+fun (second : bool) (term : Alg.Core.Algebra) =>
+@Alg.scribe Ty.Unit literal_generator_point (literal_generator_base_word second) term
+     : forall (_ : bool) (term : Alg.Core.Algebra), Alg.Core.domain term Ty.Unit literal_generator_point
+
+Arguments literal_generator_base second%bool_scope {term}
+### C.jet_secp_generate_literal.literal_scale_constant
+literal_scale_constant =
+fix literal_scale_constant
+  (n : nat) (term : Alg.Core.Algebra) (base : Alg.Core.domain term Ty.Unit literal_generator_point) {struct n} :
+    Alg.Core.domain term (Ty.Prod (Word.Word n) literal_generator_jacobian) literal_generator_jacobian :=
+  match
+    n as k return (Alg.Core.domain term (Ty.Prod (Word.Word k) literal_generator_jacobian) literal_generator_jacobian)
+  with
+  | O =>
+      @Bit.cond
+        (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+        (@Alg.Core.Combinators.comp
+           (Ty.Prod
+              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Prod
+              (Ty.Prod
+                 (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O)))))))))) literal_generator_point)
+           (Ty.Prod
+              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+           (@Alg.Core.Combinators.pair
+              (Ty.Prod
+                 (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Ty.Prod
+                 (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O)))))))))) literal_generator_point term
+              (@jet_secp_double_literal.literal_gej_double term)
+              (@Alg.Core.Combinators.comp
+                 (Ty.Prod
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                       (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 Ty.Unit literal_generator_point term
+                 (@Alg.Core.Combinators.unit
+                    (Ty.Prod
+                       (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                          (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    term) base)) (@jet_secp_add_literal.literal_gej_ge_add term))
+        (@jet_secp_double_literal.literal_gej_double term)
+  | S k =>
+      let rec : Alg.Core.domain term (Ty.Prod (Word.Word k) literal_generator_jacobian) literal_generator_jacobian :=
+        literal_scale_constant k term base in
+      @Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod (Word.Word k) (Word.Word k)) literal_generator_jacobian)
+        (Ty.Prod (Word.Word k) literal_generator_jacobian) literal_generator_jacobian term
+        (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod (Word.Word k) (Word.Word k)) literal_generator_jacobian)
+           (Word.Word k) literal_generator_jacobian term
+           (@Alg.Core.Combinators.take (Ty.Prod (Word.Word k) (Word.Word k)) literal_generator_jacobian
+              (Word.Word k) term
+              (@Alg.Core.Combinators.drop (Word.Word k) (Word.Word k) (Word.Word k) term
+                 (@Alg.Core.Combinators.iden (Word.Word k) term)))
+           (@Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod (Word.Word k) (Word.Word k)) literal_generator_jacobian)
+              (Ty.Prod (Word.Word k) literal_generator_jacobian) literal_generator_jacobian term
+              (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod (Word.Word k) (Word.Word k)) literal_generator_jacobian)
+                 (Word.Word k) literal_generator_jacobian term
+                 (@Alg.Core.Combinators.take (Ty.Prod (Word.Word k) (Word.Word k)) literal_generator_jacobian
+                    (Word.Word k) term
+                    (@Alg.Core.Combinators.take (Word.Word k) (Word.Word k) (Word.Word k) term
+                       (@Alg.Core.Combinators.iden (Word.Word k) term)))
+                 (@Alg.Core.Combinators.drop (Ty.Prod (Word.Word k) (Word.Word k)) literal_generator_jacobian
+                    literal_generator_jacobian term (@Alg.Core.Combinators.iden literal_generator_jacobian term))) rec))
+        rec
+  end
+     : forall (n : nat) (term : Alg.Core.Algebra) (_ : Alg.Core.domain term Ty.Unit literal_generator_point),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) literal_generator_jacobian) literal_generator_jacobian
+
+Arguments literal_scale_constant n%nat_scope {term} base
+### C.jet_secp_generate_literal.literal_generate_signed
+literal_generate_signed =
+fix literal_generate_signed
+  (n : nat) (term : Alg.Core.Algebra) (base : Alg.Core.domain term Ty.Unit literal_generator_point) {struct n} :
+    Alg.Core.domain term (Word.Word n) literal_generator_jacobian :=
+  match n as k return (Alg.Core.domain term (Word.Word k) literal_generator_jacobian) with
+  | O =>
+      @Alg.Core.Combinators.copair Ty.Unit Ty.Unit
+        (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term (@jet_secp_literal_infinity.literal_gej_infinity term)
+        (@Alg.Core.Combinators.pair Ty.Unit
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+           (@Alg.Core.Combinators.comp Ty.Unit literal_generator_point
+              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              term base (@jet_secp_gej_negate_literal.literal_ge_negate term))
+           (@jet_secp_literal_add_program.literal_fe_one256 term))
+  | S k =>
+      @Alg.Core.Combinators.comp (Ty.Prod (Word.Word k) (Word.Word k))
+        (Ty.Prod (Word.Word k) literal_generator_jacobian) literal_generator_jacobian term
+        (@Alg.Core.Combinators.pair (Ty.Prod (Word.Word k) (Word.Word k)) (Word.Word k) literal_generator_jacobian term
+           (@Alg.Core.Combinators.drop (Word.Word k) (Word.Word k) (Word.Word k) term
+              (@Alg.Core.Combinators.iden (Word.Word k) term))
+           (@Alg.Core.Combinators.take (Word.Word k) (Word.Word k) literal_generator_jacobian term
+              (literal_generate_signed k term base))) (@literal_scale_constant k term base)
+  end
+     : forall (n : nat) (term : Alg.Core.Algebra) (_ : Alg.Core.domain term Ty.Unit literal_generator_point),
+       Alg.Core.domain term (Word.Word n) literal_generator_jacobian
+
+Arguments literal_generate_signed n%nat_scope {term} base
+### C.jet_secp_generate_literal.literal_generate_small
+literal_generate_small =
+fun (second : bool) (term : Alg.Core.Algebra) =>
+@Alg.Core.Combinators.comp (Word.Word (S (S (S (S O))))) literal_generator_jacobian
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+  (@literal_generate_signed (S (S (S (S O)))) term (@literal_generator_base second term))
+  (@jet_secp_gej_norm_literal.literal_gej_norm term)
+     : forall (_ : bool) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Word.Word (S (S (S (S O))))) literal_generator_point
+
+Arguments literal_generate_small second%bool_scope {term}
+### C.jet_secp_generate_literal.literal_scale_run
+literal_scale_run =
+fix literal_scale_run (n : nat) (base : Ty.tySem literal_generator_point) {struct n} :
+    forall (_ : Ty.tySem (Word.Word n)) (_ : Ty.tySem literal_generator_jacobian), Ty.tySem literal_generator_jacobian :=
+  match
+    n as k
+    return
+      (forall (_ : Ty.tySem (Word.Word k)) (_ : Ty.tySem literal_generator_jacobian),
+       Ty.tySem literal_generator_jacobian)
+  with
+  | O =>
+      fun (bit : Ty.tySem (Word.Word O)) (a : Ty.tySem literal_generator_jacobian) =>
+      let doubled :
+        Ty.tySem
+          (Ty.Prod
+             (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+             (Word.Word (S (S (S (S (S (S (S (S O)))))))))) :=
+        @jet_secp_double_literal.literal_gej_double Alg.CoreFunSem a in
+      match bit return (Ty.tySem literal_generator_jacobian) with
+      | inl _ => doubled
+      | inr _ =>
+          @jet_secp_add_literal.literal_gej_ge_add Alg.CoreFunSem
+            (@pair
+               (Ty.tySem
+                  (Ty.Prod
+                     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                        (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+               (Ty.tySem literal_generator_point) doubled base)
+      end
+  | S k =>
+      fun (word : Ty.tySem (Word.Word (S k))) (a : Ty.tySem literal_generator_jacobian) =>
+      literal_scale_run k base
+        (@snd
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                  match n0 return Ty.Ty with
+                  | O => X
+                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) k))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                  match n0 return Ty.Ty with
+                  | O => X
+                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) k)) word)
+        (literal_scale_run k base
+           (@fst
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k))
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k)) word) a)
+  end
+     : forall (n : nat) (_ : Ty.tySem literal_generator_point) (_ : Ty.tySem (Word.Word n))
+         (_ : Ty.tySem literal_generator_jacobian), Ty.tySem literal_generator_jacobian
+
+Arguments literal_scale_run n%nat_scope base _ _
+### C.jet_secp_generate_literal.literal_generate_signed_run
+literal_generate_signed_run =
+fix literal_generate_signed_run (n : nat) (base : Ty.tySem literal_generator_point) {struct n} :
+    forall _ : Ty.tySem (Word.Word n), Ty.tySem literal_generator_jacobian :=
+  match n as k return (forall _ : Ty.tySem (Word.Word k), Ty.tySem literal_generator_jacobian) with
+  | O =>
+      fun bit : Ty.tySem (Word.Word O) =>
+      match bit return (Ty.tySem literal_generator_jacobian) with
+      | inl _ => @jet_secp_literal_infinity.literal_gej_infinity Alg.CoreFunSem tt
+      | inr _ =>
+          @pair
+            (Ty.tySem
+               (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (@jet_secp_gej_negate_literal.literal_ge_negate Alg.CoreFunSem base)
+            (@jet_secp_literal_add_program.literal_fe_one256 Alg.CoreFunSem tt)
+      end
+  | S k =>
+      fun word : Ty.tySem (Word.Word (S k)) =>
+      literal_scale_run k base
+        (@snd
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                  match n0 return Ty.Ty with
+                  | O => X
+                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) k))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                  match n0 return Ty.Ty with
+                  | O => X
+                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) k)) word)
+        (literal_generate_signed_run k base
+           (@fst
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k))
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k)) word))
+  end
+     : forall (n : nat) (_ : Ty.tySem literal_generator_point) (_ : Ty.tySem (Word.Word n)),
+       Ty.tySem literal_generator_jacobian
+
+Arguments literal_generate_signed_run n%nat_scope base _
