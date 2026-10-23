@@ -23,6 +23,43 @@ The remaining work includes:
 - libc implementation proofs where a contract assumes `memcpy_model`;
 - raw transaction/taproot projections for cached Bitcoin environment fields.
 
+## Completion constraints on the remaining twenty jets
+
+A read-only Astra Medium strategy review, followed by inspection of the
+existing refutation/report, confirms that changing the next jet alone does
+not currently bypass the shared boundaries. The grouping below is a **source
+call-graph inference**, not a new formal execution-extraction theorem for
+each public caller. Early-failure/infinity subcases do not prove an all-input
+contract.
+
+| Remaining declarations (omit `simplicity_`) | Boundary |
+| --- | --- |
+| `fe_invert`, `scalar_invert`, `gej_normalize`, `gej_y_is_odd`, `swu`, `hash_to_curve` | Variable-time inversion reaches abstract ctz. |
+| `off_curve_scale`, `scale`, `generate`, `off_curve_linear_combination_1`, `linear_combination_1`, `linear_verify_1`, `point_verify_1` | ecmult reaches wNAF's abstract memset. A pointer to a zero generator scalar is still non-NULL and does not bypass the two calls. |
+| `check_sig_verify`, `bip_0340_verify`, `bitcoin_build_taptweak`, `build_taptweak` | Their accepted branches reach multiplication/normalization and the external memset/ctz boundaries; x-only tweaking also directly calls memset. |
+| `output_is_fee`, `total_fee` | Empty-script digest equality versus actual script emptiness; the converse remains unproved. The total-fee dependency is through cache construction. |
+| `gej_ge_add_ex` | The existing whole-public literal contract is formally refuted, not merely missing a proof. |
+
+The paths are in `C/jets-secp256k1.c`, `C/secp256k1/{ecmult,group,generator,
+schnorrsig,extrakeys}_impl.h` and the inverse helpers. Exact source locations,
+evidence and limits are in [JET_SECP_EXTERNAL_MISMATCHES.md](JET_SECP_EXTERNAL_MISMATCHES.md),
+[JET_ELEMENTS_FEE_MISMATCHES.md](JET_ELEMENTS_FEE_MISMATCHES.md) and
+[JET_SECP_RATIO_MISMATCHES.md](JET_SECP_RATIO_MISMATCHES.md).
+`jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec` negates
+the unrestricted fixed contract using the actual public counterexample and
+Clight determinism. Thus **533/533 unrestricted equivalence cannot be reached
+while that function, literal target and input domain all remain fixed**.
+Keep the goal incomplete; do not count its restricted theorem or silently
+change the completion criterion. A correction needs separate approval.
+
+No existing ctz/memset linkage was found that discharges the frozen production
+external parameter. The older ctz fallback is a different AST; a reference
+memcpy proof or existence of a consistent external assignment does not prove
+the actual fixed parameter has that behavior. The 138 existing conditional
+rows also retain their explicitly reported libc obligation. Continue safe
+proof/verification work, but do not hide these boundaries with another model
+premise or substitute implementation.
+
 ## Bitcoin value/script hash frontier
 
 `jet_bitcoin_value_hash_literal` now composes the checked original C getters
@@ -893,8 +930,15 @@ The next rebuild on `aee7badb` exposed another context-heavy search in
 repair uses `NoDup_app_remove_r` for the actual list prefix, limits the other
 separation assertion to `SepAll`, and isolates closed ownership sizes. Normal
 compilation and unchanged no-update snapshots pass for this repair too.
-The full point-stage build/check is running on immutable `47729b3f` inputs;
-it remains pending until its recursive kernel and focused audits terminate.
+The rebuild on immutable `47729b3f` inputs also terminated during normal
+compilation, before kernel checking: the A-infinity function's thirteen-block
+free-list proof exhausted its tactic timeout. Its precise residual goals are
+negated disjunctions of block equalities. Explicit case analysis replaces
+broad logical search, without changing the theorem or timeout. Normal
+compilation and unchanged focused assumption/contract records pass for the
+repair in `62ee7387`. The full point-stage rebuild and recursive check are
+running on that immutable commit in the dedicated verification worktree;
+they remain pending until the commands below terminate successfully.
 Reproduce its check with:
 
 ```sh
@@ -1214,6 +1258,10 @@ Clight uniqueness theorem. It additionally inherits CompCert's two standard
 external-call property axioms; the original counterexample retains its six
 assumptions. Neither statement permits changing the targets or counting this
 jet as accepted. See the mismatch report for the precise distinction.
+The refutation's dependency closure was rebuilt and recursively kernel-checked
+again on `fa45127e` in the main checkout; its existing focused assumption and
+contract records also match without updates. This confirms the reported
+obstruction, not any additional equivalence coverage.
 
 ## Field inversion: checked preparation, public proof still missing
 
@@ -1592,8 +1640,9 @@ retains all 516 Freeable bytes and is distinct from the fresh scalar. All
 old memory and permissions are unchanged up to that call. Six source/entry/
 map facts are closed, argument evaluation uses four inherited assumptions,
 and the three C execution results retain six without an extra libc premise.
-Normal compilation and reviewed no-update focused audits pass; recursive
-kernel checking is pending. Reproduce with target/module
+Normal compilation, recursive kernel checking and reviewed no-update focused
+audits pass on `fa45127e` for this new module's closure in the main checkout.
+Reproduce with target/module
 `C/jet_secp_wnaf_entry15.vo` / `C.jet_secp_wnaf_entry15`.
 This stops before memset: it neither assumes zeroed digits nor claims that
 the abstract external call exists, returns successfully or has a zeroing
