@@ -107,9 +107,14 @@ restart either proof. The descending generator point loop now has a checked
 execution theorem and a bridge to the literal step129 program (details below).
 The original eight-statement preparation prefix now derives no=0 and the
 denominator-one field from the caller's initial storage (details below).
-Caller entry/setup/freeing, composition with scalar splitting and both wNAF
-calls, original external memset/zeroing, establishment of the point-stage
-premises through that caller, and the public writer remain open.
+The actual ecmult state setup, Strauss entry/preparation and scalar-split call
+are now composed (`jet_secp_generator_entry_split`); the original count-max
+suffix is also derived (`jet_secp_generator_bits_max`). The wNAF entry and
+pre-memset setup are now derived at the actual 129/15 arguments
+(`jet_secp_wnaf_entry15`). Original external memset/zeroing, both complete wNAF
+calls and releases, establishment/preservation of all point-stage premises
+through those calls, and the outer writer/return/freeing remain open. Do not
+restart the completed entry, split, post-memset loop or count-control proofs.
 
 `jet_secp_wnaf_literal_values` proves every reachable literal `Some` digit
 is odd and nonzero in the signed range, zero C integers correspond exactly
@@ -888,6 +893,8 @@ The next rebuild on `aee7badb` exposed another context-heavy search in
 repair uses `NoDup_app_remove_r` for the actual list prefix, limits the other
 separation assertion to `SepAll`, and isolates closed ownership sizes. Normal
 compilation and unchanged no-update snapshots pass for this repair too.
+The full point-stage build/check is running on immutable `47729b3f` inputs;
+it remains pending until its recursive kernel and focused audits terminate.
 Reproduce its check with:
 
 ```sh
@@ -1574,6 +1581,25 @@ in the task-owned verification worktree. Reproduce with target/module
 `C/jet_secp_generator_bits_max.vo` / `C.jet_secp_generator_bits_max`.
 This closes the final count-control segment needed by the existing point
 stage, not the preceding two actual wNAF calls or their memset boundary.
+
+`jet_secp_wnaf_entry15.wnaf_entry15_owned_output` now derives the original
+wNAF function entry, its fresh 32-byte scalar local, four actual temporary
+initializations and all four original disabled-assertion loops for the
+generator's actual len=129/window=15 calls. It establishes the existing loop
+fields without assuming initialized private data or execution. The actual
+memset arguments evaluate to `(destination, 0, 516)`; the owned destination
+retains all 516 Freeable bytes and is distinct from the fresh scalar. All
+old memory and permissions are unchanged up to that call. Six source/entry/
+map facts are closed, argument evaluation uses four inherited assumptions,
+and the three C execution results retain six without an extra libc premise.
+Normal compilation and reviewed no-update focused audits pass; recursive
+kernel checking is pending. Reproduce with target/module
+`C/jet_secp_wnaf_entry15.vo` / `C.jet_secp_wnaf_entry15`.
+This stops before memset: it neither assumes zeroed digits nor claims that
+the abstract external call exists, returns successfully or has a zeroing
+effect. It adds no public coverage; the existing post-memset literal proof
+still needs this external boundary discharged and the original release
+composed before it yields a complete wNAF call.
 
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for

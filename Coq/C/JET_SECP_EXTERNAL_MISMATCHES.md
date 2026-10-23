@@ -60,6 +60,19 @@ arguments. `generate` and other ecmult callers still need a discharged
 external-library boundary in addition to their arithmetic and execution
 proofs. The scalar-splitting helper proof does not rely on memset or ctz.
 
+`jet_secp_wnaf_entry15.wnaf_entry15_owned_output` additionally derives the
+actual function entry and all eight preparation statements for the
+generator's len=129/window=15 calls. It evaluates the real call arguments to
+`(destination, 0, 516)`, preserves the destination's 516 Freeable bytes,
+allocates the actual distinct 32-byte scalar local and preserves all old
+memory up to the call. It assumes no zeroing or external-call execution.
+This is positive execution evidence for entry/setup and valid destination
+capacity, not a completed memset or wNAF call, nor an extraction theorem
+from every completed public generate call. In particular, it supplies no
+reason to identify the abstract external parameter with a concrete libc.
+Build/check it with the commands below, substituting the target/module
+`C/jet_secp_wnaf_entry15.vo` / `C.jet_secp_wnaf_entry15`.
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
