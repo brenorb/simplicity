@@ -165,8 +165,11 @@ Proof.
   (@canonical_fe_normalize Alg.CoreFunSem z) u)
   (mixed_literal_i (@literal_fe_negate Alg.CoreFunSem y) (@canonical_fe_normalize Alg.CoreFunSem z) v) in Add.
  rewrite NH in Add.
- pose proof (f_equal (fun p : Ty.tySem (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) =>
-  Bit.toBool (@literal_gej_is_infinity Alg.CoreFunSem p)) Add) as FlagAdd.
+ lazymatch type of Add with @eq ?A ?lhs ?rhs =>
+   pose proof (@f_equal A bool
+     (fun p : A => Bit.toBool (@literal_gej_is_infinity Alg.CoreFunSem p))
+     lhs rhs Add) as FlagAdd
+ end.
  etransitivity;[|exact (eq_sym FlagAdd)].
  unfold gej_ge_equiv_reader_bit,gej_ge_equiv_bit,gej_ge_equiv_result,mixed_loose_body_flag.
  rewrite Fin.
