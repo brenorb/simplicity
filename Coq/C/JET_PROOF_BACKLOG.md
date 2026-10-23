@@ -82,7 +82,8 @@ Normal compilation and reviewed focused no-update statement/definition and
 assumption checks pass. All 29 audited exports (the generic adapter, three
 original instances and 25 new instances) retain exactly the same six inherited
 assumptions, with no extra libc model. Independent recursive kernel checking
-is pending. Reproduce the build/check with:
+and the subsequent no-update records and frozen-target check pass on
+`e39fb568` in the main checkout. Reproduce the build/check with:
 
 ```sh
 JET_TARGETS=C/jet_secp_executable_registry.vo bash Coq/build-jets.sh -j2
@@ -96,6 +97,34 @@ existing proved symbolic-expression recognizer, and explicit congruence types.
 Their original statements, definitions, assumptions and timeouts are unchanged;
 normal compilation and their existing no-update records pass. No target or
 generation setting was changed.
+
+`jet_secp_beta_fresh.beta_runs_from_actual_init` additionally discharges the
+initialized beta global and frame premises for every Word256 input. It starts
+with an existing memory from `Genv.init_mem jets_secp.prog`, constructs fresh
+frames without changing any old load, derives readiness of the call memory,
+and executes the original `simplicity_fe_multiply_beta`. The conclusion retains
+the full `finv`, final readiness and preservation of old initialized-memory
+loads. No readiness, layout or intermediate-execution premise remains in this
+actual-init statement. The general initialized local contract is unchanged.
+
+The two supporting memory lemmas use four inherited Coq assumptions; the two
+execution theorems retain six, with no extra libc model. Full untruncated
+types were reviewed using `Set Printing Depth 1000`; the existing snapshot
+printer abbreviates these deeply nested conjunctions. Normal compilation and
+reviewed no-update records pass. The existing lambda startup proof was rebuilt
+without edits. Their joint independent recursive kernel check, subsequent
+no-update records and frozen-target check pass on immutable `93b4d451` in the
+secondary checkout. No unsafe, type-in-type or assumed-positivity flags are
+reported. Reproduce with:
+
+```sh
+JET_TARGETS="C/jet_secp_beta_fresh.vo C/jet_secp_scalar_lambda_fresh.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_beta_fresh C.jet_secp_scalar_lambda_fresh
+```
+
+These are fresh-frame execution witnesses, not whole-evaluator startup or
+acceptance of another jet. Coverage remains 513/533, including 138 existing
+conditional entries; all previously reported mismatches remain unresolved.
 
 ## Bitcoin value/script hash frontier
 
