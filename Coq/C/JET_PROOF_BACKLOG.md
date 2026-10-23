@@ -152,11 +152,12 @@ ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_generator_globals
 ```
 
-The two 8192-entry tables still need a formal bridge to the exact literal
-`generateSmall` / `generate128Small` results for
-each signed digit; neither registration nor "odd multiples of G" alone
-establishes that bridge. Then prove actual `gej_add_zinv_var` at the caller's
-Z=1 and align C's shortened descending loop with the literal 129 steps.
+The two 8192-entry table bridges to the exact literal `generateSmall` /
+`generate128Small` results are now proved for every signed digit (see the
+exhaustive certificate and lookup results below). The original
+`gej_add_zinv_var` call at represented inverse-Z one also has a checked literal
+coordinate bridge. Remaining: establish that inverse field through the real
+caller and align C's shortened descending loop with the literal 129 steps.
 Maintain field congruence and limb bounds internally, but discharge exact
 normalized coordinate equality at the writer boundary, not only projective
 point equivalence. No table-correctness assumption is authorized.
@@ -713,6 +714,19 @@ passed for `C/jet_secp_double_loose_literal.vo` /
 retains the same six inherited assumptions and adds no libc model.
 Next compose these calls and the table lookup in the descending generator
 loop, then prove the public writer.
+`jet_secp_generator_digit_add.exec_generator_digit_add` now derives the
+original nonzero-digit lookup/addition statement pair for either table.
+`generator_digit_add_source` identifies both pairs in the frozen Strauss
+loop. The result is exactly the literal mixed-addition result for that
+signed digit, with output flag/Z agreement, all three caller ownership
+ranges, unchanged inverse field, output limb bounds, both readonly tables
+and external framing. It derives the helper calls rather than assuming
+their execution or result. Normal build, recursive kernel checking (including
+all exhaustive table certificates) and reviewed no-update focused audits
+passed for `C/jet_secp_generator_digit_add.vo` /
+`C.jet_secp_generator_digit_add`. Execution retains the lookup proof's eight
+inherited assumptions, adding no libc or table-correctness premise. The
+short-circuit guards and full loop induction remain separate obligations.
 `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
 must establish that its initialized Z=1 persists; do not assume it.
