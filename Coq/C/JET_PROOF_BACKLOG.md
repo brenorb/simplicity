@@ -124,18 +124,60 @@ JET_TARGETS=C/jet_secp_table_call.vo bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_table_call
 ```
 
-Next derive source loads and readonly bounds from the actual initializers,
-and prove the table/specification bridge below. Full public `generate`
-equivalence is not yet established.
+`jet_secp_generator_globals` now derives both tables' original symbol/variable
+bindings, 65536 Init_int64 words, size524288, every typed load and exact
+readonly permission bounds from `Genv.init_mem jets_secp.prog`. The generic
+initializer proof traverses the list structurally; count bounds use Z, not
+large unary nat constants. Symbol lookup uses conversion without expanding
+the table payload. Do not replace it with broad `vm_compute` on variable
+records. Normal compilation needs no increased stack limit.
 
-The two 8192-entry tables still need checked initializer loads and a formal
-bridge to the exact literal `generateSmall` / `generate128Small` results for
+`generator_tables_initialized_memory_exists` proves a real initial memory
+for both tables, reusing the existing frozen-program initialization proof.
+`eval_generator_table_lookup` instantiates the complete original lookup with
+the selected actual initializer words and preserves the whole table state.
+`generator_table_lookup_fresh` derives initialization, a fresh owned88
+allocation and the lookup for every 0<abs n<16384 and either table, with
+exact signed-coordinate output, infinity=0 and framing. It assumes neither
+table values nor frame/source/environment relations. This establishes actual
+table execution, **not** equality with a literal generator program. Metadata
+proofs are closed, memory/initialization facts use four inherited assumptions
+and execution uses the same eight as the readonly lookup. Normal build,
+recursive kernel check and reviewed no-update focused assumption/contract
+comparisons pass. Reproduce:
+
+```sh
+JET_TARGETS=C/jet_secp_generator_globals.vo bash Coq/build-jets.sh -j1
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_generator_globals
+```
+
+The two 8192-entry tables still need a formal bridge to the exact literal
+`generateSmall` / `generate128Small` results for
 each signed digit; neither registration nor "odd multiples of G" alone
 establishes that bridge. Then prove actual `gej_add_zinv_var` at the caller's
 Z=1 and align C's shortened descending loop with the literal 129 steps.
 Maintain field congruence and limb bounds internally, but discharge exact
 normalized coordinate equality at the writer boundary, not only projective
 point equivalence. No table-correctness assumption is authorized.
+
+The subsequent readonly Astra Medium strategy review identifies literal
+normalization as a separate missing implication: Haskell's `gej_norm` calls
+`fe_invert`, which calls the actual `Arith.bezout word256` term. A modular
+inverse witness alone does not connect to that program. Next port the exact
+EEA step, structural iteration and coefficient extraction, then prove a
+numeric simulation or correctness/bounds/uniqueness bridge; benchmark a
+small checked certificate before scaling. Reuse the existing literal division
+bridge (`jet_literal_division_add.literal_div_mod_matches` and
+`jet_division_result_spec.div_mod_word_numeric`), word multiplication and
+comparison proofs, and the exact doubling/mixed-add literal step lemmas.
+Share the signed binary recursion/prefixes explicitly and retain all infinity
+and exceptional branches. Prove both signed paths rather than assuming
+negative scalar multiplication commutes with normalization. The second base
+is already a fixed literal `generate128` constant (LibSecp256k1.hs:454);
+proving it equals 2^128 G is not required for this exact literal bridge.
+Neither this strategy review nor the completed initialization proofs establish
+that semantic bridge or increase public-jet coverage.
 
 ## Decompression: current proof frontier
 

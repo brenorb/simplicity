@@ -1,0 +1,434 @@
+### C.jet_secp_generator_globals.init64_array_size
+init64_array_size
+     : forall (ds : list AST.init_data) (_ : @eq bool (@List.forallb AST.init_data init_is64 ds) true),
+       @eq BinNums.Z (AST.init_data_list_size ds)
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinInt.Z.of_nat (@length AST.init_data ds)))
+### C.jet_secp_generator_globals.init64_array_loads
+@init64_array_loads
+     : forall (F V : Type) (ge : Globalenvs.Genv.t F V) (ds : list AST.init_data) (m : Memory.Mem.mem)
+         (b : Values.block) (base : BinNums.Z) (_ : @eq bool (@List.forallb AST.init_data init_is64 ds) true)
+         (_ : @Globalenvs.Genv.load_store_init_data F V ge m b base ds) (i : nat) (_ : lt i (@length AST.init_data ds)),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m b
+            (BinInt.Z.add base
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))))
+         (@Some Values.val
+            (Values.Vlong (init_word64 (@List.nth AST.init_data i ds (AST.Init_int64 Integers.Int64.zero)))))
+### C.jet_secp_generator_globals.generator_table_length
+generator_table_length
+     : forall high : bool,
+       @eq BinNums.Z (BinInt.Z.of_nat (@length AST.init_data (generator_table_init high)))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+### C.jet_secp_generator_globals.generator_table_all64
+generator_table_all64
+     : forall high : bool, @eq bool (@List.forallb AST.init_data init_is64 (generator_table_init high)) true
+### C.jet_secp_generator_globals.generator_table_size
+generator_table_size
+     : forall high : bool,
+       @eq BinNums.Z (AST.init_data_list_size (generator_table_init high))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))))))
+### C.jet_secp_generator_globals.generator_table_readonly
+generator_table_readonly
+     : forall high : bool,
+       @eq Memtype.permission (@Globalenvs.Genv.perm_globvar Ctypes.type (generator_table_global high))
+         Memtype.Readable
+### C.jet_secp_generator_globals.generator_table_volatile
+generator_table_volatile
+     : forall high : bool, @eq bool (@AST.gvar_volatile Ctypes.type (generator_table_global high)) false
+### C.jet_secp_generator_globals.generator_table_symbol
+generator_table_symbol
+     : forall high : bool,
+       @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            (generator_table_id high)) (@Some Values.block (generator_table_block high))
+### C.jet_secp_generator_globals.generator_table_info
+generator_table_info
+     : forall high : bool,
+       @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            (generator_table_block high)) (@Some (AST.globvar Ctypes.type) (generator_table_global high))
+### C.jet_secp_generator_globals.generator_genv_projection
+generator_genv_projection
+     : @eq (Globalenvs.Genv.t Clight.fundef Ctypes.type) (Clight.genv_genv jet_secp_linkage.secp_ge)
+         (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+            (@Ctypes.program_of_program Clight.function jets_secp.prog))
+### C.jet_secp_generator_globals.generator_table_initializes
+generator_table_initializes
+     : forall (high : bool) (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       generator_table_state high m
+### C.jet_secp_generator_globals.generator_entry_readable
+generator_entry_readable
+     : forall (high : bool) (index : nat) (m : Memory.Mem.mem)
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat index)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+         (_ : generator_table_rep high m),
+       jet_secp_affine_storage.affine_storage_readable m (generator_table_block high)
+         (BinInt.Z.mul
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+            (BinInt.Z.of_nat index)) (generator_entry_words high index)
+### C.jet_secp_generator_globals.generator_table_rep_lframe
+generator_table_rep_lframe
+     : forall (high : bool) (m mf : Memory.Mem.mem) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : generator_table_rep high m) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall pos : BinNums.Z, P (generator_table_block high) pos), generator_table_rep high mf
+### C.jet_secp_generator_globals.eval_generator_table_lookup
+eval_generator_table_lookup
+     : forall (high : bool) (n : BinNums.Z) (m : Memory.Mem.mem) (bout : Values.block)
+         (_ : and (BinInt.Z.lt BinNums.Z0 (BinInt.Z.abs n))
+                (BinInt.Z.lt (BinInt.Z.abs n)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+         (_ : generator_table_state high m)
+         (_ : Memory.Mem.range_perm m bout BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ecmult_table_get_ge_storage)
+               (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr (generator_table_block high) Integers.Ptrofs.zero)
+                     (@cons Values.val (Values.Vint (Integers.Int.repr n))
+                        (@cons Values.val
+                           (Values.Vint
+                              (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                           (@nil Values.val))))) Events.E0 mf Values.Vundef)
+            (and
+               (Memory.Mem.range_perm mf bout BinNums.Z0
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                  Memtype.Cur Memtype.Freeable)
+               (and
+                  (forall k : bool,
+                   jet_secp_fe_nv.fe_at mf bout
+                     match k return BinNums.Z with
+                     | true => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+                     | false => BinNums.Z0
+                     end
+                     (jet_secp_table_decode.table_signed_coordinate
+                        (generator_entry_words high (BinInt.Z.to_nat (jet_secp_table_index.table_storage_index n)))
+                        (negb (BinInt.Z.ltb BinNums.Z0 n)) k))
+                  (and
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint32 mf bout
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (@Some Values.val (Values.Vint Integers.Int.zero)))
+                     (and (generator_table_state high mf)
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (pos : BinNums.Z) =>
+                            or (not (@eq Values.block b bout))
+                              (or (BinInt.Z.lt pos BinNums.Z0)
+                                 (BinInt.Z.le
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                    pos))) m mf))))))
+### C.jet_secp_generator_globals.generator_table_state_unchanged
+generator_table_state_unchanged
+     : forall (high : bool) (m mf : Memory.Mem.mem)
+         (_ : Memory.Mem.unchanged_on
+                (fun (b : Values.block) (_ : BinNums.Z) => @eq Values.block b (generator_table_block high)) m mf)
+         (_ : generator_table_state high m), generator_table_state high mf
+### C.jet_secp_generator_globals.generator_table_state_alloc
+generator_table_state_alloc
+     : forall (high : bool) (m : Memory.Mem.mem) (lo hi : BinNums.Z) (mf : Memory.Mem.mem')
+         (fresh : Values.block)
+         (_ : @eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m lo hi)
+                (@pair Memory.Mem.mem' Values.block mf fresh)) (_ : generator_table_state high m),
+       generator_table_state high mf
+### C.jet_secp_generator_globals.generator_tables_initialized_memory_exists
+generator_tables_initialized_memory_exists
+     : @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                  (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m))
+            (and (generator_table_state false m) (generator_table_state true m)))
+### C.jet_secp_generator_globals.generator_table_lookup_fresh
+generator_table_lookup_fresh
+     : forall (high : bool) (n : BinNums.Z)
+         (_ : and (BinInt.Z.lt BinNums.Z0 (BinInt.Z.abs n))
+                (BinInt.Z.lt (BinInt.Z.abs n)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))),
+       @ex Memory.Mem.mem
+         (fun m0 : Memory.Mem.mem =>
+          @ex Memory.Mem.mem'
+            (fun m : Memory.Mem.mem' =>
+             @ex Values.block
+               (fun bout : Values.block =>
+                @ex Memory.Mem.mem
+                  (fun mf : Memory.Mem.mem =>
+                   and
+                     (@eq (option Memory.Mem.mem)
+                        (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                           (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m0))
+                     (and
+                        (@eq (prod Memory.Mem.mem' Values.block)
+                           (Memory.Mem.alloc m0 BinNums.Z0
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                           (@pair Memory.Mem.mem' Values.block m bout))
+                        (and
+                           (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                              (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ecmult_table_get_ge_storage)
+                              (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+                                 (@cons Values.val (Values.Vptr (generator_table_block high) Integers.Ptrofs.zero)
+                                    (@cons Values.val (Values.Vint (Integers.Int.repr n))
+                                       (@cons Values.val
+                                          (Values.Vint
+                                             (Integers.Int.repr
+                                                (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                                          (@nil Values.val))))) Events.E0 mf Values.Vundef)
+                           (and
+                              (Memory.Mem.range_perm mf bout BinNums.Z0
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                 Memtype.Cur Memtype.Freeable)
+                              (and
+                                 (forall k : bool,
+                                  jet_secp_fe_nv.fe_at mf bout
+                                    match k return BinNums.Z with
+                                    | true =>
+                                        BinNums.Zpos
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+                                    | false => BinNums.Z0
+                                    end
+                                    (jet_secp_table_decode.table_signed_coordinate
+                                       (generator_entry_words high
+                                          (BinInt.Z.to_nat (jet_secp_table_index.table_storage_index n)))
+                                       (negb (BinInt.Z.ltb BinNums.Z0 n)) k))
+                                 (and
+                                    (@eq (option Values.val)
+                                       (Memory.Mem.load AST.Mint32 mf bout
+                                          (BinNums.Zpos
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                                       (@Some Values.val (Values.Vint Integers.Int.zero)))
+                                    (and (generator_table_state high mf)
+                                       (jet_sx_mem.lframe
+                                          (fun (b : Values.block) (pos : BinNums.Z) =>
+                                           or (not (@eq Values.block b bout))
+                                             (or (BinInt.Z.lt pos BinNums.Z0)
+                                                (BinInt.Z.le
+                                                   (BinNums.Zpos
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...)))))) pos)))
+                                          m mf)))))))))))
+### C.jet_secp_generator_globals.init_is64
+init_is64 =
+fun d : AST.init_data =>
+match d return bool with
+| AST.Init_int8 _ => false
+| AST.Init_int16 _ => false
+| AST.Init_int32 _ => false
+| AST.Init_int64 _ => true
+| AST.Init_float32 _ => false
+| AST.Init_float64 _ => false
+| AST.Init_space _ => false
+| AST.Init_addrof _ _ => false
+end
+     : forall _ : AST.init_data, bool
+
+Arguments init_is64 d
+### C.jet_secp_generator_globals.init_word64
+init_word64 =
+fun d : AST.init_data =>
+match d return Integers.Int64.int with
+| AST.Init_int8 _ => Integers.Int64.zero
+| AST.Init_int16 _ => Integers.Int64.zero
+| AST.Init_int32 _ => Integers.Int64.zero
+| AST.Init_int64 x => x
+| AST.Init_float32 _ => Integers.Int64.zero
+| AST.Init_float64 _ => Integers.Int64.zero
+| AST.Init_space _ => Integers.Int64.zero
+| AST.Init_addrof _ _ => Integers.Int64.zero
+end
+     : forall _ : AST.init_data, Integers.Int64.int
+
+Arguments init_word64 d
+### C.jet_secp_generator_globals.generator_table_id
+generator_table_id =
+fun high : bool =>
+match high return AST.ident with
+| true => jets_secp._secp256k1_pre_g_128
+| false => jets_secp._secp256k1_pre_g
+end
+     : forall _ : bool, AST.ident
+
+Arguments generator_table_id high%bool_scope
+### C.jet_secp_generator_globals.generator_table_global
+generator_table_global =
+fun high : bool =>
+match high return (AST.globvar Ctypes.type) with
+| true => jets_secp.v_secp256k1_pre_g_128
+| false => jets_secp.v_secp256k1_pre_g
+end
+     : forall _ : bool, AST.globvar Ctypes.type
+
+Arguments generator_table_global high%bool_scope
+### C.jet_secp_generator_globals.generator_table_init
+generator_table_init =
+fun high : bool => @AST.gvar_init Ctypes.type (generator_table_global high)
+     : forall _ : bool, list AST.init_data
+
+Arguments generator_table_init high%bool_scope
+### C.jet_secp_generator_globals.generator_table_block
+generator_table_block =
+fun high : bool => jet_secp_linkage.secp_symbol_block (generator_table_id high)
+     : forall _ : bool, Values.block
+
+Arguments generator_table_block high%bool_scope
+### C.jet_secp_generator_globals.generator_table_word
+generator_table_word =
+fun (high : bool) (i : nat) =>
+init_word64 (@List.nth AST.init_data i (generator_table_init high) (AST.Init_int64 Integers.Int64.zero))
+     : forall (_ : bool) (_ : nat), Integers.Int64.int
+
+Arguments generator_table_word high%bool_scope i%nat_scope
+### C.jet_secp_generator_globals.generator_entry_words
+generator_entry_words =
+fun (high : bool) (index i : nat) =>
+generator_table_word high (Nat.add (Nat.mul (S (S (S (S (S (S (S (S O)))))))) index) i)
+     : forall (_ : bool) (_ : nat) (_ : nat), Integers.Int64.int
+
+Arguments generator_entry_words high%bool_scope (index i)%nat_scope
+### C.jet_secp_generator_globals.generator_table_rep
+generator_table_rep =
+fun (high : bool) (m : Memory.Mem.mem) =>
+and (Memory.Mem.valid_block m (generator_table_block high))
+  (and
+     (Memory.Mem.range_perm m (generator_table_block high) BinNums.Z0
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))))))
+        Memtype.Cur Memtype.Readable)
+     (forall (i : nat)
+        (_ : BinInt.Z.lt (BinInt.Z.of_nat i)
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))),
+      @eq (option Values.val)
+        (Memory.Mem.load AST.Mint64 m (generator_table_block high)
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+        (@Some Values.val (Values.Vlong (generator_table_word high i)))))
+     : forall (_ : bool) (_ : Memory.Mem.mem), Prop
+
+Arguments generator_table_rep high%bool_scope m
+### C.jet_secp_generator_globals.generator_table_state
+generator_table_state =
+fun (high : bool) (m : Memory.Mem.mem) =>
+and (generator_table_rep high m)
+  (jet_clight_readonly_frame.readonly_region_bounds m (generator_table_block high) BinNums.Z0
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))))))
+     : forall (_ : bool) (_ : Memory.Mem.mem), Prop
+
+Arguments generator_table_state high%bool_scope m
