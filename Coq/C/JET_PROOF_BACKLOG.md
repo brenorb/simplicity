@@ -583,13 +583,46 @@ Normal builds, recursive kernel checking and reviewed no-update focused audits
 pass; reproduce with targets/modules `C/jet_secp_mixed_after_square.vo` and
 `C/jet_secp_zinv_nonzero.vo` / their `C.*` module names as above.
 
-Next compose the thirteen-statement prefix with both complete continuations.
-For the later doubling branch, use the caller's square-input bounds on the
-**raw** X/Y/Z; do not replace raw coordinates with the normalized temporaries.
-Then discharge both flag
-branches, H/I tests, arithmetic suffix, allocations/frees and the caller's
-inverse-Z-one specialization. Do not assume these executions, normalize the
-target program, or count a prefix helper as public-jet coverage.
+`jet_secp_zinv_finite.exec_zinv_finite_body` now composes the thirteen-statement
+prefix, both actual finite-input flag guards and all H/I outcomes into the
+**entire original function body** when both input infinity flags are zero.
+`exec_zinv_finite_suffix` also exposes the body after the flag guards. Both
+derive execution from the six caller fields, their square-input bounds and
+writable private allocations only. Doubling uses the raw X/Y/Z; nonzero
+arithmetic uses the actually weak-normalized U1/S1. Exact output coordinates,
+flag, square-input bounds, all fourteen input/private allocation permissions,
+and unchanged affine/inverse-Z field contents are returned. The frame is
+explicitly outside the whole point block and private field blocks, and outside
+affine bytes [0,80); it does not claim arbitrary-chunk point-padding framing.
+The exact-source identity is closed; execution retains six inherited
+assumptions. Normal compilation, recursive kernel checking and reviewed
+no-update focused audits pass:
+
+```sh
+JET_TARGETS=C/jet_secp_zinv_finite.vo bash Coq/build-jets.sh -j1
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_zinv_finite
+```
+
+Next prove the real function-call boundary, reusing the allocation/free
+structure of `jet_secp_mixed_function_loose`: allocate **all thirteen** locals
+in the original `fn_vars` order (az first, then z12/U/S/H/I/H2/H3/T, then
+bzinv2/bzinv3), derive the local environment and all separation/ownership facts,
+execute the checked body and free every local. The two locals unused on the
+finite path remain owned by its frame and still must be freed. The fourth
+argument is an inverse-Z field pointer, not a NULL ratio pointer.
+
+The infinity-input branches remain open: the first branch computes scaled
+affine X/Y using bzinv2/bzinv3 and sets Z from the copied flag; it is not a
+`gej_set_ge` call. The affine-infinity branch is also source-distinct from
+`mixed_b_head` (no optional-ratio statement). The finite guard proofs already
+use the exact zinv branches. Then prove the caller's inverse-Z-one specialization
+and literal-coordinate correspondence, the descending generator loop and
+public writer. `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
+constant infinity point and zero scalar, so the skipped non-generator loop
+must establish that its initialized Z=1 persists; do not assume it.
+These body proofs are not a whole helper call or public-jet coverage;
+accepted coverage remains 505/533 and the all-jet goal stays active.
 
 ## Decompression: current proof frontier
 
