@@ -55,6 +55,40 @@ Proof.
   { apply (f_equal (@length (Z * memory_chunk))) in HC; rewrite map_length in HC; exact HC. }
   f_equal; cbn [rcells]. apply field_cells_rebuild; [rewrite HN; exact HC|exact HD].
 Qed.
+(* Each limb conversion is closed and checked separately. The largest two
+   conversion/check commands take about nine seconds apiece; keep a bounded
+   margin there rather than grouping all five certificates under one Qed. *)
+Local Lemma curve_square_true_r0 :
+  nth 0 (curve_square_limbs true) (XLv 0) = sq_r0.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma curve_square_true_r1 :
+  nth 1 (curve_square_limbs true) (XLv 0) = sq_r1.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma curve_square_true_r2 :
+  nth 2 (curve_square_limbs true) (XLv 0) = sq_r2.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma curve_square_true_r3 :
+  nth 3 (curve_square_limbs true) (XLv 0) = sq_r3.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma curve_square_true_r4 :
+  nth 4 (curve_square_limbs true) (XLv 0) = sq_r4.
+Proof. apply sx_same_sound. Timeout 30 vm_compute. reflexivity. Timeout 30 Qed.
+Local Lemma curve_square_false_r0 :
+  nth 0 (curve_square_limbs false) (XLv 0) = sq_r0.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma curve_square_false_r1 :
+  nth 1 (curve_square_limbs false) (XLv 0) = sq_r1.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma curve_square_false_r2 :
+  nth 2 (curve_square_limbs false) (XLv 0) = sq_r2.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma curve_square_false_r3 :
+  nth 3 (curve_square_limbs false) (XLv 0) = sq_r3.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma curve_square_false_r4 :
+  nth 4 (curve_square_limbs false) (XLv 0) = sq_r4.
+Proof. apply sx_same_sound. Timeout 30 vm_compute. reflexivity. Timeout 30 Qed.
+
 Lemma curve_square_limbs_true : curve_square_limbs true = square_limbs.
 Proof.
   rewrite original_square_symbolic_output.
@@ -64,11 +98,11 @@ Proof.
   - rewrite HL; reflexivity.
   - intros i HI; rewrite HL in HI.
     destruct i as [|[|[|[|[|i]]]]]; try (exfalso; lia).
-    + apply sx_same_sound; timeout 10 (vm_compute; reflexivity).
-    + apply sx_same_sound; timeout 10 (vm_compute; reflexivity).
-    + apply sx_same_sound; timeout 10 (vm_compute; reflexivity).
-    + apply sx_same_sound; timeout 10 (vm_compute; reflexivity).
-    + apply sx_same_sound; timeout 10 (vm_compute; reflexivity).
+    + exact curve_square_true_r0.
+    + exact curve_square_true_r1.
+    + exact curve_square_true_r2.
+    + exact curve_square_true_r3.
+    + exact curve_square_true_r4.
 Qed.
 
 Lemma curve_square_limbs_false : curve_square_limbs false = square_limbs.
@@ -80,11 +114,11 @@ Proof.
   - rewrite HL; reflexivity.
   - intros i HI; rewrite HL in HI.
     destruct i as [|[|[|[|[|i]]]]]; try (exfalso; lia).
-    + apply sx_same_sound; timeout 10 (vm_compute; reflexivity).
-    + apply sx_same_sound; timeout 10 (vm_compute; reflexivity).
-    + apply sx_same_sound; timeout 10 (vm_compute; reflexivity).
-    + apply sx_same_sound; timeout 10 (vm_compute; reflexivity).
-    + apply sx_same_sound; timeout 10 (vm_compute; reflexivity).
+    + exact curve_square_false_r0.
+    + exact curve_square_false_r1.
+    + exact curve_square_false_r2.
+    + exact curve_square_false_r3.
+    + exact curve_square_false_r4.
 Qed.
 
 Lemma curve_square_limbs_equal k : curve_square_limbs k = square_limbs.
