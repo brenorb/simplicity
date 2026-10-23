@@ -1316,6 +1316,27 @@ external `memset`; that library boundary is reported in
 [JET_SECP_EXTERNAL_MISMATCHES.md](JET_SECP_EXTERNAL_MISMATCHES.md), not assumed
 discharged by the splitting proof. Coverage remains 505/533.
 
+`jet_secp_scalar_split128_literal` now ports the exact canonical normalized
+`scalar_split_128` routing (low half first, both sign bits false), and relates
+the original C split's output memory to its two literal Word128 payloads.
+`eval_scalar_split128_normalized_literal` derives the original complete helper
+call, exact `scalar_at` words suitable for the existing wNAF contract, both
+destination ownership ranges, the owned-input option, and framing. The input
+normalization/value equality is an internal caller obligation, not a new
+restriction on public inputs: `scalar_reader_split128_value` proves it for
+the actual reader limbs for every Word256 input. Establishing the three-region
+memory relation through the caller and composing both wNAF calls are still
+open. Do not treat the arithmetic bridge alone as that caller composition.
+Normal compilation and reviewed focused snapshots pass; six exports are
+closed, storage uses four inherited assumptions, and complete C execution
+uses the existing six without a libc premise. Independent recursive kernel
+checking is the next integration check. Use the normal target/module
+`C/jet_secp_scalar_split128_literal.vo` / `C.jet_secp_scalar_split128_literal`
+with the commands above. The unchanged scalar-parametric dependency was
+rebuilt from source under pinned Coq 8.17.1 / OCaml 4.14.4; its existing
+assumption/contract snapshots match without updates. No jet is registered by
+this bridge; current accepted coverage remains 513/533.
+
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
 any 256-bit value. For offsets in `[0,256)`, counts in `[0,32]`, and a window
@@ -3291,22 +3312,12 @@ its positioned-`fe_limbs_ok` Y premise is too restrictive. The loose-input
 execution path above is the checked replacement for that internal boundary.
 ## Source-review question: Elements fee predicates
 
-Before attempting `output_is_fee` or `total_fee`, investigate this boundary:
-
-- `Haskell/Simplicity/Elements/Programs/Transaction.hs` defines `outputIsFee`
-  using equality of `OutputScriptHash` with `bsHash mempty`, together with the
-  explicit asset/amount tests.
-- `C/elements/elementsJets.c` uses `output->emptyScript` in `isFee`.
-  `copyOutput` in `C/elements/env.c` sets this flag from script length zero.
-
-For actual builder-produced environments, the missing converse is that a script
-with the empty-script digest is empty, within the supported script domain.
-No such property has been proved here, and no nonempty script with that digest
-has been exhibited. This is a source-level proof obligation, **not a formal
-counterexample or a demonstrated wrong result**. Do not assume digest-preimage
-uniqueness or redefine the flag's representation to hide the obligation. Keep
-these unregistered targets unresolved while investigating or reporting closed
-evidence, and continue independent jets.
+The canonical digest-equality test versus C's script-empty flag, exact source
+locations, reproduction, verification limits and hypothetical impact are in
+[JET_ELEMENTS_FEE_MISMATCHES.md](JET_ELEMENTS_FEE_MISMATCHES.md). No nonempty
+preimage of the empty-script digest has been exhibited, and the needed
+converse has not been proved. This is **not a demonstrated wrong result**.
+Keep these unregistered targets unresolved and continue independent jets.
 
 The current independent C-side task is the **processed** `sigOutput` classifier
 `jets_elements.f_isFee` (`jets_elements.v:38964`), then its indexed public wrapper.
@@ -3335,8 +3346,9 @@ frames and cursors. Its initial environment relation represents the actual
 script-empty flag and asset/amount prefixes, not cached hash equality. The
 result is explicitly `processed_fee_result`, **not** the canonical hash-based
 program. Normal compilation and reviewed focused assumption/contract checks
-pass, with the same six inherited assumptions and no libc premise; recursive
-kernel checking of this caller is the next integration check.
+pass, with the same six inherited assumptions and no libc premise. Independent
+recursive kernel checking and the no-update focused audits also pass on
+`d057851f`, in the clean task-owned verification worktree.
 
 Neither module adds a registered jet. The full canonical empty-digest
 converse above remains open.
