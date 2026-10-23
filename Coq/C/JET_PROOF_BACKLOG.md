@@ -179,6 +179,29 @@ proving it equals 2^128 G is not required for this exact literal bridge.
 Neither this strategy review nor the completed initialization proofs establish
 that semantic bridge or increase public-jet coverage.
 
+The first EEA step is now complete in `jet_secp_eea_literal` and
+`jet_secp_eea_numeric`: a structural port of the actual row update, comparison
+branch, doubled iteration, zero/one initialization and signed coefficient
+extraction, together with `literal_bezout_numeric` for every word width and
+every input pair. It derives the exact numeric run (512 steps at word256),
+including coefficient wrap modulo the word modulus, division-by-zero behavior
+and the output sum constructor. It does not replace the literal computation
+with an assumed inverse or a mathematical gcd specification. All seven
+structural exports are closed; numeric simulation uses only the existing
+functional-extensionality assumption through the literal division adapter.
+Normal build, recursive kernel check and reviewed no-update focused
+assumption/contract comparisons pass. Reproduce:
+
+```sh
+JET_TARGETS=C/jet_secp_eea_numeric.vo bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_eea_numeric
+```
+
+Next connect the literal field-inversion wrapper to this evaluator and measure
+small checked word256 cases before building the table normalization checker.
+This stage does not establish the C inversion jet, its external ctz obligation,
+the table/literal correspondence, or public `generate` equivalence.
+
 ## Decompression: current proof frontier
 
 The complete original public C jet is proved by
