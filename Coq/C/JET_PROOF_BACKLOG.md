@@ -1,11 +1,11 @@
 # Remaining jet proof work
 
-The current local-contract registry counts 507 of the 533 header declarations
+The current local-contract registry counts 509 of the 533 header declarations
 toward full-input contracts (136 still conditional on `memcpy_model`). A
 separate restricted `gej_ge_add_ex` entry describes a reported mismatch and
 does not count toward all-input completion.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 26 declarations lack a registered final proof.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 24 declarations lack a registered final proof.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
 and decompression endpoints passed ordinary scoped acceptance; accepted
 local-contract coverage is 505/533. The every-jet
@@ -36,6 +36,14 @@ Normal compilation and reviewed focused snapshots pass; ordinary scoped
 acceptance for these new registrations is pending, so accepted coverage
 remains 505/533. The extended existing source gate rejects 51 array-program
 mutations and 26 raw-boundary mutations.
+
+`jet_bitcoin_composite_hash_literal` similarly connects `outputs_hash` and
+`input_utxos_hash` to their literal two-component SHA compositions, including
+raw interpretation and the complete original getter calls. Its five pure
+exports are closed; its four C contracts retain the same six inherited
+assumptions, with no libc premise. The existing source gate fixes component
+order, the SHA64 width, cache offsets and full boundaries, rejecting 22
+mutations. Ordinary scoped acceptance for this pair is also pending.
 
 ## Active `generate` frontier
 

@@ -1025,6 +1025,97 @@ def bitcoin_array_hashes(s):
     p.require(s["full_primitive"], "| Ext q => fun a => BitcoinExt.sem q a e", "extended primitive dispatch")
 
 
+def bitcoin_composite_hashes(s):
+    """Canonical pair wiring and both complete original C getter boundaries.
+    Component primitives, hash loops and SHA leaves have existing checks.
+    """
+    def definition(name, expected):
+        if p.compact(p.definition(s['bitcoin_composite_port'], name)) != p.compact(expected):
+            raise ValueError('Bitcoin composite definition differs: ' + name)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('Bitcoin composite binding differs: ' + lhs)
+
+    definition('literal_bitcoin_pair_hash', '''
+      let term := PF.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in
+      @AC.comp _ _ _ core
+        (@AC.pair _ _ _ core (@literal_sha_hash_ctx_init core) (@AC.pair _ _ _ core s t))
+        (@AC.comp _ _ _ core (@literal_ctx8_addn 6 term) (@literal_ctx8_finalize term))''')
+    binding('sighash', 'ctx8Add64', 'ctx8Addn vector64')
+    binding('hs_types', 'vector64', 'DoubleV vector32')
+    programs = s['sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    for tag, hs_name, stem, left, right, offset in [
+        ('OutputsHash', 'outputsHash', 'outputs', 'output_values', 'output_scripts', 80),
+        ('InputUtxosHash', 'inputUtxosHash', 'input_utxos', 'input_values', 'input_scripts', 208),
+    ]:
+        p.require(s['bitcoin_catalog'], tag + ' :: SigHashJet () Word256', 'Bitcoin composite catalog type')
+        binding('bitcoin_catalog', 'specificationSigHash ' + tag, 'SigHash.' + hs_name)
+        binding('sighash_lib', hs_name, 'SigHash.' + hs_name + ' SigHash.lib')
+        selected = re.search(r'\b' + hs_name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)
+        if not selected:
+            raise ValueError('missing canonical Bitcoin composite program')
+        hs_left = {'output_values': 'outputValuesHash', 'input_values': 'inputValuesHash'}[left]
+        hs_right = {'output_scripts': 'outputScriptsHash', 'input_scripts': 'inputScriptsHash'}[right]
+        hs = re.sub(r'ctx8Addn\s+vector64', 'ctx8Add64', selected[1])
+        same(hs, f'ctx8Init &&& ({hs_left} &&& {hs_right}) >>> ctx8Add64 >>> ctx8Finalize', hs_name)
+        program = 'literal_bitcoin_' + stem + '_hash'
+        definition(program, f'''@literal_bitcoin_pair_hash alg
+          (@literal_bitcoin_{left}_hash alg) (@literal_bitcoin_{right}_hash alg)''')
+        for suffix, env, rep, alg in [
+            ('literal_local', 'ext_environment', f'(hash_getter_rep {stem}_hash_of 0 {offset} 432)', 'fullalg'),
+            ('raw_literal_local', 'raw_bitcoin_environment',
+             f'(raw_env_rep (hash_getter_rep {stem}_hash_of 0 {offset} 432))', 'raw_fullalg'),
+        ]:
+            statement = re.search(r'Theorem bitcoin_' + stem + '_hash_' + suffix + r'_spec\s*:(.*?)\bProof\.',
+                                  s['bitcoin_composite_port'], re.S)
+            expected = f'''application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge {env}
+              Ty.Unit Word256 {rep} (fun a environment => @{program} {alg} a environment).'''
+            if not statement or p.compact(statement[1]) != p.compact(expected):
+                raise ValueError('Bitcoin composite full C contract differs: ' + stem)
+
+
+def bitcoin_composite_mutation_test(s):
+    bitcoin_composite_hashes(s)
+    mutations = [
+        ('bitcoin_composite_port', '@AC.pair _ _ _ core s t', '@AC.pair _ _ _ core t s'),
+        ('bitcoin_composite_port', '@literal_ctx8_addn 6 term', '@literal_ctx8_addn 5 term'),
+        ('bitcoin_composite_port', '@literal_ctx8_finalize term', '@ctx8_finalize_spec term'),
+        ('bitcoin_composite_port', '@literal_sha_hash_ctx_init core', '@sha256_ctx8_init_spec core'),
+        ('sighash', 'ctx8Add64 = ctx8Addn vector64', 'ctx8Add64 = ctx8Addn vector32'),
+        ('hs_types', 'vector64 = DoubleV vector32', 'vector64 = DoubleV vector16'),
+    ]
+    for tag, hs_name, stem, left, right, offset in [
+        ('OutputsHash', 'outputsHash', 'outputs', 'output_values', 'output_scripts', 80),
+        ('InputUtxosHash', 'inputUtxosHash', 'input_utxos', 'input_values', 'input_scripts', 208),
+    ]:
+        mutations += [
+            ('bitcoin_catalog', f'specificationSigHash {tag} = SigHash.{hs_name}', f'specificationSigHash {tag} = SigHash.tappathHash'),
+            ('sighash_lib', f'{hs_name} = SigHash.{hs_name} SigHash.lib', f'{hs_name} = SigHash.tappathHash SigHash.lib'),
+            ('bitcoin_composite_port', f'(@literal_bitcoin_{left}_hash alg)', f'(@literal_bitcoin_{right}_hash alg)'),
+            ('bitcoin_composite_port', f'0 {offset} 432', f'0 {offset + 32} 432'),
+            ('bitcoin_composite_port', f'Theorem bitcoin_{stem}_hash_literal_local_spec :', f'Theorem bitcoin_{stem}_hash_literal_local_spec : False ->'),
+            ('bitcoin_composite_port', f'Theorem bitcoin_{stem}_hash_raw_literal_local_spec :', f'Theorem bitcoin_{stem}_hash_raw_literal_local_spec : False ->'),
+            ('bitcoin_composite_port', f'@literal_bitcoin_{stem}_hash raw_fullalg', f'@literal_bitcoin_{stem}_hash fullalg'),
+        ]
+    mutations += [
+        ('sighash', 'ctx8Init &&& (outputValuesHash &&& outputScriptsHash)', 'ctx8Init &&& (outputScriptsHash &&& outputValuesHash)'),
+        ('sighash', 'ctx8Init &&& (inputValuesHash &&& inputScriptsHash)', 'ctx8Init &&& (inputScriptsHash &&& inputValuesHash)'),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive Bitcoin composite mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            bitcoin_composite_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('Bitcoin composite mutation escaped: ' + old)
+    print('Two Bitcoin composite hash programs and four full C boundaries match;', len(mutations), 'mutations rejected')
+
+
 def bitcoin_raw_hashes(s):
     """Keep raw interpretation, its represented-memory boundary and all seven
     complete C conclusions explicit. This does not prove caller cache creation.
@@ -3183,6 +3274,7 @@ def sources():
         "tappath_port": COQ / "C/jet_bitcoin_tappath_hash_literal.v",
         "array_port": COQ / "C/jet_bitcoin_array_hash_literal.v",
         "value_port": COQ / "C/jet_bitcoin_value_hash_literal.v",
+        "bitcoin_composite_port": COQ / "C/jet_bitcoin_composite_hash_literal.v",
         "base_primitive": COQ / "Simplicity/Primitive/Bitcoin.v",
         "full_primitive": COQ / "C/jet_bitcoin_full_prim.v",
         "raw_program": COQ / "C/jet_bitcoin_raw_program.v",
@@ -3270,6 +3362,7 @@ def test():
     primitive_hash_words(s)
     bitcoin_array_hashes(s)
     bitcoin_raw_hashes(s)
+    bitcoin_composite_mutation_test(s)
     bitcoin_tap_environment(s)
     bitcoin_input_hashes(s)
     bitcoin_single_input_hash(s)
