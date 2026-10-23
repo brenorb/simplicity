@@ -1,11 +1,11 @@
 # Remaining jet proof work
 
-The current local-contract registry counts 505 of the 533 header declarations
+The current local-contract registry counts 507 of the 533 header declarations
 toward full-input contracts (136 still conditional on `memcpy_model`). A
 separate restricted `gej_ge_add_ex` entry describes a reported mismatch and
 does not count toward all-input completion.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 28 declarations lack a registered final proof.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 26 declarations lack a registered final proof.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
 and decompression endpoints passed ordinary scoped acceptance; accepted
 local-contract coverage is 505/533. The every-jet
@@ -22,6 +22,20 @@ The remaining work includes:
 - general caller startup and persistent SHA/global-state readiness;
 - libc implementation proofs where a contract assumes `memcpy_model`;
 - raw transaction/taproot projections for cached Bitcoin environment fields.
+
+## Bitcoin value/script hash frontier
+
+`jet_bitcoin_value_hash_literal` now composes the checked original C getters
+for `output_values_hash` and `input_values_hash` with the exact canonical
+`hashWord64s (drop (primitive ...))` programs, including raw interpretation.
+The four program/parametricity lemmas are closed; the four complete C call
+contracts retain the six inherited assumptions and add no libc premise.
+The original environment relation, frozen Bitcoin domain and represented
+cache premises are unchanged. Cache construction is a separate obligation.
+Normal compilation and reviewed focused snapshots pass; ordinary scoped
+acceptance for these new registrations is pending, so accepted coverage
+remains 505/533. The extended existing source gate rejects 51 array-program
+mutations and 26 raw-boundary mutations.
 
 ## Active `generate` frontier
 

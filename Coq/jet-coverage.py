@@ -151,6 +151,7 @@ RECOVERED_CONTRACTS.update({
 })
 
 for stem, depth, offset in [
+        ("output_values", 3, 16), ("input_values", 3, 144),
         ("output_scripts", 5, 48), ("input_scripts", 5, 176),
         ("input_sequences", 2, 240), ("input_script_sigs", 5, 304)]:
     RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (

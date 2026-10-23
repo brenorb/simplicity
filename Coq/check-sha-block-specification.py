@@ -954,15 +954,17 @@ def bitcoin_array_hashes(s):
         if p.compact(hbody(s[key], lhs)) != p.compact(expected):
             raise ValueError("Bitcoin array hash binding differs: " + lhs)
 
-    def definition(name, expected):
-        if p.compact(p.definition(s["array_port"], name)) != p.compact(expected):
+    def definition(name, expected, key="array_port"):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
             raise ValueError("Bitcoin array hash program differs: " + name)
 
     body = s["sighash"].split("mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib", 1)[1]
     binding("sighash", "hashWord256s32", "hashWord256s word32")
     binding("sighash", "hashWord32s array", '''iden &&& (unit >>> ctx8Init)
       >>> Sha256.hashLoop vector4 word32 array >>> ctx8Finalize''')
-    for lhs, rhs in [("word32", "vector32"), ("vector4", "DoubleV vector2"),
+    binding("sighash", "hashWord64s array", '''iden &&& (unit >>> ctx8Init)
+      >>> Sha256.hashLoop vector8 word32 array >>> ctx8Finalize''')
+    for lhs, rhs in [("word32", "vector32"), ("vector8", "DoubleV vector4"), ("vector4", "DoubleV vector2"),
                      ("vector2", "DoubleV vector1"), ("vector1", "SingleV")]:
         binding("hs_types", lhs, rhs)
     definition("literal_bitcoin_array_hash", '''
@@ -971,6 +973,8 @@ def bitcoin_array_hashes(s):
         (@Alg.Core.Combinators.drop Ty.Unit (Word 5) (Ty.Sum Ty.Unit (Vector (Word 3) k))
           (Alg.Assertion.toCore term) (@PF.Combinators.prim _ _ alg p))''')
     cases = [
+        ("OutputValuesHash", "outputValuesHash", "output_values", "OutputValue", "Base Bitcoin", 3, 16),
+        ("InputValuesHash", "inputValuesHash", "input_values", "InputValue", "Base Bitcoin", 3, 144),
         ("OutputScriptsHash", "outputScriptsHash", "output_scripts", "OutputScriptHash", "Base Bitcoin", 5, 48),
         ("InputScriptsHash", "inputScriptsHash", "input_scripts", "InputScriptHash", "Ext BitcoinExt", 5, 176),
         ("InputSequencesHash", "inputSequencesHash", "input_sequences", "InputSequence", "Base Bitcoin", 2, 240),
@@ -983,12 +987,13 @@ def bitcoin_array_hashes(s):
         selected = re.search(r"\b" + hs_name + r"\s*=(.*?)\n\s*[,}]", body, re.S)
         if not selected:
             raise ValueError("missing canonical array hash: " + hs_name)
-        helper = "hashWord32s" if k == 2 else "hashWord256s32"
+        helper = {2: "hashWord32s", 3: "hashWord64s", 5: "hashWord256s32"}[k]
+        key = "value_port" if k == 3 else "array_port"
         same(selected[1], f"{helper} (drop (primitive {prim}))", hs_name + " primitive routing")
         program = "literal_bitcoin_" + stem + "_hash"
-        definition(program, f"@literal_bitcoin_array_hash {k} (BitcoinFull.{signature}.{prim}) alg")
+        definition(program, f"@literal_bitcoin_array_hash {k} (BitcoinFull.{signature}.{prim}) alg", key)
         statement = re.search(r"Theorem bitcoin_" + stem + r"_hash_literal_local_spec\s*:(.*?)\bProof\.",
-                              s["array_port"], re.S)
+                              s[key], re.S)
         expected = f'''application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge ext_environment
           Ty.Unit Word256 (hash_getter_rep (fun e => words_hash_of {k} 5 ({stem}_of e)) 0 {offset} 432)
           (fun a environment => @{program} fullalg a environment).'''
@@ -1001,12 +1006,17 @@ def bitcoin_array_hashes(s):
         "atInput f": "cast . fmap f . lookupInput . fromInteger . fromWord32",
         "atOutput f": "cast . fmap f . lookupOutput . fromInteger . fromWord32",
         "interpret InputSequence": "return . (atInput $ toWord32 . toInteger . sigTxiSequence)",
+        "interpret InputValue": "return . (atInput $ toWord64 . toInteger . sigTxiValue)",
+        "interpret OutputValue": "return . (atOutput $ toWord64 . fromIntegral . txoValue)",
         "interpret OutputScriptHash": "return . (atOutput $ encodeHash . bslHash . txoScript)",
         "interpret InputScriptHash": "return . (atInput $ encodeHash . bslHash . sigTxiScript)",
         "interpret InputScriptSigHash": "return . (atInput $ encodeHash . bslHash . sigTxiScriptSig)",
     }.items():
         binding("btc_primitive", lhs, rhs)
     p.require(s["base_primitive"], '''| InputSequence => atInput (fun txi => fromZ (Int.unsigned (sigTxiSequence txi)))''', "formal sequence projection")
+    # Preserve the frozen base interpretation and its recorded money-range domain.
+    p.require(s["base_primitive"], '''| InputValue => atInput (fun txi => fromZ (Int64.signed (sigTxiValue txi)))''', "frozen input value projection")
+    p.require(s["base_primitive"], '''| OutputValue => atOutput (fun txout => fromZ (Int64.signed (txoValue txout)))''', "frozen output value projection")
     p.require(s["base_primitive"], '''| OutputScriptHash => atOutput (fun txout => from_hash256 (byteStringHash (txoScript txout)))''', "formal output script projection")
     for prim, field in [("InputScriptHash", "extInScriptHash"), ("InputScriptSigHash", "extInScriptSigHash")]:
         p.require(s["ext_primitive"], f'''| {prim} => fun i =>
@@ -1016,7 +1026,7 @@ def bitcoin_array_hashes(s):
 
 
 def bitcoin_raw_hashes(s):
-    """Keep raw interpretation, its represented-memory boundary and all five
+    """Keep raw interpretation, its represented-memory boundary and all seven
     complete C conclusions explicit. This does not prove caller cache creation.
     """
     for key, name, expected in [
@@ -1048,13 +1058,16 @@ def bitcoin_raw_hashes(s):
     p.require(s["raw_env"], '''| BitcoinExt.Tappath => fun i =>
       Some (cast (option_map from_hash256 (nth_error (raw_tap_path environment) (Z.to_nat (toZ i)))))''', "raw path primitive")
     for stem, k, w, ptr, offset, size in [
+        ("output_values", 3, 5, 0, 16, 432),
+        ("input_values", 3, 5, 0, 144, 432),
         ("output_scripts", 5, 5, 0, 48, 432),
         ("input_scripts", 5, 5, 0, 176, 432),
         ("input_sequences", 2, 5, 0, 240, 432),
         ("input_script_sigs", 5, 5, 0, 304, 432),
         ("tappath", 5, 3, 8, 40, 176),
     ]:
-        statement = re.search(r"Theorem bitcoin_" + stem + r"_hash_raw_literal_local_spec\s*:(.*?)\bProof\.", s["raw_hash"], re.S)
+        key = "value_port" if stem in {"output_values", "input_values"} else "raw_hash"
+        statement = re.search(r"Theorem bitcoin_" + stem + r"_hash_raw_literal_local_spec\s*:(.*?)\bProof\.", s[key], re.S)
         expected = f'''application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge raw_bitcoin_environment
           Ty.Unit Word256
           (raw_env_rep (hash_getter_rep (fun e => words_hash_of {k} {w} ({stem}_of e)) {ptr} {offset} {size}))
@@ -3169,6 +3182,7 @@ def sources():
         "hash_words_port": COQ / "C/jet_sha_hash_words_literal.v",
         "tappath_port": COQ / "C/jet_bitcoin_tappath_hash_literal.v",
         "array_port": COQ / "C/jet_bitcoin_array_hash_literal.v",
+        "value_port": COQ / "C/jet_bitcoin_value_hash_literal.v",
         "base_primitive": COQ / "Simplicity/Primitive/Bitcoin.v",
         "full_primitive": COQ / "C/jet_bitcoin_full_prim.v",
         "raw_program": COQ / "C/jet_bitcoin_raw_program.v",
@@ -3527,6 +3541,13 @@ def test():
         raise ValueError("primitive hash source mutation escaped: " + old)
     print("Primitive-bearing hash loop, TappathHash program/domain and whole C boundary match;", len(primitive_hash_mutations), "mutations rejected")
     array_hash_mutations = [
+        ("sighash", "Sha256.hashLoop vector8 word32 array", "Sha256.hashLoop vector4 word32 array"),
+        ("btc_primitive", "toWord64 . toInteger . sigTxiValue)", "toWord32 . toInteger . sigTxiValue)"),
+        ("btc_primitive", "toWord64 . fromIntegral . txoValue)", "toWord64 . fromIntegral . txoScript)"),
+        ("base_primitive", "| InputValue => atInput (fun txi => fromZ (Int64.signed (sigTxiValue txi)))", "| InputValue => atInput (fun txi => fromZ (Int64.unsigned (sigTxiValue txi)))"),
+        ("base_primitive", "| OutputValue => atOutput (fun txout => fromZ (Int64.signed (txoValue txout)))", "| OutputValue => atOutput (fun txout => fromZ (Int64.unsigned (txoValue txout)))"),
+        ("value_port", "literal_bitcoin_array_hash 3 (BitcoinFull.Base Bitcoin.OutputValue)", "literal_bitcoin_array_hash 2 (BitcoinFull.Base Bitcoin.OutputValue)"),
+        ("value_port", "0 16 432", "0 48 432"),
         ("sighash", "hashWord256s32 = hashWord256s word32", "hashWord256s32 = hashWord256s word8"),
         ("sighash", "Sha256.hashLoop vector4 word32 array", "Sha256.hashLoop vector8 word32 array"),
         ("sighash", "hashWord32s array = iden", "hashWord32s array = unit"),
@@ -3543,17 +3564,20 @@ def test():
         ("full_primitive", "Bitcoin.sem q a (extBase e)", "Bitcoin.sem q a other"),
     ]
     for tag, hs_name, stem, prim in [
+        ("OutputValuesHash", "outputValuesHash", "output_values", "OutputValue"),
+        ("InputValuesHash", "inputValuesHash", "input_values", "InputValue"),
         ("OutputScriptsHash", "outputScriptsHash", "output_scripts", "OutputScriptHash"),
         ("InputScriptsHash", "inputScriptsHash", "input_scripts", "InputScriptHash"),
         ("InputSequencesHash", "inputSequencesHash", "input_sequences", "InputSequence"),
         ("InputScriptSigsHash", "inputScriptSigsHash", "input_script_sigs", "InputScriptSigHash"),
     ]:
+        port = "value_port" if stem in {"output_values", "input_values"} else "array_port"
         array_hash_mutations += [
             ("bitcoin_catalog", f"specificationSigHash {tag} = SigHash.{hs_name}", f"specificationSigHash {tag} = SigHash.tappathHash"),
             ("sighash_lib", f"{hs_name} = SigHash.{hs_name} SigHash.lib", f"{hs_name} = SigHash.tappathHash SigHash.lib"),
             ("sighash", f"(drop (primitive {prim}))", f"(take (primitive {prim}))"),
-            ("array_port", f"Bitcoin.{prim}" if prim in {"OutputScriptHash", "InputSequence"} else f"BitcoinExt.{prim}", "BitcoinExt.Tappath"),
-            ("array_port", f"Theorem bitcoin_{stem}_hash_literal_local_spec :", f"Theorem bitcoin_{stem}_hash_literal_local_spec : False ->"),
+            (port, f"Bitcoin.{prim}" if prim in {"OutputScriptHash", "InputSequence", "OutputValue", "InputValue"} else f"BitcoinExt.{prim}", "BitcoinExt.Tappath"),
+            (port, f"Theorem bitcoin_{stem}_hash_literal_local_spec :", f"Theorem bitcoin_{stem}_hash_literal_local_spec : False ->"),
         ]
     for key, old, new in array_hash_mutations:
         if old not in s[key]:
@@ -3565,7 +3589,7 @@ def test():
         except ValueError:
             continue
         raise ValueError("Bitcoin array hash source mutation escaped: " + old)
-    print("Four Bitcoin array hash programs, primitive projections and whole C boundaries match;", len(array_hash_mutations), "mutations rejected")
+    print("Six Bitcoin array hash programs, primitive projections and whole C boundaries match;", len(array_hash_mutations), "mutations rejected")
     raw_hash_mutations = [
         ("raw_program", "Bitcoin.sem q a (raw_base environment)", "Bitcoin.sem q a changed"),
         ("raw_program", "raw_ext_sem q a environment", "BitcoinExt.sem q a environment"),
@@ -3580,11 +3604,12 @@ def test():
         ("raw_env", "byteStringHash (raw_redeemed_script data)", "byteStringHash (raw_script_sig data)"),
         ("raw_env", "byteStringHash (raw_script_sig data)", "byteStringHash (raw_redeemed_script data)"),
     ]
-    for stem in ["output_scripts", "input_scripts", "input_sequences", "input_script_sigs", "tappath"]:
+    for stem in ["output_values", "input_values", "output_scripts", "input_scripts", "input_sequences", "input_script_sigs", "tappath"]:
         declaration = f"Theorem bitcoin_{stem}_hash_raw_literal_local_spec :"
+        port = "value_port" if stem in {"output_values", "input_values"} else "raw_hash"
         raw_hash_mutations += [
-            ("raw_hash", declaration, declaration + " False ->"),
-            ("raw_hash", f"@literal_bitcoin_{stem}_hash raw_fullalg", f"@literal_bitcoin_{stem}_hash fullalg"),
+            (port, declaration, declaration + " False ->"),
+            (port, f"@literal_bitcoin_{stem}_hash raw_fullalg", f"@literal_bitcoin_{stem}_hash fullalg"),
         ]
     for key, old, new in raw_hash_mutations:
         if old not in s[key]:
@@ -3596,7 +3621,7 @@ def test():
         except ValueError:
             continue
         raise ValueError("raw Bitcoin hash source mutation escaped: " + old)
-    print("Raw primitive/whole-program interpretation and five whole C boundaries match;", len(raw_hash_mutations), "mutations rejected")
+    print("Raw primitive/whole-program interpretation and seven whole C boundaries match;", len(raw_hash_mutations), "mutations rejected")
     tap_environment_mutations = [
         ("hs", "ctx8InitTag tag = buffer63Empty", "ctx8InitTag tag = unit"),
         ("hs", "prefix = scribe . toWord256", "prefix = scribe . toWord128"),
