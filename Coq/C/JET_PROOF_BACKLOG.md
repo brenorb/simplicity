@@ -62,9 +62,18 @@ All seven arithmetic exports are closed; execution retains only the six
 inherited assumptions, with no new library model. Normal build, recursive
 kernel checking and reviewed no-update focused assumption/contract comparisons
 pass for both modules (use the above commands with their module names).
-This is helper progress, not additional accepted coverage. Next compose the
-actual affine decoder with owned destination88 and readonly source64, then
-close source framing/permission preservation and signed table lookup.
+This is helper progress, not additional accepted coverage.
+
+`jet_secp_affine_storage.eval_ge_from_storage_readonly` composes the actual
+two field-decoder calls and infinity assignment. It derives execution from
+arbitrary readable source64 and a distinct owned destination88, retains
+destination Freeable ownership, preserves all eight source typed loads and
+exposes exact coordinate limbs and infinity=0. The coordinate arithmetic
+adapter is closed. Normal build, recursive kernel checking and reviewed
+no-update focused assumption/contract comparisons pass. Its base contract
+still frames outside the union of the regions. Next restore full readonly
+table-block framing using `jet_clight_readonly_frame`, then compose signed
+table lookup; neither stage establishes the table/specification bridge below.
 
 The two 8192-entry tables still need checked initializer loads and a formal
 bridge to the exact literal `generateSmall` / `generate128Small` results for
