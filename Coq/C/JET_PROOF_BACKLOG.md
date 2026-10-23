@@ -1463,9 +1463,31 @@ storage obligation, not the arbitrary logical input or the full public jet.
 Normal compilation and reviewed no-update assumption/contract checks pass;
 the two symbol/info facts are closed, memory/address results use four inherited
 assumptions, and helper execution uses the existing six without a libc model.
-Independent recursive checking is pending for this new extension. Reproduce
+Independent recursive kernel checking and no-update focused audits pass on
+`2b7104e2` in the task-owned verification worktree. Reproduce
 with target/module `C/jet_secp_generator_zero_global.vo` /
 `C.jet_secp_generator_zero_global` using the commands above.
+
+`jet_secp_ecmult_state.exec_ecmult_state_initialize` derives all three
+original `ecmult` state-pointer assignments and their actual Mptr loads from
+arbitrary prior state contents. It preserves Freeable24 ownership and memory
+outside the state object. `jet_secp_ecmult_entry.ecmult_entry_and_state`
+derives the real function entry, four original allocations (320/704/1040/24
+bytes), those assignments, pairwise and old-memory separation, all four
+ownership ranges and `Mem.unchanged_on True` for the caller's old memory.
+No local allocation, initialized pointer or helper execution is assumed by
+this combined theorem. Source/layout/allocation facts are closed; the three
+C execution facts use the same six inherited assumptions without a libc
+model. Normal compilation and reviewed no-update focused audits pass.
+Independent recursive checking is pending. Reproduce with target/module
+`C/jet_secp_ecmult_entry.vo` / `C.jet_secp_ecmult_entry`; focused audits select
+both `C.jet_secp_ecmult_state` and `C.jet_secp_ecmult_entry`.
+
+Next derive the actual Strauss entry/locals and use the caller's established
+state fields and readonly scalar to instantiate its checked first-eight-
+statement prefix. Then compose the scalar-split and wNAF stages. The actual
+external memset boundary remains separate; these entry/setup proofs do not
+register `generate` or increase the accepted count.
 
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
