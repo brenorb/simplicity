@@ -508,6 +508,15 @@ Next join the product prefix and this six-statement block, then the final
 S2 multiplication by local `az`, not `a->z`. Reuse the already-proved
 40-byte in-place `eval_field_pair_multiply`, rather than giving a 40-byte
 temporary a fictitious larger allocation or reproving multiplication.
+`jet_secp_zinv_s2.exec_zinv_s2_az_from_owned` now derives that actual final
+assignment using the existing multiplier. Its closed source lemma identifies
+the exact continuation. The result retains the actual `field_pair_product`
+words, input az, both 40-byte ownership ranges, product residue, tight output
+bounds and framing. Execution retains six inherited assumptions. Normal
+build, recursive kernel checking and reviewed no-update focused audits pass;
+reproduce with target/module `C/jet_secp_zinv_s2.vo` /
+`C.jet_secp_zinv_s2`. Sequential composition with the preparation block is
+the next obligation, not an assumed result.
 Then discharge both flag
 branches, H/I tests, arithmetic suffix, allocations/frees and the caller's
 inverse-Z-one specialization. Do not assume these executions, normalize the
