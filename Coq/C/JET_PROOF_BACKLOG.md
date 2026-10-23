@@ -631,11 +631,25 @@ recursive kernel checking and reviewed no-update focused audits pass with
 target/module `C/jet_secp_point_affine_product.vo` /
 `C.jet_secp_point_affine_product`; execution retains six inherited assumptions.
 
-The infinity-input branches remain open: the first branch computes scaled
-affine X/Y using bzinv2/bzinv3 and sets Z from the copied flag; it is not a
-`gej_set_ge` call. The affine-infinity branch is also source-distinct from
-`mixed_b_head` (no optional-ratio statement). The finite guard proofs already
-use the exact zinv branches. Then prove the caller's inverse-Z-one specialization
+`jet_secp_zinv_infinite_products.exec_zinv_infinite_products` now derives all
+four original A-infinity arithmetic statements: inverse-Z square/cube and
+scaled affine X/Y. `jet_secp_zinv_infinite.exec_zinv_infinite_body` composes
+them with the actual A flag guard, B-to-result flag copy, flag-dependent Z=0/1
+assignment and early return. Every nonzero A flag and every B flag are covered;
+the overwritten point coordinates need no initialized contents or bounds.
+All five caller/private allocations, exact coordinate words, input fields,
+output flag, machine bounds and external framing are retained. The proof
+executes the actual statements, not a substituted `gej_set_ge` call.
+Source identities and the bit-field bound are closed; execution retains six
+inherited assumptions. Normal builds, recursive kernel checks and reviewed
+no-update focused audits pass; reproduce with targets/modules
+`C/jet_secp_zinv_infinite_products.vo` and `C/jet_secp_zinv_infinite.vo` / their
+`C.*` module names as above. These are body results: compose A-infinity with
+the original thirteen allocations/frees next, reusing the checked entry.
+
+The affine-infinity body branch remains to integrate; it is source-distinct
+from `mixed_b_head` (no optional-ratio statement) and can reuse
+`exec_gej_add_self_copy`. Then prove the caller's inverse-Z-one specialization
 and literal-coordinate correspondence, the descending generator loop and
 public writer. `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
