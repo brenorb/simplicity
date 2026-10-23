@@ -137,7 +137,10 @@ Proof.
  assert (F10O : Mem.range_perm mo bk 0 40 Cur Freeable).
  { eapply curve_keep_free;[lia|exact F10I|exact FB|];intro pos;repeat split;congruence. }
  destruct (free_list_exists [(bt,0,40);(bs,0,40);(bi,0,40);(baz,0,40);(bv,0,40);(bu,0,40);(b2,0,40);(bh,0,40);(b3,0,40);(bk,0,40);(bz,0,40);(binv2,0,40);(binv3,0,40)] mo) as (mf & Free & Unchanged).
- - clear - SepAll;separate_blocks SepAll;cbn;repeat constructor;cbn;intuition congruence.
+ - clear - SepAll;separate_blocks SepAll;cbn;repeat constructor;cbn;
+   intro Same;
+   repeat match type of Same with _ \/ _ => destruct Same as [Same|Same] end;
+   congruence.
  - intros b lo hi Hin;cbn [In] in Hin.
    repeat match type of Hin with _ \/ _ => destruct Hin as [Hin|Hin] end;
     try contradiction;inversion Hin;subst b lo hi;assumption.
