@@ -516,7 +516,16 @@ bounds and framing. Execution retains six inherited assumptions. Normal
 build, recursive kernel checking and reviewed no-update focused audits pass;
 reproduce with target/module `C/jet_secp_zinv_s2.vo` /
 `C.jet_secp_zinv_s2`. Sequential composition with the preparation block is
-the next obligation, not an assumed result.
+now proved by `jet_secp_zinv_preparation.exec_zinv_preparation`: all seven
+original statements after az/z12 execute from their initial represented
+fields, deriving all four U/S results, their tight downstream bounds, the
+actual S2 triple-product residue, all eight allocation permissions and
+framing. A closed source lemma identifies the complete seven-statement
+continuation. Execution retains six inherited assumptions. Normal build,
+recursive kernel checking and reviewed no-update focused audits pass;
+reproduce with target/module `C/jet_secp_zinv_preparation.vo` /
+`C.jet_secp_zinv_preparation`. Its initial az/z12 fields still need to be
+discharged by the product-prefix composition, not assumed at a public endpoint.
 Then discharge both flag
 branches, H/I tests, arithmetic suffix, allocations/frees and the caller's
 inverse-Z-one specialization. Do not assume these executions, normalize the
