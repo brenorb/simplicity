@@ -1,0 +1,328 @@
+### C.jet_secp_modinv_normalize62_exec.norm62_run_eq
+norm62_run_eq
+     : @eq (option jet_sx_exec.res) norm62_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone norm62_state jet_sx_exec.ONormal))
+### C.jet_secp_modinv_normalize62_exec.norm62_return
+norm62_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps norm62_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_modinv_normalize62_exec.norm62_output_shape
+norm62_output_shape
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs norm62_state) norm62_out_regs
+### C.jet_secp_modinv_normalize62_exec.norm62_output_den
+norm62_output_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) norm62_out)
+         (@List.map Integers.Int64.int Values.val Values.Vlong
+            (jet_secp_multiply_normalize_bridge.words5
+               (norm62_machine rho (fun i : nat => rho (Nat.add (S (S (S (S (S O))))) i))
+                  (rho (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+### C.jet_secp_modinv_normalize62_exec.eval_norm62_symbolic
+eval_norm62_symbolic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta norm62_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_normalize_62)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val (Values.Vlong (rho (S (S (S (S (S (S (S (S (S (S O))))))))))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho beta norm62_out_regs mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (o : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape norm62_regs) b o)) m mf)))
+### C.jet_secp_modinv_normalize62_exec.norm62_initial
+norm62_initial
+     : forall (rho : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (br bm : Values.block)
+         (_ : not (@eq Values.block br bm))
+         (_ : jet_secp_fe_nv.fe_at m br BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 rho))
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable) (_ : norm62_modulus_at m bm (fun i : nat => rho (Nat.add (S (S (S (S (S O))))) i))),
+       jet_sx_state.rep rho
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z br BinNums.Z0)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bm BinNums.Z0)
+               (@nil (prod Values.block BinNums.Z)))) norm62_regs m
+### C.jet_secp_modinv_normalize62_exec.norm62_words_readable
+norm62_words_readable
+     : forall (m : Memory.Mem.mem) (b : Values.block) (w : forall _ : nat, Integers.Int64.int)
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vlong (w i)))),
+       Memory.Mem.range_perm m b BinNums.Z0
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+         Memtype.Readable
+### C.jet_secp_modinv_normalize62_exec.norm62_foot
+norm62_foot
+     : forall (br bm b : Values.block) (pos : BinNums.Z)
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z br BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bm BinNums.Z0)
+                      (@nil (prod Values.block BinNums.Z))))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   norm62_regs) b pos),
+       or
+         (and (@eq Values.block b br)
+            (and (BinInt.Z.le BinNums.Z0 pos)
+               (BinInt.Z.lt pos
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (and (@eq Values.block b bm)
+            (and (BinInt.Z.le BinNums.Z0 pos)
+               (BinInt.Z.lt pos
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+### C.jet_secp_modinv_normalize62_exec.eval_norm62_from_storage
+eval_norm62_from_storage
+     : forall (rho : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (br bm : Values.block)
+         (_ : not (@eq Values.block br bm))
+         (_ : jet_secp_fe_nv.fe_at m br BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 rho))
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable) (_ : norm62_modulus_at m bm (fun i : nat => rho (Nat.add (S (S (S (S (S O))))) i))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_normalize_62)
+               (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vlong (rho (S (S (S (S (S (S (S (S (S (S O))))))))))))
+                     (@cons Values.val (Values.Vptr bm Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf br BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5
+                     (norm62_machine rho (fun i : nat => rho (Nat.add (S (S (S (S (S O))))) i))
+                        (rho (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+               (and
+                  (Memory.Mem.range_perm mf br BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and (norm62_modulus_at mf bm (fun i : nat => rho (Nat.add (S (S (S (S (S O))))) i)))
+                     (jet_sx_mem.lframe (norm62_outside br bm) m mf)))))
+### C.jet_secp_modinv_normalize62_exec.norm62_regs
+norm62_regs =
+@cons jet_sx_state.region
+  (jet_secp_local_regions.free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 O))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+  (@cons jet_sx_state.region
+     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_fe_nv.vars5 (S (S (S (S (S O))))))) false
+        (@None BinNums.Z)) (@nil jet_sx_state.region))
+     : list jet_sx_state.region
+### C.jet_secp_modinv_normalize62_exec.norm62_args
+norm62_args =
+@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+  (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S O)))))))))))
+     (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0) (@nil jet_sx_expr.sx)))
+     : list jet_sx_expr.sx
+### C.jet_secp_modinv_normalize62_exec.norm62_run
+norm62_run =
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  (jet_sx_pure.int_table jet_secp_fns.secp_pure)
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  jets_secp.f_secp256k1_modinv64_normalize_62 norm62_args norm62_regs (@nil jet_sx_eval.event)
+  (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+     : option jet_sx_exec.res
+### C.jet_secp_modinv_normalize62_exec.norm62_mask
+norm62_mask =
+jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLc (Integers.Int64.repr (BinNums.Zneg BinNums.xH)))
+  (BinNums.Zpos (BinNums.xO BinNums.xH))
+     : jet_sx_expr.sx
+### C.jet_secp_modinv_normalize62_exec.norm62_add
+norm62_add =
+fun xs : list jet_sx_expr.sx =>
+@List.map nat jet_sx_expr.sx
+  (fun i : nat =>
+   jet_sx_expr.XLb jet_sx_expr.Badd (@List.nth jet_sx_expr.sx i xs (jet_sx_expr.XLc Integers.Int64.zero))
+     (jet_sx_expr.XLb jet_sx_expr.Band (jet_sx_expr.XLv (Nat.add (S (S (S (S (S O))))) i))
+        (jet_sx_expr.XLsh jet_sx_expr.Hshr
+           (@List.nth jet_sx_expr.sx (S (S (S (S O)))) xs (jet_sx_expr.XLc Integers.Int64.zero))
+           (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+  (@cons nat O
+     (@cons nat (S O) (@cons nat (S (S O)) (@cons nat (S (S (S O))) (@cons nat (S (S (S (S O)))) (@nil nat))))))
+     : forall _ : list jet_sx_expr.sx, list jet_sx_expr.sx
+
+Arguments norm62_add xs%list_scope
+### C.jet_secp_modinv_normalize62_exec.norm62_neg
+norm62_neg =
+fun xs : list jet_sx_expr.sx =>
+@List.map jet_sx_expr.sx jet_sx_expr.sx
+  (fun x : jet_sx_expr.sx =>
+   jet_sx_expr.XLb jet_sx_expr.Bsub
+     (jet_sx_expr.XLb jet_sx_expr.Bxor x
+        (jet_sx_expr.XLsh jet_sx_expr.Hshr (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S O)))))))))))
+           (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+     (jet_sx_expr.XLsh jet_sx_expr.Hshr (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S O)))))))))))
+        (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))) xs
+     : forall _ : list jet_sx_expr.sx, list jet_sx_expr.sx
+
+Arguments norm62_neg xs%list_scope
+### C.jet_secp_modinv_normalize62_exec.norm62_carry
+norm62_carry =
+fun xs : list jet_sx_expr.sx =>
+let r0 : jet_sx_expr.sx := @List.nth jet_sx_expr.sx O xs (jet_sx_expr.XLc Integers.Int64.zero) in
+let r1 : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Badd (@List.nth jet_sx_expr.sx (S O) xs (jet_sx_expr.XLc Integers.Int64.zero))
+    (jet_sx_expr.XLsh jet_sx_expr.Hshr r0
+       (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) in
+let r2 : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Badd (@List.nth jet_sx_expr.sx (S (S O)) xs (jet_sx_expr.XLc Integers.Int64.zero))
+    (jet_sx_expr.XLsh jet_sx_expr.Hshr r1
+       (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) in
+let r3 : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Badd (@List.nth jet_sx_expr.sx (S (S (S O))) xs (jet_sx_expr.XLc Integers.Int64.zero))
+    (jet_sx_expr.XLsh jet_sx_expr.Hshr r2
+       (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) in
+let r4 : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Badd
+    (@List.nth jet_sx_expr.sx (S (S (S (S O)))) xs (jet_sx_expr.XLc Integers.Int64.zero))
+    (jet_sx_expr.XLsh jet_sx_expr.Hshr r3
+       (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) in
+@cons jet_sx_expr.sx (jet_sx_expr.XLb jet_sx_expr.Band r0 norm62_mask)
+  (@cons jet_sx_expr.sx (jet_sx_expr.XLb jet_sx_expr.Band r1 norm62_mask)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XLb jet_sx_expr.Band r2 norm62_mask)
+        (@cons jet_sx_expr.sx (jet_sx_expr.XLb jet_sx_expr.Band r3 norm62_mask)
+           (@cons jet_sx_expr.sx r4 (@nil jet_sx_expr.sx)))))
+     : forall _ : list jet_sx_expr.sx, list jet_sx_expr.sx
+
+Arguments norm62_carry xs%list_scope
+### C.jet_secp_modinv_normalize62_exec.norm62_out
+norm62_out =
+norm62_carry (norm62_add (norm62_carry (norm62_neg (norm62_add (jet_secp_fe_nv.vars5 O)))))
+     : list jet_sx_expr.sx
+### C.jet_secp_modinv_normalize62_exec.norm62_out_regs
+norm62_out_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 norm62_out) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region
+     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_fe_nv.vars5 (S (S (S (S (S O))))))) false
+        (@None BinNums.Z)) (@nil jet_sx_state.region))
+     : list jet_sx_state.region
+### C.jet_secp_modinv_normalize62_exec.norm62_add_words
+norm62_add_words =
+fun (w modulus : forall _ : nat, Integers.Int64.int) (i : nat) =>
+Integers.Int64.add (w i)
+  (Integers.Int64.and (modulus i)
+     (Integers.Int64.shr (w (S (S (S (S O)))))
+        (Integers.Int64.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, Integers.Int64.int) (_ : nat),
+       Integers.Int64.int
+
+Arguments norm62_add_words (w modulus)%function_scope i%nat_scope
+### C.jet_secp_modinv_normalize62_exec.norm62_neg_words
+norm62_neg_words =
+fun (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (i : nat) =>
+Integers.Int64.sub
+  (Integers.Int64.xor (w i)
+     (Integers.Int64.shr sign
+        (Integers.Int64.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+  (Integers.Int64.shr sign
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments norm62_neg_words w%function_scope sign i%nat_scope
+### C.jet_secp_modinv_normalize62_exec.norm62_carry_words
+norm62_carry_words =
+fun (w : forall _ : nat, Integers.Int64.int) (i : nat) =>
+let r0 : Integers.Int64.int := w O in
+let r1 : Integers.Int64.int :=
+  Integers.Int64.add (w (S O))
+    (Integers.Int64.shr r0
+       (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+  in
+let r2 : Integers.Int64.int :=
+  Integers.Int64.add (w (S (S O)))
+    (Integers.Int64.shr r1
+       (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+  in
+let r3 : Integers.Int64.int :=
+  Integers.Int64.add (w (S (S (S O))))
+    (Integers.Int64.shr r2
+       (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+  in
+let r4 : Integers.Int64.int :=
+  Integers.Int64.add (w (S (S (S (S O)))))
+    (Integers.Int64.shr r3
+       (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+  in
+@List.nth Integers.Int64.int i
+  (@cons Integers.Int64.int
+     (Integers.Int64.and r0
+        (Integers.Int64.repr
+           (BinInt.Z.sub
+              (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                 (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+              (BinNums.Zpos BinNums.xH))))
+     (@cons Integers.Int64.int
+        (Integers.Int64.and r1
+           (Integers.Int64.repr
+              (BinInt.Z.sub
+                 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                    (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                 (BinNums.Zpos BinNums.xH))))
+        (@cons Integers.Int64.int
+           (Integers.Int64.and r2
+              (Integers.Int64.repr
+                 (BinInt.Z.sub
+                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                       (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                    (BinNums.Zpos BinNums.xH))))
+           (@cons Integers.Int64.int
+              (Integers.Int64.and r3
+                 (Integers.Int64.repr
+                    (BinInt.Z.sub
+                       (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                          (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                       (BinNums.Zpos BinNums.xH)))) (@cons Integers.Int64.int r4 (@nil Integers.Int64.int))))))
+  Integers.Int64.zero
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments norm62_carry_words w%function_scope i%nat_scope
+### C.jet_secp_modinv_normalize62_exec.norm62_machine
+norm62_machine =
+fun (w modulus : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) =>
+norm62_carry_words (norm62_add_words (norm62_carry_words (norm62_neg_words (norm62_add_words w modulus) sign)) modulus)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments norm62_machine (w modulus)%function_scope sign i%nat_scope
+### C.jet_secp_modinv_normalize62_exec.norm62_modulus_at
+norm62_modulus_at =
+fun (m : Memory.Mem.mem) (b : Values.block) (w : forall _ : nat, Integers.Int64.int) =>
+and
+  (Memory.Mem.range_perm m b BinNums.Z0
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+     Memtype.Readable)
+  (forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+   @eq (option Values.val)
+     (Memory.Mem.load AST.Mint64 m b
+        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+     (@Some Values.val (Values.Vlong (w i))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : forall _ : nat, Integers.Int64.int), Prop
+
+Arguments norm62_modulus_at m b w%function_scope
+### C.jet_secp_modinv_normalize62_exec.norm62_outside
+norm62_outside =
+fun (br bm b : Values.block) (pos : BinNums.Z) =>
+and
+  (or (not (@eq Values.block b br))
+     (or (BinInt.Z.lt pos BinNums.Z0)
+        (BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) pos)))
+  (or (not (@eq Values.block b bm))
+     (or (BinInt.Z.lt pos BinNums.Z0)
+        (BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) pos)))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments norm62_outside br bm b pos%Z_scope

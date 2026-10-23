@@ -73,6 +73,29 @@ reason to identify the abstract external parameter with a concrete libc.
 Build/check it with the commands below, substituting the target/module
 `C/jet_secp_wnaf_entry15.vo` / `C.jet_secp_wnaf_entry15`.
 
+## Internal normalization dependency
+
+`jet_secp_modinv_normalize62_exec.eval_norm62_from_storage` derives the
+complete original `secp256k1_modinv64_normalize_62` call from five owned
+signed62 words and five read-only modulus words. It returns the exact
+machine-word result, output ownership, unchanged modulus words/readability,
+and framing outside the two 40-byte regions. The source need not be writable
+or have nonnegative limbs. In particular, this interface does not exclude
+the actual sparse field modulus's negative low limb.
+
+This C-level dependency compiles and passes recursive kernel checking with
+the same six inherited execution assumptions and no external-library model.
+Its symbolic-run, return, output-shape and word-denotation certificates are
+closed. It adds no registered jet: the signed numeric normalization bridge,
+modular-inverse batch/loop composition and ctz linkage are still required.
+It is not a proof about the mathematical correctness of a jet specification
+and does not repair or bypass the external-call boundary above. Reproduce:
+
+```sh
+JET_TARGETS=C/jet_secp_modinv_normalize62_exec.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_normalize62_exec
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
