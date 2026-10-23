@@ -1,11 +1,11 @@
 # Remaining jet proof work
 
-The current local-contract registry counts 511 of the 533 header declarations
+The current local-contract registry counts 513 of the 533 header declarations
 toward full-input contracts (138 still conditional on `memcpy_model`). A
 separate restricted `gej_ge_add_ex` entry describes a reported mismatch and
 does not count toward all-input completion.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 22 declarations lack a registered final proof.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 20 declarations lack a registered final proof.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
 and decompression endpoints passed ordinary scoped acceptance; accepted
 local-contract coverage is 511/533. The every-jet
@@ -67,19 +67,24 @@ input fingerprint was unchanged. Reproduce without update flags:
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_output_values_hash,simplicity_bitcoin_input_values_hash,simplicity_bitcoin_outputs_hash,simplicity_bitcoin_input_utxos_hash,simplicity_bitcoin_output_hash,simplicity_bitcoin_input_utxo_hash
 ```
 
-Next, `tx_hash` and `sig_all_hash` have compiled **temporary** literal/raw
-endpoint prototypes at
-`/private/tmp/jet-zinv-literal.zLYHFg/tx_sig_hash.v`. The proposed extension of
-the existing source gate (`tx_sig_gate.py` beside it) rejects 22 mutations.
-Neither is registered, accepted or part of the six-jet run. The original
-`C/jet_bitcoin_sig_all_hash.vo` was an OCaml 4.14.1 cache; its unchanged source
-was compiled as temporary `SigAllOriginal.v` under the pinned Coq 8.17.1 /
-OCaml 4.14.4 baseline to validate the prototype without changing audit inputs.
-After the run, rebuild that ordinary module under the baseline before importing
-it in a normal literal module; do not change the toolchain or target. Explicit
-algebra arguments in the SHA rewrites avoid a generic-rewrite timeout.
-Retain the reported frozen Bitcoin domain and LockTime commitment-identity
-limits: these prototypes prove value computations, not identity equality.
+`jet_bitcoin_tx_sig_hash_literal` now connects the complete original `tx_hash`
+and `sig_all_hash` calls to the exact literal transaction/signature compositions,
+including raw interpretation. Its four pure exports are closed; the four C
+contracts retain the six inherited assumptions and add no libc premise. The
+normal module compiles under pinned Coq 8.17.1 / OCaml 4.14.4. The unchanged
+original `jet_bitcoin_sig_all_hash` source was rebuilt under that baseline;
+its existing assumption/contract records match without updates. Explicit
+algebra arguments in the SHA rewrites avoid a generic-rewrite timeout. The
+existing source gate rejects 22 mutations of routing, widths, cache offsets,
+primitive semantics and complete boundaries.
+
+The two registrations are pending ordinary scoped acceptance and are **not**
+included in the accepted 511/533 count. They retain the reported frozen Bitcoin
+domain and LockTime commitment-identity limits: value computations are proved,
+not Coq/Haskell primitive identity equality. The dedicated task-owned
+`jet-acceptance` worktree is preparing a clean source build for the next audit,
+so its audited commit can stay fixed while development continues in the main
+checkout. It uses the existing verifier and unchanged generation settings.
 
 ## Active `generate` frontier
 

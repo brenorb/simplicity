@@ -165,7 +165,12 @@ for stem in ["output", "input_utxo"]:
         f"(Word 5) (Ty.Sum Ty.Unit (Word 8)) (raw_env_rep {stem}_hash_rep) "
         f"(fun a environment => @literal_bitcoin_{stem}_hash raw_fullalg a environment).")
 
-for stem, offset in [("outputs", 80), ("input_utxos", 208)]:
+RECOVERED_CONTRACTS["simplicity_bitcoin_sig_all_hash"] = (
+    "application_jet_local_spec_sep f_simplicity_bitcoin_sig_all_hash bitcoin_ge raw_bitcoin_environment "
+    "Ty.Unit Word256 (raw_env_rep (env_hash_rep sig_all_hash_of 16)) "
+    "(fun a environment => @literal_bitcoin_sig_all_hash raw_fullalg a environment).")
+
+for stem, offset in [("outputs", 80), ("input_utxos", 208), ("tx", 368)]:
     RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (
         f"application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge raw_bitcoin_environment "
         f"Ty.Unit Word256 (raw_env_rep (hash_getter_rep {stem}_hash_of 0 {offset} 432)) "

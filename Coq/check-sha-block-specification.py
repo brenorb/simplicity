@@ -1229,6 +1229,114 @@ def bitcoin_indexed_value_mutation_test(s):
     print('Two Bitcoin indexed value/script hash programs and four conditional C boundaries match;', len(mutations), 'mutations rejected')
 
 
+def bitcoin_transaction_signature_hashes(s):
+    """Whole canonical value-computation trees and original C getters.
+    The frozen LockTime commitment-name discrepancy remains reported; this
+    check does not equate the Coq and Haskell primitive commitment identities.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, name, expected):
+        if p.compact(hbody(s[key], name)) != p.compact(expected):
+            raise ValueError('Bitcoin transaction/signature binding differs: ' + name)
+
+    aliases = [('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+               ('@literal_ctx8_finalize term', 'ctx8Finalize')]
+    aliases += [('@literal_ctx8_addn ' + str(k) + ' term', 'add' + str(2 ** k)) for k in [2, 3, 5, 6]]
+    components = [('inputs', 'inputsHash'), ('outputs', 'outputsHash'), ('input_utxos', 'inputUtxosHash'),
+                  ('tx', 'txHash'), ('tap_env', 'tapEnvHash')]
+    aliases += [('@literal_bitcoin_' + stem + '_hash alg', name) for stem, name in components]
+    primitives = ['Version', 'LockTime', 'CurrentIndex']
+    aliases += [('@PF.Combinators.prim _ _ alg (BitcoinFull.Base Bitcoin.' + name + ')', 'p' + name)
+                for name in primitives]
+    atoms = {new for _, new in aliases}
+    prefix = '''let term := PF.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in'''
+    programs = s['sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    for stem, tag, name in [('tx', 'TxHash', 'txHash'), ('sig_all', 'SigAllHash', 'sigAllHash')]:
+        binding('bitcoin_catalog', 'specificationSigHash ' + tag, 'SigHash.' + name)
+        p.require(s['bitcoin_catalog'], tag + ' :: SigHashJet () Word256', 'Bitcoin transaction/signature type')
+        binding('sighash_lib', name, 'SigHash.' + name + ' SigHash.lib')
+        selected = re.search(r'\b' + name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)
+        if not selected:
+            raise ValueError('missing canonical Bitcoin hash composition: ' + name)
+        hs = selected[1]
+        for primitive in primitives:
+            hs = replace(hs, 'primitive ' + primitive, 'p' + primitive)
+        for k in [2, 3, 5, 6]:
+            hs = replace(hs, 'ctx8Addn vector' + str(2 ** k), 'add' + str(2 ** k))
+        port = p.definition(s['bitcoin_tx_sig_port'], 'literal_bitcoin_' + stem + '_hash')
+        if not p.compact(port).startswith(p.compact(prefix)):
+            raise ValueError('Bitcoin transaction/signature algebra differs')
+        port = replace(port, prefix, '')
+        for old, new in aliases:
+            port = replace(port, old, new)
+        for op in ['comp', 'pair']:
+            port = replace(port, '@AC.' + op + ' _ _ _ core', op + 'Node')
+        if expression(hs) != explicit_core_tree(expression(port), atoms):
+            raise ValueError('canonical Bitcoin whole hash composition differs: ' + name)
+        rep = 'hash_getter_rep tx_hash_of 0 368 432' if stem == 'tx' else 'env_hash_rep sig_all_hash_of 16'
+        for suffix, env, relation, alg in [
+            ('literal_local', 'ext_environment', '(' + rep + ')', 'fullalg'),
+            ('raw_literal_local', 'raw_bitcoin_environment', '(raw_env_rep (' + rep + '))', 'raw_fullalg'),
+        ]:
+            theorem = 'bitcoin_' + stem + '_hash_' + suffix + '_spec'
+            statement = re.search(r'Theorem ' + theorem + r'\s*:(.*?)\bProof\.', s['bitcoin_tx_sig_port'], re.S)
+            expected = f'''application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge {env} Ty.Unit Word256
+              {relation} (fun a environment => @literal_bitcoin_{stem}_hash {alg} a environment).'''
+            if not statement or p.compact(statement[1]) != p.compact(expected):
+                raise ValueError('Bitcoin transaction/signature complete C contract differs: ' + theorem)
+    for primitive, body in [('Version', 'element . return . toWord32 . toInteger $ sigTxVersion tx'),
+                             ('LockTime', 'element . return . toWord32 . toInteger $ sigTxLock tx'),
+                             ('CurrentIndex', 'element . return . toWord32 . toInteger $ ix')]:
+        binding('btc_primitive', 'interpret ' + primitive, body)
+    for clause in [
+        '| Version => fun _ => Some (fromZ (Int.signed (sigTxVersion tx)))',
+        '| LockTime => fun _ => Some (fromZ (Int.unsigned (sigTxLock tx)))',
+        '| CurrentIndex => fun _ => Some (fromZ (Z.of_nat ix))',
+    ]:
+        p.require(s['base_primitive'], clause, 'frozen Bitcoin primitive value semantics')
+
+
+def bitcoin_transaction_signature_mutation_test(s):
+    bitcoin_transaction_signature_hashes(s)
+    mutations = [
+        ('bitcoin_tx_sig_port', '(BitcoinFull.Base Bitcoin.Version)', '(BitcoinFull.Base Bitcoin.LockTime)'),
+        ('bitcoin_tx_sig_port', '(BitcoinFull.Base Bitcoin.LockTime)', '(BitcoinFull.Base Bitcoin.Version)'),
+        ('bitcoin_tx_sig_port', '(BitcoinFull.Base Bitcoin.CurrentIndex)', '(BitcoinFull.Ext BitcoinExt.CurrentIndex)'),
+        ('bitcoin_tx_sig_port', '@literal_ctx8_addn 3 term', '@literal_ctx8_addn 2 term'),
+        ('bitcoin_tx_sig_port', '@literal_ctx8_addn 6 term', '@literal_ctx8_addn 5 term'),
+        ('bitcoin_tx_sig_port', '@literal_ctx8_addn 5 term', '@literal_ctx8_addn 6 term'),
+        ('bitcoin_tx_sig_port', '@literal_ctx8_addn 2 term', '@literal_ctx8_addn 3 term'),
+        ('bitcoin_tx_sig_port', '@literal_bitcoin_inputs_hash alg', '@literal_bitcoin_outputs_hash alg'),
+        ('bitcoin_tx_sig_port', '@literal_bitcoin_tap_env_hash alg', '@literal_bitcoin_input_utxos_hash alg'),
+        ('bitcoin_tx_sig_port', '0 368 432', '0 336 432'),
+        ('bitcoin_tx_sig_port', 'env_hash_rep sig_all_hash_of 16', 'env_hash_rep sig_all_hash_of 48'),
+    ]
+    for stem, tag, name in [('tx', 'TxHash', 'txHash'), ('sig_all', 'SigAllHash', 'sigAllHash')]:
+        mutations += [
+            ('bitcoin_catalog', f'specificationSigHash {tag} = SigHash.{name}', f'specificationSigHash {tag} = SigHash.tappathHash'),
+            ('sighash_lib', f'{name} = SigHash.{name} SigHash.lib', f'{name} = SigHash.tappathHash SigHash.lib'),
+            ('bitcoin_tx_sig_port', f'Theorem bitcoin_{stem}_hash_literal_local_spec :', f'Theorem bitcoin_{stem}_hash_literal_local_spec : False ->'),
+            ('bitcoin_tx_sig_port', f'Theorem bitcoin_{stem}_hash_raw_literal_local_spec :', f'Theorem bitcoin_{stem}_hash_raw_literal_local_spec : False ->'),
+            ('bitcoin_tx_sig_port', f'@literal_bitcoin_{stem}_hash raw_fullalg', f'@literal_bitcoin_{stem}_hash fullalg'),
+        ]
+    mutations += [('base_primitive', '| LockTime => fun _ => Some (fromZ (Int.unsigned (sigTxLock tx)))',
+                   '| LockTime => fun _ => Some (fromZ (Int.signed (sigTxLock tx)))')]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive Bitcoin transaction/signature mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            bitcoin_transaction_signature_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('Bitcoin transaction/signature mutation escaped: ' + old)
+    print('Two Bitcoin transaction/signature programs and four complete C boundaries match;', len(mutations), 'mutations rejected')
+
+
 def bitcoin_raw_hashes(s):
     """Keep raw interpretation, its represented-memory boundary and all seven
     complete C conclusions explicit. This does not prove caller cache creation.
@@ -3389,6 +3497,7 @@ def sources():
         "value_port": COQ / "C/jet_bitcoin_value_hash_literal.v",
         "bitcoin_composite_port": COQ / "C/jet_bitcoin_composite_hash_literal.v",
         "bitcoin_indexed_port": COQ / "C/jet_bitcoin_indexed_hash_literal.v",
+        "bitcoin_tx_sig_port": COQ / "C/jet_bitcoin_tx_sig_hash_literal.v",
         "base_primitive": COQ / "Simplicity/Primitive/Bitcoin.v",
         "full_primitive": COQ / "C/jet_bitcoin_full_prim.v",
         "raw_program": COQ / "C/jet_bitcoin_raw_program.v",
@@ -3478,6 +3587,7 @@ def test():
     bitcoin_raw_hashes(s)
     bitcoin_composite_mutation_test(s)
     bitcoin_indexed_value_mutation_test(s)
+    bitcoin_transaction_signature_mutation_test(s)
     bitcoin_tap_environment(s)
     bitcoin_input_hashes(s)
     bitcoin_single_input_hash(s)
