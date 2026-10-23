@@ -61,7 +61,7 @@ bounds and agreement with the existing normalizer for every four-word input.
 All seven arithmetic exports are closed; execution retains only the six
 inherited assumptions, with no new library model. Normal build, recursive
 kernel checking and reviewed no-update focused assumption/contract comparisons
-pass for both modules (use the above commands with their module names).
+pass for both modules (use the commands below with their module names).
 This is helper progress, not additional accepted coverage.
 
 `jet_secp_affine_storage.eval_ge_from_storage_readonly` composes the actual
@@ -71,9 +71,32 @@ destination Freeable ownership, preserves all eight source typed loads and
 exposes exact coordinate limbs and infinity=0. The coordinate arithmetic
 adapter is closed. Normal build, recursive kernel checking and reviewed
 no-update focused assumption/contract comparisons pass. Its base contract
-still frames outside the union of the regions. Next restore full readonly
-table-block framing using `jet_clight_readonly_frame`, then compose signed
-table lookup; neither stage establishes the table/specification bridge below.
+still frames outside the union of the regions.
+
+`jet_secp_affine_storage_frame.eval_ge_from_storage_table` now restores full
+table-block framing using the existing general Clight readonly readback
+theorem. Given the source block's actual readonly permission bounds, it
+derives the original decoder's execution, retains those bounds exactly and
+frames arbitrary chunk loads and permissions outside destination bytes
+[0,84), including the source block and untouched destination padding. It
+does not assume table coordinate correctness. The footprint lemma is closed;
+the framing/combined exports use eight standing inherited assumptions,
+including CompCert's external-call and inline-assembly properties through
+the general readback theorem (the base execution exports use six).
+Normal build, recursive kernel checking and reviewed no-update focused
+assumption/contract comparisons pass. Reproduce this decoder chain with
+Coq 8.17.1 and prepared dependencies:
+
+```sh
+JET_TARGETS=C/jet_secp_affine_storage_frame.vo bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_affine_storage_frame
+```
+
+Next compose signed `ecmult_table_get_ge_storage` with the exact decoder and
+magnitude-one negation, including the real index arithmetic. Also derive
+the readonly bounds and typed loads from the original table initializers;
+the decoder contracts do not themselves establish either initializer facts
+or the table/specification bridge below.
 
 The two 8192-entry tables still need checked initializer loads and a formal
 bridge to the exact literal `generateSmall` / `generate128Small` results for
