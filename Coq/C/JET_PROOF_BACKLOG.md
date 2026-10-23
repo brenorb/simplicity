@@ -475,12 +475,28 @@ ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_zinv_initial_products
 ```
 
-Next join these assignments, then reuse the six leading
-`mixed_preparation_statements` (copy/weak-normalize X, U2 multiplication,
-copy/weak-normalize Y, first S2 multiplication). Check their exact source
-identity in the zinv body; the final S2 multiplication uses local `az`, not
-`a->z`. Use the general loose-input copy/normalization theorem for **both**
-coordinates, retaining its actual changed words. Then discharge both flag
+`jet_secp_zinv_product_prefix.exec_zinv_first_products` now joins the initial
+multiply and square from one initial memory, including preservation of the
+square destination before initialization, both actual output words, residues,
+machine bounds, input fields, allocation ownership and framing. Its statement
+prefix uses the existing continuation-composition interface.
+`jet_secp_zinv_coordinate.exec_zinv_coordinate` proves one shared
+copy/weak-normalize/affine-product triple for either X or Y. Both raw point
+coordinates may be loose (limbs <= 2^60); the actual changed normalized words
+and their tight bounds/residue are retained. No positioned-X assumption or
+intermediate execution is introduced. Execution retains six inherited
+assumptions; the tight-to-square bound adapter is closed. Normal builds,
+recursive kernel checking and reviewed no-update focused audits pass:
+
+```sh
+JET_TARGETS='C/jet_secp_zinv_product_prefix.vo C/jet_secp_zinv_coordinate.vo' bash Coq/build-jets.sh -j2
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_zinv_product_prefix C.jet_secp_zinv_coordinate
+```
+
+Next join the two coordinate triples into the six leading preparation
+statements and check their exact source identity in the zinv body. The final
+S2 multiplication uses local `az`, not `a->z`. Then discharge both flag
 branches, H/I tests, arithmetic suffix, allocations/frees and the caller's
 inverse-Z-one specialization. Do not assume these executions, normalize the
 target program, or count a prefix helper as public-jet coverage.
