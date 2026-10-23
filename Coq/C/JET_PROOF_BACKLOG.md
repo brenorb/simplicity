@@ -644,8 +644,20 @@ Source identities and the bit-field bound are closed; execution retains six
 inherited assumptions. Normal builds, recursive kernel checks and reviewed
 no-update focused audits pass; reproduce with targets/modules
 `C/jet_secp_zinv_infinite_products.vo` and `C/jet_secp_zinv_infinite.vo` / their
-`C.*` module names as above. These are body results: compose A-infinity with
-the original thirteen allocations/frees next, reusing the checked entry.
+`C.*` module names as above.
+
+`jet_secp_zinv_function_infinite.eval_zinv_function_infinite` now composes
+A-infinity with the original function entry, all thirteen real local
+allocations, the checked body, void return conversion and all thirteen frees.
+Any nonzero A flag and any B flag are supported, without initial point-coordinate
+contents or bounds. Exact result coordinates/flag, unchanged affine and
+inverse-Z fields, all three caller ownership ranges, downstream bounds and
+external framing are returned. All eleven unused private fields remain owned
+through the body and are freed as well as the two used inverse temporaries.
+Normal build, recursive kernel check and reviewed no-update focused audits
+pass; execution retains six inherited assumptions. Reproduce with target/module
+`C/jet_secp_zinv_function_infinite.vo` /
+`C.jet_secp_zinv_function_infinite` as above.
 
 `jet_secp_zinv_b_infinite.exec_zinv_b_infinite` now proves the remaining
 A-finite/B-infinite body branch, reusing the actual 128-byte
@@ -655,12 +667,22 @@ premise is needed. The source identity is closed and execution retains six
 inherited assumptions. Normal build, recursive kernel check and reviewed
 no-update focused audits pass with target/module
 `C/jet_secp_zinv_b_infinite.vo` / `C.jet_secp_zinv_b_infinite`. Thus every flag
-branch has a checked body proof, while whole-call composition for infinity
-inputs remains to integrate. Then prove the caller's inverse-Z-one specialization
+branch has a checked body proof. The B-infinity path is not yet a whole-call
+theorem; the table caller instead has B.infinity=0 from the checked decoder.
+Both A flag cases needed by that caller now have whole-call proofs.
+Next prove the caller's inverse-Z-one specialization
 and literal-coordinate correspondence, the descending generator loop and
 public writer. `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
 must establish that its initialized Z=1 persists; do not assume it.
+For the literal bridge, retain the actual loose coordinate words and their
+residues: `double_body_writer_outputs_literal` already accepts arbitrary
+square-bounded words with matching residues, and `mixed_x_matches_literal` /
+`mixed_y_matches_literal` / `mixed_z_matches_literal` are generic in the H/I
+and U/S fields. Derive zinv's H/I residues and tests at inverse-Z one from the
+proved product/square/weak-normalization models, then reuse these bridges.
+Do not specialize the loop state to canonical `square_reader_rho` words just
+to apply the older reader-only mixed-addition endpoint.
 These results do not establish all-input helper or public-jet equivalence;
 accepted coverage remains 505/533 and the all-jet goal stays active.
 
