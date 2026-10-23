@@ -1,0 +1,90 @@
+### C.jet_secp_wnaf_literal_step.exec_wnaf_literal_array_step
+exec_wnaf_literal_array_step
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (n bit carry : BinNums.Z)
+         (b : Values.block) (base : BinNums.Z) (bs : Values.block) (last : BinNums.Z)
+         (digits : forall _ : BinNums.Z, BinNums.Z) (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit)
+                (BinInt.Z.lt bit
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+                (BinInt.Z.add (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit)) carry))
+         (_ : jet_secp_wnaf_control.wnaf_loop_fields le bit
+                (BinNums.Zpos
+                   (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))) carry (BinNums.Zpos BinNums.xH) b base
+                last)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))) (_ : not (@eq Values.block b bs))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : jet_secp_wnaf_loop.wnaf_array_state m b base
+                (BinNums.Zpos
+                   (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))) (BinNums.Zpos BinNums.xH) bit last
+                digits),
+       @ex Clight.temp_env
+         (fun lei : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mi : Memory.Mem.mem =>
+             @ex BinNums.Z
+               (fun biti : BinNums.Z =>
+                @ex BinNums.Z
+                  (fun carryi : BinNums.Z =>
+                   @ex BinNums.Z
+                     (fun lasti : BinNums.Z =>
+                      @ex (forall _ : BinNums.Z, BinNums.Z)
+                        (fun digitsi : forall _ : BinNums.Z, BinNums.Z =>
+                         @ex ClightBigstep.outcome
+                           (fun out : ClightBigstep.outcome =>
+                            @ex (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+                              (fun next : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))) =>
+                               @ex (list (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit))
+                                 (fun segment : list (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit) =>
+                                  and
+                                    (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                                       (jet_secp_wnaf_digit.wnaf_env bs) le m jet_secp_wnaf_digit.wnaf_loop_body
+                                       Events.E0 lei mi out)
+                                    (and
+                                       (jet_secp_wnaf_control.wnaf_loop_fields lei biti
+                                          (BinNums.Zpos
+                                             (BinNums.xI
+                                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))
+                                          (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))) carryi
+                                          (BinNums.Zpos BinNums.xH) b base lasti)
+                                       (and
+                                          (and (BinInt.Z.lt bit biti)
+                                             (BinInt.Z.le biti
+                                                (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))
+                                          (and
+                                             (or (@eq BinNums.Z carryi BinNums.Z0)
+                                                (@eq BinNums.Z carryi (BinNums.Zpos BinNums.xH)))
+                                             (and
+                                                (jet_secp_scalar_get_b32_storage.scalar_at mi bs BinNums.Z0
+                                                   (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                                                      (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n)))
+                                                (and
+                                                   (jet_secp_wnaf_loop.wnaf_array_state mi b base
+                                                      (BinNums.Zpos (BinNums.xI (BinNums.xO ...)))
+                                                      (BinNums.Zpos (BinNums.xI (BinNums.xI ...)))
+                                                      (BinNums.Zpos BinNums.xH) biti lasti digitsi)
+                                                   (and (jet_secp_wnaf_loop.wnaf_memory_effect b m mi)
+                                                      (and
+                                                         (or (@eq ClightBigstep.outcome out ClightBigstep.Out_normal)
+                                                            (@eq ClightBigstep.outcome out ClightBigstep.Out_continue))
+                                                         (and (@eq ... ... ...) (and ... ...))))))))))))))))))

@@ -681,6 +681,15 @@ comparisons pass; use the same commands with `jet_secp_wnaf_literal_body`.
 The next missing result is the additive array/vector loop invariant and its
 decreasing-fuel induction, not another proof of either body's C execution.
 
+`jet_secp_wnaf_literal_array` supplies closed array-slice/decoded-list
+transport lemmas. `jet_secp_wnaf_literal_step.exec_wnaf_literal_array_step`
+now preserves the complete visited prefix and matches the newly visited C
+array cells to the exact literal segment, including zero carry on reaching
+the end. Normal builds, recursive kernel checking and reviewed focused
+no-update assumption/contract comparisons pass (use
+`jet_secp_wnaf_literal_step` with the same commands above). The execution
+retains six inherited assumptions and no added execution/libc premise.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
