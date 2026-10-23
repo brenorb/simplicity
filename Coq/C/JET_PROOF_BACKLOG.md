@@ -456,6 +456,35 @@ checking and reviewed no-update focused audits pass. Reproduce using target
 `C.jet_secp_wnaf_return_length`. The actual descending C loop and its
 point-arithmetic calls remain to be composed.
 
+`jet_secp_zinv_z_product.eval_zinv_z_product_owned` now proves the actual
+initial multiplication's operand order: projective Z at offset 80 first,
+the inverse-Z field second, and a fresh 40-byte destination. It derives the
+original function call, actual product words/value/bounds, preservation of
+both inputs and ownership, and outside-result framing using the existing
+proved u128 oracles. `jet_secp_zinv_initial_products` ties the `az` and `z12`
+statements to the frozen `gej_add_zinv_var` body and derives each original
+assignment from owned storage and machine bounds. These are **separate
+prefix-statement proofs**, not yet their sequential/whole-helper composition.
+The executions retain six inherited assumptions, without an extra oracle or
+libc premise; six structural/source exports are closed. Normal compilation,
+recursive kernel checking and reviewed no-update focused audits pass:
+
+```sh
+JET_TARGETS=C/jet_secp_zinv_initial_products.vo bash Coq/build-jets.sh -j1
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_zinv_initial_products
+```
+
+Next join these assignments, then reuse the six leading
+`mixed_preparation_statements` (copy/weak-normalize X, U2 multiplication,
+copy/weak-normalize Y, first S2 multiplication). Check their exact source
+identity in the zinv body; the final S2 multiplication uses local `az`, not
+`a->z`. Use the general loose-input copy/normalization theorem for **both**
+coordinates, retaining its actual changed words. Then discharge both flag
+branches, H/I tests, arithmetic suffix, allocations/frees and the caller's
+inverse-Z-one specialization. Do not assume these executions, normalize the
+target program, or count a prefix helper as public-jet coverage.
+
 ## Decompression: current proof frontier
 
 The complete original public C jet is proved by
