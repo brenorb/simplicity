@@ -49,6 +49,23 @@ and preserves source/permissions/framing. Reuse `jet_secp_signed62_repack`,
 `jet_secp_affine_fields` and `jet_secp_field_copy_owned` patterns, without
 inheriting their writable-source premises where inappropriate.
 
+`jet_secp_storage_unpack.eval_fe_from_storage_readonly` now derives the
+original field decoder's execution from arbitrary four-word readable storage
+and a disjoint, aligned writable destination slice. It writes the exact five
+machine words, preserves source typed loads/readability, and frames outside
+the **union** of both regions. It does not yet establish arbitrary-chunk
+source framing or equality of all permissions. Its source is not required
+writable or Freeable; its destination need not start at offset zero.
+`jet_secp_storage_numeric` proves exact integer preservation, canonical limb
+bounds and agreement with the existing normalizer for every four-word input.
+All seven arithmetic exports are closed; execution retains only the six
+inherited assumptions, with no new library model. Normal build, recursive
+kernel checking and reviewed no-update focused assumption/contract comparisons
+pass for both modules (use the above commands with their module names).
+This is helper progress, not additional accepted coverage. Next compose the
+actual affine decoder with owned destination88 and readonly source64, then
+close source framing/permission preservation and signed table lookup.
+
 The two 8192-entry tables still need checked initializer loads and a formal
 bridge to the exact literal `generateSmall` / `generate128Small` results for
 each signed digit; neither registration nor "odd multiples of G" alone
