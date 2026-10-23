@@ -4,18 +4,28 @@ The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
 The local-contract registry contains 511/533 jets (373 without an extra libc
 premise; 138 conditional on `memcpy_model`). Accepted local-contract coverage is
-505/533, including the computing issuance hash, affine/projective curve,
+511/533, including the computing issuance hash, affine/projective curve,
 projective X-equivalence, doubling, mixed-addition, square-root and mixed
 equivalence and decompression endpoints. On `f1309893`, `JOBS=2 bash Coq/check-jets.sh --accept
 --jets=simplicity_gej_ge_equiv` passed: 442 kernel-checked modules, 381 assumption
 records, 396 contract records, all source/negative checks and all five ASTs.
 This is scoped acceptance, not a new whole-repository acceptance claim.
-The six Bitcoin value-array/composite/indexed hash registrations have normal compiled proofs
-and reviewed focused snapshots; their ordinary scoped acceptance is pending.
-Four add no libc premise; the indexed pair retains `memcpy_model`. None change
-the frozen environment domain or establish the caches through their callers.
-They are not included in the
-505/533 accepted count until that scoped check passes.
+The six Bitcoin value-array/composite/indexed hash registrations passed ordinary
+scoped acceptance on `b42762b6`'s proof inputs (identical audited inputs in
+the documentation-only descendant `191617fd`): 351 recursively kernel-checked
+modules, 222 assumption records, 245 contract records, all source/negative
+checks and all five regenerated ASTs, with unchanged audit inputs. Four add
+no libc premise; the indexed pair retains `memcpy_model`. None change the
+frozen environment domain or establish the caches through their callers.
+Accepted local-contract coverage is 511/533: 373 without an extra libc premise
+and 138 conditional on `memcpy_model`; 22 declarations remain unresolved.
+The all-jet goal and shared conditional obligations are not complete.
+Reproduce on `b42762b6`:
+
+```sh
+JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_output_values_hash,simplicity_bitcoin_input_values_hash,simplicity_bitcoin_outputs_hash,simplicity_bitcoin_input_utxos_hash,simplicity_bitcoin_output_hash,simplicity_bitcoin_input_utxo_hash
+```
+
 On `e32e7638`, the complete decompression endpoint passed ordinary scoped
 acceptance: 416 kernel modules, 355 assumption records, 370 contract records,
 all source and negative checks, and all five regenerated ASTs. Audit inputs

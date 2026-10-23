@@ -8,7 +8,7 @@ Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 22 declarations lack a registered final proof.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
 and decompression endpoints passed ordinary scoped acceptance; accepted
-local-contract coverage is 505/533. The every-jet
+local-contract coverage is 511/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
 Projective addition passed scoped acceptance on `ba6b19e8`; the exact scope
 and reproduction command are recorded in `JET_ACCEPTANCE.md`.
@@ -33,8 +33,8 @@ contracts retain the six inherited assumptions and add no libc premise.
 The original environment relation, frozen Bitcoin domain and represented
 cache premises are unchanged. Cache construction is a separate obligation.
 Normal compilation and reviewed focused snapshots pass; ordinary scoped
-acceptance for these new registrations is pending, so accepted coverage
-remains 505/533. The extended existing source gate rejects 51 array-program
+acceptance for these new registrations passed on the proof inputs of
+`b42762b6`, bringing accepted coverage to 511/533. The existing source gate rejects 51 array-program
 mutations and 26 raw-boundary mutations.
 
 `jet_bitcoin_composite_hash_literal` similarly connects `outputs_hash` and
@@ -43,7 +43,7 @@ raw interpretation and the complete original getter calls. Its five pure
 exports are closed; its four C contracts retain the same six inherited
 assumptions, with no libc premise. The existing source gate fixes component
 order, the SHA64 width, cache offsets and full boundaries, rejecting 22
-mutations. Ordinary scoped acceptance for this pair is also pending.
+mutations. Ordinary scoped acceptance for this pair passed in the same run.
 
 `jet_bitcoin_indexed_hash_literal` ports the shared value/script-hash program
 for `output_hash` and `input_utxo_hash`: exact primitive routing, absent-value
@@ -53,10 +53,15 @@ exports are closed; all four C contracts retain the six inherited assumptions
 and the existing explicit `memcpy_model` premise. The source gate rejects 24
 mutations, including removal or replacement of that premise. The raw/extended
 environment relation and SHA-readiness conditions remain unchanged. Scoped
-acceptance is pending for all six new registrations; accepted coverage is
-still 505/533, not the 511/533 registry count.
+acceptance passed for all six new registrations; accepted local-contract
+coverage is 511/533, including 138 conditional entries. This is not all-jet
+completion or a discharge of the remaining shared obligations.
 
-The ordinary six-jet acceptance run is checking `b42762b6` (no update flags):
+The ordinary six-jet acceptance run passed on `b42762b6`'s proof inputs
+(identical audited inputs in the documentation-only descendant `191617fd`):
+351 recursively kernel-checked modules, 222 assumption records, 245 contract
+records, all source/negative checks and all five regenerated ASTs. The audit
+input fingerprint was unchanged. Reproduce without update flags:
 
 ```sh
 JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_output_values_hash,simplicity_bitcoin_input_values_hash,simplicity_bitcoin_outputs_hash,simplicity_bitcoin_input_utxos_hash,simplicity_bitcoin_output_hash,simplicity_bitcoin_input_utxo_hash
