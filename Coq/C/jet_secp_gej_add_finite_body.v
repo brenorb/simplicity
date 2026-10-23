@@ -95,8 +95,9 @@ Proof.
  destruct (Z.eqb (radix_value (gej_add_h_words x z u w) mod feP) 0) eqn:HZ.
  - apply Z.eqb_eq in HZ.
    pose proof Sep as Sep0;separate_blocks Sep0.
-   assert (SepZ : NoDup [pa;pb;pu;pv;ps;pt;p12;p22;bh;bi]) by
-     (repeat rewrite NoDup_cons_iff;cbn [In];repeat split;try apply NoDup_nil;intuition congruence).
+   assert (SepZ : NoDup [pa;pb;pu;pv;ps;pt;p12;p22;bh;bi]).
+   { exact (@NoDup_app_remove_r block [pa;pb;pu;pv;ps;pt;p12;p22;bh;bi]
+       [b2;b3;bt] Sep). }
    destruct (exec_gej_add_finite_zero_body e le m pa pb pu pv ps pt p12 p22 bh bi x y z u v w
      PA PB PR PN EU EV ES ET E12 E22 EH EI EQ EM EN EA E0N ED EF SepZ FlagA FlagB
      BX BY BZ BU BV BW HZ AX AY AZ BXf BYf BZf FA FB FU FV FS FT F12 F22 FH FI)
