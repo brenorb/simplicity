@@ -1406,6 +1406,22 @@ six inherited assumptions without a libc premise. Independent recursive
 checking is the next integration check; the public caller still needs its
 real state-field loads and linkage composed.
 
+`jet_secp_generator_globalz_call.exec_generator_no_points` now composes the
+three original statements before generator splitting: preprocessing, state
+pre_a/aux pointer loads and the actual global-Z helper call, then the skipped
+auxiliary multiplication loop. The field layout and shift/multiply count
+expression are derived from the frozen AST. The resulting phase retains
+no=0 and all unrelated temporaries and satisfies `Mem.unchanged_on True`,
+including old readonly table permissions. Its internal input contract still
+requires num=1, the fixed auxiliary zero scalar, initialized state pointers
+and no=0; actual counter/Z initialization and caller allocation/setup remain
+to compose. It adds no public-input scalar restriction, no helper execution
+or result premise, and no libc model. Normal compilation and reviewed
+no-update focused snapshots pass; five source/lookup exports are closed,
+two expression exports use four inherited assumptions, and all three
+execution exports use six. Recursive kernel checking of this phase and the
+zero-length helper is the next integration check. No coverage row is added.
+
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
 any 256-bit value. For offsets in `[0,256)`, counts in `[0,32]`, and a window
