@@ -528,6 +528,12 @@ def inventory():
     return list(jets.values())
 
 
+def missing_equivalences(jets):
+    """A reported input mismatch remains unresolved for the all-input goal."""
+    return [row for row in jets
+            if not row["proof"] or row["condition"] == "reported_mismatch"]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", action="store_true", help="list every jet, including all missing proofs")
@@ -551,21 +557,23 @@ def main():
             reported = sum(row["condition"] == "reported_mismatch" for row in rows)
             print(f"{family}: {direct} proof entries without an extra library premise; "
                   f"{conditional} conditional; {reported} outside a reported mismatch; {len(rows)} declared")
-        missing = sum(not row["proof"] for row in jets)
+        missing = len(missing_equivalences(jets))
         conditional = sum(row["condition"] == "memcpy_model" for row in jets)
         reported = [row for row in jets if row["condition"] == "reported_mismatch"]
         unregistered = sum(not row["registrations"] for row in jets)
         print(f"total: {len(jets) - missing}/{len(jets)}; remaining: {missing}; unregistered declarations: {unregistered}")
-        print(f"Of these entries: {len(jets) - missing - conditional - len(reported)} without an extra library premise, "
-              f"{conditional} conditional on memcpy_model (libc implementation not proved), "
-              f"{len(reported)} proved only outside a reported specification mismatch.")
+        print(f"Of these entries: {len(jets) - missing - conditional} without an extra library premise, "
+              f"{conditional} conditional on memcpy_model (libc implementation not proved).")
+        print(f"Separately: {len(reported)} proved only outside a reported specification mismatch; "
+              "not counted toward all-input completion.")
         for row in reported:
             entry = REPORTED_MISMATCH_CONTRACTS[row["function"]]
             print(f"REPORTED mismatch (not corrected): {row['function']}: {entry['summary']}; "
                   f"literal contract {row['proof']} excludes exactly that set ({entry['report']})")
         print("Scope: public jet declarations in all three C headers. Proof validity requires check-jets.sh.")
-    if args.require_complete and any(not row["proof"] for row in jets):
-        sys.exit("Every-jet goal is incomplete: declared C jets lack registered final equivalence proofs.")
+    if args.require_complete and missing_equivalences(jets):
+        sys.exit("Every-jet goal is incomplete: declared C jets lack final all-input equivalence proofs "
+                 "(reported specification mismatches remain unresolved).")
 
 
 if __name__ == "__main__":

@@ -27,6 +27,15 @@ def main():
     assert coverage.declarations(f"/* {signature} */\n// {signature}\n{signature}") == ["simplicity_example"]
     rejects(lambda: coverage.declarations("bool simplicity_bad(int x);"), "signature")
     rows = coverage.inventory()
+    # Even with a theorem registered for every other row, an input-restricted
+    # mismatch theorem must not make the all-input completion gate succeed.
+    complete = {"proof": "C.example.whole_jet", "condition": ""}
+    mismatch = {"proof": "C.example.off_mismatch", "condition": "reported_mismatch"}
+    absent = {"proof": "", "condition": ""}
+    assert coverage.missing_equivalences([complete]) == []
+    assert coverage.missing_equivalences([complete, mismatch]) == [mismatch]
+    assert coverage.missing_equivalences([complete, absent, mismatch]) == [absent, mismatch]
+    assert any(row["condition"] == "reported_mismatch" for row in coverage.missing_equivalences(rows))
     # Computing Elements indexed hashes and both Elements
     # taproot builders retain the explicit memcpy premise.
     assert sum(row["condition"] == "memcpy_model" for row in rows) == 136
