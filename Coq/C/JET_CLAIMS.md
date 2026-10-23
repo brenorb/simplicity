@@ -9,3 +9,5 @@ instead of starting a parallel proof.
 | --- | --- | --- | --- |
 | `simplicity_fe_invert` | Codex (current goal session) | `feat/jet-equivalence` | 2026-10-22 |
 | `simplicity_generate` | Codex (current goal session; shared scalar-splitting dependency) | `feat/jet-equivalence` | 2026-10-22 |
+| `simplicity_bitcoin_tx_hash` | Codex (current goal session; canonical transaction hash composition) | `feat/jet-equivalence` | 2026-10-23 |
+| `simplicity_bitcoin_sig_all_hash` | Codex (current goal session; canonical signature hash composition) | `feat/jet-equivalence` | 2026-10-23 |

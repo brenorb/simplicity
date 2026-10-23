@@ -56,6 +56,26 @@ environment relation and SHA-readiness conditions remain unchanged. Scoped
 acceptance is pending for all six new registrations; accepted coverage is
 still 505/533, not the 511/533 registry count.
 
+The ordinary six-jet acceptance run is checking `b42762b6` (no update flags):
+
+```sh
+JOBS=2 bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_output_values_hash,simplicity_bitcoin_input_values_hash,simplicity_bitcoin_outputs_hash,simplicity_bitcoin_input_utxos_hash,simplicity_bitcoin_output_hash,simplicity_bitcoin_input_utxo_hash
+```
+
+Next, `tx_hash` and `sig_all_hash` have compiled **temporary** literal/raw
+endpoint prototypes at
+`/private/tmp/jet-zinv-literal.zLYHFg/tx_sig_hash.v`. The proposed extension of
+the existing source gate (`tx_sig_gate.py` beside it) rejects 22 mutations.
+Neither is registered, accepted or part of the six-jet run. The original
+`C/jet_bitcoin_sig_all_hash.vo` was an OCaml 4.14.1 cache; its unchanged source
+was compiled as temporary `SigAllOriginal.v` under the pinned Coq 8.17.1 /
+OCaml 4.14.4 baseline to validate the prototype without changing audit inputs.
+After the run, rebuild that ordinary module under the baseline before importing
+it in a normal literal module; do not change the toolchain or target. Explicit
+algebra arguments in the SHA rewrites avoid a generic-rewrite timeout.
+Retain the reported frozen Bitcoin domain and LockTime commitment-identity
+limits: these prototypes prove value computations, not identity equality.
+
 ## Active `generate` frontier
 
 The full original 129-cell wNAF loop/return now matches the decoded literal
