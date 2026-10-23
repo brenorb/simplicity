@@ -911,8 +911,8 @@ remain open; this is not a public generate theorem or added coverage.
 
 All three modules passed normal compilation and reviewed no-update focused
 assumption/contract checks. The full point-stage theorem has the same eight
-inherited assumptions and no extra libc model. The independent recursive
-kernel check for this **three-module extension remains pending**: its run was
+inherited assumptions and no extra libc model. The initial independent recursive
+kernel check for this **three-module extension** was
 interrupted (exit 130) after more than 22 minutes of CPU-progressing execution
 to prioritize independent public-jet acceptance. This is not a proof failure
 or a successful kernel check; do not treat the earlier loop-only receipt as
@@ -923,8 +923,8 @@ out on the closed `0 < 40` goal because `lia` processed the large unrelated
 arithmetic context. The proof-only repair clears that context for closed
 size facts and restricts block-separation search to `Sep`. Normal compilation
 and existing no-update assumption/contract records pass without a timeout,
-statement, assumption or target change. The full point check remains pending;
-entry/split/count-control checks below do not replace it.
+statement, assumption or target change. That repair alone did not complete the
+full point check; entry/split/count-control checks below do not replace it.
 The next rebuild on `aee7badb` exposed another context-heavy search in
 `zinv_finite`'s `SepP` assertion (again exit 2 before kernel checking). Its
 repair uses `NoDup_app_remove_r` for the actual list prefix, limits the other
@@ -936,9 +936,13 @@ free-list proof exhausted its tactic timeout. Its precise residual goals are
 negated disjunctions of block equalities. Explicit case analysis replaces
 broad logical search, without changing the theorem or timeout. Normal
 compilation and unchanged focused assumption/contract records pass for the
-repair in `62ee7387`. The full point-stage rebuild and recursive check are
-running on that immutable commit in the dedicated verification worktree;
-they remain pending until the commands below terminate successfully.
+repair in `62ee7387`. The full point-stage rebuild, independent recursive
+kernel check and focused no-update assumption/contract comparisons for
+`generator_digit_index`, `generator_final` and `generator_point_stage` now
+**pass on immutable `62ee7387`** in the dedicated verification worktree.
+No type-in-type, unsafe fixpoint or assumed-positivity flags are reported.
+This checks the complete point-stage dependency closure, not just its loop;
+it still does not discharge the public caller's remaining premises.
 Reproduce its check with:
 
 ```sh
