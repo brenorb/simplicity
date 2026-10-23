@@ -690,6 +690,19 @@ no-update assumption/contract comparisons pass (use
 `jet_secp_wnaf_literal_step` with the same commands above). The execution
 retains six inherited assumptions and no added execution/libc premise.
 
+`jet_secp_wnaf_literal_loop.exec_wnaf_loop_zero_literal15` now proves the
+actual complete loop and original return for zero-initialized 129-cell arrays
+and every positive Word128 payload (including zero). Its output array equals
+the decoded fixed literal `wnaf15` vector in reverse index order. It derives
+zero final carry, the exact return bound and array/scalar/memory preservation;
+the proof no longer relies on weighted reconstruction to identify digits.
+The bounded induction also preserves every completed array prefix. Normal
+build, recursive kernel checking and focused no-update assumption/contract
+comparisons pass (same commands using `jet_secp_wnaf_literal_loop`); all four
+exports retain six inherited assumptions and no added model/execution premise.
+This closes the loop/vector obligation, not function entry, zeroing/freeing,
+the scalar-normalization/split caller composition or the generator point loop.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
