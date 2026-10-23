@@ -61,9 +61,9 @@ Proof.
   fold (scalar_set_raw_integer (zrho (byte_rho bytes))).
   assert (HExt : forall n, zrho (byte_rho bytes) n = nth n bytes 0).
   { intro n; apply byte_rho_unsigned; exact HB. }
-  unfold scalar_set_raw_integer; rewrite !(zval_ext _ _ _ HExt).
-  fold (scalar_set_raw_integer (fun n => nth n bytes 0)).
-  apply scalar_set_raw_math; assumption.
+  transitivity (scalar_set_raw_integer (fun n => nth n bytes 0)).
+  - unfold scalar_set_raw_integer; rewrite !(zval_ext _ _ _ HExt); reflexivity.
+  - apply scalar_set_raw_math; assumption.
 Qed.
 
 Theorem scalar_set_bytes_mod_group bytes layout :
