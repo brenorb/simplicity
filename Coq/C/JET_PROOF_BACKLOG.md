@@ -494,9 +494,21 @@ ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_zinv_product_prefix C.jet_secp_zinv_coordinate
 ```
 
-Next join the two coordinate triples into the six leading preparation
-statements and check their exact source identity in the zinv body. The final
-S2 multiplication uses local `az`, not `a->z`. Then discharge both flag
+`jet_secp_zinv_shared_preparation.exec_zinv_shared_preparation` now joins both
+triples into the six original preparation statements. The closed source
+lemma identifies their exact continuation in `gej_add_zinv_var`; execution
+preserves the raw point/affine fields, all seven allocations, the actual
+normalized U1/S1 and multiplied U2/S2 fields, bounds and framing. It retains
+six inherited assumptions, not an intermediate execution premise. Normal
+build, recursive kernel checking and reviewed no-update focused audits pass;
+reproduce with target/module `C/jet_secp_zinv_shared_preparation.vo` /
+`C.jet_secp_zinv_shared_preparation` as above.
+
+Next join the product prefix and this six-statement block, then the final
+S2 multiplication by local `az`, not `a->z`. Reuse the already-proved
+40-byte in-place `eval_field_pair_multiply`, rather than giving a 40-byte
+temporary a fictitious larger allocation or reproving multiplication.
+Then discharge both flag
 branches, H/I tests, arithmetic suffix, allocations/frees and the caller's
 inverse-Z-one specialization. Do not assume these executions, normalize the
 target program, or count a prefix helper as public-jet coverage.
