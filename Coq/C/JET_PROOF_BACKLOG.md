@@ -588,6 +588,18 @@ This is not a public jet theorem: still connect the odd signed digit and
 skipped zero positions of the C recurrence to this exact literal vector,
 then compose the point loop. Weighted reconstruction alone is insufficient.
 
+`jet_secp_wnaf_literal_skip.exec_wnaf_literal_skip` now connects each C skip
+dispatch (including its actual scalar-reader call and cursor increment) to
+the exact literal zero-digit step. With the literal state's unsigned payload
+representing `n / 2^bit + carry`, it derives the next payload
+`n / 2^(bit+1) + carry` for either valid carry, without assuming execution or
+an output representation. Its pure residual identity is closed; execution
+uses the same six inherited assumptions. Normal build, recursive kernel
+checking and focused no-update assumption/contract comparisons pass; use
+the commands above with `jet_secp_wnaf_literal_skip` in place of
+`jet_secp_wnaf_literal`. Odd-digit next-state/encoding and full-vector
+composition remain unfinished.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
