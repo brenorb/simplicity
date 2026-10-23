@@ -30,7 +30,9 @@ toward full-input contracts (138 still conditional on `memcpy_model`). A
 separate restricted `gej_ge_add_ex` entry describes a reported mismatch and
 does not count toward all-input completion.
 Selected registrations, verification status and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 20 declarations lack a registered final proof.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 20 declarations lack unrestricted
+equivalence, of which one has the checked divergence above and 19 lack either
+outcome.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
 and decompression endpoints passed ordinary scoped acceptance; accepted
 local-contract coverage is 513/533. The every-jet
