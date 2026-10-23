@@ -701,7 +701,18 @@ Normal build, recursive kernel checking and reviewed no-update focused
 audits passed for `C/jet_secp_zinv_literal_call.vo` /
 `C.jet_secp_zinv_literal_call`. Execution has the same six inherited
 assumptions and no additional libc premise.
-Next prove the descending generator loop and public writer.
+`jet_secp_double_loose_literal.eval_double_var_loose_literal` supplies the
+other point operation of that loop: the complete original NULL-rzr doubling
+call, with arbitrary matching square-bounded (not necessarily reader-canonical)
+coordinates, both incoming infinity cases, exact literal output coordinates,
+output flag/Z agreement, ownership, limb bounds and external framing. It
+reuses the original execution and generic doubling-coordinate bridge.
+Normal build, recursive kernel checking and reviewed no-update focused audits
+passed for `C/jet_secp_double_loose_literal.vo` /
+`C.jet_secp_double_loose_literal`. The pure flag lemma is closed; execution
+retains the same six inherited assumptions and adds no libc model.
+Next compose these calls and the table lookup in the descending generator
+loop, then prove the public writer.
 `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
 must establish that its initialized Z=1 persists; do not assume it.
