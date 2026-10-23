@@ -28,8 +28,11 @@ The remaining work includes:
 The full original 129-cell wNAF loop/return now matches the decoded literal
 `wnaf15` vector (`jet_secp_wnaf_literal_loop`), and the actual copy/sign/loop
 phase after memset is composed (`jet_secp_wnaf_literal_prepare`). Do not
-restart either proof. Caller zeroing, function entry/freeing, canonical scalar
-normalization/split composition and the generator point loop remain open.
+restart either proof. The descending generator point loop now has a checked
+execution theorem and a bridge to the literal step129 program (details below).
+Caller zeroing, function entry/freeing, canonical scalar normalization/split
+composition, establishment of the loop's wNAF/denominator premises through
+that caller, and the public writer remain open.
 
 `jet_secp_wnaf_literal_values` proves every reachable literal `Some` digit
 is odd and nonzero in the signed range, zero C integers correspond exactly
@@ -726,7 +729,44 @@ all exhaustive table certificates) and reviewed no-update focused audits
 passed for `C/jet_secp_generator_digit_add.vo` /
 `C.jet_secp_generator_digit_add`. Execution retains the lookup proof's eight
 inherited assumptions, adding no libc or table-correctness premise. The
-short-circuit guards and full loop induction remain separate obligations.
+short-circuit guards and full loop induction were separate obligations at
+that checkpoint; they are now discharged by the following batch.
+
+`jet_secp_generator_digit_control` proves both original short-circuit branches,
+including exact array reads, assignment side effects, zero digits and omitted
+high positions. `jet_secp_generator_loop_control` identifies the actual outer
+loop, derives the empty non-generator loop for no=0, and proves its guard,
+decrement, termination and composition rules. `jet_secp_generator_iteration`
+then derives one complete original arithmetic body: double, empty inner loop,
+and both optional signed generator additions. All its helper calls are derived.
+
+`jet_secp_generator_loop.exec_generator_loop` proves the full original
+descending loop for every count <=129, preserving both digit arrays through
+external framing, both readonly tables, the inverse field, ownership, output
+limb bounds and flag/Z agreement. Its internal input contract still requires
+represented valid digits with the proved return-length zero prefix, no=0,
+inverse-Z one and the initial point relation; these are caller obligations,
+not new public-domain restrictions or a completed public generate proof.
+
+`jet_secp_generator_program` ports the canonical generate step, step2..step128
+and step129 routing from LibSecp256k1.hs:614--627, and proves its list-fold
+interpretation and parametricity. `jet_secp_generator_loop_literal` identifies
+the C loop result with that exact literal program given the digit-vector
+relation, and proves removal of leading zero iterations from infinity,
+including the all-zero case. All fourteen exports of these two pure modules
+are closed. Execution keeps the lookup chain's eight inherited assumptions
+and adds no libc or table-correctness premise. Normal builds, recursive kernel
+checking and reviewed no-update focused audits passed for all six modules.
+Reproduce the full dependency closure:
+
+```sh
+JET_TARGETS=C/jet_secp_generator_loop_literal.vo bash Coq/build-jets.sh -j1
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_generator_loop_literal
+```
+
+Next establish that loop contract from the actual caller and execute the
+initializer/final correction/public writer; do not rebuild the loop induction.
 `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
 must establish that its initialized Z=1 persists; do not assume it.

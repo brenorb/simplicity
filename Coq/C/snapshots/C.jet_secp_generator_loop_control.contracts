@@ -1,0 +1,177 @@
+### C.jet_secp_generator_loop_control.generator_loop_arithmetic_source
+generator_loop_arithmetic_source
+     : @eq Clight.statement generator_loop_arithmetic
+         (Clight.Ssequence generator_double_statement
+            (Clight.Ssequence generator_nongenerator_statement
+               (Clight.Ssequence (jet_secp_generator_digit_control.generator_digit_dispatch false)
+                  (jet_secp_generator_digit_control.generator_digit_dispatch true))))
+### C.jet_secp_generator_loop_control.exec_generator_nongenerator_empty
+exec_generator_nongenerator_empty
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._no le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m generator_nongenerator_statement Events.E0
+         (@Maps.PTree.set Values.val jets_secp._np (Values.Vlong Integers.Int64.zero) le) m ClightBigstep.Out_normal
+### C.jet_secp_generator_loop_control.generator_descending_loop_source
+generator_descending_loop_source
+     : @eq Clight.statement generator_descending_loop
+         (Clight.Sloop
+            (Clight.Ssequence
+               (Clight.Sifthenelse
+                  (Clight.Ebinop Cop.Oge (Clight.Etempvar jets_secp._i Ctypesdefs.tint)
+                     (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint) Clight.Sskip Clight.Sbreak)
+               generator_loop_arithmetic)
+            (Clight.Sset jets_secp._i
+               (Clight.Ebinop Cop.Osub (Clight.Etempvar jets_secp._i Ctypesdefs.tint)
+                  (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint)))
+### C.jet_secp_generator_loop_control.eval_generator_loop_guard
+eval_generator_loop_guard
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zneg BinNums.xH) i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (Clight.Ebinop Cop.Oge (Clight.Etempvar jets_secp._i Ctypesdefs.tint)
+            (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint)
+         (Values.Vint
+            match BinInt.Z.leb BinNums.Z0 i return Integers.Int.int with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+### C.jet_secp_generator_loop_control.exec_generator_loop_done
+exec_generator_loop_done
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinNums.Zneg BinNums.xH))))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m generator_descending_loop Events.E0 le m
+         ClightBigstep.Out_normal
+### C.jet_secp_generator_loop_control.exec_generator_loop_join
+exec_generator_loop_join
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (i : BinNums.Z)
+         (lei : Maps.PTree.tree Values.val) (mi : Memory.Mem.mem) (lef : Clight.temp_env) (mf : Memory.Mem.mem)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i lei)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m generator_loop_arithmetic Events.E0 lei
+                mi ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e
+                (@Maps.PTree.set Values.val jets_secp._i
+                   (Values.Vint (Integers.Int.repr (BinInt.Z.sub i (BinNums.Zpos BinNums.xH)))) lei) mi
+                generator_descending_loop Events.E0 lef mf ClightBigstep.Out_normal),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m generator_descending_loop Events.E0 lef mf
+         ClightBigstep.Out_normal
+### C.jet_secp_generator_loop_control.generator_descending_loop
+generator_descending_loop =
+match
+  @List.nth Clight.statement (S (S (S (S (S (S (S (S (S (S O))))))))))
+    (@fst (list Clight.statement) Clight.statement
+       (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_ecmult_strauss_wnaf)))
+    Clight.Sskip return Clight.statement
+with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ loop => loop
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_generator_loop_control.generator_loop_arithmetic
+generator_loop_arithmetic =
+match generator_descending_loop return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ _ => Clight.Sskip
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop s _ =>
+    match s return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ body => body
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_generator_loop_control.generator_nongenerator_statement
+generator_nongenerator_statement =
+match generator_loop_arithmetic return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence inner _ => inner
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_generator_loop_control.generator_double_statement
+generator_double_statement =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_gej_double_var jets_secp.f_secp256k1_gej_double_var
+  (@None AST.ident)
+  (@cons Clight.expr (Clight.Etempvar jets_secp._r (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Etempvar jets_secp._r (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)))
+        (@cons Clight.expr
+           (Clight.Ecast (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tvoid))
+           (@nil Clight.expr))))
+     : Clight.statement
