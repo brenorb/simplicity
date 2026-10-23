@@ -622,6 +622,17 @@ the signed extension and shift of the emitted digit to establish the whole
 odd next-state equation, then handle the skipped positions and truncated
 windows before identifying the complete C array with the literal vector.
 
+`jet_secp_wnaf_literal_next.literal_wnaf15_odd_next` now proves that complete
+literal odd-step equation for every positive Word128 payload: the next sign
+is zero and the next value is `(payload - signed_digit) / 2`, with the exact
+literal raw digit. The extension, shifted sign and subtraction premises are
+all discharged, not assumed. All 13 exported lemmas are closed. Normal
+build, recursive kernel checking and focused no-update assumption/contract
+comparisons pass (same commands with `jet_secp_wnaf_literal_next`). Next
+connect a C window jump to that odd step followed by the intervening literal
+zero steps; then discharge the final truncated-window case and compose the
+whole array/vector invariant. The point loop remains a subsequent obligation.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
