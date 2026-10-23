@@ -3,7 +3,8 @@
 From Coq Require Import ZArith List.
 Require Import C.jet_secp_generate_literal C.jet_secp_generate_numeric
  C.jet_secp_generator_bits C.jet_secp_generator_prefix C.jet_secp_generator_prefix_check
- C.jet_secp_generator_rows.
+ C.jet_secp_generator_rows C.jet_secp_generator_fast_check
+ C.jet_secp_generator_fast_points.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -20,11 +21,10 @@ Definition generator_block16_check high neg :=
 
 Theorem generator_block16_checked high (neg : bool) : generator_block16_check high neg=Some [].
 Proof.
- destruct high,neg.
- - vm_compute;reflexivity.
- - vm_compute;reflexivity.
- - vm_compute;reflexivity.
- - vm_compute;reflexivity.
+ unfold generator_block16_check.
+ rewrite <- generator_prefix_fast_check_matches.
+ unfold generator_block16_seed; rewrite <- generator_bits_fast_matches.
+ destruct high,neg; vm_compute;reflexivity.
 Qed.
 Theorem generator_block16_values high neg :
  generator_block16_rows high neg=generator_prefix_values 4
