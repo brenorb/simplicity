@@ -113,7 +113,10 @@ Proof.
      FUO & FVO & FSO & FTO & F12O & F22O & FHO & FIO & F2O & F3O & FKO & BX & BY & BZ & Literal & FrameB).
  pose proof Sep as Sep0;separate_function_blocks Sep0.
  destruct (free_list_exists [(bt,0,40);(bs,0,40);(bi,0,40);(bv,0,40);(bu,0,40);(b2,0,40);(bh,0,40);(b3,0,40);(bk,0,40);(b22,0,40);(b12,0,40)] mo) as (mf & Free & Unchanged).
- - cbn;repeat constructor;cbn;intuition congruence.
+ - clear -Sep;separate_function_blocks Sep;cbn;repeat constructor;cbn;
+   intro Same;
+   repeat match type of Same with _ \/ _ => destruct Same as [Same|Same] end;
+   congruence.
  - intros b lo hi Hin;cbn [In] in Hin.
    repeat match type of Hin with _ \/ _ => destruct Hin as [Hin|Hin] end;
      try contradiction;inversion Hin;subst b lo hi;assumption.
