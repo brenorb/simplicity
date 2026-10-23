@@ -4,6 +4,15 @@ This follows the earlier `../null-data-overlap-probe/` observation at the user's
 request to validate the API edge before further whole-jet composition. It adds
 zero equivalence coverage and changes no production C, header or specification.
 
+**Later formal result:** the original public Clight call now has a checked
+represented-memory overlap counterexample in
+`Coq/C/jet_elements_null_overlap_counterexample.v`. See
+`Coq/C/JET_ELEMENTS_NULL_DATA_MISMATCHES.md` for its exact statement,
+reproduction and limits. Its constructed cache satisfies the null-data
+projection but is not proved reachable through the real builders. The native
+builder experiment below remains separate evidence. The historical
+specification-only status below is preserved, not relabeled as a C proof.
+
 ## What is now reproduced
 
 The fixture uses the **actual** `simplicity_elements_mallocTransaction`,
