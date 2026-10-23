@@ -317,9 +317,23 @@ ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_eea_coefficients C.jet_secp_eea_remainders
 ```
 
-Next integrate final coefficient selection and its exact range/`modInv`
-bridge, then derive rescaled-coordinate normalization checks and measure a
-small table block before scaling. These invariants alone are not that bridge.
+`jet_secp_invert_modinv` now discharges final coefficient selection and range
+from those invariants, termination and gcd preservation. Its whole-run helper
+assumes only bounded positive inputs and coprimality, not an intermediate
+execution or output. The fixed-field bridge discharges coprimality using the
+already checked field-prime theorem, handles zero and the field-order value,
+and proves `literal_fe_invert_modInv` for **every** Word256 input. The right
+branch's returned raw coefficient is proved below p; it is not silently
+normalized in the program. Six arithmetic exports are closed; the final
+word-program bridge uses only inherited functional extensionality. Normal
+build, recursive kernel checking and reviewed no-update focused
+assumption/contract comparisons pass. Reproduce with target/module
+`C/jet_secp_invert_modinv.vo` / `C.jet_secp_invert_modinv` as above.
+
+Next integrate rescaled-coordinate normalization and complete-consumption
+prefix checkers, then benchmark a structurally decoded table block before
+scaling. The bridge is from the literal computation, not an additional
+assumed inverse premise.
 These stages do not establish the C inversion jet, its external ctz
 obligation, the table/literal correspondence, or public `generate`
 equivalence; accepted coverage remains 505/533.
