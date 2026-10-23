@@ -679,16 +679,25 @@ Normal build, recursive kernel check and reviewed no-update focused audits
 pass with target/module `C/jet_secp_zinv_one_numeric.vo` /
 `C.jet_secp_zinv_one_numeric` as above. This numeric bridge does not establish
 the caller's inverse field or a literal/public jet result by itself.
-Next prove the literal-coordinate correspondence, the descending generator loop and
-public writer. `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
+`jet_secp_zinv_literal` now relates both actual loose-word H/I tests to the
+literal Simplicity branch tests. `jet_secp_zinv_literal_outputs` proves the
+entire normalized coordinate triple equals `literal_gej_ge_add`, for both
+finite and infinite A, at represented inverse-Z one and arbitrary matching
+square-bounded coordinates. No curve-membership or canonical-input premise
+is added. Normal builds, recursive kernel checking and reviewed no-update
+focused audits passed for both modules. These are arithmetic bridges, not
+public jet execution proofs. The finite bridge uses only inherited functional
+extensionality; the infinite bridge is closed.
+Next compose the actual calls with these literal outputs and flag consistency,
+then prove the descending generator loop and public writer.
+`C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
 must establish that its initialized Z=1 persists; do not assume it.
-For the literal bridge, retain the actual loose coordinate words and their
-residues: `double_body_writer_outputs_literal` already accepts arbitrary
+For caller composition, retain the actual loose coordinate words and their
+residues: `double_body_writer_outputs_literal` accepts arbitrary
 square-bounded words with matching residues, and `mixed_x_matches_literal` /
 `mixed_y_matches_literal` / `mixed_z_matches_literal` are generic in the H/I
-and U/S fields. Derive zinv's H/I residues and tests at inverse-Z one from the
-proved product/square/weak-normalization models, then reuse these bridges.
+and U/S fields. The new literal bridge reuses these instead of redoing them.
 Do not specialize the loop state to canonical `square_reader_rho` words just
 to apply the older reader-only mixed-addition endpoint.
 These results do not establish all-input helper or public-jet equivalence;
