@@ -159,6 +159,35 @@ JET_TARGETS=C/jet_secp_i128_shift62_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_i128_shift62_numeric
 ```
 
+### Internal signed multiplication dependency
+
+`jet_secp_i128_mul_numeric.eval_i128_mul_exact` executes the original
+`secp256k1_i128_mul`, including its call to the original `secp256k1_mul128`,
+the private high-word allocation and its release. From an owned, initially
+uninitialized 16-byte result region, it derives both output loads, their exact
+signed 128-bit value `Int64.signed a * Int64.signed b`, the resulting ownership
+and external byte-range framing. Both signed 64-bit inputs are unrestricted.
+There is no assumed multiplication result or external-library behavior.
+
+The arithmetic bridge follows the actual signed 32-bit partial-product
+schedule. It reuses the unsigned helper's low-word, logical-shift and modular
+return lemmas, but separately proves the signed cross-products, arithmetic
+shifts and absence of signed overflow in the high-word additions. Treating
+these as unsigned partial products would be incorrect for negative operands.
+The pure observations are closed; the execution results retain the six
+standing Coq/CompCert assumptions, not a new libc premise.
+
+This closes the multiply stage used to initialize the inverse transition
+accumulators. Signed accumulation, transition-loop execution/invariants and
+the complete public inversion composition remain open; so does the separate
+ctz boundary described above. This internal result adds no public jet coverage
+and changes no original C, generated AST, specification or external-call model.
+
+```sh
+JET_TARGETS=C/jet_secp_i128_mul_numeric.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_i128_mul_numeric
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

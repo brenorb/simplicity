@@ -1,0 +1,108 @@
+### C.jet_secp_i128_mul_arith.smul128_limb_balance
+smul128_limb_balance
+     : forall (B a b : BinNums.Z) (_ : BinInt.Z.lt (BinNums.Zpos BinNums.xH) B),
+       let ll : BinNums.Z := BinInt.Z.mul (BinInt.Z.modulo a B) (BinInt.Z.modulo b B) in
+       let lh : BinNums.Z := BinInt.Z.mul (BinInt.Z.modulo a B) (BinInt.Z.div b B) in
+       let hl : BinNums.Z := BinInt.Z.mul (BinInt.Z.div a B) (BinInt.Z.modulo b B) in
+       let hh : BinNums.Z := BinInt.Z.mul (BinInt.Z.div a B) (BinInt.Z.div b B) in
+       let mid : BinNums.Z :=
+         BinInt.Z.add (BinInt.Z.add (BinInt.Z.div ll B) (BinInt.Z.modulo lh B)) (BinInt.Z.modulo hl B) in
+       let hi : BinNums.Z :=
+         BinInt.Z.add (BinInt.Z.add (BinInt.Z.add hh (BinInt.Z.div lh B)) (BinInt.Z.div hl B)) (BinInt.Z.div mid B) in
+       let lo : BinNums.Z := BinInt.Z.add (BinInt.Z.mul (BinInt.Z.modulo mid B) B) (BinInt.Z.modulo ll B) in
+       and (and (BinInt.Z.le BinNums.Z0 ll) (BinInt.Z.lt ll (BinInt.Z.mul B B)))
+         (and
+            (and (BinInt.Z.le BinNums.Z0 mid) (BinInt.Z.lt mid (BinInt.Z.mul (BinNums.Zpos (BinNums.xI BinNums.xH)) B)))
+            (and (and (BinInt.Z.le BinNums.Z0 lo) (BinInt.Z.lt lo (BinInt.Z.mul B B)))
+               (and (@eq BinNums.Z (BinInt.Z.mul a b) (BinInt.Z.add (BinInt.Z.mul hi (BinInt.Z.mul B B)) lo))
+                  (and (@eq BinNums.Z hi (BinInt.Z.div (BinInt.Z.mul a b) (BinInt.Z.mul B B)))
+                     (@eq BinNums.Z lo (BinInt.Z.modulo (BinInt.Z.mul a b) (BinInt.Z.mul B B)))))))
+### C.jet_secp_i128_mul_arith.smul128_half_bounds
+smul128_half_bounds
+     : forall (a : BinNums.Z)
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.opp
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))) a)
+                (BinInt.Z.lt a
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))),
+       and
+         (and
+            (BinInt.Z.le BinNums.Z0
+               (BinInt.Z.modulo a
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+            (BinInt.Z.lt
+               (BinInt.Z.modulo a
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (and
+            (BinInt.Z.le
+               (BinInt.Z.opp
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               (BinInt.Z.div a
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+            (BinInt.Z.lt
+               (BinInt.Z.div a
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_i128_mul_arith.smul128_low_high_product
+smul128_low_high_product
+     : forall (x y : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 x)
+                (BinInt.Z.lt x
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.opp
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) y)
+                (BinInt.Z.lt y
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       and
+         (BinInt.Z.le
+            (BinInt.Z.opp
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            (BinInt.Z.mul x y))
+         (BinInt.Z.lt (BinInt.Z.mul x y)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_i128_mul_arith.smul128_high_high_product
+smul128_high_high_product
+     : forall (x y : BinNums.Z)
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.opp
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) x)
+                (BinInt.Z.lt x
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.opp
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) y)
+                (BinInt.Z.lt y
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       and
+         (BinInt.Z.le
+            (BinInt.Z.opp
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            (BinInt.Z.mul x y))
+         (BinInt.Z.le (BinInt.Z.mul x y)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
