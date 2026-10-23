@@ -216,10 +216,24 @@ Avoid a conversion proof that compares pattern matching on an unknown
 coefficient pair with `snd`: that can force evaluation of the entire literal
 EEA. The generic `literal_inverse_body_fun` proves this routing once by
 destructing symbolic coefficients, without reducing the actual program.
-Next compose literal `zinv`/`gej_norm` with the numeric inverse evaluator and
-build small table-normalization certificates. These stages do not establish
-the C inversion jet, its external ctz obligation, the table/literal
-correspondence, or public `generate` equivalence.
+`jet_secp_eea_parametric` now proves the EEA, Bezout and inversion programs
+algebra-independent at every width; all ten exports are closed.
+`jet_secp_gej_norm_literal` reuses the existing literal `zinv` tree and proves
+the exact numeric and Word256-pair outputs of the literal `gej_norm`, for
+arbitrary coordinate words, through the checked numeric inverse evaluator.
+Its structural/algebra-independent exports are closed; its numeric/word
+bridges use only inherited functional extensionality. No nonzero-Z, curve or
+canonical-coordinate premise is introduced. Normal compilation, recursive
+kernel checking and reviewed no-update focused assumption/contract comparisons
+pass. Reproduce with target/module `C/jet_secp_gej_norm_literal.vo` /
+`C.jet_secp_gej_norm_literal` as above (its dependency closure includes the
+EEA-parametric module).
+
+Next port the signed generator recursion and build small checked
+table-normalization certificates before scaling to both frozen tables.
+These stages do not establish the C inversion jet, its external ctz
+obligation, the table/literal correspondence, or public `generate`
+equivalence; accepted coverage remains 505/533.
 
 ## Decompression: current proof frontier
 
