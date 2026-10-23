@@ -670,8 +670,16 @@ no-update focused audits pass with target/module
 branch has a checked body proof. The B-infinity path is not yet a whole-call
 theorem; the table caller instead has B.infinity=0 from the checked decoder.
 Both A flag cases needed by that caller now have whole-call proofs.
-Next prove the caller's inverse-Z-one specialization
-and literal-coordinate correspondence, the descending generator loop and
+`jet_secp_zinv_one_numeric` now proves the actual az/z12/U2/S2 word residues
+and tight bounds at represented inverse-Z one, and derives both H/I residues
+and square-input bounds. Raw X/Y may have limbs up to 2^60; no positioned or
+canonical coordinate representation is imposed. All five exports are closed,
+using the existing verified multiplication/square/weak-normalization models.
+Normal build, recursive kernel check and reviewed no-update focused audits
+pass with target/module `C/jet_secp_zinv_one_numeric.vo` /
+`C.jet_secp_zinv_one_numeric` as above. This numeric bridge does not establish
+the caller's inverse field or a literal/public jet result by itself.
+Next prove the literal-coordinate correspondence, the descending generator loop and
 public writer. `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
 must establish that its initialized Z=1 persists; do not assume it.
