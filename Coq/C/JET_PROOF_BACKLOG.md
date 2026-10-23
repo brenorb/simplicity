@@ -1437,8 +1437,9 @@ environment, fresh Z object, fixed readable zero scalar, num=1 and state
 pointer fields are still entry/setup obligations, not new public input
 restrictions. Normal compilation and reviewed no-update focused snapshots
 pass. Four source/lookup exports are closed and three execution exports retain
-the existing six assumptions, with no libc model. Recursive checking of this
-new composed prefix is the next integration check. Reproduce with the normal
+the existing six assumptions, with no libc model. Independent recursive
+kernel checking and no-update focused audits pass on `1b96a00e` in the
+task-owned verification worktree. Reproduce with the normal
 target/module `C/jet_secp_generator_initialize.vo` /
 `C.jet_secp_generator_initialize`, as for the other generator modules above.
 
@@ -1450,6 +1451,21 @@ derive caller entry/setup (including the actual readonly zero-scalar global),
 compose this prefix with scalar splitting and both original wNAF calls, then
 reuse the existing point-stage proof and public writer. The original external
 memset boundary remains explicitly unresolved. Coverage is still 513/533.
+
+`jet_secp_generator_zero_global` derives the real readonly `_na` global's
+four zero words and exact 32-byte permission bounds from
+`Genv.init_mem jets_secp.prog`; existence reuses the checked original program
+initialization. Its symbol is resolved by identifier, not a numeric block.
+It proves preservation across allocations and unchanged regions, separation
+from Freeable storage, the original global-address expression and the actual
+scalar-zero helper call. This closes the fixed auxiliary scalar's initial
+storage obligation, not the arbitrary logical input or the full public jet.
+Normal compilation and reviewed no-update assumption/contract checks pass;
+the two symbol/info facts are closed, memory/address results use four inherited
+assumptions, and helper execution uses the existing six without a libc model.
+Independent recursive checking is pending for this new extension. Reproduce
+with target/module `C/jet_secp_generator_zero_global.vo` /
+`C.jet_secp_generator_zero_global` using the commands above.
 
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
