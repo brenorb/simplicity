@@ -85,7 +85,7 @@ audit inputs. Accepted local-contract coverage is now 513/533 (375 without an
 extra libc premise; 138 conditional on `memcpy_model`). They retain the frozen Bitcoin
 domain and LockTime commitment-identity limits: value computations are proved,
 not Coq/Haskell primitive identity equality. The dedicated task-owned
-`jet-acceptance` worktree completed its clean six-jet dependency build and is
+`jet-acceptance` worktree completed its clean six-jet dependency build and
 passed the existing verifier on the fixed `f59d2305` commit (294-module
 dependency closure). Keep future audited worktrees immutable until their runs
 are terminal; development can continue independently in main. Reproduce with:
@@ -3313,10 +3313,21 @@ The current independent C-side task is the **processed** `sigOutput` classifier
 The archived `elements-env/.../jet_elements_env_isfee.v.source` is about a
 different raw-output helper (script length and byte pointers); do not import it
 as an execution proof of this function. Reuse the current Elements field and
-indexed-wrapper infrastructure instead. Closed layout checks in temporary
-`/private/tmp/jet-zinv-literal.zLYHFg/fee_layout.v` establish emptyScript=241,
-asset=0, amount=104, and both prefix fields at +32. These are layout results,
-not classifier execution or additional jet coverage. The actual C-side value
-uses the raw-script-empty flag and explicit prefixes; do not change that flag's
-representation to hash equality. The full canonical empty-digest converse above
-remains open even after the C execution proof is completed.
+indexed-wrapper infrastructure instead.
+
+`C.jet_elements_fee_flag_exec.eval_processed_isFee` now proves the complete
+original classifier call from initial field loads, through both short-circuit
+branches, function entry, return conversion and local freeing. Closed layout
+checks establish emptyScript=241, asset=0, amount=104, and both prefix fields
+at +32 in the actual generated composite environment. The result holds for
+either boolean flag and arbitrary integer prefixes, with empty trace and
+unchanged memory. It adds no libc premise and retains the six inherited
+assumptions. Normal compilation and reviewed focused assumption/contract
+checks pass; independent recursive kernel checking is the next integration
+check. Reproduce the focused checks using `JET_ONLY_MODULES` containing
+`C.jet_elements_fee_flag_exec` with the existing audit scripts.
+
+This is not another registered jet: the indexed public wrapper remains to be
+composed, and the full canonical empty-digest converse above remains open.
+The actual C-side value uses the raw-script-empty flag and explicit prefixes;
+do not change that flag's representation to hash equality.

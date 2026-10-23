@@ -1,0 +1,304 @@
+### C.jet_elements_fee_flag_exec.fee_empty_script_field
+fee_empty_script_field
+     : jet_elements_field_eval.elements_field_at jets_elements._sigOutput jets_elements._emptyScript
+         (BinNums.Zpos
+            (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_elements_fee_flag_exec.fee_asset_field
+fee_asset_field
+     : jet_elements_field_eval.elements_field_at jets_elements._sigOutput jets_elements._asset BinNums.Z0
+### C.jet_elements_fee_flag_exec.fee_amount_field
+fee_amount_field
+     : jet_elements_field_eval.elements_field_at jets_elements._sigOutput jets_elements._amt
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+### C.jet_elements_fee_flag_exec.fee_asset_prefix_field
+fee_asset_prefix_field
+     : jet_elements_field_eval.elements_field_at jets_elements._confidential jets_elements._prefix
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_elements_fee_flag_exec.fee_amount_prefix_field
+fee_amount_prefix_field
+     : jet_elements_field_eval.elements_field_at jets_elements._confAmount jets_elements._prefix
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_elements_fee_flag_exec.fee_flag_value
+fee_flag_value
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : BinNums.Z) (empty : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._output le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs)))) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m b
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                (@Some Values.val (Values.Vint (fee_bool_int empty)))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_flag_expr (Values.Vint (fee_bool_int empty))
+### C.jet_elements_fee_flag_exec.fee_prefix_value
+fee_prefix_value
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : BinNums.Z) (field sid : AST.ident) (delta : BinNums.Z) (value : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._output le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs)))) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 delta)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add delta
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : jet_elements_field_eval.elements_field_at jets_elements._sigOutput field delta)
+         (_ : jet_elements_field_eval.elements_field_at sid jets_elements._prefix
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinInt.Z.add (BinInt.Z.add ofs delta)
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint value))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m (fee_prefix_expr field sid) (Values.Vint value)
+### C.jet_elements_fee_flag_exec.fee_explicit_comparison
+fee_explicit_comparison
+     : forall (m : Memory.Mem.mem) (value : Integers.Int.int),
+       @eq (option Values.val)
+         (Cop.sem_binary_operation (Clight.genv_cenv jet_elements_linkage.elements_ge) Cop.Oeq
+            (Values.Vint Integers.Int.one) Ctypesdefs.tint (Values.Vint value) Ctypesdefs.tint m)
+         (@Some Values.val (Values.Vint (fee_bool_int (Integers.Int.eq Integers.Int.one value))))
+### C.jet_elements_fee_flag_exec.fee_bool_cast
+fee_bool_cast
+     : forall (m : Memory.Mem.mem) (bit : bool),
+       @eq (option Values.val) (Cop.sem_cast (Values.Vint (fee_bool_int bit)) Ctypesdefs.tint Ctypesdefs.tbool m)
+         (@Some Values.val (Values.Vint (fee_bool_int bit)))
+### C.jet_elements_fee_flag_exec.exec_fee_prefix_check
+exec_fee_prefix_check
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : BinNums.Z) (field sid : AST.ident) (delta : BinNums.Z) (value : Integers.Int.int)
+         (loadtmp resulttmp : AST.ident)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._output le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs)))) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 delta)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add delta
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : jet_elements_field_eval.elements_field_at jets_elements._sigOutput field delta)
+         (_ : jet_elements_field_eval.elements_field_at sid jets_elements._prefix
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinInt.Z.add (BinInt.Z.add ofs delta)
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint value))),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+         (fee_prefix_check loadtmp resulttmp field sid) Events.E0
+         (@Maps.PTree.set Values.val resulttmp (Values.Vint (fee_bool_int (Integers.Int.eq Integers.Int.one value)))
+            (@Maps.PTree.set Values.val loadtmp (Values.Vint value) le)) m ClightBigstep.Out_normal
+### C.jet_elements_fee_flag_exec.exec_fee_guarded_prefix
+exec_fee_guarded_prefix
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : BinNums.Z) (field sid : AST.ident) (delta : BinNums.Z) (value : Integers.Int.int)
+         (loadtmp resulttmp : AST.ident) (guard : Clight.expr) (bit : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._output le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs)))) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 delta)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add delta
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : jet_elements_field_eval.elements_field_at jets_elements._sigOutput field delta)
+         (_ : jet_elements_field_eval.elements_field_at sid jets_elements._prefix
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinInt.Z.add (BinInt.Z.add ofs delta)
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint value))) (_ : not (@eq AST.ident loadtmp jets_elements._output))
+         (_ : not (@eq AST.ident resulttmp jets_elements._output))
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m guard (Values.Vint (fee_bool_int bit)))
+         (_ : @eq (option bool) (Cop.bool_val (Values.Vint (fee_bool_int bit)) (Clight.typeof guard) m)
+                (@Some bool bit)),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+               (Clight.Sifthenelse guard (fee_prefix_check loadtmp resulttmp field sid)
+                  (Clight.Sset resulttmp (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint))) Events.E0 lef m
+               ClightBigstep.Out_normal)
+            (and
+               (@eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._output lef)
+                  (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs))))
+               (@eq (option Values.val) (@Maps.PTree.get Values.val resulttmp lef)
+                  (@Some Values.val (Values.Vint (fee_bool_int (andb bit (Integers.Int.eq Integers.Int.one value))))))))
+### C.jet_elements_fee_flag_exec.fee_original_body_source
+fee_original_body_source
+     : @eq Clight.statement (Clight.fn_body jets_elements.f_isFee) fee_original_body
+### C.jet_elements_fee_flag_exec.exec_fee_original_body
+exec_fee_original_body
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : BinNums.Z) (empty : bool) (asset amount : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._output le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs)))) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m b
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                (@Some Values.val (Values.Vint (fee_bool_int empty))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint asset)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                (@Some Values.val (Values.Vint amount))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+            (Clight.fn_body jets_elements.f_isFee) Events.E0 lef m
+            (ClightBigstep.Out_return
+               (@Some (prod Values.val Ctypes.type)
+                  (@pair Values.val Ctypes.type (Values.Vint (fee_bool_int (fee_classifier empty asset amount)))
+                     Ctypesdefs.tint))))
+### C.jet_elements_fee_flag_exec.fee_function_entry
+fee_function_entry
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z),
+       Clight.function_entry2 jet_elements_linkage.elements_ge jets_elements.f_isFee
+         (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs)) (@nil Values.val)) m Clight.empty_env
+         (fee_initial_temps b ofs) m
+### C.jet_elements_fee_flag_exec.eval_processed_isFee
+eval_processed_isFee
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (empty : bool)
+         (asset amount : Integers.Int.int) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m b
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                (@Some Values.val (Values.Vint (fee_bool_int empty))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint asset)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                (@Some Values.val (Values.Vint amount))),
+       ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+         (@Ctypes.Internal Clight.function jets_elements.f_isFee)
+         (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs)) (@nil Values.val)) Events.E0 m
+         (Values.Vint (fee_bool_int (fee_classifier empty asset amount)))
+### C.jet_elements_fee_flag_exec.fee_bool_int
+fee_bool_int =
+fun b : bool => match b return Integers.Int.int with
+                | true => Integers.Int.one
+                | false => Integers.Int.zero
+                end
+     : forall _ : bool, Integers.Int.int
+
+Arguments fee_bool_int b%bool_scope
+### C.jet_elements_fee_flag_exec.fee_flag_expr
+fee_flag_expr =
+Clight.Efield
+  (Clight.Ederef
+     (Clight.Etempvar jets_elements._output (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)))
+     (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)) jets_elements._emptyScript Ctypesdefs.tbool
+     : Clight.expr
+### C.jet_elements_fee_flag_exec.fee_prefix_expr
+fee_prefix_expr =
+fun field sid : AST.ident =>
+Clight.Efield
+  (Clight.Efield
+     (Clight.Ederef
+        (Clight.Etempvar jets_elements._output
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)))
+        (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)) field (Ctypes.Tstruct sid Ctypes.noattr))
+  jets_elements._prefix Ctypesdefs.tint
+     : forall (_ : AST.ident) (_ : AST.ident), Clight.expr
+
+Arguments fee_prefix_expr field sid
+### C.jet_elements_fee_flag_exec.fee_prefix_check
+fee_prefix_check =
+fun loadtmp resulttmp field sid : AST.ident =>
+Clight.Ssequence (Clight.Sset loadtmp (fee_prefix_expr field sid))
+  (Clight.Sset resulttmp
+     (Clight.Ecast
+        (Clight.Ebinop Cop.Oeq (Clight.Econst_int Integers.Int.one Ctypesdefs.tint)
+           (Clight.Etempvar loadtmp Ctypesdefs.tint) Ctypesdefs.tint) Ctypesdefs.tbool))
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : AST.ident) (_ : AST.ident), Clight.statement
+
+Arguments fee_prefix_check loadtmp resulttmp field sid
+### C.jet_elements_fee_flag_exec.fee_first_if
+fee_first_if =
+Clight.Sifthenelse (Clight.Etempvar jets_elements._t'4 Ctypesdefs.tbool)
+  (fee_prefix_check jets_elements._t'5 jets_elements._t'1 jets_elements._asset jets_elements._confidential)
+  (Clight.Sset jets_elements._t'1 (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint))
+     : Clight.statement
+### C.jet_elements_fee_flag_exec.fee_second_if
+fee_second_if =
+Clight.Sifthenelse (Clight.Etempvar jets_elements._t'1 Ctypesdefs.tint)
+  (fee_prefix_check jets_elements._t'3 jets_elements._t'2 jets_elements._amt jets_elements._confAmount)
+  (Clight.Sset jets_elements._t'2 (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint))
+     : Clight.statement
+### C.jet_elements_fee_flag_exec.fee_original_body
+fee_original_body =
+Clight.Ssequence
+  (Clight.Ssequence (Clight.Ssequence (Clight.Sset jets_elements._t'4 fee_flag_expr) fee_first_if) fee_second_if)
+  (Clight.Sreturn (@Some Clight.expr (Clight.Etempvar jets_elements._t'2 Ctypesdefs.tint)))
+     : Clight.statement
+### C.jet_elements_fee_flag_exec.fee_classifier
+fee_classifier =
+fun (empty : bool) (asset amount : Integers.Int.int) =>
+andb (andb empty (Integers.Int.eq Integers.Int.one asset)) (Integers.Int.eq Integers.Int.one amount)
+     : forall (_ : bool) (_ : Integers.Int.int) (_ : Integers.Int.int), bool
+
+Arguments fee_classifier empty%bool_scope asset amount
+### C.jet_elements_fee_flag_exec.fee_initial_temps
+fee_initial_temps =
+fun (b : Values.block) (ofs : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_elements._output (Values.Vptr b (Integers.Ptrofs.repr ofs))
+  (Clight.create_undef_temps (Clight.fn_temps jets_elements.f_isFee))
+     : forall (_ : Values.block) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments fee_initial_temps b ofs%Z_scope
