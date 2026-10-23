@@ -1,0 +1,64 @@
+### C.jet_secp_modinv_normalize62_global.field_norm62_input_words
+field_norm62_input_words
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int),
+       @eq (list Integers.Int64.int) (jet_secp_multiply_normalize_bridge.words5 (field_norm62_rho w sign))
+         (jet_secp_multiply_normalize_bridge.words5 w)
+### C.jet_secp_modinv_normalize62_global.field_norm62_output_words
+field_norm62_output_words
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int),
+       @eq (list Integers.Int64.int)
+         (jet_secp_multiply_normalize_bridge.words5
+            (jet_secp_modinv_normalize62_exec.norm62_machine (field_norm62_rho w sign)
+               (fun i : nat => field_norm62_rho w sign (Nat.add (S (S (S (S (S O))))) i))
+               (field_norm62_rho w sign (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+         (jet_secp_multiply_normalize_bridge.words5
+            (jet_secp_modinv_normalize62_exec.norm62_machine w jet_secp_modinfo_fe_copy.modinfo_fe_limb sign))
+### C.jet_secp_modinv_normalize62_global.field_norm62_initial_modulus
+field_norm62_initial_modulus
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (m : Memory.Mem.mem)
+         (_ : jet_secp_modinfo_fe_global.modinfo_fe_global_rep m),
+       jet_secp_modinv_normalize62_exec.norm62_modulus_at m jet_secp_modinfo_fe_global.modinfo_fe_block
+         (fun i : nat => field_norm62_rho w sign (Nat.add (S (S (S (S (S O))))) i))
+### C.jet_secp_modinv_normalize62_global.eval_field_norm62_with_global
+eval_field_norm62_with_global
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (m : Memory.Mem.mem)
+         (br : Values.block) (_ : not (@eq Values.block br jet_secp_modinfo_fe_global.modinfo_fe_block))
+         (_ : jet_secp_fe_nv.fe_at m br BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable) (_ : jet_secp_modinfo_fe_global.modinfo_fe_global_rep m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_normalize_62)
+               (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vlong sign)
+                     (@cons Values.val (Values.Vptr jet_secp_modinfo_fe_global.modinfo_fe_block Integers.Ptrofs.zero)
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf br BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5
+                     (jet_secp_modinv_normalize62_exec.norm62_machine w jet_secp_modinfo_fe_copy.modinfo_fe_limb sign)))
+               (and
+                  (Memory.Mem.range_perm mf br BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and (jet_secp_modinfo_fe_global.modinfo_fe_global_rep mf)
+                     (jet_sx_mem.lframe
+                        (jet_secp_modinv_normalize62_exec.norm62_outside br jet_secp_modinfo_fe_global.modinfo_fe_block)
+                        m mf)))))
+### C.jet_secp_modinv_normalize62_global.field_norm62_rho
+field_norm62_rho =
+fun (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (n : nat) =>
+match PeanoNat.Nat.ltb n (S (S (S (S (S O))))) return Integers.Int64.int with
+| true => w n
+| false =>
+    match PeanoNat.Nat.ltb n (S (S (S (S (S (S (S (S (S (S O)))))))))) return Integers.Int64.int with
+    | true => jet_secp_modinfo_fe_copy.modinfo_fe_limb (Nat.sub n (S (S (S (S (S O))))))
+    | false => sign
+    end
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments field_norm62_rho w%function_scope sign n%nat_scope

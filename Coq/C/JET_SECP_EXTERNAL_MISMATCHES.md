@@ -89,11 +89,23 @@ Its symbolic-run, return, output-shape and word-denotation certificates are
 closed. It adds no registered jet: the signed numeric normalization bridge,
 modular-inverse batch/loop composition and ctz linkage are still required.
 It is not a proof about the mathematical correctness of a jet specification
-and does not repair or bypass the external-call boundary above. Reproduce:
+and does not repair or bypass the external-call boundary above.
+
+`jet_secp_modinv_normalize62_global.eval_field_norm62_with_global` specializes
+the call to the actual field-modulus global, reusing `modinfo_fe_limb` rather
+than another modulus definition. It derives the call, exact output and
+retained private ownership, and preserves the complete
+`modinfo_fe_global_rep`: all 48 readable bytes and all six words, including
+the untouched inverse coefficient at +40. Startup readiness is the existing
+predicate established by `modinfo_fe_global_initializes`; neither an
+initialized result nor a helper execution is assumed. This is still a
+normalization dependency, not the public inverse jet. Reproduce:
 
 ```sh
 JET_TARGETS=C/jet_secp_modinv_normalize62_exec.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_normalize62_exec
+JET_TARGETS=C/jet_secp_modinv_normalize62_global.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_normalize62_global
 ```
 
 ## Reproduction and limits
