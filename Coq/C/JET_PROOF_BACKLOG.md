@@ -544,10 +544,20 @@ ulimit -S -s 65520
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_zinv_start
 ```
 
-Next reuse `exec_mixed_differences` for the following four original H/I
-statements: it accepts the derived arbitrary tight U1/U2/S1/S2 words directly.
-Prove their source identity after `zinv_after_s2_az`; do not replay the
-negate/add arithmetic. The nine-statement frame preserves fresh H/I ownership.
+`jet_secp_zinv_differences` reuses `exec_mixed_differences` for the following
+four original H/I statements on the derived tight U1/U2/S1/S2 words.
+`exec_zinv_difference_prefix` now composes **all thirteen original statements**
+from the six caller fields and writable temporary storage. No initialized H/I
+or intermediate execution premise is required. It preserves all input and
+preparation field views, eleven allocations, exact H/I radix values, their
+square-input bounds and framing. Both source identities are closed; execution
+retains six inherited assumptions. Normal build, recursive kernel checking
+and reviewed no-update focused audits pass; reproduce with target/module
+`C/jet_secp_zinv_differences.vo` / `C.jet_secp_zinv_differences` as above.
+This is helper progress, not new accepted public coverage (still 505/533).
+
+Next derive the actual H/I zero-test control, including zinv's literal NULL
+doubling argument (not the older mixed-addition helper's `_rzr` temporary).
 For the later doubling branch, use the caller's square-input bounds on the
 **raw** X/Y/Z; do not replace raw coordinates with the normalized temporaries.
 Then discharge both flag
