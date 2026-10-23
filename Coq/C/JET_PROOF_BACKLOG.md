@@ -1,6 +1,9 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 505 of the 533 header declarations.
+The current local-contract registry counts 505 of the 533 header declarations
+toward full-input contracts (136 still conditional on `memcpy_model`). A
+separate restricted `gej_ge_add_ex` entry describes a reported mismatch and
+does not count toward all-input completion.
 Selected registrations, verification status and their conditions are listed in
 [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 28 declarations lack a registered final proof.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
@@ -19,6 +22,41 @@ The remaining work includes:
 - general caller startup and persistent SHA/global-state readiness;
 - libc implementation proofs where a contract assumes `memcpy_model`;
 - raw transaction/taproot projections for cached Bitcoin environment fields.
+
+## Active `generate` frontier
+
+The full original 129-cell wNAF loop/return now matches the decoded literal
+`wnaf15` vector (`jet_secp_wnaf_literal_loop`), and the actual copy/sign/loop
+phase after memset is composed (`jet_secp_wnaf_literal_prepare`). Do not
+restart either proof. Caller zeroing, function entry/freeing, canonical scalar
+normalization/split composition and the generator point loop remain open.
+
+`jet_secp_wnaf_literal_values` proves every reachable literal `Some` digit
+is odd and nonzero in the signed range, zero C integers correspond exactly
+to `None`, and equal C integers uniquely determine the raw literal digit.
+All ten exports are closed. This discharges the raw-constructor distinction
+lost by numeric decoding; it is not additional public-jet coverage. Normal
+build, recursive kernel checking and focused no-update assumption/contract
+comparisons pass; use the commands below with this module name.
+
+A subsequent read-only Astra Medium review recommends the original
+`fe_from_storage` / `ge_from_storage` execution next, then signed
+`ecmult_table_get_ge_storage`. Use **readable**, not owned writable, source
+storage: both frozen generator tables are readonly. The desired decoder
+endpoint takes eight source Mint64 words and a disjoint writable affine
+destination, derives the exact five-limb coordinate unpacking and infinity=0,
+and preserves source/permissions/framing. Reuse `jet_secp_signed62_repack`,
+`jet_secp_affine_fields` and `jet_secp_field_copy_owned` patterns, without
+inheriting their writable-source premises where inappropriate.
+
+The two 8192-entry tables still need checked initializer loads and a formal
+bridge to the exact literal `generateSmall` / `generate128Small` results for
+each signed digit; neither registration nor "odd multiples of G" alone
+establishes that bridge. Then prove actual `gej_add_zinv_var` at the caller's
+Z=1 and align C's shortened descending loop with the literal 129 steps.
+Maintain field congruence and limb bounds internally, but discharge exact
+normalized coordinate equality at the writer boundary, not only projective
+point equivalence. No table-correctness assumption is authorized.
 
 ## Decompression: current proof frontier
 
