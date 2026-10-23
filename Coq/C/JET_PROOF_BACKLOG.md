@@ -3322,12 +3322,23 @@ checks establish emptyScript=241, asset=0, amount=104, and both prefix fields
 at +32 in the actual generated composite environment. The result holds for
 either boolean flag and arbitrary integer prefixes, with empty trace and
 unchanged memory. It adds no libc premise and retains the six inherited
-assumptions. Normal compilation and reviewed focused assumption/contract
-checks pass; independent recursive kernel checking is the next integration
-check. Reproduce the focused checks using `JET_ONLY_MODULES` containing
+assumptions. Normal compilation, independent recursive kernel checking and
+reviewed focused assumption/contract checks pass on `c82ca174`. Reproduce
+the focused checks using `JET_ONLY_MODULES` containing
 `C.jet_elements_fee_flag_exec` with the existing audit scripts.
 
-This is not another registered jet: the indexed public wrapper remains to be
-composed, and the full canonical empty-digest converse above remains open.
+`C.jet_elements_fee_flag_caller.elements_output_fee_flag_contract` now composes
+the original indexed public wrapper with that classifier, index reading,
+presence/payload writes, absent-output padding and full function entry/return.
+It reuses the existing indexed tag3 skeleton with arbitrary valid separated
+frames and cursors. Its initial environment relation represents the actual
+script-empty flag and asset/amount prefixes, not cached hash equality. The
+result is explicitly `processed_fee_result`, **not** the canonical hash-based
+program. Normal compilation and reviewed focused assumption/contract checks
+pass, with the same six inherited assumptions and no libc premise; recursive
+kernel checking of this caller is the next integration check.
+
+Neither module adds a registered jet. The full canonical empty-digest
+converse above remains open.
 The actual C-side value uses the raw-script-empty flag and explicit prefixes;
 do not change that flag's representation to hash equality.
