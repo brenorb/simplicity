@@ -703,6 +703,26 @@ exports retain six inherited assumptions and no added model/execution premise.
 This closes the loop/vector obligation, not function entry, zeroing/freeing,
 the scalar-normalization/split caller composition or the generator point loop.
 
+`jet_secp_wnaf_literal_prepare.exec_wnaf_post_memset_literal15` now composes
+the actual by-copy scalar assignment, top-bit/sign-selection call, full loop
+and original return against the decoded literal vector. It derives the
+scratch scalar, zero final carry, array result, return bound, permissions and
+framing from the stated internal boundary. Normal build, recursive kernel
+checking and focused no-update assumption/contract comparisons pass (same
+commands using `jet_secp_wnaf_literal_prepare`); execution retains six
+inherited assumptions, no extra external model. Caller zeroed cells and
+initial temporaries remain explicit premises at this post-memset boundary.
+
+The actual public `generate` path is `simplicity_generate -> ecmult ->
+strauss_wnaf` with `num=1`, not a substituted `num=0` call. Its static scalar
+`na=0` makes the first processing loop skip the arbitrary-point path, leaving
+`no=0` and `Z=1`. Next handle the stored generator-table decoder/lookup and
+`gej_add_zinv_var` at that actual `Z`, then compose the descending point loop
+against the literal generate program. Table contents must be related to
+`generateSmall`/`generate128Small`, not assumed correct. Entry/freeing,
+external memset and canonical scalar-normalization/split caller composition
+also remain unresolved; there is no public `generate` coverage increase.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
