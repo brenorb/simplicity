@@ -1,0 +1,84 @@
+### C.jet_secp_generator_zero_scalar.generator_scalar_zero_memory
+generator_scalar_zero_memory
+     : forall (m mf : Memory.Mem.mem) (args : list Values.val) (v : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_is_zero) args Events.E0 mf v),
+       @eq Memory.Mem.mem mf m
+### C.jet_secp_generator_zero_scalar.generator_zero_run_eq
+generator_zero_run_eq
+     : @eq (option jet_sx_exec.res) generator_zero_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone generator_zero_state jet_sx_exec.ONormal))
+### C.jet_secp_generator_zero_scalar.generator_zero_log
+generator_zero_log
+     : @eq (list jet_sx_eval.event) (jet_sx_eval.slog generator_zero_state) (@nil jet_sx_eval.event)
+### C.jet_secp_generator_zero_scalar.generator_zero_result
+generator_zero_result
+     : @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps generator_zero_state))
+         (@Some jet_sx_expr.sx generator_zero_return)
+### C.jet_secp_generator_zero_scalar.generator_zero_value
+generator_zero_value
+     : forall layout : forall _ : nat, prod Values.block BinNums.Z,
+       @eq Values.val (jet_sx_expr.den (fun _ : nat => Integers.Int64.zero) layout generator_zero_return)
+         (Values.Vint Integers.Int.one)
+### C.jet_secp_generator_zero_scalar.generator_zero_rep
+generator_zero_rep
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m b ofs
+                (@cons Integers.Int64.int Integers.Int64.zero
+                   (@cons Integers.Int64.int Integers.Int64.zero
+                      (@cons Integers.Int64.int Integers.Int64.zero
+                         (@cons Integers.Int64.int Integers.Int64.zero (@nil Integers.Int64.int)))))),
+       jet_sx_state.rep (fun _ : nat => Integers.Int64.zero)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b ofs) (@nil (prod Values.block BinNums.Z)))
+         generator_zero_regs m
+### C.jet_secp_generator_zero_scalar.eval_generator_scalar_zero
+eval_generator_scalar_zero
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m b ofs
+                (@cons Integers.Int64.int Integers.Int64.zero
+                   (@cons Integers.Int64.int Integers.Int64.zero
+                      (@cons Integers.Int64.int Integers.Int64.zero
+                         (@cons Integers.Int64.int Integers.Int64.zero (@nil Integers.Int64.int)))))),
+       ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+         (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_is_zero)
+         (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs)) (@nil Values.val)) Events.E0 m
+         (Values.Vint Integers.Int.one)
+### C.jet_secp_generator_zero_scalar.generator_zero_regs
+generator_zero_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (jet_sx_rep.u64_cells BinNums.Z0
+        (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O)))) (@nil jet_sx_expr.sx)))))) false
+     (@None BinNums.Z)) (@nil jet_sx_state.region)
+     : list jet_sx_state.region
+### C.jet_secp_generator_zero_scalar.generator_zero_run
+generator_zero_run =
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  (@nil (prod AST.ident jet_sx_exec.fentry))
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  jets_secp.f_secp256k1_scalar_is_zero (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0) (@nil jet_sx_expr.sx))
+  generator_zero_regs (@nil jet_sx_eval.event) (S (S (S (S O))))
+     : option jet_sx_exec.res
+### C.jet_secp_generator_zero_scalar.generator_zero_state
+generator_zero_state =
+match generator_zero_run return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ =>
+        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+    end
+| None => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : jet_sx_eval.sstate
+### C.jet_secp_generator_zero_scalar.generator_zero_return
+generator_zero_return =
+match @Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps generator_zero_state) return jet_sx_expr.sx with
+| Some x => x
+| None => jet_sx_expr.XIc Integers.Int.zero
+end
+     : jet_sx_expr.sx

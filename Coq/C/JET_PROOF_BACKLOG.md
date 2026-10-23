@@ -1348,9 +1348,10 @@ ranges and framing outside the three regions. The source need not be writable
 or Freeable, and destination initial contents are arbitrary. The three memory
 adapters use four inherited assumptions; complete execution uses six, with no
 libc model. Normal compilation and reviewed no-update focused audits pass.
-Independent recursive checking of the committed `809ebb5a` extension is running
-in the task-owned verification worktree; do not treat the earlier literal-only
-check as checking this extension. Reproduce with target/module
+Independent recursive checking and no-update focused audits pass for the
+committed `809ebb5a` extension in the task-owned verification worktree; this
+also checks the scalar-parser proof optimization's existing snapshots.
+Reproduce with target/module
 `C/jet_secp_scalar_split128_storage.vo` / `C.jet_secp_scalar_split128_storage`.
 
 Clean rebuilding exposed two proof-computation bottlenecks. The u128 layout
@@ -1363,6 +1364,19 @@ changes the compiler baseline, production AST, generation settings or target.
 The existing coverage regression suite also passes; neither adapter adds
 public coverage. Next compose the real caller's setup/non-generator skip,
 split and wNAF stages; the external memset boundary remains separate.
+
+`jet_secp_generator_zero_scalar.eval_generator_scalar_zero` derives the
+original scalar-zero helper call for the generator's four-zero readonly
+scalar, at any valid aligned source offset, with exactly unchanged memory
+and an empty trace. It requires neither writable nor Freeable source storage.
+The memory-identity lemma is proved by inverting the original function's
+entry, actual temp-only body and release, not by assuming a no-write effect.
+Normal compilation and reviewed no-update focused snapshots pass. Four
+computed support exports are closed, the representation lemma has four
+inherited assumptions, and execution/memory identity has six. Independent
+recursive checking of this new helper is the next integration check. This
+discharges the readonly zero-scalar call needed to skip Strauss preprocessing;
+it does not register another jet or establish the whole caller.
 
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
