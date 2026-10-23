@@ -1,5 +1,12 @@
 # Extended mixed-addition ratio: noncanonical equal-point Y
 
+Under the clarified proof-coverage goal, the checked whole-public refutation
+`C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec` counts as
+**proved divergence**, separately from positive equivalence. The restricted
+equivalence alone does not earn that classification. Historical counts below
+used the older equivalence-only criterion; they are not current proof-coverage
+totals. Neither this classification nor the refutation changes a target.
+
 Status: implementation-to-specification mismatch formally established for
 `simplicity_gej_ge_add_ex`, **reported, not corrected**. The jet is registered
 only with the unchanged literal contract outside the exactly characterized

@@ -36,6 +36,19 @@ def main():
     assert coverage.missing_equivalences([complete, mismatch]) == [mismatch]
     assert coverage.missing_equivalences([complete, absent, mismatch]) == [absent, mismatch]
     assert any(row["condition"] == "reported_mismatch" for row in coverage.missing_equivalences(rows))
+    divergent = {**mismatch, "divergence_proof": "C.example.whole_jet_refutation"}
+    assert coverage.missing_proofs([complete, mismatch]) == [mismatch]
+    assert coverage.missing_proofs([complete, absent, divergent]) == [absent]
+    assert coverage.missing_equivalences([complete, divergent]) == [divergent]
+    assert sum(bool(row["divergence_proof"]) for row in rows) == 1
+    assert len(coverage.missing_equivalences(rows)) == 20
+    assert len(coverage.missing_proofs(rows)) == 19
+    assert coverage.proof_roots(rows, ["simplicity_gej_ge_add_ex"]) == {
+        "C.jet_secp_mixed_ex_local", "C.jet_secp_mixed_ex_refutation"}
+    rejects(lambda: coverage.proof_roots(rows, ["simplicity_fe_invert"]),
+            "jets without registered proof entries")
+    rejects(lambda: coverage.proof_roots(rows, ["simplicity_not_a_jet"]),
+            "jets without registered proof entries")
     # Computing indexed hashes and the Elements taproot builders retain
     # the explicit memcpy premise, including both Bitcoin value/script hashes.
     assert sum(row["condition"] == "memcpy_model" for row in rows) == 138
@@ -51,9 +64,38 @@ def main():
         for _, module, _ in coverage.records(SOURCE / "C/jet_coverage.tsv", 3):
             path = Path(module.replace(".", "/") + ".v")
             shutil.copy2(SOURCE / path, project / path)
+        for entry in coverage.DIVERGENCE_CONTRACTS.values():
+            path = Path(entry["module"].replace(".", "/") + ".v")
+            shutil.copy2(SOURCE / path, project / path)
         coverage.COQ = project
         manifest = project / "C/jet_coverage.tsv"
         original = manifest.read_text()
+        assert coverage.inventory() == rows
+        # A report, restricted theorem, conditional negation, wrong target or
+        # unaudited theorem cannot stand in for a whole-public refutation.
+        for entry in coverage.DIVERGENCE_CONTRACTS.values():
+            module, theorem = entry["module"], entry["theorem"]
+            target = project / (module.replace(".", "/") + ".v")
+            intact = target.read_text()
+            declaration = "Theorem " + theorem + " :"
+            for old, new in ((declaration, declaration + " False ->"),
+                             ("~secp_jet_local_spec", "secp_jet_local_spec"),
+                             ("f_simplicity_gej_ge_add_ex", "f_simplicity_gej_ge_add"),
+                             ("@literal_gej_ge_add_ex", "@literal_gej_ge_add")):
+                assert old in intact
+                target.write_text(intact.replace(old, new, 1))
+                rejects(coverage.inventory, "not the exact whole-jet refutation")
+            target.write_text(intact)
+            audited = project / "C/jet_public_theorems.txt"
+            listed = audited.read_text()
+            audited.write_text(listed.replace(f"{module} {theorem}\n", "", 1))
+            rejects(coverage.inventory, "divergence theorem not publicly audited")
+            audited.write_text(listed)
+            report = project / entry["report"]
+            text = report.read_text()
+            report.write_text(text.replace(f"{module}.{theorem}", "removed"))
+            rejects(coverage.inventory, "divergence proof not documented")
+            report.write_text(text)
         assert coverage.inventory() == rows
         # Recovered proofs keep their exact complete public boundary. These
         # mutations test bookkeeping only; real sources still require Coq.

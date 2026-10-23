@@ -1,5 +1,30 @@
 # Remaining jet proof work
 
+## Current completion criterion: equivalence or proved divergence
+
+The user clarified that 533/533 means **proof coverage**, permitting checked
+implementation-to-specification divergence as well as equivalence. Keep the
+two classifications separate. A restricted theorem, suspected mismatch,
+native observation, or generic external-semantics countermodel is not a
+whole-public divergence proof. Production C, specifications and APIs remain
+fixed; report a proved mismatch rather than correcting either target.
+
+The inventory currently has 513 equivalence entries (138 with the existing
+explicit `memcpy_model` premise) and one checked whole-public refutation,
+`C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
+514/533 proof entries, with 19 jets still lacking either result. Registration
+is not fresh acceptance; the endpoint-generalization integration check is
+still pending. Historical equivalence-only counts and the obstruction to
+533 positive equivalences below are retained as such, not as an obstruction
+to the newly clarified mixed-outcome proof goal.
+
+`python3 Coq/jet-coverage.py --require-complete` now checks this proof-coverage
+criterion, while printing equivalence, explicit libc conditions and divergence
+separately. It requires the exact public refutation type, its audited theorem
+and its mismatch report; its mutation tests reject conditional negations and
+wrong implementation/specification targets. Kernel checking and reviewed
+statement/assumption records remain required by `check-jets.sh`.
+
 The current local-contract registry counts 513 of the 533 header declarations
 toward full-input contracts (138 still conditional on `memcpy_model`). A
 separate restricted `gej_ge_add_ex` entry describes a reported mismatch and

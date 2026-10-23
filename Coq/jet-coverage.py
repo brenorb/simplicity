@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Inventory every public C jet, without conflating helper proofs with coverage.
 
-Proof entries are metadata pointing to frozen, audited public theorem types.
+Equivalence and divergence entries point to frozen, audited public theorem types.
 This script does not check proofs: run check-jets.sh for that. CSV lists every
 declaration, including missing proofs, unregistered jets and legacy names.
 """
@@ -292,6 +292,20 @@ REPORTED_MISMATCH_CONTRACTS = {
     },
 }
 
+# A restricted equivalence or a native observation is not a divergence proof.
+# Count a negative result only at its exact audited whole-public boundary.
+DIVERGENCE_CONTRACTS = {
+    "simplicity_gej_ge_add_ex": {
+        "module": "C.jet_secp_mixed_ex_refutation",
+        "theorem": "gej_ge_add_ex_not_literal_local_spec",
+        "contract": "~secp_jet_local_spec f_simplicity_gej_ge_add_ex "
+                    "(Ty.Prod (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) (Ty.Prod (Word 8) (Word 8))) "
+                    "(Ty.Prod (Word 8) (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8))) "
+                    "(@literal_gej_ge_add_ex Simplicity.Alg.CoreFunSem).",
+        "report": "C/JET_SECP_RATIO_MISMATCHES.md",
+    },
+}
+
 
 def records(path, fields):
     result = []
@@ -349,7 +363,8 @@ def inventory():
                 raise ValueError(f"duplicate public jet: {name}")
             jets[name] = {"family": family, "function": name, "header": header,
                           "specification_catalog": SPECIFICATIONS[family],
-                          "registrations": [], "proof": "", "condition": ""}
+                          "registrations": [], "proof": "", "condition": "",
+                          "divergence_proof": ""}
     for application in ("bitcoin", "elements"):
         registry = REPO / f"C/{application}/primitiveJetNode.inc"
         source = registry.read_text()
@@ -543,20 +558,54 @@ def inventory():
             raise ValueError(f"coverage entry is not a direct canonical jet theorem: {module}.{theorem}")
         jets[name]["proof"] = f"{module}.{theorem}"
         jets[name]["condition"] = "memcpy_model" if conditional else ""
+    for name, entry in DIVERGENCE_CONTRACTS.items():
+        if name not in jets:
+            raise ValueError(f"divergence entry for unknown jet: {name}")
+        module, theorem = entry["module"], entry["theorem"]
+        if (module, theorem) not in audited:
+            raise ValueError(f"divergence theorem not publicly audited: {module}.{theorem}")
+        code = checked_source_code((COQ / (module.replace(".", "/") + ".v")).read_text())
+        statement = re.search(rf"\b(?:Theorem|Lemma|Corollary)\s+{re.escape(theorem)}\s*:(.*?)\bProof\.", code, re.S)
+        compact = lambda text: re.sub(r"\s+", "", text)
+        if not statement or compact(statement[1]) != compact(entry["contract"]):
+            raise ValueError(f"divergence entry is not the exact whole-jet refutation: {module}.{theorem}")
+        report = COQ / entry["report"]
+        if not report.exists() or f"{module}.{theorem}" not in report.read_text():
+            raise ValueError(f"divergence proof not documented in {entry['report']}: {name}")
+        if jets[name]["proof"] and jets[name]["condition"] != "reported_mismatch":
+            raise ValueError(f"conflicting unrestricted equivalence and divergence entries: {name}")
+        jets[name]["divergence_proof"] = f"{module}.{theorem}"
     return list(jets.values())
 
 
 def missing_equivalences(jets):
-    """A reported input mismatch remains unresolved for the all-input goal."""
+    """Neither a restricted contract nor a divergence proves equivalence."""
     return [row for row in jets
             if not row["proof"] or row["condition"] == "reported_mismatch"]
+
+
+def missing_proofs(jets):
+    """Proof coverage permits either equivalence or audited divergence."""
+    return [row for row in missing_equivalences(jets)
+            if not row.get("divergence_proof")]
+
+
+def proof_roots(jets, names):
+    """A scoped check must include negative evidence, not only positive entries."""
+    rows = {row["function"]: row for row in jets}
+    missing = [name for name in names if name not in rows or
+               not (rows[name]["proof"] or rows[name].get("divergence_proof"))]
+    if missing:
+        raise ValueError("jets without registered proof entries: " + ", ".join(missing))
+    return {proof.rsplit(".", 1)[0] for name in names
+            for proof in (rows[name]["proof"], rows[name].get("divergence_proof", "")) if proof}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", action="store_true", help="list every jet, including all missing proofs")
     parser.add_argument("--require-complete", action="store_true",
-                        help="fail if any declared jet lacks a registered final equivalence contract")
+                        help="fail if any declared jet lacks a final equivalence or divergence proof")
     args = parser.parse_args()
     try:
         jets = inventory()
@@ -573,25 +622,32 @@ def main():
             direct = sum(bool(row["proof"]) and not row["condition"] for row in rows)
             conditional = sum(row["condition"] == "memcpy_model" for row in rows)
             reported = sum(row["condition"] == "reported_mismatch" for row in rows)
+            divergent = sum(bool(row["divergence_proof"]) for row in rows)
             print(f"{family}: {direct} proof entries without an extra library premise; "
-                  f"{conditional} conditional; {reported} outside a reported mismatch; {len(rows)} declared")
-        missing = len(missing_equivalences(jets))
+                  f"{conditional} conditional; {divergent} divergence; "
+                  f"{reported} restricted equivalence; {len(rows)} declared")
+        missing = len(missing_proofs(jets))
+        missing_equivalence = len(missing_equivalences(jets))
+        divergent = sum(bool(row["divergence_proof"]) for row in jets)
         conditional = sum(row["condition"] == "memcpy_model" for row in jets)
         reported = [row for row in jets if row["condition"] == "reported_mismatch"]
         unregistered = sum(not row["registrations"] for row in jets)
         print(f"total: {len(jets) - missing}/{len(jets)}; remaining: {missing}; unregistered declarations: {unregistered}")
-        print(f"Of these entries: {len(jets) - missing - conditional} without an extra library premise, "
+        print(f"Equivalence entries: {len(jets) - missing_equivalence}; divergence proofs: {divergent}.")
+        print(f"Of the equivalence entries: {len(jets) - missing_equivalence - conditional} without an extra library premise, "
               f"{conditional} conditional on memcpy_model (libc implementation not proved).")
         print(f"Separately: {len(reported)} proved only outside a reported specification mismatch; "
-              "not counted toward all-input completion.")
+              "restricted equivalence alone does not count toward proof completion.")
+        for row in jets:
+            if row["divergence_proof"]:
+                print(f"PROVED divergence (not corrected): {row['function']}: {row['divergence_proof']}")
         for row in reported:
             entry = REPORTED_MISMATCH_CONTRACTS[row["function"]]
             print(f"REPORTED mismatch (not corrected): {row['function']}: {entry['summary']}; "
                   f"literal contract {row['proof']} excludes exactly that set ({entry['report']})")
         print("Scope: public jet declarations in all three C headers. Proof validity requires check-jets.sh.")
-    if args.require_complete and missing_equivalences(jets):
-        sys.exit("Every-jet goal is incomplete: declared C jets lack final all-input equivalence proofs "
-                 "(reported specification mismatches remain unresolved).")
+    if args.require_complete and missing_proofs(jets):
+        sys.exit("Every-jet proof coverage is incomplete: declared C jets lack final equivalence or divergence proofs.")
 
 
 if __name__ == "__main__":
