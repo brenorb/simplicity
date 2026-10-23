@@ -1324,18 +1324,45 @@ call, exact `scalar_at` words suitable for the existing wNAF contract, both
 destination ownership ranges, the owned-input option, and framing. The input
 normalization/value equality is an internal caller obligation, not a new
 restriction on public inputs: `scalar_reader_split128_value` proves it for
-the actual reader limbs for every Word256 input. Establishing the three-region
-memory relation through the caller and composing both wNAF calls are still
-open. Do not treat the arithmetic bridge alone as that caller composition.
+the actual reader limbs for every Word256 input. The three-region relation
+from reader storage is now derived in the following module; composing the
+actual caller statements and both wNAF calls remains open. Do not treat the
+arithmetic bridge alone as that caller composition.
 Normal compilation and reviewed focused snapshots pass; six exports are
 closed, storage uses four inherited assumptions, and complete C execution
 uses the existing six without a libc premise. Independent recursive kernel
-checking is the next integration check. Use the normal target/module
+checking and no-update focused audits pass on `c7bcfcd2`. Use the normal target/module
 `C/jet_secp_scalar_split128_literal.vo` / `C.jet_secp_scalar_split128_literal`
 with the commands above. The unchanged scalar-parametric dependency was
 rebuilt from source under pinned Coq 8.17.1 / OCaml 4.14.4; its existing
 assumption/contract snapshots match without updates. No jet is registered by
 this bridge; current accepted coverage remains 513/533.
+
+`jet_secp_scalar_split128_storage` removes the symbolic memory relation from
+that call boundary. It derives it from two distinct fresh owned32 destinations
+and readable, aligned source scalar storage, at any valid source offset.
+`scalar_split128_rep_after_reader` instantiates it with the actual reader's
+final storage for every Word256 input. The complete original split call then
+returns both exact literal Word128 scalar arrays, both destination ownership
+ranges and framing outside the three regions. The source need not be writable
+or Freeable, and destination initial contents are arbitrary. The three memory
+adapters use four inherited assumptions; complete execution uses six, with no
+libc model. Normal compilation and reviewed no-update focused audits pass.
+Independent recursive checking of the committed `809ebb5a` extension is running
+in the task-owned verification worktree; do not treat the earlier literal-only
+check as checking this extension. Reproduce with target/module
+`C/jet_secp_scalar_split128_storage.vo` / `C.jet_secp_scalar_split128_storage`.
+
+Clean rebuilding exposed two proof-computation bottlenecks. The u128 layout
+proof now projects only struct/member metadata instead of materializing the
+generated dependent consistency certificate (`c7bcfcd2`); the scalar byte
+parser proof uses an explicit equality intermediate instead of folding its
+expanded symbolic expression (`e2259b24`). Statements and assumption/contract
+snapshots are unchanged and no-update checks pass. Neither optimization
+changes the compiler baseline, production AST, generation settings or target.
+The existing coverage regression suite also passes; neither adapter adds
+public coverage. Next compose the real caller's setup/non-generator skip,
+split and wNAF stages; the external memset boundary remains separate.
 
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
