@@ -3,6 +3,7 @@ From compcert Require Import Integers AST Ctypes Clight ClightBigstep Maps Value
 Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
 Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_multiply_run_run C.jet_secp_square_execution.
 Require Import C.jet_secp_square_sx_equality C.jet_secp_square_separate_layout C.jet_secp_square_source_list.
+Require Import C.jet_secp_square_schedule.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -39,6 +40,24 @@ Proof.
   f_equal; cbn [rcells].
   apply field_cells_rebuild; [rewrite HN; exact HC|exact HD].
 Qed.
+(* Keep each checked conversion in its own proof. Closing all five computed
+   certificates together needlessly repeats a large conversion at one Qed. *)
+Local Lemma separate_r0_source writable freed :
+  nth 0 (separate_limbs writable freed) (XLv 0) = sq_r0.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma separate_r1_source writable freed :
+  nth 1 (separate_limbs writable freed) (XLv 0) = sq_r1.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma separate_r2_source writable freed :
+  nth 2 (separate_limbs writable freed) (XLv 0) = sq_r2.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma separate_r3_source writable freed :
+  nth 3 (separate_limbs writable freed) (XLv 0) = sq_r3.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+Local Lemma separate_r4_source writable freed :
+  nth 4 (separate_limbs writable freed) (XLv 0) = sq_r4.
+Proof. apply sx_same_sound. Timeout 10 vm_compute. reflexivity. Qed.
+
 Lemma separate_limbs_equal writable freed : separate_limbs writable freed = square_limbs.
 Proof.
   rewrite original_square_symbolic_output.
@@ -48,11 +67,11 @@ Proof.
   - rewrite HL; reflexivity.
   - intros i HI; rewrite HL in HI.
     destruct i as [|[|[|[|[|i]]]]]; try (exfalso; lia).
-    + apply sx_same_sound. Timeout 10 vm_compute; reflexivity.
-    + apply sx_same_sound. Timeout 10 vm_compute; reflexivity.
-    + apply sx_same_sound. Timeout 10 vm_compute; reflexivity.
-    + apply sx_same_sound. Timeout 10 vm_compute; reflexivity.
-    + apply sx_same_sound. Timeout 10 vm_compute; reflexivity.
+    + exact (separate_r0_source writable freed).
+    + exact (separate_r1_source writable freed).
+    + exact (separate_r2_source writable freed).
+    + exact (separate_r3_source writable freed).
+    + exact (separate_r4_source writable freed).
 Qed.
 Lemma separate_output writable freed : sregs (separate_state writable freed) =
   [mkreg (u64_cells 0 square_limbs) true (Some 40); separate_input writable freed].
