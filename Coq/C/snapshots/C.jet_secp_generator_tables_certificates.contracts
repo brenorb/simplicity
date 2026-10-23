@@ -1,0 +1,51 @@
+### C.jet_secp_generator_tables_certificates.generator_tables_checked
+generator_tables_checked
+     : forall high neg : bool,
+       @eq (option (list (prod BinNums.Z BinNums.Z))) (jet_secp_generator_tables_check.generator_tables_check high neg)
+         (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z)))
+### C.jet_secp_generator_tables_certificates.generator_tables_literal_digit
+generator_tables_literal_digit
+     : forall (high : bool) (word : Ty.tySem (Word.Word (S (S (S (S O))))))
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (jet_secp_wnaf_literal_mask.literal_wnaf_signed16 word)
+                   (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))
+         (_ : and
+                (BinInt.Z.lt
+                   (BinNums.Zneg
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+                   (jet_secp_wnaf_literal_mask.literal_wnaf_signed16 word))
+                (BinInt.Z.lt (jet_secp_wnaf_literal_mask.literal_wnaf_signed16 word)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))),
+       let n : BinNums.Z := jet_secp_wnaf_literal_mask.literal_wnaf_signed16 word in
+       let expected : prod BinNums.Z BinNums.Z :=
+         jet_secp_generator_table_samples.generator_entry_signed_numeric high
+           (BinInt.Z.to_nat (jet_secp_table_index.table_storage_index n)) (negb (BinInt.Z.ltb BinNums.Z0 n)) in
+       @eq (Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (@jet_secp_generate_literal.literal_generate_small high Alg.CoreFunSem word)
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@fst BinNums.Z BinNums.Z expected))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@snd BinNums.Z BinNums.Z expected)))

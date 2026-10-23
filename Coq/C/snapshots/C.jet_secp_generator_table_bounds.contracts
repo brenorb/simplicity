@@ -1,0 +1,109 @@
+### C.jet_secp_generator_table_bounds.generator_norm_bounds
+generator_norm_bounds
+     : forall a : prod (prod BinNums.Z BinNums.Z) BinNums.Z,
+       generator_affine_bounds (jet_secp_generate_numeric.literal_norm_fast a)
+### C.jet_secp_generator_table_bounds.generator_prefix_values_bounds
+generator_prefix_values_bounds
+     : forall (depth : nat) (base : prod BinNums.Z BinNums.Z) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z),
+       @List.Forall (prod BinNums.Z BinNums.Z) generator_affine_bounds
+         (jet_secp_generator_prefix.generator_prefix_values depth base a)
+### C.jet_secp_generator_table_bounds.generator_signed_rows_bounds
+generator_signed_rows_bounds
+     : forall (high neg : bool)
+         (_ : @eq (option (list (prod BinNums.Z BinNums.Z)))
+                (jet_secp_generator_tables_check.generator_tables_check high neg)
+                (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z)))),
+       @List.Forall (prod BinNums.Z BinNums.Z) generator_affine_bounds
+         (jet_secp_generator_rows.generator_table_signed_rows high neg)
+### C.jet_secp_generator_table_bounds.generator_entry_positive
+generator_entry_positive
+     : forall (high : bool) (index : nat),
+       @eq (prod BinNums.Z BinNums.Z)
+         (jet_secp_generator_table_samples.generator_entry_signed_numeric high index false)
+         (jet_secp_generator_table_samples.generator_entry_numeric high index)
+### C.jet_secp_generator_table_bounds.generator_actual_entry_bounds
+generator_actual_entry_bounds
+     : forall (high : bool) (index : nat)
+         (_ : @eq (option (list (prod BinNums.Z BinNums.Z)))
+                (jet_secp_generator_tables_check.generator_tables_check high false)
+                (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z))))
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat index)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))),
+       generator_affine_bounds (jet_secp_generator_table_samples.generator_entry_numeric high index)
+### C.jet_secp_generator_table_bounds.generator_decoded_fields_bounds
+generator_decoded_fields_bounds
+     : forall (high : bool) (index : nat)
+         (_ : @eq (option (list (prod BinNums.Z BinNums.Z)))
+                (jet_secp_generator_tables_check.generator_tables_check high false)
+                (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z))))
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat index)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))),
+       and
+         (and
+            (BinInt.Z.le BinNums.Z0
+               (jet_secp_multiply_finish_product.radix_value
+                  (jet_secp_storage_unpack.storage_unpack_words
+                     (jet_secp_generator_globals.generator_entry_words high index))))
+            (BinInt.Z.lt
+               (jet_secp_multiply_finish_product.radix_value
+                  (jet_secp_storage_unpack.storage_unpack_words
+                     (jet_secp_generator_globals.generator_entry_words high index))) jet_secp_fe_math.feP))
+         (and
+            (BinInt.Z.le BinNums.Z0
+               (jet_secp_multiply_finish_product.radix_value
+                  (jet_secp_storage_unpack.storage_unpack_words
+                     (fun j : nat =>
+                      jet_secp_generator_globals.generator_entry_words high index (Nat.add (S (S (S (S O)))) j)))))
+            (BinInt.Z.lt
+               (jet_secp_multiply_finish_product.radix_value
+                  (jet_secp_storage_unpack.storage_unpack_words
+                     (fun j : nat =>
+                      jet_secp_generator_globals.generator_entry_words high index (Nat.add (S (S (S (S O)))) j))))
+               jet_secp_fe_math.feP))
+### C.jet_secp_generator_table_bounds.generator_signed_entry_bounds
+generator_signed_entry_bounds
+     : forall (high : bool) (index : nat) (neg : bool)
+         (_ : @eq (option (list (prod BinNums.Z BinNums.Z)))
+                (jet_secp_generator_tables_check.generator_tables_check high false)
+                (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z))))
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat index)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))),
+       generator_affine_bounds (jet_secp_generator_table_samples.generator_entry_signed_numeric high index neg)
+### C.jet_secp_generator_table_bounds.generator_affine_bounds
+generator_affine_bounds =
+fun v : prod BinNums.Z BinNums.Z =>
+and
+  (and (BinInt.Z.le BinNums.Z0 (@fst BinNums.Z BinNums.Z v))
+     (BinInt.Z.lt (@fst BinNums.Z BinNums.Z v) jet_secp_fe_math.feP))
+  (and (BinInt.Z.le BinNums.Z0 (@snd BinNums.Z BinNums.Z v))
+     (BinInt.Z.lt (@snd BinNums.Z BinNums.Z v) jet_secp_fe_math.feP))
+     : forall _ : prod BinNums.Z BinNums.Z, Prop
+
+Arguments generator_affine_bounds v

@@ -1,0 +1,73 @@
+### C.jet_secp_generator_lookup_words.generator_lookup_words_list
+generator_lookup_words_list
+     : forall (high : bool) (index : nat) (neg k : bool),
+       @eq (list Integers.Int64.int)
+         (jet_secp_multiply_normalize_bridge.words5 (generator_lookup_words high index neg k))
+         (jet_secp_table_decode.table_signed_coordinate (jet_secp_generator_globals.generator_entry_words high index)
+            neg k)
+### C.jet_secp_generator_lookup_words.generator_limb_input_bounds
+generator_limb_input_bounds
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       jet_secp_field_mul_small.mul_small_input_bounds (jet_secp_b32_exec.limb_rho value)
+### C.jet_secp_generator_lookup_words.generator_lookup_words_square_bounds
+generator_lookup_words_square_bounds
+     : forall (high : bool) (index : nat) (neg k : bool),
+       jet_secp_square_columns.square_input_bounds (generator_lookup_words high index neg k)
+### C.jet_secp_generator_lookup_words.generator_lookup_words_bounds
+generator_lookup_words_bounds
+     : forall (high : bool) (index : nat) (neg k : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       BinInt.Z.le (Integers.Int64.unsigned (generator_lookup_words high index neg k i))
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+### C.jet_secp_generator_lookup_words.generator_lookup_words_numeric
+generator_lookup_words_numeric
+     : forall (high : bool) (index : nat) (neg k : bool)
+         (_ : @eq (option (list (prod BinNums.Z BinNums.Z)))
+                (jet_secp_generator_tables_check.generator_tables_check high false)
+                (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z))))
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat index)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value (generator_lookup_words high index neg k))
+            jet_secp_fe_math.feP)
+         match k return BinNums.Z with
+         | true =>
+             @snd BinNums.Z BinNums.Z (jet_secp_generator_table_samples.generator_entry_signed_numeric high index neg)
+         | false =>
+             @fst BinNums.Z BinNums.Z (jet_secp_generator_table_samples.generator_entry_signed_numeric high index neg)
+         end
+### C.jet_secp_generator_lookup_words.generator_lookup_words
+generator_lookup_words =
+fun (high : bool) (index : nat) (neg k : bool) =>
+match k return (forall _ : nat, Integers.Int64.int) with
+| true =>
+    match neg return (forall _ : nat, Integers.Int64.int) with
+    | true =>
+        jet_secp_field_negate_separate.negate_sep_words
+          (jet_secp_b32_exec.limb_rho
+             (@snd BinNums.Z BinNums.Z (jet_secp_generator_table_samples.generator_entry_numeric high index)))
+    | false =>
+        jet_secp_affine_storage.affine_storage_coord (jet_secp_generator_globals.generator_entry_words high index) true
+    end
+| false =>
+    jet_secp_affine_storage.affine_storage_coord (jet_secp_generator_globals.generator_entry_words high index) false
+end
+     : forall (_ : bool) (_ : nat) (_ : bool) (_ : bool) (_ : nat), Integers.Int64.int
+
+Arguments generator_lookup_words high%bool_scope index%nat_scope (neg k)%bool_scope i%nat_scope

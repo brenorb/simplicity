@@ -397,16 +397,53 @@ no-update focused assumption/contract comparisons pass. Reproduce with
 target/module `C/jet_secp_generator_tables_check.vo` /
 `C.jet_secp_generator_tables_check` as above.
 
-The **four complete checker results are still unproved at this checkpoint**;
-the digit/table theorem is conditional on them. Next run bounded ordinary
-Coq certificates for every row of both signs/bases, derive the unconditional
-digit/table theorem, and recursively kernel-check that exact source closure.
-Use named closed result constants to share evaluator values during checking.
-Do not count these certificates or helpers as a public `generate` theorem.
+The four exhaustive results are now checked in the separate
+`jet_secp_generator_table_{g,g128}_{positive,negative}` modules: every one of
+the 8192 actual rows for each base and sign, with complete consumption.
+`jet_secp_generator_tables_certificates.generator_tables_checked` is closed;
+`generator_tables_literal_digit` discharges the former checker premises for
+every valid raw wNAF15 digit and retains only inherited functional
+extensionality. Separate modules cache the costly checked computations.
+Keep `generator_tables_check` locally opaque when assembling these proofs:
+ordinary conversion otherwise needlessly unfolds the entire tables. This is
+a proof-reduction strategy, not a changed checker, target or kernel setting.
 
-These stages do not establish the C inversion jet, its external ctz
-obligation, the table/literal correspondence, or public `generate`
-equivalence; accepted coverage remains 505/533.
+`jet_secp_generator_table_bounds` derives canonical storage-coordinate bounds
+from a successful full check. `jet_secp_generator_lookup_words` identifies
+the **actual** decoded/optionally-negated machine limbs, proves their
+residues and reusable writer/multiplication/squaring bounds. Negative Y stays
+the actual loose C value, not substituted canonical limbs.
+`jet_secp_generator_lookup_literal.eval_generator_lookup_literal` derives the
+complete original signed storage-lookup call and its exact literal-coordinate
+field values, infinity flag, ownership and framing. Its endpoint has no
+checker-result or intermediate-execution premise; the closed certificates
+discharge those internal bridge premises. Its caller variant preserves both
+readonly tables and the entire destination allocation of any size >= 88.
+Execution retains the same eight inherited assumptions as the existing
+readonly-table lookup proof, with no extra libc model.
+
+Normal builds, recursive kernel checking and reviewed no-update focused
+assumption/contract comparisons pass. Reproduce the complete table/lookup
+closure:
+
+```sh
+JET_TARGETS=C/jet_secp_generator_lookup_literal.vo bash Coq/build-jets.sh -j2
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_generator_lookup_literal
+```
+
+Next compose actual wNAF initialization/calls, the original
+`gej_add_zinv_var` at the caller's inverse-Z value one, the descending loop,
+and the public writer. For iterative point arithmetic, do not impose the old
+mixed-preparation theorem's positioned-X premise on loose C outputs:
+`exec_mixed_copy_weak_loose` already supports both X and Y. Also retain the
+actual operand order of the initial `az = a->z * bzinv` call; the existing
+`eval_gej_z_product_owned` proves the opposite pointer order, so arithmetic
+commutativity alone is not an execution adapter.
+
+These stages establish the table/literal correspondence and complete lookup
+helper, not public `generate`, the C inversion jet or the external ctz/memset
+obligations. Accepted coverage remains 505/533.
 
 ## Decompression: current proof frontier
 
