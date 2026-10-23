@@ -299,6 +299,27 @@ no word-wrap), termination within the actual 512 steps and coefficient
 selection/range; reuse the checked field-prime result for inverse uniqueness.
 The existing exact numeric evaluator and small samples remain valid if this
 optimization is developed; do not replace the frozen literal term.
+
+The first algebraic part is now checked in `jet_secp_eea_coefficients` and
+`jet_secp_eea_remainders`. Coefficient bounds and both signed linear/
+conservation identities are preserved by every **actual** modular row update
+and run length, proving that the low-word coefficients do not wrap on positive
+bounded inputs. The remainder projection preserves gcd (also at zero
+denominators); every two steps halve its minimum. `eea_run_finishes` derives a
+zero remainder after `2*bits` steps whenever the initial minimum is below
+`2^bits`, so the literal 512-step budget is sufficient for 256-bit inputs.
+All 23 exports are closed. Normal compilation, recursive kernel checking and
+reviewed no-update focused assumption/contract comparisons pass. Reproduce:
+
+```sh
+JET_TARGETS='C/jet_secp_eea_coefficients.vo C/jet_secp_eea_remainders.vo' bash Coq/build-jets.sh -j1
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_eea_coefficients C.jet_secp_eea_remainders
+```
+
+Next integrate final coefficient selection and its exact range/`modInv`
+bridge, then derive rescaled-coordinate normalization checks and measure a
+small table block before scaling. These invariants alone are not that bridge.
 These stages do not establish the C inversion jet, its external ctz
 obligation, the table/literal correspondence, or public `generate`
 equivalence; accepted coverage remains 505/533.

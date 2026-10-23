@@ -1,0 +1,104 @@
+### C.jet_secp_eea_coefficients.eea_coefficients_initial
+eea_coefficients_initial
+     : forall (x y : BinNums.Z) (_ : BinInt.Z.lt BinNums.Z0 x) (_ : BinInt.Z.lt BinNums.Z0 y),
+       eea_coefficients x y
+         (@pair (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+            (@pair (prod BinNums.Z BinNums.Z) BinNums.Z
+               (@pair BinNums.Z BinNums.Z (BinNums.Zpos BinNums.xH) BinNums.Z0) x)
+            (@pair (prod BinNums.Z BinNums.Z) BinNums.Z
+               (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH)) y))
+### C.jet_secp_eea_coefficients.eea_coefficients_valid
+eea_coefficients_valid
+     : forall (modulus x y : BinNums.Z)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : BinInt.Z.lt x modulus) (_ : BinInt.Z.lt y modulus) (_ : eea_coefficients x y s),
+       jet_secp_eea_fast.eea_state_valid modulus s
+### C.jet_secp_eea_coefficients.eea_coefficient_update
+eea_coefficient_update
+     : forall (modulus limit a d c f : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 a) (_ : BinInt.Z.le BinNums.Z0 d)
+         (_ : BinInt.Z.le BinNums.Z0 c) (_ : BinInt.Z.lt BinNums.Z0 f) (_ : BinInt.Z.lt limit modulus)
+         (_ : @eq BinNums.Z (BinInt.Z.add (BinInt.Z.mul a f) (BinInt.Z.mul d c)) limit),
+       and
+         (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.add a (BinInt.Z.mul (BinInt.Z.div c f) d)))
+            (BinInt.Z.le (BinInt.Z.add a (BinInt.Z.mul (BinInt.Z.div c f) d)) limit))
+         (and
+            (@eq BinNums.Z (BinInt.Z.modulo (BinInt.Z.add a (BinInt.Z.mul (BinInt.Z.div c f) d)) modulus)
+               (BinInt.Z.add a (BinInt.Z.mul (BinInt.Z.div c f) d)))
+            (@eq BinNums.Z
+               (BinInt.Z.add (BinInt.Z.mul (BinInt.Z.add a (BinInt.Z.mul (BinInt.Z.div c f) d)) f)
+                  (BinInt.Z.mul d (BinInt.Z.modulo c f))) limit))
+### C.jet_secp_eea_coefficients.eea_coefficients_left
+eea_coefficients_left
+     : forall (modulus x y a b c d e f : BinNums.Z) (_ : BinInt.Z.lt x modulus) (_ : BinInt.Z.lt y modulus)
+         (_ : BinInt.Z.lt BinNums.Z0 f)
+         (_ : eea_coefficients x y
+                (@pair (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+                   (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z a b) c)
+                   (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z d e) f))),
+       eea_coefficients x y
+         (@pair (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+            (jet_secp_eea_numeric.eea_row_step_numeric modulus
+               (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z a b) c)
+               (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z d e) f))
+            (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z d e) f))
+### C.jet_secp_eea_coefficients.eea_coefficients_right
+eea_coefficients_right
+     : forall (modulus x y a b c d e f : BinNums.Z) (_ : BinInt.Z.lt x modulus) (_ : BinInt.Z.lt y modulus)
+         (_ : BinInt.Z.lt BinNums.Z0 c)
+         (_ : eea_coefficients x y
+                (@pair (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+                   (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z a b) c)
+                   (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z d e) f))),
+       eea_coefficients x y
+         (@pair (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+            (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z a b) c)
+            (jet_secp_eea_numeric.eea_row_step_numeric modulus
+               (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z d e) f)
+               (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z a b) c)))
+### C.jet_secp_eea_coefficients.eea_coefficients_step
+eea_coefficients_step
+     : forall (modulus x y : BinNums.Z)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : BinInt.Z.lt x modulus) (_ : BinInt.Z.lt y modulus) (_ : eea_coefficients x y s),
+       eea_coefficients x y (jet_secp_eea_numeric.eea_step_numeric modulus s)
+### C.jet_secp_eea_coefficients.eea_coefficients_run
+eea_coefficients_run
+     : forall (modulus : BinNums.Z) (count : nat) (x y : BinNums.Z)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : BinInt.Z.lt x modulus) (_ : BinInt.Z.lt y modulus) (_ : eea_coefficients x y s),
+       eea_coefficients x y (jet_secp_eea_numeric.eea_run_numeric modulus count s)
+### C.jet_secp_eea_coefficients.eea_coefficients
+eea_coefficients =
+fun (x y : BinNums.Z)
+  (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)) =>
+match s return Prop with
+| pair p p0 =>
+    match p return Prop with
+    | pair p1 c =>
+        match p1 return Prop with
+        | pair a b =>
+            match p0 return Prop with
+            | pair p2 f =>
+                match p2 return Prop with
+                | pair d e =>
+                    and (and (BinInt.Z.le BinNums.Z0 a) (BinInt.Z.le a y))
+                      (and (and (BinInt.Z.le BinNums.Z0 b) (BinInt.Z.le b x))
+                         (and (and (BinInt.Z.le BinNums.Z0 d) (BinInt.Z.le d y))
+                            (and (and (BinInt.Z.le BinNums.Z0 e) (BinInt.Z.le e x))
+                               (and (BinInt.Z.le BinNums.Z0 c)
+                                  (and (BinInt.Z.le BinNums.Z0 f)
+                                     (and (@eq BinNums.Z (BinInt.Z.sub (BinInt.Z.mul a x) (BinInt.Z.mul b y)) c)
+                                        (and
+                                           (@eq BinNums.Z (BinInt.Z.sub (BinInt.Z.mul d x) (BinInt.Z.mul e y))
+                                              (BinInt.Z.opp f))
+                                           (and (@eq BinNums.Z (BinInt.Z.add (BinInt.Z.mul a f) (BinInt.Z.mul d c)) y)
+                                              (@eq BinNums.Z (BinInt.Z.add (BinInt.Z.mul b f) (BinInt.Z.mul e c)) x)))))))))
+                end
+            end
+        end
+    end
+end
+     : forall (_ : BinNums.Z) (_ : BinNums.Z)
+         (_ : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)), Prop
+
+Arguments eea_coefficients (x y)%Z_scope s

@@ -1,0 +1,156 @@
+### C.jet_secp_eea_remainders.eea_remainder_value
+eea_remainder_value
+     : forall a b : BinNums.Z, @eq BinNums.Z (jet_division_value.division_numeric true a b) (BinInt.Z.modulo a b)
+### C.jet_secp_eea_remainders.eea_remainders_step
+eea_remainders_step
+     : forall (modulus : BinNums.Z)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)),
+       @eq (prod BinNums.Z BinNums.Z) (eea_remainders (jet_secp_eea_numeric.eea_step_numeric modulus s))
+         (eea_pair_step (eea_remainders s))
+### C.jet_secp_eea_remainders.eea_pair_step_nonnegative
+eea_pair_step_nonnegative
+     : forall (c f : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 c) (_ : BinInt.Z.le BinNums.Z0 f),
+       and (BinInt.Z.le BinNums.Z0 (@fst BinNums.Z BinNums.Z (eea_pair_step (@pair BinNums.Z BinNums.Z c f))))
+         (BinInt.Z.le BinNums.Z0 (@snd BinNums.Z BinNums.Z (eea_pair_step (@pair BinNums.Z BinNums.Z c f))))
+### C.jet_secp_eea_remainders.eea_pair_step_zero
+eea_pair_step_zero
+     : forall (c f : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 c) (_ : BinInt.Z.le BinNums.Z0 f)
+         (_ : @eq BinNums.Z (eea_pair_min (@pair BinNums.Z BinNums.Z c f)) BinNums.Z0),
+       @eq (prod BinNums.Z BinNums.Z) (eea_pair_step (@pair BinNums.Z BinNums.Z c f)) (@pair BinNums.Z BinNums.Z c f)
+### C.jet_secp_eea_remainders.eea_pair_step_positive
+eea_pair_step_positive
+     : forall (c f : BinNums.Z) (_ : BinInt.Z.lt BinNums.Z0 c) (_ : BinInt.Z.lt BinNums.Z0 f),
+       and
+         (@eq BinNums.Z (eea_pair_min (eea_pair_step (@pair BinNums.Z BinNums.Z c f)))
+            (BinInt.Z.modulo (BinInt.Z.max c f) (BinInt.Z.min c f)))
+         (@eq BinNums.Z
+            (BinInt.Z.max (@fst BinNums.Z BinNums.Z (eea_pair_step (@pair BinNums.Z BinNums.Z c f)))
+               (@snd BinNums.Z BinNums.Z (eea_pair_step (@pair BinNums.Z BinNums.Z c f))))
+            (BinInt.Z.min c f))
+### C.jet_secp_eea_remainders.eea_small_mod_halves
+eea_small_mod_halves
+     : forall (b r : BinNums.Z) (_ : and (BinInt.Z.lt BinNums.Z0 r) (BinInt.Z.lt r b)),
+       BinInt.Z.le (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.modulo b r)) b
+### C.jet_secp_eea_remainders.eea_pair_two_halves
+eea_pair_two_halves
+     : forall (c f : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 c) (_ : BinInt.Z.le BinNums.Z0 f),
+       BinInt.Z.le
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (eea_pair_min (eea_pair_step (eea_pair_step (@pair BinNums.Z BinNums.Z c f)))))
+         (eea_pair_min (@pair BinNums.Z BinNums.Z c f))
+### C.jet_secp_eea_remainders.eea_remainders_step_nonnegative
+eea_remainders_step_nonnegative
+     : forall (modulus : BinNums.Z)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : eea_remainders_nonnegative s),
+       eea_remainders_nonnegative (jet_secp_eea_numeric.eea_step_numeric modulus s)
+### C.jet_secp_eea_remainders.eea_remainders_run_nonnegative
+eea_remainders_run_nonnegative
+     : forall (modulus : BinNums.Z) (count : nat)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : eea_remainders_nonnegative s),
+       eea_remainders_nonnegative (jet_secp_eea_numeric.eea_run_numeric modulus count s)
+### C.jet_secp_eea_remainders.eea_minimum_two_halves
+eea_minimum_two_halves
+     : forall (modulus : BinNums.Z)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : eea_remainders_nonnegative s),
+       BinInt.Z.le
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (eea_minimum
+               (jet_secp_eea_numeric.eea_step_numeric modulus (jet_secp_eea_numeric.eea_step_numeric modulus s))))
+         (eea_minimum s)
+### C.jet_secp_eea_remainders.eea_minimum_run_bound
+eea_minimum_run_bound
+     : forall (modulus : BinNums.Z) (bits : nat)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : eea_remainders_nonnegative s),
+       BinInt.Z.le
+         (BinInt.Z.mul (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat bits))
+            (eea_minimum (jet_secp_eea_numeric.eea_run_numeric modulus (Nat.mul (S (S O)) bits) s)))
+         (eea_minimum s)
+### C.jet_secp_eea_remainders.eea_minimum_finished
+eea_minimum_finished
+     : forall (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : eea_remainders_nonnegative s) (_ : @eq BinNums.Z (eea_minimum s) BinNums.Z0),
+       @eq bool (jet_secp_eea_fast.eea_finished s) true
+### C.jet_secp_eea_remainders.eea_run_finishes
+eea_run_finishes
+     : forall (modulus : BinNums.Z) (bits : nat)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : eea_remainders_nonnegative s)
+         (_ : BinInt.Z.lt (eea_minimum s) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat bits))),
+       @eq bool
+         (jet_secp_eea_fast.eea_finished (jet_secp_eea_numeric.eea_run_numeric modulus (Nat.mul (S (S O)) bits) s))
+         true
+### C.jet_secp_eea_remainders.eea_pair_step_gcd
+eea_pair_step_gcd
+     : forall c f : BinNums.Z,
+       @eq BinNums.Z
+         (BinInt.Z.gcd (@fst BinNums.Z BinNums.Z (eea_pair_step (@pair BinNums.Z BinNums.Z c f)))
+            (@snd BinNums.Z BinNums.Z (eea_pair_step (@pair BinNums.Z BinNums.Z c f)))) (BinInt.Z.gcd c f)
+### C.jet_secp_eea_remainders.eea_remainder_step_gcd
+eea_remainder_step_gcd
+     : forall (modulus : BinNums.Z)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)),
+       @eq BinNums.Z (eea_remainder_gcd (jet_secp_eea_numeric.eea_step_numeric modulus s)) (eea_remainder_gcd s)
+### C.jet_secp_eea_remainders.eea_remainder_run_gcd
+eea_remainder_run_gcd
+     : forall (modulus : BinNums.Z) (count : nat)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)),
+       @eq BinNums.Z (eea_remainder_gcd (jet_secp_eea_numeric.eea_run_numeric modulus count s)) (eea_remainder_gcd s)
+### C.jet_secp_eea_remainders.eea_remainders
+eea_remainders =
+fun s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) =>
+@pair BinNums.Z BinNums.Z
+  (@snd (prod BinNums.Z BinNums.Z) BinNums.Z
+     (@fst (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) s))
+  (@snd (prod BinNums.Z BinNums.Z) BinNums.Z
+     (@snd (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) s))
+     : forall _ : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z),
+       prod BinNums.Z BinNums.Z
+
+Arguments eea_remainders s
+### C.jet_secp_eea_remainders.eea_pair_step
+eea_pair_step =
+fun v : prod BinNums.Z BinNums.Z =>
+match v return (prod BinNums.Z BinNums.Z) with
+| pair c f =>
+    match BinInt.Z.ltb f c return (prod BinNums.Z BinNums.Z) with
+    | true => @pair BinNums.Z BinNums.Z (BinInt.Z.modulo c f) f
+    | false => @pair BinNums.Z BinNums.Z c (BinInt.Z.modulo f c)
+    end
+end
+     : forall _ : prod BinNums.Z BinNums.Z, prod BinNums.Z BinNums.Z
+
+Arguments eea_pair_step v
+### C.jet_secp_eea_remainders.eea_pair_min
+eea_pair_min =
+fun v : prod BinNums.Z BinNums.Z => BinInt.Z.min (@fst BinNums.Z BinNums.Z v) (@snd BinNums.Z BinNums.Z v)
+     : forall _ : prod BinNums.Z BinNums.Z, BinNums.Z
+
+Arguments eea_pair_min v
+### C.jet_secp_eea_remainders.eea_remainders_nonnegative
+eea_remainders_nonnegative =
+fun s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) =>
+and (BinInt.Z.le BinNums.Z0 (@fst BinNums.Z BinNums.Z (eea_remainders s)))
+  (BinInt.Z.le BinNums.Z0 (@snd BinNums.Z BinNums.Z (eea_remainders s)))
+     : forall _ : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z), Prop
+
+Arguments eea_remainders_nonnegative s
+### C.jet_secp_eea_remainders.eea_minimum
+eea_minimum =
+fun s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) =>
+eea_pair_min (eea_remainders s)
+     : forall _ : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z),
+       BinNums.Z
+
+Arguments eea_minimum s
+### C.jet_secp_eea_remainders.eea_remainder_gcd
+eea_remainder_gcd =
+fun s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) =>
+BinInt.Z.gcd (@fst BinNums.Z BinNums.Z (eea_remainders s)) (@snd BinNums.Z BinNums.Z (eea_remainders s))
+     : forall _ : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z),
+       BinNums.Z
+
+Arguments eea_remainder_gcd s
