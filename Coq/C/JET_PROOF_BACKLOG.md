@@ -575,6 +575,19 @@ that vector. This is independent of the external-call boundary and is needed
 before composing the literal `generate` point loop. The generic high-top-bit
 branch can wait: it is not needed for these split values.
 
+`jet_secp_wnaf_literal` now ports that program structurally and proves its
+parametricity and exact 129-digit, most-significant-first vector order via
+the sequential one-bit recurrence. The digits are raw signed Word16 values,
+not table indices. Its shift-value and even-step lemmas reuse the verified
+word projection/shift adapters; all 21 exported lemmas are closed. Normal
+build, recursive kernel checking and focused no-update assumption/contract
+comparisons pass. Reproduce with
+`JET_TARGETS=C/jet_secp_wnaf_literal.vo bash Coq/build-jets.sh -j1` and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_wnaf_literal`.
+This is not a public jet theorem: still connect the odd signed digit and
+skipped zero positions of the C recurrence to this exact literal vector,
+then compose the point loop. Weighted reconstruction alone is insufficient.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
