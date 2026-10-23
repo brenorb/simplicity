@@ -1,0 +1,400 @@
+### C.jet_secp_generate_numeric.literal_double_eval_matches
+literal_double_eval_matches
+     : forall a : Ty.tySem jet_secp_generate_literal.literal_generator_jacobian,
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (jet_secp_generator_point_numeric.literal_jacobian_denote
+            (@jet_secp_double_literal.literal_gej_double Alg.CoreFunSem a))
+         (literal_double_eval (jet_secp_generator_point_numeric.literal_jacobian_denote a))
+### C.jet_secp_generate_numeric.literal_mixed_eval_matches
+literal_mixed_eval_matches
+     : forall (a : Ty.tySem jet_secp_generate_literal.literal_generator_jacobian)
+         (b : Ty.tySem jet_secp_generate_literal.literal_generator_point),
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (jet_secp_generator_point_numeric.literal_jacobian_denote
+            (@jet_secp_add_literal.literal_gej_ge_add Alg.CoreFunSem
+               (@pair (Ty.tySem jet_secp_generate_literal.literal_generator_jacobian)
+                  (Ty.tySem jet_secp_generate_literal.literal_generator_point) a b)))
+         (literal_mixed_eval (jet_secp_generator_point_numeric.literal_jacobian_denote a) (literal_affine_denote b))
+### C.jet_secp_generate_numeric.literal_norm_eval_matches
+literal_norm_eval_matches
+     : forall a : Ty.tySem jet_secp_generate_literal.literal_generator_jacobian,
+       @eq (prod BinNums.Z BinNums.Z)
+         (literal_affine_denote (@jet_secp_gej_norm_literal.literal_gej_norm Alg.CoreFunSem a))
+         (literal_norm_eval (jet_secp_generator_point_numeric.literal_jacobian_denote a))
+### C.jet_secp_generate_numeric.literal_scale_numeric_matches
+literal_scale_numeric_matches
+     : forall (n : nat) (base : Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (word : Ty.tySem (Word.Word n)) (a : Ty.tySem jet_secp_generate_literal.literal_generator_jacobian),
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (jet_secp_generator_point_numeric.literal_jacobian_denote
+            (jet_secp_generate_literal.literal_scale_run n base word a))
+         (literal_scale_numeric n (literal_affine_denote base) word
+            (jet_secp_generator_point_numeric.literal_jacobian_denote a))
+### C.jet_secp_generate_numeric.literal_generate_signed_numeric_matches
+literal_generate_signed_numeric_matches
+     : forall (n : nat) (base : Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (word : Ty.tySem (Word.Word n)),
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (jet_secp_generator_point_numeric.literal_jacobian_denote
+            (jet_secp_generate_literal.literal_generate_signed_run n base word))
+         (literal_generate_signed_numeric n (literal_affine_denote base) word)
+### C.jet_secp_generate_numeric.literal_generate_small_numeric_matches
+literal_generate_small_numeric_matches
+     : forall (second : bool) (word : Ty.tySem (Word.Word (S (S (S (S O)))))),
+       @eq (prod BinNums.Z BinNums.Z)
+         (literal_affine_denote (@jet_secp_generate_literal.literal_generate_small second Alg.CoreFunSem word))
+         (literal_generate_small_numeric second word)
+### C.jet_secp_generate_numeric.literal_generate_small_word
+literal_generate_small_word
+     : forall (second : bool) (word : Ty.tySem (Word.Word (S (S (S (S O)))))),
+       @eq (Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (@jet_secp_generate_literal.literal_generate_small second Alg.CoreFunSem word)
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@fst BinNums.Z BinNums.Z (literal_generate_small_numeric second word)))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@snd BinNums.Z BinNums.Z (literal_generate_small_numeric second word))))
+### C.jet_secp_generate_numeric.literal_generated_z_nonnegative
+literal_generated_z_nonnegative
+     : forall (n : nat) (base : Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (word : Ty.tySem (Word.Word n)),
+       BinInt.Z.le BinNums.Z0
+         (@snd (prod BinNums.Z BinNums.Z) BinNums.Z
+            (literal_generate_signed_numeric n (literal_affine_denote base) word))
+### C.jet_secp_generate_numeric.literal_generate_small_fast_matches
+literal_generate_small_fast_matches
+     : forall (second : bool) (word : Ty.tySem (Word.Word (S (S (S (S O)))))),
+       @eq (prod BinNums.Z BinNums.Z) (literal_generate_small_fast second word)
+         (literal_generate_small_numeric second word)
+### C.jet_secp_generate_numeric.literal_generate_small_fast_word
+literal_generate_small_fast_word
+     : forall (second : bool) (word : Ty.tySem (Word.Word (S (S (S (S O)))))),
+       @eq (Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (@jet_secp_generate_literal.literal_generate_small second Alg.CoreFunSem word)
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@fst BinNums.Z BinNums.Z (literal_generate_small_fast second word)))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@snd BinNums.Z BinNums.Z (literal_generate_small_fast second word))))
+### C.jet_secp_generate_numeric.literal_affine_denote
+literal_affine_denote =
+fun a : Ty.tySem jet_secp_generate_literal.literal_generator_point =>
+@pair BinNums.Z BinNums.Z
+  (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+     (@fst
+        (prod
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+        (prod
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))) a))
+  (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+     (@snd
+        (prod
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+        (prod
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))) a))
+     : forall _ : Ty.tySem jet_secp_generate_literal.literal_generator_point, prod BinNums.Z BinNums.Z
+
+Arguments literal_affine_denote a
+### C.jet_secp_generate_numeric.literal_double_eval
+literal_double_eval =
+fun a : prod (prod BinNums.Z BinNums.Z) BinNums.Z =>
+match a return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+| pair p z =>
+    match p return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+    | pair x y => jet_secp_generator_point_numeric.literal_double_numeric x y z
+    end
+end
+     : forall _ : prod (prod BinNums.Z BinNums.Z) BinNums.Z, prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments literal_double_eval a
+### C.jet_secp_generate_numeric.literal_mixed_eval
+literal_mixed_eval =
+fun (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z) (b : prod BinNums.Z BinNums.Z) =>
+match a return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+| pair p z =>
+    match p return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+    | pair x y =>
+        match b return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+        | pair bx byword => jet_secp_generator_point_numeric.literal_mixed_numeric x y z bx byword
+        end
+    end
+end
+     : forall (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z) (_ : prod BinNums.Z BinNums.Z),
+       prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments literal_mixed_eval a b
+### C.jet_secp_generate_numeric.literal_norm_eval
+literal_norm_eval =
+fun a : prod (prod BinNums.Z BinNums.Z) BinNums.Z =>
+match a return (prod BinNums.Z BinNums.Z) with
+| pair p z =>
+    match p return (prod BinNums.Z BinNums.Z) with
+    | pair x y => jet_secp_gej_norm_literal.literal_gej_norm_numeric_value x y z
+    end
+end
+     : forall _ : prod (prod BinNums.Z BinNums.Z) BinNums.Z, prod BinNums.Z BinNums.Z
+
+Arguments literal_norm_eval a
+### C.jet_secp_generate_numeric.literal_scale_numeric
+literal_scale_numeric =
+fix literal_scale_numeric (n : nat) (base : prod BinNums.Z BinNums.Z) {struct n} :
+    forall (_ : Ty.tySem (Word.Word n)) (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z),
+    prod (prod BinNums.Z BinNums.Z) BinNums.Z :=
+  match
+    n as k
+    return
+      (forall (_ : Ty.tySem (Word.Word k)) (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z),
+       prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+  with
+  | O =>
+      fun (bit : Ty.tySem (Word.Word O)) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z) =>
+      let doubled : prod (prod BinNums.Z BinNums.Z) BinNums.Z := literal_double_eval a in
+      match bit return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+      | inl _ => doubled
+      | inr _ => literal_mixed_eval doubled base
+      end
+  | S k =>
+      fun (word : Ty.tySem (Word.Word (S k))) (a : prod (prod BinNums.Z BinNums.Z) BinNums.Z) =>
+      literal_scale_numeric k base
+        (@snd
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                  match n0 return Ty.Ty with
+                  | O => X
+                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) k))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                  match n0 return Ty.Ty with
+                  | O => X
+                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) k)) word)
+        (literal_scale_numeric k base
+           (@fst
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k))
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k)) word) a)
+  end
+     : forall (n : nat) (_ : prod BinNums.Z BinNums.Z) (_ : Ty.tySem (Word.Word n))
+         (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z), prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments literal_scale_numeric n%nat_scope base _ _
+### C.jet_secp_generate_numeric.literal_generate_signed_numeric
+literal_generate_signed_numeric =
+fix literal_generate_signed_numeric (n : nat) (base : prod BinNums.Z BinNums.Z) {struct n} :
+    forall _ : Ty.tySem (Word.Word n), prod (prod BinNums.Z BinNums.Z) BinNums.Z :=
+  match n as k return (forall _ : Ty.tySem (Word.Word k), prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+  | O =>
+      fun bit : Ty.tySem (Word.Word O) =>
+      match bit return (prod (prod BinNums.Z BinNums.Z) BinNums.Z) with
+      | inl _ =>
+          @pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z BinNums.Z0 BinNums.Z0) BinNums.Z0
+      | inr _ =>
+          @pair (prod BinNums.Z BinNums.Z) BinNums.Z
+            (@pair BinNums.Z BinNums.Z (BinInt.Z.modulo (@fst BinNums.Z BinNums.Z base) jet_secp_fe_math.feP)
+               (BinInt.Z.modulo (BinInt.Z.sub jet_secp_fe_math.feP (@snd BinNums.Z BinNums.Z base))
+                  jet_secp_fe_math.feP)) (BinNums.Zpos BinNums.xH)
+      end
+  | S k =>
+      fun word : Ty.tySem (Word.Word (S k)) =>
+      literal_scale_numeric k base
+        (@snd
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                  match n0 return Ty.Ty with
+                  | O => X
+                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) k))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end)
+              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                  match n0 return Ty.Ty with
+                  | O => X
+                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) k)) word)
+        (literal_generate_signed_numeric k base
+           (@fst
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k))
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) k)) word))
+  end
+     : forall (n : nat) (_ : prod BinNums.Z BinNums.Z) (_ : Ty.tySem (Word.Word n)),
+       prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments literal_generate_signed_numeric n%nat_scope base _
+### C.jet_secp_generate_numeric.literal_generate_small_numeric
+literal_generate_small_numeric =
+fun (second : bool) (word : Ty.tySem (Word.Word (S (S (S (S O)))))) =>
+literal_norm_eval
+  (literal_generate_signed_numeric (S (S (S (S O))))
+     (literal_affine_denote (jet_secp_generate_literal.literal_generator_base_word second)) word)
+     : forall (_ : bool) (_ : Ty.tySem (Word.Word (S (S (S (S O)))))), prod BinNums.Z BinNums.Z
+
+Arguments literal_generate_small_numeric second%bool_scope word
+### C.jet_secp_generate_numeric.literal_norm_fast
+literal_norm_fast =
+fun a : prod (prod BinNums.Z BinNums.Z) BinNums.Z =>
+match a return (prod BinNums.Z BinNums.Z) with
+| pair p z =>
+    match p return (prod BinNums.Z BinNums.Z) with
+    | pair x y =>
+        let iz : BinNums.Z := jet_secp_eea_fast.literal_invert_fast z in
+        @pair BinNums.Z BinNums.Z (BinInt.Z.modulo (BinInt.Z.mul (BinInt.Z.mul x iz) iz) jet_secp_fe_math.feP)
+          (BinInt.Z.modulo (BinInt.Z.mul (BinInt.Z.mul (BinInt.Z.mul y iz) iz) iz) jet_secp_fe_math.feP)
+    end
+end
+     : forall _ : prod (prod BinNums.Z BinNums.Z) BinNums.Z, prod BinNums.Z BinNums.Z
+
+Arguments literal_norm_fast a
+### C.jet_secp_generate_numeric.literal_generate_small_fast
+literal_generate_small_fast =
+fun (second : bool) (word : Ty.tySem (Word.Word (S (S (S (S O)))))) =>
+literal_norm_fast
+  (literal_generate_signed_numeric (S (S (S (S O))))
+     (literal_affine_denote (jet_secp_generate_literal.literal_generator_base_word second)) word)
+     : forall (_ : bool) (_ : Ty.tySem (Word.Word (S (S (S (S O)))))), prod BinNums.Z BinNums.Z
+
+Arguments literal_generate_small_fast second%bool_scope word

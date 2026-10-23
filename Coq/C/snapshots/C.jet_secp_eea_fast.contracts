@@ -1,0 +1,131 @@
+### C.jet_secp_eea_fast.eea_row_step_valid
+eea_row_step_valid
+     : forall (modulus : BinNums.Z) (r t : prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (_ : BinInt.Z.lt BinNums.Z0 modulus) (_ : eea_row_valid modulus r) (_ : eea_row_valid modulus t),
+       eea_row_valid modulus (jet_secp_eea_numeric.eea_row_step_numeric modulus r t)
+### C.jet_secp_eea_fast.eea_step_valid
+eea_step_valid
+     : forall (modulus : BinNums.Z)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : BinInt.Z.lt BinNums.Z0 modulus) (_ : eea_state_valid modulus s),
+       eea_state_valid modulus (jet_secp_eea_numeric.eea_step_numeric modulus s)
+### C.jet_secp_eea_fast.eea_finished_step
+eea_finished_step
+     : forall (modulus : BinNums.Z)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : eea_state_valid modulus s) (_ : @eq bool (eea_finished s) true),
+       @eq (prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (jet_secp_eea_numeric.eea_step_numeric modulus s) s
+### C.jet_secp_eea_fast.eea_run_fixed
+eea_run_fixed
+     : forall (modulus : BinNums.Z) (count : nat)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : @eq (prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+                (jet_secp_eea_numeric.eea_step_numeric modulus s) s),
+       @eq (prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (jet_secp_eea_numeric.eea_run_numeric modulus count s) s
+### C.jet_secp_eea_fast.eea_run_fast_matches
+eea_run_fast_matches
+     : forall (modulus : BinNums.Z) (count : nat)
+         (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (_ : BinInt.Z.lt BinNums.Z0 modulus) (_ : eea_state_valid modulus s),
+       @eq (prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+         (eea_run_fast modulus count s) (jet_secp_eea_numeric.eea_run_numeric modulus count s)
+### C.jet_secp_eea_fast.literal_invert_fast_matches
+literal_invert_fast_matches
+     : forall (x : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 x),
+       @eq BinNums.Z (literal_invert_fast x) (jet_secp_invert_literal.literal_invert_numeric x)
+### C.jet_secp_eea_fast.eea_row_valid
+eea_row_valid =
+fun (modulus : BinNums.Z) (r : prod (prod BinNums.Z BinNums.Z) BinNums.Z) =>
+match r return Prop with
+| pair p c =>
+    match p return Prop with
+    | pair a b =>
+        and (and (BinInt.Z.le BinNums.Z0 a) (BinInt.Z.lt a modulus))
+          (and (and (BinInt.Z.le BinNums.Z0 b) (BinInt.Z.lt b modulus)) (BinInt.Z.le BinNums.Z0 c))
+    end
+end
+     : forall (_ : BinNums.Z) (_ : prod (prod BinNums.Z BinNums.Z) BinNums.Z), Prop
+
+Arguments eea_row_valid modulus%Z_scope r
+### C.jet_secp_eea_fast.eea_state_valid
+eea_state_valid =
+fun (modulus : BinNums.Z)
+  (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)) =>
+and
+  (eea_row_valid modulus
+     (@fst (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) s))
+  (eea_row_valid modulus
+     (@snd (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) s))
+     : forall (_ : BinNums.Z)
+         (_ : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)), Prop
+
+Arguments eea_state_valid modulus%Z_scope s
+### C.jet_secp_eea_fast.eea_finished
+eea_finished =
+fun s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) =>
+orb
+  (BinInt.Z.eqb
+     (@snd (prod BinNums.Z BinNums.Z) BinNums.Z
+        (@fst (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) s)) BinNums.Z0)
+  (BinInt.Z.eqb
+     (@snd (prod BinNums.Z BinNums.Z) BinNums.Z
+        (@snd (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) s)) BinNums.Z0)
+     : forall _ : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z), bool
+
+Arguments eea_finished s
+### C.jet_secp_eea_fast.eea_run_fast
+eea_run_fast =
+fix eea_run_fast
+  (modulus : BinNums.Z) (count : nat)
+  (s : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)) {struct count} :
+    prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z) :=
+  match
+    count return (prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+  with
+  | O => s
+  | S k =>
+      match
+        eea_finished s
+        return (prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z))
+      with
+      | true => s
+      | false => eea_run_fast modulus k (jet_secp_eea_numeric.eea_step_numeric modulus s)
+      end
+  end
+     : forall (_ : BinNums.Z) (_ : nat)
+         (_ : prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)),
+       prod (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+
+Arguments eea_run_fast modulus%Z_scope count%nat_scope s
+### C.jet_secp_eea_fast.literal_invert_fast
+literal_invert_fast =
+fun x : BinNums.Z =>
+match
+  jet_secp_eea_numeric.eea_bezout_numeric
+    (eea_run_fast
+       (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+          (BinNums.Zpos
+             (BinNums.xO
+                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+       (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))
+       (@pair (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+          (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z (BinNums.Zpos BinNums.xH) BinNums.Z0)
+             jet_secp_canonical_normalize.canonical_field_order)
+          (@pair (prod BinNums.Z BinNums.Z) BinNums.Z (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))
+             x))) return BinNums.Z
+with
+| inl p =>
+    match p return BinNums.Z with
+    | pair _ b =>
+        BinInt.Z.modulo (BinInt.Z.sub jet_secp_canonical_normalize.canonical_field_order b)
+          jet_secp_canonical_normalize.canonical_field_order
+    end
+| inr p => match p return BinNums.Z with
+           | pair _ e => e
+           end
+end
+     : forall _ : BinNums.Z, BinNums.Z
+
+Arguments literal_invert_fast x%Z_scope

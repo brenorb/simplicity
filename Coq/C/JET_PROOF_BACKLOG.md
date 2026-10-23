@@ -239,9 +239,31 @@ including the algebra-independent term proofs, are closed. Normal build,
 recursive kernel checking and reviewed no-update focused assumption/contract
 comparisons pass. Reproduce with target/module
 `C/jet_secp_generate_literal.vo` / `C.jet_secp_generate_literal` as above.
-The structural evaluator still calls the original literal point operations.
-Next derive its numeric point-operation evaluator and build small checked
-table-normalization certificates before scaling to both frozen tables.
+`jet_secp_generator_point_numeric` now derives exact numeric doubling and
+mixed-addition from the existing literal step lemmas, retaining infinity and
+both H/I exceptional branches, the actual halve behavior, and all raw input
+words. `jet_secp_generate_numeric` composes them with the signed recursion
+and literal EEA-based normalization. Its final numeric and word theorems hold
+for **every** raw Word16 input and either literal base. This is not a
+mathematical scalar-multiplication replacement.
+
+`jet_secp_eea_fast` proves an evaluator-only early return: a valid state with
+a zero remainder is a fixed point of the exact EEA step, so the remaining
+iterations cannot change it. All six optimization exports are closed.
+`literal_generate_small_fast_word` discharges its nonnegative-Z condition
+through the original word-level program; no precondition is added for callers.
+The point/generator bridges use at most inherited functional extensionality;
+the structural mixed step and zero-test bridges are closed. Normal compilation,
+recursive kernel checking and reviewed no-update focused assumption/contract
+comparisons pass for all three modules. Reproduce with target/module
+`C/jet_secp_generate_numeric.vo` / `C.jet_secp_generate_numeric` as above;
+its closure includes both supporting modules.
+
+Next build small checked table-normalization certificates, then explicitly
+share exact signed binary prefixes and traverse the table rows structurally
+before scaling to both complete frozen tables. Avoid repeated large `nth`
+lookups and recomputing an entire signed generation for each entry. A few
+successful entries do not constitute the all-digit table bridge.
 These stages do not establish the C inversion jet, its external ctz
 obligation, the table/literal correspondence, or public `generate`
 equivalence; accepted coverage remains 505/533.
