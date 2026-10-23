@@ -658,6 +658,16 @@ decoded literal digits equal to the reversed 129 C array entries. The final
 canonical scalar-normalization/split caller composition and external memset
 boundary remain separate, as does the generator point loop.
 
+`jet_secp_wnaf_literal_window.exec_wnaf_literal_split_window` now packages
+actual C reader/digit/store execution with the complete literal segment and
+next residual for every full or final window reached by a split128 scalar.
+It derives the memory store/load from the execution helpers, not from an
+execution premise. Its pure dispatcher is closed; execution retains six
+inherited assumptions. Normal build, recursive kernel checking and focused
+no-update assumption/contract comparisons pass; use the same commands with
+`jet_secp_wnaf_literal_window`. This remains a window-level theorem, not the
+whole-loop array/vector correspondence or public `generate` equivalence.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
