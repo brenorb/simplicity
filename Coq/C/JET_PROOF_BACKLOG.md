@@ -647,9 +647,16 @@ no-update focused audits pass; reproduce with targets/modules
 `C.*` module names as above. These are body results: compose A-infinity with
 the original thirteen allocations/frees next, reusing the checked entry.
 
-The affine-infinity body branch remains to integrate; it is source-distinct
-from `mixed_b_head` (no optional-ratio statement) and can reuse
-`exec_gej_add_self_copy`. Then prove the caller's inverse-Z-one specialization
+`jet_secp_zinv_b_infinite.exec_zinv_b_infinite` now proves the remaining
+A-finite/B-infinite body branch, reusing the actual 128-byte
+`exec_gej_add_self_copy`. Its frame preserves all loads and permissions on old
+valid blocks; no field initialization, affine range bound or optional-ratio
+premise is needed. The source identity is closed and execution retains six
+inherited assumptions. Normal build, recursive kernel check and reviewed
+no-update focused audits pass with target/module
+`C/jet_secp_zinv_b_infinite.vo` / `C.jet_secp_zinv_b_infinite`. Thus every flag
+branch has a checked body proof, while whole-call composition for infinity
+inputs remains to integrate. Then prove the caller's inverse-Z-one specialization
 and literal-coordinate correspondence, the descending generator loop and
 public writer. `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
