@@ -1,0 +1,186 @@
+### C.jet_secp_i128_accum_mul_numeric.smul128_hi_unsigned
+smul128_hi_unsigned
+     : forall a b : Integers.Int64.int,
+       @eq BinNums.Z (Integers.Int64.unsigned (jet_secp_i128_mul_numeric.smul128_hi_word a b))
+         (BinInt.Z.modulo
+            (BinInt.Z.div (BinInt.Z.mul (Integers.Int64.signed a) (Integers.Int64.signed b)) Integers.Int64.modulus)
+            Integers.Int64.modulus)
+### C.jet_secp_i128_accum_mul_numeric.i128_signed_range
+i128_signed_range
+     : forall lo hi : Integers.Int64.int,
+       and
+         (BinInt.Z.le
+            (BinInt.Z.opp
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+            (jet_secp_i128_shift62_numeric.i128_signed_value lo hi))
+         (BinInt.Z.lt (jet_secp_i128_shift62_numeric.i128_signed_value lo hi)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_secp_i128_accum_mul_numeric.i128_signed_mod
+i128_signed_mod
+     : forall lo hi : Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.modulo (jet_secp_i128_shift62_numeric.i128_signed_value lo hi)
+            (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+         (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned hi) Integers.Int64.modulus) (Integers.Int64.unsigned lo))
+### C.jet_secp_i128_accum_mul_numeric.i128_signed_add_mod
+i128_signed_add_mod
+     : forall (lo hi : Integers.Int64.int) (z : BinNums.Z),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (BinInt.Z.add (jet_secp_i128_shift62_numeric.i128_signed_value lo hi) z)
+            (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+         (BinInt.Z.modulo
+            (BinInt.Z.add
+               (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned hi) Integers.Int64.modulus)
+                  (Integers.Int64.unsigned lo)) z) (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+### C.jet_secp_i128_accum_mul_numeric.i128_signed_remainder_unique
+i128_signed_remainder_unique
+     : forall (x y : BinNums.Z)
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.opp
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                   x)
+                (BinInt.Z.lt x
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.opp
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                   y)
+                (BinInt.Z.lt y
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo x (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+                (BinInt.Z.modulo y (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))),
+       @eq BinNums.Z x y
+### C.jet_secp_i128_accum_mul_numeric.smul_accum_unsigned
+smul_accum_unsigned
+     : forall lo hi a b : Integers.Int64.int,
+       let product : BinNums.Z := BinInt.Z.mul (Integers.Int64.signed a) (Integers.Int64.signed b) in
+       @eq BinNums.Z
+         (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned (smul_accum_hi_word lo hi a b)) Integers.Int64.modulus)
+            (Integers.Int64.unsigned (smul_accum_lo_word lo a b)))
+         (BinInt.Z.modulo
+            (BinInt.Z.add
+               (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned hi) Integers.Int64.modulus)
+                  (Integers.Int64.unsigned lo)) product) (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+### C.jet_secp_i128_accum_mul_numeric.smul_accum_signed_mod
+smul_accum_signed_mod
+     : forall lo hi a b : Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (jet_secp_i128_shift62_numeric.i128_signed_value (smul_accum_lo_word lo a b) (smul_accum_hi_word lo hi a b))
+            (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+         (BinInt.Z.modulo
+            (BinInt.Z.add (jet_secp_i128_shift62_numeric.i128_signed_value lo hi)
+               (BinInt.Z.mul (Integers.Int64.signed a) (Integers.Int64.signed b)))
+            (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+### C.jet_secp_i128_accum_mul_numeric.smul_accum_exact_if_in_range
+smul_accum_exact_if_in_range
+     : forall (lo hi a b : Integers.Int64.int)
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.opp
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                   (BinInt.Z.add (jet_secp_i128_shift62_numeric.i128_signed_value lo hi)
+                      (BinInt.Z.mul (Integers.Int64.signed a) (Integers.Int64.signed b))))
+                (BinInt.Z.lt
+                   (BinInt.Z.add (jet_secp_i128_shift62_numeric.i128_signed_value lo hi)
+                      (BinInt.Z.mul (Integers.Int64.signed a) (Integers.Int64.signed b)))
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))),
+       @eq BinNums.Z
+         (jet_secp_i128_shift62_numeric.i128_signed_value (smul_accum_lo_word lo a b) (smul_accum_hi_word lo hi a b))
+         (BinInt.Z.add (jet_secp_i128_shift62_numeric.i128_signed_value lo hi)
+            (BinInt.Z.mul (Integers.Int64.signed a) (Integers.Int64.signed b)))
+### C.jet_secp_i128_accum_mul_numeric.smul_accum_lo_den
+smul_accum_lo_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho layout jet_secp_i128_accum_mul_exec.smul_accum_lo)
+         (Values.Vlong (smul_accum_lo_word (rho (S (S O))) (rho O) (rho (S O))))
+### C.jet_secp_i128_accum_mul_numeric.smul_accum_hi_den
+smul_accum_hi_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho layout jet_secp_i128_accum_mul_exec.smul_accum_hi)
+         (Values.Vlong (smul_accum_hi_word (rho (S (S O))) (rho (S (S (S O)))) (rho O) (rho (S O))))
+### C.jet_secp_i128_accum_mul_numeric.eval_i128_accum_mul_numeric
+eval_i128_accum_mul_numeric
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho layout jet_secp_i128_accum_mul_exec.smul_accum_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_i128_accum_mul)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val (Values.Vlong (rho O))
+                     (@cons Values.val (Values.Vlong (rho (S O))) (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (@eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk layout O) (jet_sx_state.bas layout O))
+                  (@Some Values.val (Values.Vlong (smul_accum_lo_word (rho (S (S O))) (rho O) (rho (S O))))))
+               (and
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk layout O)
+                        (BinInt.Z.add (jet_sx_state.bas layout O)
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     (@Some Values.val
+                        (Values.Vlong (smul_accum_hi_word (rho (S (S O))) (rho (S (S (S O)))) (rho O) (rho (S O))))))
+                  (and
+                     (@eq BinNums.Z
+                        (BinInt.Z.modulo
+                           (jet_secp_i128_shift62_numeric.i128_signed_value
+                              (smul_accum_lo_word (rho (S (S O))) (rho O) (rho (S O)))
+                              (smul_accum_hi_word (rho (S (S O))) (rho (S (S (S O)))) (rho O) (rho (S O))))
+                           (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+                        (BinInt.Z.modulo
+                           (BinInt.Z.add
+                              (jet_secp_i128_shift62_numeric.i128_signed_value (rho (S (S O))) (rho (S (S (S O)))))
+                              (BinInt.Z.mul (Integers.Int64.signed (rho O)) (Integers.Int64.signed (rho (S O)))))
+                           (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)))
+                     (and (jet_sx_state.rep rho layout jet_secp_i128_accum_mul_exec.smul_accum_out mf)
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot layout
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape jet_secp_i128_accum_mul_exec.smul_accum_regs) b ofs)) m mf))))))
+### C.jet_secp_i128_accum_mul_numeric.smul_accum_lo_word
+smul_accum_lo_word =
+fun lo a b : Integers.Int64.int => Integers.Int64.add lo (jet_secp_i128_mul_numeric.smul128_lo_word a b)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments smul_accum_lo_word lo a b
+### C.jet_secp_i128_accum_mul_numeric.smul_accum_hi_word
+smul_accum_hi_word =
+fun lo hi a b : Integers.Int64.int =>
+Integers.Int64.add hi
+  (Integers.Int64.add (jet_secp_i128_mul_numeric.smul128_hi_word a b)
+     (Integers.Int64.repr
+        (Integers.Int.signed
+           match
+             Integers.Int64.ltu (smul_accum_lo_word lo a b) (jet_secp_i128_mul_numeric.smul128_lo_word a b)
+             return Integers.Int.int
+           with
+           | true => Integers.Int.one
+           | false => Integers.Int.zero
+           end)))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Integers.Int64.int
+
+Arguments smul_accum_hi_word lo hi a b

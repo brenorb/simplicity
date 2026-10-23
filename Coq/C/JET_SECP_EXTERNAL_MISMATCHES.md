@@ -178,14 +178,30 @@ The pure observations are closed; the execution results retain the six
 standing Coq/CompCert assumptions, not a new libc premise.
 
 This closes the multiply stage used to initialize the inverse transition
-accumulators. Signed accumulation, transition-loop execution/invariants and
-the complete public inversion composition remain open; so does the separate
+accumulators. Transition-loop execution/invariants and the complete public
+inversion composition remain open; so does the separate
 ctz boundary described above. This internal result adds no public jet coverage
 and changes no original C, generated AST, specification or external-call model.
 
 ```sh
 JET_TARGETS=C/jet_secp_i128_mul_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_i128_mul_numeric
+```
+
+The subsequent `jet_secp_i128_accum_mul_numeric.eval_i128_accum_mul_numeric`
+executes the original signed multiply-accumulate on arbitrary initial low/high
+words and signed input words. It includes the actual private allocation/free
+and discarded verification-expression branches. It derives exact output loads,
+the sum modulo `2^128`, ownership and external framing. The closed
+`smul_accum_exact_if_in_range` upgrades the modular observation to exact signed
+addition whenever the mathematical sum is representable; this bound remains
+an internal transition-invariant obligation, not an excluded public input.
+The modular execution theorem requires no no-overflow premise and no new
+external-helper assumption. This also adds no public jet coverage.
+
+```sh
+JET_TARGETS=C/jet_secp_i128_accum_mul_numeric.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_i128_accum_mul_numeric
 ```
 
 ## Reproduction and limits
