@@ -383,6 +383,27 @@ bits and final odd bit, then relate its middle-bit ordinal to the original
 signed table index. Complete checks are required for both signs and both
 bases. The full original generator call and external ctz/memset boundaries
 remain separate from these table certificates.
+
+`jet_secp_generator_digit_shape` now derives the exact signed prefix shape
+from the **existing** raw digit's odd/range invariants; it is not an extra
+prefix-shape restriction. `jet_secp_generator_tables_check` defines the full
+depth13 checks and proves `generator_tables_match_digit`: given the two full
+checker results for a base, every valid raw wNAF15 digit's literal result is
+the selected actual frozen table entry, with the original C sign test and
+`(abs n-1)/2` index. Negative rows are reversed with a proved indexed lookup.
+Eight exports are closed; the two literal-word bridges retain only inherited
+functional extensionality. Normal build, recursive kernel check and reviewed
+no-update focused assumption/contract comparisons pass. Reproduce with
+target/module `C/jet_secp_generator_tables_check.vo` /
+`C.jet_secp_generator_tables_check` as above.
+
+The **four complete checker results are still unproved at this checkpoint**;
+the digit/table theorem is conditional on them. Next run bounded ordinary
+Coq certificates for every row of both signs/bases, derive the unconditional
+digit/table theorem, and recursively kernel-check that exact source closure.
+Use named closed result constants to share evaluator values during checking.
+Do not count these certificates or helpers as a public `generate` theorem.
+
 These stages do not establish the C inversion jet, its external ctz
 obligation, the table/literal correspondence, or public `generate`
 equivalence; accepted coverage remains 505/533.

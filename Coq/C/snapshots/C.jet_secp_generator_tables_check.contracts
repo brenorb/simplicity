@@ -1,0 +1,214 @@
+### C.jet_secp_generator_tables_check.generator_tables_seed_literal
+generator_tables_seed_literal
+     : forall high neg : bool,
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z) (generator_tables_seed high neg)
+         (jet_secp_generator_bits.literal_generate_bits
+            (jet_secp_generate_numeric.literal_affine_denote
+               (jet_secp_generate_literal.literal_generator_base_word high))
+            (@cons bool neg (@cons bool neg (@nil bool))))
+### C.jet_secp_generator_tables_check.generator_tables_check_values
+generator_tables_check_values
+     : forall (high neg : bool)
+         (_ : @eq (option (list (prod BinNums.Z BinNums.Z))) (generator_tables_check high neg)
+                (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z)))),
+       @eq (list (prod BinNums.Z BinNums.Z)) (jet_secp_generator_rows.generator_table_signed_rows high neg)
+         (jet_secp_generator_prefix.generator_prefix_values (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+            (jet_secp_generate_numeric.literal_affine_denote
+               (jet_secp_generate_literal.literal_generator_base_word high))
+            (jet_secp_generator_bits.literal_generate_bits
+               (jet_secp_generate_numeric.literal_affine_denote
+                  (jet_secp_generate_literal.literal_generator_base_word high))
+               (@cons bool neg (@cons bool neg (@nil bool)))))
+### C.jet_secp_generator_tables_check.literal_generate_bits_append
+literal_generate_bits_append
+     : forall (base : prod BinNums.Z BinNums.Z) (prefix suffix : list bool)
+         (_ : not (@eq (list bool) prefix (@nil bool))),
+       @eq (prod (prod BinNums.Z BinNums.Z) BinNums.Z)
+         (jet_secp_generator_bits.literal_generate_bits base (@app bool prefix suffix))
+         (@List.fold_left (prod (prod BinNums.Z BinNums.Z) BinNums.Z) bool
+            (jet_secp_generator_bits.literal_generate_bit base) suffix
+            (jet_secp_generator_bits.literal_generate_bits base prefix))
+### C.jet_secp_generator_tables_check.generator_tables_check_numeric
+generator_tables_check_numeric
+     : forall (high neg : bool) (word : Ty.tySem (Word.Word (S (S (S (S O)))))) (bits : list bool)
+         (_ : @eq (option (list (prod BinNums.Z BinNums.Z))) (generator_tables_check high neg)
+                (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z))))
+         (_ : @eq nat (@length bool bits) (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+         (_ : @eq (list bool) (jet_secp_generator_bits.literal_generator_bits (S (S (S (S O)))) word)
+                (@app bool (@cons bool neg (@cons bool neg (@nil bool))) (@app bool bits (@cons bool true (@nil bool))))),
+       @eq (prod BinNums.Z BinNums.Z) (jet_secp_generate_numeric.literal_generate_small_fast high word)
+         (@List.nth (prod BinNums.Z BinNums.Z) (jet_secp_generator_prefix.generator_path_index bits)
+            (jet_secp_generator_rows.generator_table_signed_rows high neg)
+            (@pair BinNums.Z BinNums.Z BinNums.Z0 BinNums.Z0))
+### C.jet_secp_generator_tables_check.generator_tables_check_literal
+generator_tables_check_literal
+     : forall (high neg : bool) (word : Ty.tySem (Word.Word (S (S (S (S O)))))) (bits : list bool)
+         (_ : @eq (option (list (prod BinNums.Z BinNums.Z))) (generator_tables_check high neg)
+                (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z))))
+         (_ : @eq nat (@length bool bits) (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+         (_ : @eq (list bool) (jet_secp_generator_bits.literal_generator_bits (S (S (S (S O)))) word)
+                (@app bool (@cons bool neg (@cons bool neg (@nil bool))) (@app bool bits (@cons bool true (@nil bool))))),
+       let expected : prod BinNums.Z BinNums.Z :=
+         @List.nth (prod BinNums.Z BinNums.Z) (jet_secp_generator_prefix.generator_path_index bits)
+           (jet_secp_generator_rows.generator_table_signed_rows high neg)
+           (@pair BinNums.Z BinNums.Z BinNums.Z0 BinNums.Z0) in
+       @eq (Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (@jet_secp_generate_literal.literal_generate_small high Alg.CoreFunSem word)
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@fst BinNums.Z BinNums.Z expected))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@snd BinNums.Z BinNums.Z expected)))
+### C.jet_secp_generator_tables_check.generator_table_signed_rows_lookup
+generator_table_signed_rows_lookup
+     : forall (high neg : bool) (index : nat) (default : prod BinNums.Z BinNums.Z)
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat index)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))),
+       @eq (prod BinNums.Z BinNums.Z)
+         (@List.nth (prod BinNums.Z BinNums.Z) index (jet_secp_generator_rows.generator_table_signed_rows high neg)
+            default)
+         (jet_secp_generator_table_samples.generator_entry_signed_numeric high
+            match neg return nat with
+            | true =>
+                BinInt.Z.to_nat
+                  (BinInt.Z.sub
+                     (BinNums.Zpos
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))
+                     (BinInt.Z.of_nat index))
+            | false => index
+            end neg)
+### C.jet_secp_generator_tables_check.generator_signed_table_index
+generator_signed_table_index
+     : forall (neg : bool) (k n : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))
+         (_ : @eq BinNums.Z n
+                match neg return BinNums.Z with
+                | true =>
+                    BinInt.Z.sub (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI
+                                                    (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))))
+                | false =>
+                    BinInt.Z.add (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) k) (BinNums.Zpos BinNums.xH)
+                end),
+       and
+         (@eq BinNums.Z (jet_secp_table_index.table_storage_index n)
+            match neg return BinNums.Z with
+            | true =>
+                BinInt.Z.sub
+                  (BinNums.Zpos
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))
+                  k
+            | false => k
+            end) (@eq bool (negb (BinInt.Z.ltb BinNums.Z0 n)) neg)
+### C.jet_secp_generator_tables_check.generator_tables_match_digit
+generator_tables_match_digit
+     : forall (high : bool) (word : Ty.tySem (Word.Word (S (S (S (S O))))))
+         (_ : forall neg : bool,
+              @eq (option (list (prod BinNums.Z BinNums.Z))) (generator_tables_check high neg)
+                (@Some (list (prod BinNums.Z BinNums.Z)) (@nil (prod BinNums.Z BinNums.Z))))
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (jet_secp_wnaf_literal_mask.literal_wnaf_signed16 word)
+                   (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))
+         (_ : and
+                (BinInt.Z.lt
+                   (BinNums.Zneg
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+                   (jet_secp_wnaf_literal_mask.literal_wnaf_signed16 word))
+                (BinInt.Z.lt (jet_secp_wnaf_literal_mask.literal_wnaf_signed16 word)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))),
+       let n : BinNums.Z := jet_secp_wnaf_literal_mask.literal_wnaf_signed16 word in
+       let expected : prod BinNums.Z BinNums.Z :=
+         jet_secp_generator_table_samples.generator_entry_signed_numeric high
+           (BinInt.Z.to_nat (jet_secp_table_index.table_storage_index n)) (negb (BinInt.Z.ltb BinNums.Z0 n)) in
+       @eq (Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (@jet_secp_generate_literal.literal_generate_small high Alg.CoreFunSem word)
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@fst BinNums.Z BinNums.Z expected))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@snd BinNums.Z BinNums.Z expected)))
+### C.jet_secp_generator_tables_check.generator_tables_seed
+generator_tables_seed =
+fun high neg : bool =>
+jet_secp_generator_fast_points.generator_bits_fast
+  (jet_secp_generate_numeric.literal_affine_denote (jet_secp_generate_literal.literal_generator_base_word high))
+  (@cons bool neg (@cons bool neg (@nil bool)))
+     : forall (_ : bool) (_ : bool), prod (prod BinNums.Z BinNums.Z) BinNums.Z
+
+Arguments generator_tables_seed (high neg)%bool_scope
+### C.jet_secp_generator_tables_check.generator_tables_check
+generator_tables_check =
+fun high neg : bool =>
+jet_secp_generator_fast_check.generator_prefix_fast_check (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+  (jet_secp_generate_numeric.literal_affine_denote (jet_secp_generate_literal.literal_generator_base_word high))
+  (generator_tables_seed high neg) (jet_secp_generator_rows.generator_table_signed_rows high neg)
+     : forall (_ : bool) (_ : bool), option (list (prod BinNums.Z BinNums.Z))
+
+Arguments generator_tables_check (high neg)%bool_scope
