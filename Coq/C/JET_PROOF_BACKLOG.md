@@ -1378,6 +1378,21 @@ recursive checking of this new helper is the next integration check. This
 discharges the readonly zero-scalar call needed to skip Strauss preprocessing;
 it does not register another jet or establish the whole caller.
 
+`jet_secp_generator_preprocess.exec_generator_preprocess_zero` now derives
+the entire original first Strauss preprocessing loop for the fixed one-point,
+zero-scalar call made by `generate`: index initialization, bounds guard,
+original scalar-zero call, short-circuit `continue`, increment and terminating
+guard. It assumes no execution/result and does not inspect the unused point.
+Memory is exactly unchanged; every temporary except np/t'1/t'2 is preserved,
+so the initialized no=0 and denominator-one memory survive. The logical jet
+input scalar is not restricted by this fixed auxiliary zero scalar.
+Normal compilation and reviewed no-update focused snapshots pass; the five
+source/lookup exports are closed and execution retains six inherited
+assumptions, with no libc model. Independent recursive checking of this module
+and the readonly zero-scalar helper is the next integration check. Remaining
+before generator splitting: original zero-length ge_table_set_globalz call,
+the skipped auxiliary loop, and the caller setup/allocations.
+
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
 any 256-bit value. For offsets in `[0,256)`, counts in `[0,32]`, and a window

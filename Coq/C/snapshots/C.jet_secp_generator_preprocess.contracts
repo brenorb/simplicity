@@ -1,0 +1,250 @@
+### C.jet_secp_generator_preprocess.generator_preprocess_check_source
+generator_preprocess_check_source
+     : @eq Clight.statement generator_preprocess_check
+         (Clight.Ssequence
+            (Clight.Ssequence generator_preprocess_scalar_call
+               (Clight.Sifthenelse (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tint)
+                  (Clight.Sset jets_secp._t'2 (Clight.Econst_int Integers.Int.one Ctypesdefs.tint))
+                  generator_preprocess_other_flag))
+            (Clight.Sifthenelse (Clight.Etempvar jets_secp._t'2 Ctypesdefs.tint) Clight.Scontinue Clight.Sskip))
+### C.jet_secp_generator_preprocess.generator_preprocess_work_source
+generator_preprocess_work_source
+     : @eq Clight.statement generator_preprocess_work
+         (Clight.Ssequence generator_preprocess_check generator_preprocess_after_check)
+### C.jet_secp_generator_preprocess.generator_preprocess_loop_source
+generator_preprocess_loop_source
+     : @eq Clight.statement generator_preprocess_loop
+         (Clight.Sloop
+            (Clight.Ssequence
+               (Clight.Sifthenelse
+                  (Clight.Ebinop Cop.Olt (Clight.Etempvar jets_secp._np Ctypesdefs.tulong)
+                     (Clight.Etempvar jets_secp._num Ctypesdefs.tulong) Ctypesdefs.tint) Clight.Sskip Clight.Sbreak)
+               generator_preprocess_work)
+            (Clight.Sset jets_secp._np
+               (Clight.Ebinop Cop.Oadd (Clight.Etempvar jets_secp._np Ctypesdefs.tulong)
+                  (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tulong)))
+### C.jet_secp_generator_preprocess.generator_preprocess_statement_source
+generator_preprocess_statement_source
+     : @eq Clight.statement generator_preprocess_statement
+         (Clight.Ssequence
+            (Clight.Sset jets_secp._np
+               (Clight.Ecast (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tulong))
+            generator_preprocess_loop)
+### C.jet_secp_generator_preprocess.exec_generator_preprocess_check_zero
+exec_generator_preprocess_check_zero
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_scalar_is_zero e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._na le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m b ofs
+                (@cons Integers.Int64.int Integers.Int64.zero
+                   (@cons Integers.Int64.int Integers.Int64.zero
+                      (@cons Integers.Int64.int Integers.Int64.zero
+                         (@cons Integers.Int64.int Integers.Int64.zero (@nil Integers.Int64.int)))))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m generator_preprocess_check Events.E0
+         (generator_preprocess_checked le) m ClightBigstep.Out_continue
+### C.jet_secp_generator_preprocess.generator_preprocessed_preserves
+generator_preprocessed_preserves
+     : forall (le : Maps.PTree.tree Values.val) (id : AST.ident) (_ : not (@eq AST.ident id jets_secp._np))
+         (_ : not (@eq AST.ident id jets_secp._t'1)) (_ : not (@eq AST.ident id jets_secp._t'2)),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (generator_preprocessed_temps le))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_generator_preprocess.exec_generator_preprocess_zero
+exec_generator_preprocess_zero
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_scalar_is_zero e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._na le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._num le)
+                (@Some Values.val (Values.Vlong Integers.Int64.one)))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m b ofs
+                (@cons Integers.Int64.int Integers.Int64.zero
+                   (@cons Integers.Int64.int Integers.Int64.zero
+                      (@cons Integers.Int64.int Integers.Int64.zero
+                         (@cons Integers.Int64.int Integers.Int64.zero (@nil Integers.Int64.int)))))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m generator_preprocess_statement Events.E0
+         (generator_preprocessed_temps le) m ClightBigstep.Out_normal
+### C.jet_secp_generator_preprocess.generator_preprocess_statement
+generator_preprocess_statement =
+@List.nth Clight.statement (S (S (S (S (S O)))))
+  (@fst (list Clight.statement) Clight.statement
+     (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_ecmult_strauss_wnaf)))
+  Clight.Sskip
+     : Clight.statement
+### C.jet_secp_generator_preprocess.generator_preprocess_loop
+generator_preprocess_loop =
+match generator_preprocess_statement return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ loop => loop
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_generator_preprocess.generator_preprocess_work
+generator_preprocess_work =
+match generator_preprocess_loop return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ _ => Clight.Sskip
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop s _ =>
+    match s return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ work => work
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_generator_preprocess.generator_preprocess_check
+generator_preprocess_check =
+match generator_preprocess_work return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence check _ => check
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_generator_preprocess.generator_preprocess_after_check
+generator_preprocess_after_check =
+match generator_preprocess_work return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ rest => rest
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_generator_preprocess.generator_preprocess_other_flag
+generator_preprocess_other_flag =
+match generator_preprocess_check return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence s _ =>
+    match s return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ _ => Clight.Sskip
+        | Clight.Sifthenelse _ _ alt => alt
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_generator_preprocess.generator_preprocess_scalar_call
+generator_preprocess_scalar_call =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_is_zero jets_secp.f_secp256k1_scalar_is_zero
+  (@Some AST.ident jets_secp._t'1)
+  (@cons Clight.expr
+     (Clight.Ebinop Cop.Oadd
+        (Clight.Etempvar jets_secp._na (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr)))
+        (Clight.Etempvar jets_secp._np Ctypesdefs.tulong)
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))) (@nil Clight.expr))
+     : Clight.statement
+### C.jet_secp_generator_preprocess.generator_preprocess_checked
+generator_preprocess_checked =
+fun le : Maps.PTree.tree Values.val =>
+@Maps.PTree.set Values.val jets_secp._t'2 (Values.Vint Integers.Int.one)
+  (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint Integers.Int.one) le)
+     : forall _ : Maps.PTree.tree Values.val, Maps.PTree.tree Values.val
+
+Arguments generator_preprocess_checked le
+### C.jet_secp_generator_preprocess.generator_preprocessed_temps
+generator_preprocessed_temps =
+fun le : Maps.PTree.tree Values.val =>
+@Maps.PTree.set Values.val jets_secp._np (Values.Vlong Integers.Int64.one)
+  (generator_preprocess_checked (@Maps.PTree.set Values.val jets_secp._np (Values.Vlong Integers.Int64.zero) le))
+     : forall _ : Maps.PTree.tree Values.val, Maps.PTree.tree Values.val
+
+Arguments generator_preprocessed_temps le
