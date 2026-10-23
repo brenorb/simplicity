@@ -793,8 +793,11 @@ remain open; this is not a public generate theorem or added coverage.
 All three modules passed normal compilation and reviewed no-update focused
 assumption/contract checks. The full point-stage theorem has the same eight
 inherited assumptions and no extra libc model. The independent recursive
-kernel check for this **three-module extension is still running**; do not
-treat the earlier loop-only receipt as checking these additional inputs.
+kernel check for this **three-module extension remains pending**: its run was
+interrupted (exit 130) after more than 22 minutes of CPU-progressing execution
+to prioritize independent public-jet acceptance. This is not a proof failure
+or a successful kernel check; do not treat the earlier loop-only receipt as
+checking these additional inputs.
 Reproduce its check with:
 
 ```sh
