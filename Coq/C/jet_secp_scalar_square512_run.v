@@ -8,6 +8,7 @@ Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec
 Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_scalar_mul512_run
   C.jet_secp_scalar_mul512_fresh C.jet_secp_symbolic_substitution.
 Require Import C.jet_sx_rename.
+Require Import C.jet_secp_u128_word_sx C.jet_secp_multiply_run_run.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -42,7 +43,49 @@ Definition scalar_square512_output_regs : list region :=
   [mkreg (u64_cells 0 scalar_square512_limbs) true (Some 64);
    mkreg (u64_cells 0 [XLv 0; XLv 1; XLv 2; XLv 3]) true (Some 32)].
 Lemma scalar_square512_output : sregs scalar_square512_state = scalar_square512_output_regs.
-Proof. Timeout 10 reflexivity. Qed.
+Proof.
+  (* Inspect the small register shape separately from the large expression
+     trees; compare each expression using the existing checked recognizer. *)
+  set (out := hd (mkreg [] false None) (sregs scalar_square512_state)).
+  set (limbs := map field_cell_value (rcells out)).
+  assert (Tail : tl (sregs scalar_square512_state) =
+    [mkreg (u64_cells 0 [XLv 0; XLv 1; XLv 2; XLv 3]) true (Some 32)]).
+  { Timeout 10 vm_compute; reflexivity. }
+  assert (Shape : rshape out = (field_u64_shapes 0 8,true,Some 64)).
+  { Timeout 10 vm_compute; reflexivity. }
+  assert (Defined : field_cells_defined (rcells out) = true).
+  { Timeout 10 vm_compute; reflexivity. }
+  assert (Rebuild : out = mkreg (u64_cells 0 limbs) true (Some 64)).
+  { unfold limbs; destruct out as [cs w f]; cbn [rshape rcells rw rfree] in Shape.
+    injection Shape as HC HW HF; subst w f.
+    assert (Len : length cs = 8%nat).
+    { apply (f_equal (@length (Z * memory_chunk))) in HC;
+      rewrite map_length in HC; exact HC. }
+    f_equal; cbn [rcells]; apply field_cells_rebuild;
+      [rewrite Len; exact HC|exact Defined]. }
+  assert (Len : length limbs = 8%nat).
+  { unfold limbs; rewrite map_length.
+    pose proof (f_equal (fun r => length (fst (fst r))) Shape) as L.
+    cbn [rshape fst] in L; rewrite map_length in L; exact L. }
+  assert (Equal : limbs = scalar_square512_limbs).
+  { apply nth_ext with (d:=XLv 0) (d':=XLv 0).
+    - unfold scalar_square512_limbs;
+      rewrite map_length, scalar_mul512_limbs_length; exact Len.
+    - intros i HI; rewrite Len in HI.
+      destruct i as [|[|[|[|[|[|[|[|i]]]]]]]]; try (exfalso; lia).
+      + apply sx_beq_true; timeout 10 (vm_compute; reflexivity).
+      + apply sx_beq_true; timeout 10 (vm_compute; reflexivity).
+      + apply sx_beq_true; timeout 10 (vm_compute; reflexivity).
+      + apply sx_beq_true; timeout 10 (vm_compute; reflexivity).
+      + apply sx_beq_true; timeout 10 (vm_compute; reflexivity).
+      + apply sx_beq_true; timeout 10 (vm_compute; reflexivity).
+      + apply sx_beq_true; timeout 10 (vm_compute; reflexivity).
+      + apply sx_beq_true; timeout 10 (vm_compute; reflexivity). }
+  assert (Nonempty : sregs scalar_square512_state = out :: tl (sregs scalar_square512_state)).
+  { unfold out; destruct (sregs scalar_square512_state);
+      [discriminate Tail|reflexivity]. }
+  rewrite Nonempty, Tail, Rebuild, Equal; reflexivity.
+Qed.
 
 Local Opaque scalar_square512_state scalar_mul512_state.
 Theorem eval_scalar_square512_fresh rho beta m :
