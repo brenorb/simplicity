@@ -612,6 +612,16 @@ it derives the digit, not the literal next state. Truncated final windows,
 the odd next-state equation and full-vector composition remain unfinished;
 there is no new public-jet coverage.
 
+`jet_secp_wnaf_literal_state.literal_wnaf_sub128_positive` discharges the
+literal signed-subtraction substep: when the mathematical result is in
+`[0, 2^128)`, the original port's output sign bit is zero and its payload is
+exactly that result. Both exported lemmas are closed and pass normal build,
+recursive kernel checking and focused no-update assumption/contract checks
+(same commands with `jet_secp_wnaf_literal_state`). Next combine this with
+the signed extension and shift of the emitted digit to establish the whole
+odd next-state equation, then handle the skipped positions and truncated
+windows before identifying the complete C array with the literal vector.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
