@@ -142,11 +142,21 @@ an external implementation or add a libc premise. This reuses the existing
 unsigned-shift proof structure and shared region/store lemmas. The complete
 batch execution, loop invariants and public inversion composition remain
 open, as does the ctz boundary above. This internal helper adds no jet coverage.
+
+`jet_secp_i128_shift62_numeric.eval_i128_shift62_exact` additionally connects
+that C execution to signed two-limb integer division by `2^62`, for every
+initial 128-bit pattern. It derives the output's numeric equality together
+with the actual call, exact output loads, permissions and framing, without
+assuming nonnegative inputs or an intermediate output. The arithmetic bridge
+reuses the existing checked signed-shift and signed/unsigned remainder lemmas;
+it does not prove or replace the mathematical specification of a public jet.
 Reproduce with the pinned dependencies:
 
 ```sh
 JET_TARGETS=C/jet_secp_i128_shift62_oracle.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_i128_shift62_oracle
+JET_TARGETS=C/jet_secp_i128_shift62_numeric.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_i128_shift62_numeric
 ```
 
 ## Reproduction and limits
