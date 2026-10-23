@@ -504,10 +504,10 @@ build, recursive kernel checking and reviewed no-update focused audits pass;
 reproduce with target/module `C/jet_secp_zinv_shared_preparation.vo` /
 `C.jet_secp_zinv_shared_preparation` as above.
 
-Next join the product prefix and this six-statement block, then the final
-S2 multiplication by local `az`, not `a->z`. Reuse the already-proved
-40-byte in-place `eval_field_pair_multiply`, rather than giving a 40-byte
-temporary a fictitious larger allocation or reproving multiplication.
+The final S2 multiplication uses local `az`, not `a->z`. Its proof reuses
+the already-proved 40-byte in-place `eval_field_pair_multiply`, rather than
+giving a 40-byte temporary a fictitious larger allocation or reproving
+multiplication.
 `jet_secp_zinv_s2.exec_zinv_s2_az_from_owned` now derives that actual final
 assignment using the existing multiplier. Its closed source lemma identifies
 the exact continuation. The result retains the actual `field_pair_product`
@@ -524,8 +524,32 @@ framing. A closed source lemma identifies the complete seven-statement
 continuation. Execution retains six inherited assumptions. Normal build,
 recursive kernel checking and reviewed no-update focused audits pass;
 reproduce with target/module `C/jet_secp_zinv_preparation.vo` /
-`C.jet_secp_zinv_preparation`. Its initial az/z12 fields still need to be
-discharged by the product-prefix composition, not assumed at a public endpoint.
+`C.jet_secp_zinv_preparation`. That internal boundary's initial az/z12 fields
+are discharged by the following product-prefix composition.
+
+`jet_secp_zinv_start.exec_zinv_start` now joins **all nine original finite-path
+preparation statements** from the caller inputs. It requires the represented
+input point, affine point and inverse-Z field plus ownership of six writable
+private fields, not any initialized temporary, expected output or helper
+execution. It derives all twelve field views, nine allocation permissions,
+six tight machine bounds and framing, with a closed exact-source continuation
+lemma. The registered definitions spell out every field/permission/bound in
+the reusable postcondition; no output is hidden as an extra premise.
+Execution retains six inherited assumptions. Normal build, recursive kernel
+checking and reviewed no-update focused audits pass:
+
+```sh
+JET_TARGETS=C/jet_secp_zinv_start.vo bash Coq/build-jets.sh -j1
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_zinv_start
+```
+
+Next reuse `exec_mixed_differences` for the following four original H/I
+statements: it accepts the derived arbitrary tight U1/U2/S1/S2 words directly.
+Prove their source identity after `zinv_after_s2_az`; do not replay the
+negate/add arithmetic. The nine-statement frame preserves fresh H/I ownership.
+For the later doubling branch, use the caller's square-input bounds on the
+**raw** X/Y/Z; do not replace raw coordinates with the normalized temporaries.
 Then discharge both flag
 branches, H/I tests, arithmetic suffix, allocations/frees and the caller's
 inverse-Z-one specialization. Do not assume these executions, normalize the
