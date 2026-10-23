@@ -1388,10 +1388,23 @@ so the initialized no=0 and denominator-one memory survive. The logical jet
 input scalar is not restricted by this fixed auxiliary zero scalar.
 Normal compilation and reviewed no-update focused snapshots pass; the five
 source/lookup exports are closed and execution retains six inherited
-assumptions, with no libc model. Independent recursive checking of this module
-and the readonly zero-scalar helper is the next integration check. Remaining
+assumptions, with no libc model. Independent recursive checking and no-update
+focused audits pass for this module and the readonly zero-scalar helper on
+`80a813b8`. Remaining
 before generator splitting: original zero-length ge_table_set_globalz call,
 the skipped auxiliary loop, and the caller setup/allocations.
+
+`jet_secp_generator_globalz_empty.eval_ge_table_set_globalz_empty` now derives
+the original zero-length helper call, including both real local allocations,
+the unsigned index underflow, false length guard, void result and both frees.
+It needs no readable/writable argument-array premise because the original
+zero-length branch never dereferences them. `Mem.unchanged_on True` preserves
+all old contents and permissions in both directions (new private blocks may
+have been allocated and freed). Normal compilation and reviewed no-update
+focused audits pass; source/block metadata is closed, and execution retains
+six inherited assumptions without a libc premise. Independent recursive
+checking is the next integration check; the public caller still needs its
+real state-field loads and linkage composed.
 
 `jet_secp_scalar_get_bits.eval_scalar_get_bits_slice` now derives the whole
 original single-word bit-reader call from concrete `scalar_at` storage for
