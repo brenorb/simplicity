@@ -1,0 +1,377 @@
+### C.jet_secp_modinv_normalize62_numeric.norm62_modulus_signed
+norm62_modulus_signed
+     : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq BinNums.Z (Integers.Int64.signed (jet_secp_modinfo_fe_copy.modinfo_fe_limb i))
+         match i return BinNums.Z with
+         | O =>
+             BinNums.Zneg
+               (BinNums.xI
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xI
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))))))))
+         | S n =>
+             match n return BinNums.Z with
+             | O => BinNums.Z0
+             | S n0 =>
+                 match n0 return BinNums.Z with
+                 | O => BinNums.Z0
+                 | S n1 =>
+                     match n1 return BinNums.Z with
+                     | O => BinNums.Z0
+                     | S n2 =>
+                         match n2 return BinNums.Z with
+                         | O =>
+                             BinNums.Zpos
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                         | S _ => BinNums.Z0
+                         end
+                     end
+                 end
+             end
+         end
+### C.jet_secp_modinv_normalize62_numeric.norm62_modulus_bound
+norm62_modulus_bound
+     : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       and
+         (BinInt.Z.le
+            (BinInt.Z.opp
+               (BinInt.Z.sub
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                  (BinNums.Zpos BinNums.xH))) (Integers.Int64.signed (jet_secp_modinfo_fe_copy.modinfo_fe_limb i)))
+         (BinInt.Z.le (Integers.Int64.signed (jet_secp_modinfo_fe_copy.modinfo_fe_limb i))
+            (BinInt.Z.sub
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               (BinNums.Zpos BinNums.xH)))
+### C.jet_secp_modinv_normalize62_numeric.norm62_first_signed
+norm62_first_signed
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (i : nat)
+         (_ : norm62_limb_bounds w) (_ : lt i (S (S (S (S (S O)))))),
+       @eq BinNums.Z (Integers.Int64.signed (norm62_first w sign i))
+         (BinInt.Z.mul
+            match Integers.Int64.lt sign Integers.Int64.zero return BinNums.Z with
+            | true => BinNums.Zneg BinNums.xH
+            | false => BinNums.Zpos BinNums.xH
+            end
+            (BinInt.Z.add (Integers.Int64.signed (w i))
+               match Integers.Int64.lt (w (S (S (S (S O))))) Integers.Int64.zero return BinNums.Z with
+               | true => Integers.Int64.signed (jet_secp_modinfo_fe_copy.modinfo_fe_limb i)
+               | false => BinNums.Z0
+               end))
+### C.jet_secp_modinv_normalize62_numeric.norm62_first_bound
+norm62_first_bound
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (_ : norm62_limb_bounds w)
+         (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       and
+         (BinInt.Z.le (BinInt.Z.add Integers.Int64.min_signed (BinNums.Zpos (BinNums.xO BinNums.xH)))
+            (Integers.Int64.signed (norm62_first w sign i)))
+         (BinInt.Z.le (Integers.Int64.signed (norm62_first w sign i))
+            (BinInt.Z.sub Integers.Int64.max_signed (BinNums.Zpos BinNums.xH)))
+### C.jet_secp_modinv_normalize62_numeric.norm62_first_value
+norm62_first_value
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (_ : norm62_limb_bounds w),
+       @eq BinNums.Z
+         (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+            (fun i : nat => Integers.Int64.signed (norm62_first w sign i)))
+         (BinInt.Z.mul
+            match Integers.Int64.lt sign Integers.Int64.zero return BinNums.Z with
+            | true => BinNums.Zneg BinNums.xH
+            | false => BinNums.Zpos BinNums.xH
+            end
+            (BinInt.Z.add
+               (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                  (fun i : nat => Integers.Int64.signed (w i)))
+               match Integers.Int64.lt (w (S (S (S (S O))))) Integers.Int64.zero return BinNums.Z with
+               | true => jet_secp_fe_math.feP
+               | false => BinNums.Z0
+               end))
+### C.jet_secp_modinv_normalize62_numeric.norm62_first_range
+norm62_first_range
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (_ : norm62_limb_bounds w)
+         (_ : and
+                (BinInt.Z.lt (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) jet_secp_fe_math.feP)
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))))
+                (BinInt.Z.lt
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))) jet_secp_fe_math.feP)),
+       and
+         (BinInt.Z.lt (BinInt.Z.opp jet_secp_fe_math.feP)
+            (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+               (fun i : nat => Integers.Int64.signed (norm62_first w sign i))))
+         (BinInt.Z.lt
+            (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+               (fun i : nat => Integers.Int64.signed (norm62_first w sign i))) jet_secp_fe_math.feP)
+### C.jet_secp_modinv_normalize62_numeric.norm62_unsigned_nonnegative
+norm62_unsigned_nonnegative
+     : forall (a : Integers.Int64.int) (_ : BinInt.Z.le BinNums.Z0 (Integers.Int64.signed a)),
+       @eq BinNums.Z (Integers.Int64.unsigned a) (Integers.Int64.signed a)
+### C.jet_secp_modinv_normalize62_numeric.norm62_canonical_from_value
+norm62_canonical_from_value
+     : forall (w : forall _ : nat, Integers.Int64.int)
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S O))))),
+              and (BinInt.Z.le BinNums.Z0 (Integers.Int64.signed (w i)))
+                (BinInt.Z.lt (Integers.Int64.signed (w i))
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and
+                (BinInt.Z.le BinNums.Z0
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))))
+                (BinInt.Z.lt
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))) jet_secp_fe_math.feP)),
+       and (jet_secp_signed62_numeric.signed62_normalized w)
+         (@eq BinNums.Z (jet_secp_signed62_numeric.signed62_unsigned_value w)
+            (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+               (fun i : nat => Integers.Int64.signed (w i))))
+### C.jet_secp_modinv_normalize62_numeric.norm62_top_range
+norm62_top_range
+     : forall (w : forall _ : nat, Integers.Int64.int)
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S O))))),
+              and (BinInt.Z.le BinNums.Z0 (Integers.Int64.signed (w i)))
+                (BinInt.Z.lt (Integers.Int64.signed (w i))
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and
+                (BinInt.Z.lt (BinInt.Z.opp jet_secp_fe_math.feP)
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))))
+                (BinInt.Z.lt
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))) jet_secp_fe_math.feP)),
+       and
+         (BinInt.Z.le
+            (BinNums.Zneg
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+            (Integers.Int64.signed (w (S (S (S (S O)))))))
+         (BinInt.Z.le (Integers.Int64.signed (w (S (S (S (S O))))))
+            (BinNums.Zpos
+               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_secp_modinv_normalize62_numeric.norm62_first_carried
+norm62_first_carried
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (_ : norm62_limb_bounds w)
+         (_ : and
+                (BinInt.Z.lt (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) jet_secp_fe_math.feP)
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))))
+                (BinInt.Z.lt
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))) jet_secp_fe_math.feP)),
+       and (norm62_carried (jet_secp_modinv_normalize62_exec.norm62_carry_words (norm62_first w sign)))
+         (and
+            (BinInt.Z.lt (BinInt.Z.opp jet_secp_fe_math.feP)
+               (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                  (fun i : nat =>
+                   Integers.Int64.signed (jet_secp_modinv_normalize62_exec.norm62_carry_words (norm62_first w sign) i))))
+            (BinInt.Z.lt
+               (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                  (fun i : nat =>
+                   Integers.Int64.signed (jet_secp_modinv_normalize62_exec.norm62_carry_words (norm62_first w sign) i)))
+               jet_secp_fe_math.feP))
+### C.jet_secp_modinv_normalize62_numeric.norm62_second_signed
+norm62_second_signed
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : norm62_carried w) (i : nat)
+         (_ : lt i (S (S (S (S (S O)))))),
+       @eq BinNums.Z
+         (Integers.Int64.signed
+            (jet_secp_modinv_normalize62_exec.norm62_add_words w jet_secp_modinfo_fe_copy.modinfo_fe_limb i))
+         (BinInt.Z.add (Integers.Int64.signed (w i))
+            match Integers.Int64.lt (w (S (S (S (S O))))) Integers.Int64.zero return BinNums.Z with
+            | true => Integers.Int64.signed (jet_secp_modinfo_fe_copy.modinfo_fe_limb i)
+            | false => BinNums.Z0
+            end)
+### C.jet_secp_modinv_normalize62_numeric.norm62_second_bound
+norm62_second_bound
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : norm62_carried w) (i : nat)
+         (_ : lt i (S (S (S (S (S O)))))),
+       and
+         (BinInt.Z.le (BinInt.Z.add Integers.Int64.min_signed (BinNums.Zpos (BinNums.xO BinNums.xH)))
+            (Integers.Int64.signed
+               (jet_secp_modinv_normalize62_exec.norm62_add_words w jet_secp_modinfo_fe_copy.modinfo_fe_limb i)))
+         (BinInt.Z.le
+            (Integers.Int64.signed
+               (jet_secp_modinv_normalize62_exec.norm62_add_words w jet_secp_modinfo_fe_copy.modinfo_fe_limb i))
+            (BinInt.Z.sub Integers.Int64.max_signed (BinNums.Zpos BinNums.xH)))
+### C.jet_secp_modinv_normalize62_numeric.norm62_second_value
+norm62_second_value
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : norm62_carried w),
+       @eq BinNums.Z
+         (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+            (fun i : nat =>
+             Integers.Int64.signed
+               (jet_secp_modinv_normalize62_exec.norm62_add_words w jet_secp_modinfo_fe_copy.modinfo_fe_limb i)))
+         (BinInt.Z.add
+            (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+               (fun i : nat => Integers.Int64.signed (w i)))
+            match Integers.Int64.lt (w (S (S (S (S O))))) Integers.Int64.zero return BinNums.Z with
+            | true => jet_secp_fe_math.feP
+            | false => BinNums.Z0
+            end)
+### C.jet_secp_modinv_normalize62_numeric.norm62_second_range
+norm62_second_range
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : norm62_carried w)
+         (_ : and
+                (BinInt.Z.lt (BinInt.Z.opp jet_secp_fe_math.feP)
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))))
+                (BinInt.Z.lt
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))) jet_secp_fe_math.feP)),
+       and
+         (BinInt.Z.le BinNums.Z0
+            (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+               (fun i : nat =>
+                Integers.Int64.signed
+                  (jet_secp_modinv_normalize62_exec.norm62_add_words w jet_secp_modinfo_fe_copy.modinfo_fe_limb i))))
+         (BinInt.Z.lt
+            (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+               (fun i : nat =>
+                Integers.Int64.signed
+                  (jet_secp_modinv_normalize62_exec.norm62_add_words w jet_secp_modinfo_fe_copy.modinfo_fe_limb i)))
+            jet_secp_fe_math.feP)
+### C.jet_secp_modinv_normalize62_numeric.norm62_field_machine_numeric
+norm62_field_machine_numeric
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (_ : norm62_limb_bounds w)
+         (_ : and
+                (BinInt.Z.lt (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) jet_secp_fe_math.feP)
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))))
+                (BinInt.Z.lt
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))) jet_secp_fe_math.feP)),
+       and
+         (jet_secp_signed62_numeric.signed62_normalized
+            (jet_secp_modinv_normalize62_exec.norm62_machine w jet_secp_modinfo_fe_copy.modinfo_fe_limb sign))
+         (@eq BinNums.Z
+            (jet_secp_signed62_numeric.signed62_unsigned_value
+               (jet_secp_modinv_normalize62_exec.norm62_machine w jet_secp_modinfo_fe_copy.modinfo_fe_limb sign))
+            (BinInt.Z.modulo
+               (BinInt.Z.mul
+                  match Integers.Int64.lt sign Integers.Int64.zero return BinNums.Z with
+                  | true => BinNums.Zneg BinNums.xH
+                  | false => BinNums.Zpos BinNums.xH
+                  end
+                  (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                     (fun i : nat => Integers.Int64.signed (w i)))) jet_secp_fe_math.feP))
+### C.jet_secp_modinv_normalize62_numeric.eval_field_norm62_numeric
+eval_field_norm62_numeric
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (m : Memory.Mem.mem)
+         (br : Values.block) (_ : norm62_limb_bounds w)
+         (_ : and
+                (BinInt.Z.lt (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) jet_secp_fe_math.feP)
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))))
+                (BinInt.Z.lt
+                   (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                      (fun i : nat => Integers.Int64.signed (w i))) jet_secp_fe_math.feP))
+         (_ : not (@eq Values.block br jet_secp_modinfo_fe_global.modinfo_fe_block))
+         (_ : jet_secp_fe_nv.fe_at m br BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable) (_ : jet_secp_modinfo_fe_global.modinfo_fe_global_rep m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_normalize_62)
+               (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vlong sign)
+                     (@cons Values.val (Values.Vptr jet_secp_modinfo_fe_global.modinfo_fe_block Integers.Ptrofs.zero)
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf br BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5
+                     (jet_secp_modinv_normalize62_exec.norm62_machine w jet_secp_modinfo_fe_copy.modinfo_fe_limb sign)))
+               (and
+                  (jet_secp_signed62_numeric.signed62_normalized
+                     (jet_secp_modinv_normalize62_exec.norm62_machine w jet_secp_modinfo_fe_copy.modinfo_fe_limb sign))
+                  (and
+                     (@eq BinNums.Z
+                        (jet_secp_signed62_numeric.signed62_unsigned_value
+                           (jet_secp_modinv_normalize62_exec.norm62_machine w jet_secp_modinfo_fe_copy.modinfo_fe_limb
+                              sign))
+                        (BinInt.Z.modulo
+                           (BinInt.Z.mul
+                              match Integers.Int64.lt sign Integers.Int64.zero return BinNums.Z with
+                              | true => BinNums.Zneg BinNums.xH
+                              | false => BinNums.Zpos BinNums.xH
+                              end
+                              (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+                                 (fun i : nat => Integers.Int64.signed (w i)))) jet_secp_fe_math.feP))
+                     (and
+                        (Memory.Mem.range_perm mf br BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and (jet_secp_modinfo_fe_global.modinfo_fe_global_rep mf)
+                           (jet_sx_mem.lframe
+                              (jet_secp_modinv_normalize62_exec.norm62_outside br
+                                 jet_secp_modinfo_fe_global.modinfo_fe_block) m mf)))))))
+### C.jet_secp_modinv_normalize62_numeric.norm62_limb_bounds
+norm62_limb_bounds =
+fun w : forall _ : nat, Integers.Int64.int =>
+forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+and
+  (BinInt.Z.le
+     (BinInt.Z.opp
+        (BinInt.Z.sub
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+           (BinNums.Zpos BinNums.xH))) (Integers.Int64.signed (w i)))
+  (BinInt.Z.le (Integers.Int64.signed (w i))
+     (BinInt.Z.sub
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+        (BinNums.Zpos BinNums.xH)))
+     : forall _ : forall _ : nat, Integers.Int64.int, Prop
+
+Arguments norm62_limb_bounds w%function_scope
+### C.jet_secp_modinv_normalize62_numeric.norm62_first
+norm62_first =
+fun (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) =>
+jet_secp_modinv_normalize62_exec.norm62_neg_words
+  (jet_secp_modinv_normalize62_exec.norm62_add_words w jet_secp_modinfo_fe_copy.modinfo_fe_limb) sign
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments norm62_first w%function_scope sign i%nat_scope
+### C.jet_secp_modinv_normalize62_numeric.norm62_carried
+norm62_carried =
+fun w : forall _ : nat, Integers.Int64.int =>
+and
+  (forall (i : nat) (_ : lt i (S (S (S (S O))))),
+   and (BinInt.Z.le BinNums.Z0 (Integers.Int64.signed (w i)))
+     (BinInt.Z.lt (Integers.Int64.signed (w i))
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+  (and
+     (BinInt.Z.le
+        (BinNums.Zneg
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        (Integers.Int64.signed (w (S (S (S (S O)))))))
+     (BinInt.Z.le (Integers.Int64.signed (w (S (S (S (S O))))))
+        (BinNums.Zpos
+           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, Prop
+
+Arguments norm62_carried w%function_scope

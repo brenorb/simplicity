@@ -86,8 +86,8 @@ the actual sparse field modulus's negative low limb.
 This C-level dependency compiles and passes recursive kernel checking with
 the same six inherited execution assumptions and no external-library model.
 Its symbolic-run, return, output-shape and word-denotation certificates are
-closed. It adds no registered jet: the signed numeric normalization bridge,
-modular-inverse batch/loop composition and ctz linkage are still required.
+closed. It adds no registered jet: modular-inverse batch/loop composition
+and ctz linkage are still required.
 It is not a proof about the mathematical correctness of a jet specification
 and does not repair or bypass the external-call boundary above.
 
@@ -99,13 +99,31 @@ retained private ownership, and preserves the complete
 the untouched inverse coefficient at +40. Startup readiness is the existing
 predicate established by `modinfo_fe_global_initializes`; neither an
 initialized result nor a helper execution is assumed. This is still a
-normalization dependency, not the public inverse jet. Reproduce:
+normalization dependency, not the public inverse jet.
+
+`jet_secp_modinv_normalize62_numeric.norm62_field_machine_numeric` now proves
+the numeric bridge for that exact machine-word result. For the helper's
+internal signed-limb bounds and an aggregate input in `(-2*p,p)`, it returns
+canonical nonnegative signed62 limbs whose value is `(sign*input) mod p`.
+Here `sign` is -1 for a negative C sign argument and +1 otherwise. The proof
+uses the actual sparse modulus, accounts for both conditional additions,
+conditional bitwise negation and both signed carry passes, and proves that
+the intermediate word additions do not overflow. Its numeric lemmas are
+closed; `eval_field_norm62_numeric` composes them with the original C call
+and retains ownership, all global metadata and byte-range framing, with the
+same six inherited execution assumptions and no libc premise.
+
+These are derived internal helper conditions, not new restrictions on
+public jet inputs. The inverse loop must establish them. Neither a public
+inversion equivalence nor additional jet coverage is claimed. Reproduce:
 
 ```sh
 JET_TARGETS=C/jet_secp_modinv_normalize62_exec.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_normalize62_exec
 JET_TARGETS=C/jet_secp_modinv_normalize62_global.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_normalize62_global
+JET_TARGETS=C/jet_secp_modinv_normalize62_numeric.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_normalize62_numeric
 ```
 
 ## Reproduction and limits

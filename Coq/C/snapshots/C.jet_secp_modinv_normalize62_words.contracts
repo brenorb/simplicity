@@ -1,0 +1,205 @@
+### C.jet_secp_modinv_normalize62_words.norm62_add_word_cases
+norm62_add_word_cases
+     : forall (w modulus : forall _ : nat, Integers.Int64.int) (i : nat),
+       @eq Integers.Int64.int (jet_secp_modinv_normalize62_exec.norm62_add_words w modulus i)
+         match Integers.Int64.lt (w (S (S (S (S O))))) Integers.Int64.zero return Integers.Int64.int with
+         | true => Integers.Int64.add (w i) (modulus i)
+         | false => w i
+         end
+### C.jet_secp_modinv_normalize62_words.norm62_signed_add
+norm62_signed_add
+     : forall (a b : Integers.Int64.int)
+         (_ : and
+                (BinInt.Z.le Integers.Int64.min_signed
+                   (BinInt.Z.add (Integers.Int64.signed a) (Integers.Int64.signed b)))
+                (BinInt.Z.le (BinInt.Z.add (Integers.Int64.signed a) (Integers.Int64.signed b))
+                   Integers.Int64.max_signed)),
+       @eq BinNums.Z (Integers.Int64.signed (Integers.Int64.add a b))
+         (BinInt.Z.add (Integers.Int64.signed a) (Integers.Int64.signed b))
+### C.jet_secp_modinv_normalize62_words.norm62_signed_neg
+norm62_signed_neg
+     : forall (a : Integers.Int64.int)
+         (_ : and (BinInt.Z.le Integers.Int64.min_signed (BinInt.Z.opp (Integers.Int64.signed a)))
+                (BinInt.Z.le (BinInt.Z.opp (Integers.Int64.signed a)) Integers.Int64.max_signed)),
+       @eq BinNums.Z (Integers.Int64.signed (Integers.Int64.neg a)) (BinInt.Z.opp (Integers.Int64.signed a))
+### C.jet_secp_modinv_normalize62_words.norm62_signed_shr
+norm62_signed_shr
+     : forall (a : Integers.Int64.int) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq BinNums.Z (Integers.Int64.signed (Integers.Int64.shr a (Integers.Int64.repr k)))
+         (BinInt.Z.div (Integers.Int64.signed a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_modinv_normalize62_words.norm62_unsigned_signed_mod
+norm62_unsigned_signed_mod
+     : forall a : Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.modulo (Integers.Int64.unsigned a)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (BinInt.Z.modulo (Integers.Int64.signed a)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_modinv_normalize62_words.norm62_mask_unsigned
+norm62_mask_unsigned
+     : forall a : Integers.Int64.int,
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (Integers.Int64.and a
+               (Integers.Int64.repr
+                  (BinInt.Z.sub
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                     (BinNums.Zpos BinNums.xH)))))
+         (BinInt.Z.modulo (Integers.Int64.signed a)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_modinv_normalize62_words.norm62_mask_signed
+norm62_mask_signed
+     : forall a : Integers.Int64.int,
+       @eq BinNums.Z
+         (Integers.Int64.signed
+            (Integers.Int64.and a
+               (Integers.Int64.repr
+                  (BinInt.Z.sub
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                     (BinNums.Zpos BinNums.xH)))))
+         (BinInt.Z.modulo (Integers.Int64.signed a)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_modinv_normalize62_words.norm62_neg_word_cases
+norm62_neg_word_cases
+     : forall (w : forall _ : nat, Integers.Int64.int) (sign : Integers.Int64.int) (i : nat),
+       @eq Integers.Int64.int (jet_secp_modinv_normalize62_exec.norm62_neg_words w sign i)
+         match Integers.Int64.lt sign Integers.Int64.zero return Integers.Int64.int with
+         | true => Integers.Int64.neg (w i)
+         | false => w i
+         end
+### C.jet_secp_modinv_normalize62_words.norm62_carry_z_value
+norm62_carry_z_value
+     : forall (n : nat) (w : forall _ : nat, BinNums.Z) (carry : BinNums.Z),
+       @eq BinNums.Z (norm62_value_z n (norm62_carry_z n w carry)) (BinInt.Z.add (norm62_value_z n w) carry)
+### C.jet_secp_modinv_normalize62_words.norm62_carry_z_low
+norm62_carry_z_low
+     : forall (n : nat) (w : forall _ : nat, BinNums.Z) (carry : BinNums.Z) (i : nat) (_ : lt i n),
+       and (BinInt.Z.le BinNums.Z0 (norm62_carry_z n w carry i))
+         (BinInt.Z.lt (norm62_carry_z n w carry i)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_modinv_normalize62_words.norm62_shr62_bounds
+norm62_shr62_bounds
+     : forall a : Integers.Int64.int,
+       and
+         (BinInt.Z.le (BinNums.Zneg (BinNums.xO BinNums.xH))
+            (Integers.Int64.signed
+               (Integers.Int64.shr a
+                  (Integers.Int64.repr
+                     (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (BinInt.Z.le
+            (Integers.Int64.signed
+               (Integers.Int64.shr a
+                  (Integers.Int64.repr
+                     (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+            (BinNums.Zpos BinNums.xH))
+### C.jet_secp_modinv_normalize62_words.norm62_signed_add_shr62
+norm62_signed_add_shr62
+     : forall (a b : Integers.Int64.int)
+         (_ : and
+                (BinInt.Z.le (BinInt.Z.add Integers.Int64.min_signed (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                   (Integers.Int64.signed a))
+                (BinInt.Z.le (Integers.Int64.signed a)
+                   (BinInt.Z.sub Integers.Int64.max_signed (BinNums.Zpos BinNums.xH)))),
+       @eq BinNums.Z
+         (Integers.Int64.signed
+            (Integers.Int64.add a
+               (Integers.Int64.shr b
+                  (Integers.Int64.repr
+                     (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (BinInt.Z.add (Integers.Int64.signed a)
+            (BinInt.Z.div (Integers.Int64.signed b)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_secp_modinv_normalize62_words.norm62_carry_words_signed
+norm62_carry_words_signed
+     : forall (w : forall _ : nat, Integers.Int64.int)
+         (_ : forall (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+              and
+                (BinInt.Z.le (BinInt.Z.add Integers.Int64.min_signed (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                   (Integers.Int64.signed (w j)))
+                (BinInt.Z.le (Integers.Int64.signed (w j))
+                   (BinInt.Z.sub Integers.Int64.max_signed (BinNums.Zpos BinNums.xH)))) (i : nat)
+         (_ : lt i (S (S (S (S (S O)))))),
+       @eq BinNums.Z (Integers.Int64.signed (jet_secp_modinv_normalize62_exec.norm62_carry_words w i))
+         (norm62_carry_z (S (S (S (S O)))) (fun j : nat => Integers.Int64.signed (w j)) BinNums.Z0 i)
+### C.jet_secp_modinv_normalize62_words.norm62_value_ext
+norm62_value_ext
+     : forall (n : nat) (w v : forall _ : nat, BinNums.Z)
+         (_ : forall (i : nat) (_ : le i n), @eq BinNums.Z (w i) (v i)),
+       @eq BinNums.Z (norm62_value_z n w) (norm62_value_z n v)
+### C.jet_secp_modinv_normalize62_words.norm62_carry_words_value
+norm62_carry_words_value
+     : forall (w : forall _ : nat, Integers.Int64.int)
+         (_ : forall (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+              and
+                (BinInt.Z.le (BinInt.Z.add Integers.Int64.min_signed (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                   (Integers.Int64.signed (w j)))
+                (BinInt.Z.le (Integers.Int64.signed (w j))
+                   (BinInt.Z.sub Integers.Int64.max_signed (BinNums.Zpos BinNums.xH)))),
+       @eq BinNums.Z
+         (norm62_value_z (S (S (S (S O))))
+            (fun i : nat => Integers.Int64.signed (jet_secp_modinv_normalize62_exec.norm62_carry_words w i)))
+         (norm62_value_z (S (S (S (S O)))) (fun i : nat => Integers.Int64.signed (w i)))
+### C.jet_secp_modinv_normalize62_words.norm62_carry_words_low
+norm62_carry_words_low
+     : forall (w : forall _ : nat, Integers.Int64.int)
+         (_ : forall (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+              and
+                (BinInt.Z.le (BinInt.Z.add Integers.Int64.min_signed (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                   (Integers.Int64.signed (w j)))
+                (BinInt.Z.le (Integers.Int64.signed (w j))
+                   (BinInt.Z.sub Integers.Int64.max_signed (BinNums.Zpos BinNums.xH)))) (i : nat)
+         (_ : lt i (S (S (S (S O))))),
+       and (BinInt.Z.le BinNums.Z0 (Integers.Int64.signed (jet_secp_modinv_normalize62_exec.norm62_carry_words w i)))
+         (BinInt.Z.lt (Integers.Int64.signed (jet_secp_modinv_normalize62_exec.norm62_carry_words w i))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_modinv_normalize62_words.norm62_value_z
+norm62_value_z =
+fix norm62_value_z (n : nat) (w : forall _ : nat, BinNums.Z) {struct n} : BinNums.Z :=
+  match n return BinNums.Z with
+  | O => w O
+  | S n0 =>
+      BinInt.Z.add (w O)
+        (BinInt.Z.mul
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+           (norm62_value_z n0 (fun i : nat => w (S i))))
+  end
+     : forall (_ : nat) (_ : forall _ : nat, BinNums.Z), BinNums.Z
+
+Arguments norm62_value_z n%nat_scope w%function_scope
+### C.jet_secp_modinv_normalize62_words.norm62_carry_z
+norm62_carry_z =
+fix norm62_carry_z (n : nat) (w : forall _ : nat, BinNums.Z) (carry : BinNums.Z) {struct n} :
+    forall _ : nat, BinNums.Z :=
+  match n return (forall _ : nat, BinNums.Z) with
+  | O => fun _ : nat => BinInt.Z.add (w O) carry
+  | S n0 =>
+      fun i : nat =>
+      match i return BinNums.Z with
+      | O =>
+          BinInt.Z.modulo (BinInt.Z.add (w O) carry)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+      | S i0 =>
+          norm62_carry_z n0 (fun j : nat => w (S j))
+            (BinInt.Z.div (BinInt.Z.add (w O) carry)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))) i0
+      end
+  end
+     : forall (_ : nat) (_ : forall _ : nat, BinNums.Z) (_ : BinNums.Z) (_ : nat), BinNums.Z
+
+Arguments norm62_carry_z n%nat_scope w%function_scope carry%Z_scope _%nat_scope
