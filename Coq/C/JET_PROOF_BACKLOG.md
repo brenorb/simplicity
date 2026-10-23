@@ -767,6 +767,41 @@ bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gen
 
 Next establish that loop contract from the actual caller and execute the
 initializer/final correction/public writer; do not rebuild the loop induction.
+
+`jet_secp_generator_digit_index` now derives the raw literal digit at each C
+array index, its exact integer value/load, valid signed range and absence
+above the actual returned length from the existing wNAF array theorem. It
+also proves the high-to-low pair-vector relation needed by step129 and
+transports the array invariant through framing. These are derived facts,
+not new digit/correctness assumptions on a public jet.
+
+`jet_secp_generator_final.exec_generator_final_one` derives the original final
+flag read and conditional in-place Z multiplication, for any integer flag.
+At represented denominator one its normalized Z is unchanged, with exact
+X/Y and flag preservation, ownership, bounds and framing.
+`jet_secp_generator_point_stage.exec_generator_point_stage` now composes the
+**entire original point stage**: the real infinity initializer, actual loop
+index initialization, descending loop and final correction. No initial
+point contents, incoming point flag or intermediate execution is assumed.
+The output is the canonical literal step129 applied to both actual literal
+wNAF vectors. Its remaining internal caller premises include represented
+wNAF producer results, actual length temporaries, no=0, the denominator-one
+field, readonly tables and fresh caller allocations. The earlier scalar/
+wNAF prefix, original external memset, function entry/frees and public writer
+remain open; this is not a public generate theorem or added coverage.
+
+All three modules passed normal compilation and reviewed no-update focused
+assumption/contract checks. The full point-stage theorem has the same eight
+inherited assumptions and no extra libc model. The independent recursive
+kernel check for this **three-module extension is still running**; do not
+treat the earlier loop-only receipt as checking these additional inputs.
+Reproduce its check with:
+
+```sh
+JET_TARGETS=C/jet_secp_generator_point_stage.vo bash Coq/build-jets.sh -j1
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_generator_point_stage
+```
 `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
 must establish that its initialized Z=1 persists; do not assume it.
