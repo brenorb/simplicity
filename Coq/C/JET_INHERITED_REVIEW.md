@@ -12,6 +12,94 @@ specification, representation predicate and precondition was independently
 compared with the canonical program. Compilation, stable snapshots and absence
 of admitted proofs do not supply that missing evidence.
 
+Current inventory note (`c6b4e14e`): the matrix's registration fields are
+reconciled against all 533 declarations: 513 counted local contracts (138
+libc-conditional), one restricted mismatch theorem and 19 declarations without
+a registered theorem. The restricted theorem remains a missing full-input
+contract. Historical counts below describe their original assessments, not
+current coverage. Reconciliation of 92 stale registration fields does not
+review or recertify those proofs; remaining reviews stay explicit. The ten
+constant contracts below are the only new local-review classifications here.
+
+## Core constant contracts reviewed at c6b4e14e
+
+Scope: every low/high declaration at widths 1, 8, 16, 32 and 64. This reviews
+ten existing checked implementation-to-specification chains, not ten new
+proofs or registrations. Their formal targets use unchanged `Simplicity.Word`
+programs, not merely integers selected to agree with native observations.
+
+`Haskell/Core/Simplicity/CoreJets.hs:471–480` dispatches LowN to `Prog.zero`
+and HighN to `Prog.high`. `Programs/Arith.hs:34` aliases zero to low;
+`Programs/Word.hs:35–47` defines low/high as fill false/true, with a bit base
+case and a paired recursive case. Original Coq `Word.zero` / `Word.fill`
+have those cases (`Coq/Simplicity/Word.v:283,342`). This Haskell comparison is
+source review, not a verified Haskell translation theorem. The complete
+C-to-Coq-program contracts themselves are formal proofs.
+
+All final theorem names below are in `C.jet_constant_layout`. The Coq Word
+depth is the logarithm of the bit width; low/high select `constant_spec`
+false/true. The C writer names are `simplicity_writeN` except for `writeBit`.
+
+| Public C function | Final theorem | Original Coq program | C writer argument |
+| --- | --- | --- | --- |
+| `simplicity_low_1` | `low1_local_spec` | `Word.zero (n:=0)` | `writeBit(dst, 0)` |
+| `simplicity_low_8` | `low8_local_spec` | `Word.zero (n:=3)` | `write8(dst, 0)` |
+| `simplicity_low_16` | `low16_local_spec` | `Word.zero (n:=4)` | `write16(dst, 0)` |
+| `simplicity_low_32` | `low32_local_spec` | `Word.zero (n:=5)` | `write32(dst, 0)` |
+| `simplicity_low_64` | `low64_local_spec` | `Word.zero (n:=6)` | `write64(dst, 0)` |
+| `simplicity_high_1` | `high1_local_spec` | `Word.fill (n:=0) Bit.true` | `writeBit(dst, 1)` |
+| `simplicity_high_8` | `high8_local_spec` | `Word.fill (n:=3) Bit.true` | `write8(dst, UINT8_MAX)` |
+| `simplicity_high_16` | `high16_local_spec` | `Word.fill (n:=4) Bit.true` | `write16(dst, UINT16_MAX)` |
+| `simplicity_high_32` | `high32_local_spec` | `Word.fill (n:=5) Bit.true` | `write32(dst, UINT32_MAX)` |
+| `simplicity_high_64` | `high64_local_spec` | `Word.fill (n:=6) Bit.true` | `write64(dst, UINT64_MAX)` |
+
+`C/jets.c:25–64` contains both bit bodies and all eight LOW_/HIGH_ macro
+instantiations. The shared formal chain reviewed for every row is:
+
+- `jet_constant.constant_jet` selects the original generated function;
+  `constant_body` checks its body by reflexivity, and symbol/function lemmas
+  bind the actual writer. `constant_cast` proves the generated C conversions:
+  UINT32_MAX extends unsigned to 4294967295 on the LP64 carrier, while the
+  64-bit all-ones value is represented modulo 2^64.
+- `eval_constant_writer` derives real bit/byte/wide calls from initial
+  `write_frame_at`, using the total writers and closed decode bridges to the
+  above programs. Crossing and non-crossing cases are included. Initial words
+  are arbitrary loaded `Vlong` values, not assumed zero. Helper execution and
+  desired output are not final theorem premises.
+- `eval_constant_layout_matches_spec` derives the fresh 16-byte local, source
+  frame byte copy, writer call and final freeing. Intermediate call/store
+  premises of the internal composition lemma are discharged here. Fresh-block
+  distinctness and Freeable permissions are derived, not caller assumptions.
+- `constant_local_spec` and all ten corollaries retain the entire
+  `jet_local_spec`: original C call returning true with E0, exact
+  `Translate.encode` output, prefix preservation, cursor minus the width, and
+  preservation of old valid-block loads outside the destination cursor and
+  output-word intervals. No success-only subcase or replacement writer is used.
+
+The input is Unit, encoded as an empty list; no input padding/value restriction
+is added. Input metadata still supports the actual by-value frame copy.
+Output capacity, initialized readable/writable words, representable cursor and
+address bounds, and metadata/data separation remain explicit. Disjoint
+subobjects of one block are allowed; no unconditional block disequality is
+added. These are initial representation contracts, not establishment of every
+real evaluator allocation or initialization path.
+
+At this main baseline, `write_frame_at` still excludes the final aligned word
+ending exclusively at max_unsigned + 1. The existing archived diagnostics and
+`proof-work/range/WORD-ENDPOINT-SUPPORT.md` preserve that evidence and the
+original bit-writer execution. The separate `codex/write-word-endpoint`
+candidate generalizes the predicates and derives complete constant-jet calls,
+but its focused check is not whole-consumer acceptance or integration. This
+domain obligation remains in all ten matrix rows. No wrong constant result or
+reachable Linux allocation bug is claimed by the abstract-memory witness.
+
+The main constant chain is included in completed 1,006-C-module validation of
+`1471be3d` (same audited inputs at documentation-only `c6b4e14e`): normal build,
+recursive kernel checking and no-update records. It retains six inherited
+assumptions without a libc premise. This supports the stated local contracts
+and scoped review, not fresh all-jet acceptance or closure of shared memory,
+caller-establishment and exhaustive canonical-fidelity obligations.
+
 ## Direct answer before further jet development
 
 The inherited correction is **partially complete**, not fully complete and not
