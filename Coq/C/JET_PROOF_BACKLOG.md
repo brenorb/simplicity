@@ -688,8 +688,20 @@ is added. Normal builds, recursive kernel checking and reviewed no-update
 focused audits passed for both modules. These are arithmetic bridges, not
 public jet execution proofs. The finite bridge uses only inherited functional
 extensionality; the infinite bridge is closed.
-Next compose the actual calls with these literal outputs and flag consistency,
-then prove the descending generator loop and public writer.
+`jet_secp_zinv_literal_call.eval_zinv_literal` now composes both complete
+original C calls with their literal coordinate bridges. It derives entry,
+all thirteen allocations/frees and return via the checked call proofs, and
+returns the exact actual branch flag as well as its agreement with output
+Z's literal zero test. The affine and inverse fields, ownership of all
+three caller allocations, output limb bounds and external framing are
+preserved. Its inverse-Z-one premise remains an internal caller obligation,
+not a public input restriction. `jet_secp_zinv_flag` proves the reusable
+finite flag/Z fact, closed, using the existing certified-prime theorem.
+Normal build, recursive kernel checking and reviewed no-update focused
+audits passed for `C/jet_secp_zinv_literal_call.vo` /
+`C.jet_secp_zinv_literal_call`. Execution has the same six inherited
+assumptions and no additional libc premise.
+Next prove the descending generator loop and public writer.
 `C/jets-secp256k1.c:simplicity_generate` calls ecmult with the
 constant infinity point and zero scalar, so the skipped non-generator loop
 must establish that its initialized Z=1 persists; do not assume it.
