@@ -52,7 +52,7 @@ Ltac bitlayout_stmt :=
 
 Lemma eval_writeBit_layout_raw m mo mf bf base bw edge cursor old bit :
   frame_base_valid base -> 1 <= cursor <= Int64.max_unsigned ->
-  0 <= edge -> write_word_address edge cursor + 8 <= Ptrofs.max_unsigned ->
+  0 <= edge -> write_word_address edge cursor + 8 <= Ptrofs.max_unsigned + 1 ->
   frame_fields_at m bf base bw edge cursor ->
   Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong old) ->
   Mem.store Mint64 m bf (base + 8) (Vlong (Int64.repr (cursor - 1))) = Some mo ->

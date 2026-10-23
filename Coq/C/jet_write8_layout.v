@@ -57,7 +57,7 @@ Ltac bytelayout_stmt :=
 Lemma eval_write8_layout_non_crossing_raw m mw mf bf base bw edge cursor old x :
   frame_base_valid base -> 8 <= cursor <= Int64.max_unsigned ->
   8 <= write_word_shift cursor ->
-  0 <= edge -> write_word_address edge cursor + 8 <= Ptrofs.max_unsigned ->
+  0 <= edge -> write_word_address edge cursor + 8 <= Ptrofs.max_unsigned + 1 ->
   frame_fields_at m bf base bw edge cursor ->
   Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong old) ->
   Mem.store Mint64 m bw (write_word_address edge cursor)
@@ -110,7 +110,7 @@ Lemma eval_write8_layout_crossing_raw m mh mo ml mf bf base bw edge cursor k old
   frame_base_valid base -> 8 <= cursor <= Int64.max_unsigned ->
   1 <= k <= 7 -> write_word_shift cursor = k ->
   0 <= edge -> 8 <= write_word_address edge cursor ->
-  write_word_address edge cursor + 8 <= Ptrofs.max_unsigned ->
+  write_word_address edge cursor + 8 <= Ptrofs.max_unsigned + 1 ->
   frame_fields_at m bf base bw edge cursor ->
   Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong oldhigh) ->
   Mem.store Mint64 m bw (write_word_address edge cursor)

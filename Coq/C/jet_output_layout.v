@@ -13,7 +13,7 @@ Definition write_frame_at (m : mem) (bf : block) (base : Z) (bw : block)
   Mem.valid_access m Mint64 bf (base + 8) Writable /\
   forall i, 0 <= i < count ->
     let addr := write_cell_address edge cursor i in
-    0 <= addr /\ addr + 8 <= Ptrofs.max_unsigned /\
+    0 <= addr /\ addr + 8 <= Ptrofs.max_unsigned + 1 /\
     (bf <> bw \/ addr + 8 <= base \/ base + 16 <= addr) /\
     Mem.valid_access m Mint64 bw addr Writable /\
     exists w, Mem.load Mint64 m bw addr = Some (Vlong w).
@@ -90,7 +90,7 @@ Qed.
 
 Lemma write_frame_at_head m bf base bw edge cursor count :
   0 < count -> write_frame_at m bf base bw edge cursor count ->
-  0 <= write_word_address edge cursor /\ write_word_address edge cursor + 8 <= Ptrofs.max_unsigned /\
+  0 <= write_word_address edge cursor /\ write_word_address edge cursor + 8 <= Ptrofs.max_unsigned + 1 /\
   Mem.valid_access m Mint64 bw (write_word_address edge cursor) Writable /\
   exists w, Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong w).
 Proof.
