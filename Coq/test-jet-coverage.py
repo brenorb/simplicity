@@ -36,9 +36,9 @@ def main():
     assert coverage.missing_equivalences([complete, mismatch]) == [mismatch]
     assert coverage.missing_equivalences([complete, absent, mismatch]) == [absent, mismatch]
     assert any(row["condition"] == "reported_mismatch" for row in coverage.missing_equivalences(rows))
-    # Computing Elements indexed hashes and both Elements
-    # taproot builders retain the explicit memcpy premise.
-    assert sum(row["condition"] == "memcpy_model" for row in rows) == 136
+    # Computing indexed hashes and the Elements taproot builders retain
+    # the explicit memcpy premise, including both Bitcoin value/script hashes.
+    assert sum(row["condition"] == "memcpy_model" for row in rows) == 138
     expected = {name for header in coverage.HEADERS.values()
                 for name in coverage.declarations((coverage.REPO / header).read_text())}
     assert {row["function"] for row in rows} == expected

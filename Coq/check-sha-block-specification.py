@@ -1116,6 +1116,119 @@ def bitcoin_composite_mutation_test(s):
     print('Two Bitcoin composite hash programs and four full C boundaries match;', len(mutations), 'mutations rejected')
 
 
+def bitcoin_indexed_value_hashes(s):
+    """Canonical optional-value branch, asserted script and original full C calls.
+    SHA leaves, primitive projections and the assertion leaf are checked by
+    the existing mandatory gates. memcpy remains an explicit condition.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def definition(name, expected):
+        if p.compact(p.definition(s['bitcoin_indexed_port'], name)) != p.compact(expected):
+            raise ValueError('Bitcoin indexed value hash definition differs: ' + name)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('Bitcoin indexed value hash binding differs: ' + lhs)
+
+    binding('sighash', 'ctx8Add8', 'ctx8Addn vector8')
+    binding('sighash', 'ctx8Add32', 'ctx8Addn vector32')
+    template = p.definition(s['bitcoin_indexed_port'], 'literal_bitcoin_value_script_hash')
+    prefix = '''let term := PF.CanonicalStructures.toAssertion alg in
+      let core := Alg.Assertion.toCore term in'''
+    if not p.compact(template).startswith(p.compact(prefix)):
+        raise ValueError('Bitcoin indexed value hash algebra differs')
+    template = replace(template, prefix, '')
+    aliases = [
+        ('@PF.Combinators.prim _ _ alg pv', 'valuePrim'),
+        ('@PF.Combinators.prim _ _ alg ph', 'scriptPrim'),
+        ('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+        ('@literal_ctx8_addn 3 term', 'ctx8Add8'),
+        ('@literal_ctx8_addn 5 term', 'ctx8Add32'),
+        ('@literal_ctx8_finalize term', 'ctx8Finalize'),
+        ('@literal_bitcoin_assert_iden (Word 8) term', 'assertScript'),
+        ('@AC.comp _ _ _ core', 'compNode'), ('@AC.pair _ _ _ core', 'pairNode'),
+        ('@AC.case _ _ _ _ core', 'caseNode'), ('@AC.injl _ _ _ core', 'injlNode'),
+        ('@AC.injr _ _ _ core', 'injrNode'), ('@AC.take _ _ _ core', 'takeNode'),
+        ('@AC.drop _ _ _ core', 'dropNode'), ('@AC.unit _ core', 'unit'), ('@AC.iden _ core', 'iden'),
+    ]
+    for old, new in aliases:
+        template = replace(template, old, new)
+    tree = explicit_core_tree(expression(template), {new for _, new in aliases if not new.endswith('Node')})
+    programs = s['sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    for tag, hs_name, stem, pv, ph, ph_route in [
+        ('OutputHash', 'outputHash', 'output', 'OutputValue', 'OutputScriptHash', 'Base Bitcoin'),
+        ('InputUtxoHash', 'inputUtxoHash', 'input_utxo', 'InputValue', 'InputScriptHash', 'Ext BitcoinExt'),
+    ]:
+        p.require(s['bitcoin_catalog'], tag + ' :: SigHashJet Word32 (S Word256)', 'Bitcoin indexed catalog type')
+        binding('bitcoin_catalog', 'specificationSigHash ' + tag, 'SigHash.' + hs_name)
+        binding('sighash_lib', hs_name, 'SigHash.' + hs_name + ' SigHash.lib')
+        selected = re.search(r'\b' + hs_name + r'\s*=(.*?)\n\s*[,}]', programs, re.S)
+        if not selected:
+            raise ValueError('missing canonical indexed value/script hash')
+        hs = selected[1]
+        for old, new in [('primitive ' + pv, 'valuePrim'), ('primitive ' + ph, 'scriptPrim'),
+                         ('(drop . assert $ iden)', 'drop assertScript')]:
+            hs = replace(hs, old, new)
+        if expression(hs) != tree:
+            raise ValueError('canonical indexed value/script hash Core tree differs: ' + stem)
+        program = 'literal_bitcoin_' + stem + '_hash'
+        definition(program, f'''@literal_bitcoin_value_script_hash
+          (BitcoinFull.Base Bitcoin.{pv}) (BitcoinFull.{ph_route}.{ph}) alg''')
+        for suffix, env, rep, alg in [
+            ('literal_local', 'ext_environment', stem + '_hash_rep', 'fullalg'),
+            ('raw_literal_local', 'raw_bitcoin_environment', '(raw_env_rep ' + stem + '_hash_rep)', 'raw_fullalg'),
+        ]:
+            statement = re.search(r'Theorem bitcoin_' + stem + '_hash_' + suffix + r'_spec\s*:(.*?)\bProof\.',
+                                  s['bitcoin_indexed_port'], re.S)
+            expected = f'''memcpy_model -> application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash sha_ge {env}
+              (Word 5) (Ty.Sum Ty.Unit (Word 8)) {rep}
+              (fun a environment => @{program} {alg} a environment).'''
+            if not statement or p.compact(statement[1]) != p.compact(expected):
+                raise ValueError('Bitcoin indexed value/script whole C contract differs: ' + stem)
+
+
+def bitcoin_indexed_value_mutation_test(s):
+    bitcoin_indexed_value_hashes(s)
+    mutations = [
+        ('sighash', 'ctx8Add8 = ctx8Addn vector8', 'ctx8Add8 = ctx8Addn vector4'),
+        ('sighash', 'ctx8Add32 = ctx8Addn vector32', 'ctx8Add32 = ctx8Addn vector16'),
+        ('bitcoin_indexed_port', '@literal_ctx8_addn 3 term', '@literal_ctx8_addn 2 term'),
+        ('bitcoin_indexed_port', '@literal_ctx8_addn 5 term', '@literal_ctx8_addn 6 term'),
+        ('bitcoin_indexed_port', '@literal_bitcoin_assert_iden (Word 8) term', '@assert_iden_spec (Word 8) term'),
+        ('bitcoin_indexed_port', '@AC.injl _ _ _ core (@AC.unit _ core)', '@AC.injr _ _ _ core (@AC.unit _ core)'),
+        ('bitcoin_indexed_port', '@AC.drop _ _ _ core', '@AC.take _ _ _ core'),
+    ]
+    for tag, hs_name, stem, pv in [('OutputHash', 'outputHash', 'output', 'OutputValue'),
+                                    ('InputUtxoHash', 'inputUtxoHash', 'input_utxo', 'InputValue')]:
+        mutations += [
+            ('bitcoin_catalog', f'specificationSigHash {tag} = SigHash.{hs_name}', f'specificationSigHash {tag} = SigHash.tappathHash'),
+            ('sighash_lib', f'{hs_name} = SigHash.{hs_name} SigHash.lib', f'{hs_name} = SigHash.tappathHash SigHash.lib'),
+            ('sighash', f'(primitive {pv} &&&', f'(primitive InputPrevOutpoint &&&'),
+            ('bitcoin_indexed_port', f'(BitcoinFull.Base Bitcoin.{pv})', '(BitcoinFull.Base Bitcoin.InputSequence)'),
+            ('bitcoin_indexed_port', f'Theorem bitcoin_{stem}_hash_literal_local_spec :', f'Theorem bitcoin_{stem}_hash_literal_local_spec : False ->'),
+            ('bitcoin_indexed_port', f'Theorem bitcoin_{stem}_hash_raw_literal_local_spec :', f'Theorem bitcoin_{stem}_hash_raw_literal_local_spec : False ->'),
+            ('bitcoin_indexed_port', f'@literal_bitcoin_{stem}_hash raw_fullalg', f'@literal_bitcoin_{stem}_hash fullalg'),
+        ]
+    mutations += [
+        ('bitcoin_indexed_port', 'memcpy_model ->', ''),
+        ('bitcoin_indexed_port', 'memcpy_model ->', 'different_library_model ->'),
+        ('sighash', '(drop . assert $ iden)', '(take . assert $ iden)'),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive Bitcoin indexed value hash mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            bitcoin_indexed_value_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('Bitcoin indexed value hash mutation escaped: ' + old)
+    print('Two Bitcoin indexed value/script hash programs and four conditional C boundaries match;', len(mutations), 'mutations rejected')
+
+
 def bitcoin_raw_hashes(s):
     """Keep raw interpretation, its represented-memory boundary and all seven
     complete C conclusions explicit. This does not prove caller cache creation.
@@ -3275,6 +3388,7 @@ def sources():
         "array_port": COQ / "C/jet_bitcoin_array_hash_literal.v",
         "value_port": COQ / "C/jet_bitcoin_value_hash_literal.v",
         "bitcoin_composite_port": COQ / "C/jet_bitcoin_composite_hash_literal.v",
+        "bitcoin_indexed_port": COQ / "C/jet_bitcoin_indexed_hash_literal.v",
         "base_primitive": COQ / "Simplicity/Primitive/Bitcoin.v",
         "full_primitive": COQ / "C/jet_bitcoin_full_prim.v",
         "raw_program": COQ / "C/jet_bitcoin_raw_program.v",
@@ -3363,6 +3477,7 @@ def test():
     bitcoin_array_hashes(s)
     bitcoin_raw_hashes(s)
     bitcoin_composite_mutation_test(s)
+    bitcoin_indexed_value_mutation_test(s)
     bitcoin_tap_environment(s)
     bitcoin_input_hashes(s)
     bitcoin_single_input_hash(s)

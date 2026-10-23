@@ -159,6 +159,12 @@ for stem, depth, offset in [
         f"Ty.Unit Word256 (raw_env_rep (hash_getter_rep (fun e => words_hash_of {depth} 5 ({stem}_of e)) 0 {offset} 432)) "
         f"(fun a environment => @literal_bitcoin_{stem}_hash raw_fullalg a environment).")
 
+for stem in ["output", "input_utxo"]:
+    RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (
+        f"memcpy_model -> application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash sha_ge raw_bitcoin_environment "
+        f"(Word 5) (Ty.Sum Ty.Unit (Word 8)) (raw_env_rep {stem}_hash_rep) "
+        f"(fun a environment => @literal_bitcoin_{stem}_hash raw_fullalg a environment).")
+
 for stem, offset in [("outputs", 80), ("input_utxos", 208)]:
     RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (
         f"application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge raw_bitcoin_environment "

@@ -2,18 +2,19 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 509/533 jets (373 without an extra libc
-premise; 136 conditional on `memcpy_model`). Accepted local-contract coverage is
+The local-contract registry contains 511/533 jets (373 without an extra libc
+premise; 138 conditional on `memcpy_model`). Accepted local-contract coverage is
 505/533, including the computing issuance hash, affine/projective curve,
 projective X-equivalence, doubling, mixed-addition, square-root and mixed
 equivalence and decompression endpoints. On `f1309893`, `JOBS=2 bash Coq/check-jets.sh --accept
 --jets=simplicity_gej_ge_equiv` passed: 442 kernel-checked modules, 381 assumption
 records, 396 contract records, all source/negative checks and all five ASTs.
 This is scoped acceptance, not a new whole-repository acceptance claim.
-The four Bitcoin value-array/composite hash registrations have normal compiled proofs
+The six Bitcoin value-array/composite/indexed hash registrations have normal compiled proofs
 and reviewed focused snapshots; their ordinary scoped acceptance is pending.
-They add no libc premise and do not change the frozen environment domain or
-establish the caches through their callers. They are not included in the
+Four add no libc premise; the indexed pair retains `memcpy_model`. None change
+the frozen environment domain or establish the caches through their callers.
+They are not included in the
 505/533 accepted count until that scoped check passes.
 On `e32e7638`, the complete decompression endpoint passed ordinary scoped
 acceptance: 416 kernel modules, 355 assumption records, 370 contract records,
