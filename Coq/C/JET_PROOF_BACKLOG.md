@@ -668,6 +668,19 @@ no-update assumption/contract comparisons pass; use the same commands with
 `jet_secp_wnaf_literal_window`. This remains a window-level theorem, not the
 whole-loop array/vector correspondence or public `generate` equivalence.
 
+`jet_secp_wnaf_literal_body.exec_wnaf_literal_nonzero_body` and
+`exec_wnaf_literal_zero_body` now retain the branch-exact data needed by that
+loop invariant while executing the complete original C body. The nonzero
+endpoint includes the dispatch reader, clamping, digit/store, counter update,
+exact new carry/last index, scalar preservation, memory effect and matching
+literal window; the zero endpoint retains unchanged memory/carry and a
+one-bit advance matching the literal zero step. Both endpoints retain six
+inherited assumptions, with no new libc model or execution premise. Normal
+build, recursive kernel checking and focused no-update assumption/contract
+comparisons pass; use the same commands with `jet_secp_wnaf_literal_body`.
+The next missing result is the additive array/vector loop invariant and its
+decreasing-fuel induction, not another proof of either body's C execution.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the

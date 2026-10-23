@@ -1,0 +1,231 @@
+### C.jet_secp_wnaf_literal_body.exec_wnaf_literal_nonzero_body
+exec_wnaf_literal_nonzero_body
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (n bit carry : BinNums.Z)
+         (b : Values.block) (base : BinNums.Z) (bs : Values.block) (last : BinNums.Z)
+         (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit)
+                (BinInt.Z.lt bit
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                      (BinNums.Zpos (BinNums.xO BinNums.xH))) carry))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+                (BinInt.Z.add (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit)) carry))
+         (_ : jet_secp_wnaf_control.wnaf_loop_fields le bit
+                (BinNums.Zpos
+                   (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))) carry (BinNums.Zpos BinNums.xH) b base
+                last)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))) (_ : not (@eq Values.block b bs))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.valid_access m AST.Mint32 b
+                (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                Memtype.Writable),
+       let width : BinNums.Z :=
+         BinInt.Z.min (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))
+           (BinInt.Z.sub
+              (BinNums.Zpos
+                 (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+              bit) in
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             @ex (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+               (fun next : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))) =>
+                @ex (Ty.tySem (Word.Word (S (S (S (S O))))))
+                  (fun digit : Ty.tySem (Word.Word (S (S (S (S O))))) =>
+                   and
+                     (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_wnaf_digit.wnaf_env bs) le m
+                        jet_secp_wnaf_digit.wnaf_loop_body Events.E0 lef mf ClightBigstep.Out_normal)
+                     (and
+                        (jet_secp_wnaf_control.wnaf_loop_fields lef (BinInt.Z.add bit width)
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                           (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))
+                           (jet_secp_wnaf_digit.wnaf_carry (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                              (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))
+                           (BinNums.Zpos BinNums.xH) b base bit)
+                        (and
+                           (@eq (option Memory.Mem.mem)
+                              (Memory.Mem.store AST.Mint32 m b
+                                 (BinInt.Z.add base
+                                    (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                                 (Values.Vint
+                                    (Integers.Int.repr (jet_secp_wnaf_literal_mask.literal_wnaf_signed16 digit))))
+                              (@Some Memory.Mem.mem mf))
+                           (and
+                              (jet_secp_scalar_get_b32_storage.scalar_at mf bs BinNums.Z0
+                                 (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                                    (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n)))
+                              (and (jet_secp_wnaf_loop.wnaf_memory_effect b m mf)
+                                 (and
+                                    (@eq
+                                       (prod (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_state)
+                                          (list (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit)))
+                                       (jet_secp_wnaf_literal.literal_wnaf_run (BinInt.Z.to_nat width)
+                                          (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S ...))))))))
+                                             (@inl unit unit tt) word))
+                                       (@pair (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S ...)))))))))
+                                          (list (sum unit (Ty.tySem (Word.Word (S (S (S (S O))))))))
+                                          (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S ...))))))))
+                                             (@inl unit unit tt) next)
+                                          (@app (sum unit (Ty.tySem (Word.Word (S (S (S (S O)))))))
+                                             (@List.repeat (sum unit (Ty.tySem (Word.Word (S (S (S (S O)))))))
+                                                (@inl unit (Ty.tySem (Word.Word (S (S (S (S O)))))) tt)
+                                                (BinInt.Z.to_nat (BinInt.Z.sub width (BinNums.Zpos BinNums.xH))))
+                                             (@cons (sum unit (Ty.tySem (Word.Word (S (S (S (S O)))))))
+                                                (@inr unit (Ty.tySem (Word.Word (S (S (S (S O)))))) digit)
+                                                (@nil (sum unit (Ty.tySem (Word.Word (S (S (S ...)))))))))))
+                                    (and
+                                       (@eq BinNums.Z (jet_secp_wnaf_literal_mask.literal_wnaf_signed16 digit)
+                                          (jet_secp_wnaf_digit.wnaf_digit
+                                             (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                             (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                                       (and
+                                          (@eq BinNums.Z
+                                             (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S ...))))))) next)
+                                             (BinInt.Z.add
+                                                (BinInt.Z.div n
+                                                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                                      (BinInt.Z.add bit width)))
+                                                (jet_secp_wnaf_digit.wnaf_carry
+                                                   (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                                          (or
+                                             (@eq BinNums.Z
+                                                (jet_secp_wnaf_digit.wnaf_carry
+                                                   (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))
+                                                BinNums.Z0)
+                                             (@eq BinNums.Z
+                                                (jet_secp_wnaf_digit.wnaf_carry
+                                                   (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))
+                                                (BinNums.Zpos BinNums.xH))))))))))))))
+### C.jet_secp_wnaf_literal_body.exec_wnaf_literal_zero_body
+exec_wnaf_literal_zero_body
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (n bit carry : BinNums.Z)
+         (b : Values.block) (base : BinNums.Z) (bs : Values.block) (last : BinNums.Z)
+         (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit)
+                (BinInt.Z.lt bit
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                   (BinNums.Zpos (BinNums.xO BinNums.xH))) carry)
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+                (BinInt.Z.add (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit)) carry))
+         (_ : jet_secp_wnaf_control.wnaf_loop_fields le bit
+                (BinNums.Zpos
+                   (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))) carry (BinNums.Zpos BinNums.xH) b base
+                last)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+            (fun next : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))) =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_wnaf_digit.wnaf_env bs) le m
+                  jet_secp_wnaf_digit.wnaf_loop_body Events.E0 lef m ClightBigstep.Out_continue)
+               (and
+                  (jet_secp_wnaf_control.wnaf_loop_fields lef (BinInt.Z.add bit (BinNums.Zpos BinNums.xH))
+                     (BinNums.Zpos
+                        (BinNums.xI
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                     (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))) carry
+                     (BinNums.Zpos BinNums.xH) b base last)
+                  (and
+                     (@eq
+                        (prod (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_state)
+                           (list (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit)))
+                        (jet_secp_wnaf_literal.literal_wnaf_run (S O)
+                           (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+                              (@inl unit unit tt) word))
+                        (@pair (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))))
+                           (list
+                              (sum unit
+                                 (prod
+                                    (prod
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit)))
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit))))
+                                    (prod
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit)))
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit)))))))
+                           (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+                              (@inl unit unit tt) next)
+                           (@cons
+                              (sum unit
+                                 (prod
+                                    (prod
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit)))
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit))))
+                                    (prod
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit)))
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit))))))
+                              (@inl unit
+                                 (prod
+                                    (prod
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit)))
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit))))
+                                    (prod
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit)))
+                                       (prod (prod (sum unit unit) (sum unit unit))
+                                          (prod (sum unit unit) (sum unit unit))))) tt)
+                              (@nil
+                                 (sum unit
+                                    (prod
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))))))))
+                     (@eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) next)
+                        (BinInt.Z.add
+                           (BinInt.Z.div n
+                              (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                 (BinInt.Z.add bit (BinNums.Zpos BinNums.xH)))) carry))))))
