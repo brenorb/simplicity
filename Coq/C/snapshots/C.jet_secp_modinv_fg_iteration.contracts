@@ -1,0 +1,780 @@
+### C.jet_secp_modinv_fg_iteration.fg_cf_low_store_source
+fg_cf_low_store_source
+     : @eq Clight.statement fg_cf_low_store
+         (Clight.Sassign (jet_secp_modinv_fg_index.fg_index jets_secp._f fg_previous_expr) fg_cf_mask_expr)
+### C.jet_secp_modinv_fg_iteration.fg_cf_call_run_eq
+fg_cf_call_run_eq
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_exec.res) (fg_cf_call_run k)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (fg_cf_call_state k) jet_sx_exec.ONormal))
+### C.jet_secp_modinv_fg_iteration.fg_cf_store_run_eq
+fg_cf_store_run_eq
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option (list jet_sx_state.region))
+         (jet_sx_state.xstore (jet_sx_eval.sregs (fg_cf_call_state k)) O
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinInt.Z.sub (BinInt.Z.of_nat k) (BinNums.Zpos BinNums.xH))) AST.Mint64 (fg_cf_low_term k))
+         (@Some (list jet_sx_state.region) (fg_cf_store_regs k))
+### C.jet_secp_modinv_fg_iteration.fg_cf_mask_run
+fg_cf_mask_run
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_expr.sx)
+         (jet_sx_eval.xexpr (Clight.genv_cenv jet_secp_linkage.secp_ge)
+            (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc)
+            (@nil (prod AST.ident (prod nat Ctypes.type))) (fg_cf_call_state k) fg_cf_mask_expr)
+         (@Some jet_sx_expr.sx (fg_cf_low_term k))
+### C.jet_secp_modinv_fg_iteration.fg_cf_call_index
+fg_cf_call_index
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._i (jet_sx_eval.stemps (fg_cf_call_state k)))
+         (@Some jet_sx_expr.sx (jet_sx_expr.XIc (Integers.Int.repr (BinInt.Z.of_nat k))))
+### C.jet_secp_modinv_fg_iteration.fg_cf_call_pointer
+fg_cf_call_pointer
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._f (jet_sx_eval.stemps (fg_cf_call_state k)))
+         (@Some jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0))
+### C.jet_secp_modinv_fg_iteration.fg_cf_call_region
+fg_cf_call_region
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_state.region)
+         (@List.nth_error jet_sx_state.region (jet_sx_eval.sregs (fg_cf_call_state k)) O)
+         (@Some jet_sx_state.region
+            (@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+               jet_secp_modinv_fg_prefix.fg_regs))
+### C.jet_secp_modinv_fg_iteration.fg_exec_done
+fg_exec_done
+     : forall (fuel : nat) (st : jet_sx_eval.sstate) (stmt : Clight.statement) (final : jet_sx_eval.sstate)
+         (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : @eq (option jet_sx_exec.res)
+                (jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge)
+                   (@nil (prod AST.ident (prod nat Ctypes.type))) jet_secp_modinv_fg_iteration_prefix.fg_fast_table
+                   fuel (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) st stmt)
+                (@Some jet_sx_exec.res (jet_sx_exec.RDone final jet_sx_exec.ONormal)))
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs st) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m stmt Events.E0 le' mf
+                  ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs final) mf)
+                  (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps final) le')
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (ofs : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot beta
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape (jet_sx_eval.sregs st)) b ofs)) m mf)))))
+### C.jet_secp_modinv_fg_iteration.fg_cg_low_store_source
+fg_cg_low_store_source
+     : @eq Clight.statement fg_cg_low_store
+         (Clight.Sassign (jet_secp_modinv_fg_index.fg_index jets_secp._g fg_previous_expr) fg_cg_mask_expr)
+### C.jet_secp_modinv_fg_iteration.fg_iteration_suffix_source
+fg_iteration_suffix_source
+     : @eq Clight.statement jet_secp_modinv_fg_iteration_prefix.fg_work_suffix
+         (Clight.Ssequence fg_cf_chunk (Clight.Ssequence fg_cf_shift (Clight.Ssequence fg_cg_chunk fg_cg_shift)))
+### C.jet_secp_modinv_fg_iteration.fg_cf_shift_run_eq
+fg_cf_shift_run_eq
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_exec.res) (fg_cf_shift_run k)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (fg_cf_shift_state k) jet_sx_exec.ONormal))
+### C.jet_secp_modinv_fg_iteration.fg_cg_call_run_eq
+fg_cg_call_run_eq
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_exec.res) (fg_cg_call_run k)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (fg_cg_call_state k) jet_sx_exec.ONormal))
+### C.jet_secp_modinv_fg_iteration.fg_cg_store_run_eq
+fg_cg_store_run_eq
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option (list jet_sx_state.region))
+         (jet_sx_state.xstore (jet_sx_eval.sregs (fg_cg_call_state k)) (S O)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinInt.Z.sub (BinInt.Z.of_nat k) (BinNums.Zpos BinNums.xH))) AST.Mint64 (fg_cg_low_term k))
+         (@Some (list jet_sx_state.region) (fg_cg_store_regs k))
+### C.jet_secp_modinv_fg_iteration.fg_cg_mask_run
+fg_cg_mask_run
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_expr.sx)
+         (jet_sx_eval.xexpr (Clight.genv_cenv jet_secp_linkage.secp_ge)
+            (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc)
+            (@nil (prod AST.ident (prod nat Ctypes.type))) (fg_cg_call_state k) fg_cg_mask_expr)
+         (@Some jet_sx_expr.sx (fg_cg_low_term k))
+### C.jet_secp_modinv_fg_iteration.fg_cg_call_index
+fg_cg_call_index
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._i (jet_sx_eval.stemps (fg_cg_call_state k)))
+         (@Some jet_sx_expr.sx (jet_sx_expr.XIc (Integers.Int.repr (BinInt.Z.of_nat k))))
+### C.jet_secp_modinv_fg_iteration.fg_cg_call_pointer
+fg_cg_call_pointer
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._g (jet_sx_eval.stemps (fg_cg_call_state k)))
+         (@Some jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0))
+### C.jet_secp_modinv_fg_iteration.fg_cg_call_region
+fg_cg_call_region
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_state.region)
+         (@List.nth_error jet_sx_state.region (jet_sx_eval.sregs (fg_cg_call_state k)) (S O))
+         (@Some jet_sx_state.region
+            (@List.nth jet_sx_state.region (S O) jet_secp_modinv_fg_prefix.fg_regs
+               (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))))
+### C.jet_secp_modinv_fg_iteration.fg_cg_shift_run_eq
+fg_cg_shift_run_eq
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_exec.res) (fg_cg_shift_run k)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (fg_iter_final_state k) jet_sx_exec.ONormal))
+### C.jet_secp_modinv_fg_iteration.exec_fg_cf_low_store
+exec_fg_cf_low_store
+     : forall (k : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : and (lt O k) (lt k (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs (fg_cf_call_state k)) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (fg_cf_call_state k)) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) e),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m fg_cf_low_store Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs (fg_cf_store_state k)) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape (jet_sx_eval.sregs (fg_cf_call_state k))) b ofs)) m mf)))
+### C.jet_secp_modinv_fg_iteration.exec_fg_cg_low_store
+exec_fg_cg_low_store
+     : forall (k : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : and (lt O k) (lt k (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs (fg_cg_call_state k)) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (fg_cg_call_state k)) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) e),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m fg_cg_low_store Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs (fg_cg_store_state k)) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape (jet_sx_eval.sregs (fg_cg_call_state k))) b ofs)) m mf)))
+### C.jet_secp_modinv_fg_iteration.fg_iteration_shapes
+fg_iteration_shapes
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       and
+         (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+               (jet_sx_eval.sregs (jet_secp_modinv_fg_iteration_prefix.fg_iter_prefix_state k)))
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+               jet_secp_modinv_fg_iteration_prefix.fg_iter_regs))
+         (and
+            (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+               (@List.map jet_sx_state.region
+                  (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                  (jet_sx_eval.sregs (fg_cf_call_state k)))
+               (@List.map jet_sx_state.region
+                  (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                  jet_secp_modinv_fg_iteration_prefix.fg_iter_regs))
+            (and
+               (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                  (@List.map jet_sx_state.region
+                     (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                     (jet_sx_eval.sregs (fg_cf_store_state k)))
+                  (@List.map jet_sx_state.region
+                     (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                     jet_secp_modinv_fg_iteration_prefix.fg_iter_regs))
+               (and
+                  (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                     (@List.map jet_sx_state.region
+                        (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                        jet_sx_state.rshape (jet_sx_eval.sregs (fg_cf_shift_state k)))
+                     (@List.map jet_sx_state.region
+                        (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                        jet_sx_state.rshape jet_secp_modinv_fg_iteration_prefix.fg_iter_regs))
+                  (and
+                     (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape (jet_sx_eval.sregs (fg_cg_call_state k)))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape jet_secp_modinv_fg_iteration_prefix.fg_iter_regs))
+                     (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape (jet_sx_eval.sregs (fg_cg_store_state k)))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape jet_secp_modinv_fg_iteration_prefix.fg_iter_regs))))))
+### C.jet_secp_modinv_fg_iteration.fg_cf_store_temps
+fg_cf_store_temps
+     : forall k : nat,
+       @eq (Maps.PTree.t jet_sx_expr.sx) (jet_sx_eval.stemps (fg_cf_store_state k))
+         (jet_sx_eval.stemps (fg_cf_call_state k))
+### C.jet_secp_modinv_fg_iteration.fg_cg_store_temps
+fg_cg_store_temps
+     : forall k : nat,
+       @eq (Maps.PTree.t jet_sx_expr.sx) (jet_sx_eval.stemps (fg_cg_store_state k))
+         (jet_sx_eval.stemps (fg_cg_call_state k))
+### C.jet_secp_modinv_fg_iteration.exec_fg_iteration
+exec_fg_iteration
+     : forall (k : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : and (lt O k) (lt k (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_fg_iteration_prefix.fg_iter_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps k) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) e),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_modinv_fg_index.fg_work
+                  Events.E0 lef mf ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs (fg_iter_final_state k)) mf)
+                  (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (fg_iter_final_state k)) lef)
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (ofs : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot beta
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape jet_secp_modinv_fg_iteration_prefix.fg_iter_regs) b ofs)) m mf)))))
+### C.jet_secp_modinv_fg_iteration.fg_cf_chunk
+fg_cf_chunk =
+@List.nth Clight.statement (S (S (S (S (S (S O))))))
+  (@fst (list Clight.statement) Clight.statement jet_secp_modinv_fg_iteration_prefix.fg_work_parts) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_modinv_fg_iteration.fg_cf_low_call
+fg_cf_low_call =
+match fg_cf_chunk return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence call _ => call
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_modinv_fg_iteration.fg_cf_low_store
+fg_cf_low_store =
+match fg_cf_chunk return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ store => store
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_modinv_fg_iteration.fg_previous_expr
+fg_previous_expr =
+Clight.Ebinop Cop.Osub (Clight.Etempvar jets_secp._i Ctypesdefs.tint)
+  (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_secp_modinv_fg_iteration.fg_cf_mask_expr
+fg_cf_mask_expr =
+Clight.Ebinop Cop.Oand (Clight.Etempvar jets_secp._t'3 Ctypesdefs.tulong)
+  (Clight.Etempvar jets_secp._M62 Ctypesdefs.tulong) Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_secp_modinv_fg_iteration.fg_cf_call_run
+fg_cf_call_run =
+fun k : nat =>
+jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_modinv_fg_iteration_prefix.fg_fast_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc)
+  (jet_secp_modinv_fg_iteration_prefix.fg_iter_prefix_state k) fg_cf_low_call
+     : forall _ : nat, option jet_sx_exec.res
+
+Arguments fg_cf_call_run k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cf_call_state
+fg_cf_call_state =
+fun k : nat =>
+match k return jet_sx_eval.sstate with
+| O => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+| S n =>
+    match n return jet_sx_eval.sstate with
+    | O =>
+        match fg_cf_call_run (S O) return jet_sx_eval.sstate with
+        | Some r =>
+            match r return jet_sx_eval.sstate with
+            | jet_sx_exec.RDone st _ => st
+            | jet_sx_exec.RIf _ _ _ =>
+                jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                  (@nil jet_sx_eval.event) O
+            end
+        | None =>
+            jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+        end
+    | S n0 =>
+        match n0 return jet_sx_eval.sstate with
+        | O =>
+            match fg_cf_call_run (S (S O)) return jet_sx_eval.sstate with
+            | Some r =>
+                match r return jet_sx_eval.sstate with
+                | jet_sx_exec.RDone st _ => st
+                | jet_sx_exec.RIf _ _ _ =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            | None =>
+                jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                  (@nil jet_sx_eval.event) O
+            end
+        | S n1 =>
+            match n1 return jet_sx_eval.sstate with
+            | O =>
+                match fg_cf_call_run (S (S (S O))) return jet_sx_eval.sstate with
+                | Some r =>
+                    match r return jet_sx_eval.sstate with
+                    | jet_sx_exec.RDone st _ => st
+                    | jet_sx_exec.RIf _ _ _ =>
+                        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                          (@nil jet_sx_eval.event) O
+                    end
+                | None =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            | S n2 =>
+                match n2 return jet_sx_eval.sstate with
+                | O =>
+                    match fg_cf_call_run (S (S (S (S O)))) return jet_sx_eval.sstate with
+                    | Some r =>
+                        match r return jet_sx_eval.sstate with
+                        | jet_sx_exec.RDone st _ => st
+                        | jet_sx_exec.RIf _ _ _ =>
+                            jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                              (@nil jet_sx_eval.event) O
+                        end
+                    | None =>
+                        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                          (@nil jet_sx_eval.event) O
+                    end
+                | S _ =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            end
+        end
+    end
+end
+     : forall _ : nat, jet_sx_eval.sstate
+
+Arguments fg_cf_call_state k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cf_low_term
+fg_cf_low_term =
+fun k : nat =>
+jet_sx_expr.XLb jet_sx_expr.Band
+  (@fst jet_sx_expr.sx jet_sx_expr.sx (jet_secp_modinv_fg_iteration_prefix.fg_iter_cf k))
+  (jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLc (Integers.Int64.repr (BinNums.Zneg BinNums.xH)))
+     (BinNums.Zpos (BinNums.xO BinNums.xH)))
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments fg_cf_low_term k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cf_store_regs
+fg_cf_store_regs =
+fun k : nat =>
+match
+  jet_sx_state.xstore (jet_sx_eval.sregs (fg_cf_call_state k)) O
+    (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+       (BinInt.Z.sub (BinInt.Z.of_nat k) (BinNums.Zpos BinNums.xH))) AST.Mint64 (fg_cf_low_term k)
+  return (list jet_sx_state.region)
+with
+| Some regs => regs
+| None => jet_sx_eval.sregs (fg_cf_call_state k)
+end
+     : forall _ : nat, list jet_sx_state.region
+
+Arguments fg_cf_store_regs k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cf_store_state
+fg_cf_store_state =
+fun k : nat =>
+jet_sx_eval.mkst (jet_sx_eval.stemps (fg_cf_call_state k)) (fg_cf_store_regs k) (jet_sx_eval.slog (fg_cf_call_state k))
+  (jet_sx_eval.snv (fg_cf_call_state k))
+     : forall _ : nat, jet_sx_eval.sstate
+
+Arguments fg_cf_store_state k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cf_shift
+fg_cf_shift =
+@List.nth Clight.statement (S (S (S (S (S (S (S O)))))))
+  (@fst (list Clight.statement) Clight.statement jet_secp_modinv_fg_iteration_prefix.fg_work_parts) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_modinv_fg_iteration.fg_cf_shift_run
+fg_cf_shift_run =
+fun k : nat =>
+jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_modinv_fg_iteration_prefix.fg_fast_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) (fg_cf_store_state k)
+  fg_cf_shift
+     : forall _ : nat, option jet_sx_exec.res
+
+Arguments fg_cf_shift_run k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cf_shift_state
+fg_cf_shift_state =
+fun k : nat =>
+match k return jet_sx_eval.sstate with
+| O => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+| S n =>
+    match n return jet_sx_eval.sstate with
+    | O =>
+        match fg_cf_shift_run (S O) return jet_sx_eval.sstate with
+        | Some r =>
+            match r return jet_sx_eval.sstate with
+            | jet_sx_exec.RDone st _ => st
+            | jet_sx_exec.RIf _ _ _ =>
+                jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                  (@nil jet_sx_eval.event) O
+            end
+        | None =>
+            jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+        end
+    | S n0 =>
+        match n0 return jet_sx_eval.sstate with
+        | O =>
+            match fg_cf_shift_run (S (S O)) return jet_sx_eval.sstate with
+            | Some r =>
+                match r return jet_sx_eval.sstate with
+                | jet_sx_exec.RDone st _ => st
+                | jet_sx_exec.RIf _ _ _ =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            | None =>
+                jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                  (@nil jet_sx_eval.event) O
+            end
+        | S n1 =>
+            match n1 return jet_sx_eval.sstate with
+            | O =>
+                match fg_cf_shift_run (S (S (S O))) return jet_sx_eval.sstate with
+                | Some r =>
+                    match r return jet_sx_eval.sstate with
+                    | jet_sx_exec.RDone st _ => st
+                    | jet_sx_exec.RIf _ _ _ =>
+                        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                          (@nil jet_sx_eval.event) O
+                    end
+                | None =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            | S n2 =>
+                match n2 return jet_sx_eval.sstate with
+                | O =>
+                    match fg_cf_shift_run (S (S (S (S O)))) return jet_sx_eval.sstate with
+                    | Some r =>
+                        match r return jet_sx_eval.sstate with
+                        | jet_sx_exec.RDone st _ => st
+                        | jet_sx_exec.RIf _ _ _ =>
+                            jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                              (@nil jet_sx_eval.event) O
+                        end
+                    | None =>
+                        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                          (@nil jet_sx_eval.event) O
+                    end
+                | S _ =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            end
+        end
+    end
+end
+     : forall _ : nat, jet_sx_eval.sstate
+
+Arguments fg_cf_shift_state k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cg_chunk
+fg_cg_chunk =
+@List.nth Clight.statement (S (S (S (S (S (S (S (S O))))))))
+  (@fst (list Clight.statement) Clight.statement jet_secp_modinv_fg_iteration_prefix.fg_work_parts) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_modinv_fg_iteration.fg_cg_low_call
+fg_cg_low_call =
+match fg_cg_chunk return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence call _ => call
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_modinv_fg_iteration.fg_cg_low_store
+fg_cg_low_store =
+match fg_cg_chunk return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ store => store
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_modinv_fg_iteration.fg_cg_mask_expr
+fg_cg_mask_expr =
+Clight.Ebinop Cop.Oand (Clight.Etempvar jets_secp._t'4 Ctypesdefs.tulong)
+  (Clight.Etempvar jets_secp._M62 Ctypesdefs.tulong) Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_secp_modinv_fg_iteration.fg_cg_call_run
+fg_cg_call_run =
+fun k : nat =>
+jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_modinv_fg_iteration_prefix.fg_fast_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) (fg_cf_shift_state k)
+  fg_cg_low_call
+     : forall _ : nat, option jet_sx_exec.res
+
+Arguments fg_cg_call_run k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cg_call_state
+fg_cg_call_state =
+fun k : nat =>
+match k return jet_sx_eval.sstate with
+| O => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+| S n =>
+    match n return jet_sx_eval.sstate with
+    | O =>
+        match fg_cg_call_run (S O) return jet_sx_eval.sstate with
+        | Some r =>
+            match r return jet_sx_eval.sstate with
+            | jet_sx_exec.RDone st _ => st
+            | jet_sx_exec.RIf _ _ _ =>
+                jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                  (@nil jet_sx_eval.event) O
+            end
+        | None =>
+            jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+        end
+    | S n0 =>
+        match n0 return jet_sx_eval.sstate with
+        | O =>
+            match fg_cg_call_run (S (S O)) return jet_sx_eval.sstate with
+            | Some r =>
+                match r return jet_sx_eval.sstate with
+                | jet_sx_exec.RDone st _ => st
+                | jet_sx_exec.RIf _ _ _ =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            | None =>
+                jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                  (@nil jet_sx_eval.event) O
+            end
+        | S n1 =>
+            match n1 return jet_sx_eval.sstate with
+            | O =>
+                match fg_cg_call_run (S (S (S O))) return jet_sx_eval.sstate with
+                | Some r =>
+                    match r return jet_sx_eval.sstate with
+                    | jet_sx_exec.RDone st _ => st
+                    | jet_sx_exec.RIf _ _ _ =>
+                        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                          (@nil jet_sx_eval.event) O
+                    end
+                | None =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            | S n2 =>
+                match n2 return jet_sx_eval.sstate with
+                | O =>
+                    match fg_cg_call_run (S (S (S (S O)))) return jet_sx_eval.sstate with
+                    | Some r =>
+                        match r return jet_sx_eval.sstate with
+                        | jet_sx_exec.RDone st _ => st
+                        | jet_sx_exec.RIf _ _ _ =>
+                            jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                              (@nil jet_sx_eval.event) O
+                        end
+                    | None =>
+                        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                          (@nil jet_sx_eval.event) O
+                    end
+                | S _ =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            end
+        end
+    end
+end
+     : forall _ : nat, jet_sx_eval.sstate
+
+Arguments fg_cg_call_state k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cg_low_term
+fg_cg_low_term =
+fun k : nat =>
+jet_sx_expr.XLb jet_sx_expr.Band
+  (@fst jet_sx_expr.sx jet_sx_expr.sx (jet_secp_modinv_fg_iteration_prefix.fg_iter_cg k))
+  (jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLc (Integers.Int64.repr (BinNums.Zneg BinNums.xH)))
+     (BinNums.Zpos (BinNums.xO BinNums.xH)))
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments fg_cg_low_term k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cg_store_regs
+fg_cg_store_regs =
+fun k : nat =>
+match
+  jet_sx_state.xstore (jet_sx_eval.sregs (fg_cg_call_state k)) (S O)
+    (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+       (BinInt.Z.sub (BinInt.Z.of_nat k) (BinNums.Zpos BinNums.xH))) AST.Mint64 (fg_cg_low_term k)
+  return (list jet_sx_state.region)
+with
+| Some regs => regs
+| None => jet_sx_eval.sregs (fg_cg_call_state k)
+end
+     : forall _ : nat, list jet_sx_state.region
+
+Arguments fg_cg_store_regs k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cg_store_state
+fg_cg_store_state =
+fun k : nat =>
+jet_sx_eval.mkst (jet_sx_eval.stemps (fg_cg_call_state k)) (fg_cg_store_regs k) (jet_sx_eval.slog (fg_cg_call_state k))
+  (jet_sx_eval.snv (fg_cg_call_state k))
+     : forall _ : nat, jet_sx_eval.sstate
+
+Arguments fg_cg_store_state k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_cg_shift
+fg_cg_shift =
+@snd (list Clight.statement) Clight.statement jet_secp_modinv_fg_iteration_prefix.fg_work_parts
+     : Clight.statement
+### C.jet_secp_modinv_fg_iteration.fg_cg_shift_run
+fg_cg_shift_run =
+fun k : nat =>
+jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_modinv_fg_iteration_prefix.fg_fast_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) (fg_cg_store_state k)
+  fg_cg_shift
+     : forall _ : nat, option jet_sx_exec.res
+
+Arguments fg_cg_shift_run k%nat_scope
+### C.jet_secp_modinv_fg_iteration.fg_iter_final_state
+fg_iter_final_state =
+fun k : nat =>
+match k return jet_sx_eval.sstate with
+| O => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+| S n =>
+    match n return jet_sx_eval.sstate with
+    | O =>
+        match fg_cg_shift_run (S O) return jet_sx_eval.sstate with
+        | Some r =>
+            match r return jet_sx_eval.sstate with
+            | jet_sx_exec.RDone st _ => st
+            | jet_sx_exec.RIf _ _ _ =>
+                jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                  (@nil jet_sx_eval.event) O
+            end
+        | None =>
+            jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+        end
+    | S n0 =>
+        match n0 return jet_sx_eval.sstate with
+        | O =>
+            match fg_cg_shift_run (S (S O)) return jet_sx_eval.sstate with
+            | Some r =>
+                match r return jet_sx_eval.sstate with
+                | jet_sx_exec.RDone st _ => st
+                | jet_sx_exec.RIf _ _ _ =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            | None =>
+                jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                  (@nil jet_sx_eval.event) O
+            end
+        | S n1 =>
+            match n1 return jet_sx_eval.sstate with
+            | O =>
+                match fg_cg_shift_run (S (S (S O))) return jet_sx_eval.sstate with
+                | Some r =>
+                    match r return jet_sx_eval.sstate with
+                    | jet_sx_exec.RDone st _ => st
+                    | jet_sx_exec.RIf _ _ _ =>
+                        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                          (@nil jet_sx_eval.event) O
+                    end
+                | None =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            | S n2 =>
+                match n2 return jet_sx_eval.sstate with
+                | O =>
+                    match fg_cg_shift_run (S (S (S (S O)))) return jet_sx_eval.sstate with
+                    | Some r =>
+                        match r return jet_sx_eval.sstate with
+                        | jet_sx_exec.RDone st _ => st
+                        | jet_sx_exec.RIf _ _ _ =>
+                            jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                              (@nil jet_sx_eval.event) O
+                        end
+                    | None =>
+                        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                          (@nil jet_sx_eval.event) O
+                    end
+                | S _ =>
+                    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region)
+                      (@nil jet_sx_eval.event) O
+                end
+            end
+        end
+    end
+end
+     : forall _ : nat, jet_sx_eval.sstate
+
+Arguments fg_iter_final_state k%nat_scope

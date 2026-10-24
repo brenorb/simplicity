@@ -257,11 +257,30 @@ The checked source split retains the actual masked stores and shifts as the
 remaining suffix. Full-loop induction, its numeric invariant and caller
 composition remain open. This result adds no public jet coverage.
 
+`jet_secp_modinv_fg_iteration.exec_fg_iteration` then completes the original
+loop body: it derives both computed-index masked stores and both signed
+accumulator shifts, as well as the preceding loads/accumulations, at all four
+valid nonzero limb indices. Its postcondition retains exact symbolic output
+regions, temporary matching and byte-range framing. The store adapter derives
+permissions and actual `Mem.store` effects from represented initial storage;
+no store, helper execution or output is assumed by the body theorem.
+
+The proof-side stage states distinguish indices 1 through 4 before computing
+the actual calls. Each case is checked against the original statement run;
+this keeps symbolic-index conversion from expanding a large interpreter term.
+It is not a different C body or an excluded valid loop index. All proofs close
+under the ordinary ten-second command limit. This is a complete **body**
+execution theorem, not a complete loop, inverse helper or public jet proof.
+The loop's numeric invariant, final stores, entry/freeing and full caller
+composition are still open; no public coverage increment is claimed.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
 JET_TARGETS=C/jet_secp_modinv_fg_iteration_prefix.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_iteration_prefix
+JET_TARGETS=C/jet_secp_modinv_fg_iteration.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_iteration
 ```
 
 ## Reproduction and limits
