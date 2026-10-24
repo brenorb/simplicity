@@ -523,6 +523,24 @@ with the full caller invariant, and whole-loop termination, final
 normalization/copy-back and return/freeing remain required. No external
 model is added and no public jet coverage is claimed.
 
+`jet_secp_modinv_var_de.exec_inv_de_caller` connects the already proved
+coefficient update to its actual `Scall` in the original inverse loop. Its
+argument evaluation and helper layout are derived from the seven-region
+caller representation and the caller's actual local environment. After the
+call, all seven regions remain represented: the updated `d` and `e`, the
+unchanged transition matrix and modulus metadata, and the untouched input,
+`f` and `g`. The coefficient state bounds and both exact scaled-value and
+modular relations come from the checked helper execution, not assumed
+postconditions. The current module uses the six inherited execution
+assumptions and adds no external-library model.
+
+The row and coefficient bounds are internal preconditions still to be
+established by the complete caller invariant and divstep execution. This
+does not prove the preceding divstep call, the subsequent `f`/`g` update in
+the caller, whole-loop termination, final normalization/copy-back or the
+inverse return/freeing. It adds no public jet coverage and does not resolve
+the separately documented external-semantics boundary.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -566,6 +584,8 @@ JET_TARGETS=C/jet_secp_modinv_var_shorten.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_shorten
 JET_TARGETS=C/jet_secp_modinv_var_post.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_post
+JET_TARGETS=C/jet_secp_modinv_var_de.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_de
 ```
 
 ## Reproduction and limits
