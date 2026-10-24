@@ -2103,9 +2103,15 @@ read-only generator tables, conditional only on the original zeroing steps.
 the whole original Strauss call: actual entry/preparation, table readiness
 through that prefix, the guarded scalar branch, both wNAF calls, complete point
 stage and all nine local frees, against the complete literal `generate` tree.
-Next compose the enclosing ecmult allocations/state setup and public
-read/write/caller path, including the initialized-state lifecycle required by
-that public contract. Do not redo the digit or point loops or assume the
+`jet_secp_ecmult_generator.eval_ecmult_generator` now composes the enclosing
+ecmult call, including four actual local allocations, all state stores and
+all four frees, retaining the exact literal result and initial read-only
+globals. `jet_secp_generator_startup` establishes and transports the actual
+zero auxiliary scalar and both generator tables from program initialization.
+Next compose the public source-frame copy, scalar reader, this ecmult call,
+point writer, return and three public local frees, including the initialized
+state lifecycle required by that public contract. Do not redo the ecmult
+wrapper, digit or point loops or assume the
 table/specification correspondence. External memset remains deferred; no
 public `generate` coverage increase is claimed. The exact current conditional
 boundary and reproducible checks are recorded in

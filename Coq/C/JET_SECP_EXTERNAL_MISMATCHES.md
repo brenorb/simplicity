@@ -416,8 +416,9 @@ The only assumed executions are the exact original `memset` statements with
 their zero loads and memory effects on valid owned destinations. No wNAF,
 split, table lookup, point-loop iteration or helper return is assumed. This
 remains conditional internal progress: the enclosing `secp256k1_ecmult`
-allocations/state setup and public `simplicity_generate` reader/writer/caller
-composition are not proved by these modules; zeroing remains deferred.
+allocations/state setup are composed by the subsequent result below; public
+`simplicity_generate` reader/writer/caller composition and zeroing remain
+outstanding.
 No public jet is registered, and coverage stays 514/533. Reproduce the build
 and recursive kernel check with the commands below using
 `C/jet_secp_generator_function.vo` / `C.jet_secp_generator_function`.
@@ -427,6 +428,30 @@ the eight assumptions already recorded for `exec_generator_point_stage` /
 inline-assembly properties. They are not six-assumption results like the
 wNAF-only endpoints. The strengthened initialization/entry proofs add no
 assumptions to their existing sets; no new axiom or library model is declared.
+
+`jet_secp_ecmult_generator.eval_ecmult_generator` further composes the actual
+enclosing `secp256k1_ecmult` call on this path: its four allocations (320,
+704, 1040 and 24 bytes), three pointer stores into the Strauss state, original
+Strauss call, void return and all four local frees. It derives the same
+literal point, bounds, infinity flag, retained scalar/output ownership and
+old-memory framing. No point representation is required for the unused
+auxiliary point when the actual static auxiliary scalar is zero.
+It reuses the existing `jet_secp_ecmult_entry` and `jet_secp_ecmult_state`
+proofs of those layouts and stores against the existing AST, rather than a
+second setup proof. `jet_secp_generator_startup` establishes the actual zero
+scalar and both read-only generator tables from `Genv.init_mem`, and transports that state
+through allocation, stores, calls and frees. In particular, startup readiness
+is retained by the enclosing ecmult call rather than assumed afterward.
+
+This result is still conditional on exactly the original wNAF `memset` steps,
+with their zero loads and memory effects, and inherits the same eight
+assumptions as the Strauss result. It neither introduces a replacement
+external-call model nor changes the C, AST or specification. The remaining
+public composition is source-frame copy, scalar reader, this ecmult call,
+point writer, return and local frees on arbitrary valid evaluator frames,
+including preservation of startup state. Coverage remains 514/533. Reproduce
+the normal build and recursive kernel check with the same commands using
+`C/jet_secp_ecmult_generator.vo` / `C.jet_secp_ecmult_generator`.
 
 ## Internal normalization dependency
 
