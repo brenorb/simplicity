@@ -356,6 +356,19 @@ modulus limbs; it changes no generated C/AST, assertion setting or external
 semantics. Both the branch checker and this actual helper call are proof
 dependencies, not new public jet coverage.
 
+`jet_secp_modinv_de_correction_numeric.exec_de62_correction_values` connects
+the original coefficient-update prefix to its arithmetic meaning. From
+represented arrays and the internal divstep matrix-row bounds it derives
+the actual `_md`/`_me` temporary values, their signed-64 representability,
+and divisibility of both corrected low accumulators by `2^62`. The prefix
+includes the original signed products, accumulations, low-word accessors
+and correction assignments; no intermediate execution or output is assumed.
+The proof uses the actual negative low field-modulus limb `-4294968273`
+and the original inverse metadata. This closes the low-word correction
+step, not the five-limb coefficient value/range invariant or the complete
+public inversion jet. Those obligations and the caller's divstep bounds
+remain; no coverage entry is added.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -377,6 +390,8 @@ JET_TARGETS=C/jet_secp_modinv_fg_call.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_multiply_call_lifecycle C.jet_secp_modinv_fg_call
 JET_TARGETS=C/jet_secp_modinv_de_exec.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_known C.jet_secp_modinv_de_exec
+JET_TARGETS=C/jet_secp_modinv_de_correction_numeric.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_correction C.jet_secp_modinv_de_correction_numeric
 ```
 
 ## Reproduction and limits
