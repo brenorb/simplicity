@@ -1,0 +1,818 @@
+### C.jet_secp_modinv_var_shorten.inv_word_sign_test_zero
+inv_word_sign_test_zero
+     : forall a : Integers.Int64.int,
+       iff (@eq Integers.Int64.int (inv_word_sign_test a) Integers.Int64.zero) (inv_sign_word a)
+### C.jet_secp_modinv_var_shorten.inv_len_sign_value
+inv_len_sign_value
+     : forall (len : nat) (_ : and (lt O len) (le len (S (S (S (S (S O))))))),
+       @eq Integers.Int64.int (inv_len_sign len)
+         match PeanoNat.Nat.leb (S (S O)) len return Integers.Int64.int with
+         | true => Integers.Int64.zero
+         | false => Integers.Int64.mone
+         end
+### C.jet_secp_modinv_var_shorten.inv_shorten_guard_correct
+inv_shorten_guard_correct
+     : forall (len : nat) (f g : Integers.Int64.int) (_ : and (lt O len) (le len (S (S (S (S (S O))))))),
+       iff (@eq bool (inv_shorten_guard len f g) true)
+         (and (le (S (S O)) len) (and (inv_sign_word f) (inv_sign_word g)))
+### C.jet_secp_modinv_var_shorten.inv_shorten_zero_shift
+inv_shorten_zero_shift
+     : @eq Integers.Int64.int
+         (Integers.Int64.shl Integers.Int64.zero
+            (Integers.Int64.repr
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         Integers.Int64.zero
+### C.jet_secp_modinv_var_shorten.inv_shorten_mone_shift
+inv_shorten_mone_shift
+     : @eq Integers.Int64.int
+         (Integers.Int64.shl Integers.Int64.mone
+            (Integers.Int64.repr
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (Integers.Int64.repr
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xI BinNums.xH))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_secp_modinv_var_shorten.inv_shorten_limb_signed
+inv_shorten_limb_signed
+     : forall (low high : Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int64.signed low))
+                (BinInt.Z.lt (Integers.Int64.signed low)
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : inv_sign_word high),
+       @eq BinNums.Z (Integers.Int64.signed (inv_shorten_limb low high))
+         (BinInt.Z.add (Integers.Int64.signed low)
+            (BinInt.Z.mul
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               (Integers.Int64.signed high)))
+### C.jet_secp_modinv_var_shorten.inv_shorten_preserves_value
+inv_shorten_preserves_value
+     : forall (len : nat) (w : forall _ : nat, Integers.Int64.int)
+         (_ : and (le (S (S O)) len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_secp_modinv_var_zero.inv_active_low_bounds len w) (_ : inv_sign_word (w (Nat.sub len (S O)))),
+       @eq BinNums.Z (jet_secp_modinv_var_zero.inv_active_value (Nat.sub len (S O)) (inv_shorten_words len w))
+         (jet_secp_modinv_var_zero.inv_active_value len w)
+### C.jet_secp_modinv_var_shorten.inv_shorten_source
+inv_shorten_source
+     : @eq Clight.statement jet_secp_modinv_var_zero.inv_shortening
+         (jet_secp_statement_prefix.statement_sequence
+            (@fst (list Clight.statement) Clight.statement inv_shorten_parts)
+            (Clight.Sifthenelse
+               (Clight.Ebinop Cop.Oeq (Clight.Etempvar jets_secp._cond Ctypesdefs.tlong)
+                  (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint) inv_shorten_body Clight.Sskip))
+### C.jet_secp_modinv_var_shorten.inv_shorten_body_source
+inv_shorten_body_source
+     : @eq Clight.statement inv_shorten_body
+         (Clight.Ssequence (inv_shorten_array_step false)
+            (Clight.Ssequence (inv_shorten_array_step true) inv_shorten_len_step))
+### C.jet_secp_modinv_var_shorten.inv_shorten_array_source
+inv_shorten_array_source
+     : forall high : bool,
+       @eq Clight.statement (inv_shorten_array_step high)
+         (Clight.Ssequence
+            (Clight.Sset (inv_shorten_tmp high) (inv_local_index (inv_shorten_id high) (inv_len_sub (S (S O)))))
+            (Clight.Sassign (inv_local_index (inv_shorten_id high) (inv_len_sub (S (S O))))
+               (Clight.Ebinop Cop.Oor (Clight.Etempvar (inv_shorten_tmp high) Ctypesdefs.tlong)
+                  (Clight.Ebinop Cop.Oshl
+                     (Clight.Ecast (Clight.Etempvar (inv_shorten_top high) Ctypesdefs.tlong) Ctypesdefs.tulong)
+                     (Clight.Econst_int
+                        (Integers.Int.repr
+                           (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                        Ctypesdefs.tint) Ctypesdefs.tulong) Ctypesdefs.tulong)))
+### C.jet_secp_modinv_var_shorten.inv_shorten_store
+inv_shorten_store
+     : forall (len : nat) (high : bool) (_ : and (le (S (S O)) len) (le len (S (S (S (S (S O))))))),
+       @eq (option (list jet_sx_state.region))
+         (jet_sx_state.xstore (inv_shorten_in len high) (inv_shorten_region high)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinInt.Z.of_nat (Nat.sub len (S (S O))))) AST.Mint64 (inv_shorten_expr len high))
+         (@Some (list jet_sx_state.region) (inv_shorten_out len high))
+### C.jet_secp_modinv_var_shorten.inv_shorten_load
+inv_shorten_load
+     : forall (len : nat) (high : bool) (_ : and (le (S (S O)) len) (le len (S (S (S (S (S O))))))),
+       @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (inv_shorten_in len high) (inv_shorten_region high)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinInt.Z.of_nat (Nat.sub len (S (S O))))) Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (jet_sx_expr.XLv (Nat.add (inv_shorten_offset high) (Nat.sub len (S (S O))))))
+### C.jet_secp_modinv_var_shorten.inv_shorten_region_owned
+inv_shorten_region_owned
+     : forall (len : nat) (high : bool) (_ : and (le (S (S O)) len) (le len (S (S (S (S (S O))))))),
+       @eq (option BinNums.Z)
+         (jet_sx_state.rfree
+            (@List.nth jet_sx_state.region (inv_shorten_region high) (inv_shorten_in len high)
+               (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))))
+         (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+### C.jet_secp_modinv_var_shorten.inv_shorten_in_length
+inv_shorten_in_length
+     : forall (len : nat) (high : bool) (_ : and (le (S (S O)) len) (le len (S (S (S (S (S O))))))),
+       @eq nat (@length jet_sx_state.region (inv_shorten_in len high)) (S (S (S (S (S (S (S O)))))))
+### C.jet_secp_modinv_var_shorten.eval_inv_local_array
+eval_inv_local_array
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (id : BinNums.positive) (b : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b jet_secp_modinv_fg_index.fg_s62_type))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (inv_local_array id) (Values.Vptr b Integers.Ptrofs.zero)
+### C.jet_secp_modinv_var_shorten.eval_inv_local_index
+eval_inv_local_index
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (id : BinNums.positive) (b : Values.block) (ix : Clight.expr)
+         (j : nat) (_ : lt j (S (S (S (S (S O)))))) (_ : @eq Ctypes.type (Clight.typeof ix) Ctypesdefs.tint)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m ix (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat j)))),
+       Clight.eval_lvalue jet_secp_linkage.secp_ge e le m (inv_local_index id ix) b
+         (Integers.Ptrofs.repr
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat j)))
+         Ctypes.Full
+### C.jet_secp_modinv_var_shorten.eval_inv_local_load
+eval_inv_local_load
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (id : BinNums.positive) (b : Values.block) (ix : Clight.expr)
+         (j : nat) (w : Integers.Int64.int) (_ : lt j (S (S (S (S (S O))))))
+         (_ : @eq Ctypes.type (Clight.typeof ix) Ctypesdefs.tint)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m ix (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat j))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat j)))
+                (@Some Values.val (Values.Vlong w))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (inv_local_index id ix) (Values.Vlong w)
+### C.jet_secp_modinv_var_shorten.eval_inv_len_sub
+eval_inv_len_sub
+     : forall (e : Clight.env) (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len k : nat)
+         (_ : and (le k len) (le len (S (S (S (S (S O)))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le0 m (inv_len_sub k)
+         (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat (Nat.sub len k))))
+### C.jet_secp_modinv_var_shorten.exec_inv_shorten_array
+exec_inv_shorten_array
+     : forall (len : nat) (high : bool) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (_ : and (le (S (S O)) len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta (inv_shorten_in len high) m)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) (inv_shorten_id high) e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type (jet_sx_state.blk beta (inv_shorten_region high))
+                      jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val (inv_shorten_top high) le0)
+                (@Some Values.val (Values.Vlong (rho (Nat.add (inv_shorten_offset high) (Nat.sub len (S O))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m (inv_shorten_array_step high) Events.E0
+               (@Maps.PTree.set Values.val (inv_shorten_tmp high)
+                  (Values.Vlong (rho (Nat.add (inv_shorten_offset high) (Nat.sub len (S (S O)))))) le0) mf
+               ClightBigstep.Out_normal)
+            (and (jet_sx_state.rep rho beta (inv_shorten_out len high) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (_ : BinNums.Z) =>
+                   not (@eq Values.block b (jet_sx_state.blk beta (inv_shorten_region high)))) m mf)))
+### C.jet_secp_modinv_var_shorten.inv_shorten_prefix_source
+inv_shorten_prefix_source
+     : @eq Clight.statement inv_shorten_prefix
+         (Clight.Ssequence (Clight.Sset jets_secp._fn (inv_local_index jets_secp._f (inv_len_sub (S O))))
+            (Clight.Ssequence (Clight.Sset jets_secp._gn (inv_local_index jets_secp._g (inv_len_sub (S O))))
+               (Clight.Ssequence (Clight.Sset jets_secp._cond inv_cond_length_expr)
+                  (Clight.Ssequence (Clight.Sset jets_secp._cond (inv_cond_merge jets_secp._fn))
+                     (Clight.Ssequence (Clight.Sset jets_secp._cond (inv_cond_merge jets_secp._gn)) Clight.Sskip)))))
+### C.jet_secp_modinv_var_shorten.eval_inv_cond_length
+eval_inv_cond_length
+     : forall (e : Clight.env) (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : nat)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le0 m inv_cond_length_expr (Values.Vlong (inv_len_sign len))
+### C.jet_secp_modinv_var_shorten.eval_inv_cond_merge
+eval_inv_cond_merge
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (id : BinNums.positive)
+         (a c : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le) (@Some Values.val (Values.Vlong a)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._cond le)
+                (@Some Values.val (Values.Vlong c))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (inv_cond_merge id)
+         (Values.Vlong (Integers.Int64.or c (inv_word_sign_test a)))
+### C.jet_secp_modinv_var_shorten.inv_short_prefix_len
+inv_short_prefix_len
+     : forall (le : Maps.PTree.tree Values.val) (len : nat) (f g : Integers.Int64.int),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len (inv_short_prefix_env le len f g))
+         (@Maps.PTree.get Values.val jets_secp._len le)
+### C.jet_secp_modinv_var_shorten.inv_short_prefix_top
+inv_short_prefix_top
+     : forall (le : Maps.PTree.tree Values.val) (len : nat) (f g : Integers.Int64.int) (high : bool),
+       @eq (option Values.val) (@Maps.PTree.get Values.val (inv_shorten_top high) (inv_short_prefix_env le len f g))
+         (@Some Values.val (Values.Vlong match high return Integers.Int64.int with
+                                         | true => g
+                                         | false => f
+                                         end))
+### C.jet_secp_modinv_var_shorten.inv_short_prefix_cond
+inv_short_prefix_cond
+     : forall (le : Maps.PTree.tree Values.val) (len : nat) (f g : Integers.Int64.int),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._cond (inv_short_prefix_env le len f g))
+         (@Some Values.val (Values.Vlong (inv_shorten_cond len f g)))
+### C.jet_secp_modinv_var_shorten.exec_inv_short_prefix
+exec_inv_short_prefix
+     : forall (len : nat) (f g : Integers.Int64.int) (bf bg : Values.block)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._f e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bf jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._g e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bg jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bf
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.of_nat (Nat.sub len (S O))))) (@Some Values.val (Values.Vlong f)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bg
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.of_nat (Nat.sub len (S O))))) (@Some Values.val (Values.Vlong g))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m inv_shorten_prefix Events.E0
+         (inv_short_prefix_env le0 len f g) m ClightBigstep.Out_normal
+### C.jet_secp_modinv_var_shorten.inv_control_top_load
+inv_control_top_load
+     : forall (len : nat) (high : bool) (_ : and (lt O len) (le len (S (S (S (S (S O))))))),
+       @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload jet_secp_modinv_var_zero.inv_control_regs (inv_shorten_region high)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinInt.Z.of_nat (Nat.sub len (S O)))) Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (jet_sx_expr.XLv (Nat.add (inv_shorten_offset high) (Nat.sub len (S O)))))
+### C.jet_secp_modinv_var_shorten.inv_shorten_len_source
+inv_shorten_len_source
+     : @eq Clight.statement inv_shorten_len_step (Clight.Sset jets_secp._len (inv_len_sub (S O)))
+### C.jet_secp_modinv_var_shorten.inv_short_prefix_frame
+inv_short_prefix_frame
+     : forall (le : Clight.temp_env) (len : nat) (f g : Integers.Int64.int),
+       inv_shorten_temp_frame le (inv_short_prefix_env le len f g)
+### C.jet_secp_modinv_var_shorten.exec_inv_shortening
+exec_inv_shortening
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_var_zero.inv_control_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_modinv_var_zero.inv_control_temps len) le0)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+                  jet_secp_modinv_var_zero.inv_shortening Events.E0 lef mf ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (inv_shortened_regs len rho) mf)
+                  (and
+                     (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lef)
+                        (@Some Values.val
+                           (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat (inv_shortened_length len rho))))))
+                     (and
+                        (and (lt O (inv_shortened_length len rho))
+                           (le (inv_shortened_length len rho) (S (S (S (S (S O)))))))
+                        (and (inv_shorten_temp_frame le0 lef)
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (_ : BinNums.Z) =>
+                               and (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S O)))))))
+                                 (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S (S O))))))))) m mf)))))))
+### C.jet_secp_modinv_var_shorten.inv_shorten_get
+inv_shorten_get
+     : forall (len : nat) (high : bool) (i : nat) (_ : and (le (S (S O)) len) (le len (S (S (S (S (S O)))))))
+         (_ : lt i (S (S (S (S (S O)))))),
+       @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (inv_shorten_fg_regs len) (inv_shorten_region high)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))
+            Ctypesdefs.tulong) (@Some jet_sx_expr.sx (inv_shorten_get_expr len high i))
+### C.jet_secp_modinv_var_shorten.inv_shorten_get_den
+inv_shorten_get_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (len : nat) (high : bool) (i : nat),
+       @eq Values.val (jet_sx_expr.den rho beta (inv_shorten_get_expr len high i))
+         (Values.Vlong (inv_shorten_words len (inv_control_word rho high) i))
+### C.jet_secp_modinv_var_shorten.inv_control_word_load
+inv_control_word_load
+     : forall (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload jet_secp_modinv_var_zero.inv_control_regs (inv_shorten_region high)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))
+            Ctypesdefs.tulong) (@Some jet_sx_expr.sx (jet_sx_expr.XLv (Nat.add (inv_shorten_offset high) i)))
+### C.jet_secp_modinv_var_shorten.inv_shortened_loads
+inv_shortened_loads
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta (inv_shortened_regs len rho) m) (high : bool) (i : nat)
+         (_ : lt i (S (S (S (S (S O)))))),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (inv_shorten_region high))
+            (BinInt.Z.add (jet_sx_state.bas beta (inv_shorten_region high))
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))))
+         (@Some Values.val (Values.Vlong (inv_control_short_word len rho high i)))
+### C.jet_secp_modinv_var_shorten.inv_shortened_numeric
+inv_shortened_numeric
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_secp_modinv_var_zero.inv_active_low_bounds len (inv_control_word rho high)),
+       and
+         (@eq BinNums.Z
+            (jet_secp_modinv_var_zero.inv_active_value (inv_shortened_length len rho)
+               (inv_control_short_word len rho high))
+            (jet_secp_modinv_var_zero.inv_active_value len (inv_control_word rho high)))
+         (jet_secp_modinv_var_zero.inv_active_low_bounds (inv_shortened_length len rho)
+            (inv_control_short_word len rho high))
+### C.jet_secp_modinv_var_shorten.exec_inv_shortening_numeric
+exec_inv_shortening_numeric
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_var_zero.inv_control_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_modinv_var_zero.inv_control_temps len) le0)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : forall high : bool, jet_secp_modinv_var_zero.inv_active_low_bounds len (inv_control_word rho high)),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+                  jet_secp_modinv_var_zero.inv_shortening Events.E0 lef mf ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (inv_shortened_regs len rho) mf)
+                  (and
+                     (forall (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+                      @eq (option Values.val)
+                        (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk beta (inv_shorten_region high))
+                           (BinInt.Z.add (jet_sx_state.bas beta (inv_shorten_region high))
+                              (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                 (BinInt.Z.of_nat i))))
+                        (@Some Values.val (Values.Vlong (inv_control_short_word len rho high i))))
+                     (and
+                        (forall high : bool,
+                         and
+                           (@eq BinNums.Z
+                              (jet_secp_modinv_var_zero.inv_active_value (inv_shortened_length len rho)
+                                 (inv_control_short_word len rho high))
+                              (jet_secp_modinv_var_zero.inv_active_value len (inv_control_word rho high)))
+                           (jet_secp_modinv_var_zero.inv_active_low_bounds (inv_shortened_length len rho)
+                              (inv_control_short_word len rho high)))
+                        (and
+                           (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lef)
+                              (@Some Values.val
+                                 (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat (inv_shortened_length len rho))))))
+                           (and
+                              (and (lt O (inv_shortened_length len rho))
+                                 (le (inv_shortened_length len rho) (S (S (S (S (S O)))))))
+                              (and (inv_shorten_temp_frame le0 lef)
+                                 (jet_sx_mem.lframe
+                                    (fun (b : Values.block) (_ : BinNums.Z) =>
+                                     and (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S O)))))))
+                                       (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S (S O))))))))) m mf)))))))))
+### C.jet_secp_modinv_var_shorten.inv_sign_word
+inv_sign_word =
+fun a : Integers.Int64.int =>
+or (@eq Integers.Int64.int a Integers.Int64.zero) (@eq Integers.Int64.int a Integers.Int64.mone)
+     : forall _ : Integers.Int64.int, Prop
+
+Arguments inv_sign_word a
+### C.jet_secp_modinv_var_shorten.inv_len_sign
+inv_len_sign =
+fun len : nat =>
+Integers.Int64.shr
+  (Integers.Int64.sub (Integers.Int64.repr (BinInt.Z.of_nat len))
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xO BinNums.xH))))
+  (Integers.Int64.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+     : forall _ : nat, Integers.Int64.int
+
+Arguments inv_len_sign len%nat_scope
+### C.jet_secp_modinv_var_shorten.inv_word_sign_test
+inv_word_sign_test =
+fun a : Integers.Int64.int =>
+Integers.Int64.xor a
+  (Integers.Int64.shr a
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+     : forall _ : Integers.Int64.int, Integers.Int64.int
+
+Arguments inv_word_sign_test a
+### C.jet_secp_modinv_var_shorten.inv_shorten_cond
+inv_shorten_cond =
+fun (len : nat) (f g : Integers.Int64.int) =>
+Integers.Int64.or (Integers.Int64.or (inv_len_sign len) (inv_word_sign_test f)) (inv_word_sign_test g)
+     : forall (_ : nat) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments inv_shorten_cond len%nat_scope f g
+### C.jet_secp_modinv_var_shorten.inv_shorten_guard
+inv_shorten_guard =
+fun (len : nat) (f g : Integers.Int64.int) => Integers.Int64.eq (inv_shorten_cond len f g) Integers.Int64.zero
+     : forall (_ : nat) (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments inv_shorten_guard len%nat_scope f g
+### C.jet_secp_modinv_var_shorten.inv_shorten_limb
+inv_shorten_limb =
+fun low high : Integers.Int64.int =>
+Integers.Int64.or low
+  (Integers.Int64.shl high
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments inv_shorten_limb low high
+### C.jet_secp_modinv_var_shorten.inv_shorten_words
+inv_shorten_words =
+fun (len : nat) (w : forall _ : nat, Integers.Int64.int) (i : nat) =>
+match PeanoNat.Nat.eqb i (Nat.sub len (S (S O))) return Integers.Int64.int with
+| true => inv_shorten_limb (w i) (w (Nat.sub len (S O)))
+| false => w i
+end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments inv_shorten_words len%nat_scope w%function_scope i%nat_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_parts
+inv_shorten_parts =
+jet_secp_statement_prefix.split_statement_last jet_secp_modinv_var_zero.inv_shortening
+     : prod (list Clight.statement) Clight.statement
+### C.jet_secp_modinv_var_shorten.inv_shorten_prefix
+inv_shorten_prefix =
+jet_secp_statement_prefix.statement_sequence (@fst (list Clight.statement) Clight.statement inv_shorten_parts)
+  Clight.Sskip
+     : Clight.statement
+### C.jet_secp_modinv_var_shorten.inv_shorten_body
+inv_shorten_body =
+match @snd (list Clight.statement) Clight.statement inv_shorten_parts return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ _ => Clight.Sskip
+| Clight.Sifthenelse _ yes _ => yes
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_modinv_var_shorten.inv_local_array
+inv_local_array =
+fun id : AST.ident =>
+Clight.Efield (Clight.Evar id jet_secp_modinv_fg_index.fg_s62_type) jets_secp._v
+  (Ctypesdefs.tarray Ctypesdefs.tlong (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))))
+     : forall _ : AST.ident, Clight.expr
+
+Arguments inv_local_array id
+### C.jet_secp_modinv_var_shorten.inv_local_index
+inv_local_index =
+fun (id : AST.ident) (ix : Clight.expr) =>
+Clight.Ederef (Clight.Ebinop Cop.Oadd (inv_local_array id) ix (Ctypesdefs.tptr Ctypesdefs.tlong)) Ctypesdefs.tlong
+     : forall (_ : AST.ident) (_ : Clight.expr), Clight.expr
+
+Arguments inv_local_index id ix
+### C.jet_secp_modinv_var_shorten.inv_len_sub
+inv_len_sub =
+fun k : nat =>
+Clight.Ebinop Cop.Osub (Clight.Etempvar jets_secp._len Ctypesdefs.tint)
+  (Clight.Econst_int (Integers.Int.repr (BinInt.Z.of_nat k)) Ctypesdefs.tint) Ctypesdefs.tint
+     : forall _ : nat, Clight.expr
+
+Arguments inv_len_sub k%nat_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_id
+inv_shorten_id =
+fun high : bool => match high return AST.ident with
+                   | true => jets_secp._g
+                   | false => jets_secp._f
+                   end
+     : forall _ : bool, AST.ident
+
+Arguments inv_shorten_id high%bool_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_tmp
+inv_shorten_tmp =
+fun high : bool => match high return AST.ident with
+                   | true => jets_secp._t'3
+                   | false => jets_secp._t'4
+                   end
+     : forall _ : bool, AST.ident
+
+Arguments inv_shorten_tmp high%bool_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_top
+inv_shorten_top =
+fun high : bool => match high return AST.ident with
+                   | true => jets_secp._gn
+                   | false => jets_secp._fn
+                   end
+     : forall _ : bool, AST.ident
+
+Arguments inv_shorten_top high%bool_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_offset
+inv_shorten_offset =
+fun high : bool =>
+match high return nat with
+| true => S (S (S (S (S (S (S (S (S (S O)))))))))
+| false => S (S (S (S (S O))))
+end
+     : forall _ : bool, nat
+
+Arguments inv_shorten_offset high%bool_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_region
+inv_shorten_region =
+fun high : bool => match high return nat with
+                   | true => S (S (S (S (S O))))
+                   | false => S (S (S (S O)))
+                   end
+     : forall _ : bool, nat
+
+Arguments inv_shorten_region high%bool_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_expr
+inv_shorten_expr =
+fun (len : nat) (high : bool) =>
+jet_sx_expr.XLb jet_sx_expr.Bor (jet_sx_expr.XLv (Nat.add (inv_shorten_offset high) (Nat.sub len (S (S O)))))
+  (jet_sx_expr.XLsh jet_sx_expr.Hshl (jet_sx_expr.XLv (Nat.add (inv_shorten_offset high) (Nat.sub len (S O))))
+     (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+     : forall (_ : nat) (_ : bool), jet_sx_expr.sx
+
+Arguments inv_shorten_expr len%nat_scope high%bool_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_f_regs
+inv_shorten_f_regs =
+fun len : nat =>
+match
+  jet_sx_state.xstore jet_secp_modinv_var_zero.inv_control_regs (S (S (S (S O))))
+    (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+       (BinInt.Z.of_nat (Nat.sub len (S (S O))))) AST.Mint64 (inv_shorten_expr len false)
+  return (list jet_sx_state.region)
+with
+| Some regs => regs
+| None => jet_secp_modinv_var_zero.inv_control_regs
+end
+     : forall _ : nat, list jet_sx_state.region
+
+Arguments inv_shorten_f_regs len%nat_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_fg_regs
+inv_shorten_fg_regs =
+fun len : nat =>
+match
+  jet_sx_state.xstore (inv_shorten_f_regs len) (S (S (S (S (S O)))))
+    (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+       (BinInt.Z.of_nat (Nat.sub len (S (S O))))) AST.Mint64 (inv_shorten_expr len true)
+  return (list jet_sx_state.region)
+with
+| Some regs => regs
+| None => inv_shorten_f_regs len
+end
+     : forall _ : nat, list jet_sx_state.region
+
+Arguments inv_shorten_fg_regs len%nat_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_in
+inv_shorten_in =
+fun (len : nat) (high : bool) =>
+match high return (list jet_sx_state.region) with
+| true => inv_shorten_f_regs len
+| false => jet_secp_modinv_var_zero.inv_control_regs
+end
+     : forall (_ : nat) (_ : bool), list jet_sx_state.region
+
+Arguments inv_shorten_in len%nat_scope high%bool_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_out
+inv_shorten_out =
+fun (len : nat) (high : bool) =>
+match high return (list jet_sx_state.region) with
+| true => inv_shorten_fg_regs len
+| false => inv_shorten_f_regs len
+end
+     : forall (_ : nat) (_ : bool), list jet_sx_state.region
+
+Arguments inv_shorten_out len%nat_scope high%bool_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_array_step
+inv_shorten_array_step =
+fun high : bool =>
+match high return Clight.statement with
+| true =>
+    match inv_shorten_body return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s1 =>
+        match s1 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence s _ => s
+        | Clight.Sifthenelse _ _ _ => Clight.Sskip
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| false =>
+    match inv_shorten_body return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence s _ => s
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+end
+     : forall _ : bool, Clight.statement
+
+Arguments inv_shorten_array_step high%bool_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_len_step
+inv_shorten_len_step =
+match inv_shorten_body return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s1 =>
+    match s1 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s => s
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_modinv_var_shorten.inv_cond_sign_expr
+inv_cond_sign_expr =
+fun id : AST.ident =>
+Clight.Ebinop Cop.Oxor (Clight.Etempvar id Ctypesdefs.tlong)
+  (Clight.Ebinop Cop.Oshr (Clight.Etempvar id Ctypesdefs.tlong)
+     (Clight.Econst_int
+        (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+        Ctypesdefs.tint) Ctypesdefs.tlong) Ctypesdefs.tlong
+     : forall _ : AST.ident, Clight.expr
+
+Arguments inv_cond_sign_expr id
+### C.jet_secp_modinv_var_shorten.inv_cond_merge
+inv_cond_merge =
+fun id : AST.ident =>
+Clight.Ebinop Cop.Oor (Clight.Etempvar jets_secp._cond Ctypesdefs.tlong) (inv_cond_sign_expr id) Ctypesdefs.tlong
+     : forall _ : AST.ident, Clight.expr
+
+Arguments inv_cond_merge id
+### C.jet_secp_modinv_var_shorten.inv_cond_length_expr
+inv_cond_length_expr =
+Clight.Ebinop Cop.Oshr
+  (Clight.Ebinop Cop.Osub (Clight.Ecast (Clight.Etempvar jets_secp._len Ctypesdefs.tint) Ctypesdefs.tlong)
+     (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))) Ctypesdefs.tint) Ctypesdefs.tlong)
+  (Clight.Econst_int
+     (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+     Ctypesdefs.tint) Ctypesdefs.tlong
+     : Clight.expr
+### C.jet_secp_modinv_var_shorten.inv_short_loaded
+inv_short_loaded =
+fun (le : Maps.PTree.tree Values.val) (f g : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets_secp._gn (Values.Vlong g)
+  (@Maps.PTree.set Values.val jets_secp._fn (Values.Vlong f) le)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Maps.PTree.tree Values.val
+
+Arguments inv_short_loaded le f g
+### C.jet_secp_modinv_var_shorten.inv_short_c1
+inv_short_c1 =
+fun (le : Maps.PTree.tree Values.val) (len : nat) =>
+@Maps.PTree.set Values.val jets_secp._cond (Values.Vlong (inv_len_sign len)) le
+     : forall (_ : Maps.PTree.tree Values.val) (_ : nat), Maps.PTree.tree Values.val
+
+Arguments inv_short_c1 le len%nat_scope
+### C.jet_secp_modinv_var_shorten.inv_short_c2
+inv_short_c2 =
+fun (le : Maps.PTree.tree Values.val) (len : nat) (f : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets_secp._cond (Values.Vlong (Integers.Int64.or (inv_len_sign len) (inv_word_sign_test f)))
+  (inv_short_c1 le len)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : nat) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments inv_short_c2 le len%nat_scope f
+### C.jet_secp_modinv_var_shorten.inv_short_prefix_env
+inv_short_prefix_env =
+fun (le : Maps.PTree.tree Values.val) (len : nat) (f g : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets_secp._cond (Values.Vlong (inv_shorten_cond len f g))
+  (inv_short_c2 (inv_short_loaded le f g) len f)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : nat) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Maps.PTree.tree Values.val
+
+Arguments inv_short_prefix_env le len%nat_scope f g
+### C.jet_secp_modinv_var_shorten.inv_control_word
+inv_control_word =
+fun (rho : forall _ : nat, Integers.Int64.int) (high : bool) (i : nat) => rho (Nat.add (inv_shorten_offset high) i)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), Integers.Int64.int
+
+Arguments inv_control_word rho%function_scope high%bool_scope i%nat_scope
+### C.jet_secp_modinv_var_shorten.inv_control_shrink
+inv_control_shrink =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+inv_shorten_guard len (inv_control_word rho false (Nat.sub len (S O))) (inv_control_word rho true (Nat.sub len (S O)))
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), bool
+
+Arguments inv_control_shrink len%nat_scope rho%function_scope
+### C.jet_secp_modinv_var_shorten.inv_shortened_length
+inv_shortened_length =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+match inv_control_shrink len rho return nat with
+| true => Nat.sub len (S O)
+| false => len
+end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), nat
+
+Arguments inv_shortened_length len%nat_scope rho%function_scope
+### C.jet_secp_modinv_var_shorten.inv_shortened_regs
+inv_shortened_regs =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+match inv_control_shrink len rho return (list jet_sx_state.region) with
+| true => inv_shorten_fg_regs len
+| false => jet_secp_modinv_var_zero.inv_control_regs
+end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), list jet_sx_state.region
+
+Arguments inv_shortened_regs len%nat_scope rho%function_scope
+### C.jet_secp_modinv_var_shorten.inv_shorten_modified
+inv_shorten_modified =
+@cons AST.ident jets_secp._fn
+  (@cons AST.ident jets_secp._gn
+     (@cons AST.ident jets_secp._cond
+        (@cons AST.ident jets_secp._t'4
+           (@cons AST.ident jets_secp._t'3 (@cons AST.ident jets_secp._len (@nil AST.ident))))))
+     : list AST.ident
+### C.jet_secp_modinv_var_shorten.inv_shorten_temp_frame
+inv_shorten_temp_frame =
+fun le lf : Clight.temp_env =>
+forall (id : AST.ident) (_ : not (@List.In AST.ident id inv_shorten_modified)),
+@eq (option Values.val) (@Maps.PTree.get Values.val id lf) (@Maps.PTree.get Values.val id le)
+     : forall (_ : Clight.temp_env) (_ : Clight.temp_env), Prop
+
+Arguments inv_shorten_temp_frame le lf
+### C.jet_secp_modinv_var_shorten.inv_shorten_get_expr
+inv_shorten_get_expr =
+fun (len : nat) (high : bool) (i : nat) =>
+match PeanoNat.Nat.eqb i (Nat.sub len (S (S O))) return jet_sx_expr.sx with
+| true => inv_shorten_expr len high
+| false => jet_sx_expr.XLv (Nat.add (inv_shorten_offset high) i)
+end
+     : forall (_ : nat) (_ : bool) (_ : nat), jet_sx_expr.sx
+
+Arguments inv_shorten_get_expr len%nat_scope high%bool_scope i%nat_scope
+### C.jet_secp_modinv_var_shorten.inv_control_short_word
+inv_control_short_word =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool) (i : nat) =>
+match inv_control_shrink len rho return Integers.Int64.int with
+| true => inv_shorten_words len (inv_control_word rho high) i
+| false => inv_control_word rho high i
+end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), Integers.Int64.int
+
+Arguments inv_control_short_word len%nat_scope rho%function_scope high%bool_scope i%nat_scope

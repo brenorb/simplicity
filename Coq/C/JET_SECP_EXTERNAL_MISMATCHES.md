@@ -486,6 +486,26 @@ invariant obligations, not added public-input preconditions. The subsequent
 limb-shortening code, divstep execution, invariant composition and complete
 inverse call remain unproved; this control-flow result adds no coverage.
 
+`jet_secp_modinv_var_shorten.exec_inv_shortening_numeric` executes the
+original subsequent limb-shortening section for every active length 1
+through 5. The guard is proved true exactly when at least two limbs remain
+and both top words are zero or minus one. The length-one case therefore
+cannot perform either out-of-range store. In the true branch both actual
+Clight stores are derived and the active length decreases by one; in the
+false branch memory and length are unchanged. All five output words in
+each array, continued ownership, the new length's range and preservation
+outside the two array blocks are conclusions. Other temporaries are
+preserved except the six assigned by this section.
+
+Under the internal nonnegative lower-digit bounds, sign propagation
+preserves each signed62 integer exactly and retains those lower-digit
+bounds for the next iteration. This is connected to the actual output
+loads, not a replacement arithmetic operation. The numeric lemmas are
+closed; the execution uses the six inherited execution assumptions and
+no extra external-library model. The divstep call, complete loop
+invariant/termination composition and whole inverse return/freeing remain
+required. No public jet coverage is added.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -525,6 +545,8 @@ JET_TARGETS=C/jet_secp_modinv_var_copies.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_copies
 JET_TARGETS=C/jet_secp_modinv_var_zero.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_zero
+JET_TARGETS=C/jet_secp_modinv_var_shorten.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_shorten
 ```
 
 ## Reproduction and limits
