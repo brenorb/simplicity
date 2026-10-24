@@ -2177,6 +2177,37 @@ JET_TARGETS="C/jet_secp_fe_invert_local.vo C/jet_secp_fe_invert_fresh.vo" bash C
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_fe_invert_local C.jet_secp_fe_invert_fresh
 ```
 
+## Complete finite affine conversion and literal payload (conditional progress)
+
+`jet_secp_affine_inverse_complete.eval_affine_finite_initialized` composes the
+original finite `secp256k1_ge_set_gej_var` call, including both actual local
+allocations, finite-flag test, in-place Z inverse at byte offset 80, all four
+arithmetic calls, point/result stores and both local frees. It reuses the
+checked field inverse caller and existing post-inverse arithmetic; neither
+inverse execution nor its output is an extra premise. The field-modulus
+startup state, readonly memory and arbitrary-chunk framing outside the two
+caller-owned point objects survive the same constructed execution.
+
+`jet_secp_affine_inverse_literal.eval_affine_finite_write_literal` starts with
+the canonical XYZ storage produced by the existing reader and an already
+written finite tag. It runs that complete helper and the original `write_ge`,
+deriving the exact literal `gej_norm` payload for every input with those
+represented fields. The literal inverse is proved invariant under the reader's
+field normalization, so noncanonical original words are not excluded. Point
+ownership, the output prefix/frame and field-modulus state are preserved.
+
+This closes the previous inverse boundary in the finite normalization payload.
+It does **not** yet compose the public `simplicity_gej_normalize` entry,
+read/tag, both branches, return and public local frees. The finite-flag and
+already-written-tag premises here are internal composition interfaces, not
+new public input restrictions. CTZ behavior remains explicit and deferred;
+accepted coverage remains 514/533. All frozen targets are unchanged.
+
+```sh
+JET_TARGETS="C/jet_secp_affine_inverse_complete.vo C/jet_secp_affine_inverse_literal.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_affine_inverse_complete C.jet_secp_affine_inverse_literal
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
