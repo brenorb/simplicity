@@ -1,0 +1,199 @@
+### C.jet_secp_frame_preserve.exec_disabled_guard
+exec_disabled_guard
+     : forall (ge : Clight.genv) (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (dead : Clight.statement) (t : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem)
+         (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le m
+                (Clight.Sifthenelse
+                   (Clight.Eunop Cop.Onotbool (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint)
+                   dead Clight.Sskip) t lef mf out),
+       and (@eq Memory.Mem.mem mf m) (@eq ClightBigstep.outcome out ClightBigstep.Out_normal)
+### C.jet_secp_frame_preserve.exec_disabled_assert
+exec_disabled_assert
+     : forall (ge : Clight.genv) (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (dead : Clight.statement) (t : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem)
+         (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le m (disabled_assert_prefix dead) t lef mf out),
+       @eq Memory.Mem.mem mf m
+### C.jet_secp_frame_preserve.disabled_assert_function_preserved
+disabled_assert_function_preserved
+     : forall (fd : Clight.function) (dead tail : Clight.statement) (m : Memory.Mem.mem) (args : list Values.val)
+         (t : Events.trace) (mf : Memory.Mem.mem) (result : Values.val)
+         (_ : @eq Clight.statement (Clight.fn_body fd) (Clight.Ssequence (disabled_assert_prefix dead) tail))
+         (_ : @eq bool (jet_clight_internal_frame.closed_stmtb jet_secp_field_io_preserve.field_io_helpers tail) true)
+         (_ : @eq bool
+                (@List.forallb (prod AST.ident Ctypes.type)
+                   (fun it : prod AST.ident Ctypes.type =>
+                    jet_clight_internal_frame.nonfunction_type (@snd AST.ident Ctypes.type it))
+                   (Clight.fn_vars fd)) true)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m (@Ctypes.Internal Clight.function fd) args
+                t mf result), jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_frame_preserve.writeBit_disabled_prefix
+writeBit_disabled_prefix
+     : @eq Clight.statement (Clight.fn_body jets.f_writeBit)
+         (Clight.Ssequence (disabled_assert_prefix (frame_assert_dead jets.f_writeBit))
+            (frame_after_assert jets.f_writeBit))
+### C.jet_secp_frame_preserve.skipBits_disabled_prefix
+skipBits_disabled_prefix
+     : @eq Clight.statement (Clight.fn_body jets.f_skipBits)
+         (Clight.Ssequence (disabled_assert_prefix (frame_assert_dead jets.f_skipBits))
+            (frame_after_assert jets.f_skipBits))
+### C.jet_secp_frame_preserve.writeBit_tail_closed
+writeBit_tail_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_field_io_preserve.field_io_helpers
+            (frame_after_assert jets.f_writeBit)) true
+### C.jet_secp_frame_preserve.skipBits_tail_closed
+skipBits_tail_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_field_io_preserve.field_io_helpers
+            (frame_after_assert jets.f_skipBits)) true
+### C.jet_secp_frame_preserve.secp_writeBit_preserved
+secp_writeBit_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets.f_writeBit) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_frame_preserve.secp_skipBits_preserved
+secp_skipBits_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets.f_skipBits) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_frame_preserve.named_call_preserved
+named_call_preserved
+     : forall (ge : Clight.genv) (e : Clight.env) (id : AST.ident) (fd : Clight.function) (bf : Values.block)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (opt : option AST.ident) (args : list Clight.expr)
+         (t : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : jet_clight_internal_frame.plain_env e)
+         (_ : @eq (option Values.block)
+                (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+                (@Some Values.block bf))
+         (_ : @eq (option Clight.fundef)
+                (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv ge)
+                   (Values.Vptr bf Integers.Ptrofs.zero))
+                (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function fd)))
+         (_ : forall (m0 : Memory.Mem.mem) (args0 : list Values.val) (t0 : Events.trace) (mf0 : Memory.Mem.mem)
+                (result : Values.val)
+                (_ : ClightBigstep.Clight2.eval_funcall ge m0 (@Ctypes.Internal Clight.function fd) args0 t0 mf0 result),
+              jet_clight_internal_preserve.readonly_preserved m0 mf0)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le m
+                (Clight.Scall opt (Clight.Evar id (Clight.type_of_function fd)) args) t lef mf out),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_frame_preserve.sequence_preserved
+sequence_preserved
+     : forall (ge : Clight.genv) (e : Clight.env) (s1 s2 : Clight.statement)
+         (_ : forall (le : Clight.temp_env) (m : Memory.Mem.mem) (t : Events.trace) (lef : Clight.temp_env)
+                (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+                (_ : ClightBigstep.Clight2.exec_stmt ge e le m s1 t lef mf out),
+              jet_clight_internal_preserve.readonly_preserved m mf)
+         (_ : forall (le : Clight.temp_env) (m : Memory.Mem.mem) (t : Events.trace) (lef : Clight.temp_env)
+                (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+                (_ : ClightBigstep.Clight2.exec_stmt ge e le m s2 t lef mf out),
+              jet_clight_internal_preserve.readonly_preserved m mf) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (t : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem)
+         (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le m (Clight.Ssequence s1 s2) t lef mf out),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_frame_preserve.function_preserved_from_body
+function_preserved_from_body
+     : forall (ge : Clight.genv) (fd : Clight.function)
+         (_ : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (t : Events.trace)
+                (lef : Clight.temp_env) (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+                (_ : ClightBigstep.Clight2.exec_stmt ge e le m (Clight.fn_body fd) t lef mf out)
+                (_ : jet_clight_internal_frame.plain_env e), jet_clight_internal_preserve.readonly_preserved m mf)
+         (_ : @eq bool
+                (@List.forallb (prod AST.ident Ctypes.type)
+                   (fun it : prod AST.ident Ctypes.type =>
+                    jet_clight_internal_frame.nonfunction_type (@snd AST.ident Ctypes.type it))
+                   (Clight.fn_vars fd)) true) (m : Memory.Mem.mem) (args : list Values.val)
+         (t : Events.trace) (mf : Memory.Mem.mem) (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function fd) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_frame_preserve.disabled_assert_prefix
+disabled_assert_prefix =
+fun dead : Clight.statement =>
+Clight.Sloop
+  (Clight.Sifthenelse (Clight.Eunop Cop.Onotbool (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint)
+     dead Clight.Sskip) Clight.Sbreak
+     : forall _ : Clight.statement, Clight.statement
+
+Arguments disabled_assert_prefix dead
+### C.jet_secp_frame_preserve.frame_assert_dead
+frame_assert_dead =
+fun fd : Clight.function =>
+match Clight.fn_body fd return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence s _ =>
+    match s return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ _ => Clight.Sskip
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop s1 _ =>
+        match s1 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ _ => Clight.Sskip
+        | Clight.Sifthenelse _ dead _ => dead
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : forall _ : Clight.function, Clight.statement
+
+Arguments frame_assert_dead fd
+### C.jet_secp_frame_preserve.frame_after_assert
+frame_after_assert =
+fun fd : Clight.function =>
+match Clight.fn_body fd return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ tail => tail
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : forall _ : Clight.function, Clight.statement
+
+Arguments frame_after_assert fd

@@ -2208,6 +2208,48 @@ JET_TARGETS="C/jet_secp_affine_inverse_complete.vo C/jet_secp_affine_inverse_lit
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_affine_inverse_complete C.jet_secp_affine_inverse_literal
 ```
 
+## Complete original public `gej_normalize` caller (conditional progress)
+
+`jet_secp_gej_norm_local.gej_normalize_initialized_local_spec_from_count_calls`
+establishes the existing full initialized local contract for the original
+public `simplicity_gej_normalize` and its literal Simplicity specification.
+`jet_secp_gej_norm_lifecycle.eval_gej_normalize_initialized` composes actual
+function entry, by-value source-frame copy, XYZ reader and tag writer, both
+branches, true return and all three public local frees. The finite branch
+executes the complete original affine/inverse caller and field writer; the
+infinity branch executes the original `skip_ge`, including both `skip_fe`
+calls. No curve membership, nonzero coordinate, canonical-word or branch
+restriction is imposed on public inputs.
+
+The result retains arbitrary valid caller cursors and frames, output prefix,
+arbitrary-chunk memory framing, and the existing field-modulus startup state.
+`jet_secp_gej_norm_fresh.gej_normalize_runs_from_actual_init` constructs fresh
+frames for every input from the original program's actual `Genv.init_mem`,
+establishes startup state there, and preserves all pre-existing program-memory
+loads through the call. No input/global disjointness or final-readability
+premise is introduced.
+
+`jet_secp_frame_preserve` proves readonly preservation through the original
+bit-write and skip helpers. Their assertion prefixes are syntactically present
+in the frozen AST but guarded by the constant false expression `!1`. The proof
+uses actual Clight evaluation to show that the original prefix changes no
+memory, then applies the existing checked internal-helper preservation theorem
+to the original suffix. It does not erase or replace AST nodes, alter a build
+setting, assume assertion behavior, or rely on external-call-properties
+axioms. Reader/tag, finite arithmetic and frees preserve readonly memory along
+the same executions used by the public theorem.
+
+The original CTZ execution/result remains the explicit deferred theorem
+parameter. Thus this is a complete **conditional public caller**, not a
+discharged external dependency or accepted coverage row. Coverage remains
+514/533. Production C, original specifications and identities, API contracts,
+generated ASTs and generation settings are unchanged.
+
+```sh
+JET_TARGETS="C/jet_secp_gej_norm_local.vo C/jet_secp_gej_norm_fresh.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_norm_local C.jet_secp_gej_norm_fresh
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

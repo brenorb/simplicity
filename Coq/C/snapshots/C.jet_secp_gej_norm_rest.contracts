@@ -1,0 +1,180 @@
+### C.jet_secp_gej_norm_rest.gej_norm_right_encoding
+gej_norm_right_encoding
+     : forall
+         p : Ty.tySem
+               (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode
+            (Ty.Sum Ty.Unit
+               (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+            (@inr unit
+               (Ty.tySem
+                  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+               p))
+         (@app (option bool) (@cons (option bool) (@Some bool true) (@nil (option bool)))
+            (@Translate.encode
+               (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) p))
+### C.jet_secp_gej_norm_rest.gej_norm_payload_link
+gej_norm_payload_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._write_ge) (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._write_ge)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._write_ge) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_secp.f_write_ge)))
+### C.jet_secp_gej_norm_rest.exec_gej_norm_payload_calls
+exec_gej_norm_payload_calls
+     : forall (le : Maps.PTree.tree Values.val) (m mr mf : Memory.Mem.mem) (bl bp br bd : Values.block)
+         (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_set_gej_var)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bp Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mr
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mr
+                (@Ctypes.Internal Clight.function jets_secp.f_write_ge)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_gej_norm_branch.gej_norm_env bl bp br) le m
+         (Clight.Ssequence jet_secp_gej_norm_branch.gej_norm_affine_stmt jet_secp_gej_norm_branch.gej_norm_payload_stmt)
+         Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_gej_norm_rest.exec_gej_norm_skip_call
+exec_gej_norm_skip_call
+     : forall (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bl bp br bd : Values.block)
+         (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_skip_ge)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_gej_norm_branch.gej_norm_env bl bp br) le m
+         jet_secp_gej_norm_branch.gej_norm_skip_stmt Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_gej_norm_rest.exec_gej_norm_branch_initialized
+exec_gej_norm_branch_initialized
+     : forall (le : Maps.PTree.tree Values.val) (m0 : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z)
+         (bw : Values.block) (edge cursor N : BinNums.Z) (bi : Values.block) (m : Memory.Mem.mem)
+         (bl bp br : Values.block) (x y z : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : forall (mc : Memory.Mem.mem) (w : Integers.Int64.int)
+                (_ : not (@eq BinNums.Z (Integers.Int64.unsigned w) BinNums.Z0)),
+              ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mc
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ctz64_var)
+                (@cons Values.val (Values.Vlong w) (@nil Values.val)) Events.E0 mc
+                (Values.Vint (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned w)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : jet_output_layout.write_frame_at m0 bd base bw edge cursor N)
+         (_ : BinInt.Z.le
+                (BinNums.Zpos
+                   (BinNums.xI
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                N)
+         (_ : jet_frame_inv.finv m0 bd base bw edge cursor N bi m true
+                (@cons (option bool)
+                   (@Some bool (negb (Bit.toBool (@jet_secp_canonical_zero.canonical_fe_is_zero Alg.CoreFunSem z))))
+                   (@nil (option bool))))
+         (_ : jet_secp_fe_nv.fe_at m bp BinNums.Z0
+                (jet_secp_multiply_normalize_bridge.words5 (jet_secp_square_spec_bridge.square_reader_rho x)))
+         (_ : jet_secp_fe_nv.fe_at m bp
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_multiply_normalize_bridge.words5 (jet_secp_square_spec_bridge.square_reader_rho y)))
+         (_ : jet_secp_fe_nv.fe_at m bp
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (jet_secp_multiply_normalize_bridge.words5 (jet_secp_square_spec_bridge.square_reader_rho z)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m bp
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                (@Some Values.val
+                   (Values.Vint
+                      (jet_readBit_layout.bit_int
+                         (Bit.toBool (@jet_secp_canonical_zero.canonical_fe_is_zero Alg.CoreFunSem z))))))
+         (_ : jet_secp_modinfo_fe_caller.modinfo_fe_state m)
+         (_ : Memory.Mem.range_perm m bp BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bl BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable) (_ : not (@eq Values.block bp bl)) (_ : not (@eq Values.block br bp))
+         (_ : not (@eq Values.block br bl))
+         (_ : jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bp BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z br BinNums.Z0)
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bl BinNums.Z0)
+                         (@nil (prod Values.block BinNums.Z)))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_gej_norm_branch.gej_norm_env bl bp br)
+               (jet_secp_gej_norm_branch.gej_norm_tagged le
+                  (Bit.toBool (@jet_secp_canonical_zero.canonical_fe_is_zero Alg.CoreFunSem z))) m
+               jet_secp_gej_norm_branch.gej_norm_branch Events.E0
+               (jet_secp_gej_norm_branch.gej_norm_tagged le
+                  (Bit.toBool (@jet_secp_canonical_zero.canonical_fe_is_zero Alg.CoreFunSem z))) mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_frame_inv.finv m0 bd base bw edge cursor N bi mf true
+                  (@Translate.encode
+                     (Ty.Sum Ty.Unit
+                        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                           (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                     (@jet_secp_gej_norm_branch.literal_gej_normalize Alg.CoreFunSem
+                        (@pair
+                           (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                              (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                              (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) x y) z))))
+               (and
+                  (Memory.Mem.range_perm mf bp BinNums.Z0
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and
+                     (Memory.Mem.range_perm mf bl BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Cur
+                        Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf br BinNums.Z0
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (_ : BinNums.Z) =>
+                               and (not (@eq Values.block b bp))
+                                 (and (not (@eq Values.block b br))
+                                    (and (not (@eq Values.block b bl)) (not (jet_secp_frame.extA m0 bd bw bi b))))) m
+                              mf)
+                           (and (jet_secp_modinfo_fe_caller.modinfo_fe_state mf)
+                              (jet_clight_internal_preserve.readonly_preserved m mf))))))))
+### C.jet_secp_gej_norm_rest.exec_gej_norm_after_copy
+exec_gej_norm_after_copy
+     : forall (le : Clight.temp_env) (m mt mf : Memory.Mem.mem) (bl bp br : Values.block) (infinity : bool)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_gej_norm_branch.gej_norm_env bl bp br)
+                le m
+                (Clight.Ssequence jet_secp_gej_predicate_body.gej_predicate_read_stmt
+                   jet_secp_gej_norm_branch.gej_norm_header) Events.E0
+                (jet_secp_gej_norm_branch.gej_norm_tagged le infinity) mt ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_gej_norm_branch.gej_norm_env bl bp br)
+                (jet_secp_gej_norm_branch.gej_norm_tagged le infinity) mt jet_secp_gej_norm_branch.gej_norm_branch
+                Events.E0 (jet_secp_gej_norm_branch.gej_norm_tagged le infinity) mf ClightBigstep.Out_normal),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_gej_norm_branch.gej_norm_env bl bp br) le m
+         (Clight.Ssequence jet_secp_gej_predicate_body.gej_predicate_read_stmt
+            jet_secp_gej_norm_branch.gej_norm_after_read) Events.E0
+         (jet_secp_gej_norm_branch.gej_norm_tagged le infinity) mf
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.one) Ctypesdefs.tint)))

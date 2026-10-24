@@ -1,0 +1,70 @@
+### C.jet_secp_gej_norm_preserve.secp_skipBits_link
+secp_skipBits_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets._skipBits) (@Some Values.block (jet_secp_linkage.secp_symbol_block jets._skipBits)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets._skipBits) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_skipBits)))
+### C.jet_secp_gej_norm_preserve.secp_skip_fe_link
+secp_skip_fe_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._skip_fe) (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._skip_fe)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._skip_fe) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_secp.f_skip_fe)))
+### C.jet_secp_gej_norm_preserve.secp_writeBit_link
+secp_writeBit_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._writeBit) (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._writeBit)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._writeBit) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_writeBit)))
+### C.jet_secp_gej_norm_preserve.secp_skip_fe_preserved
+secp_skip_fe_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_skip_fe) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_gej_norm_preserve.secp_skip_ge_preserved
+secp_skip_ge_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_skip_ge) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_gej_norm_preserve.gej_norm_read_closed
+gej_norm_read_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_modinfo_fe_caller.gej_reader_internal_table
+            jet_secp_gej_predicate_body.gej_predicate_read_stmt) true
+### C.jet_secp_gej_norm_preserve.gej_norm_flag_closed
+gej_norm_flag_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_field_io_preserve.field_io_helpers
+            jet_secp_gej_predicate_body.gej_predicate_flag_stmt) true
+### C.jet_secp_gej_norm_preserve.gej_norm_header_preserved
+gej_norm_header_preserved
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (t : Events.trace)
+         (lef : Clight.temp_env) (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : jet_clight_internal_frame.plain_env e)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_gej_norm_branch.gej_norm_header
+                t lef mf out), jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_gej_norm_preserve.gej_norm_read_tag_preserved
+gej_norm_read_tag_preserved
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (t : Events.trace)
+         (lef : Clight.temp_env) (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : jet_clight_internal_frame.plain_env e)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                (Clight.Ssequence jet_secp_gej_predicate_body.gej_predicate_read_stmt
+                   jet_secp_gej_norm_branch.gej_norm_header) t lef mf out),
+       jet_clight_internal_preserve.readonly_preserved m mf
