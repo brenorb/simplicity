@@ -187,7 +187,7 @@ fit signed 64 bits. The scalar low-limb divisibility follows from the checked
 actual inverse coefficient.
 
 Matrix-row bounds and input-limb bounds are internal loop premises here.
-Scalar state construction and whole
+Scalar loop-state composition and whole
 loop/caller composition remain required before
 public acceptance. CTZ remains deferred; no new external model, target change
 or public proof entry is added, and coverage remains 514/533.
@@ -217,6 +217,25 @@ and canonical matrix relation, and execute/update its f/g state before this
 component can form a full inverse iteration. No CTZ model or public coverage
 entry is added.
 
+`jet_secp_scalar_inverse_seed.scalar_inv_entry_establishes_seed` now derives
+the initial scalar state from the actual `scalar_inverse_var` entry and
+packing, then the real `modinv64_var` allocation and all fourteen pre-loop
+statements. The five local objects are fresh; d=0, e=1, f=the actual scalar
+modulus and g=the packed input are established by actual memory loads.
+It derives len=5, eta=-1, the initial coefficient link, coefficient/limb
+bounds, canonical initial f/g values and bounds, and the separate d=0
+residue fact. The transition matrix is correctly still uninitialized: no
+matrix or divstep-call result is assumed. The shared modules
+`jet_secp_modinv_entry_modulus` and `jet_secp_modinv_copies_modulus` handle
+arbitrary six-word metadata; their field specializations are definitionally
+the existing field representations. They reuse the original statement and
+allocation layout, checked signed62 By_copy execution, copy-argument,
+representation-preservation and loop-setup proofs. No libc copy premise is
+needed. The scalar loop must still produce its canonical matrix, lift the
+coefficient and f/g transformations into one represented loop state, and
+compose iteration/termination with the checked finishing path. CTZ remains
+deferred, and public coverage remains 514/533.
+
 ```sh
 JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_signed62 C.jet_secp_scalar_signed62_numeric
@@ -236,6 +255,8 @@ JET_TARGETS="C/jet_secp_scalar_de_ranges.vo C/jet_secp_scalar_de_revalue.vo C/je
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_de_ranges C.jet_secp_scalar_de_revalue C.jet_secp_scalar_inverse_result
 JET_TARGETS="C/jet_secp_scalar_de_invariant.vo C/jet_secp_modinv_var_result.vo C/jet_secp_scalar_inverse_result.vo" bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_de_invariant C.jet_secp_modinv_var_result C.jet_secp_scalar_inverse_result
+JET_TARGETS="C/jet_secp_modinv_entry_modulus.vo C/jet_secp_modinv_copies_modulus.vo C/jet_secp_scalar_inverse_seed.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_entry_modulus C.jet_secp_modinv_copies_modulus C.jet_secp_scalar_inverse_seed
 ```
 
 ## Generation: wNAF also calls external memset

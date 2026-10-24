@@ -1,0 +1,231 @@
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_load
+inv_mod_copy_load
+     : forall (mu : forall _ : nat, Integers.Int64.int) (g : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (inv_mod_copy_regs mu g) (jet_secp_modinv_var_copies.inv_copy_source g)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))
+            Ctypesdefs.tulong) (@Some jet_sx_expr.sx (inv_mod_copy_expr mu g i))
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_values
+inv_mod_copy_values
+     : forall (mu rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (g : bool) (i : nat) (x : jet_sx_expr.sx)
+         (_ : @eq (option jet_sx_expr.sx) (@List.nth_error jet_sx_expr.sx (inv_mod_copy_exprs mu g) i)
+                (@Some jet_sx_expr.sx x)),
+       and (@eq Values.val (jet_sx_expr.den rho beta x) (Values.Vlong (inv_mod_copy_word mu rho g i)))
+         (@eq bool (jet_sx_state.xp_le (jet_secp_modinv_var_copies.inv_copy_target g) x) true)
+### C.jet_secp_modinv_copies_modulus.inv_mod_field_fg
+inv_mod_field_fg
+     : @eq (list jet_sx_state.region) (inv_mod_fg_regs jet_secp_modinfo_fe_copy.modinfo_fe_limb)
+         jet_secp_modinv_var_copies.inv_fg_regs
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_owned
+inv_mod_copy_owned
+     : forall (mu : forall _ : nat, Integers.Int64.int) (g : bool),
+       @eq (option BinNums.Z)
+         (jet_sx_state.rfree
+            (@List.nth jet_sx_state.region (jet_secp_modinv_var_copies.inv_copy_target g) (inv_mod_copy_regs mu g)
+               (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))))
+         (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_lengths
+inv_mod_copy_lengths
+     : forall (mu : forall _ : nat, Integers.Int64.int) (g : bool),
+       and (@eq nat (@length jet_sx_state.region (inv_mod_copy_regs mu g)) (S (S (S (S (S (S (S O))))))))
+         (@eq nat (@length jet_sx_expr.sx (inv_mod_copy_exprs mu g)) (S (S (S (S (S O))))))
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_separate
+inv_mod_copy_separate
+     : forall (mu rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (g : bool) (_ : jet_sx_state.rep rho beta (inv_mod_copy_regs mu g) m),
+       not
+         (@eq Values.block (jet_sx_state.blk beta (jet_secp_modinv_var_copies.inv_copy_target g))
+            (jet_sx_state.blk beta (jet_secp_modinv_var_copies.inv_copy_source g)))
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_result
+inv_mod_copy_result
+     : forall (mu : forall _ : nat, Integers.Int64.int) (g : bool),
+       @eq (list jet_sx_state.region)
+         (@jet_sx_state.upd jet_sx_state.region (inv_mod_copy_regs mu g) (jet_secp_modinv_var_copies.inv_copy_target g)
+            (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (inv_mod_copy_exprs mu g)) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         match g return (list jet_sx_state.region) with
+         | true => inv_mod_fg_regs mu
+         | false => inv_mod_f_regs mu
+         end
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_shape
+inv_mod_copy_shape
+     : forall (mu : forall _ : nat, Integers.Int64.int) (g : bool),
+       @eq (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+         (jet_sx_state.rshape
+            (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (inv_mod_copy_exprs mu g)) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (jet_sx_state.rshape
+            (@List.nth jet_sx_state.region (jet_secp_modinv_var_copies.inv_copy_target g) (inv_mod_copy_regs mu g)
+               (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))))
+### C.jet_secp_modinv_copies_modulus.exec_inv_mod_copy
+exec_inv_mod_copy
+     : forall (mu rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (g : bool)
+         (_ : jet_sx_state.rep rho beta (inv_mod_copy_regs mu g) m)
+         (_ : jet_sx_eval.tmatch rho beta jet_secp_modinv_var_entry.inv_start_temps le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : @eq BinNums.Z (jet_sx_state.bas beta (jet_secp_modinv_var_copies.inv_copy_source g)) BinNums.Z0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+               (jet_secp_modinv_var_copies.inv_copy_stmt g) Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_sx_state.rep rho beta
+                  match g return (list jet_sx_state.region) with
+                  | true => inv_mod_fg_regs mu
+                  | false => inv_mod_f_regs mu
+                  end mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (_ : BinNums.Z) =>
+                   not (@eq Values.block b (jet_sx_state.blk beta (jet_secp_modinv_var_copies.inv_copy_target g)))) m
+                  mf)))
+### C.jet_secp_modinv_copies_modulus.exec_inv_mod_copies
+exec_inv_mod_copies
+     : forall (mu rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs (jet_secp_modinv_entry_modulus.inv_mod_init_state mu)) m)
+         (_ : jet_sx_eval.tmatch rho beta jet_secp_modinv_var_entry.inv_start_temps le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : @eq BinNums.Z (jet_sx_state.bas beta (S O)) BinNums.Z0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_modinv_var_copies.inv_copies
+               Events.E0 le mf ClightBigstep.Out_normal)
+            (and (jet_sx_state.rep rho beta (inv_mod_fg_regs mu) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (_ : BinNums.Z) =>
+                   and (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S O)))))))
+                     (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S (S O))))))))) m mf)))
+### C.jet_secp_modinv_copies_modulus.inv_mod_entry_to_loop
+inv_mod_entry_to_loop
+     : forall (mu rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_secp_modinv_entry_modulus.inv_mod_start_regs mu) m)
+         (_ : @eq BinNums.Z (jet_sx_state.bas beta (S O)) BinNums.Z0),
+       @ex (list (prod Values.block BinNums.Z))
+         (fun betaN : list (prod Values.block BinNums.Z) =>
+          @ex Clight.env
+            (fun e : Clight.env =>
+             @ex Clight.temp_env
+               (fun le : Clight.temp_env =>
+                @ex Memory.Mem.mem
+                  (fun mi : Memory.Mem.mem =>
+                   @ex Clight.temp_env
+                     (fun lef : Clight.temp_env =>
+                      @ex Memory.Mem.mem
+                        (fun mf : Memory.Mem.mem =>
+                         and
+                           (Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_modinv64_var
+                              (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta))
+                                 jet_secp_modinv_var_entry.inv_start_args) m e le mi)
+                           (and
+                              (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le mi
+                                 jet_secp_modinv_var_copies.inv_ready_prefix Events.E0 lef mf ClightBigstep.Out_normal)
+                              (and
+                                 (jet_sx_state.rep rho (@app (prod Values.block BinNums.Z) beta betaN)
+                                    (inv_mod_fg_regs mu) mf)
+                                 (and
+                                    (jet_sx_eval.tmatch rho (@app (prod Values.block BinNums.Z) beta betaN)
+                                       jet_secp_modinv_var_copies.inv_loop_start_temps lef)
+                                    (and
+                                       (jet_sx_eval.ematch (@app (prod Values.block BinNums.Z) beta betaN)
+                                          (@snd (list jet_sx_state.region) jet_sx_eval.venv
+                                             jet_secp_modinv_var_entry.inv_start_alloc) e)
+                                       (and
+                                          (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lef)
+                                             (@Some Values.val
+                                                (Values.Vint
+                                                   (Integers.Int.repr
+                                                      (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                          (and
+                                             (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta lef)
+                                                (@Some Values.val
+                                                   (Values.Vlong (Integers.Int64.repr (BinNums.Zneg BinNums.xH)))))
+                                             (and
+                                                (@List.Forall (prod Values.block BinNums.Z)
+                                                   (fun p : prod Values.block BinNums.Z =>
+                                                    not (Memory.Mem.valid_block m (@fst Values.block BinNums.Z p)))
+                                                   betaN)
+                                                (jet_sx_mem.lframe
+                                                   (fun (b : Values.block) (ofs : BinNums.Z) =>
+                                                    not
+                                                      (jet_sx_state.foot
+                                                         (@app (prod Values.block BinNums.Z) beta betaN)
+                                                         (@List.map jet_sx_state.region
+                                                            (prod (prod ... bool) (option BinNums.Z))
+                                                            jet_sx_state.rshape
+                                                            (jet_sx_eval.sregs
+                                                               (jet_secp_modinv_entry_modulus.inv_mod_start_state mu)))
+                                                         b ofs)) m mf))))))))))))))
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_exprs
+inv_mod_copy_exprs =
+fun (mu : forall _ : nat, Integers.Int64.int) (g : bool) =>
+match g return (list jet_sx_expr.sx) with
+| true => jet_secp_modinv_var_copies.inv_input_exprs
+| false =>
+    @List.map Integers.Int64.int jet_sx_expr.sx jet_sx_expr.XLc
+      (@cons Integers.Int64.int (mu O)
+         (@cons Integers.Int64.int (mu (S O))
+            (@cons Integers.Int64.int (mu (S (S O)))
+               (@cons Integers.Int64.int (mu (S (S (S O))))
+                  (@cons Integers.Int64.int (mu (S (S (S (S O))))) (@nil Integers.Int64.int))))))
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool), list jet_sx_expr.sx
+
+Arguments inv_mod_copy_exprs mu%function_scope g%bool_scope
+### C.jet_secp_modinv_copies_modulus.inv_mod_f_regs
+inv_mod_f_regs =
+fun mu : forall _ : nat, Integers.Int64.int =>
+@jet_sx_state.upd jet_sx_state.region (jet_sx_eval.sregs (jet_secp_modinv_entry_modulus.inv_mod_init_state mu))
+  (S (S (S (S O))))
+  (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (inv_mod_copy_exprs mu false)) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list jet_sx_state.region
+
+Arguments inv_mod_f_regs mu%function_scope
+### C.jet_secp_modinv_copies_modulus.inv_mod_fg_regs
+inv_mod_fg_regs =
+fun mu : forall _ : nat, Integers.Int64.int =>
+@jet_sx_state.upd jet_sx_state.region (inv_mod_f_regs mu) (S (S (S (S (S O)))))
+  (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 jet_secp_modinv_var_copies.inv_input_exprs) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list jet_sx_state.region
+
+Arguments inv_mod_fg_regs mu%function_scope
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_regs
+inv_mod_copy_regs =
+fun (mu : forall _ : nat, Integers.Int64.int) (g : bool) =>
+match g return (list jet_sx_state.region) with
+| true => inv_mod_f_regs mu
+| false => jet_sx_eval.sregs (jet_secp_modinv_entry_modulus.inv_mod_init_state mu)
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool), list jet_sx_state.region
+
+Arguments inv_mod_copy_regs mu%function_scope g%bool_scope
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_word
+inv_mod_copy_word =
+fun (mu rho : forall _ : nat, Integers.Int64.int) (g : bool) (i : nat) =>
+match g return Integers.Int64.int with
+| true => rho i
+| false => mu i
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat),
+       Integers.Int64.int
+
+Arguments inv_mod_copy_word (mu rho)%function_scope g%bool_scope i%nat_scope
+### C.jet_secp_modinv_copies_modulus.inv_mod_copy_expr
+inv_mod_copy_expr =
+fun (mu : forall _ : nat, Integers.Int64.int) (g : bool) (i : nat) =>
+match g return jet_sx_expr.sx with
+| true => jet_sx_expr.XLv i
+| false => jet_sx_expr.XLc (mu i)
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), jet_sx_expr.sx
+
+Arguments inv_mod_copy_expr mu%function_scope g%bool_scope i%nat_scope
