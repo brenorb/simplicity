@@ -1,0 +1,201 @@
+### C.jet_secp_fe_inverse_loop.field_inv_trajectory_batch
+field_inv_trajectory_batch
+     : forall (value : BinNums.Z) (n : nat),
+       @eq divstep.State
+         (@fst divstep.State (list divstep.Step)
+            (divstep.stepN (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))
+               (field_inv_trajectory value n)))
+         (field_inv_trajectory value
+            (Nat.add (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))) n))
+### C.jet_secp_fe_inverse_loop.field_inv_trajectory_zero
+field_inv_trajectory_zero
+     : forall (value : BinNums.Z) (n : nat) (_ : @eq BinNums.Z value BinNums.Z0),
+       @eq BinNums.Z (divstep.g (field_inv_trajectory value n)) BinNums.Z0
+### C.jet_secp_fe_inverse_loop.field_inv_loop_eta
+field_inv_loop_eta
+     : forall (value : BinNums.Z) (n : nat)
+         (_ : and (BinInt.Z.le BinNums.Z0 value) (BinInt.Z.lt value jet_secp_fe_math.feP))
+         (_ : or (@eq nat n O) (not (@eq BinNums.Z (divstep.g (field_inv_trajectory value n)) BinNums.Z0))),
+       and
+         (BinInt.Z.le
+            (BinNums.Zneg
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+            (divstep.eta (field_inv_trajectory value n)))
+         (BinInt.Z.lt (divstep.eta (field_inv_trajectory value n))
+            (BinNums.Zpos
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+### C.jet_secp_fe_inverse_loop.exec_field_inv_loop_fuel
+exec_field_inv_loop_fuel
+     : forall
+         (_ : forall (m : Memory.Mem.mem) (x : Integers.Int64.int)
+                (_ : not (@eq BinNums.Z (Integers.Int64.unsigned x) BinNums.Z0)),
+              ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ctz64_var)
+                (@cons Values.val (Values.Vlong x) (@nil Values.val)) Events.E0 m
+                (Values.Vint (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned x)))))
+         (fuel : nat) (value : BinNums.Z) (n : nat) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : nat) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 value) (BinInt.Z.lt value jet_secp_fe_math.feP))
+         (_ : field_inv_loop_ready value n beta e le0 m len rho)
+         (_ : @eq BinNums.Z
+                (divstep.g
+                   (field_inv_trajectory value
+                      (Nat.add (Nat.mul (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))) fuel)
+                         n))) BinNums.Z0),
+       @ex nat
+         (fun nf : nat =>
+          @ex nat
+            (fun lenf : nat =>
+             @ex (forall _ : nat, Integers.Int64.int)
+               (fun rhof : forall _ : nat, Integers.Int64.int =>
+                @ex Clight.temp_env
+                  (fun lef : Clight.temp_env =>
+                   @ex Memory.Mem.mem
+                     (fun mf : Memory.Mem.mem =>
+                      and
+                        (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+                           jet_secp_modinv_var_zero.inv_caller_loop Events.E0 lef mf ClightBigstep.Out_normal)
+                        (and (le (Nat.add n (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))) nf)
+                           (and (field_inv_loop_done value nf beta lef mf lenf rhof)
+                              (and (field_inv_loop_temps le0 lef)
+                                 (and (jet_sx_mem.lframe (jet_secp_fe_inverse_batch.field_inv_batch_frame beta) m mf)
+                                    (jet_clight_internal_preserve.readonly_preserved m mf))))))))))
+### C.jet_secp_fe_inverse_loop.exec_field_inv_loop
+exec_field_inv_loop
+     : forall
+         (_ : forall (m : Memory.Mem.mem) (x : Integers.Int64.int)
+                (_ : not (@eq BinNums.Z (Integers.Int64.unsigned x) BinNums.Z0)),
+              ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ctz64_var)
+                (@cons Values.val (Values.Vlong x) (@nil Values.val)) Events.E0 m
+                (Values.Vint (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned x)))))
+         (value : BinNums.Z) (n : nat) (beta : jet_sx_state.layout) (e : Clight.env) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (len : nat) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 value) (BinInt.Z.lt value jet_secp_fe_math.feP))
+         (_ : field_inv_loop_ready value n beta e le0 m len rho),
+       @ex nat
+         (fun nf : nat =>
+          @ex nat
+            (fun lenf : nat =>
+             @ex (forall _ : nat, Integers.Int64.int)
+               (fun rhof : forall _ : nat, Integers.Int64.int =>
+                @ex Clight.temp_env
+                  (fun lef : Clight.temp_env =>
+                   @ex Memory.Mem.mem
+                     (fun mf : Memory.Mem.mem =>
+                      and
+                        (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+                           jet_secp_modinv_var_zero.inv_caller_loop Events.E0 lef mf ClightBigstep.Out_normal)
+                        (and (le (Nat.add n (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))) nf)
+                           (and (field_inv_loop_done value nf beta lef mf lenf rhof)
+                              (and (field_inv_loop_temps le0 lef)
+                                 (and (jet_sx_mem.lframe (jet_secp_fe_inverse_batch.field_inv_batch_frame beta) m mf)
+                                    (jet_clight_internal_preserve.readonly_preserved m mf))))))))))
+### C.jet_secp_fe_inverse_loop.field_inv_seed_ready
+field_inv_seed_ready
+     : forall (w : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (_ : jet_secp_signed62_numeric.signed62_normalized w)
+         (_ : jet_sx_state.rep (jet_secp_modinv_var_seed.inv_seed_rho w) beta jet_secp_modinv_var_seed.inv_seed_regs m)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (BinNums.Zneg BinNums.xH)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._modinfo le)
+                (@Some Values.val
+                   (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))))))),
+       field_inv_loop_ready (jet_secp_signed62_numeric.signed62_unsigned_value w) O beta e le m
+         (S (S (S (S (S O))))) (jet_secp_modinv_var_seed.inv_seed_rho w)
+### C.jet_secp_fe_inverse_loop.field_inv_trajectory
+field_inv_trajectory =
+fun (value : BinNums.Z) (n : nat) =>
+@fst divstep.State (list divstep.Step)
+  (divstep.stepN n (divstep.init jet_secp_fe_math.feP value jet_secp_modinv_var_seed.inv_seed_modulus_odd))
+     : forall (_ : BinNums.Z) (_ : nat), divstep.State
+
+Arguments field_inv_trajectory value%Z_scope n%nat_scope
+### C.jet_secp_fe_inverse_loop.field_inv_loop_temps
+field_inv_loop_temps =
+fun le lef : Clight.temp_env =>
+forall (id : AST.ident) (_ : not (@eq AST.ident id jets_secp._eta)) (_ : not (@eq AST.ident id jets_secp._t'1))
+  (_ : not (@eq AST.ident id jets_secp._t'7)) (_ : not (@eq AST.ident id jets_secp._t'8))
+  (_ : not (@List.In AST.ident id jet_secp_modinv_var_post.inv_post_modified)),
+@eq (option Values.val) (@Maps.PTree.get Values.val id lef) (@Maps.PTree.get Values.val id le)
+     : forall (_ : Clight.temp_env) (_ : Clight.temp_env), Prop
+
+Arguments field_inv_loop_temps le lef
+### C.jet_secp_fe_inverse_loop.field_inv_loop_ready
+field_inv_loop_ready =
+fun (value : BinNums.Z) (n : nat) (beta : jet_sx_state.layout) (e : Clight.env) (le0 : Maps.PTree.tree Values.val)
+  (m : Memory.Mem.mem) (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+and (and (lt O len) (le len (S (S (S (S (S O)))))))
+  (and
+     (jet_sx_state.rep rho beta
+        (jet_secp_modinv_seed_modulus.inv_mod_seed_regs jet_secp_modinfo_fe_copy.modinfo_fe_limb) m)
+     (and
+        (jet_sx_eval.ematch beta
+           (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+        (and
+           (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le0)
+              (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.eta (field_inv_trajectory value n))))))
+           (and
+              (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._modinfo le0)
+                 (@Some Values.val
+                    (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))))
+              (and
+                 (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                    (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+                 (and (jet_secp_modinv_de_numeric.de62_state_bounds (jet_secp_modinv_var_de.inv_de_rho rho))
+                    (and (jet_secp_modinv_var_invariant.inv_state_matches len rho (field_inv_trajectory value n))
+                       (and (jet_secp_modinv_var_invariant.inv_coefficient_link value len rho)
+                          (and (jet_secp_modinv_var_ranges.inv_fg_limb_bounds rho)
+                             (and (jet_secp_modinv_var_ranges.inv_fg_value_capacity len rho)
+                                (and
+                                   (forall _ : @eq BinNums.Z value BinNums.Z0,
+                                    @eq BinNums.Z
+                                      (BinInt.Z.modulo
+                                         (jet_secp_modinv_de_numeric.de62_input_value
+                                            (jet_secp_modinv_var_de.inv_de_rho rho) false) jet_secp_fe_math.feP)
+                                      BinNums.Z0)
+                                   (or (@eq nat n O)
+                                      (not (@eq BinNums.Z (divstep.g (field_inv_trajectory value n)) BinNums.Z0))))))))))))))
+     : forall (_ : BinNums.Z) (_ : nat) (_ : jet_sx_state.layout) (_ : Clight.env) (_ : Maps.PTree.tree Values.val)
+         (_ : Memory.Mem.mem) (_ : nat) (_ : forall _ : nat, Integers.Int64.int), Prop
+
+Arguments field_inv_loop_ready value%Z_scope n%nat_scope beta e le m len%nat_scope rho%function_scope
+### C.jet_secp_fe_inverse_loop.field_inv_loop_done
+field_inv_loop_done =
+fun (value : BinNums.Z) (n : nat) (beta : jet_sx_state.layout) (le0 : Maps.PTree.tree Values.val)
+  (m : Memory.Mem.mem) (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+and (and (lt O len) (le len (S (S (S (S (S O)))))))
+  (and (jet_sx_state.rep rho beta jet_secp_modinv_var_de.inv_loop_regs m)
+     (and
+        (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le0)
+           (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.eta (field_inv_trajectory value n))))))
+        (and
+           (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+              (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+           (and (jet_secp_modinv_de_numeric.de62_state_bounds (jet_secp_modinv_var_de.inv_de_rho rho))
+              (and (jet_secp_modinv_var_invariant.inv_state_matches len rho (field_inv_trajectory value n))
+                 (and (jet_secp_modinv_var_invariant.inv_coefficient_link value len rho)
+                    (and (jet_secp_modinv_var_ranges.inv_fg_limb_bounds rho)
+                       (and (jet_secp_modinv_var_ranges.inv_fg_value_capacity len rho)
+                          (and (jet_secp_modinv_var_tail.inv_tail_low_bounds len rho)
+                             (and
+                                (forall _ : @eq BinNums.Z value BinNums.Z0,
+                                 @eq BinNums.Z
+                                   (BinInt.Z.modulo
+                                      (jet_secp_modinv_de_numeric.de62_input_value
+                                         (jet_secp_modinv_var_de.inv_de_rho rho) false) jet_secp_fe_math.feP)
+                                   BinNums.Z0) (@eq BinNums.Z (divstep.g (field_inv_trajectory value n)) BinNums.Z0)))))))))))
+     : forall (_ : BinNums.Z) (_ : nat) (_ : jet_sx_state.layout) (_ : Maps.PTree.tree Values.val)
+         (_ : Memory.Mem.mem) (_ : nat) (_ : forall _ : nat, Integers.Int64.int), Prop
+
+Arguments field_inv_loop_done value%Z_scope n%nat_scope beta le m len%nat_scope rho%function_scope

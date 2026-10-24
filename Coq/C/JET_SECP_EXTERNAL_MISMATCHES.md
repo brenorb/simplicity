@@ -2067,6 +2067,42 @@ JET_TARGETS="C/jet_secp_scalar_invert_local.vo C/jet_secp_scalar_invert_fresh.vo
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_invert_local C.jet_secp_scalar_invert_fresh
 ```
 
+## Complete original field-modulus inverse core (conditional progress)
+
+`jet_secp_fe_inverse_core.eval_field_inv_core` now executes the complete
+original `secp256k1_modinv64_var` with the **field** modulus global. Given
+normalized signed62 input below `feP`, its actual stored output has the exact
+literal inverse value. The Word256 bridge retains the literal result for the
+original input, including normalization modulo `feP`.
+
+The proof reuses the existing field coefficient/f-g/control invariant and
+finishing proof, together with the modulus-independent divstep batch. New
+composition modules establish each complete loop body, the terminating outer
+loop, the zero-input coefficient invariant, initialization from the actual
+caller prefix, sign normalization, copy-back and all five local frees.
+Termination uses the existing divstep termination theorem, not an assumed
+iteration count. Bounds on inactive limbs, shrinking active length and eta
+are retained throughout. `readonly_preserved` is carried through the same
+constructed execution.
+
+The core's frame excludes its input object and modulus block; represented
+modulus words/readability and the readonly-preservation certificate are
+separate conclusions. This is **not** yet the surrounding `fe_inv_var`
+copy/normalize/pack/unpack caller or the public `simplicity_fe_invert` jet.
+Those callers can reuse the existing `jet_secp_fe_inv_prefix` and
+`jet_secp_fe_inv_finish` proofs; no second field arithmetic framework or
+alternative C implementation has been introduced.
+
+As for scalar inversion, the original CTZ call behavior is still an explicit
+theorem parameter, not a discharged dependency or a new external model.
+Coverage remains 514/533. No production C, generated AST, specification,
+primitive identity, API or generation setting is changed.
+
+```sh
+JET_TARGETS="C/jet_secp_fe_inverse_batch.vo C/jet_secp_fe_inverse_loop.vo C/jet_secp_fe_inverse_loop_finish.vo C/jet_secp_fe_inverse_core.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_fe_inverse_batch C.jet_secp_fe_inverse_loop C.jet_secp_fe_inverse_loop_finish C.jet_secp_fe_inverse_core
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
