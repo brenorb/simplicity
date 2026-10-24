@@ -1143,6 +1143,28 @@ JET_TARGETS=C/jet_secp_div62_exit.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_exit
 ```
 
+## Original field-inversion unpack and local reclamation (internal progress)
+
+`jet_secp_fe_inv_finish.exec_fe_inv_unpack_and_free` executes the original
+`fe_inv_var` unpack call, reusing `eval_fe_from_signed62_value`, and frees
+the caller's actual two local objects in `blocks_of_env` order. It derives
+the represented output limbs, their bounds and exact integer value, retains
+the caller output's Freeable ownership, and frames blocks outside the output
+and the two reclaimed locals. The helper call is proved, not assumed.
+
+This suffix starts with a canonical signed62 result already in the local
+`s` object and a separate owned base-zero 40-byte output, as used for a
+caller's local field value. It neither assumes nor proves that the preceding
+modular-inverse call has run correctly. Arbitrary output slices, the missing
+inverse execution/value result and public jet composition remain open.
+No external model, target change or public registration is added; coverage
+remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_fe_inv_finish.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_fe_inv_finish
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
