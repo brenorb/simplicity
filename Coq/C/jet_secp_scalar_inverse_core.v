@@ -1,0 +1,118 @@
+(** The complete original modinv64_var call with scalar metadata. CTZ is an
+    explicit internal premise. The frame below excludes the input object and
+    modulus block; the latter's represented words/readability are retained
+    separately, not silently promoted to a whole-global byte frame. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Values Events.
+Require Simplicity.Alg.
+Require Import Simplicity.Ty Simplicity.Word C.jet_toZ C.jet_predicate_spec.
+Require Import C.extraMath C.divstep C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem
+ C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix
+ C.jet_secp_modinv_entry_modulus C.jet_secp_modinv_copies_modulus C.jet_secp_modinv_seed_modulus
+ C.jet_secp_modinv_var_entry C.jet_secp_modinv_var_copies C.jet_secp_modinv_var_de C.jet_secp_modinv_var_fg
+ C.jet_secp_modinv_var_zero C.jet_secp_modinv_var_finish C.jet_secp_modinv_var_free
+ C.jet_secp_scalar_inverse_loop C.jet_secp_scalar_inverse_loop_finish C.jet_secp_scalar_inverse_batch
+ C.jet_secp_scalar_inverse_seed C.jet_secp_scalar_inverse_caller C.jet_secp_modinfo_scalar_global
+ C.jet_secp_scalar_normalize62 C.jet_secp_scalar_de_exec C.jet_secp_modinv_fg_prefix
+ C.jet_secp_modinv_normalize62_exec C.jet_secp_scalar_invert_literal C.jet_secp_signed62_numeric
+ C.jet_secp_canonical_scalar C.jet_secp_fe_nv C.jet_secp_multiply_normalize_bridge.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge scalar_inv_modinfo_block.
+
+Lemma scalar_inv_core_body_source : fn_body f_secp256k1_modinv64_var=
+ statement_sequence (firstn 14 (fst inv_start_parts)) (Ssequence inv_caller_loop inv_finish).
+Proof. reflexivity. Qed.
+Lemma scalar_inv_no_foot beta sh b ofs :
+ (forall r,(r<length sh)%nat -> b<>blk beta r) -> ~foot beta sh b ofs.
+Proof.
+ intros Outside(r & shape & d & chunk & At & Cell & Block & Range).
+ apply(Outside r);[apply nth_error_Some;rewrite At;discriminate|exact Block].
+Qed.
+Lemma scalar_inv_core_private_outside m bs betaN b : length betaN=5%nat ->
+ Forall(fun p=>~Mem.valid_block m (fst p)) betaN -> Mem.valid_block m b ->
+ inv_free_outside ([(bs,0);(scalar_inv_modinfo_block,0)]++betaN) b.
+Proof.
+ intros Len Fresh Valid r R Same;apply(inv_copy_fresh [(bs,0);(scalar_inv_modinfo_block,0)] betaN m
+  eq_refl Len Fresh r R);rewrite <-Same;exact Valid.
+Qed.
+Lemma scalar_inv_core_prefix_outside m bs betaN b ofs : length betaN=5%nat ->
+ Forall(fun p=>~Mem.valid_block m (fst p)) betaN -> Mem.valid_block m b ->
+ b<>bs -> b<>scalar_inv_modinfo_block ->
+ ~foot ([(bs,0);(scalar_inv_modinfo_block,0)]++betaN)
+  (map rshape(sregs(inv_mod_start_state modinfo_scalar_limb))) b ofs.
+Proof.
+ intros Len Fresh Valid X Mod;apply scalar_inv_no_foot;intros r R.
+ change(r<7)%nat in R;destruct r as[|[|r]];[exact X|exact Mod|].
+ exact(scalar_inv_core_private_outside m bs betaN b Len Fresh Valid (S(S r)) ltac:(lia)).
+Qed.
+Lemma scalar_inv_core_finish_outside beta b ofs : b<>blk beta 0 -> b<>scalar_inv_modinfo_block ->
+ blk beta 1=scalar_inv_modinfo_block -> inv_free_outside beta b -> scalar_inv_loop_finish_frame beta b ofs.
+Proof.
+ intros X Mod Block Private.
+ assert(DE:~foot (inv_de_layout beta) (map rshape scalar_de62_regs) b ofs).
+ { apply scalar_inv_no_foot;intros r R;change(r<4)%nat in R.
+   rewrite inv_de_block by exact R;destruct r as[|[|[|[|r]]]];try lia;cbn [inv_de_select nth];
+    [apply Private;lia|apply Private;lia|apply Private;lia|rewrite Block;exact Mod]. }
+ assert(FG:~foot (inv_fg_layout beta) (map rshape fg_regs) b ofs).
+ { apply scalar_inv_no_foot;intros r R;change(r<3)%nat in R.
+   rewrite inv_fg_block by exact R;destruct r as[|[|[|r]]];try lia;cbn [inv_fg_select nth];apply Private;lia. }
+ split.
+ - split;[apply Private;lia|];split;[exact DE|];split;[exact FG|];split;apply Private;lia.
+ - split;[split;left;[apply Private;lia|exact Mod]|];split;assumption.
+Qed.
+
+Theorem eval_scalar_inv_core w m bs :
+ (forall mc x,Int64.unsigned x<>0 ->
+   Clight2.eval_funcall secp_ge mc (Internal f_secp256k1_ctz64_var) [Vlong x]
+    E0 mc (Vint(Int.repr(Z_ctz(Int64.unsigned x))))) ->
+ signed62_normalized w -> 0<=signed62_unsigned_value w<canonical_group_order ->
+ bs<>scalar_inv_modinfo_block -> fe_at m bs 0 (words5 w) -> Mem.range_perm m bs 0 40 Cur Freeable ->
+ modinfo_scalar_global_rep m -> exists words mr,
+ Clight2.eval_funcall secp_ge m (Internal f_secp256k1_modinv64_var)
+  [Vptr bs Ptrofs.zero;Vptr scalar_inv_modinfo_block Ptrofs.zero] E0 mr Vundef /\
+ fe_at mr bs 0 (words5 words) /\ signed62_normalized words /\
+ signed62_unsigned_value words=literal_scalar_invert_numeric(signed62_unsigned_value w) /\
+ (forall input:Ty.tySem(Word 8),signed62_unsigned_value w=@toZ (WordToZ 8) input mod canonical_group_order ->
+  @fromZ (WordToZ 8) (signed62_unsigned_value words)=@literal_scalar_invert Alg.CoreFunSem input) /\
+ Mem.range_perm mr bs 0 40 Cur Freeable /\ modinfo_scalar_global_rep mr /\
+ lframe(fun b _=>b<>bs /\ b<>scalar_inv_modinfo_block) m mr.
+Proof.
+ intros CountCall Normal Range Sep Input Free Global.
+ pose proof(scalar_inv_start_rep w m bs Sep Input Free Global) as Start.
+ destruct(inv_mod_entry_to_loop modinfo_scalar_limb w [(bs,0);(scalar_inv_modinfo_block,0)] m Start eq_refl)
+  as(betaN & e & le & mi & lc & mc & Entry & Prefix & Objects & Temps & Env & Len & Eta & Fresh & PFrame).
+ set(beta:=[(bs,0);(scalar_inv_modinfo_block,0)]++betaN) in *.
+ assert(NewLen:length betaN=5%nat).
+ { pose proof(proj1 Objects) as Size;change(length beta=7%nat) in Size;unfold beta in Size;rewrite app_length in Size;cbn in Size;lia. }
+ assert(Block:blk beta 1=scalar_inv_modinfo_block) by reflexivity.
+ assert(Base:bas beta 1=0) by reflexivity.
+ assert(X:lc!_x=Some(Vptr(blk beta 0) Ptrofs.zero)).
+ { pose proof(Temps _x (XP 0 0) eq_refl) as T;exact T. }
+ assert(Modinfo:lc!_modinfo=Some(Vptr(blk beta 1)(Ptrofs.repr(bas beta 1)))).
+ { pose proof(Temps _modinfo (XP 1 0) eq_refl) as T;exact T. }
+ pose proof(inv_mod_seed_rep modinfo_scalar_limb w beta mc Objects) as Seed.
+ pose proof(scalar_inv_seed_ready w beta e lc mc Normal Seed Env Eta Modinfo Len) as Ready.
+ destruct(exec_scalar_inv_loop_finish (signed62_unsigned_value w) 0 beta e lc mc 5
+  (inv_mod_seed_rho modinfo_scalar_limb w) CountCall Range Ready Block Base X)
+  as(words & lf & mf & mr & LoopFinish & Freed & Output & OutNormal & Numeric & Simplicity & Owned & OutGlobal & FFrame).
+ assert(Call:Clight2.eval_funcall secp_ge m (Internal f_secp256k1_modinv64_var)
+  [Vptr bs Ptrofs.zero;Vptr scalar_inv_modinfo_block Ptrofs.zero] E0 mr Vundef).
+ { eapply eval_funcall_internal with(e:=e)(le1:=le)(le2:=lf)(m1:=mi)(m2:=mf)(out:=Out_normal).
+   - exact Entry.
+   - rewrite scalar_inv_core_body_source;eapply exec_statement_prefix_then_last;[exact Prefix|exact LoopFinish].
+   - reflexivity.
+   - exact Freed. }
+ assert(Frame:lframe(fun b _=>b<>bs /\ b<>scalar_inv_modinfo_block) m mr).
+ { eapply lframe_implies with(P:=fun b _=>Mem.valid_block m b /\ b<>bs /\ b<>scalar_inv_modinfo_block).
+   - eapply lframe_trans.
+     + eapply lframe_implies;[exact PFrame|];intros b ofs(Valid & Xb & Mb) _.
+       exact(scalar_inv_core_prefix_outside m bs betaN b ofs NewLen Fresh Valid Xb Mb).
+     + eapply lframe_implies;[exact FFrame|];intros b ofs(Valid & Xb & Mb) _.
+       apply scalar_inv_core_finish_outside;[exact Xb|exact Mb|exact Block|].
+       exact(scalar_inv_core_private_outside m bs betaN b NewLen Fresh Valid).
+   - intros b ofs(Xb & Mb) Valid;repeat split;assumption. }
+ exists words,mr;split;[exact Call|];split;[exact Output|];split;[exact OutNormal|];split;[exact Numeric|];
+ split;[exact Simplicity|];split;[exact Owned|];split;[exact OutGlobal|exact Frame].
+Qed.

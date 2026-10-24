@@ -1924,6 +1924,41 @@ JET_TARGETS=C/jet_secp_scalar_inverse_loop_finish.vo bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_loop_finish
 ```
 
+## Complete scalar inverse helper calls (internal conditional progress)
+
+`jet_secp_scalar_inverse_core.eval_scalar_inv_core` executes the entire
+original `modinv64_var` function with the actual scalar modulus: function
+entry and five local allocations, fourteen initializer/copy statements,
+the complete loop, normalization, copy-back, and all local frees. Its input
+is normalized signed62 storage with canonical scalar value, actual modulus
+contents and ownership, not an assumed initialized loop or terminal result.
+The returned words have the literal Simplicity scalar-inversion value.
+
+`jet_secp_scalar_inverse_var.eval_scalar_inverse_var` then executes the
+entire original `scalar_inverse_var`: its actual private allocation, packing,
+complete core call, unpacking and cleanup. The result is a stored 32-byte
+scalar whose integer value equals the literal scalar-inversion result, with
+an explicit word-program bridge. Input/output scalar aliasing is allowed.
+The input canonical-value condition is internal to this scalar helper;
+the public jet's existing reader must establish it by reducing its input.
+
+**Framing limit:** the core frame excludes the input object and the modulus
+global block; the enclosing scalar frame excludes its input/output scalar
+objects and that global block. The actual six modulus words and readability
+are preserved separately. This is not a proof that every byte/permission of
+the entire global block is framed, and must not be presented as such.
+Fresh-local exclusion is discharged from real allocation, not imposed on
+old caller blocks. Whole-public reader/writer and frame composition remain.
+
+Both internal theorems retain the explicit deferred CTZ execution premise
+over memories and nonzero words. No external model, frozen target, public
+theorem contract or coverage row changes. Coverage remains 514/533.
+
+```sh
+JET_TARGETS="C/jet_secp_scalar_inverse_core.vo C/jet_secp_scalar_inverse_var.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_core C.jet_secp_scalar_inverse_var
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
