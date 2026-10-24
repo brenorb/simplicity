@@ -807,6 +807,40 @@ JET_TARGETS=C/jet_secp_gej_norm_output.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_norm_output
 ```
 
+### Original normalization caller: test/tag and complete infinity branch
+
+`jet_secp_gej_norm_branch.exec_gej_norm_header` executes the real flag
+accessor followed by the caller's boolean negation, `writeBit` call and return
+temporary. Both flag values are covered. The exact original public statement
+tree is retained by `gej_norm_body_source`. The new `literal_gej_normalize`
+adapter translates the unchanged canonical Haskell `gej_normalize` at
+`Haskell/Core/Simplicity/Programs/LibSecp256k1.hs:554`; its value equation and
+parametricity are proved, rather than substituting a numeric specification.
+
+`jet_secp_gej_norm_infinity.gej_normalize_infinity_literal_local_spec` proves
+the complete original public C call when the canonical Z-zero predicate is
+true. It derives all three caller allocations, the by-value frame copy,
+actual canonical XYZ reads and stored flag, test/tag, original `skip_ge`
+padding, successful return and freeing all caller locals. The result is the
+literal Simplicity output with the usual prefix, cursor and outside-memory
+guarantees for arbitrary valid physical cursors and initial output contents.
+The padding cells remain unconstrained; no zero-initialization is required.
+The source frame, owned storage and freshness facts are derived, not assumed
+post-read or as execution premises. Generic allocation properties are reused.
+
+This is explicitly a **restricted branch theorem**, not a new full-jet
+registration. Its canonical-infinity premise is retained in its statement;
+all finite inputs still require proof. The preceding post-inversion canonical
+output bridge and the caller header can be reused there, but complete
+inversion/CTZ execution, finite branch composition and cleanup remain open.
+No external-library premise, implementation/specification change or coverage
+credit is added. Accepted coverage stays 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_gej_norm_infinity.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_norm_infinity
+```
+
 ## Original field-inverse preparation (internal progress, no added coverage)
 
 `jet_secp_fe_inv_prefix.fe_inv_entry_to_core` derives actual entry into
