@@ -778,6 +778,47 @@ JET_TARGETS="C/jet_secp_ge_set_xy.vo C/jet_secp_gej_affine_finish.vo" bash Coq/b
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_ge_set_xy C.jet_secp_gej_affine_finish
 ```
 
+## Original field-inverse preparation (internal progress, no added coverage)
+
+`jet_secp_fe_inv_prefix.fe_inv_entry_to_core` derives actual entry into
+`secp256k1_fe_inv_var`, both original local allocations, the initial Clight
+struct copy, and the two original normalization/signed62-conversion calls.
+Its source identification is checked against the unchanged generated body.
+It accepts a represented bounded field at any valid slice offset, including
+the Z-at-80 input used by affine conversion; input and eventual output
+pointers need not be distinct. The output pointer is only bound at this
+prefix, not dereferenced or claimed to have been written.
+
+The result supplies the actual core's `inv_start_regs` representation over
+the packed temporary and named modulus global, with canonical signed62
+words whose unsigned value is exactly `radix_value input mod feP`.
+The full six-word/48-byte metadata readiness, owned private fields,
+fresh-local separation, and unchanged input field are derived. A load-level
+frame preserves every old location and permission: all writes so far are
+to freshly allocated private locals. No initialized temporary, source
+separation, helper execution, or post-state is added as a theorem premise.
+The only memory premises are the represented input field and existing
+modulus-global readiness; its limb bound is an internal input bound already
+satisfied by public field readers and the arithmetic helpers' outputs.
+
+The proof reuses the checked struct-copy, normalizer, signed62 conversion
+and generic internal-function permission theorems. In particular, the
+normalizer's Freeable ownership is derived from its real internal execution,
+not inferred from a writable-only field predicate. No external library model
+is introduced.
+
+This prefix stops **before `secp256k1_modinv64_var`**. The core's actual
+divstep execution/matrix correspondence, loop invariant and termination,
+canonical inverse result, unpacking, complete wrapper composition and local
+reclamation remain required. Existing core and affine suffix results do not
+by themselves discharge that gap. This is not a registered `fe_invert` or
+`gej_normalize` proof; coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_fe_inv_prefix.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_fe_inv_prefix
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

@@ -1,0 +1,257 @@
+### C.jet_secp_fe_inv_prefix.fe_inv_normalize_table_ok
+fe_inv_normalize_table_ok
+     : jet_clight_internal_frame.internal_table_ok jet_secp_linkage.secp_ge fe_inv_normalize_table
+### C.jet_secp_fe_inv_prefix.inv_start_rep_from_storage
+inv_start_rep_from_storage
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bs : Values.block)
+         (_ : not (@eq Values.block bs jet_secp_modinfo_fe_global.modinfo_fe_block))
+         (_ : jet_secp_fe_nv.fe_at m bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable) (_ : jet_secp_modinfo_fe_global.modinfo_fe_global_rep m),
+       jet_sx_state.rep w
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bs BinNums.Z0)
+            (@cons (prod Values.block BinNums.Z)
+               (@pair Values.block BinNums.Z jet_secp_modinfo_fe_global.modinfo_fe_block BinNums.Z0)
+               (@nil (prod Values.block BinNums.Z)))) jet_secp_modinv_var_entry.inv_start_regs m
+### C.jet_secp_fe_inv_prefix.fe_inv_normalize_permissions
+fe_inv_normalize_permissions
+     : forall (m mf : Memory.Mem.mem) (b : Values.block)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_normalize_var)
+                (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf Values.Vundef),
+       jet_clight_internal_permissions.keeps_permissions m mf
+### C.jet_secp_fe_inv_prefix.fe_inv_value_range
+fe_inv_value_range
+     : forall w : forall _ : nat, Integers.Int64.int,
+       and (and (BinInt.Z.le BinNums.Z0 (fe_inv_value w)) (BinInt.Z.lt (fe_inv_value w) jet_secp_fe_math.feP))
+         (and (BinInt.Z.le BinNums.Z0 (fe_inv_value w))
+            (BinInt.Z.lt (fe_inv_value w)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+### C.jet_secp_fe_inv_prefix.fe_inv_canonical_storage
+fe_inv_canonical_storage
+     : forall w : forall _ : nat, Integers.Int64.int,
+       @eq (list Integers.Int64.int) (jet_secp_multiply_normalize_bridge.words5 (fe_inv_canonical_words w))
+         (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of (fe_inv_value w)))
+### C.jet_secp_fe_inv_prefix.fe_inv_canonical_numeric
+fe_inv_canonical_numeric
+     : forall w : forall _ : nat, Integers.Int64.int,
+       and
+         (jet_secp_fe_math.fe_limbs_ok (Integers.Int64.unsigned (fe_inv_canonical_words w O))
+            (Integers.Int64.unsigned (fe_inv_canonical_words w (S O)))
+            (Integers.Int64.unsigned (fe_inv_canonical_words w (S (S O))))
+            (Integers.Int64.unsigned (fe_inv_canonical_words w (S (S (S O)))))
+            (Integers.Int64.unsigned (fe_inv_canonical_words w (S (S (S (S O)))))))
+         (@eq BinNums.Z (jet_secp_multiply_finish_product.radix_value (fe_inv_canonical_words w)) (fe_inv_value w))
+### C.jet_secp_fe_inv_prefix.eval_fe_inv_normalize
+eval_fe_inv_normalize
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (b : Values.block)
+         (_ : jet_secp_square_columns.square_input_bounds w)
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_normalize_var)
+               (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf b BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5 (fe_inv_canonical_words w)))
+               (and
+                  (Memory.Mem.range_perm mf b BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                     (jet_sx_mem.lframe
+                        (fun (bx : Values.block) (pos : BinNums.Z) =>
+                         not
+                           (and (@eq Values.block bx b)
+                              (and (BinInt.Z.le BinNums.Z0 pos)
+                                 (BinInt.Z.lt pos
+                                    (BinNums.Zpos
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                        m mf)))))
+### C.jet_secp_fe_inv_prefix.fe_inv_prefix_source
+fe_inv_prefix_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_fe_inv_var)
+         (jet_secp_statement_prefix.statement_sequence
+            (@cons Clight.statement jet_secp_fe_inv_statements.fe_inv_copy
+               (@cons Clight.statement jet_secp_fe_inv_statements.fe_inv_normalize
+                  (@cons Clight.statement jet_secp_fe_inv_statements.fe_inv_pack (@nil Clight.statement))))
+            (Clight.Ssequence jet_secp_fe_inv_statements.fe_inv_inverse jet_secp_fe_inv_statements.fe_inv_unpack))
+### C.jet_secp_fe_inv_prefix.fe_inv_slice_entry
+fe_inv_slice_entry
+     : forall (m : Memory.Mem.mem) (mt mi : Memory.Mem.mem') (bt bs bd : Values.block) (dbase : BinNums.Z)
+         (bx : Values.block) (sbase : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block mt bt))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc mt BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block mi bs)),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_fe_inv_var
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bx (Integers.Ptrofs.repr sbase)) (@nil Values.val))) m
+         (jet_secp_fe_inv_statements.fe_inv_env bt bs) (fe_inv_slice_temps bd dbase bx sbase) mi
+### C.jet_secp_fe_inv_prefix.exec_fe_inv_prefix
+exec_fe_inv_prefix
+     : forall (le : Maps.PTree.tree Values.val) (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem)
+         (bx : Values.block) (sbase : BinNums.Z) (bt bs : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._x le)
+                (@Some Values.val (Values.Vptr bx (Integers.Ptrofs.repr sbase))))
+         (_ : jet_secp_square_columns.square_input_bounds w)
+         (_ : jet_secp_fe_nv.fe_at m bx sbase (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bt BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable) (_ : not (@eq Values.block bt bx)) (_ : not (@eq Values.block bs bx))
+         (_ : not (@eq Values.block bt bs)) (_ : not (@eq Values.block bt jet_secp_modinfo_fe_global.modinfo_fe_block))
+         (_ : not (@eq Values.block bs jet_secp_modinfo_fe_global.modinfo_fe_block))
+         (_ : jet_secp_modinfo_fe_global.modinfo_fe_global_rep m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_fe_inv_statements.fe_inv_env bt bs) le
+               m fe_inv_prefix Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_sx_state.rep (fe_inv_packed_words w)
+                  (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bs BinNums.Z0)
+                     (@cons (prod Values.block BinNums.Z)
+                        (@pair Values.block BinNums.Z jet_secp_modinfo_fe_global.modinfo_fe_block BinNums.Z0)
+                        (@nil (prod Values.block BinNums.Z)))) jet_secp_modinv_var_entry.inv_start_regs mf)
+               (and
+                  (jet_secp_fe_nv.fe_at mf bs BinNums.Z0
+                     (jet_secp_multiply_normalize_bridge.words5 (fe_inv_packed_words w)))
+                  (and
+                     (jet_secp_fe_nv.fe_at mf bt BinNums.Z0
+                        (jet_secp_multiply_normalize_bridge.words5 (fe_inv_canonical_words w)))
+                     (and (jet_secp_fe_nv.fe_at mf bx sbase (jet_secp_multiply_normalize_bridge.words5 w))
+                        (and
+                           (Memory.Mem.range_perm mf bt BinNums.Z0
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and
+                              (Memory.Mem.range_perm mf bs BinNums.Z0
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                 Memtype.Cur Memtype.Freeable)
+                              (and (jet_secp_signed62_numeric.signed62_normalized (fe_inv_packed_words w))
+                                 (and
+                                    (@eq BinNums.Z
+                                       (jet_secp_signed62_numeric.signed62_unsigned_value (fe_inv_packed_words w))
+                                       (fe_inv_value w))
+                                    (and (jet_secp_modinfo_fe_global.modinfo_fe_global_rep mf)
+                                       (jet_sx_mem.lframe
+                                          (fun (b : Values.block) (_ : BinNums.Z) =>
+                                           and (not (@eq Values.block b bt)) (not (@eq Values.block b bs))) m mf)))))))))))
+### C.jet_secp_fe_inv_prefix.fe_inv_entry_to_core
+fe_inv_entry_to_core
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bx : Values.block)
+         (sbase : BinNums.Z) (bd : Values.block) (dbase : BinNums.Z)
+         (_ : jet_secp_square_columns.square_input_bounds w)
+         (_ : jet_secp_fe_nv.fe_at m bx sbase (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : jet_secp_modinfo_fe_global.modinfo_fe_global_rep m),
+       @ex Values.block
+         (fun bt : Values.block =>
+          @ex Values.block
+            (fun bs : Values.block =>
+             @ex Memory.Mem.mem
+               (fun mi : Memory.Mem.mem =>
+                @ex Memory.Mem.mem
+                  (fun mf : Memory.Mem.mem =>
+                   and
+                     (Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_fe_inv_var
+                        (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                           (@cons Values.val (Values.Vptr bx (Integers.Ptrofs.repr sbase)) (@nil Values.val))) m
+                        (jet_secp_fe_inv_statements.fe_inv_env bt bs) (fe_inv_slice_temps bd dbase bx sbase) mi)
+                     (and
+                        (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                           (jet_secp_fe_inv_statements.fe_inv_env bt bs) (fe_inv_slice_temps bd dbase bx sbase) mi
+                           fe_inv_prefix Events.E0 (fe_inv_slice_temps bd dbase bx sbase) mf ClightBigstep.Out_normal)
+                        (and
+                           (jet_sx_state.rep (fe_inv_packed_words w)
+                              (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bs BinNums.Z0)
+                                 (@cons (prod Values.block BinNums.Z)
+                                    (@pair Values.block BinNums.Z jet_secp_modinfo_fe_global.modinfo_fe_block
+                                       BinNums.Z0) (@nil (prod Values.block BinNums.Z))))
+                              jet_secp_modinv_var_entry.inv_start_regs mf)
+                           (and
+                              (jet_secp_fe_nv.fe_at mf bs BinNums.Z0
+                                 (jet_secp_multiply_normalize_bridge.words5 (fe_inv_packed_words w)))
+                              (and
+                                 (jet_secp_fe_nv.fe_at mf bt BinNums.Z0
+                                    (jet_secp_multiply_normalize_bridge.words5 (fe_inv_canonical_words w)))
+                                 (and (jet_secp_fe_nv.fe_at mf bx sbase (jet_secp_multiply_normalize_bridge.words5 w))
+                                    (and
+                                       (Memory.Mem.range_perm mf bt BinNums.Z0
+                                          (BinNums.Zpos
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                          Memtype.Cur Memtype.Freeable)
+                                       (and
+                                          (Memory.Mem.range_perm mf bs BinNums.Z0
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                             Memtype.Cur Memtype.Freeable)
+                                          (and (jet_secp_signed62_numeric.signed62_normalized (fe_inv_packed_words w))
+                                             (and
+                                                (@eq BinNums.Z
+                                                   (jet_secp_signed62_numeric.signed62_unsigned_value
+                                                      (fe_inv_packed_words w)) (fe_inv_value w))
+                                                (and (jet_secp_modinfo_fe_global.modinfo_fe_global_rep mf)
+                                                   (and (not (@eq Values.block bt bs))
+                                                      (and (not (Memory.Mem.valid_block m bt))
+                                                         (and (not (Memory.Mem.valid_block m bs))
+                                                            (jet_sx_mem.lframe
+                                                               (fun (_ : Values.block) (_ : BinNums.Z) => True) m mf))))))))))))))))))
+### C.jet_secp_fe_inv_prefix.fe_inv_normalize_table
+fe_inv_normalize_table =
+@cons (prod AST.ident Clight.function)
+  (@pair AST.ident Clight.function jets_secp._secp256k1_fe_normalize_var jets_secp.f_secp256k1_fe_normalize_var)
+  (@nil (prod AST.ident Clight.function))
+     : list (prod AST.ident Clight.function)
+### C.jet_secp_fe_inv_prefix.fe_inv_value
+fe_inv_value =
+fun w : forall _ : nat, Integers.Int64.int =>
+BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value w) jet_secp_fe_math.feP
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments fe_inv_value w%function_scope
+### C.jet_secp_fe_inv_prefix.fe_inv_canonical_words
+fe_inv_canonical_words =
+fun w : forall _ : nat, Integers.Int64.int => jet_secp_b32_exec.limb_rho (fe_inv_value w)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments fe_inv_canonical_words w%function_scope n%nat_scope
+### C.jet_secp_fe_inv_prefix.fe_inv_packed_words
+fe_inv_packed_words =
+fun w : forall _ : nat, Integers.Int64.int => jet_secp_signed62_repack.fe_repack_words true (fe_inv_canonical_words w)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments fe_inv_packed_words w%function_scope i%nat_scope
+### C.jet_secp_fe_inv_prefix.fe_inv_prefix
+fe_inv_prefix =
+Clight.Ssequence jet_secp_fe_inv_statements.fe_inv_copy
+  (Clight.Ssequence jet_secp_fe_inv_statements.fe_inv_normalize
+     (Clight.Ssequence jet_secp_fe_inv_statements.fe_inv_pack Clight.Sskip))
+     : Clight.statement
+### C.jet_secp_fe_inv_prefix.fe_inv_slice_temps
+fe_inv_slice_temps =
+fun (bd : Values.block) (dbase : BinNums.Z) (bx : Values.block) (sbase : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_secp._x (Values.Vptr bx (Integers.Ptrofs.repr sbase))
+  (@Maps.PTree.set Values.val jets_secp._r (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+     (Clight.create_undef_temps (Clight.fn_temps jets_secp.f_secp256k1_fe_inv_var)))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments fe_inv_slice_temps bd dbase%Z_scope bx sbase%Z_scope
