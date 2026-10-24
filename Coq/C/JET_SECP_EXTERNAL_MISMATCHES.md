@@ -862,18 +862,33 @@ and permissions are framed through these steps, retaining the computed tag
 when the frame invariant is transported across them. The exact original
 function-body context is checked by `affine_entry_source`.
 
+`jet_secp_modinfo_fe_caller.modinfo_fe_state_initial` obtains the modulus
+representation and readonly status from the actual program initialization.
+`read_gej_preserves_modinfo` proves preservation through the real reader's
+closed internal call graph. For the tag/header, `frame_write_keeps_modinfo`
+derives that the readonly modulus block cannot be either writable frame
+block, then applies the existing load/permission frame. It does not assume
+behavior for the unreachable assertion call in the AST.
+No input/global disjointness condition or external-library premise is added.
+
+`gej_norm_finite_enters_inverse` composes these facts with both prefixes:
+modulus state is required before reading, not assumed afterwards. From input
+cells and the existing caller/frame ownership it derives the read/tag,
+both nested function entries, the finite guard and original inverse
+preparation, retaining X/Y/Z, the tag, all seven local allocations, global
+metadata and outside framing. The packed input's exact numeric value is
+the original Z word modulo the field prime.
+
 These are execution/representation prefixes, not a full nested call or a
-finite public-jet equivalence. The concrete `modinfo_fe_global_rep` input
-contract is retained from the existing inverse preparation; its
-initialization is already proved, but caller-level establishment/preservation
-must still be composed with the read/tag prefix. Complete modular inversion,
+finite public-jet equivalence. Initial caller allocation/copy and modulus
+startup still need composition at the public boundary. Complete modular inversion,
 its canonical inverse correspondence, finite suffix/call/return composition
 and public cleanup remain required. No new external model, axiom, target
 change or coverage credit: accepted coverage remains 514/533.
 
 ```sh
-JET_TARGETS="C/jet_secp_gej_affine_entry.vo C/jet_secp_gej_norm_reads.vo" bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_affine_entry C.jet_secp_gej_norm_reads
+JET_TARGETS="C/jet_secp_gej_affine_entry.vo C/jet_secp_modinfo_fe_caller.vo C/jet_secp_gej_norm_reads.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinfo_fe_caller C.jet_secp_gej_norm_reads
 ```
 
 ## Original field-inverse preparation (internal progress, no added coverage)

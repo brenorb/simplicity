@@ -1,0 +1,65 @@
+### C.jet_secp_modinfo_fe_caller.modinfo_fe_state_initial
+modinfo_fe_state_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       modinfo_fe_state m
+### C.jet_secp_modinfo_fe_caller.modinfo_fe_state_readback
+modinfo_fe_state_readback
+     : forall (m mf : Memory.Mem.mem) (_ : jet_clight_readonly.readonly_readback m mf)
+         (_ : jet_clight_internal_permissions.keeps_permissions m mf) (_ : modinfo_fe_state m),
+       modinfo_fe_state mf
+### C.jet_secp_modinfo_fe_caller.gej_reader_internal_table_correct
+gej_reader_internal_table_correct
+     : jet_clight_internal_frame.internal_table_ok jet_secp_linkage.secp_ge gej_reader_internal_table
+### C.jet_secp_modinfo_fe_caller.gej_reader_allowed
+gej_reader_allowed
+     : jet_clight_internal_frame.allowed_call gej_reader_internal_table
+         (@Ctypes.Internal Clight.function jets_secp.f_read_gej)
+### C.jet_secp_modinfo_fe_caller.read_gej_preserves_modinfo
+read_gej_preserves_modinfo
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_read_gej) args t mf result) (_ : modinfo_fe_state m),
+       modinfo_fe_state mf
+### C.jet_secp_modinfo_fe_caller.frame_write_keeps_modinfo
+frame_write_keeps_modinfo
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor count : BinNums.Z) (_ : jet_output_layout.write_frame_at m bd base bw edge cursor count)
+         (_ : BinInt.Z.le (BinNums.Zpos BinNums.xH) count)
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 and (not (@eq Values.block b bd)) (not (@eq Values.block b bw))) m mf) (_ : modinfo_fe_state m),
+       jet_secp_modinfo_fe_global.modinfo_fe_global_rep mf
+### C.jet_secp_modinfo_fe_caller.modinfo_fe_state
+modinfo_fe_state =
+fun m : Memory.Mem.mem =>
+and (jet_secp_modinfo_fe_global.modinfo_fe_global_rep m)
+  (forall ofs : BinNums.Z,
+   not (Memory.Mem.perm m jet_secp_modinfo_fe_global.modinfo_fe_block ofs Memtype.Max Memtype.Writable))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments modinfo_fe_state m
+### C.jet_secp_modinfo_fe_caller.gej_reader_internal_table
+gej_reader_internal_table =
+@cons (prod AST.ident Clight.function) (@pair AST.ident Clight.function jets_secp._LSBclear jets_secp.f_LSBclear)
+  (@cons (prod AST.ident Clight.function) (@pair AST.ident Clight.function jets_secp._LSBkeep jets_secp.f_LSBkeep)
+     (@cons (prod AST.ident Clight.function) (@pair AST.ident Clight.function jets_secp._read8s jets_secp.f_read8s)
+        (@cons (prod AST.ident Clight.function)
+           (@pair AST.ident Clight.function jets_secp._simplicity_read8 jets_secp.f_simplicity_read8)
+           (@cons (prod AST.ident Clight.function)
+              (@pair AST.ident Clight.function jets_secp._read_fe jets_secp.f_read_fe)
+              (@cons (prod AST.ident Clight.function)
+                 (@pair AST.ident Clight.function jets_secp._secp256k1_fe_set_b32 jets_secp.f_secp256k1_fe_set_b32)
+                 (@cons (prod AST.ident Clight.function)
+                    (@pair AST.ident Clight.function jets_secp._secp256k1_fe_normalize_var
+                       jets_secp.f_secp256k1_fe_normalize_var)
+                    (@cons (prod AST.ident Clight.function)
+                       (@pair AST.ident Clight.function jets_secp._secp256k1_fe_is_zero
+                          jets_secp.f_secp256k1_fe_is_zero)
+                       (@cons (prod AST.ident Clight.function)
+                          (@pair AST.ident Clight.function jets_secp._read_gej jets_secp.f_read_gej)
+                          (@nil (prod AST.ident Clight.function))))))))))
+     : list (prod AST.ident Clight.function)
