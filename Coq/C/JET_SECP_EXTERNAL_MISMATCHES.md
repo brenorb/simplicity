@@ -2103,6 +2103,42 @@ JET_TARGETS="C/jet_secp_fe_inverse_batch.vo C/jet_secp_fe_inverse_loop.vo C/jet_
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_fe_inverse_batch C.jet_secp_fe_inverse_loop C.jet_secp_fe_inverse_loop_finish C.jet_secp_fe_inverse_core
 ```
 
+## Complete original `fe_inv_var` caller (conditional progress)
+
+`jet_secp_fe_inverse_var.eval_fe_inverse_var_slice` now composes the original
+field inverse helper end to end: actual two-local allocation, source-field
+copy, normalization, signed62 packing, field-modulus inverse core, unpacking
+to the requested output slice, and both local frees. It reuses
+`jet_secp_fe_inv_prefix` and `jet_secp_fe_inv_finish`; the preceding core call
+is derived from its input storage, not assumed as an output/execution premise.
+
+The result includes actual execution, output storage and limb bounds, literal
+inverse value/Word256 bridge, complete output-allocation ownership, preserved
+field-modulus startup state, and arbitrary-chunk framing outside the output
+slice. Input and output may coincide. The modulus global is **not** excluded
+from that frame: `jet_secp_fe_inverse_state` uses the existing
+`modinfo_fe_state`, actual readonly-preservation certificate and shared
+`preserved_readonly_block_frame` lemma. No final-global-readability or blanket
+input/global separation premise is added. The original startup theorem
+`modinfo_fe_state_initial` establishes this state from `Genv.init_mem`.
+
+`eval_fe_inverse_var` specializes this to whole 40-byte fields.
+`eval_fe_inverse_var_point` executes the real point-normalization call that
+inverts Z in place at byte offset 80, preserving X/Y, bytes outside Z, and
+ownership of the complete 128-byte point allocation.
+
+The original CTZ behavior remains the explicit deferred parameter. These are
+complete **conditional helper** results, not yet the public
+`simplicity_fe_invert` read/invert/write/return jet. Public caller composition
+and CTZ discharge remain open; accepted coverage stays at 514/533. Production
+C, generated ASTs, canonical specifications, primitive identities, API and
+generation settings are unchanged.
+
+```sh
+JET_TARGETS="C/jet_secp_fe_inverse_state.vo C/jet_secp_fe_inverse_var.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_fe_inverse_state C.jet_secp_fe_inverse_var
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
