@@ -65,6 +65,27 @@ the actual builder.
 
 ## Impact and next work
 
+### Original lookup comparison (internal execution progress)
+
+`jet_elements_fee_lookup_compare.exec_fee_lookup_compare` executes the
+original midpoint pointer load, `memcmp` call and comparison assignment.
+Its source equality checks that slice against `f_lookup_fee`. The unsigned
+division and pointer stride are derived from the actual AST; asset bytes
+come from the represented midpoint entry. The result has the existing
+`memcmp_model` sign relation and unchanged memory, without assuming a
+particular comparison result. No new external model is introduced, and no
+linked-libc correctness is claimed.
+
+```sh
+JET_TARGETS=C/jet_elements_fee_lookup_compare.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_fee_lookup_compare
+```
+
+This is not a complete search, wrapper or canonical fee equivalence proof.
+The remaining search branches, sorted-table lookup argument, wrapper
+composition and fee-classification boundary above remain open. It adds no
+public coverage; the ledger remains 514/533.
+
 `simplicity_output_is_fee` remains unregistered. `total_fee` also depends on
 fee classification and has further execution/lookup obligations. In the
 hypothetical witness case their classification or accumulated fee could

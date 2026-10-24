@@ -10,3 +10,4 @@ instead of starting a parallel proof.
 | `simplicity_fe_invert` | Codex (current goal session) | `feat/jet-equivalence` | 2026-10-22 |
 | `simplicity_generate` | Codex (current goal session; shared scalar-splitting dependency) | `feat/jet-equivalence` | 2026-10-22 |
 | `simplicity_gej_normalize` | Codex (current goal session; shared post-inversion affine conversion) | `feat/jet-equivalence` | 2026-10-24 |
+| `simplicity_total_fee` | Codex (current goal session; original lookup execution) | `feat/jet-equivalence` | 2026-10-24 |

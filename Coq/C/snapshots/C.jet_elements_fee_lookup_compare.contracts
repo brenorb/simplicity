@@ -1,0 +1,260 @@
+### C.jet_elements_fee_lookup_compare.fee_lookup_compare_source
+fee_lookup_compare_source
+     : @eq Clight.statement fee_lookup_work (Clight.Ssequence fee_lookup_compare fee_lookup_after_compare)
+### C.jet_elements_fee_lookup_compare.fee_lookup_memcmp_symbol
+fee_lookup_memcmp_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+            jets_elements._memcmp)
+         (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._memcmp))
+### C.jet_elements_fee_lookup_compare.fee_lookup_memcmp_funct
+fee_lookup_memcmp_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+            (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._memcmp) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function)
+            (@Ctypes.External Clight.function
+               (AST.EF_external
+                  (String.String (Ascii.Ascii true false true true false true true false)
+                     (String.String (Ascii.Ascii true false true false false true true false)
+                        (String.String (Ascii.Ascii true false true true false true true false)
+                           (String.String (Ascii.Ascii true true false false false true true false)
+                              (String.String (Ascii.Ascii true false true true false true true false)
+                                 (String.String (Ascii.Ascii false false false false true true true false)
+                                    String.EmptyString)))))) jet_memcmp_model.memcmp_sig)
+               (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tvoid)
+                  (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tvoid) (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)))
+               Ctypesdefs.tint AST.cc_default))
+### C.jet_elements_fee_lookup_compare.fee_lookup_div_sem
+fee_lookup_div_sem
+     : forall (len : BinNums.Z) (m : Memory.Mem.mem)
+         (_ : and (BinInt.Z.le BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned)),
+       @eq (option Values.val)
+         (Cop.sem_binary_operation (Clight.genv_cenv jet_elements_linkage.elements_ge) Cop.Odiv
+            (Values.Vlong (Integers.Int64.repr len)) Ctypesdefs.tulong
+            (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH)))) Ctypesdefs.tint m)
+         (@Some Values.val
+            (Values.Vlong (Integers.Int64.repr (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))))
+### C.jet_elements_fee_lookup_compare.eval_fee_lookup_half
+eval_fee_lookup_half
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : and (BinInt.Z.le BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned)),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_lookup_half
+         (Values.Vlong (Integers.Int64.repr (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH)))))
+### C.jet_elements_fee_lookup_compare.eval_fee_lookup_mid
+eval_fee_lookup_mid
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : BinNums.Z)
+         (bt : Values.block) (base : BinNums.Z) (bp : Values.block) (ofs : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+         (_ : and (BinInt.Z.le BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mptr m bt
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vptr bp (Integers.Ptrofs.repr ofs)))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_lookup_mid
+         (Values.Vptr bp (Integers.Ptrofs.repr ofs))
+### C.jet_elements_fee_lookup_compare.eval_fee_lookup_key
+eval_fee_lookup_key
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : Integers.Ptrofs.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._assetid le)
+                (@Some Values.val (Values.Vptr b ofs))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_lookup_key (Values.Vptr b ofs)
+### C.jet_elements_fee_lookup_compare.eval_fee_lookup_candidate
+eval_fee_lookup_candidate
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : Integers.Ptrofs.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._t'4 le)
+                (@Some Values.val (Values.Vptr b ofs))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_lookup_candidate (Values.Vptr b ofs)
+### C.jet_elements_fee_lookup_compare.exec_fee_lookup_compare
+exec_fee_lookup_compare
+     : forall (_ : jet_memcmp_model.memcmp_model) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (len : BinNums.Z) (bt : Values.block) (base : BinNums.Z) (bk : Values.block) (keybase : BinNums.Z)
+         (bp : Values.block) (ofs : BinNums.Z) (key candidate : list Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._assetid le)
+                (@Some Values.val (Values.Vptr bk (Integers.Ptrofs.repr keybase))))
+         (_ : and (BinInt.Z.le BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le BinNums.Z0 keybase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add keybase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH))) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mptr m bt
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vptr bp (Integers.Ptrofs.repr ofs))))
+         (_ : @eq nat (@length Integers.Int.int key)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @eq nat (@length Integers.Int.int candidate)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : jet_memcmp_model.bytes_at m bk keybase key) (_ : jet_memcmp_model.bytes_at m bp ofs candidate),
+       @ex Integers.Int.int
+         (fun cmp : Integers.Int.int =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m fee_lookup_compare
+               Events.E0 (fee_lookup_compared bp ofs cmp le) m ClightBigstep.Out_normal)
+            (jet_memcmp_model.memcmp_sign (jet_memcmp_model.bytes_cmp key candidate) cmp))
+### C.jet_elements_fee_lookup_compare.fee_lookup_half
+fee_lookup_half =
+Clight.Ebinop Cop.Odiv (Clight.Etempvar jets_elements._len Ctypesdefs.tulong)
+  (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))) Ctypesdefs.tint) Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_elements_fee_lookup_compare.fee_lookup_mid
+fee_lookup_mid =
+Clight.Ederef
+  (Clight.Ebinop Cop.Oadd
+     (Clight.Etempvar jets_elements._feeOutputs
+        (Ctypesdefs.tptr (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)))) fee_lookup_half
+     (Ctypesdefs.tptr (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr))))
+  (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr))
+     : Clight.expr
+### C.jet_elements_fee_lookup_compare.fee_lookup_key
+fee_lookup_key =
+Clight.Efield
+  (Clight.Ederef
+     (Clight.Etempvar jets_elements._assetid
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)))
+     (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)) jets_elements._s
+  (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     : Clight.expr
+### C.jet_elements_fee_lookup_compare.fee_lookup_candidate
+fee_lookup_candidate =
+Clight.Efield
+  (Clight.Efield
+     (Clight.Efield
+        (Clight.Ederef
+           (Clight.Etempvar jets_elements._t'4
+              (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)))
+           (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)) jets_elements._asset
+        (Ctypes.Tstruct jets_elements._confidential Ctypes.noattr)) jets_elements._data
+     (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)) jets_elements._s
+  (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     : Clight.expr
+### C.jet_elements_fee_lookup_compare.fee_lookup_memcmp
+fee_lookup_memcmp =
+Clight.Scall (@Some AST.ident jets_elements._t'1)
+  (Clight.Evar jets_elements._memcmp
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tvoid)
+           (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tvoid) (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)))
+        Ctypesdefs.tint AST.cc_default))
+  (@cons Clight.expr fee_lookup_key
+     (@cons Clight.expr fee_lookup_candidate
+        (@cons Clight.expr
+           (Clight.Esizeof
+              (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+              Ctypesdefs.tulong) (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_elements_fee_lookup_compare.fee_lookup_compare
+fee_lookup_compare =
+Clight.Ssequence (Clight.Ssequence (Clight.Sset jets_elements._t'4 fee_lookup_mid) fee_lookup_memcmp)
+  (Clight.Sset jets_elements._cmp (Clight.Etempvar jets_elements._t'1 Ctypesdefs.tint))
+     : Clight.statement
+### C.jet_elements_fee_lookup_compare.fee_lookup_work
+fee_lookup_work =
+match Clight.fn_body jets_elements.f_lookup_fee return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence s0 _ =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ _ => Clight.Sskip
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop s2 _ =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ s => s
+        | Clight.Sifthenelse _ _ _ => Clight.Sskip
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_elements_fee_lookup_compare.fee_lookup_after_compare
+fee_lookup_after_compare =
+match fee_lookup_work return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s => s
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_elements_fee_lookup_compare.fee_lookup_compared
+fee_lookup_compared =
+fun (bp : Values.block) (ofs : BinNums.Z) (cmp : Integers.Int.int) (le : Maps.PTree.tree Values.val) =>
+@Maps.PTree.set Values.val jets_elements._cmp (Values.Vint cmp)
+  (@Maps.PTree.set Values.val jets_elements._t'1 (Values.Vint cmp)
+     (@Maps.PTree.set Values.val jets_elements._t'4 (Values.Vptr bp (Integers.Ptrofs.repr ofs)) le))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Integers.Int.int) (_ : Maps.PTree.tree Values.val),
+       Maps.PTree.tree Values.val
+
+Arguments fee_lookup_compared bp ofs%Z_scope cmp le
