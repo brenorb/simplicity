@@ -1,0 +1,113 @@
+### C.jet_secp_swu_root_power.swu_field_fermat
+swu_field_fermat
+     : forall (a : BinNums.Z) (_ : not (@eq BinNums.Z (BinInt.Z.modulo a jet_secp_fe_math.feP) BinNums.Z0)),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (BinInt.Z.pow a (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH)))
+            jet_secp_fe_math.feP) (BinNums.Zpos BinNums.xH)
+### C.jet_secp_swu_root_power.swu_root_exponent_bounds
+swu_root_exponent_bounds
+     : BinInt.Z.lt BinNums.Z0 swu_root_exponent
+### C.jet_secp_swu_root_power.swu_root_exponent_four
+swu_root_exponent_four
+     : @eq BinNums.Z (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) swu_root_exponent)
+         (BinInt.Z.add jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH))
+### C.jet_secp_swu_root_power.swu_power_multiply
+swu_power_multiply
+     : forall (x y : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (a e f : BinNums.Z)
+         (_ : BinInt.Z.le BinNums.Z0 e) (_ : BinInt.Z.le BinNums.Z0 f) (_ : swu_power_match x a e)
+         (_ : swu_power_match y a f),
+       swu_power_match
+         (@jet_secp_negate_literal_contract.literal_fe_multiply Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) x y)) a (BinInt.Z.add e f)
+### C.jet_secp_swu_root_power.swu_power_square
+swu_power_square
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (a e : BinNums.Z)
+         (_ : BinInt.Z.le BinNums.Z0 e) (_ : swu_power_match x a e),
+       swu_power_match (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem x) a
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) e)
+### C.jet_secp_swu_root_power.swu_power_squares
+swu_power_squares
+     : forall (n : nat) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (a e : BinNums.Z)
+         (_ : BinInt.Z.le BinNums.Z0 e) (_ : swu_power_match x a e),
+       swu_power_match (@jet_secp_root_literal.literal_fe_squares n Alg.CoreFunSem x) a
+         (BinInt.Z.mul (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat n)) e)
+### C.jet_secp_swu_root_power.swu_literal_root_power
+swu_literal_root_power
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       swu_power_match (jet_secp_root_chain_numeric.literal_root_candidate x)
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x) swu_root_exponent
+### C.jet_secp_swu_root_power.swu_field_fermat_square
+swu_field_fermat_square
+     : forall a : BinNums.Z,
+       @eq BinNums.Z
+         (BinInt.Z.modulo (BinInt.Z.pow a (BinInt.Z.add jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH)))
+            jet_secp_fe_math.feP) (BinInt.Z.modulo (BinInt.Z.mul a a) jet_secp_fe_math.feP)
+### C.jet_secp_swu_root_power.swu_power_root_square
+swu_power_root_square
+     : forall a : BinNums.Z,
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (BinInt.Z.pow
+               (BinInt.Z.modulo
+                  (BinInt.Z.pow (BinInt.Z.modulo (BinInt.Z.mul a a) jet_secp_fe_math.feP) swu_root_exponent)
+                  jet_secp_fe_math.feP) (BinNums.Zpos (BinNums.xO BinNums.xH))) jet_secp_fe_math.feP)
+         (BinInt.Z.modulo (BinInt.Z.mul a a) jet_secp_fe_math.feP)
+### C.jet_secp_swu_root_power.swu_literal_root_check_square
+swu_literal_root_check_square
+     : forall (x : Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+         (a : BinNums.Z)
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)
+                   jet_secp_fe_math.feP) (BinInt.Z.modulo (BinInt.Z.mul a a) jet_secp_fe_math.feP)),
+       @eq bool (Bit.toBool (jet_secp_root_check.literal_root_check x)) true
+### C.jet_secp_swu_root_power.swu_root_select_true
+swu_root_select_true
+     : forall (flag : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (root : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : @eq bool (Bit.toBool flag) true),
+       @eq (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         match flag return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) with
+         | inl _ => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) tt
+         | inr _ => @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) root
+         end (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) root)
+### C.jet_secp_swu_root_power.swu_literal_root_success_on_square
+swu_literal_root_success_on_square
+     : forall (x : Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+         (a : BinNums.Z)
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)
+                   jet_secp_fe_math.feP) (BinInt.Z.modulo (BinInt.Z.mul a a) jet_secp_fe_math.feP)),
+       @eq (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_secp_root_literal.literal_fe_square_root Alg.CoreFunSem x)
+         (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (jet_secp_root_chain_numeric.literal_root_candidate x))
+### C.jet_secp_swu_root_power.swu_c_root_check_square
+swu_c_root_check_square
+     : forall (w : forall _ : nat, Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (a : BinNums.Z) (_ : jet_secp_root_chain_numeric.root_words_match w x)
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)
+                   jet_secp_fe_math.feP) (BinInt.Z.modulo (BinInt.Z.mul a a) jet_secp_fe_math.feP)),
+       @eq bool (jet_secp_root_check.root_check_flag w) true
+### C.jet_secp_swu_root_power.swu_literal_root_failure_not_square
+swu_literal_root_failure_not_square
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : @eq bool (Bit.toBool (jet_secp_root_check.literal_root_check x)) false) (a : BinNums.Z),
+       not
+         (@eq BinNums.Z
+            (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)
+               jet_secp_fe_math.feP) (BinInt.Z.modulo (BinInt.Z.mul a a) jet_secp_fe_math.feP))
+### C.jet_secp_swu_root_power.swu_root_exponent
+swu_root_exponent =
+BinInt.Z.div (BinInt.Z.add jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH))
+  (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+     : BinNums.Z
+### C.jet_secp_swu_root_power.swu_power_match
+swu_power_match =
+fun (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (a e : BinNums.Z) =>
+@eq BinNums.Z
+  (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) word) jet_secp_fe_math.feP)
+  (BinInt.Z.modulo (BinInt.Z.pow a e) jet_secp_fe_math.feP)
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : BinNums.Z) (_ : BinNums.Z), Prop
+
+Arguments swu_power_match word (a e)%Z_scope

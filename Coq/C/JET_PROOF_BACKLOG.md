@@ -2126,6 +2126,27 @@ remains deferred and no public `generate` coverage increase is claimed.
 The exact current conditional boundary and reproducible checks are recorded in
 `JET_SECP_EXTERNAL_MISMATCHES.md` under Generation.
 
+## Active `swu` frontier
+
+`jet_secp_swu_root_power` connects the already-verified literal square-root
+chain to the exact exponent `(feP+1)/4`, then uses the checked field-primality
+certificate to prove that this literal root and the corresponding C root-check
+flag succeed on every represented square. It covers arbitrary Word256 inputs;
+there is no candidate-success premise or new primality assumption.
+
+This closes a prerequisite, not the public mapper. The next missing implication
+is that the exact three source-defined candidates cannot all fail their actual
+root checks. The C helper uses the third candidate without testing its flag,
+whereas the canonical literal mapper tests it. This is an open equivalence
+obligation, not evidence of a mismatch. Prove the candidate algebra, including
+zero inputs and the joint inverse's signs, and connect it to these root lemmas
+before composing the actual C helper and public frame wrapper. Do not assume
+third-candidate success to obtain a public theorem. The existing explicit ctz
+boundary remains deferred; no new external model or coverage row is added.
+Coverage remains 514/533. Reproduce the normal build and recursive kernel
+check with the commands in `JET_SECP_EXTERNAL_MISMATCHES.md`, using
+`C/jet_secp_swu_root_power.vo` / `C.jet_secp_swu_root_power`.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the

@@ -13,3 +13,4 @@ instead of starting a parallel proof.
 | `simplicity_gej_normalize` | Codex (current goal session; shared post-inversion affine conversion) | `feat/jet-equivalence` | 2026-10-24 |
 | `simplicity_gej_y_is_odd` | Codex (current goal session; original affine conversion and Y parity caller) | `feat/jet-equivalence` | 2026-10-24 |
 | `simplicity_total_fee` | Codex (current goal session; original lookup execution) | `feat/jet-equivalence` | 2026-10-24 |
+| `simplicity_swu` | Codex (current goal session; exact root-candidate selection bridge) | `feat/jet-equivalence` | 2026-10-24 |
