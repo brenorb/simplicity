@@ -879,16 +879,36 @@ preparation, retaining X/Y/Z, the tag, all seven local allocations, global
 metadata and outside framing. The packed input's exact numeric value is
 the original Z word modulo the field prime.
 
+`jet_secp_gej_norm_infinity.gej_norm_prepare` factors the actual public
+function entry and by-value source-frame copy out of the complete infinity
+proof, which now reuses it. Fresh caller allocations, their ownership and
+separation, the local source fields and initial frame invariant are all
+derived. Modulus state is transported through those allocations and the
+copy without external-call properties or a new library premise.
+
+`gej_normalize_finite_public_prefix` then starts from the ordinary public
+source/output frames, input cells and modulus state at call entry, rather
+than assumed private locals. It composes that real entry/copy with the
+read/tag and nested inverse preparation, returning the same exact packed
+input and caller fields/ownership, plus framing relative to the initial
+public memory. No intermediate readiness or helper execution is assumed.
+Initialization of the modulus state remains `modinfo_fe_state_initial`;
+this result does not establish its preservation through arbitrary earlier
+application calls.
+
 These are execution/representation prefixes, not a full nested call or a
-finite public-jet equivalence. Initial caller allocation/copy and modulus
-startup still need composition at the public boundary. Complete modular inversion,
+finite public-jet equivalence. Complete modular inversion,
 its canonical inverse correspondence, finite suffix/call/return composition
-and public cleanup remain required. No new external model, axiom, target
+and public cleanup remain required. In particular, the existing
+`exec_fe_inv_unpack_and_free` handles a base-zero output; the point caller
+still needs unpacking into Z at offset 80 while retaining X/Y and full point
+ownership. This is a proof-interface gap, not a C/specification mismatch.
+No new external model, axiom, target
 change or coverage credit: accepted coverage remains 514/533.
 
 ```sh
-JET_TARGETS="C/jet_secp_gej_affine_entry.vo C/jet_secp_modinfo_fe_caller.vo C/jet_secp_gej_norm_reads.vo" bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinfo_fe_caller C.jet_secp_gej_norm_reads
+JET_TARGETS="C/jet_secp_gej_norm_infinity.vo C/jet_secp_gej_norm_reads.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_norm_infinity C.jet_secp_gej_norm_reads
 ```
 
 ## Original field-inverse preparation (internal progress, no added coverage)

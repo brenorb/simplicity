@@ -11,6 +11,7 @@ Require Import C.jet_secp_frame C.jet_secp_linkage C.jets_secp C.jet_secp_curve_
 Require Import C.jet_secp_wrapper_run C.jet_secp_canonical_zero C.jet_secp_read_gej_owned.
 Require Import C.jet_secp_gej_predicate_body C.jet_secp_gej_norm_branch.
 Require C.jet_elements_support_sha_tapdata_prep.
+Require Import C.jet_secp_modinfo_fe_caller C.jet_clight_readonly C.jet_clight_internal_permissions.
 Import ListNotations Ctypes Values Clightdefs.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -55,22 +56,28 @@ Proof.
   - exact Call.
 Qed.
 
-Theorem eval_gej_normalize_infinity_public envv m0 bd base bs sbase bw edge cursor N bi inedge rc
-    (x y z:Ty.tySem Word256) :
-  write_frame_at m0 bd base bw edge cursor N -> 513<=N ->
+(** Shared real public entry and by-value source copy, before either branch.
+    All private ownership and separation are derived from fresh allocations. *)
+Theorem gej_norm_prepare envv m0 bd base bs sbase bw edge cursor N bi inedge rc :
+  write_frame_at m0 bd base bw edge cursor N ->
   frame_base_valid sbase -> (8|sbase) -> frame_fields_at m0 bs sbase bi inedge rc ->
-  frame_input_cells_at m0 bi inedge rc (map Some(frame_input_word_bits x)) ->
-  frame_input_cells_at m0 bi inedge (rc+256) (map Some(frame_input_word_bits y)) ->
-  frame_input_cells_at m0 bi inedge (rc+512) (map Some(frame_input_word_bits z)) ->
-  0<=rc -> rc+768<=Int64.max_unsigned ->
-  Bit.toBool(@canonical_fe_is_zero Alg.CoreFunSem z)=true -> exists mf,
-  Clight2.eval_funcall secp_ge m0 (Internal f_simplicity_gej_normalize)
-    [Vptr bd(Ptrofs.repr base);Vptr bs(Ptrofs.repr sbase);envv] E0 mf (Vint Int.one) /\
-  finv m0 bd base bw edge cursor N bi mf true
-    (Simplicity.Translate.encode(@literal_gej_normalize Alg.CoreFunSem ((x,y),z))) /\
-  lframe (fun b _=>~extA m0 bd bw bi b) m0 mf.
+  exists bl bp br mc md,
+  function_entry2 secp_ge f_simplicity_gej_normalize
+    [Vptr bd(Ptrofs.repr base);Vptr bs(Ptrofs.repr sbase);envv] m0
+    (gej_norm_env bl bp br) (gej_norm_temps envv bd base bs sbase) mc /\
+  Clight2.exec_stmt secp_ge (gej_norm_env bl bp br) (gej_norm_temps envv bd base bs sbase) mc
+    (Sassign(Evar _src (Tstruct _frameItem noattr))(Etempvar _src (Tstruct _frameItem noattr)))
+    E0 (gej_norm_temps envv bd base bs sbase) md Out_normal /\
+  frame_fields_at md bl 0 bi inedge rc /\
+  Mem.range_perm md bl 0 16 Cur Freeable /\ Mem.range_perm md bp 0 128 Cur Freeable /\
+  Mem.range_perm md br 0 88 Cur Freeable /\ bp<>bl /\ br<>bp /\ br<>bl /\
+  (forall b,Mem.valid_block m0 b -> b<>bl /\ b<>bp /\ b<>br) /\
+  xsep (extA m0 bd bw bi) [(bp,0);(br,0);(bl,0)] /\
+  finv m0 bd base bw edge cursor N bi md false [] /\
+  (modinfo_fe_state m0 -> modinfo_fe_state md) /\
+  lframe (fun b _=>b<>bl /\ b<>bp /\ b<>br) m0 md.
 Proof.
-  intros Output Cap SrcBase SrcAlign [SrcEdge SrcOffset] InputX InputY InputZ RC RCMax Zero.
+  intros Output SrcBase SrcAlign [SrcEdge SrcOffset].
   destruct (Mem.alloc m0 0 16) as [ma bl] eqn:A1.
   destruct (Mem.alloc ma 0 128) as [mb bp] eqn:A2.
   destruct (Mem.alloc mb 0 88) as [mc br] eqn:A3.
@@ -119,10 +126,67 @@ Proof.
   { intros pos Hr;eapply Mem.perm_storebytes_1;[exact Store|apply FP;exact Hr]. }
   assert (FRD:Mem.range_perm md br 0 88 Cur Freeable).
   { intros pos Hr;eapply Mem.perm_storebytes_1;[exact Store|apply FR;exact Hr]. }
-  assert (Sep:xsep (extA m0 bd bw bi) [(bp,0);(bl,0)]).
-  { intros [|[|r]] Bound;cbn [blk bas lay nth fst snd];unfold extA,fext;
+  assert (Copy:Clight2.exec_stmt secp_ge (gej_norm_env bl bp br) (gej_norm_temps envv bd base bs sbase) mc
+    (Sassign(Evar _src (Tstruct _frameItem noattr))(Etempvar _src (Tstruct _frameItem noattr))) E0 (gej_norm_temps envv bd base bs sbase) md Out_normal).
+  { assert (Unsigned:Ptrofs.unsigned(Ptrofs.repr sbase)=sbase)
+      by (apply Ptrofs.unsigned_repr;unfold frame_base_valid in SrcBase;lia).
+    eapply exec_Sassign_copy.
+    - apply eval_Evar_local;reflexivity.
+    - apply eval_Etempvar;reflexivity.
+    - reflexivity.
+    - eapply assign_loc_copy with (b':=bs) (ofs':=Ptrofs.repr sbase) (bytes:=bytes).
+      + reflexivity.
+      + intros _;change(8|Ptrofs.unsigned(Ptrofs.repr sbase));rewrite Unsigned;exact SrcAlign.
+      + intros _;exists 0;reflexivity.
+      + left;destruct(Old bs SrcValid) as [NS _];congruence.
+      + change(Mem.loadbytes mc bs(Ptrofs.unsigned(Ptrofs.repr sbase))16=Some bytes);rewrite Unsigned;exact Bytes.
+      + exact Store. }
+  assert(Entry:function_entry2 secp_ge f_simplicity_gej_normalize
+    [Vptr bd(Ptrofs.repr base);Vptr bs(Ptrofs.repr sbase);envv] m0
+    (gej_norm_env bl bp br) (gej_norm_temps envv bd base bs sbase) mc).
+  { eapply gej_norm_entry;eassumption. }
+  assert(Sep:xsep (extA m0 bd bw bi) [(bp,0);(br,0);(bl,0)]).
+  { intros [|[|[|i]]] Bound;cbn [blk bas lay nth fst snd];unfold extA,fext;
       [intros [_ V];apply(Fresh bp V);right;left;reflexivity|
+       intros [_ V];apply(Fresh br V);right;right;left;reflexivity|
        intros [_ V];apply(Fresh bl V);left;reflexivity|cbn in Bound;lia]. }
+  assert(Global:modinfo_fe_state m0 -> modinfo_fe_state md).
+  { intro Initial.
+    assert(Allocated:modinfo_fe_state mc).
+    { eapply modinfo_fe_state_readback.
+      - eapply entry2_readonly_readback;exact Entry.
+      - eapply entry_keeps_permissions;exact Entry.
+      - exact Initial. }
+    eapply modinfo_fe_state_readback.
+    - eapply storebytes_readonly_readback;exact Store.
+    - intros b ofs k p Perm;eapply Mem.perm_storebytes_1;eassumption.
+    - exact Allocated. }
+  exists bl,bp,br,mc,md;repeat first[assumption|split].
+Qed.
+
+Theorem eval_gej_normalize_infinity_public envv m0 bd base bs sbase bw edge cursor N bi inedge rc
+    (x y z:Ty.tySem Word256) :
+  write_frame_at m0 bd base bw edge cursor N -> 513<=N ->
+  frame_base_valid sbase -> (8|sbase) -> frame_fields_at m0 bs sbase bi inedge rc ->
+  frame_input_cells_at m0 bi inedge rc (map Some(frame_input_word_bits x)) ->
+  frame_input_cells_at m0 bi inedge (rc+256) (map Some(frame_input_word_bits y)) ->
+  frame_input_cells_at m0 bi inedge (rc+512) (map Some(frame_input_word_bits z)) ->
+  0<=rc -> rc+768<=Int64.max_unsigned ->
+  Bit.toBool(@canonical_fe_is_zero Alg.CoreFunSem z)=true -> exists mf,
+  Clight2.eval_funcall secp_ge m0 (Internal f_simplicity_gej_normalize)
+    [Vptr bd(Ptrofs.repr base);Vptr bs(Ptrofs.repr sbase);envv] E0 mf (Vint Int.one) /\
+  finv m0 bd base bw edge cursor N bi mf true
+    (Simplicity.Translate.encode(@literal_gej_normalize Alg.CoreFunSem ((x,y),z))) /\
+  lframe (fun b _=>~extA m0 bd bw bi b) m0 mf.
+Proof.
+  intros Output Cap SrcBase SrcAlign [SrcEdge SrcOffset] InputX InputY InputZ RC RCMax Zero.
+  destruct(gej_norm_prepare envv m0 bd base bs sbase bw edge cursor N bi inedge rc
+    Output SrcBase SrcAlign (conj SrcEdge SrcOffset))
+    as (bl & bp & br & mc & md & Entry & Copy & LocalFields & FLD & FPD & FRD &
+        PL & RP & RL & Old & SepAll & Fin & Globals & PrepFrame).
+  assert (Sep:xsep (extA m0 bd bw bi) [(bp,0);(bl,0)]).
+  { intros [|[|i]] Bound;[exact(SepAll 0%nat ltac:(cbn;lia))|
+      exact(SepAll 2%nat ltac:(cbn;lia))|cbn in Bound;lia]. }
   assert (Inv:invA m0 bd base bw edge cursor N bi rc false [] 513
     (read_fe_rho(frame_input_word_bits x)rc) [] md).
   { split;[reflexivity|];split;[exact Fin|];split;[exact Cap|cbn;lia]. }
@@ -133,7 +197,7 @@ Proof.
   destruct InvR as [_ [FinR _]].
   change(finv m0 bd base bw edge cursor N bi mr false []) in FinR.
   assert (NotR:~extA m0 bd bw bi br).
-  { intros [_ V];apply(Fresh br V);right;right;left;reflexivity. }
+  { intros [_ V];apply(proj2(proj2(Old br V)));reflexivity. }
   assert (FRR:Mem.range_perm mr br 0 88 Cur Freeable).
   { eapply curve_keep_free;[lia|exact FRD|exact ReadFrame|];intros pos;split;[exact RP|];split;assumption. }
   set (le:=gej_norm_temps envv bd base bs sbase).
@@ -156,25 +220,10 @@ Proof.
     intros b pos (NL & NP & NR) Valid;cbn;intuition congruence. }
   assert (FreeExt:eqext m0 bd bw bi mw mf).
   { eapply lframe_implies;[exact FreeFrame|];intros b pos [_ V] _;apply Old;exact V. }
-  assert (Copy:Clight2.exec_stmt secp_ge (gej_norm_env bl bp br) le mc
-    (Sassign(Evar _src (Tstruct _frameItem noattr))(Etempvar _src (Tstruct _frameItem noattr))) E0 le md Out_normal).
-  { assert (Unsigned:Ptrofs.unsigned(Ptrofs.repr sbase)=sbase)
-      by (apply Ptrofs.unsigned_repr;unfold frame_base_valid in SrcBase;lia).
-    eapply exec_Sassign_copy.
-    - apply eval_Evar_local;reflexivity.
-    - apply eval_Etempvar;reflexivity.
-    - reflexivity.
-    - eapply assign_loc_copy with (b':=bs) (ofs':=Ptrofs.repr sbase) (bytes:=bytes).
-      + reflexivity.
-      + intros _;change(8|Ptrofs.unsigned(Ptrofs.repr sbase));rewrite Unsigned;exact SrcAlign.
-      + intros _;exists 0;reflexivity.
-      + left;destruct(Old bs SrcValid) as [NS _];congruence.
-      + change(Mem.loadbytes mc bs(Ptrofs.unsigned(Ptrofs.repr sbase))16=Some bytes);rewrite Unsigned;exact Bytes.
-      + exact Store. }
   exists mf;split.
   - eapply eval_funcall_internal with (e:=gej_norm_env bl bp br) (le1:=le) (m1:=mc)
       (le2:=gej_norm_tagged le true) (m2:=mw) (out:=Out_return(Some(Vint Int.one,tint))).
-    + eapply gej_norm_entry;eassumption.
+    + exact Entry.
     + rewrite gej_norm_body_source;eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=md) (le1:=le);[exact Copy|].
       eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=mr) (le1:=le);[apply exec_gej_norm_read;exact Read|exact Tail].
     + cbn;split;[discriminate|reflexivity].

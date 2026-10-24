@@ -174,3 +174,82 @@ Proof.
     eapply lframe_implies;[exact InverseFrame|];intros;exact I. }
   exists mt,b2,b3,ma,bt,bs,mi,mf;repeat first[assumption|split].
 Qed.
+
+(** Public caller inputs establish the complete finite prefix through both
+    nested function entries and inverse preparation. This is not a completed
+    public eval_funcall: the modular-inverse call and all returns remain. *)
+Theorem gej_normalize_finite_public_prefix envv m0 bd base bsrc sbase bw edge cursor N bi inedge rc
+    (x y z:Ty.tySem Word256) :
+  write_frame_at m0 bd base bw edge cursor N -> 513<=N ->
+  frame_base_valid sbase -> (8|sbase) -> frame_fields_at m0 bsrc sbase bi inedge rc ->
+  frame_input_cells_at m0 bi inedge rc (map Some(frame_input_word_bits x)) ->
+  frame_input_cells_at m0 bi inedge (rc+256)(map Some(frame_input_word_bits y)) ->
+  frame_input_cells_at m0 bi inedge (rc+512)(map Some(frame_input_word_bits z)) ->
+  0<=rc -> rc+768<=Int64.max_unsigned -> modinfo_fe_state m0 ->
+  Bit.toBool(@canonical_fe_is_zero Alg.CoreFunSem z)=false ->
+  exists bl bp br mc mt b2 b3 ma bt bs mi mf,
+  function_entry2 secp_ge f_simplicity_gej_normalize
+    [Vptr bd(Ptrofs.repr base);Vptr bsrc(Ptrofs.repr sbase);envv] m0
+    (gej_norm_env bl bp br) (gej_norm_temps envv bd base bsrc sbase) mc /\
+  Clight2.exec_stmt secp_ge (gej_norm_env bl bp br) (gej_norm_temps envv bd base bsrc sbase) mc
+    (Ssequence
+      (Sassign(Evar _src (Tstruct _frameItem noattr))(Etempvar _src (Tstruct _frameItem noattr)))
+      (Ssequence gej_predicate_read_stmt gej_norm_header)) E0
+    (gej_norm_tagged (gej_norm_temps envv bd base bsrc sbase) false) mt Out_normal /\
+  function_entry2 secp_ge f_secp256k1_ge_set_gej_var [Vptr br Ptrofs.zero;Vptr bp Ptrofs.zero]
+    mt (affine_local_env b2 b3) (affine_entry_temps br bp) ma /\
+  Clight2.exec_stmt secp_ge (affine_local_env b2 b3) (affine_entry_temps br bp) ma affine_flag_statement
+    E0 (affine_finite_temps br bp) ma Out_normal /\
+  eval_exprlist secp_ge (affine_local_env b2 b3) (affine_finite_temps br bp) ma
+    [affine_point_address _z;affine_point_address _z] (type_of_params(fn_params f_secp256k1_fe_inv_var))
+    [Vptr bp(Ptrofs.repr 80);Vptr bp(Ptrofs.repr 80)] /\
+  function_entry2 secp_ge f_secp256k1_fe_inv_var [Vptr bp(Ptrofs.repr 80);Vptr bp(Ptrofs.repr 80)] ma
+    (fe_inv_env bt bs) (fe_inv_slice_temps bp 80 bp 80) mi /\
+  Clight2.exec_stmt secp_ge (fe_inv_env bt bs) (fe_inv_slice_temps bp 80 bp 80) mi fe_inv_prefix
+    E0 (fe_inv_slice_temps bp 80 bp 80) mf Out_normal /\
+  rep (fe_inv_packed_words(square_reader_rho z)) [(bs,0);(modinfo_fe_block,0)] inv_start_regs mf /\
+  signed62_normalized(fe_inv_packed_words(square_reader_rho z)) /\
+  signed62_unsigned_value(fe_inv_packed_words(square_reader_rho z))=@toZ (WordToZ 8) z mod feP /\
+  fe_at mf bs 0 (words5(fe_inv_packed_words(square_reader_rho z))) /\
+  fe_at mf bp 0 (words5(square_reader_rho x)) /\
+  fe_at mf bp 40 (words5(square_reader_rho y)) /\
+  fe_at mf bp 80 (words5(square_reader_rho z)) /\
+  Mem.range_perm mf bp 0 128 Cur Freeable /\ Mem.range_perm mf br 0 88 Cur Freeable /\
+  Mem.range_perm mf bl 0 16 Cur Freeable /\
+  Mem.range_perm mf b2 0 40 Cur Freeable /\ Mem.range_perm mf b3 0 40 Cur Freeable /\
+  Mem.range_perm mf bt 0 40 Cur Freeable /\ Mem.range_perm mf bs 0 40 Cur Freeable /\
+  modinfo_fe_global_rep mf /\ finv m0 bd base bw edge cursor N bi mf true [Some true] /\
+  b2<>b3 /\ ~Mem.valid_block mt b2 /\ ~Mem.valid_block mt b3 /\
+  bt<>bs /\ ~Mem.valid_block ma bt /\ ~Mem.valid_block ma bs /\
+  (forall b,Mem.valid_block m0 b -> b<>bl /\ b<>bp /\ b<>br) /\
+  lframe (fun b _=>~extA m0 bd bw bi b) m0 mf.
+Proof.
+  intros Output Cap SrcBase SrcAlign Source IX IY IZ RC Max Global Nonzero.
+  destruct(gej_norm_prepare envv m0 bd base bsrc sbase bw edge cursor N bi inedge rc
+    Output SrcBase SrcAlign Source)
+    as (bl & bp & br & mc & md & Entry & Copy & LocalFields & FLD & FPD & FRD &
+        PL & RP & RL & Old & Sep & Fin & Globals & PrepFrame).
+  set(le:=gej_norm_temps envv bd base bsrc sbase).
+  destruct(gej_norm_finite_enters_inverse m0 bd base bw edge cursor N bi inedge rc le md bl bp br
+    x y z ltac:(reflexivity) Output Cap IX IY IZ RC Max FPD FLD FRD LocalFields PL RP RL Sep Fin
+    (Globals Global) Nonzero)
+    as (mt & b2 & b3 & ma & bt & bs & mi & mf & ReadTag & AffineEntry & Finite & Args &
+        InverseEntry & Prepare & Core & Normalized & Numeric & Packed & X & Y & Z &
+        FPF & FRF & FLF & F2 & F3 & FT & FS & GlobalF & Tag & Separate & New2 & New3 &
+        TS & NewT & NewS & Frame).
+  assert(Prefix:Clight2.exec_stmt secp_ge (gej_norm_env bl bp br) le mc
+    (Ssequence
+      (Sassign(Evar _src (Tstruct _frameItem noattr))(Etempvar _src (Tstruct _frameItem noattr)))
+      (Ssequence gej_predicate_read_stmt gej_norm_header))
+    E0 (gej_norm_tagged le false) mt Out_normal).
+  { eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=md) (le1:=le);
+      [exact Copy|exact ReadTag]. }
+  assert(Outside:lframe (fun b _=>Mem.valid_block m0 b /\ ~extA m0 bd bw bi b) m0 mf).
+  { eapply lframe_trans.
+    - eapply lframe_implies;[exact PrepFrame|];intros b pos [V NE] _;apply Old;exact V.
+    - eapply lframe_implies;[exact Frame|];intros b pos [V NE] _.
+      destruct(Old b V) as (NL & NP & NR);split;[exact NP|];split;assumption. }
+  assert(FinalFrame:lframe (fun b _=>~extA m0 bd bw bi b) m0 mf).
+  { eapply lframe_implies;[exact Outside|];intros b pos NE V;split;assumption. }
+  exists bl,bp,br,mc,mt,b2,b3,ma,bt,bs,mi,mf;repeat first[assumption|split].
+Qed.
