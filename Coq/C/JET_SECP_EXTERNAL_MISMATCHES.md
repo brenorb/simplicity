@@ -778,6 +778,35 @@ JET_TARGETS="C/jet_secp_ge_set_xy.vo C/jet_secp_gej_affine_finish.vo" bash Coq/b
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_ge_set_xy C.jet_secp_gej_affine_finish
 ```
 
+### Canonical serialization after inversion (internal progress)
+
+`jet_secp_gej_norm_output.exec_affine_normalized_output` composes that actual
+affine suffix and its temporary reclamation with the original `write_ge`.
+Starting after inversion and after the leading finite tag has been written,
+it derives the final frame invariant for
+`[Some true] ++ encode (literal_gej_norm ((a,b),c))`. The tag, prefix, cursor
+update and output-frame framing are retained by the existing writer invariant.
+Caller-owned point storage remains Freeable; unrelated memory outside the
+four owned blocks and external frames is preserved by the composed memory
+frame. The intermediate output fields, their bounds, cleanup and writer
+execution are derived from the unchanged C helpers, not execution premises.
+
+`affine_normalized_words_literal` proves the numeric-to-literal word bridge
+from the suffix's two modular coordinate equations and input correspondence.
+The crucial remaining internal premise is explicit:
+`radix_value zi mod feP = literal_invert_numeric (toZ c) mod feP`.
+It is not asserted for an arbitrary incoming field and is not added to a
+public jet contract. Whole inversion must establish it before this result
+can be used in an accepted `gej_normalize` proof. Function entry, preceding
+inversion/CTZ execution, actual finite-tag write and the other public branch
+and caller-frame obligations remain open. No new external model, target
+change or public registration is made; coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_gej_norm_output.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_norm_output
+```
+
 ## Original field-inverse preparation (internal progress, no added coverage)
 
 `jet_secp_fe_inv_prefix.fe_inv_entry_to_core` derives actual entry into
