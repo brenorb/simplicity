@@ -305,6 +305,17 @@ bounds, the prefix-to-loop handoff, final carry stores, function entry/freeing
 and the complete inverse caller are still to be composed. This loop theorem
 is not a public jet proof and does not change coverage.
 
+`jet_secp_modinv_fg_finish_numeric.exec_fg_loop_and_finish` then composes
+the checked loop with both original `i128_to_i64` calls and the final indexed
+stores into `f` and `g`. It derives all active output-word loads and their
+signed-radix value, ownership, temporaries and framing. The cast bridge proves
+that a carry representable as signed-64 is stored without changing its value;
+the loop preserves that range from the initial carry and the internal state
+bounds. No call, store or output is assumed. The initial prefix must still
+establish those bounds and hand off its actual state, and function entry,
+allocation/freeing and the full inverse caller are not yet composed. This
+remains a transition-helper result, not another registered jet.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -318,6 +329,8 @@ JET_TARGETS=C/jet_secp_modinv_fg_loop.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_revalue C.jet_secp_modinv_fg_loop
 JET_TARGETS=C/jet_secp_modinv_fg_loop_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_loop_numeric
+JET_TARGETS=C/jet_secp_modinv_fg_finish_numeric.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_finish C.jet_secp_modinv_fg_finish_numeric
 ```
 
 ## Reproduction and limits
