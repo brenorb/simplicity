@@ -10,6 +10,7 @@ Require Import C.extraMath C.modinv C.jet_toZ C.jet_sx_mem C.jet_secp_linkage C.
   C.jet_secp_swu_cubics C.jet_secp_swu_before_roots C.jet_secp_swu_root_inputs C.jet_secp_swu_roots
   C.jet_secp_swu_literal C.jet_secp_swu_literal_bridge C.jet_secp_root_chain_numeric
   C.jet_secp_root_check C.jet_secp_root_literal C.jet_secp_rescale_literal
+  C.jet_secp_root_output_bounds C.jet_secp_field_mul_small
   C.jet_secp_negate_literal_contract C.jet_secp_literal_add_program
   C.jet_secp_square_columns C.jet_secp_multiply_normalize_bridge C.jet_secp_multiply_finish_product
   C.jet_secp_curve_statements C.jet_secp_curve_frame C.jet_secp_statement_prefix
@@ -92,6 +93,9 @@ Theorem exec_swu_through_roots e le m bt bw ba bx bj bb bc bA bB bC by1 by2 by3 
     [swu_input_first_words w inv;swu_second_words (swu_input_first_words w inv);swu_input_third_words w inv;
      root_chain_candidate (swu_alpha_words w inv);root_chain_candidate (swu_beta_words w inv);
      root_chain_candidate (swu_gamma_words w inv)] /\
+  Forall mul_small_input_bounds
+    [root_chain_candidate (swu_alpha_words w inv);root_chain_candidate (swu_beta_words w inv);
+     root_chain_candidate (swu_gamma_words w inv)] /\
   swu_startup mf /\
   lframe (fun bi _=>~In bi [bt;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3]) m mf /\ readonly_preserved m mf /\
   let '(x1,x3):=@literal_swu_candidates Alg.CoreFunSem t in
@@ -170,6 +174,12 @@ Proof.
     - apply FreeRoots;exact Touched.
     - eapply curve_keep_free;[lia| |exact FR|intros;exact Outside].
       apply AllS;clear -Member Outside;cbn [In] in *;tauto. }
+  assert (TightY:Forall mul_small_input_bounds
+    [root_chain_candidate (swu_alpha_words w inv);root_chain_candidate (swu_beta_words w inv);
+     root_chain_candidate (swu_gamma_words w inv)]).
+  { constructor;[exact (root_chain_candidate_tight _ _ MA)|].
+    constructor;[exact (root_chain_candidate_tight _ _ MB)|].
+    constructor;[exact (root_chain_candidate_tight _ _ MC)|constructor]. }
   exists inv,mf;split.
   - unfold swu_through_roots,swu_through_roots_statements.
     change (Clight2.exec_stmt secp_ge e le m
@@ -179,7 +189,7 @@ Proof.
   - split;[exact TF|];split;[exact AF|];split;[exact BF|];split;[exact CF|];
       split;[exact Y1|];split;[exact Y2|];split;[exact Y3|];split;[exact FreeF|];split.
     + constructor;[exact ABounds|];constructor;[exact BBounds|];constructor;[exact CBounds|exact YBounds].
-    + split;[eapply swu_startup_preserved;[exact ReadyS|exact RR] | ];split.
+    + split;[exact TightY|];split;[eapply swu_startup_preserved;[exact ReadyS|exact RR] | ];split.
       * eapply lframe_trans with (m2:=ms).
         { eapply lframe_implies;[exact FS|];intros bi pos Outside Valid;clear -Outside;cbn [In] in *;tauto. }
         eapply lframe_implies;[exact FR|];intros bi pos Outside Valid;clear -Outside;cbn [In] in *;tauto.

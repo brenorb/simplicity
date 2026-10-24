@@ -2399,33 +2399,50 @@ derives output ownership, unchanged permissions, framing and readonly
 preservation. No repacking, alternate C implementation or memcpy premise
 is introduced. The old same-input-block theorem remains intact.
 
-Next compose these checked calls with `exec_swu_through_roots`, then finish
-the parity suffix, function allocation/free and public wrapper. The remaining
-suffix at `swu_after_select` starts with the original `ge_set_xy` call. For
-final magnitude-1 negation derive the root output's tighter last-square
-bounds from its checked chain; loose `square_input_bounds` alone are not
-enough. The preceding prefix proof already has radicand bounds/matches
-(`RadBounds`, `RA/RB/RC`, `MA/MB/MC`): retain those conclusions if needed,
-rather than introducing a new range premise. Reuse `swu_nodup_app_apart`
-and the standard NoDup append/remove lemmas for the larger caller pool.
+`jet_secp_root_output_bounds.root_chain_candidate_tight` derives the tighter
+root-output bounds from the last checked square in the root chain.
+`exec_swu_through_roots` now returns these bounds for all three Y candidates;
+this strengthens its conclusion without adding any input premise. Loose
+`square_input_bounds` alone do not justify the final magnitude-1 negation.
 
-For parity's separate-output negation reuse `jet_secp_field_negate_separate`
-and its numeric lemmas. The actual source is point+40, not a fresh field at
-offset 0. Adapt the symbolic source region to `u64_cells 40 (vars5 0)` with
-whole-point ownership `Some 88`, base 0, and argument `XP 1 40`;
-`owned_field_values_slice_region` constructs that region from the actual Y
-field and allocation. Do not assign `Some 40` ownership to a region at base
-40: owned-region metadata requires the allocation base. The symbolic
-footprint tracks cell ranges, so X and infinity lie outside the Y slice.
+`jet_secp_swu_parity_fields` executes the original separate-output negation
+and conditional move with Y at point+40, preserving X, infinity, and the
+whole point allocation. Its symbolic Y region uses `u64_cells 40` with
+ownership `Some 88`, base 0; it does not assume a separate allocation at +40.
+`jet_secp_swu_parity.exec_swu_parity` composes all three original suffix
+calls, including the real input oddness test, in both parity cases. The
+oddness test needs the exact normalized reader representation, not just
+equality modulo the odd prime: adding p could change parity.
+`swu_parity_of_selected_matches` identifies the serialized output with the
+literal Simplicity SWU term, retaining normalization of X in literal
+`ge_negate` rather than silently dropping it.
+
+`jet_secp_swu_body.exec_swu_body` composes the entire original statement
+body from `square_reader_rho t`, uninitialized owned locals and an owned
+output point. It derives final X/Y storage and loose bounds, the zero
+infinity flag, equality to `literal_swu t`, ownership, startup preservation,
+old-memory framing and readonly preservation. No intermediate call,
+selection, parity, output relation or new library contract is assumed.
+The original CTZ call contract remains explicit. This is a conditional
+**complete statement-body** theorem, not function-entry/freeing or public
+jet coverage.
+
+Next prove actual `f_shallue_van_de_woestijne` function entry and its thirteen
+local allocations, instantiate `exec_swu_body`, and free exactly its original
+`blocks_of_env` list. Keep the caller's reader field and output point, derive
+separation/ownership and startup through allocation rather than assuming
+them, then compose the original public reader/writer wrapper. Reuse the
+ordinary entry/free/frame lemmas and the standard NoDup append/remove
+lemmas; do not duplicate the candidate execution chain. The deferred CTZ
+external-call obligation is separate and remains visible.
 
 Coverage stays 514/533; these are not whole-public SWU registration.
 Reproduce the normal build with
-`JET_TARGETS='C/jet_secp_swu_selected_literal.vo C/jet_secp_ge_set_xy_separate.vo'`
+`JET_TARGETS='C/jet_secp_swu_body.vo'`
 and kernel check with
-`-o C.jet_secp_swu_selected_literal C.jet_secp_ge_set_xy_separate`, plus
-focused assumption/contract comparisons for `jet_secp_field_cmov`,
-`jet_secp_swu_select_exec`, `jet_secp_swu_selected_literal` and
-`jet_secp_ge_set_xy_separate`.
+`-o C.jet_secp_swu_body`, plus focused assumption/contract comparisons for
+`jet_secp_root_output_bounds`, `jet_secp_swu_before_selection`,
+`jet_secp_swu_parity_fields`, `jet_secp_swu_parity` and `jet_secp_swu_body`.
 
 ## Completed: `simplicity_gej_rescale`
 
