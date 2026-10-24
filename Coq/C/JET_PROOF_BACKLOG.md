@@ -2361,14 +2361,38 @@ modulo p. Instantiate the existing `eval_root_function` with these matches,
 not its reader-only corollary. These are still conditional prefix results,
 not public SWU coverage; the original CTZ contract remains explicit.
 
-Next continue at `swu_after_cubics`: three original `fe_sqrt_var` calls,
-point selection, parity, allocations/frees and the public wrapper. Reuse
-`eval_root_function`, `root_candidate_output` and `root_result_matches` for
-the loose radicands. Coverage stays 514/533. Reproduce the normal build with
-`JET_TARGETS='C/jet_secp_swu_before_roots.vo C/jet_secp_swu_root_inputs.vo'`
-and kernel check with `-o C.jet_secp_swu_before_roots C.jet_secp_swu_root_inputs`,
-plus focused assumption/contract comparisons for `jet_secp_swu_cubics`,
-`jet_secp_swu_before_roots` and `jet_secp_swu_root_inputs`.
+`jet_secp_swu_roots.exec_swu_roots` composes the three original
+`fe_sqrt_var` calls using that loose-input helper theorem. The two saved
+flags retain the exact generated `Scall (Some _t'1); Sset _alphaquad` and
+`Scall (Some _t'2); Sset _betaquad` trees; the third call discards its flag.
+The output environment has proved flag lookups and preserves other temps.
+Root coordinates and check flags match the literal root program, with
+ownership, old-memory framing and readonly preservation derived from calls.
+
+`jet_secp_swu_before_selection.exec_swu_through_roots` composes this with
+the entire input-driven prefix, discharging the three root-input relations
+from the earlier radicand results. It retains the input and all six candidate
+coordinates, bounds, all thirteen input/private allocations, startup and
+frames. Its final relations connect the three X coordinates, Y root values
+and flags directly to the literal candidates. It adds no execution oracle;
+the same original CTZ contract remains explicit. These are still conditional
+prefix results, **not public SWU coverage**.
+
+Next continue at `swu_after_roots`: four original `fe_cmov` calls, the
+`ge_set_xy` call, parity, function allocation/free and the public wrapper.
+No existing cmov storage theorem was found (the function is in `secp_pure`);
+prove it for the actual boolean flags and reuse it for X and Y. The existing
+`eval_ge_set_xy_owned` assumes X/Y share one input block, unlike SWU's
+separate x1/y1 blocks: generalize its actual-copy proof, not the caller layout.
+For final magnitude-1 negation derive the root output's tighter last-square
+bounds from its checked chain; loose `square_input_bounds` alone are not
+enough. Reuse `swu_nodup_app_apart` and the standard NoDup append lemmas
+instead of propositional search over thirteen blocks.
+
+Coverage stays 514/533. Reproduce the normal build with
+`JET_TARGETS='C/jet_secp_swu_before_selection.vo'` and kernel check with
+`-o C.jet_secp_swu_before_selection`, plus focused assumption/contract
+comparisons for `jet_secp_swu_roots` and `jet_secp_swu_before_selection`.
 
 ## Completed: `simplicity_gej_rescale`
 
