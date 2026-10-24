@@ -250,9 +250,8 @@ values are proved unchanged by the subsequent f/g call; f/g inputs and
 matrix are proved unchanged by the preceding coefficient call. Incoming
 matrix correspondence and numeric limb/state invariants are internal loop
 premises, not assumed C executions or post-update results. Actual divsteps
-must establish that correspondence. Inactive-limb and value-capacity
-preservation, and full-loop/finishing composition remain
-separate obligations; this is not a full inverse or new public jet proof.
+must establish that correspondence. Full-loop/finishing composition remains
+a separate obligation; this is not a full inverse or new public jet proof.
 
 `jet_secp_scalar_inverse_iteration.exec_scalar_inv_after_divsteps` now
 composes that call pair with the original zero test and shortening control.
@@ -273,9 +272,29 @@ existing numeric control model.
 Both arrays' loads and permissions are kept across the other's store; the
 metadata and coefficient arrays are preserved by the derived frame, not by
 assuming field-modulus words in scalar memory. Actual divsteps/matrix
-correspondence, remaining inactive-limb/value-capacity invariants and
-whole-loop/finishing composition are still open. CTZ remains deferred;
+correspondence and whole-loop/finishing composition are still open. CTZ remains deferred;
 coverage remains 514/533, with no target or external-model change.
+
+The post-divstep theorem additionally derives bounds for all five stored
+f/g limbs (including inactive slots) and the adjusted active-value capacity
+from the incoming capacity invariant. It reuses the canonical `fgBounds`,
+actual f/g-update range lemma and shared shortening range theorem. No
+post-update bound or extra execution premise is assumed. All earlier
+conclusions and incoming premises are retained.
+
+`jet_secp_modinv_seed_modulus` revalues the actual initialized/copy-complete
+memory into the corresponding full input/d/e/f/g word dictionary while
+retaining the undefined matrix region. The existing field dictionary and
+layout are definitionally its field specialization. The strengthened
+`scalar_inv_entry_establishes_seed` derives this represented state from the
+real caller, together with initial scalar coefficient bounds/congruence,
+canonical f/g correspondence, all stored f/g limb bounds and the len=5
+capacity invariant. The scalar modulus's signed third limb is -21; no
+nonnegative-modulus-limb assumption is imposed. The initial capacity follows
+from the already proved 256-bit value bounds. These invariants are now
+established at initialization and preserved by the real post-divstep path,
+not left as output assumptions. The earlier divstep/matrix proof and the
+whole inverse loop/finishing composition remain separate work.
 
 ```sh
 JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
@@ -302,6 +321,8 @@ JET_TARGETS="C/jet_secp_modinv_loop_modulus.vo C/jet_secp_scalar_inverse_updates
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_loop_modulus C.jet_secp_scalar_inverse_updates
 JET_TARGETS="C/jet_secp_modinv_control_storage.vo C/jet_secp_modinv_tail_modulus.vo C/jet_secp_scalar_inverse_iteration.vo" bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_control_storage C.jet_secp_modinv_tail_modulus C.jet_secp_scalar_inverse_iteration
+JET_TARGETS="C/jet_secp_modinv_seed_modulus.vo C/jet_secp_scalar_inverse_seed.vo C/jet_secp_scalar_inverse_iteration.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_seed_modulus C.jet_secp_scalar_inverse_seed C.jet_secp_scalar_inverse_iteration
 ```
 
 ## Generation: wNAF also calls external memset

@@ -15,6 +15,8 @@ Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_modinv_entry_modulus
  C.jet_secp_fe_nv C.jet_secp_point_mul_storage C.jet_secp_multiply_finish_product
  C.jet_secp_multiply_normalize_bridge C.jet_secp_u128_shift64_rep C.divstep.
 Require Import C.jet_secp_b32_exec.
+Require Import C.jet_secp_modinv_seed_modulus C.jet_secp_modinv_var_de C.jet_secp_modinv_var_fg
+ C.jet_secp_modinv_var_invariant C.jet_secp_modinv_var_ranges.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -72,6 +74,15 @@ Proof.
  rewrite !Z.abs_eq by(unfold canonical_group_order in *;lia);unfold canonical_group_order;repeat split;lia.
 Qed.
 
+Lemma scalar_inv_seed_fg_bounds w : signed62_normalized w -> forall (high : bool) i,(i<5)%nat ->
+ Z.abs(Int64.signed(if high then w i else modinfo_scalar_limb i))<=2^62.
+Proof.
+ intros Normal high i I;destruct high.
+ - rewrite inv_seed_input_signed by assumption;rewrite Z.abs_eq by apply Int64.unsigned_range.
+   pose proof(Normal i I);destruct(Nat.eqb i 4);lia.
+ - pose proof(scalar_norm62_modulus_bound i I);apply Z.abs_le;lia.
+Qed.
+
 Lemma scalar_inv_ready_loads w beta m : rep w beta (inv_mod_fg_regs modinfo_scalar_limb) m ->
  (forall (high : bool) i,(i<5)%nat ->
   Mem.load Mint64 m (blk beta (if high then 3 else 2)) (bas beta (if high then 3 else 2)+8*Z.of_nat i)=
@@ -91,6 +102,37 @@ Proof.
    pose proof(xload_u64_defined_sound w beta _ m _ _ _ Rep Load) as L;destruct high;exact L.
 Qed.
 
+Lemma scalar_inv_represented_seed_bounds w : signed62_normalized w ->
+ scalar_de62_state_bounds(inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb w)) /\
+ scalar_de62_coefficient_link (signed62_unsigned_value w) (inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb w)) (scalar_inv_seed_state w) /\
+ inv_state_matches 5 (inv_mod_seed_rho modinfo_scalar_limb w) (scalar_inv_seed_state w) /\
+ inv_fg_limb_bounds(inv_mod_seed_rho modinfo_scalar_limb w) /\
+ inv_fg_value_capacity 5 (inv_mod_seed_rho modinfo_scalar_limb w) /\
+ de62_input_value(inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb w)) false mod canonical_group_order=0.
+Proof.
+ intro Normal.
+ assert(DE:scalar_de62_state_bounds(inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb w))).
+ { destruct(scalar_inv_seed_de_bounds (inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb w))) as(Limbs & Values);split.
+   - intros high i I;rewrite inv_mod_seed_de_word by exact I.
+     rewrite <-(inv_initial_de_word (inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb w)) high i I);apply Limbs;exact I.
+   - intro high;rewrite inv_mod_seed_de_value;specialize(Values high);rewrite inv_initial_de_value in Values;exact Values. }
+ assert(Link:scalar_de62_coefficient_link (signed62_unsigned_value w) (inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb w)) (scalar_inv_seed_state w)).
+ { intro high;pose proof(scalar_inv_seed_link w (inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb w)) high) as L.
+   rewrite inv_initial_de_value in L;rewrite inv_mod_seed_de_value;exact L. }
+ assert(State:inv_state_matches 5 (inv_mod_seed_rho modinfo_scalar_limb w) (scalar_inv_seed_state w)).
+ { split;rewrite inv_mod_seed_fg_value.
+   - symmetry;exact scalar_norm62_modulus_value.
+   - symmetry;apply inv_seed_input_value;exact Normal. }
+ assert(Limbs:inv_fg_limb_bounds(inv_mod_seed_rho modinfo_scalar_limb w)).
+ { intros high i I;rewrite inv_mod_seed_fg_word by exact I;exact(scalar_inv_seed_fg_bounds w Normal high i I). }
+ assert(Capacity:inv_fg_value_capacity 5 (inv_mod_seed_rho modinfo_scalar_limb w)).
+ { destruct(scalar_inv_seed_values w Normal) as(_ & _ & _ & _ & FBound & GBound).
+   intro high;destruct high;[rewrite <-(proj2 State)|rewrite <-(proj1 State)];
+   change(2^(62*Z.of_nat 5)) with(2^310);lia. }
+ split;[exact DE|];split;[exact Link|];split;[exact State|];split;[exact Limbs|];split;[exact Capacity|].
+ rewrite inv_mod_seed_de_value,Zmod_0_l;reflexivity.
+Qed.
+
 (** The prefix is derived from the original scalar caller's actual output
     buffer and metadata, not an assumed fresh-frame or initialized-loop rep. *)
 Theorem scalar_inv_entry_establishes_seed w m bd bx : modinfo_scalar_state m ->
@@ -105,6 +147,15 @@ Theorem scalar_inv_entry_establishes_seed w m bd bx : modinfo_scalar_state m ->
   mp e le mc /\ Clight2.exec_stmt secp_ge e le mc inv_ready_prefix E0 lef mf Out_normal /\
  rep (scalar62_words true w) ([(bs,0);(scalar_inv_modinfo_block,0)]++betaN)
   (inv_mod_fg_regs modinfo_scalar_limb) mf /\
+ rep (inv_mod_seed_rho modinfo_scalar_limb (scalar62_words true w)) ([(bs,0);(scalar_inv_modinfo_block,0)]++betaN)
+  (inv_mod_seed_regs modinfo_scalar_limb) mf /\
+ scalar_de62_state_bounds(inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb (scalar62_words true w))) /\
+ scalar_de62_coefficient_link (scalar_limb_value w) (inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb (scalar62_words true w)))
+  (scalar_inv_seed_state(scalar62_words true w)) /\
+ inv_state_matches 5 (inv_mod_seed_rho modinfo_scalar_limb (scalar62_words true w)) (scalar_inv_seed_state(scalar62_words true w)) /\
+ inv_fg_limb_bounds(inv_mod_seed_rho modinfo_scalar_limb (scalar62_words true w)) /\
+ inv_fg_value_capacity 5 (inv_mod_seed_rho modinfo_scalar_limb (scalar62_words true w)) /\
+ de62_input_value(inv_de_rho(inv_mod_seed_rho modinfo_scalar_limb (scalar62_words true w))) false mod canonical_group_order=0 /\
  ematch ([(bs,0);(scalar_inv_modinfo_block,0)]++betaN) (snd inv_start_alloc) e /\
  tmatch (scalar62_words true w) ([(bs,0);(scalar_inv_modinfo_block,0)]++betaN) inv_loop_start_temps lef /\
  lef!_len=Some(Vint(Int.repr 5)) /\ lef!_eta=Some(Vlong(Int64.repr(-1))) /\
@@ -125,6 +176,8 @@ Theorem scalar_inv_entry_establishes_seed w m bd bx : modinfo_scalar_state m ->
  delta(scalar_inv_seed_state(scalar62_words true w))=1 /\ eta(scalar_inv_seed_state(scalar62_words true w))= -1 /\
  Z.abs(f(scalar_inv_seed_state(scalar62_words true w)))<=2^256 /\
  Z.abs(g(scalar_inv_seed_state(scalar62_words true w)))<=2^256 /\
+ (forall (high : bool) i,(i<5)%nat ->
+  Z.abs(Int64.signed(if high then scalar62_words true w i else modinfo_scalar_limb i))<=2^62) /\
  Forall(fun p=>~Mem.valid_block mp (fst p)) betaN /\
  lframe(fun b ofs=>~foot ([(bs,0);(scalar_inv_modinfo_block,0)]++betaN)
    (map rshape(sregs(inv_mod_start_state modinfo_scalar_limb))) b ofs) mp mf.
@@ -141,6 +194,10 @@ Proof.
    [Vptr bs Ptrofs.zero;Vptr scalar_inv_modinfo_block Ptrofs.zero] mp e le mc) in Entry.
  destruct(scalar_inv_ready_loads (scalar62_words true w) _ mf Objects) as(DE & FG).
  destruct(scalar_inv_seed_values (scalar62_words true w) Normal) as(FValue & GValue & Delta & MathEta & FBound & GBound).
+ pose proof(scalar_inv_seed_fg_bounds (scalar62_words true w) Normal) as StoredBounds.
+ pose proof(inv_mod_seed_rep modinfo_scalar_limb (scalar62_words true w) _ mf Objects) as SeedRep.
+ destruct(scalar_inv_represented_seed_bounds (scalar62_words true w) Normal) as(SeedDE & SeedLink & SeedState & SeedLimbs & SeedCapacity & SeedZero).
+ rewrite Value in SeedLink.
  assert(Invariant:forall later,scalar_de62_state_bounds(inv_initial_de_rho later) /\
    scalar_de62_coefficient_link (scalar_limb_value w) (inv_initial_de_rho later) (scalar_inv_seed_state(scalar62_words true w)) /\
    de62_input_value(inv_initial_de_rho later) false mod canonical_group_order=0).

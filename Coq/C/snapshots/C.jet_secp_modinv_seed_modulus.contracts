@@ -1,0 +1,90 @@
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_matrix_source
+inv_mod_seed_matrix_source
+     : forall mu : forall _ : nat, Integers.Int64.int,
+       @eq jet_sx_state.region
+         (@List.nth jet_sx_state.region (S (S (S (S (S (S O)))))) (jet_secp_modinv_copies_modulus.inv_mod_fg_regs mu)
+            (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z)))
+         jet_secp_modinv_var_seed.inv_seed_matrix
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_shapes
+inv_mod_seed_shapes
+     : forall mu : forall _ : nat, Integers.Int64.int,
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (inv_mod_seed_regs mu))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_secp_modinv_copies_modulus.inv_mod_fg_regs mu))
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_rep
+inv_mod_seed_rep
+     : forall (mu w : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep w beta (jet_secp_modinv_copies_modulus.inv_mod_fg_regs mu) m),
+       jet_sx_state.rep (inv_mod_seed_rho mu w) beta (inv_mod_seed_regs mu) m
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_de_word
+inv_mod_seed_de_word
+     : forall (mu w : forall _ : nat, Integers.Int64.int) (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq Integers.Int64.int
+         (jet_secp_modinv_de_numeric.de62_array (jet_secp_modinv_var_de.inv_de_rho (inv_mod_seed_rho mu w)) high i)
+         (jet_secp_modinv_var_entry.inv_init_word high i)
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_de_value
+inv_mod_seed_de_value
+     : forall (mu w : forall _ : nat, Integers.Int64.int) (high : bool),
+       @eq BinNums.Z
+         (jet_secp_modinv_de_numeric.de62_input_value (jet_secp_modinv_var_de.inv_de_rho (inv_mod_seed_rho mu w)) high)
+         match high return BinNums.Z with
+         | true => BinNums.Zpos BinNums.xH
+         | false => BinNums.Z0
+         end
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_fg_word
+inv_mod_seed_fg_word
+     : forall (mu w : forall _ : nat, Integers.Int64.int) (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq Integers.Int64.int
+         (inv_mod_seed_rho mu w
+            (Nat.add
+               match high return nat with
+               | true => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))))
+               | false => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+               end i)) match high return Integers.Int64.int with
+                       | true => w i
+                       | false => mu i
+                       end
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_fg_value
+inv_mod_seed_fg_value
+     : forall (mu w : forall _ : nat, Integers.Int64.int) (high : bool),
+       @eq BinNums.Z (jet_secp_modinv_var_fg.inv_fg_active_value (S (S (S (S (S O))))) (inv_mod_seed_rho mu w) high)
+         (jet_secp_modinv_normalize62_words.norm62_value_z (S (S (S (S O))))
+            (fun i : nat =>
+             Integers.Int64.signed match high return Integers.Int64.int with
+                                   | true => w i
+                                   | false => mu i
+                                   end))
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_field_rho
+inv_mod_seed_field_rho
+     : forall (w : forall _ : nat, Integers.Int64.int) (n : nat),
+       @eq Integers.Int64.int (inv_mod_seed_rho jet_secp_modinfo_fe_copy.modinfo_fe_limb w n)
+         (jet_secp_modinv_var_seed.inv_seed_rho w n)
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_field_regs
+inv_mod_seed_field_regs
+     : @eq (list jet_sx_state.region) (inv_mod_seed_regs jet_secp_modinfo_fe_copy.modinfo_fe_limb)
+         jet_secp_modinv_var_seed.inv_seed_regs
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_rho
+inv_mod_seed_rho =
+fun (mu w : forall _ : nat, Integers.Int64.int) (n : nat) =>
+@List.nth Integers.Int64.int n
+  (@app Integers.Int64.int (jet_secp_multiply_normalize_bridge.words5 w)
+     (@app Integers.Int64.int
+        (jet_secp_multiply_normalize_bridge.words5 (jet_secp_modinv_var_entry.inv_init_word false))
+        (@app Integers.Int64.int
+           (jet_secp_multiply_normalize_bridge.words5 (jet_secp_modinv_var_entry.inv_init_word true))
+           (@app Integers.Int64.int (jet_secp_multiply_normalize_bridge.words5 mu)
+              (jet_secp_multiply_normalize_bridge.words5 w))))) Integers.Int64.zero
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, Integers.Int64.int) (_ : nat),
+       Integers.Int64.int
+
+Arguments inv_mod_seed_rho (mu w)%function_scope n%nat_scope
+### C.jet_secp_modinv_seed_modulus.inv_mod_seed_regs
+inv_mod_seed_regs =
+fun mu : forall _ : nat, Integers.Int64.int =>
+@jet_sx_state.upd jet_sx_state.region (jet_secp_modinv_loop_modulus.inv_mod_loop_regs mu) (S (S (S (S (S (S O))))))
+  jet_secp_modinv_var_seed.inv_seed_matrix
+     : forall _ : forall _ : nat, Integers.Int64.int, list jet_sx_state.region
+
+Arguments inv_mod_seed_regs mu%function_scope
