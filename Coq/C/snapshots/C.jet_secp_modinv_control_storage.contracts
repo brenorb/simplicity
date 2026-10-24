@@ -1,0 +1,176 @@
+### C.jet_secp_modinv_control_storage.exec_inv_shorten_array_storage
+exec_inv_shorten_array_storage
+     : forall (len : nat) (high : bool) (w : forall _ : nat, Integers.Int64.int) (b : Values.block)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (_ : and (le (S (S O)) len) (le len (S (S (S (S (S O)))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) (jet_secp_modinv_var_shorten.inv_shorten_id high) e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+         (_ : @eq (option Values.val)
+                (@Maps.PTree.get Values.val (jet_secp_modinv_var_shorten.inv_shorten_top high) le0)
+                (@Some Values.val (Values.Vlong (w (Nat.sub len (S O))))))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vlong (w i)))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+               (jet_secp_modinv_var_shorten.inv_shorten_array_step high) Events.E0
+               (@Maps.PTree.set Values.val (jet_secp_modinv_var_shorten.inv_shorten_tmp high)
+                  (Values.Vlong (w (Nat.sub len (S (S O))))) le0) mf ClightBigstep.Out_normal)
+            (and
+               (forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf b
+                     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                  (@Some Values.val (Values.Vlong (jet_secp_modinv_var_shorten.inv_shorten_words len w i))))
+               (and
+                  (Memory.Mem.range_perm mf b BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (jet_sx_mem.lframe (fun (bx : Values.block) (_ : BinNums.Z) => not (@eq Values.block bx b)) m mf))))
+### C.jet_secp_modinv_control_storage.exec_inv_shortening_storage
+exec_inv_shortening_storage
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (bf bg : Values.block)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (_ : and (lt O len) (le len (S (S (S (S (S O))))))) (_ : not (@eq Values.block bf bg))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._f e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bf jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._g e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bg jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+         (_ : Memory.Mem.range_perm m bf BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bg BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : forall (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m match high return Values.block with
+                                              | true => bg
+                                              | false => bf
+                                              end
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vlong (jet_secp_modinv_var_shorten.inv_control_word rho high i)))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+                  jet_secp_modinv_var_zero.inv_shortening Events.E0 lef mf ClightBigstep.Out_normal)
+               (and
+                  (forall (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+                   @eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf match high return Values.block with
+                                                    | true => bg
+                                                    | false => bf
+                                                    end
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                           (BinInt.Z.of_nat i)))
+                     (@Some Values.val
+                        (Values.Vlong (jet_secp_modinv_var_shorten.inv_control_short_word len rho high i))))
+                  (and
+                     (Memory.Mem.range_perm mf bf BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf bg BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lef)
+                              (@Some Values.val
+                                 (Values.Vint
+                                    (Integers.Int.repr
+                                       (BinInt.Z.of_nat (jet_secp_modinv_var_shorten.inv_shortened_length len rho))))))
+                           (and
+                              (and (lt O (jet_secp_modinv_var_shorten.inv_shortened_length len rho))
+                                 (le (jet_secp_modinv_var_shorten.inv_shortened_length len rho) (S (S (S (S (S O)))))))
+                              (and (jet_secp_modinv_var_shorten.inv_shorten_temp_frame le0 lef)
+                                 (jet_sx_mem.lframe
+                                    (fun (b : Values.block) (_ : BinNums.Z) =>
+                                     and (not (@eq Values.block b bf)) (not (@eq Values.block b bg))) m mf)))))))))
+### C.jet_secp_modinv_control_storage.exec_inv_post_storage
+exec_inv_post_storage
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (bf bg : Values.block)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (_ : and (lt O len) (le len (S (S (S (S (S O))))))) (_ : not (@eq Values.block bf bg))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._f e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bf jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._g e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bg jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+         (_ : Memory.Mem.range_perm m bf BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bg BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : forall (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m match high return Values.block with
+                                              | true => bg
+                                              | false => bf
+                                              end
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vlong (jet_secp_modinv_var_shorten.inv_control_word rho high i)))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+                  jet_secp_modinv_var_post.inv_post_control Events.E0 lef mf
+                  (jet_secp_modinv_var_post.inv_post_out len rho))
+               (and
+                  (forall (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+                   @eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf match high return Values.block with
+                                                    | true => bg
+                                                    | false => bf
+                                                    end
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                           (BinInt.Z.of_nat i)))
+                     (@Some Values.val (Values.Vlong (jet_secp_modinv_var_post.inv_post_word len rho high i))))
+                  (and
+                     (Memory.Mem.range_perm mf bf BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf bg BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lef)
+                              (@Some Values.val
+                                 (Values.Vint
+                                    (Integers.Int.repr
+                                       (BinInt.Z.of_nat (jet_secp_modinv_var_post.inv_post_length len rho))))))
+                           (and
+                              (and (lt O (jet_secp_modinv_var_post.inv_post_length len rho))
+                                 (le (jet_secp_modinv_var_post.inv_post_length len rho) (S (S (S (S (S O)))))))
+                              (and (jet_secp_modinv_var_post.inv_post_temp_frame le0 lef)
+                                 (jet_sx_mem.lframe
+                                    (fun (b : Values.block) (_ : BinNums.Z) =>
+                                     and (not (@eq Values.block b bf)) (not (@eq Values.block b bg))) m mf)))))))))

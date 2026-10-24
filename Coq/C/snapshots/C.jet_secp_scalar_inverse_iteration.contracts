@@ -1,0 +1,165 @@
+### C.jet_secp_scalar_inverse_iteration.scalar_inv_tail_de_value
+scalar_inv_tail_de_value
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool),
+       @eq BinNums.Z
+         (jet_secp_modinv_de_numeric.de62_input_value
+            (jet_secp_modinv_var_de.inv_de_rho (jet_secp_modinv_var_tail.inv_tail_next_rho len rho)) high)
+         (jet_secp_modinv_de_numeric.de62_input_value (jet_secp_modinv_var_de.inv_de_rho rho) high)
+### C.jet_secp_scalar_inverse_iteration.scalar_inv_tail_de_bounds
+scalar_inv_tail_de_bounds
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_scalar_de_ranges.scalar_de62_state_bounds (jet_secp_modinv_var_de.inv_de_rho rho)),
+       jet_secp_scalar_de_ranges.scalar_de62_state_bounds
+         (jet_secp_modinv_var_de.inv_de_rho (jet_secp_modinv_var_tail.inv_tail_next_rho len rho))
+### C.jet_secp_scalar_inverse_iteration.exec_scalar_inv_after_divsteps
+exec_scalar_inv_after_divsteps
+     : forall (value : BinNums.Z) (len : nat) (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State)
+         (beta : jet_sx_state.layout) (e : Clight.env) (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta
+                (jet_secp_modinv_loop_modulus.inv_mod_loop_regs jet_secp_scalar_normalize62.modinfo_scalar_limb) m)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._modinfo le0)
+                (@Some Values.val
+                   (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+         (_ : jet_secp_scalar_de_ranges.scalar_de62_state_bounds (jet_secp_modinv_var_de.inv_de_rho rho))
+         (_ : jet_secp_modinv_var_invariant.inv_state_matches len rho st)
+         (_ : jet_secp_modinv_var_invariant.inv_matrix_matches rho st)
+         (_ : jet_secp_scalar_de_invariant.scalar_de62_coefficient_link value (jet_secp_modinv_var_de.inv_de_rho rho)
+                st)
+         (_ : forall (high : bool) (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+              BinInt.Z.le
+                (BinInt.Z.abs
+                   (Integers.Int64.signed
+                      (jet_secp_modinv_fg_loop_numeric.fg_array_word (jet_secp_modinv_var_fg.inv_fg_rho len rho) high j)))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             @ex ClightBigstep.outcome
+               (fun out : ClightBigstep.outcome =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+                     jet_secp_modinv_var_tail.inv_after_divsteps Events.E0 lef mf out)
+                  (and
+                     (jet_sx_state.rep (scalar_inv_iteration_rho len rho) beta
+                        (jet_secp_modinv_loop_modulus.inv_mod_loop_regs jet_secp_scalar_normalize62.modinfo_scalar_limb)
+                        mf)
+                     (and
+                        (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lef)
+                           (@Some Values.val
+                              (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat (scalar_inv_iteration_length len rho))))))
+                        (and
+                           (jet_secp_scalar_de_ranges.scalar_de62_state_bounds
+                              (jet_secp_modinv_var_de.inv_de_rho (scalar_inv_iteration_rho len rho)))
+                           (and
+                              (jet_secp_scalar_de_invariant.scalar_de62_coefficient_link value
+                                 (jet_secp_modinv_var_de.inv_de_rho (scalar_inv_iteration_rho len rho))
+                                 (@fst divstep.State (list divstep.Step)
+                                    (divstep.stepN (S (S (S (S (S (S (S (S (S (S (S ...))))))))))) st)))
+                              (and
+                                 (jet_secp_modinv_var_invariant.inv_state_matches (scalar_inv_iteration_length len rho)
+                                    (scalar_inv_iteration_rho len rho)
+                                    (@fst divstep.State (list divstep.Step)
+                                       (divstep.stepN (S (S (S (S (S (S (S (S (S (S ...)))))))))) st)))
+                                 (and
+                                    (jet_secp_modinv_var_tail.inv_tail_low_bounds (scalar_inv_iteration_length len rho)
+                                       (scalar_inv_iteration_rho len rho))
+                                    (and
+                                       (forall _ : @eq BinNums.Z (divstep.g st) BinNums.Z0,
+                                        and (@eq ClightBigstep.outcome out ClightBigstep.Out_break)
+                                          (@eq BinNums.Z
+                                             (BinInt.Z.modulo
+                                                (jet_secp_modinv_de_numeric.de62_input_value
+                                                   (jet_secp_modinv_var_de.inv_de_rho
+                                                      (scalar_inv_iteration_rho len rho)) false)
+                                                jet_secp_canonical_scalar.canonical_group_order)
+                                             (BinInt.Z.modulo
+                                                (jet_secp_modinv_de_numeric.de62_input_value
+                                                   (jet_secp_modinv_var_de.inv_de_rho rho) false)
+                                                jet_secp_canonical_scalar.canonical_group_order)))
+                                       (and
+                                          (forall high : bool,
+                                           and
+                                             (@eq BinNums.Z
+                                                (BinInt.Z.mul
+                                                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                                      (BinNums.Zpos
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))
+                                                   (jet_secp_modinv_de_numeric.de62_input_value
+                                                      (jet_secp_modinv_var_de.inv_de_rho
+                                                         (scalar_inv_iteration_rho len rho)) high))
+                                                (BinInt.Z.add
+                                                   (jet_secp_modinv_de_numeric.de62_matrix_value
+                                                      (jet_secp_modinv_var_de.inv_de_rho rho) high)
+                                                   (BinInt.Z.mul jet_secp_canonical_scalar.canonical_group_order
+                                                      (jet_secp_scalar_de_numeric.scalar_de62_correction_value
+                                                         (jet_secp_modinv_var_de.inv_de_rho rho) high))))
+                                             (@eq BinNums.Z
+                                                (BinInt.Z.modulo
+                                                   (BinInt.Z.sub
+                                                      (BinInt.Z.mul
+                                                         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                                            (BinNums.Zpos (BinNums.xO (BinNums.xI (...)))))
+                                                         (jet_secp_modinv_de_numeric.de62_input_value
+                                                            (jet_secp_modinv_var_de.inv_de_rho
+                                                               (scalar_inv_iteration_rho len rho)) high))
+                                                      (jet_secp_modinv_de_numeric.de62_matrix_value
+                                                         (jet_secp_modinv_var_de.inv_de_rho rho) high))
+                                                   jet_secp_canonical_scalar.canonical_group_order) BinNums.Z0))
+                                          (and
+                                             (forall high : bool,
+                                              @eq BinNums.Z
+                                                (jet_secp_modinv_var_fg.inv_fg_active_value
+                                                   (scalar_inv_iteration_length len rho)
+                                                   (scalar_inv_iteration_rho len rho) high)
+                                                (BinInt.Z.div
+                                                   (jet_secp_modinv_fg_body.fg_matrix_value
+                                                      (jet_secp_modinv_var_fg.inv_fg_rho len
+                                                         (jet_secp_scalar_inverse_updates.scalar_inv_de_next_rho rho))
+                                                      high len)
+                                                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                                      (BinNums.Zpos
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))
+                                             (and
+                                                (iff (@eq ClightBigstep.outcome out ClightBigstep.Out_break)
+                                                   (@eq BinNums.Z
+                                                      (jet_secp_modinv_var_fg.inv_fg_active_value
+                                                         (scalar_inv_iteration_length len rho)
+                                                         (scalar_inv_iteration_rho len rho) true) BinNums.Z0))
+                                                (and
+                                                   (forall _ : @eq ClightBigstep.outcome out ClightBigstep.Out_normal,
+                                                    not
+                                                      (@eq BinNums.Z
+                                                         (jet_secp_modinv_var_fg.inv_fg_active_value
+                                                            (scalar_inv_iteration_length len rho)
+                                                            (scalar_inv_iteration_rho len rho) true) BinNums.Z0))
+                                                   (and
+                                                      (or (@eq ClightBigstep.outcome out ClightBigstep.Out_break)
+                                                         (@eq ClightBigstep.outcome out ClightBigstep.Out_normal))
+                                                      (and
+                                                         (and (lt O (scalar_inv_iteration_length len rho))
+                                                            (le (scalar_inv_iteration_length len rho) (S (S (S ...)))))
+                                                         (and (jet_secp_modinv_var_post.inv_post_temp_frame le0 lef)
+                                                            (jet_sx_mem.lframe
+                                                               (fun (b : Values.block) (ofs : BinNums.Z) =>
+                                                                and (not (...)) (and (...) (...))) m mf))))))))))))))))))
+### C.jet_secp_scalar_inverse_iteration.scalar_inv_iteration_rho
+scalar_inv_iteration_rho =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+jet_secp_modinv_var_tail.inv_tail_next_rho len (jet_secp_scalar_inverse_updates.scalar_inv_updates_rho len rho)
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments scalar_inv_iteration_rho len%nat_scope rho%function_scope n%nat_scope
+### C.jet_secp_scalar_inverse_iteration.scalar_inv_iteration_length
+scalar_inv_iteration_length =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+jet_secp_modinv_var_tail.inv_tail_length len (jet_secp_scalar_inverse_updates.scalar_inv_updates_rho len rho)
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), nat
+
+Arguments scalar_inv_iteration_length len%nat_scope rho%function_scope

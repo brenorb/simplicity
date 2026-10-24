@@ -250,9 +250,32 @@ values are proved unchanged by the subsequent f/g call; f/g inputs and
 matrix are proved unchanged by the preceding coefficient call. Incoming
 matrix correspondence and numeric limb/state invariants are internal loop
 premises, not assumed C executions or post-update results. Actual divsteps
-must establish that correspondence. Stopping/shortening, inactive-limb and
-value-capacity preservation, and full-loop/finishing composition remain
+must establish that correspondence. Inactive-limb and value-capacity
+preservation, and full-loop/finishing composition remain
 separate obligations; this is not a full inverse or new public jet proof.
+
+`jet_secp_scalar_inverse_iteration.exec_scalar_inv_after_divsteps` now
+composes that call pair with the original zero test and shortening control.
+It derives the complete represented next state, actual next len, unchanged
+coefficient values through shortening, scalar bounds/congruence, canonical
+next f/g values, lower-limb bounds, caller temporary frame and memory frame.
+Break is equivalent to the represented next g being zero; continuing implies
+nonzero g. If incoming canonical g is already zero, it derives the actual
+break and preserves d modulo the scalar order. No stop/shortening execution
+or expected result is a premise.
+
+The shared `jet_secp_modinv_control_storage` proves the real shortening
+stores from initial loads and permissions and composes the existing
+load-based zero test and condition-prefix proofs, including the early-break
+path. `jet_secp_modinv_tail_modulus` restores arbitrary six-word metadata,
+the complete seven-object caller layout and its ownership, and the pure
+existing numeric control model.
+Both arrays' loads and permissions are kept across the other's store; the
+metadata and coefficient arrays are preserved by the derived frame, not by
+assuming field-modulus words in scalar memory. Actual divsteps/matrix
+correspondence, remaining inactive-limb/value-capacity invariants and
+whole-loop/finishing composition are still open. CTZ remains deferred;
+coverage remains 514/533, with no target or external-model change.
 
 ```sh
 JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
@@ -277,6 +300,8 @@ JET_TARGETS="C/jet_secp_modinv_entry_modulus.vo C/jet_secp_modinv_copies_modulus
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_entry_modulus C.jet_secp_modinv_copies_modulus C.jet_secp_scalar_inverse_seed
 JET_TARGETS="C/jet_secp_modinv_loop_modulus.vo C/jet_secp_scalar_inverse_updates.vo" bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_loop_modulus C.jet_secp_scalar_inverse_updates
+JET_TARGETS="C/jet_secp_modinv_control_storage.vo C/jet_secp_modinv_tail_modulus.vo C/jet_secp_scalar_inverse_iteration.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_control_storage C.jet_secp_modinv_tail_modulus C.jet_secp_scalar_inverse_iteration
 ```
 
 ## Generation: wNAF also calls external memset
