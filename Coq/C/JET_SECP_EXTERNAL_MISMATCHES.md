@@ -88,8 +88,26 @@ Those core premises remain unresolved; this call-context theorem is not a
 public scalar-invert equivalence or a new library model.
 
 These results do not discharge the complete `scalar_inverse_var` or public
-`scalar_invert` proof. Scalar-modulus readiness, complete modular inversion
-and public caller/read/write composition remain open. In
+`scalar_invert` proof.
+
+`jet_secp_modinfo_scalar_global.modinfo_scalar_initial_state_exists` now
+reuses the existing program-initialization existence theorem to establish
+the actual scalar global's initial state: all 48 readable bytes and six
+words, including the signed limb -21 and the low-limb inverse coefficient,
+with readonly status. Closed identities check that its signed62 modulus is
+the canonical scalar group order and its inverse coefficient is correct
+modulo 2^62; the field modulus is not substituted.
+
+`scalar_inv_entry_with_modinfo` composes that modulus state at caller entry
+with the real allocation/packing prefix, deriving all six preserved global
+words and their readability at the core-call boundary. There is no assumed
+post-packing global state or load. Separation from the private scalar
+regions is derived from freshness, readonly status and the existing owned
+scalar contract, not added as a public input restriction. This does not
+prove startup-state preservation through arbitrary earlier application
+calls, or construct the scalar-specific inverse loop invariant.
+
+Complete modular inversion and public caller/read/write composition remain open. In
 particular, the field-modulus-specific inverse results cannot be reused as
 scalar-order results without a proved modulus-general bridge. Coverage
 remains 514/533; no new library premise is introduced by these helpers.
@@ -99,6 +117,8 @@ JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_signed62 C.jet_secp_scalar_signed62_numeric
 JET_TARGETS=C/jet_secp_scalar_inverse_caller.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_caller
+JET_TARGETS=C/jet_secp_modinfo_scalar_global.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinfo_scalar_global
 ```
 
 ## Generation: wNAF also calls external memset
