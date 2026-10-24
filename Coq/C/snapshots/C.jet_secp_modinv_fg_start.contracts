@@ -1,0 +1,186 @@
+### C.jet_secp_modinv_fg_start.fg_start_input
+fg_start_input
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_modinv_fg_iteration_numeric.fg_iter_input (fg_start_rho rho) high) (fg_start_carry rho high)
+### C.jet_secp_modinv_fg_start.fg_start_array
+fg_start_array
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+       @eq Integers.Int64.int (jet_secp_modinv_fg_loop_numeric.fg_array_word (fg_start_rho rho) high j)
+         (jet_secp_modinv_fg_loop_numeric.fg_array_word rho high j)
+### C.jet_secp_modinv_fg_start.fg_start_row
+fg_start_row
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool),
+       and
+         (@eq Integers.Int64.int (jet_secp_modinv_fg_iteration_numeric.fg_iter_u (fg_start_rho rho) high)
+            (jet_secp_modinv_fg_iteration_numeric.fg_iter_u rho high))
+         (@eq Integers.Int64.int (jet_secp_modinv_fg_iteration_numeric.fg_iter_v (fg_start_rho rho) high)
+            (jet_secp_modinv_fg_iteration_numeric.fg_iter_v rho high))
+### C.jet_secp_modinv_fg_start.fg_start_carry_value
+fg_start_carry_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (_ : fg_input_bounds rho),
+       @eq BinNums.Z (jet_secp_modinv_fg_iteration_arith.fg_pair_value (fg_start_carry rho high))
+         (BinInt.Z.div (jet_secp_modinv_fg_loop_numeric.fg_combination rho high O)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_modinv_fg_start.fg_start_carry_bound
+fg_start_carry_bound
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (_ : fg_input_bounds rho),
+       BinInt.Z.le (BinInt.Z.abs (jet_secp_modinv_fg_iteration_arith.fg_pair_value (fg_start_carry rho high)))
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+### C.jet_secp_modinv_fg_start.fg_start_state_bounds
+fg_start_state_bounds
+     : forall (rho : forall _ : nat, Integers.Int64.int) (_ : fg_input_bounds rho),
+       jet_secp_modinv_fg_loop_numeric.fg_state_bounds (fg_start_rho rho)
+### C.jet_secp_modinv_fg_start.fg_start_carry_fits64
+fg_start_carry_fits64
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (_ : fg_input_bounds rho),
+       and
+         (BinInt.Z.le Integers.Int64.min_signed
+            (jet_secp_modinv_fg_iteration_arith.fg_pair_value
+               (jet_secp_modinv_fg_iteration_numeric.fg_iter_input (fg_start_rho rho) high)))
+         (BinInt.Z.le
+            (jet_secp_modinv_fg_iteration_arith.fg_pair_value
+               (jet_secp_modinv_fg_iteration_numeric.fg_iter_input (fg_start_rho rho) high)) Integers.Int64.max_signed)
+### C.jet_secp_modinv_fg_start.fg_start_rep
+fg_start_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_fg_prefix.fg_prefix_out m),
+       jet_sx_state.rep (fg_start_rho rho) beta jet_secp_modinv_fg_iteration_prefix.fg_iter_regs m
+### C.jet_secp_modinv_fg_start.fg_start_temps
+fg_start_temps
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Clight.temp_env)
+         (_ : jet_sx_eval.tmatch rho beta
+                (jet_sx_eval.stemps
+                   (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                      (jet_sx_exec.rsel rho (jet_sx_state.lay beta) jet_secp_modinv_fg_prefix.fg_prefix_tree))) le),
+       jet_sx_eval.tmatch (fg_start_rho rho) beta (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps (S O))
+         (@Maps.PTree.set Values.val jets_secp._i (Values.Vint Integers.Int.one) le)
+### C.jet_secp_modinv_fg_start.fg_start_carry
+fg_start_carry =
+fun (rho : forall _ : nat, Integers.Int64.int) (high : bool) =>
+let u : nat :=
+  match high return nat with
+  | true => S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+  | false => S (S (S (S (S (S (S (S (S (S O)))))))))
+  end in
+let v : nat :=
+  match high return nat with
+  | true => S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+  | false => S (S (S (S (S (S (S (S (S (S (S O))))))))))
+  end in
+@pair Integers.Int64.int Integers.Int64.int
+  (jet_secp_i128_shift62.i128_shift62_low (jet_secp_modinv_fg_prefix_numeric.fg_row_low rho u v)
+     (jet_secp_modinv_fg_prefix_numeric.fg_row_high rho u v))
+  (jet_secp_i128_shift62.i128_shift62_high (jet_secp_modinv_fg_prefix_numeric.fg_row_high rho u v))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool), prod Integers.Int64.int Integers.Int64.int
+
+Arguments fg_start_carry rho%function_scope high%bool_scope
+### C.jet_secp_modinv_fg_start.fg_start_rho
+fg_start_rho =
+fun (rho : forall _ : nat, Integers.Int64.int) (n : nat) =>
+match n return Integers.Int64.int with
+| O => rho n
+| S n0 =>
+    match n0 return Integers.Int64.int with
+    | O => rho n
+    | S n1 =>
+        match n1 return Integers.Int64.int with
+        | O => rho n
+        | S n2 =>
+            match n2 return Integers.Int64.int with
+            | O => rho n
+            | S n3 =>
+                match n3 return Integers.Int64.int with
+                | O => rho n
+                | S n4 =>
+                    match n4 return Integers.Int64.int with
+                    | O => rho n
+                    | S n5 =>
+                        match n5 return Integers.Int64.int with
+                        | O => rho n
+                        | S n6 =>
+                            match n6 return Integers.Int64.int with
+                            | O => rho n
+                            | S n7 =>
+                                match n7 return Integers.Int64.int with
+                                | O => rho n
+                                | S n8 =>
+                                    match n8 return Integers.Int64.int with
+                                    | O => rho n
+                                    | S n9 =>
+                                        match n9 return Integers.Int64.int with
+                                        | O => rho n
+                                        | S n10 =>
+                                            match n10 return Integers.Int64.int with
+                                            | O => rho n
+                                            | S n11 =>
+                                                match n11 return Integers.Int64.int with
+                                                | O => rho n
+                                                | S n12 =>
+                                                    match n12 return Integers.Int64.int with
+                                                    | O => rho n
+                                                    | S n13 =>
+                                                        match n13 return Integers.Int64.int with
+                                                        | O => rho n
+                                                        | S n14 =>
+                                                            match n14 return Integers.Int64.int with
+                                                            | O =>
+                                                                @fst Integers.Int64.int Integers.Int64.int
+                                                                  (fg_start_carry rho false)
+                                                            | S n15 =>
+                                                                match n15 return Integers.Int64.int with
+                                                                | O =>
+                                                                    @snd Integers.Int64.int Integers.Int64.int
+                                                                      (fg_start_carry rho false)
+                                                                | S n16 =>
+                                                                    match n16 return Integers.Int64.int with
+                                                                    | O =>
+                                                                        @fst Integers.Int64.int Integers.Int64.int
+                                                                          (fg_start_carry rho true)
+                                                                    | S n17 =>
+                                                                        match n17 return Integers.Int64.int with
+                                                                        | O =>
+                                                                            @snd Integers.Int64.int Integers.Int64.int
+                                                                              (fg_start_carry rho true)
+                                                                        | S _ => rho n
+                                                                        end
+                                                                    end
+                                                                end
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments fg_start_rho rho%function_scope n%nat_scope
+### C.jet_secp_modinv_fg_start.fg_input_bounds
+fg_input_bounds =
+fun rho : forall _ : nat, Integers.Int64.int =>
+and
+  (forall high : bool,
+   BinInt.Z.le
+     (BinInt.Z.add (BinInt.Z.abs (Integers.Int64.signed (jet_secp_modinv_fg_iteration_numeric.fg_iter_u rho high)))
+        (BinInt.Z.abs (Integers.Int64.signed (jet_secp_modinv_fg_iteration_numeric.fg_iter_v rho high))))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+  (forall (high : bool) (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+   BinInt.Z.le (BinInt.Z.abs (Integers.Int64.signed (jet_secp_modinv_fg_loop_numeric.fg_array_word rho high j)))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, Prop
+
+Arguments fg_input_bounds rho%function_scope

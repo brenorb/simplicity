@@ -316,6 +316,17 @@ establish those bounds and hand off its actual state, and function entry,
 allocation/freeing and the full inverse caller are not yet composed. This
 remains a transition-helper result, not another registered jet.
 
+`jet_secp_modinv_fg_body.exec_fg_body` connects that suffix to the original
+prefix and proves the **complete original transition body**. From represented
+initial arrays and internal matrix/limb bounds it derives every active output
+load, its signed-radix value `(u*f+v*g)/2^62` (and the second row), ownership,
+live temporaries and framing. The handoff proves the initial carry values,
+bounds and signed-64 representability; none is assumed as a new intermediate
+premise. Its quotient statement does not assume divisibility: the inverse
+caller still has to supply the actual divstep matrix and discharge its own
+invariants. This closes body composition, not function entry/allocation/freeing
+or the complete public inversion jet. No coverage entry is added.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -331,6 +342,8 @@ JET_TARGETS=C/jet_secp_modinv_fg_loop_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_loop_numeric
 JET_TARGETS=C/jet_secp_modinv_fg_finish_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_finish C.jet_secp_modinv_fg_finish_numeric
+JET_TARGETS=C/jet_secp_modinv_fg_body.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_body
 ```
 
 ## Reproduction and limits

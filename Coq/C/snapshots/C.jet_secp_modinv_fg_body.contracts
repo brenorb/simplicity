@@ -1,0 +1,145 @@
+### C.jet_secp_modinv_fg_body.fg_matrix_decompose
+fg_matrix_decompose
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (len : nat)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))),
+       @eq BinNums.Z (fg_matrix_value rho high len)
+         (BinInt.Z.add (jet_secp_modinv_fg_loop_numeric.fg_combination rho high O)
+            (BinInt.Z.mul
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               (jet_secp_modinv_fg_loop_numeric.fg_combination_tail (Nat.sub len (S O)) rho high (S O))))
+### C.jet_secp_modinv_fg_body.fg_start_combination
+fg_start_combination
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+       @eq BinNums.Z
+         (jet_secp_modinv_fg_loop_numeric.fg_combination (jet_secp_modinv_fg_start.fg_start_rho rho) high j)
+         (jet_secp_modinv_fg_loop_numeric.fg_combination rho high j)
+### C.jet_secp_modinv_fg_body.fg_matrix_quotient
+fg_matrix_quotient
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (len : nat)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))) (_ : jet_secp_modinv_fg_start.fg_input_bounds rho),
+       @eq BinNums.Z
+         (BinInt.Z.add
+            (jet_secp_modinv_fg_iteration_arith.fg_pair_value
+               (jet_secp_modinv_fg_iteration_numeric.fg_iter_input (jet_secp_modinv_fg_start.fg_start_rho rho) high))
+            (jet_secp_modinv_fg_loop_numeric.fg_combination_tail (Nat.sub len (S O))
+               (jet_secp_modinv_fg_start.fg_start_rho rho) high (S O)))
+         (BinInt.Z.div (fg_matrix_value rho high len)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_modinv_fg_body.fg_rest_source
+fg_rest_source
+     : @eq Clight.statement jet_secp_modinv_fg_prefix.fg_rest
+         (Clight.Ssequence jet_secp_modinv_fg_index.fg_for jet_secp_modinv_fg_finish.fg_finish)
+### C.jet_secp_modinv_fg_body.fg_initial_shapes
+fg_initial_shapes
+     : @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_sx_eval.sregs jet_secp_modinv_fg_prefix.fg_initial))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape jet_secp_modinv_fg_iteration_prefix.fg_iter_regs)
+### C.jet_secp_modinv_fg_body.exec_fg_rest
+exec_fg_rest
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (ls lef : Clight.temp_env)
+         (mf : Memory.Mem.mem)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                (Clight.Sset jets_secp._i (Clight.Econst_int Integers.Int.one Ctypesdefs.tint)) Events.E0 ls m
+                ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e ls m
+                (Clight.Ssequence jet_secp_modinv_fg_index.fg_loop jet_secp_modinv_fg_finish.fg_finish) Events.E0 lef
+                mf ClightBigstep.Out_normal),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_modinv_fg_prefix.fg_rest Events.E0 lef
+         mf ClightBigstep.Out_normal
+### C.jet_secp_modinv_fg_body.exec_fg_body
+exec_fg_body
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : @eq Integers.Int.int
+                (Integers.Int64.loword (rho (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+                (Integers.Int.repr (BinInt.Z.of_nat len))) (_ : jet_secp_modinv_fg_start.fg_input_bounds rho)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_modinv_fg_prefix.fg_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps jet_secp_modinv_fg_prefix.fg_initial) le0)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) e),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+                  (Clight.fn_body jets_secp.f_secp256k1_modinv64_update_fg_62_var) Events.E0 lef mf
+                  ClightBigstep.Out_normal)
+               (and
+                  (forall (high : bool) (j : nat) (_ : lt j len),
+                   @eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf
+                        (jet_sx_state.blk beta match high return nat with
+                                               | true => S O
+                                               | false => O
+                                               end)
+                        (BinInt.Z.add (jet_sx_state.bas beta match high return nat with
+                                                             | true => S O
+                                                             | false => O
+                                                             end)
+                           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                              (BinInt.Z.of_nat j)))) (@Some Values.val (Values.Vlong (fg_body_word len rho high j))))
+                  (and
+                     (forall high : bool,
+                      @eq BinNums.Z (fg_body_value len rho high)
+                        (BinInt.Z.div (fg_matrix_value rho high len)
+                           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                     (and
+                        (jet_sx_state.rep (fg_body_rho len rho) beta (jet_secp_modinv_fg_finish.fg_finish_regs len) mf)
+                        (and
+                           (jet_sx_eval.tmatch (fg_body_rho len rho) beta
+                              (jet_sx_eval.stemps (jet_secp_modinv_fg_finish.fg_finish_state len)) lef)
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (ofs : BinNums.Z) =>
+                               not
+                                 (jet_sx_state.foot beta
+                                    (@List.map jet_sx_state.region
+                                       (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                       jet_sx_state.rshape (jet_sx_eval.sregs jet_secp_modinv_fg_prefix.fg_initial)) b
+                                    ofs)) m mf)))))))
+### C.jet_secp_modinv_fg_body.fg_input_value
+fg_input_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (high : bool) (len : nat) =>
+jet_secp_modinv_normalize62_words.norm62_value_z (Nat.sub len (S O))
+  (fun j : nat => Integers.Int64.signed (jet_secp_modinv_fg_loop_numeric.fg_array_word rho high j))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), BinNums.Z
+
+Arguments fg_input_value rho%function_scope high%bool_scope len%nat_scope
+### C.jet_secp_modinv_fg_body.fg_matrix_value
+fg_matrix_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (high : bool) (len : nat) =>
+BinInt.Z.add
+  (BinInt.Z.mul (Integers.Int64.signed (jet_secp_modinv_fg_iteration_numeric.fg_iter_u rho high))
+     (fg_input_value rho false len))
+  (BinInt.Z.mul (Integers.Int64.signed (jet_secp_modinv_fg_iteration_numeric.fg_iter_v rho high))
+     (fg_input_value rho true len))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), BinNums.Z
+
+Arguments fg_matrix_value rho%function_scope high%bool_scope len%nat_scope
+### C.jet_secp_modinv_fg_body.fg_body_rho
+fg_body_rho =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+jet_secp_modinv_fg_loop.fg_loop_rho (Nat.sub len (S O)) (jet_secp_modinv_fg_start.fg_start_rho rho) (S O)
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments fg_body_rho len%nat_scope rho%function_scope _%nat_scope
+### C.jet_secp_modinv_fg_body.fg_body_word
+fg_body_word =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool) (j : nat) =>
+jet_secp_modinv_fg_finish_numeric.fg_finished_word (fg_body_rho len rho) len high j
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), Integers.Int64.int
+
+Arguments fg_body_word len%nat_scope rho%function_scope high%bool_scope j%nat_scope
+### C.jet_secp_modinv_fg_body.fg_body_value
+fg_body_value =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool) =>
+jet_secp_modinv_fg_finish_numeric.fg_finished_value (fg_body_rho len rho) len high
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : bool), BinNums.Z
+
+Arguments fg_body_value len%nat_scope rho%function_scope high%bool_scope

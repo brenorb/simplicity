@@ -79,6 +79,19 @@ Proof.
  repeat match goal with |- context [if ?c then _ else _]=>destruct c end;reflexivity.
 Qed.
 
+Definition fg_prefix_live_bindings :=
+ [(_M62,XLsh Hshru (XLc (Int64.repr (-1))) 2);
+  (_r,XLv 13);(_q,XLv 12);(_v,XLv 11);(_u,XLv 10);
+  (_len,XL2I (XLv 14));(_t,XP 2 0);(_g,XP 1 0);(_f,XP 0 0)].
+Lemma fg_prefix_live_kept rho beta :
+ Forall (fun p=>(stemps (fst (rsel rho beta fg_prefix_tree)))!(fst p)=Some (snd p))
+  fg_prefix_live_bindings.
+Proof.
+ rewrite fg_prefix_tree_compute;cbn [fg_computed_tree rsel].
+ repeat match goal with |- context [if ?c then _ else _]=>destruct c end;
+ repeat constructor;reflexivity.
+Qed.
+
 Local Opaque fg_prefix_tree fg_initial fg_table fg_prefix fg_alloc secp_ge xstmt.
 Lemma fg_sound fuel : sound_rec secp_ge [] (fun _ _=>True) (fun _ _ _=>True) (fun _=>False)
  (xstmt (genv_cenv secp_ge) [] fg_table fuel).
