@@ -1,0 +1,200 @@
+### C.jet_sx_void_oracle.pv_list_beq_true
+pv_list_beq_true
+     : forall (A : Type) (eqb : forall (_ : A) (_ : A), bool)
+         (_ : forall (x y : A) (_ : @eq bool (eqb x y) true), @eq A x y) (xs ys : list A)
+         (_ : @eq bool (@pv_list_beq A eqb xs ys) true), @eq (list A) xs ys
+### C.jet_sx_void_oracle.pv_option_sx_beq_true
+pv_option_sx_beq_true
+     : forall (a b : option jet_sx_expr.sx) (_ : @eq bool (pv_option_sx_beq a b) true), @eq (option jet_sx_expr.sx) a b
+### C.jet_sx_void_oracle.pv_option_z_beq_true
+pv_option_z_beq_true
+     : forall (a b : option BinNums.Z) (_ : @eq bool (pv_option_z_beq a b) true), @eq (option BinNums.Z) a b
+### C.jet_sx_void_oracle.pv_cell_beq_true
+pv_cell_beq_true
+     : forall (a b : jet_sx_state.cell) (_ : @eq bool (pv_cell_beq a b) true), @eq jet_sx_state.cell a b
+### C.jet_sx_void_oracle.pv_region_beq_true
+pv_region_beq_true
+     : forall (a b : jet_sx_state.region) (_ : @eq bool (pv_region_beq a b) true), @eq jet_sx_state.region a b
+### C.jet_sx_void_oracle.pv_tree_ok_sound
+pv_tree_ok_sound
+     : forall (regs : list jet_sx_state.region) (tree : jet_sx_exec.res) (_ : @eq bool (pv_tree_ok regs tree) true)
+         (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       and
+         (@eq (list jet_sx_state.region)
+            (jet_sx_eval.sregs (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho beta tree))) regs)
+         (and
+            (@eq (list jet_sx_eval.event)
+               (jet_sx_eval.slog (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho beta tree)))
+               (@nil jet_sx_eval.event))
+            (and
+               (@eq (option jet_sx_expr.sx)
+                  (@Maps.PTree.get jet_sx_expr.sx BinNums.xH
+                     (jet_sx_eval.stemps (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho beta tree))))
+                  (@None jet_sx_expr.sx))
+               (@eq jet_sx_exec.xout (@snd jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho beta tree))
+                  jet_sx_exec.ONormal)))
+### C.jet_sx_void_oracle.pv_tree_no_log
+pv_tree_no_log
+     : forall (regs : list jet_sx_state.region) (tree : jet_sx_exec.res) (_ : @eq bool (pv_tree_ok regs tree) true),
+       @eq bool (jet_sx_pure.leaves_log_nil tree) true
+### C.jet_sx_void_oracle.pure_void_oracle_correct
+pure_void_oracle_correct
+     : forall (ge : Clight.genv) (functions : list (prod AST.ident Clight.function))
+         (_ : forall (id : AST.ident) (fd : Clight.function)
+                (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id fd) functions),
+              @ex Values.block
+                (fun b : Values.block =>
+                 and
+                   (@eq (option Values.block)
+                      (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+                      (@Some Values.block b))
+                   (@eq (option Clight.fundef)
+                      (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge) b)
+                      (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function fd)))))
+         (fuel : nat) (fd : Clight.function),
+       jet_sx_exec.oracle_ok ge (fun (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event) => True)
+         (fun (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem) => True)
+         (fun _ : Values.block => False) fd (pure_void_oracle ge functions fuel fd)
+### C.jet_sx_void_oracle.pv_option_sx_beq
+pv_option_sx_beq =
+fun a b : option jet_sx_expr.sx =>
+match a return bool with
+| Some x => match b return bool with
+            | Some y => jet_secp_u128_word_sx.sx_beq x y
+            | None => false
+            end
+| None => match b return bool with
+          | Some _ => false
+          | None => true
+          end
+end
+     : forall (_ : option jet_sx_expr.sx) (_ : option jet_sx_expr.sx), bool
+
+Arguments pv_option_sx_beq a b
+### C.jet_sx_void_oracle.pv_option_z_beq
+pv_option_z_beq =
+fun a b : option BinNums.Z =>
+match a return bool with
+| Some x => match b return bool with
+            | Some y => BinInt.Z.eqb x y
+            | None => false
+            end
+| None => match b return bool with
+          | Some _ => false
+          | None => true
+          end
+end
+     : forall (_ : option BinNums.Z) (_ : option BinNums.Z), bool
+
+Arguments pv_option_z_beq a b
+### C.jet_sx_void_oracle.pv_cell_beq
+pv_cell_beq =
+fun a b : jet_sx_state.cell =>
+andb
+  (andb (BinInt.Z.eqb (jet_sx_state.cofs a) (jet_sx_state.cofs b))
+     (jet_sx_state.chunk_eqb (jet_sx_state.cchunk a) (jet_sx_state.cchunk b)))
+  (pv_option_sx_beq (jet_sx_state.cval a) (jet_sx_state.cval b))
+     : forall (_ : jet_sx_state.cell) (_ : jet_sx_state.cell), bool
+
+Arguments pv_cell_beq a b
+### C.jet_sx_void_oracle.pv_region_beq
+pv_region_beq =
+fun a b : jet_sx_state.region =>
+andb
+  (andb (@pv_list_beq jet_sx_state.cell pv_cell_beq (jet_sx_state.rcells a) (jet_sx_state.rcells b))
+     (Bool.eqb (jet_sx_state.rw a) (jet_sx_state.rw b)))
+  (pv_option_z_beq (jet_sx_state.rfree a) (jet_sx_state.rfree b))
+     : forall (_ : jet_sx_state.region) (_ : jet_sx_state.region), bool
+
+Arguments pv_region_beq a b
+### C.jet_sx_void_oracle.pure_void_oracle
+pure_void_oracle =
+fun (ge : Clight.genv) (functions : list (prod AST.ident Clight.function)) (fuel : nat) (fd : Clight.function)
+  (_ : nat) (_ : list jet_sx_eval.event) (args : list jet_sx_expr.sx) (regs : list jet_sx_state.region) =>
+match
+  jet_sx_exec.xfun (Clight.genv_cenv ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+    (jet_sx_pure.int_table functions) fuel fd args regs (@nil jet_sx_eval.event) O
+  return
+    (option
+       (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat) (list jet_sx_expr.sx)))
+with
+| Some tree =>
+    let out : list jet_sx_state.region := pv_first_regs tree in
+    match
+      pv_tree_ok out tree
+      return
+        (option
+           (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat) (list jet_sx_expr.sx)))
+    with
+    | true =>
+        @Some
+          (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat) (list jet_sx_expr.sx))
+          (@pair (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+             (list jet_sx_expr.sx)
+             (@pair (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat
+                (@pair (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat
+                   (@pair (list jet_sx_state.region) (option jet_sx_expr.sx) out (@None jet_sx_expr.sx)) O) O)
+             (@nil jet_sx_expr.sx))
+    | false =>
+        @None
+          (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat) (list jet_sx_expr.sx))
+    end
+| None =>
+    @None (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat) (list jet_sx_expr.sx))
+end
+     : forall (_ : Clight.genv) (_ : list (prod AST.ident Clight.function)) (_ : nat) (_ : Clight.function),
+       jet_sx_exec.oracle
+
+Arguments pure_void_oracle ge functions%list_scope fuel%nat_scope fd _ _ _ _
+### C.jet_sx_void_oracle.pv_list_beq
+pv_list_beq =
+fix pv_list_beq (A : Type) (eqb : forall (_ : A) (_ : A), bool) (xs ys : list A) {struct xs} : bool :=
+  match xs return bool with
+  | nil => match ys return bool with
+           | nil => true
+           | cons _ _ => false
+           end
+  | cons x xs0 =>
+      match ys return bool with
+      | nil => false
+      | cons y ys0 => andb (eqb x y) (pv_list_beq A eqb xs0 ys0)
+      end
+  end
+     : forall (A : Type) (_ : forall (_ : A) (_ : A), bool) (_ : list A) (_ : list A), bool
+
+Arguments pv_list_beq {A}%type_scope eqb%function_scope (xs ys)%list_scope
+### C.jet_sx_void_oracle.pv_first_regs
+pv_first_regs =
+fix pv_first_regs (tree : jet_sx_exec.res) : list jet_sx_state.region :=
+  match tree return (list jet_sx_state.region) with
+  | jet_sx_exec.RDone st _ => jet_sx_eval.sregs st
+  | jet_sx_exec.RIf _ a _ => pv_first_regs a
+  end
+     : forall _ : jet_sx_exec.res, list jet_sx_state.region
+
+Arguments pv_first_regs tree
+### C.jet_sx_void_oracle.pv_tree_ok
+pv_tree_ok =
+fix pv_tree_ok (regs : list jet_sx_state.region) (tree : jet_sx_exec.res) {struct tree} : bool :=
+  match tree return bool with
+  | jet_sx_exec.RDone st o =>
+      match o return bool with
+      | jet_sx_exec.ONormal =>
+          andb (@pv_list_beq jet_sx_state.region pv_region_beq (jet_sx_eval.sregs st) regs)
+            match jet_sx_eval.slog st return bool with
+            | nil =>
+                match @Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps st) return bool with
+                | Some _ => false
+                | None => true
+                end
+            | cons _ _ => false
+            end
+      | jet_sx_exec.OBreak => false
+      | jet_sx_exec.OContinue => false
+      | jet_sx_exec.OReturn _ => false
+      end
+  | jet_sx_exec.RIf _ a b => andb (pv_tree_ok regs a) (pv_tree_ok regs b)
+  end
+     : forall (_ : list jet_sx_state.region) (_ : jet_sx_exec.res), bool
+
+Arguments pv_tree_ok regs%list_scope tree

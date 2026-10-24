@@ -231,6 +231,27 @@ JET_TARGETS=C/jet_secp_modinv_fg_prefix_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_prefix_numeric
 ```
 
+The following loop support is also explicit:
+`jet_secp_modinv_fg_index` proves the original signed62 indexed loads/stores,
+including the actual `i - 1` expression, the loop comparison/increment and the
+exit branch. Array offsets and signed-index conversions are derived, not
+replaced by a constant-index C body. The loop's arithmetic body and complete
+function composition remain open.
+
+`jet_sx_void_oracle.pure_void_oracle_correct` provides a checked summary for
+actual internal void calls whose symbolic branches all have identical output
+regions, no events and no return value. It symbolically executes the original
+function and checks every branch before returning a summary; differing results
+cause failure. Its soundness derives the actual Clight call, ownership and
+framing. This avoids duplicating the signed accumulation helper's discarded
+verification-expression branches. It is not a libc model, assumed helper
+behavior, a replacement implementation or a new public jet proof.
+
+```sh
+JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
