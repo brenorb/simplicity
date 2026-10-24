@@ -916,6 +916,39 @@ JET_TARGETS=C/jet_secp_div62_limit.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_limit
 ```
 
+## Original post-count non-exit execution (internal progress, no added coverage)
+
+`jet_secp_div62_branch.exec_div62_count_nonexit` now composes the actual
+post-count shifts, eta/counter subtraction, non-break test, no-op assertion
+loops, eta sign branch, negative-eta swaps, limit/mask and `w` calculations,
+and common `g/q/r` updates. It covers the whole original loop remainder
+`div62_after_count` when `0 <= zeros < i <= 62` and the updated eta lies
+in `[-745,745]`. Its computed final temporary environment includes the real
+branch-local conditional temporary and the last swap temporary. Memory is
+exactly unchanged. `div62_continued_temps_outside` separately frames every
+temporary not assigned by the non-exit suffix. The source equalities and
+execution lemmas refer to the unchanged original divstep AST throughout.
+
+`exec_div62_nonexit` exposes the same suffix starting after the counter
+update; `exec_div62_swap` proves the ten negative-eta assignments for
+arbitrary machine words, and `exec_div62_eta_branch` derives which branch
+executes from the signed eta comparison. These discharge the preceding
+branch-selection/swap execution obligations of the earlier suffix lemmas.
+The exit case is handled separately by `exec_div62_count_exit` above.
+
+The returned count and eta bound are still **internal-state premises**.
+The CTZ call/sentinel behavior, derivation and preservation of the
+delayed-division invariant, correspondence with `Trans.transN 62`, outer
+inverse-loop termination/result and complete public-jet composition remain
+unproved. In particular, exact word execution alone is not a proof of the
+mathematical inverse or a newly covered jet. No CTZ/memset model, public
+assumption or registration is added, and coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_div62_branch.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_branch
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

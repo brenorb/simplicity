@@ -1,0 +1,420 @@
+### C.jet_secp_div62_branch.div62_swap_source
+div62_swap_source
+     : @eq Clight.statement div62_swap_prefix
+         (Clight.Ssequence
+            (Clight.Sset jets_secp._eta
+               (Clight.Eunop Cop.Oneg (Clight.Etempvar jets_secp._eta Ctypesdefs.tlong) Ctypesdefs.tlong))
+            (Clight.Ssequence (Clight.Sset jets_secp._tmp (Clight.Etempvar jets_secp._f Ctypesdefs.tulong))
+               (Clight.Ssequence (Clight.Sset jets_secp._f (Clight.Etempvar jets_secp._g Ctypesdefs.tulong))
+                  (Clight.Ssequence
+                     (Clight.Sset jets_secp._g
+                        (Clight.Eunop Cop.Oneg (Clight.Etempvar jets_secp._tmp Ctypesdefs.tulong) Ctypesdefs.tulong))
+                     (Clight.Ssequence (Clight.Sset jets_secp._tmp (Clight.Etempvar jets_secp._u Ctypesdefs.tulong))
+                        (Clight.Ssequence (Clight.Sset jets_secp._u (Clight.Etempvar jets_secp._q Ctypesdefs.tulong))
+                           (Clight.Ssequence
+                              (Clight.Sset jets_secp._q
+                                 (Clight.Eunop Cop.Oneg (Clight.Etempvar jets_secp._tmp Ctypesdefs.tulong)
+                                    Ctypesdefs.tulong))
+                              (Clight.Ssequence
+                                 (Clight.Sset jets_secp._tmp (Clight.Etempvar jets_secp._v Ctypesdefs.tulong))
+                                 (Clight.Ssequence
+                                    (Clight.Sset jets_secp._v (Clight.Etempvar jets_secp._r Ctypesdefs.tulong))
+                                    (Clight.Ssequence
+                                       (Clight.Sset jets_secp._r
+                                          (Clight.Eunop Cop.Oneg (Clight.Etempvar jets_secp._tmp Ctypesdefs.tulong)
+                                             Ctypesdefs.tulong)) Clight.Sskip))))))))))
+### C.jet_secp_div62_branch.exec_div62_swap
+exec_div62_swap
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (eta f g u v q r : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong eta)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._f le) (@Some Values.val (Values.Vlong f)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le) (@Some Values.val (Values.Vlong g)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u le) (@Some Values.val (Values.Vlong u)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._v le) (@Some Values.val (Values.Vlong v)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._q le) (@Some Values.val (Values.Vlong q)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le) (@Some Values.val (Values.Vlong r))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m div62_swap_prefix Events.E0
+         (div62_swap_temps le eta f g u v q r) m ClightBigstep.Out_normal
+### C.jet_secp_div62_branch.div62_swap_temps_outside
+div62_swap_temps_outside
+     : forall (le : Maps.PTree.tree Values.val) (eta f g u v q r : Integers.Int64.int) (id : AST.ident)
+         (_ : not
+                (@List.In AST.ident id
+                   (@cons AST.ident jets_secp._eta
+                      (@cons AST.ident jets_secp._tmp
+                         (@cons AST.ident jets_secp._f
+                            (@cons AST.ident jets_secp._g
+                               (@cons AST.ident jets_secp._u
+                                  (@cons AST.ident jets_secp._v
+                                     (@cons AST.ident jets_secp._q (@cons AST.ident jets_secp._r (@nil AST.ident))))))))))),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (div62_swap_temps le eta f g u v q r))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_div62_branch.div62_eta_body_source
+div62_eta_body_source
+     : forall neg : bool,
+       @eq Clight.statement (jet_secp_div62_cancel.div62_eta_body neg)
+         (jet_secp_statement_prefix.statement_sequence
+            (@List.firstn Clight.statement
+               match neg return nat with
+               | true => S (S (S (S (S (S (S (S (S (S O)))))))))
+               | false => O
+               end (@fst (list Clight.statement) Clight.statement (jet_secp_div62_cancel.div62_eta_parts neg)))
+            (jet_secp_div62_limit.div62_after_swap neg))
+### C.jet_secp_div62_branch.exec_div62_eta_body
+exec_div62_eta_body
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (neg : bool)
+         (eta i : BinNums.Z) (f g u v q r : Integers.Int64.int)
+         (_ : match neg return Prop with
+              | true =>
+                  and
+                    (BinInt.Z.le
+                       (BinNums.Zneg
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                       eta) (BinInt.Z.lt eta BinNums.Z0)
+              | false =>
+                  and (BinInt.Z.le BinNums.Z0 eta)
+                    (BinInt.Z.le eta
+                       (BinNums.Zpos
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+              end)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr eta))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._f le) (@Some Values.val (Values.Vlong f)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le) (@Some Values.val (Values.Vlong g)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u le) (@Some Values.val (Values.Vlong u)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._v le) (@Some Values.val (Values.Vlong v)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._q le) (@Some Values.val (Values.Vlong q)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le) (@Some Values.val (Values.Vlong r))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (jet_secp_div62_cancel.div62_eta_body neg)
+         Events.E0 (div62_branch_temps le neg eta i f g u v q r) m ClightBigstep.Out_normal
+### C.jet_secp_div62_branch.div62_eta_branch_source
+div62_eta_branch_source
+     : @eq Clight.statement jet_secp_div62_cancel.div62_eta_branch
+         (Clight.Sifthenelse
+            (Clight.Ebinop Cop.Olt (Clight.Etempvar jets_secp._eta Ctypesdefs.tlong)
+               (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint)
+            (jet_secp_div62_cancel.div62_eta_body true) (jet_secp_div62_cancel.div62_eta_body false))
+### C.jet_secp_div62_branch.exec_div62_eta_branch
+exec_div62_eta_branch
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (eta i : BinNums.Z)
+         (f g u v q r : Integers.Int64.int)
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr eta))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._f le) (@Some Values.val (Values.Vlong f)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le) (@Some Values.val (Values.Vlong g)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u le) (@Some Values.val (Values.Vlong u)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._v le) (@Some Values.val (Values.Vlong v)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._q le) (@Some Values.val (Values.Vlong q)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le) (@Some Values.val (Values.Vlong r))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_div62_cancel.div62_eta_branch Events.E0
+         (div62_branch_temps le
+            match Coqlib.zlt eta BinNums.Z0 return bool with
+            | left _ => true
+            | right _ => false
+            end eta i f g u v q r) m ClightBigstep.Out_normal
+### C.jet_secp_div62_branch.exec_div62_branch_updates
+exec_div62_branch_updates
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (eta i : BinNums.Z)
+         (f g u v q r : Integers.Int64.int)
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr eta))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._f le) (@Some Values.val (Values.Vlong f)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le) (@Some Values.val (Values.Vlong g)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u le) (@Some Values.val (Values.Vlong u)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._v le) (@Some Values.val (Values.Vlong v)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._q le) (@Some Values.val (Values.Vlong q)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le) (@Some Values.val (Values.Vlong r))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (Clight.Ssequence jet_secp_div62_cancel.div62_eta_branch jet_secp_div62_cancel.div62_cancel_updates) Events.E0
+         (div62_continued_temps le
+            match Coqlib.zlt eta BinNums.Z0 return bool with
+            | left _ => true
+            | right _ => false
+            end eta i f g u v q r) m ClightBigstep.Out_normal
+### C.jet_secp_div62_branch.div62_nonexit_source
+div62_nonexit_source
+     : @eq Clight.statement jet_secp_div62_count.div62_after_count_prefix
+         (jet_secp_statement_prefix.statement_sequence
+            (@List.firstn Clight.statement (S (S (S (S (S O)))))
+               (@fst (list Clight.statement) Clight.statement jet_secp_div62_cancel.div62_cont_parts))
+            (Clight.Ssequence jet_secp_div62_cancel.div62_eta_branch jet_secp_div62_cancel.div62_cancel_updates))
+### C.jet_secp_div62_branch.div62_guard_source
+div62_guard_source
+     : @eq Clight.statement div62_guard_prefix
+         (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+            (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+               (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+                  (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+                     (Clight.Ssequence
+                        (Clight.Sloop
+                           (Clight.Sifthenelse
+                              (Clight.Ebinop Cop.Oge (Clight.Etempvar jets_secp._eta Ctypesdefs.tlong)
+                                 (Clight.Eunop Cop.Oneg
+                                    (Clight.Econst_int
+                                       (Integers.Int.repr
+                                          (BinNums.Zpos
+                                             (BinNums.xI
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xO
+                                                            (BinNums.xI
+                                                               (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+                                       Ctypesdefs.tint) Ctypesdefs.tint) Ctypesdefs.tint) Clight.Sskip Clight.Sskip)
+                           Clight.Sbreak) Clight.Sskip)))))
+### C.jet_secp_div62_branch.exec_div62_guard
+exec_div62_guard
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (eta : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong eta))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m div62_guard_prefix Events.E0 le m
+         ClightBigstep.Out_normal
+### C.jet_secp_div62_branch.exec_div62_nonexit
+exec_div62_nonexit
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (eta i : BinNums.Z)
+         (f g u v q r : Integers.Int64.int)
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr eta))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._f le) (@Some Values.val (Values.Vlong f)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le) (@Some Values.val (Values.Vlong g)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u le) (@Some Values.val (Values.Vlong u)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._v le) (@Some Values.val (Values.Vlong v)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._q le) (@Some Values.val (Values.Vlong q)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le) (@Some Values.val (Values.Vlong r))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_div62_count.div62_after_count_prefix
+         Events.E0
+         (div62_continued_temps le
+            match Coqlib.zlt eta BinNums.Z0 return bool with
+            | left _ => true
+            | right _ => false
+            end eta i f g u v q r) m ClightBigstep.Out_normal
+### C.jet_secp_div62_branch.div62_continued_temps_outside
+div62_continued_temps_outside
+     : forall (le : Maps.PTree.tree Values.val) (neg : bool) (eta i : BinNums.Z) (f g u v q r : Integers.Int64.int)
+         (id : AST.ident)
+         (_ : not
+                (@List.In AST.ident id
+                   (@cons AST.ident jets_secp._eta
+                      (@cons AST.ident jets_secp._tmp
+                         (@cons AST.ident jets_secp._f
+                            (@cons AST.ident jets_secp._g
+                               (@cons AST.ident jets_secp._u
+                                  (@cons AST.ident jets_secp._v
+                                     (@cons AST.ident jets_secp._q
+                                        (@cons AST.ident jets_secp._r
+                                           (@cons AST.ident jets_secp._m
+                                              (@cons AST.ident jets_secp._limit
+                                                 (@cons AST.ident jets_secp._w
+                                                    (@cons AST.ident jets_secp._t'2
+                                                       (@cons AST.ident jets_secp._t'3 (@nil AST.ident)))))))))))))))),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (div62_continued_temps le neg eta i f g u v q r))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_div62_branch.exec_div62_count_nonexit
+exec_div62_count_nonexit
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (eta i z : BinNums.Z)
+         (f g u v q r : Integers.Int64.int) (_ : and (BinInt.Z.le BinNums.Z0 z) (BinInt.Z.lt z i))
+         (_ : BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (BinInt.Z.sub eta z))
+                (BinInt.Z.le (BinInt.Z.sub eta z)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr eta))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._zeros le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr z))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._f le) (@Some Values.val (Values.Vlong f)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le) (@Some Values.val (Values.Vlong g)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u le) (@Some Values.val (Values.Vlong u)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._v le) (@Some Values.val (Values.Vlong v)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._q le) (@Some Values.val (Values.Vlong q)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le) (@Some Values.val (Values.Vlong r))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_div62_count.div62_after_count Events.E0
+         (div62_continued_temps (jet_secp_div62_count.div62_count_temps le g u v eta i z)
+            match Coqlib.zlt (BinInt.Z.sub eta z) BinNums.Z0 return bool with
+            | left _ => true
+            | right _ => false
+            end (BinInt.Z.sub eta z) (BinInt.Z.sub i z) f (Integers.Int64.shru g (Integers.Int64.repr z))
+            (Integers.Int64.shl u (Integers.Int64.repr z)) (Integers.Int64.shl v (Integers.Int64.repr z)) q r) m
+         ClightBigstep.Out_normal
+### C.jet_secp_div62_branch.div62_swap_prefix
+div62_swap_prefix =
+jet_secp_statement_prefix.statement_sequence
+  (@List.firstn Clight.statement (S (S (S (S (S (S (S (S (S (S O))))))))))
+     (@fst (list Clight.statement) Clight.statement (jet_secp_div62_cancel.div62_eta_parts true))) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_div62_branch.div62_swap_temps
+div62_swap_temps =
+fun (le : Maps.PTree.tree Values.val) (eta f g u v q r : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets_secp._r (Values.Vlong (Integers.Int64.neg v))
+  (@Maps.PTree.set Values.val jets_secp._v (Values.Vlong r)
+     (@Maps.PTree.set Values.val jets_secp._tmp (Values.Vlong v)
+        (@Maps.PTree.set Values.val jets_secp._q (Values.Vlong (Integers.Int64.neg u))
+           (@Maps.PTree.set Values.val jets_secp._u (Values.Vlong q)
+              (@Maps.PTree.set Values.val jets_secp._tmp (Values.Vlong u)
+                 (@Maps.PTree.set Values.val jets_secp._g (Values.Vlong (Integers.Int64.neg f))
+                    (@Maps.PTree.set Values.val jets_secp._f (Values.Vlong g)
+                       (@Maps.PTree.set Values.val jets_secp._tmp (Values.Vlong f)
+                          (@Maps.PTree.set Values.val jets_secp._eta (Values.Vlong (Integers.Int64.neg eta)) le)))))))))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments div62_swap_temps le eta f g u v q r
+### C.jet_secp_div62_branch.div62_branch_entry
+div62_branch_entry =
+fun (le : Maps.PTree.tree Values.val) (neg : bool) (eta : BinNums.Z) (f g u v q r : Integers.Int64.int) =>
+match neg return (Maps.PTree.tree Values.val) with
+| true => div62_swap_temps le (Integers.Int64.repr eta) f g u v q r
+| false => le
+end
+     : forall (_ : Maps.PTree.tree Values.val) (_ : bool) (_ : BinNums.Z) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments div62_branch_entry le neg%bool_scope eta%Z_scope f g u v q r
+### C.jet_secp_div62_branch.div62_branch_temps
+div62_branch_temps =
+fun (le : Maps.PTree.tree Values.val) (neg : bool) (eta i : BinNums.Z) (f g u v q r : Integers.Int64.int) =>
+jet_secp_div62_limit.div62_prepared_temps (div62_branch_entry le neg eta f g u v q r) neg
+  match neg return BinNums.Z with
+  | true => BinInt.Z.opp eta
+  | false => eta
+  end i match neg return Integers.Int64.int with
+        | true => g
+        | false => f
+        end match neg return Integers.Int64.int with
+            | true => Integers.Int64.neg f
+            | false => g
+            end
+     : forall (_ : Maps.PTree.tree Values.val) (_ : bool) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments div62_branch_temps le neg%bool_scope (eta i)%Z_scope f g u v q r
+### C.jet_secp_div62_branch.div62_continued_temps
+div62_continued_temps =
+fun (le : Maps.PTree.tree Values.val) (neg : bool) (eta i : BinNums.Z) (f g u v q r : Integers.Int64.int) =>
+jet_secp_div62_cancel.div62_cancel_temps
+  (jet_secp_div62_limit.div62_limit_temps (div62_branch_entry le neg eta f g u v q r) neg
+     match neg return BinNums.Z with
+     | true => BinInt.Z.opp eta
+     | false => eta
+     end i) neg match neg return Integers.Int64.int with
+                | true => g
+                | false => f
+                end match neg return Integers.Int64.int with
+                    | true => Integers.Int64.neg f
+                    | false => g
+                    end match neg return Integers.Int64.int with
+                        | true => q
+                        | false => u
+                        end match neg return Integers.Int64.int with
+                            | true => r
+                            | false => v
+                            end
+  match neg return Integers.Int64.int with
+  | true => Integers.Int64.neg u
+  | false => q
+  end match neg return Integers.Int64.int with
+      | true => Integers.Int64.neg v
+      | false => r
+      end
+  (jet_secp_div62_limit.div62_mask neg match neg return BinNums.Z with
+                                       | true => BinInt.Z.opp eta
+                                       | false => eta
+                                       end i)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : bool) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments div62_continued_temps le neg%bool_scope (eta i)%Z_scope f g u v q r
+### C.jet_secp_div62_branch.div62_guard_prefix
+div62_guard_prefix =
+jet_secp_statement_prefix.statement_sequence
+  (@List.firstn Clight.statement (S (S (S (S (S O)))))
+     (@fst (list Clight.statement) Clight.statement jet_secp_div62_cancel.div62_cont_parts)) Clight.Sskip
+     : Clight.statement
