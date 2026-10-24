@@ -349,6 +349,27 @@ reason to identify the abstract external parameter with a concrete libc.
 Build/check it with the commands below, substituting the target/module
 `C/jet_secp_wnaf_entry15.vo` / `C.jet_secp_wnaf_entry15`.
 
+`jet_secp_wnaf_function15.eval_wnaf_literal15_from_memset_step` now composes
+the entire original 129/15 helper conditional on that single original
+`memset` statement's execution, its zero loads and its unchanged-permission /
+outside-output frame effects. The actual allocation, eight preparation
+statements, scalar copy, sign selection, literal-aware loop, return conversion
+and private-local free are derived, not assumed. For every Word128 scalar
+(the generator's split halves), the final owned array equals the decoded
+literal vector, and the actual return length removes only leading zero
+digits. All old memory outside the output block and the source scalar survive
+cleanup. Input/output block separation is the internal generator layout, not
+a new restriction on public frame layouts.
+
+The allocation equation identifies the actual entry allocation; the only
+assumed execution is the exact original external-call statement, not the
+wNAF helper, a loop iteration or a mathematical replacement. This does not
+discharge or define `memset`, connect both calls through Strauss, or prove
+the public `generate` jet. Coverage remains 514/533. Reproduce its build and
+kernel check with the commands below using
+`C/jet_secp_wnaf_function15.vo` / `C.jet_secp_wnaf_function15`; inspect its
+reviewed assumption/contract snapshots for the precise conditional boundary.
+
 ## Internal normalization dependency
 
 `jet_secp_modinv_normalize62_exec.eval_norm62_from_storage` derives the
