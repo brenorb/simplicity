@@ -185,13 +185,34 @@ the initialized NULL used for an empty table is retained; an uninitialized
 pointer is not treated as a valid builder-produced environment. The existing
 `memcmp_model` premise remains explicit. This is a suffix proof, not a
 whole-wrapper or canonical fee-equivalence theorem: entry/source copying,
-deriving the key storage from `readHash`, freeing locals, and the environment
-and canonical-fee connections above remain open. No public registration or
+freeing locals, and the environment and canonical-fee connections above remain
+open; the reader-to-key adapter is addressed below. No public registration or
 coverage change; the ledger remains 514/533. Frozen targets are unchanged.
 
 ```sh
 JET_TARGETS=C/jet_elements_total_fee_suffix.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_total_fee_suffix
+```
+
+### Original hash reader establishes lookup storage (internal progress)
+
+`jet_elements_total_fee_read.exec_total_fee_read` executes the wrapper's real
+`readHash` call and derives the lookup key from its eight stored 32-bit words.
+It establishes the advanced input cursor and preserves loads outside the two
+fresh caller-local blocks. The preservation lemmas transport the existing fee
+table through these writes; lookup storage is derived, not assumed anew after
+the call. An empty table still permits its actual NULL pointer.
+
+This reader contract uses no external-library premise. The subsequent lookup
+retains its existing explicit `memcmp_model` premise. Function entry, the
+source-frame copy, local cleanup and composition with the checked suffix remain
+to be proved, as do the environment and canonical-fee connections described
+above. This is not a whole-jet equivalence or a new public registration;
+accepted coverage remains 514/533. Frozen targets are unchanged.
+
+```sh
+JET_TARGETS=C/jet_elements_total_fee_read.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_total_fee_read
 ```
 
 `simplicity_output_is_fee` remains unregistered. `total_fee` also depends on

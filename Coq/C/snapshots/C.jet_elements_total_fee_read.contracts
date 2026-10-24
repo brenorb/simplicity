@@ -1,0 +1,119 @@
+### C.jet_elements_total_fee_read.total_fee_entry_preserved
+total_fee_entry_preserved
+     : forall (m mf : Memory.Mem.mem) (x : jet_elements_fee_lookup_table.fee_entry)
+         (_ : jet_elements_fee_lookup_table.fee_entry_at m x)
+         (_ : forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (v : Values.val)
+                (_ : @eq (option Values.val) (Memory.Mem.load ch m b ofs) (@Some Values.val v)),
+              @eq (option Values.val) (Memory.Mem.load ch mf b ofs) (@Some Values.val v)),
+       jet_elements_fee_lookup_table.fee_entry_at mf x
+### C.jet_elements_total_fee_read.total_fee_table_preserved
+total_fee_table_preserved
+     : forall (m mf : Memory.Mem.mem) (bt : Values.block) (base : BinNums.Z)
+         (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : jet_elements_fee_lookup_table.fee_table_at m bt base entries)
+         (_ : forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (v : Values.val)
+                (_ : @eq (option Values.val) (Memory.Mem.load ch m b ofs) (@Some Values.val v)),
+              @eq (option Values.val) (Memory.Mem.load ch mf b ofs) (@Some Values.val v)),
+       jet_elements_fee_lookup_table.fee_table_at mf bt base entries
+### C.jet_elements_total_fee_read.total_fee_storage_preserved
+total_fee_storage_preserved
+     : forall (m mf : Memory.Mem.mem) (tableval : Values.val) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : total_fee_table_storage m tableval entries)
+         (_ : forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (v : Values.val)
+                (_ : @eq (option Values.val) (Memory.Mem.load ch m b ofs) (@Some Values.val v)),
+              @eq (option Values.val) (Memory.Mem.load ch mf b ofs) (@Some Values.val v)),
+       total_fee_table_storage mf tableval entries
+### C.jet_elements_total_fee_read.total_fee_array_key
+total_fee_array_key
+     : forall (m : Memory.Mem.mem) (ba : Values.block) (hs : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (_ : @eq nat (@length (Ty.tySem (Word.Word (S (S (S (S (S O))))))) hs) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : jet_uint32_array_init.uint32_array_at m ba BinNums.Z0
+                (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                   jet_read32s_layout.word32_array_value hs)),
+       jet_elements_fee_lookup_table.fee_key_at m ba BinNums.Z0 (total_fee_input_key hs)
+### C.jet_elements_total_fee_read.total_fee_lookup_storage
+total_fee_lookup_storage
+     : forall (m : Memory.Mem.mem) (ba : Values.block) (tableval : Values.val)
+         (hs : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : @eq nat (@length (Ty.tySem (Word.Word (S (S (S (S (S O))))))) hs) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : jet_uint32_array_init.uint32_array_at m ba BinNums.Z0
+                (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                   jet_read32s_layout.word32_array_value hs)) (_ : total_fee_table_storage m tableval entries),
+       jet_elements_fee_lookup_table.fee_lookup_storage m (Values.Vptr ba Integers.Ptrofs.zero) tableval
+         (total_fee_input_key hs) entries
+### C.jet_elements_total_fee_read.exec_total_fee_read
+exec_total_fee_read
+     : forall (bs ba : Values.block) (le : Clight.temp_env) (m : Memory.Mem.mem) (bi : Values.block)
+         (edge rc : BinNums.Z) (hs : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (_ : @eq nat (@length (Ty.tySem (Word.Word (S (S (S (S (S O))))))) hs) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable) (_ : not (@eq Values.block bs ba)) (_ : not (@eq Values.block bs bi))
+         (_ : not (@eq Values.block ba bi)) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned) (_ : jet_frame_layout.frame_fields_at m bs BinNums.Z0 bi edge rc)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bs (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable)
+         (_ : forall (i : nat) (x : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+                (_ : @eq (option (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+                       (@List.nth_error (Ty.tySem (Word.Word (S (S (S (S (S O))))))) hs i)
+                       (@Some (Ty.tySem (Word.Word (S (S (S (S (S O))))))) x)),
+              @jet_input_layout.frame_input_word_at (S (S (S (S (S O))))) m bi edge
+                (BinInt.Z.add rc
+                   (BinInt.Z.mul
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                      (BinInt.Z.of_nat i))) x),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge
+               (jet_elements_total_fee_suffix.total_fee_locals bs ba) le m
+               jet_elements_total_fee_suffix.total_fee_read_stmt Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_uint32_array_init.uint32_array_at mf ba BinNums.Z0
+                  (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                     jet_read32s_layout.word32_array_value hs))
+               (and (jet_elements_fee_lookup_table.fee_key_at mf ba BinNums.Z0 (total_fee_input_key hs))
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bs BinNums.Z0 bi edge
+                        (BinInt.Z.add rc
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                     (and
+                        (forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                           (_ : not (@eq Values.block b bs)) (_ : not (@eq Values.block b ba)),
+                         @eq (option Values.val) (Memory.Mem.load ch mf b ofs) (Memory.Mem.load ch m b ofs))
+                        (and
+                           (forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind)
+                              (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm mf b ofs k p)
+                           (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))))
+### C.jet_elements_total_fee_read.total_fee_input_key
+total_fee_input_key =
+fun hs : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))) =>
+jet_memcmp_words.words_bytes
+  (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int jet_read32s_layout.word32_array_value hs)
+     : forall _ : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))), list Integers.Int.int
+
+Arguments total_fee_input_key hs%list_scope
+### C.jet_elements_total_fee_read.total_fee_table_storage
+total_fee_table_storage =
+fun (m : Memory.Mem.mem) (tableval : Values.val) (entries : list jet_elements_fee_lookup_table.fee_entry) =>
+or (@eq (list jet_elements_fee_lookup_table.fee_entry) entries (@nil jet_elements_fee_lookup_table.fee_entry))
+  (@ex Values.block
+     (fun bt : Values.block =>
+      @ex BinNums.Z
+        (fun base : BinNums.Z =>
+         and (@eq Values.val tableval (Values.Vptr bt (Integers.Ptrofs.repr base)))
+           (jet_elements_fee_lookup_table.fee_table_at m bt base entries))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : list jet_elements_fee_lookup_table.fee_entry), Prop
+
+Arguments total_fee_table_storage m tableval entries%list_scope
