@@ -1347,6 +1347,30 @@ JET_TARGETS=C/jet_secp_modinv_var_batch_exit.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_batch_exit
 ```
 
+## Stored inverse matrix through caller updates (internal progress)
+
+`jet_secp_modinv_var_batch_update.exec_inv_after_stored_batch` starts with
+the representation returned by `exec_inv_batch_exit` and the caller's
+returned eta temporary. It executes the original eta assignment followed by
+the coefficient/f-g updates and stop/shrink control. The pre-store coefficient
+link, canonical state match and machine bounds are transported to the stored
+matrix map; matrix matching and row bounds are derived, not assumed.
+
+The result retains the update proof's exact numeric equations, next state,
+length, coefficient link, bounds/capacity preservation, zero-input coefficient
+preservation, stop condition and memory frame. It additionally proves the
+next eta temporary and frames every other unmodified caller temporary. This
+closes the caller-side invariant connection from the batch's stored matrix
+to the next batch. It does not execute the missing divstep loop or establish
+the return temporary from a complete call: those remain required before
+whole-inverse/public composition. CTZ is still deferred and coverage is
+unchanged at 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_modinv_var_batch_update.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_batch_update
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
