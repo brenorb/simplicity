@@ -2147,6 +2147,23 @@ Coverage remains 514/533. Reproduce the normal build and recursive kernel
 check with the commands in `JET_SECP_EXTERNAL_MISMATCHES.md`, using
 `C/jet_secp_swu_root_power.vo` / `C.jet_secp_swu_root_power`.
 
+`jet_secp_swu_selection` further proves that `t*t+8` is nonzero modulo the
+field prime for every integer input, by a closed modular-exponentiation
+certificate that -8 is a nonsquare. It also proves
+`swu_third_root_check_from_product`: if the product of three represented
+root-check inputs is a square, failure of the first two actual literal checks
+forces success of the third. The character argument discharges all nonzero
+conditions from those failures, rather than restricting inputs. The candidate
+numerator polynomial identity is checked separately with `ring` (also explored
+through the restored isolated rocq-mcp backend).
+
+The square-product hypothesis has **not** yet been established for the exact
+source candidates; it is an intermediate obligation, not an acceptable extra
+premise for a public SWU theorem. Next instantiate it with the source constants,
+joint inverse and zero-input branch, then compose the C calls and public frame
+wrapper. Coverage is still unchanged. Build/check this module with the same
+commands using `C/jet_secp_swu_selection.vo` / `C.jet_secp_swu_selection`.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
