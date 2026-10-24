@@ -1805,6 +1805,36 @@ JET_TARGETS=C/jet_secp_modinv_var_batch_update.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_batch_update
 ```
 
+## Complete divstep batch factored at CTZ (internal conditional progress)
+
+`jet_secp_div62_loop.eval_div62_from_count_calls` composes the original
+function entry, seven initializers, enclosing loop, four matrix stores and
+return/free boundary. Every continuation strictly increases the canonical
+trajectory index, so the loop terminates within its finite 62-step progress
+budget. The result gives the exact stored matrix words, their signed canonical
+values, the returned canonical eta, retained matrix ownership and the outside
+memory frame. Initial matrix contents are not assumed.
+
+**Explicit remaining premise:** at this memory, each nonzero-word call of the
+original `secp256k1_ctz64_var` must execute silently, return the mathematical
+trailing-zero count and leave memory unchanged. This is a generalized premise
+of an internal composition lemma, not a new external-call model or an axiom,
+and is not proved here. The nonzero argument is derived for every actual
+sentinel call. Counting behavior is not inferred from the generic external
+properties. This result is not a public jet equivalence or divergence and
+does not change coverage (514/533).
+
+The next consumer is the scalar-specific complete inverse batch: restore
+the caller representation from these stores, execute eta assignment and the
+existing scalar update/control theorem. Full outer-loop composition,
+termination, and public reader/inverse/writer composition remain required,
+as does eventual discharge of CTZ. No frozen target is changed.
+
+```sh
+JET_TARGETS=C/jet_secp_div62_loop.vo bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_loop
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
