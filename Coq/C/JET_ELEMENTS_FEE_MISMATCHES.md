@@ -167,6 +167,33 @@ JET_TARGETS=C/jet_elements_fee_lookup_sorted.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_fee_lookup_sorted
 ```
 
+### Original total_fee lookup/write/return suffix (internal progress)
+
+`jet_elements_total_fee_suffix.exec_total_fee_after_read` composes the real
+environment field loads, complete sorted lookup call, write64 call and
+return statement. Starting after `readHash`, it writes the exact looked-up
+64-bit value and derives the usual output cells, cursor update, preserved
+prefix, outside-memory frame and permission/valid-block preservation from
+the existing writer contract. Its AST equality covers the original full
+wrapper's statement shape; field offsets and linkage are checked against
+the original Elements program. No expected lookup result or execution is
+assumed.
+
+The loaded table pointer must be defined, but need not be nonnull. Its
+pointer-width type is derived from the actual memory load. In particular,
+the initialized NULL used for an empty table is retained; an uninitialized
+pointer is not treated as a valid builder-produced environment. The existing
+`memcmp_model` premise remains explicit. This is a suffix proof, not a
+whole-wrapper or canonical fee-equivalence theorem: entry/source copying,
+deriving the key storage from `readHash`, freeing locals, and the environment
+and canonical-fee connections above remain open. No public registration or
+coverage change; the ledger remains 514/533. Frozen targets are unchanged.
+
+```sh
+JET_TARGETS=C/jet_elements_total_fee_suffix.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_total_fee_suffix
+```
+
 `simplicity_output_is_fee` remains unregistered. `total_fee` also depends on
 fee classification and has further execution/lookup obligations. In the
 hypothetical witness case their classification or accumulated fee could
