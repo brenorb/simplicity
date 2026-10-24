@@ -1057,6 +1057,30 @@ JET_TARGETS=C/jet_secp_div62_consume.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_consume
 ```
 
+## Original divstep entry invariant (internal progress, no added coverage)
+
+`jet_secp_div62_entry.div62_entry_to_loop` proves the real
+`function_entry2` and original seven initializer assignments for
+`secp256k1_modinv64_divsteps_62_var`. No locals are allocated, and memory
+is exactly unchanged. From low-bit congruence of the supplied words with
+the canonical state's `f/g`, it derives `div62_pending_matrix` for the
+identity matrix with zero pending division, `div62_pending_fg` at the
+given precision, the original eta, counter 62, and unchanged output pointer.
+Both 62-bit and 64-bit initial precision are covered. No initialized loop
+temporaries or invariant are assumed as extra input premises.
+
+This is entry **up to the loop**, not execution of that loop. The actual
+CTZ call's return-value relation, full-loop composition/termination, final
+matrix/specification connection and public inverse composition remain
+unresolved. The preceding count and cancellation results do not themselves
+establish the missing CTZ behavior. No external model or public theorem
+registration is added; coverage stays 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_div62_entry.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_entry
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
