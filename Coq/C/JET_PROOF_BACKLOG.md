@@ -54,6 +54,22 @@ The remaining work includes:
 
 ## Current inversion dependency (no additional jet coverage)
 
+The original field/scalar inverse batches, terminating outer loops and complete
+inverse helper callers are now composed. Full initialized public contracts
+and actual-program-initialization execution witnesses are checked for
+`fe_invert`, `scalar_invert`, `gej_normalize` and `gej_y_is_odd`. They retain the
+original CTZ call behavior as an explicit, deferred theorem parameter; none is
+an accepted coverage row yet. Reuse these callers and the shared field/scalar
+lemmas rather than rebuilding the conversion, loop or return proofs.
+Current statements, remaining boundaries and reproducible commands are in
+[JET_SECP_EXTERNAL_MISMATCHES.md](JET_SECP_EXTERNAL_MISMATCHES.md).
+
+### Historical normalization-only milestone (superseded)
+
+The following records the earlier normalizer milestone. Its then-missing
+batch/loop implication has since been proved conditionally as described
+above; the CTZ boundary remains open.
+
 Reuse the completed signed62 conversion/storage and literal EEA bridges;
 do not rebuild them. The original field `normalize_62` call is now proved
 through `jet_secp_modinv_normalize62_{exec,global,words,numeric}`. The final

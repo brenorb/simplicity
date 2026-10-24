@@ -2250,6 +2250,44 @@ JET_TARGETS="C/jet_secp_gej_norm_local.vo C/jet_secp_gej_norm_fresh.vo" bash Coq
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_norm_local C.jet_secp_gej_norm_fresh
 ```
 
+## Complete original public `gej_y_is_odd` caller (conditional progress)
+
+`jet_secp_gej_odd_local.gej_y_is_odd_initialized_local_spec_from_count_calls`
+establishes the existing full initialized local contract for original
+`simplicity_gej_y_is_odd`. The literal term preserves the composition in
+`LibSecp256k1.hs:565`, including inversion, cube, multiplication and canonical
+field parity. Its infinity result is proved false from the literal term, not
+replaced by a special-case specification.
+
+`jet_secp_gej_odd_lifecycle.eval_gej_y_is_odd_initialized` composes actual entry,
+source-frame copy, XYZ reader, infinity accessor, both branches, true return
+and all three public local frees. The finite branch executes the checked
+original affine conversion, original Y normalizer, original parity accessor
+and bit writer, deriving the exact literal bit. The infinity branch executes
+the original false-bit write. No curve membership, nonzero coordinate,
+canonical-word or branch restriction is added to public inputs.
+
+The setup reuses the existing three-allocation normalization proof through
+checked entry/copy adapters for the differently named affine local (`b`
+instead of `r`). It does not substitute a function or allocation layout.
+The result retains arbitrary valid frame/cursor layouts, output prefix,
+arbitrary-chunk framing and the existing field-modulus startup state.
+`jet_secp_gej_odd_fresh.gej_y_is_odd_runs_from_actual_init` establishes that
+state at the original program's actual `Genv.init_mem`, constructs frames for
+every input, and preserves all pre-existing program-memory loads.
+
+Readonly preservation follows the same constructed executions, reusing the
+original frame-helper preservation proofs. No new external-call model or
+external-call-properties dependency is introduced. The original CTZ behavior
+remains the explicit deferred theorem parameter, so this is a complete
+**conditional public caller**, not an accepted coverage row. Coverage remains
+514/533. All production/specification/AST/API/generation targets are unchanged.
+
+```sh
+JET_TARGETS="C/jet_secp_gej_odd_local.vo C/jet_secp_gej_odd_fresh.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_odd_local C.jet_secp_gej_odd_fresh
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
