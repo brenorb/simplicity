@@ -2134,13 +2134,12 @@ certificate to prove that this literal root and the corresponding C root-check
 flag succeed on every represented square. It covers arbitrary Word256 inputs;
 there is no candidate-success premise or new primality assumption.
 
-This closes a prerequisite, not the public mapper. The next missing implication
-is that the exact three source-defined candidates cannot all fail their actual
-root checks. The C helper uses the third candidate without testing its flag,
-whereas the canonical literal mapper tests it. This is an open equivalence
-obligation, not evidence of a mismatch. Prove the candidate algebra, including
-zero inputs and the joint inverse's signs, and connect it to these root lemmas
-before composing the actual C helper and public frame wrapper. Do not assume
+This closes a prerequisite, not the public mapper. The C helper uses the third
+candidate without testing its flag, whereas the canonical literal mapper tests
+it. The subsequent checkpoints below discharge that numeric selection
+obligation, including zero inputs. This difference in control flow is not
+evidence of a mismatch. Connect the candidate algebra to the actual C helper
+and literal program before composing the public frame wrapper. Do not assume
 third-candidate success to obtain a public theorem. The existing explicit ctz
 boundary remains deferred; no new external model or coverage row is added.
 Coverage remains 514/533. Reproduce the normal build and recursive kernel
@@ -2157,12 +2156,30 @@ conditions from those failures, rather than restricting inputs. The candidate
 numerator polynomial identity is checked separately with `ring` (also explored
 through the restored isolated rocq-mcp backend).
 
-The square-product hypothesis has **not** yet been established for the exact
-source candidates; it is an intermediate obligation, not an acceptable extra
-premise for a public SWU theorem. Next instantiate it with the source constants,
-joint inverse and zero-input branch, then compose the C calls and public frame
-wrapper. Coverage is still unchanged. Build/check this module with the same
+At this intermediate checkpoint the square-product hypothesis had not yet
+been established for the exact source candidates. The later result below
+discharges that numeric obligation; neither checkpoint is a public theorem.
+Build/check this module with the same
 commands using `C/jet_secp_swu_selection.vo` / `C.jet_secp_swu_selection`.
+
+`jet_secp_swu_candidates` now proves the square-product identity for the exact
+hexadecimal C constants and joint-inverse formulas on every nonzero field
+input. The zero-input branch is handled separately: the first candidate
+already has a square radicand. `swu_c_candidates_third` covers **all** inputs
+and forces success of the third actual literal root check when the first two
+fail, given numeric representations of the three source radicands. It assumes
+neither candidate success nor a nonsquare-denominator fact. The constant `c`
+is checked against the exact modular root exponent, not an arbitrary choice of
+square root. Modular field automation uses the existing proved `modInv` and
+field-primality certificate; no new field or inverse axiom is introduced.
+
+Next establish those three representations through the actual C helper calls
+and port/link the exact literal Simplicity candidate and selection tree,
+including the joint inverse's opposite sign and final parity correction. The
+new numeric relations must be derived internally, not retained as public jet
+premises. The explicit original ctz boundary is still deferred. Coverage is
+514/533, not a new public SWU proof. Build/check with the same commands using
+`C/jet_secp_swu_candidates.vo` / `C.jet_secp_swu_candidates`.
 
 ## Completed: `simplicity_gej_rescale`
 
