@@ -819,6 +819,47 @@ JET_TARGETS=C/jet_secp_fe_inv_prefix.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_fe_inv_prefix
 ```
 
+## Original divstep post-count/exit slices (internal progress, no added coverage)
+
+`jet_secp_div62_count.exec_div62_count_prefix` executes the original five
+post-count assignments and the following break test for every internal
+`0 <= zeros <= i <= 62`. It derives the exact shifted machine words, eta
+subtraction and remaining counter, with unchanged memory and a temporary
+frame outside the five assigned variables. Its outcome is `Out_break`
+exactly when `zeros = i`. The separate `exec_div62_copy_count` covers the
+original assignment from the helper-return temporary to `zeros`.
+
+`jet_secp_div62_finish.exec_div62_finish` executes the original four signed
+matrix-field stores and eta return, from any freeable 32-byte matrix storage;
+its prior contents need not be initialized. All four stored words, continued
+ownership and framing of other blocks are derived. The existing symbolic
+executor is reused with an empty helper table and empty event log; there is
+no helper execution or output premise.
+
+`exec_div62_count_exit` composes the **exit slice** as two actual statement
+executions: the original post-count loop remainder exits with `Out_break`,
+and the original post-loop tail writes the shifted matrix words and returns
+eta. A shared `exec_statement_prefix_aborts` lemma in
+`jet_secp_statement_prefix.v` proves that the unexecuted tail is skipped for
+any non-normal prefix outcome; it does not assume execution of that tail.
+This slice does not assert that the whole enclosing loop or function has
+executed, since the earlier count call and loop-head state are not supplied.
+
+The count is an already-returned **internal temporary** in these results.
+Neither the original CTZ call nor a model of its external builtin is proved
+or postulated. The non-exit eta branches, their exact 32-bit `w` arithmetic,
+the common cancellation updates, restoration of the delayed-division loop
+invariant, and correspondence with `Trans.transN 62` remain required.
+The existing VST proof's delayed-division invariant and pure `C.divstep` /
+`C.modinv` lemmas can guide those steps, but its different checked AST and
+internal de Bruijn CTZ routine are not substituted for the original target.
+No public registration is added; coverage remains 514/533.
+
+```sh
+JET_TARGETS="C/jet_secp_div62_count.vo C/jet_secp_div62_finish.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_statement_prefix C.jet_secp_div62_count C.jet_secp_div62_finish
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

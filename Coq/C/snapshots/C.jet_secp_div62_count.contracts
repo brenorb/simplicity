@@ -1,0 +1,262 @@
+### C.jet_secp_div62_count.div62_count_source
+div62_count_source
+     : @eq Clight.statement div62_after_count
+         (jet_secp_statement_prefix.statement_sequence
+            (@List.firstn Clight.statement (S (S (S (S (S (S O))))))
+               (@fst (list Clight.statement) Clight.statement div62_count_parts)) div62_after_count_prefix)
+### C.jet_secp_div62_count.div62_count_prefix_source
+div62_count_prefix_source
+     : @eq Clight.statement div62_count_prefix
+         (Clight.Ssequence
+            (Clight.Sset jets_secp._g
+               (Clight.Ebinop Cop.Oshr (Clight.Etempvar jets_secp._g Ctypesdefs.tulong)
+                  (Clight.Etempvar jets_secp._zeros Ctypesdefs.tint) Ctypesdefs.tulong))
+            (Clight.Ssequence
+               (Clight.Sset jets_secp._u
+                  (Clight.Ebinop Cop.Oshl (Clight.Etempvar jets_secp._u Ctypesdefs.tulong)
+                     (Clight.Etempvar jets_secp._zeros Ctypesdefs.tint) Ctypesdefs.tulong))
+               (Clight.Ssequence
+                  (Clight.Sset jets_secp._v
+                     (Clight.Ebinop Cop.Oshl (Clight.Etempvar jets_secp._v Ctypesdefs.tulong)
+                        (Clight.Etempvar jets_secp._zeros Ctypesdefs.tint) Ctypesdefs.tulong))
+                  (Clight.Ssequence
+                     (Clight.Sset jets_secp._eta
+                        (Clight.Ebinop Cop.Osub (Clight.Etempvar jets_secp._eta Ctypesdefs.tlong)
+                           (Clight.Etempvar jets_secp._zeros Ctypesdefs.tint) Ctypesdefs.tlong))
+                     (Clight.Ssequence
+                        (Clight.Sset jets_secp._i
+                           (Clight.Ebinop Cop.Osub (Clight.Etempvar jets_secp._i Ctypesdefs.tint)
+                              (Clight.Etempvar jets_secp._zeros Ctypesdefs.tint) Ctypesdefs.tint))
+                        (Clight.Ssequence (Clight.Sifthenelse div62_count_test Clight.Sbreak Clight.Sskip) Clight.Sskip))))))
+### C.jet_secp_div62_count.div62_loop_body_source
+div62_loop_body_source
+     : @eq Clight.statement div62_loop_body
+         match div62_loop_body return Clight.statement with
+         | Clight.Sskip => Clight.Sskip
+         | Clight.Sassign _ _ => Clight.Sskip
+         | Clight.Sset _ _ => Clight.Sskip
+         | Clight.Scall _ _ _ => Clight.Sskip
+         | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+         | Clight.Ssequence first s =>
+             match s return Clight.statement with
+             | Clight.Sskip => Clight.Sskip
+             | Clight.Sassign _ _ => Clight.Sskip
+             | Clight.Sset _ _ => Clight.Sskip
+             | Clight.Scall _ _ _ => Clight.Sskip
+             | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+             | Clight.Ssequence s0 _ =>
+                 match s0 return Clight.statement with
+                 | Clight.Sskip => Clight.Sskip
+                 | Clight.Sassign _ _ => Clight.Sskip
+                 | Clight.Sset _ _ => Clight.Sskip
+                 | Clight.Scall _ _ _ => Clight.Sskip
+                 | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+                 | Clight.Ssequence call _ =>
+                     Clight.Ssequence first
+                       (Clight.Ssequence (Clight.Ssequence call div62_copy_count) div62_after_count)
+                 | Clight.Sifthenelse _ _ _ => Clight.Sskip
+                 | Clight.Sloop _ _ => Clight.Sskip
+                 | Clight.Sbreak => Clight.Sskip
+                 | Clight.Scontinue => Clight.Sskip
+                 | Clight.Sreturn _ => Clight.Sskip
+                 | Clight.Sswitch _ _ => Clight.Sskip
+                 | Clight.Slabel _ _ => Clight.Sskip
+                 | Clight.Sgoto _ => Clight.Sskip
+                 end
+             | Clight.Sifthenelse _ _ _ => Clight.Sskip
+             | Clight.Sloop _ _ => Clight.Sskip
+             | Clight.Sbreak => Clight.Sskip
+             | Clight.Scontinue => Clight.Sskip
+             | Clight.Sreturn _ => Clight.Sskip
+             | Clight.Sswitch _ _ => Clight.Sskip
+             | Clight.Slabel _ _ => Clight.Sskip
+             | Clight.Sgoto _ => Clight.Sskip
+             end
+         | Clight.Sifthenelse _ _ _ => Clight.Sskip
+         | Clight.Sloop _ _ => Clight.Sskip
+         | Clight.Sbreak => Clight.Sskip
+         | Clight.Scontinue => Clight.Sskip
+         | Clight.Sreturn _ => Clight.Sskip
+         | Clight.Sswitch _ _ => Clight.Sskip
+         | Clight.Slabel _ _ => Clight.Sskip
+         | Clight.Sgoto _ => Clight.Sskip
+         end
+### C.jet_secp_div62_count.exec_div62_copy_count
+exec_div62_copy_count
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (z : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'1 le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr z)))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m div62_copy_count Events.E0
+         (@Maps.PTree.set Values.val jets_secp._zeros (Values.Vint (Integers.Int.repr z)) le) m
+         ClightBigstep.Out_normal
+### C.jet_secp_div62_count.div62_count_temps_outside
+div62_count_temps_outside
+     : forall (le : Maps.PTree.tree Values.val) (g u v : Integers.Int64.int) (eta i z : BinNums.Z)
+         (id : AST.ident)
+         (_ : not
+                (@List.In AST.ident id
+                   (@cons AST.ident jets_secp._g
+                      (@cons AST.ident jets_secp._u
+                         (@cons AST.ident jets_secp._v
+                            (@cons AST.ident jets_secp._eta (@cons AST.ident jets_secp._i (@nil AST.ident)))))))),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (div62_count_temps le g u v eta i z))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_div62_count.div62_count_shift_guard
+div62_count_shift_guard
+     : forall (z : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 z)
+                (BinInt.Z.le z
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       @eq bool (Integers.Int.ltu (Integers.Int.repr z) Integers.Int64.iwordsize') true
+### C.jet_secp_div62_count.eval_div62_shift
+eval_div62_shift
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (id : BinNums.positive)
+         (w : Integers.Int64.int) (z : BinNums.Z) (left : bool)
+         (_ : and (BinInt.Z.le BinNums.Z0 z)
+                (BinInt.Z.le z
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le) (@Some Values.val (Values.Vlong w)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._zeros le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr z)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (Clight.Ebinop match left return Cop.binary_operation with
+                        | true => Cop.Oshl
+                        | false => Cop.Oshr
+                        end (Clight.Etempvar id Ctypesdefs.tulong) (Clight.Etempvar jets_secp._zeros Ctypesdefs.tint)
+            Ctypesdefs.tulong)
+         (Values.Vlong
+            match left return Integers.Int64.int with
+            | true => Integers.Int64.shl w (Integers.Int64.repr z)
+            | false => Integers.Int64.shru w (Integers.Int64.repr z)
+            end)
+### C.jet_secp_div62_count.div62_count_equal
+div62_count_equal
+     : forall (i z : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 z) (BinInt.Z.le z i))
+         (_ : BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))),
+       @eq bool (Integers.Int.eq (Integers.Int.repr (BinInt.Z.sub i z)) Integers.Int.zero) (BinInt.Z.eqb i z)
+### C.jet_secp_div62_count.exec_div62_count_prefix
+exec_div62_count_prefix
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (g u v : Integers.Int64.int)
+         (eta i z : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 z) (BinInt.Z.le z i))
+         (_ : BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le) (@Some Values.val (Values.Vlong g)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u le) (@Some Values.val (Values.Vlong u)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._v le) (@Some Values.val (Values.Vlong v)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr eta))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._zeros le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr z)))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m div62_count_prefix Events.E0
+         (div62_count_temps le g u v eta i z) m (div62_count_outcome i z)
+### C.jet_secp_div62_count.div62_parts
+div62_parts =
+jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_modinv64_divsteps_62_var)
+     : prod (list Clight.statement) Clight.statement
+### C.jet_secp_div62_count.div62_loop
+div62_loop =
+@List.nth Clight.statement (S (S (S (S (S (S (S O))))))) (@fst (list Clight.statement) Clight.statement div62_parts)
+  Clight.Sskip
+     : Clight.statement
+### C.jet_secp_div62_count.div62_loop_body
+div62_loop_body =
+match div62_loop return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ _ => Clight.Sskip
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop body _ => body
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_div62_count.div62_after_count
+div62_after_count =
+match div62_loop_body return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ rest => rest
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_div62_count.div62_count_parts
+div62_count_parts =
+jet_secp_statement_prefix.split_statement_last div62_after_count
+     : prod (list Clight.statement) Clight.statement
+### C.jet_secp_div62_count.div62_count_prefix
+div62_count_prefix =
+jet_secp_statement_prefix.statement_sequence
+  (@List.firstn Clight.statement (S (S (S (S (S (S O))))))
+     (@fst (list Clight.statement) Clight.statement div62_count_parts)) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_div62_count.div62_after_count_prefix
+div62_after_count_prefix =
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement (S (S (S (S (S (S O))))))
+     (@fst (list Clight.statement) Clight.statement div62_count_parts))
+  (@snd (list Clight.statement) Clight.statement div62_count_parts)
+     : Clight.statement
+### C.jet_secp_div62_count.div62_copy_count
+div62_copy_count = Clight.Sset jets_secp._zeros (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tint)
+     : Clight.statement
+### C.jet_secp_div62_count.div62_count_test
+div62_count_test =
+Clight.Ebinop Cop.Oeq (Clight.Etempvar jets_secp._i Ctypesdefs.tint)
+  (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_secp_div62_count.div62_count_temps
+div62_count_temps =
+fun (le : Maps.PTree.tree Values.val) (g u v : Integers.Int64.int) (eta i z : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_secp._i (Values.Vint (Integers.Int.repr (BinInt.Z.sub i z)))
+  (@Maps.PTree.set Values.val jets_secp._eta (Values.Vlong (Integers.Int64.repr (BinInt.Z.sub eta z)))
+     (@Maps.PTree.set Values.val jets_secp._v (Values.Vlong (Integers.Int64.shl v (Integers.Int64.repr z)))
+        (@Maps.PTree.set Values.val jets_secp._u (Values.Vlong (Integers.Int64.shl u (Integers.Int64.repr z)))
+           (@Maps.PTree.set Values.val jets_secp._g (Values.Vlong (Integers.Int64.shru g (Integers.Int64.repr z))) le))))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments div62_count_temps le g u v (eta i z)%Z_scope
+### C.jet_secp_div62_count.div62_count_outcome
+div62_count_outcome =
+fun i z : BinNums.Z =>
+match BinInt.Z.eqb i z return ClightBigstep.outcome with
+| true => ClightBigstep.Out_break
+| false => ClightBigstep.Out_normal
+end
+     : forall (_ : BinNums.Z) (_ : BinNums.Z), ClightBigstep.outcome
+
+Arguments div62_count_outcome (i z)%Z_scope

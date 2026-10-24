@@ -38,3 +38,20 @@ Proof.
       eapply exec_Sseq_1; [eassumption|eapply IH; eassumption].
     + contradiction.
 Qed.
+
+Lemma exec_statement_prefix_aborts ge e prefix last le m lef mf out :
+  out<>Out_normal ->
+  Clight2.exec_stmt ge e le m (statement_sequence prefix Sskip) E0 lef mf out ->
+  Clight2.exec_stmt ge e le m (statement_sequence prefix last) E0 lef mf out.
+Proof.
+  intro NotNormal;revert le m;induction prefix as [|head tail IH];intros le m Run;
+    cbn [statement_sequence] in *.
+  - inversion Run;subst;contradiction.
+  - inversion Run;subst.
+    + match goal with
+      | H : ?t1 ** ?t2=E0 |- _=>destruct (Eapp_E0_inv t1 t2 H) as [-> ->]
+      | H : E0=?t1 ** ?t2 |- _=>destruct (Eapp_E0_inv t1 t2 (eq_sym H)) as [-> ->]
+      end.
+      change E0 with (E0 ** E0);eapply exec_Sseq_1;[eassumption|apply IH;assumption].
+    + eapply exec_Sseq_2;eassumption.
+Qed.
