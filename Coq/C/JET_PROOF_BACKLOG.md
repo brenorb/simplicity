@@ -2264,6 +2264,41 @@ call. Compose these steps plus the parameterized addition into
 `C/jet_secp_field_negate_magnitude.vo` /
 `C.jet_secp_field_negate_magnitude` and compare its focused records.
 
+`jet_secp_swu_joint_setup.exec_swu_joint_setup` now composes those actual four
+statements from `swu_after_initial`, preserving the original `7+1` AST and
+magnitude-3 argument. From tight owned wd and an uninitialized owned x3d it
+derives both stored results, exact `wd+8` and `8*p-3*wd`, reusable bounds,
+ownership, unchanged other memory and startup preservation. No execution or
+output premise is retained. The trailing skip is a proof prefix endpoint;
+`swu_joint_setup_source` and the existing prefix-composition lemma reconnect
+it to the unchanged original suffix.
+
+`jet_secp_swu_joint_inverse.exec_swu_joint_inverse` extends that execution
+through the original three-address joint product and in-place `fe_inv_var`.
+It derives storage for all three fields, their ownership, result bounds,
+the exact inverse `modInv ((wd+8)*(-3*wd)) p`, startup preservation and frame.
+Its **only deferred execution premise** is the same exact original CTZ call
+contract used by `eval_fe_inverse_var_slice`; no new external model or
+replacement implementation is introduced. The module is conditional helper
+execution, not accepted public SWU coverage. Its closed congruence lemma
+identifies the inverse with `swu_joint_inverse t` whenever incoming wd
+represents `t*t` modulo p, including zero. Setup and inversion both inherit
+the usual six assumptions; inspect the quantified CTZ premise in the
+contract, not just the assumption list.
+
+Next compose this six-statement prefix with `exec_swu_initial` on the actual
+square result; derive tight square bounds from `square_output_bounds`, retain
+the original t and x1 storage through the returned frame, and derive the
+inverse's link to `swu_joint_inverse (radix_value t)` from
+`square_output_numeric` and `swu_joint_inverse_congruent`. Continue the same
+body at `swu_after_joint_inverse`: multiply x1 by x3d and jinv, add the readonly
+d constant, copy/negate x2, build x3 and the three cubics, then roots, point
+selection, parity, allocations/frees and the public wrapper. Coverage stays
+514/533. Reproduce the normal build/kernel check with
+`C/jet_secp_swu_joint_inverse.vo` / `C.jet_secp_swu_joint_inverse`, plus focused
+assumption/contract comparisons for `jet_secp_swu_joint_setup` and
+`jet_secp_swu_joint_inverse`.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
