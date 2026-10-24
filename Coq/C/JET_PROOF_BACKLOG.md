@@ -2330,17 +2330,26 @@ p as well as the exact joint inverse, startup state, readonly preservation
 and memory frame. The same original CTZ contract remains explicit; neither
 result is whole-public SWU coverage.
 
-Next continue at `swu_after_second_candidate`: square wd into x3, multiply
-x3 by wd and jinv, add 1, then build the three cubics, roots, point selection,
-parity, allocations/frees and the public wrapper. Reuse
-`eval_square_separate_from_storage`, `eval_field_pair_multiply` and the
-parameterized add-one proof. Derive wd's loose bounds with `add_int_bounds`
-from `square_output_bounds`; do not assume its representation or bounds.
-Coverage stays 514/533. Reproduce the normal build/kernel check with
-`C/jet_secp_swu_second_candidate.vo` / `C.jet_secp_swu_second_candidate`, plus
-focused assumption/contract comparisons for the new modules
-`jet_secp_swu_constant_add`, `jet_secp_swu_first_candidate` and
-`jet_secp_swu_second_candidate`.
+`jet_secp_swu_third_candidate.exec_swu_third_candidate` executes the original
+square wd into x3, multiply x3 by wd and jinv, then add 1. It derives the
+numeric value, magnitude-two and loose square bounds, ownership, unchanged
+wd/jinv, startup/readonly preservation and framing. `swu_add_int_scaled` is
+shared for bounded small additions (including the later add-seven).
+`swu_setup_wd_square` derives wd's loose bounds and numeric value from the
+input square, not a representation premise. `exec_swu_through_third`
+composes **all first eighteen original statements from input storage** and
+establishes all three `swu_c_candidate` values modulo p while retaining all
+seven owned fields and the exact joint inverse. Its source equality preserves
+the unchanged statement tree and suffix. The same CTZ contract remains
+explicit; this is a conditional prefix, not whole-public SWU coverage.
+
+Next continue at `swu_after_third_candidate`: build the three cubics, roots,
+point selection, parity, allocations/frees and the public wrapper. Reuse the
+generic square, in-place multiply, bounded add-seven and root contracts;
+do not require canonical limbs for the loose cubic inputs. Coverage stays
+514/533. Reproduce the normal build/kernel check with
+`C/jet_secp_swu_third_candidate.vo` / `C.jet_secp_swu_third_candidate`, plus
+focused assumption/contract comparisons for `jet_secp_swu_third_candidate`.
 
 ## Completed: `simplicity_gej_rescale`
 
