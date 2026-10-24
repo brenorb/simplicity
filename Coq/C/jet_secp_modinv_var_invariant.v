@@ -150,6 +150,30 @@ Proof.
  rewrite Z.mul_comm,Z.div_mul by lia;reflexivity.
 Qed.
 
+Lemma inv_zero_matrix_row rho st : g st=0 -> inv_matrix_matches rho st ->
+ inv_matrix_u rho false=2^62 /\ inv_matrix_v rho false=0.
+Proof.
+ intros Zero (U & V & Q & R).
+ pose proof (Trans.transHs 62 st ltac:(rewrite Zero;exists 0;ring)) as Matrix.
+ rewrite Matrix in U,V;split;assumption.
+Qed.
+
+Lemma inv_zero_iteration_coefficient len rho st : g st=0 -> inv_matrix_matches rho st ->
+ 2^62*de62_input_value (inv_de_rho (inv_iteration_rho len rho)) false=
+  de62_matrix_value (inv_de_rho rho) false+feP*de62_correction_value (inv_de_rho rho) false ->
+ de62_input_value (inv_de_rho (inv_iteration_rho len rho)) false mod feP=
+  de62_input_value (inv_de_rho rho) false mod feP.
+Proof.
+ intros Zero Matrix Update.
+ destruct (inv_zero_matrix_row rho st Zero Matrix) as (U & V).
+ change (2^62*de62_input_value (inv_de_rho (inv_iteration_rho len rho)) false=
+  inv_matrix_u rho false*de62_input_value (inv_de_rho rho) false+
+  inv_matrix_v rho false*de62_input_value (inv_de_rho rho) true+
+  feP*de62_correction_value (inv_de_rho rho) false) in Update.
+ rewrite U,V,Z.mul_0_l,Z.add_0_r in Update;apply inv_cancel_batch.
+ rewrite Update,(Z.mul_comm feP (de62_correction_value (inv_de_rho rho) false));apply Z_mod_plus_full.
+Qed.
+
 Theorem exec_inv_after_divsteps_invariant value len rho st beta e le m :
  (0<len<=5)%nat -> rep rho beta inv_loop_regs m -> ematch beta (snd inv_start_alloc) e ->
  le!_modinfo=Some (Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))) ->
@@ -165,6 +189,9 @@ Theorem exec_inv_after_divsteps_invariant value len rho st beta e le m :
  de62_state_bounds (inv_de_rho (inv_iteration_rho len rho)) /\
  inv_coefficient_link value (inv_iteration_length len rho) (inv_iteration_rho len rho) /\
  inv_state_matches (inv_iteration_length len rho) (inv_iteration_rho len rho) (fst (stepN 62 st)) /\
+ (g st=0 -> out=Out_break /\
+  de62_input_value (inv_de_rho (inv_iteration_rho len rho)) false mod feP=
+   de62_input_value (inv_de_rho rho) false mod feP) /\
  (forall high,
   2^62*de62_input_value (inv_de_rho (inv_iteration_rho len rho)) high=de62_matrix_value (inv_de_rho rho) high+
    feP*de62_correction_value (inv_de_rho rho) high /\
@@ -189,8 +216,15 @@ Proof.
    intro high;exact (proj1 (DENumeric high)). }
  assert (NextState : inv_state_matches (inv_iteration_length len rho) (inv_iteration_rho len rho) (fst (stepN 62 st))).
  { apply inv_iteration_state_from_steps;assumption. }
+ assert (ZeroResult : g st=0 -> out=Out_break /\
+  de62_input_value (inv_de_rho (inv_iteration_rho len rho)) false mod feP=
+   de62_input_value (inv_de_rho rho) false mod feP).
+ { intro Zero;split.
+   - apply (proj2 Stop);rewrite <-(proj2 NextState);apply fixed_g;exact Zero.
+   - exact (inv_zero_iteration_coefficient len rho st Zero Matrix (proj1 (DENumeric false))). }
  exists lef,mf,out;split;[exact Exec|];split;[exact Out|];split;[exact NewLen|];split;[exact DEBounds|].
- split;[exact NextLink|];split;[exact NextState|];split;[exact DENumeric|];split;[exact FGNumeric|].
+ split;[exact NextLink|];split;[exact NextState|];split;[exact ZeroResult|];
+ split;[exact DENumeric|];split;[exact FGNumeric|].
  split;[exact Low|];split;[exact Stop|];split;[exact Nonzero|];split;[exact Outcomes|].
  split;[exact Range|];split;assumption.
 Qed.

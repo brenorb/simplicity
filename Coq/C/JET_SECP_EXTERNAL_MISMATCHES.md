@@ -1253,6 +1253,14 @@ and `inv_trajectory_zero_coefficient` preserves it using the canonical zero-g
 matrix and the exact numeric coefficient equation furnished by the checked
 C-update theorem. The coefficient link alone is insufficient for zero.
 
+`exec_inv_after_divsteps_invariant` also returns this case directly from
+the actual post-batch C execution: if the incoming canonical g is zero,
+the control flow returns `Out_break` and the d coefficient is unchanged
+modulo the field prime. This adds a conclusion, with no new premise, and
+retains every previous execution/state/bounds/framing conclusion. The two
+shared zero-matrix/update lemmas live in `jet_secp_modinv_var_invariant` so
+both the C execution theorem and the literal-result bridge reuse them.
+
 This is a terminal-state suffix theorem, not a whole inverse call. Its
 terminal trajectory, stopped g, coefficient link, bounds and zero invariant
 must still be connected by the complete actual loop; the CTZ boundary and
@@ -1262,8 +1270,8 @@ assume an unproved execution or add an external model. No public theorem is
 registered; coverage remains 514/533.
 
 ```sh
-JET_TARGETS=C/jet_secp_modinv_var_result.vo bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_result
+JET_TARGETS="C/jet_secp_modinv_var_result.vo C/jet_secp_modinv_var_first_batch.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_result C.jet_secp_modinv_var_first_batch
 ```
 
 ## Reproduction and limits

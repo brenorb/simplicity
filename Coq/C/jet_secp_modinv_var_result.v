@@ -148,30 +148,6 @@ Lemma inv_seed_coefficient_zero w :
   de62_input_value (inv_de_rho (inv_seed_rho w)) false mod feP=0.
 Proof. rewrite inv_seed_de_value,Zmod_0_l;reflexivity. Qed.
 
-Lemma inv_zero_matrix_row rho st : g st=0 -> inv_matrix_matches rho st ->
-  inv_matrix_u rho false=2^62 /\ inv_matrix_v rho false=0.
-Proof.
-  intros Zero (U & V & Q & R).
-  pose proof (Trans.transHs 62 st ltac:(rewrite Zero;exists 0;ring)) as Matrix.
-  rewrite Matrix in U,V;split;assumption.
-Qed.
-
-Lemma inv_zero_iteration_coefficient len rho st : g st=0 -> inv_matrix_matches rho st ->
-  2^62*de62_input_value (inv_de_rho (inv_iteration_rho len rho)) false=
-    de62_matrix_value (inv_de_rho rho) false+feP*de62_correction_value (inv_de_rho rho) false ->
-  de62_input_value (inv_de_rho (inv_iteration_rho len rho)) false mod feP=
-    de62_input_value (inv_de_rho rho) false mod feP.
-Proof.
-  intros Zero Matrix Update.
-  destruct (inv_zero_matrix_row rho st Zero Matrix) as (U & V).
-  change (2^62*de62_input_value (inv_de_rho (inv_iteration_rho len rho)) false=
-    inv_matrix_u rho false*de62_input_value (inv_de_rho rho) false+
-    inv_matrix_v rho false*de62_input_value (inv_de_rho rho) true+
-    feP*de62_correction_value (inv_de_rho rho) false) in Update.
-  rewrite U,V,Z.mul_0_l,Z.add_0_r in Update;apply inv_cancel_batch.
-  rewrite Update,(Z.mul_comm feP (de62_correction_value (inv_de_rho rho) false));apply Z_mod_plus_full.
-Qed.
-
 Lemma inv_trajectory_zero_coefficient value n len rho :
   inv_matrix_matches rho (fst (stepN n (init feP value inv_seed_modulus_odd))) ->
   2^62*de62_input_value (inv_de_rho (inv_iteration_rho len rho)) false=
