@@ -6,6 +6,7 @@ Require Import C.jet_secp_curve_statements C.jet_secp_fe_set_owned C.jet_secp_po
 Require Import C.jet_secp_fe_nv C.jet_secp_multiply_normalize_bridge.
 Require Import C.jet_secp_generator_globalz_call C.jet_secp_scalar_add_reader_support.
 Require Import C.jet_secp_field_read_preservation C.jet_secp_scalar_get_b32_storage.
+Require Import C.jet_secp_closed_helpers C.jet_clight_internal_frame C.jet_clight_internal_preserve.
 Import ListNotations Values Ctypes.
 Local Open Scope Z_scope.
 Local Opaque secp_ge.
@@ -42,16 +43,33 @@ Proof.
  eapply exec_Sseq_1 with (t1:=E0) (t2:=E0);[apply exec_Sset;eapply eval_Ecast;[constructor|reflexivity]|constructor].
 Qed.
 
+Lemma generator_set_int_closed :
+ closed_stmtb secp_closed_helpers (fn_body f_secp256k1_fe_set_int)=Datatypes.true.
+Proof. vm_compute;reflexivity. Qed.
+
+Lemma generator_unchanged_preserved m mf :
+ Mem.unchanged_on (fun _ _=>True) m mf -> readonly_preserved m mf.
+Proof.
+ intro Unchanged;split.
+ - intros b Valid;split.
+   + eapply Mem.valid_block_unchanged_on;[exact Unchanged|exact Valid].
+   + intros pos p Perm;eapply Mem.perm_unchanged_on_2;
+      [exact Unchanged|exact I|exact Valid|exact Perm].
+ - eapply Mem.unchanged_on_implies;[exact Unchanged|intros;exact I].
+Qed.
+
 Theorem exec_generator_initialize e le m bz :
  e!_Z=Some (bz,Tstruct __5467 noattr) -> e!_secp256k1_fe_set_int=None ->
  Mem.range_perm m bz 0 40 Cur Freeable -> exists mi,
  Clight2.exec_stmt secp_ge e le m generator_initialize E0 (generator_initial_temps le) mi Out_normal /\
  fe_at mi bz 0 (words5 (point_set_bit_words true)) /\ Mem.range_perm mi bz 0 40 Cur Freeable /\
- lframe (fun b _=>b<>bz) m mi.
+ lframe (fun b _=>b<>bz) m mi /\ readonly_preserved m mi.
 Proof.
  intros ZLocal Symbol Owned.
  destruct (eval_fe_set_owned true m bz Owned) as (mi & Call & Field & Free & Frame).
- exists mi;split;[|split;[exact Field|];split;assumption].
+ assert (Preserved:readonly_preserved m mi).
+ { eapply secp_closed_function_preserved;[exact generator_set_int_closed|reflexivity|exact Call]. }
+ exists mi;split;[|split;[exact Field|];split;[exact Free|];split;assumption].
  rewrite generator_initialize_source;apply exec_statement_prefix_then_last with
   (le1:=generator_initial_temps le) (m1:=m).
  - exact (exec_generator_initial_counters e le m).
@@ -96,10 +114,11 @@ Theorem exec_generator_prepare_non_generator e le m bz bn nofs bs base ba aofs b
  Clight2.exec_stmt secp_ge e le m generator_prepare_non_generator E0
   (generator_ready_temps le (Vptr ba aofs) (Vptr br zofs)) mf Out_normal /\
  fe_at mf bz 0 (words5 (point_set_bit_words true)) /\ Mem.range_perm mf bz 0 40 Cur Freeable /\
- lframe (fun b _=>b<>bz) m mf.
+ lframe (fun b _=>b<>bz) m mf /\ readonly_preserved m mf.
 Proof.
  intros ZLocal SetSymbol ZeroSymbol GlobalSymbol NA Num State Owned NS SS Scalar Base Hi A Zr.
- destruct (exec_generator_initialize e le m bz ZLocal SetSymbol Owned) as (mi & Init & Field & FreeI & FrameI).
+ destruct (exec_generator_initialize e le m bz ZLocal SetSymbol Owned)
+  as (mi & Init & Field & FreeI & FrameI & PreservedI).
  set (li:=generator_initial_temps le).
  assert (NAi:li!_na=Some (Vptr bn (Ptrofs.repr nofs))).
  { unfold li;rewrite generator_initial_preserves by discriminate;exact NA. }
@@ -127,5 +146,7 @@ Proof.
    + eapply field_at_lframe;[exact Field|exact FrameF|intros;exact I].
    + split.
      * intros pos Range;eapply Mem.perm_unchanged_on;[exact Unchanged|exact I|apply FreeI;exact Range].
-     * eapply lframe_trans;[exact FrameI|];eapply lframe_implies;[exact FrameF|];intros;exact I.
+     * split.
+       -- eapply lframe_trans;[exact FrameI|];eapply lframe_implies;[exact FrameF|];intros;exact I.
+       -- eapply preserved_trans;[exact PreservedI|apply generator_unchanged_preserved;exact Unchanged].
 Qed.

@@ -9,6 +9,7 @@ Require Import C.jet_secp_generator_globalz_call C.jet_secp_fe_nv.
 Require Import C.jet_secp_scalar_get_b32_storage C.jet_secp_scalar_add_reader_support.
 Require Import C.jet_secp_point_set_bit.
 Require Import C.jet_secp_multiply_normalize_bridge.
+Require Import C.jet_clight_internal_preserve.
 Import ListNotations Ctypes Values.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -78,7 +79,7 @@ Theorem generator_entry_and_prepare m bs bx ba r a ng :
  (forall b,Mem.valid_block m b -> ~ In b [bt;bz;b0;b128;bw0;bw128;bj;bn;bl]) /\
  (forall b hi,In (b,hi) (generator_local_storage bt bz b0 b128 bw0 bw128 bj bn bl) ->
   Mem.range_perm mf b 0 hi Cur Freeable) /\
- lframe (fun b _=>b<>bz) m mf.
+ lframe (fun b _=>b<>bz) m mf /\ readonly_preserved mi mf.
 Proof.
  intros Zero X A.
  pose proof (generator_zero_global_valid m Zero) as ZeroValid.
@@ -122,7 +123,7 @@ Proof.
   eq_refl eq_refl eq_refl eq_refl eq_refl eq_refl eq_refl
   (Free bz 40 ltac:(cbn [generator_local_storage In];tauto)) NZ SZ ZI ltac:(lia)
   ltac:(change (0+24<=18446744073709551615);lia) AI XI)
-  as (mf & Body & Field & ZFree & FrameB).
+  as (mf & Body & Field & ZFree & FrameB & PreservedB).
  exists mi,mf,bt,bz,b0,b128,bw0,bw128,bj,bn,bl;split.
  - destruct (fn_okb_true _ generator_entry_ok) as (Vars & Params & Disjoint).
    constructor;[exact Vars|exact Params|exact Disjoint| |reflexivity].
@@ -153,5 +154,7 @@ Proof.
        { eapply Mem.perm_valid_block;apply (Free b hi Slot 0);lia. }
        intros pos Range;apply (proj1 (proj2 FrameB));
         [exact Valid|exact Other|apply (Free b hi Slot);exact Range].
-   + eapply lframe_trans;[|exact FrameB];eapply lframe_implies;[exact FrameA|];intros;exact I.
+   + split.
+     * eapply lframe_trans;[|exact FrameB];eapply lframe_implies;[exact FrameA|];intros;exact I.
+     * exact PreservedB.
 Qed.

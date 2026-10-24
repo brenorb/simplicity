@@ -2099,12 +2099,16 @@ entry, nine owned/distinct locals, preparation, Z=1 and literal scalar halves.
 `jet_secp_generator_wnaf_setup` now executes both actual wNAF calls, return
 assignments and maximum-length updates, retaining both literal arrays and
 read-only generator tables, conditional only on the original zeroing steps.
-Next connect those checked stages through the guarded scalar branch, preserve
-the initialized globals through the full caller, free the actual locals, and
-compose the enclosing ecmult/public read-write path. Do not redo the digit or
-point loops or assume the table/specification correspondence. External memset
-remains deferred; no public `generate` coverage increase is claimed. The exact
-current conditional boundary and reproducible checks are recorded in
+`jet_secp_generator_function.eval_generator_strauss_from_owned` now composes
+the whole original Strauss call: actual entry/preparation, table readiness
+through that prefix, the guarded scalar branch, both wNAF calls, complete point
+stage and all nine local frees, against the complete literal `generate` tree.
+Next compose the enclosing ecmult allocations/state setup and public
+read/write/caller path, including the initialized-state lifecycle required by
+that public contract. Do not redo the digit or point loops or assume the
+table/specification correspondence. External memset remains deferred; no
+public `generate` coverage increase is claimed. The exact current conditional
+boundary and reproducible checks are recorded in
 `JET_SECP_EXTERNAL_MISMATCHES.md` under Generation.
 
 ## Completed: `simplicity_gej_rescale`

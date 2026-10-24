@@ -393,6 +393,41 @@ into the public `generate` theorem. Coverage is unchanged. Build/check the new
 module with the same commands using `C/jet_secp_generator_wnaf_setup.vo` /
 `C.jet_secp_generator_wnaf_setup`.
 
+`jet_secp_generator_function.eval_generator_strauss_from_owned` now composes
+the whole original Strauss helper on the actual `num=1`, zero auxiliary-scalar
+path. Its arbitrary logical Word256 input is not fixed to zero: the internal
+scalar storage contains the reader's canonical normalization for that input.
+Actual entry allocates nine distinct locals; preparation derives Z=1 and
+preserves initially read-only globals, so both table states are established
+at the main stage from their state before entry, not assumed after a prefix.
+The guarded scalar split, both original wNAF calls, maximum lengths, infinity
+setup, descending point loop and final Z correction execute. The theorem then
+frees all nine actual locals and returns the exact point fields, infinity
+flag, coordinate bounds, retained input/output ownership and old-memory frame.
+
+The result is the complete literal `generate` tree in
+`jet_secp_generate_program.v`, assembled in the canonical Haskell order from
+the already-proved scalar-split, wNAF and step129 ports (LibSecp256k1.hs:
+614--627,792). The literal port and its parametricity are proof support, not
+edits to the frozen specification. `jet_secp_generator_main` is the checked
+branch-through-point-stage composition used by that whole-call result.
+
+The only assumed executions are the exact original `memset` statements with
+their zero loads and memory effects on valid owned destinations. No wNAF,
+split, table lookup, point-loop iteration or helper return is assumed. This
+remains conditional internal progress: the enclosing `secp256k1_ecmult`
+allocations/state setup and public `simplicity_generate` reader/writer/caller
+composition are not proved by these modules; zeroing remains deferred.
+No public jet is registered, and coverage stays 514/533. Reproduce the build
+and recursive kernel check with the commands below using
+`C/jet_secp_generator_function.vo` / `C.jet_secp_generator_function`.
+The literal port is closed. The main-stage and whole-helper results inherit
+the eight assumptions already recorded for `exec_generator_point_stage` /
+`exec_generator_loop`, including CompCert's generic external-call and
+inline-assembly properties. They are not six-assumption results like the
+wNAF-only endpoints. The strengthened initialization/entry proofs add no
+assumptions to their existing sets; no new axiom or library model is declared.
+
 ## Internal normalization dependency
 
 `jet_secp_modinv_normalize62_exec.eval_norm62_from_storage` derives the

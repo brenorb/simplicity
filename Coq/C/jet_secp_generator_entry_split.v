@@ -49,7 +49,7 @@ Proof.
    eapply Mem.perm_valid_block;apply (Readable base);lia. }
  destruct (generator_entry_and_prepare m bs bx ba r a (Vptr bng (Ptrofs.repr base)) Zero X A)
   as (mi & mp & bt & bz & b0 & b128 & bw0 & bw128 & bj & bn & bl &
-   Entry & Prepare & Field & Separate & Old & Free & FrameP).
+   Entry & Prepare & Field & Separate & Old & Free & FrameP & PreservedP).
  set (e:=generator_local_env bt bz b0 b128 bw0 bw128 bj bn bl).
  set (le:=generator_entry_temps bs r a (Vptr bng (Ptrofs.repr base))).
  set (lr:=generator_ready_temps le (Vptr ba Ptrofs.zero) (Vptr bx Ptrofs.zero)).
