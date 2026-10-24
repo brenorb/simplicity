@@ -1,0 +1,178 @@
+### C.jet_secp_modinv_fg_prefix_numeric.fg_shifted_row_den
+fg_shifted_row_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (i j : nat),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho beta)
+            (jet_secp_modinv_fg_prefix.fg_shifted_row (jet_sx_expr.XLv i) (jet_sx_expr.XLv j)))
+         (@cons Values.val
+            (Values.Vlong (jet_secp_i128_shift62.i128_shift62_low (fg_row_low rho i j) (fg_row_high rho i j)))
+            (@cons Values.val (Values.Vlong (jet_secp_i128_shift62.i128_shift62_high (fg_row_high rho i j)))
+               (@nil Values.val)))
+### C.jet_secp_modinv_fg_prefix_numeric.fg_row_numeric
+fg_row_numeric
+     : forall (rho : forall _ : nat, Integers.Int64.int) (i j : nat)
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.opp
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                   (fg_row_value rho i j))
+                (BinInt.Z.lt (fg_row_value rho i j)
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))),
+       @eq BinNums.Z
+         (jet_secp_i128_shift62_numeric.i128_signed_value
+            (jet_secp_i128_shift62.i128_shift62_low (fg_row_low rho i j) (fg_row_high rho i j))
+            (jet_secp_i128_shift62.i128_shift62_high (fg_row_high rho i j)))
+         (BinInt.Z.div (fg_row_value rho i j)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_modinv_fg_prefix_numeric.fg_row_range
+fg_row_range
+     : forall (u v f g : Integers.Int64.int)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (BinInt.Z.abs (Integers.Int64.signed u)) (BinInt.Z.abs (Integers.Int64.signed v)))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       and
+         (BinInt.Z.le
+            (BinInt.Z.opp
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+            (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.signed u) (Integers.Int64.signed f))
+               (BinInt.Z.mul (Integers.Int64.signed v) (Integers.Int64.signed g))))
+         (BinInt.Z.lt
+            (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.signed u) (Integers.Int64.signed f))
+               (BinInt.Z.mul (Integers.Int64.signed v) (Integers.Int64.signed g)))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_secp_modinv_fg_prefix_numeric.fg_prefix_row_storage
+fg_prefix_row_storage
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (high : bool) (_ : jet_sx_state.rep rho beta jet_secp_modinv_fg_prefix.fg_prefix_out m)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add
+                   (BinInt.Z.abs
+                      (Integers.Int64.signed
+                         (rho
+                            match high return nat with
+                            | true => S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                            | false => S (S (S (S (S (S (S (S (S (S O)))))))))
+                            end)))
+                   (BinInt.Z.abs
+                      (Integers.Int64.signed
+                         (rho
+                            match high return nat with
+                            | true => S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+                            | false => S (S (S (S (S (S (S (S (S (S (S O))))))))))
+                            end))))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       fg_row_at rho beta m high
+### C.jet_secp_modinv_fg_prefix_numeric.exec_fg_prefix_numeric
+exec_fg_prefix_numeric
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_modinv_fg_prefix.fg_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps jet_secp_modinv_fg_prefix.fg_initial) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) e)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (BinInt.Z.abs (Integers.Int64.signed (rho (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+                   (BinInt.Z.abs (Integers.Int64.signed (rho (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add
+                   (BinInt.Z.abs (Integers.Int64.signed (rho (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))
+                   (BinInt.Z.abs (Integers.Int64.signed (rho (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_modinv_fg_prefix.fg_prefix
+                  Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (fg_row_at rho beta mf false)
+                  (and (fg_row_at rho beta mf true)
+                     (and (jet_sx_state.rep rho beta jet_secp_modinv_fg_prefix.fg_prefix_out mf)
+                        (and
+                           (jet_sx_eval.tmatch rho beta
+                              (jet_sx_eval.stemps
+                                 (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                                    (jet_sx_exec.rsel rho (jet_sx_state.lay beta)
+                                       jet_secp_modinv_fg_prefix.fg_prefix_tree))) le')
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (ofs : BinNums.Z) =>
+                               not
+                                 (jet_sx_state.foot beta
+                                    (@List.map jet_sx_state.region
+                                       (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                       jet_sx_state.rshape (jet_sx_eval.sregs jet_secp_modinv_fg_prefix.fg_initial)) b
+                                    ofs)) m mf)))))))
+### C.jet_secp_modinv_fg_prefix_numeric.fg_row_low
+fg_row_low =
+fun (rho : forall _ : nat, Integers.Int64.int) (i j : nat) =>
+jet_secp_i128_accum_mul_numeric.smul_accum_lo_word (jet_secp_i128_mul_numeric.smul128_lo_word (rho i) (rho O))
+  (rho j) (rho (S (S (S (S (S O))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat) (_ : nat), Integers.Int64.int
+
+Arguments fg_row_low rho%function_scope (i j)%nat_scope
+### C.jet_secp_modinv_fg_prefix_numeric.fg_row_high
+fg_row_high =
+fun (rho : forall _ : nat, Integers.Int64.int) (i j : nat) =>
+jet_secp_i128_accum_mul_numeric.smul_accum_hi_word (jet_secp_i128_mul_numeric.smul128_lo_word (rho i) (rho O))
+  (jet_secp_i128_mul_numeric.smul128_hi_word (rho i) (rho O)) (rho j) (rho (S (S (S (S (S O))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat) (_ : nat), Integers.Int64.int
+
+Arguments fg_row_high rho%function_scope (i j)%nat_scope
+### C.jet_secp_modinv_fg_prefix_numeric.fg_row_value
+fg_row_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (i j : nat) =>
+BinInt.Z.add (BinInt.Z.mul (Integers.Int64.signed (rho i)) (Integers.Int64.signed (rho O)))
+  (BinInt.Z.mul (Integers.Int64.signed (rho j)) (Integers.Int64.signed (rho (S (S (S (S (S O))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat) (_ : nat), BinNums.Z
+
+Arguments fg_row_value rho%function_scope (i j)%nat_scope
+### C.jet_secp_modinv_fg_prefix_numeric.fg_row_at
+fg_row_at =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem) (high : bool) =>
+let r : nat := match high return nat with
+               | true => S (S (S (S O)))
+               | false => S (S (S O))
+               end in
+let i : nat :=
+  match high return nat with
+  | true => S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+  | false => S (S (S (S (S (S (S (S (S (S O)))))))))
+  end in
+let j : nat :=
+  match high return nat with
+  | true => S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+  | false => S (S (S (S (S (S (S (S (S (S (S O))))))))))
+  end in
+and
+  (@eq (option Values.val) (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta r) (jet_sx_state.bas beta r))
+     (@Some Values.val
+        (Values.Vlong (jet_secp_i128_shift62.i128_shift62_low (fg_row_low rho i j) (fg_row_high rho i j)))))
+  (and
+     (@eq (option Values.val)
+        (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta r)
+           (BinInt.Z.add (jet_sx_state.bas beta r) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+        (@Some Values.val (Values.Vlong (jet_secp_i128_shift62.i128_shift62_high (fg_row_high rho i j)))))
+     (@eq BinNums.Z
+        (jet_secp_i128_shift62_numeric.i128_signed_value
+           (jet_secp_i128_shift62.i128_shift62_low (fg_row_low rho i j) (fg_row_high rho i j))
+           (jet_secp_i128_shift62.i128_shift62_high (fg_row_high rho i j)))
+        (BinInt.Z.div (fg_row_value rho i j)
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : Memory.Mem.mem) (_ : bool), Prop
+
+Arguments fg_row_at rho%function_scope beta m high%bool_scope

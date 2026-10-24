@@ -204,6 +204,33 @@ JET_TARGETS=C/jet_secp_i128_accum_mul_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_i128_accum_mul_numeric
 ```
 
+### Transition initialization through both accumulator shifts
+
+`jet_secp_modinv_fg_prefix_numeric.exec_fg_prefix_numeric` composes those
+operations in the first sixteen actual statements of
+`secp256k1_modinv64_update_fg_62_var`. It executes both signed products, both
+multiply-accumulates, the discarded verification-expression branches and both
+signed shifts. Its memory conclusions give the two accumulator words for
+`(u*f[0] + v*g[0]) / 2^62` and `(q*f[0] + r*g[0]) / 2^62`, together with
+ownership, temporary matching and byte-range framing. The proof checks that
+all verification-expression branches have the same output regions.
+
+The numeric result uses each transition matrix row's absolute sum bound
+`<= 2^62` to derive representability, rather than assuming intermediate sums
+or outputs. This is an internal divstep invariant still to be established at
+the complete caller boundary. The length is symbolic, not fixed to one; the
+prefix runs before the length-dependent loop. Local accumulator storage is
+described by the actual `xalloc` result. The complete function's entry,
+remaining loop, final stores and freeing of these locals remain to be
+composed. The shift summary is proved for the original C function, not an
+assumed helper implementation. There is no new libc premise and no public
+jet registration or coverage increment.
+
+```sh
+JET_TARGETS=C/jet_secp_modinv_fg_prefix_numeric.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_prefix_numeric
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
