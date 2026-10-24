@@ -2378,21 +2378,54 @@ and flags directly to the literal candidates. It adds no execution oracle;
 the same original CTZ contract remains explicit. These are still conditional
 prefix results, **not public SWU coverage**.
 
-Next continue at `swu_after_roots`: four original `fe_cmov` calls, the
-`ge_set_xy` call, parity, function allocation/free and the public wrapper.
-No existing cmov storage theorem was found (the function is in `secp_pure`);
-prove it for the actual boolean flags and reuse it for X and Y. The existing
-`eval_ge_set_xy_owned` assumes X/Y share one input block, unlike SWU's
-separate x1/y1 blocks: generalize its actual-copy proof, not the caller layout.
-For final magnitude-1 negation derive the root output's tighter last-square
-bounds from its checked chain; loose `square_input_bounds` alone are not
-enough. Reuse `swu_nodup_app_apart` and the standard NoDup append lemmas
-instead of propositional search over thirteen blocks.
+`jet_secp_field_cmov.eval_field_cmov` now executes the original five-limb
+masked move for flag 0 or 1. It proves exact word selection, unchanged
+source, both objects' ownership, framing and readonly preservation without
+arithmetic bounds or a library premise. `jet_secp_swu_select_exec.exec_swu_select`
+uses it for all four actual SWU calls, evaluating the original not/and
+expressions from alpha/beta temps and preserving their statement order.
+It produces `swu_selected_words` for both coordinates and retains all six
+objects. These are actual call/statement execution proofs, not call oracles.
 
-Coverage stays 514/533. Reproduce the normal build with
-`JET_TARGETS='C/jet_secp_swu_before_selection.vo'` and kernel check with
-`-o C.jet_secp_swu_before_selection`, plus focused assumption/contract
-comparisons for `jet_secp_swu_roots` and `jet_secp_swu_before_selection`.
+`jet_secp_swu_selected_literal.swu_selected_matches_literal` links those
+selected serialized coordinates to `swu_selected_candidate t`, using the
+literal candidate/flag relations already derived by the input-driven prefix.
+It proves canonicality for the literal add/negate outputs; it does not assume
+canonical C limbs or silently identify a raw p word with 0.
+`jet_secp_ge_set_xy_separate.eval_ge_set_xy_separate` proves the original
+affine constructor with separately stored X/Y, as SWU actually calls it.
+It reuses the actual Clight struct-copy proof, keeps the flag store, and
+derives output ownership, unchanged permissions, framing and readonly
+preservation. No repacking, alternate C implementation or memcpy premise
+is introduced. The old same-input-block theorem remains intact.
+
+Next compose these checked calls with `exec_swu_through_roots`, then finish
+the parity suffix, function allocation/free and public wrapper. The remaining
+suffix at `swu_after_select` starts with the original `ge_set_xy` call. For
+final magnitude-1 negation derive the root output's tighter last-square
+bounds from its checked chain; loose `square_input_bounds` alone are not
+enough. The preceding prefix proof already has radicand bounds/matches
+(`RadBounds`, `RA/RB/RC`, `MA/MB/MC`): retain those conclusions if needed,
+rather than introducing a new range premise. Reuse `swu_nodup_app_apart`
+and the standard NoDup append/remove lemmas for the larger caller pool.
+
+For parity's separate-output negation reuse `jet_secp_field_negate_separate`
+and its numeric lemmas. The actual source is point+40, not a fresh field at
+offset 0. Adapt the symbolic source region to `u64_cells 40 (vars5 0)` with
+whole-point ownership `Some 88`, base 0, and argument `XP 1 40`;
+`owned_field_values_slice_region` constructs that region from the actual Y
+field and allocation. Do not assign `Some 40` ownership to a region at base
+40: owned-region metadata requires the allocation base. The symbolic
+footprint tracks cell ranges, so X and infinity lie outside the Y slice.
+
+Coverage stays 514/533; these are not whole-public SWU registration.
+Reproduce the normal build with
+`JET_TARGETS='C/jet_secp_swu_selected_literal.vo C/jet_secp_ge_set_xy_separate.vo'`
+and kernel check with
+`-o C.jet_secp_swu_selected_literal C.jet_secp_ge_set_xy_separate`, plus
+focused assumption/contract comparisons for `jet_secp_field_cmov`,
+`jet_secp_swu_select_exec`, `jet_secp_swu_selected_literal` and
+`jet_secp_ge_set_xy_separate`.
 
 ## Completed: `simplicity_gej_rescale`
 

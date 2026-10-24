@@ -1,0 +1,295 @@
+### C.jet_secp_swu_select_exec.swu_select_source
+swu_select_source
+     : @eq Clight.statement jet_secp_swu_roots.swu_after_roots
+         (jet_secp_statement_prefix.statement_sequence swu_select_statements swu_after_select)
+### C.jet_secp_swu_select_exec.eval_swu_select_flag
+eval_swu_select_flag
+     : forall (third alpha beta : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._alphaquad le)
+                (@Some Values.val (Values.Vint (jet_secp_field_cmov.cmov_int alpha))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._betaquad le)
+                (@Some Values.val (Values.Vint (jet_secp_field_cmov.cmov_int beta)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (swu_select_flag third)
+         (Values.Vint (jet_secp_field_cmov.cmov_int (swu_select_bool third alpha beta)))
+### C.jet_secp_swu_select_exec.exec_swu_select_call
+exec_swu_select_call
+     : forall (third y alpha beta : bool) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bo bi : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_cmov e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type)
+                   match y return BinNums.positive with
+                   | true => jets_secp._y1
+                   | false => jets_secp._x1
+                   end e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bo jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type)
+                   match third return BinNums.positive with
+                   | true => match y return BinNums.positive with
+                             | true => jets_secp._y3
+                             | false => jets_secp._x3
+                             end
+                   | false => match y return BinNums.positive with
+                              | true => jets_secp._y2
+                              | false => jets_secp._x2
+                              end
+                   end e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bi jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._alphaquad le)
+                (@Some Values.val (Values.Vint (jet_secp_field_cmov.cmov_int alpha))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._betaquad le)
+                (@Some Values.val (Values.Vint (jet_secp_field_cmov.cmov_int beta))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_cmov)
+                (@cons Values.val (Values.Vptr bo Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bi Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vint (jet_secp_field_cmov.cmov_int (swu_select_bool third alpha beta)))
+                         (@nil Values.val)))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (swu_select_call third y) Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_secp_swu_select_exec.swu_selected_words_compose
+swu_selected_words_compose
+     : forall (alpha beta : bool) (a b c : forall _ : nat, Integers.Int64.int),
+       @eq (forall _ : nat, Integers.Int64.int)
+         match swu_select_bool true alpha beta return (forall _ : nat, Integers.Int64.int) with
+         | true => c
+         | false =>
+             match swu_select_bool false alpha beta return (forall _ : nat, Integers.Int64.int) with
+             | true => b
+             | false => a
+             end
+         end (swu_selected_words alpha beta a b c)
+### C.jet_secp_swu_select_exec.exec_swu_select
+exec_swu_select
+     : forall (alpha beta : bool) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bx1 bx2 bx3 by1 by2 by3 : Values.block)
+         (x1 x2 x3 y1 y2 y3 : forall _ : nat, Integers.Int64.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_cmov e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._x1 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx1 jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._x2 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx2 jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._x3 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx3 jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._y1 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type by1 jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._y2 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type by2 jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._y3 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type by3 jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._alphaquad le)
+                (@Some Values.val (Values.Vint (jet_secp_field_cmov.cmov_int alpha))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._betaquad le)
+                (@Some Values.val (Values.Vint (jet_secp_field_cmov.cmov_int beta))))
+         (_ : @List.NoDup Values.block
+                (@cons Values.block bx1
+                   (@cons Values.block bx2
+                      (@cons Values.block bx3
+                         (@cons Values.block by1 (@cons Values.block by2 (@cons Values.block by3 (@nil Values.block))))))))
+         (_ : jet_secp_fe_nv.fe_at m bx1 BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 x1))
+         (_ : jet_secp_fe_nv.fe_at m bx2 BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 x2))
+         (_ : jet_secp_fe_nv.fe_at m bx3 BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 x3))
+         (_ : jet_secp_fe_nv.fe_at m by1 BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 y1))
+         (_ : jet_secp_fe_nv.fe_at m by2 BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 y2))
+         (_ : jet_secp_fe_nv.fe_at m by3 BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 y3))
+         (_ : @List.Forall Values.block
+                (fun bi : Values.block =>
+                 Memory.Mem.range_perm m bi BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                   Memtype.Cur Memtype.Freeable)
+                (@cons Values.block bx1
+                   (@cons Values.block bx2
+                      (@cons Values.block bx3
+                         (@cons Values.block by1 (@cons Values.block by2 (@cons Values.block by3 (@nil Values.block)))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m swu_select_prefix Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_secp_fe_nv.fe_at mf bx1 BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5 (swu_selected_words alpha beta x1 x2 x3)))
+               (and
+                  (jet_secp_fe_nv.fe_at mf by1 BinNums.Z0
+                     (jet_secp_multiply_normalize_bridge.words5 (swu_selected_words alpha beta y1 y2 y3)))
+                  (and
+                     (@List.Forall Values.block
+                        (fun bi : Values.block =>
+                         Memory.Mem.range_perm mf bi BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (@cons Values.block bx1
+                           (@cons Values.block bx2
+                              (@cons Values.block bx3
+                                 (@cons Values.block by1
+                                    (@cons Values.block by2 (@cons Values.block by3 (@nil Values.block))))))))
+                     (and
+                        (jet_sx_mem.lframe
+                           (fun (bi : Values.block) (_ : BinNums.Z) =>
+                            not
+                              (@List.In Values.block bi
+                                 (@cons Values.block bx1
+                                    (@cons Values.block bx2
+                                       (@cons Values.block bx3
+                                          (@cons Values.block by1
+                                             (@cons Values.block by2 (@cons Values.block by3 (@nil Values.block)))))))))
+                           m mf) (jet_clight_internal_preserve.readonly_preserved m mf))))))
+### C.jet_secp_swu_select_exec.swu_select_flag
+swu_select_flag =
+fun third : bool =>
+Clight.Ebinop Cop.Oand
+  (Clight.Eunop Cop.Onotbool (Clight.Etempvar jets_secp._alphaquad Ctypesdefs.tint) Ctypesdefs.tint)
+  match third return Clight.expr with
+  | true => Clight.Eunop Cop.Onotbool (Clight.Etempvar jets_secp._betaquad Ctypesdefs.tint) Ctypesdefs.tint
+  | false => Clight.Etempvar jets_secp._betaquad Ctypesdefs.tint
+  end Ctypesdefs.tint
+     : forall _ : bool, Clight.expr
+
+Arguments swu_select_flag third%bool_scope
+### C.jet_secp_swu_select_exec.swu_select_call
+swu_select_call =
+fun third y : bool =>
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_cmov jets_secp.f_secp256k1_fe_cmov
+  (@None AST.ident)
+  (@cons Clight.expr
+     (jet_secp_curve_statements.curve_local_address
+        match y return AST.ident with
+        | true => jets_secp._y1
+        | false => jets_secp._x1
+        end)
+     (@cons Clight.expr
+        (jet_secp_curve_statements.curve_local_address
+           match third return AST.ident with
+           | true => match y return AST.ident with
+                     | true => jets_secp._y3
+                     | false => jets_secp._x3
+                     end
+           | false => match y return AST.ident with
+                      | true => jets_secp._y2
+                      | false => jets_secp._x2
+                      end
+           end) (@cons Clight.expr (swu_select_flag third) (@nil Clight.expr))))
+     : forall (_ : bool) (_ : bool), Clight.statement
+
+Arguments swu_select_call (third y)%bool_scope
+### C.jet_secp_swu_select_exec.swu_select_statements
+swu_select_statements =
+@cons Clight.statement (swu_select_call false false)
+  (@cons Clight.statement (swu_select_call false true)
+     (@cons Clight.statement (swu_select_call true false)
+        (@cons Clight.statement (swu_select_call true true) (@nil Clight.statement))))
+     : list Clight.statement
+### C.jet_secp_swu_select_exec.swu_select_prefix
+swu_select_prefix =
+jet_secp_statement_prefix.statement_sequence swu_select_statements Clight.Sskip
+     : Clight.statement
+### C.jet_secp_swu_select_exec.swu_after_select
+swu_after_select =
+match jet_secp_swu_roots.swu_after_roots return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ s4 =>
+            match s4 return Clight.statement with
+            | Clight.Sskip => Clight.Sskip
+            | Clight.Sassign _ _ => Clight.Sskip
+            | Clight.Sset _ _ => Clight.Sskip
+            | Clight.Scall _ _ _ => Clight.Sskip
+            | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+            | Clight.Ssequence _ rest => rest
+            | Clight.Sifthenelse _ _ _ => Clight.Sskip
+            | Clight.Sloop _ _ => Clight.Sskip
+            | Clight.Sbreak => Clight.Sskip
+            | Clight.Scontinue => Clight.Sskip
+            | Clight.Sreturn _ => Clight.Sskip
+            | Clight.Sswitch _ _ => Clight.Sskip
+            | Clight.Slabel _ _ => Clight.Sskip
+            | Clight.Sgoto _ => Clight.Sskip
+            end
+        | Clight.Sifthenelse _ _ _ => Clight.Sskip
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_swu_select_exec.swu_select_bool
+swu_select_bool =
+fun third alpha beta : bool => andb (negb alpha) match third return bool with
+                                                 | true => negb beta
+                                                 | false => beta
+                                                 end
+     : forall (_ : bool) (_ : bool) (_ : bool), bool
+
+Arguments swu_select_bool (third alpha beta)%bool_scope
+### C.jet_secp_swu_select_exec.swu_selected_words
+swu_selected_words =
+fun (alpha beta : bool) (a b c : forall _ : nat, Integers.Int64.int) =>
+match alpha return (forall _ : nat, Integers.Int64.int) with
+| true => a
+| false => match beta return (forall _ : nat, Integers.Int64.int) with
+           | true => b
+           | false => c
+           end
+end
+     : forall (_ : bool) (_ : bool) (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, Integers.Int64.int)
+         (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments swu_selected_words (alpha beta)%bool_scope (a b c)%function_scope _%nat_scope

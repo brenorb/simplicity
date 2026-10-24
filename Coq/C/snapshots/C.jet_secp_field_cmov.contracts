@@ -1,0 +1,212 @@
+### C.jet_secp_field_cmov.cmov_run
+cmov_run
+     : forall flag : bool,
+       @eq (option jet_sx_exec.res)
+         (jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+            (jet_sx_pure.int_table jet_secp_fns.secp_pure)
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+            jets_secp.f_secp256k1_fe_cmov (cmov_args flag) cmov_regs (@nil jet_sx_eval.event)
+            (S (S (S (S (S (S (S (S (S (S O)))))))))))
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (cmov_state flag) jet_sx_exec.ONormal))
+### C.jet_secp_field_cmov.cmov_return
+cmov_return
+     : forall flag : bool,
+       @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps (cmov_state flag)))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_field_cmov.cmov_output
+cmov_output
+     : forall flag : bool, @eq (list jet_sx_state.region) (jet_sx_eval.sregs (cmov_state flag)) (cmov_out_regs flag)
+### C.jet_secp_field_cmov.cmov_digit_den
+cmov_digit_den
+     : forall (flag : bool) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (i : nat),
+       @eq Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) (cmov_digit flag i))
+         (Values.Vlong
+            match flag return Integers.Int64.int with
+            | true => rho (Nat.add i (S (S (S (S (S O))))))
+            | false => rho i
+            end)
+### C.jet_secp_field_cmov.cmov_out_den
+cmov_out_den
+     : forall (flag : bool) (a b : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val
+            (jet_sx_expr.den (jet_secp_field_pair_multiply.field_pair_valuation a b) (jet_sx_state.lay beta))
+            (cmov_out flag))
+         (@List.map Integers.Int64.int Values.val Values.Vlong
+            (jet_secp_multiply_normalize_bridge.words5
+               match flag return (forall _ : nat, Integers.Int64.int) with
+               | true => b
+               | false => a
+               end))
+### C.jet_secp_field_cmov.eval_field_cmov_symbolic
+eval_field_cmov_symbolic
+     : forall (flag : bool) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta cmov_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_cmov)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val (Values.Vint (cmov_int flag)) (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho beta (cmov_out_regs flag) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape cmov_regs) b pos)) m mf)))
+### C.jet_secp_field_cmov.cmov_result
+cmov_result
+     : forall (flag : bool) (a b : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem)
+         (ba bb : Values.block)
+         (_ : jet_sx_state.rep (jet_secp_field_pair_multiply.field_pair_valuation a b)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bb BinNums.Z0)
+                      (@nil (prod Values.block BinNums.Z)))) (cmov_out_regs flag) m),
+       and
+         (jet_secp_fe_nv.fe_at m ba BinNums.Z0
+            (jet_secp_multiply_normalize_bridge.words5
+               match flag return (forall _ : nat, Integers.Int64.int) with
+               | true => b
+               | false => a
+               end))
+         (and (jet_secp_fe_nv.fe_at m bb BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 b))
+            (and
+               (Memory.Mem.range_perm m ba BinNums.Z0
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  Memtype.Cur Memtype.Freeable)
+               (Memory.Mem.range_perm m bb BinNums.Z0
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  Memtype.Cur Memtype.Freeable)))
+### C.jet_secp_field_cmov.cmov_closed
+cmov_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_closed_helpers.secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_fe_cmov)) true
+### C.jet_secp_field_cmov.eval_field_cmov
+eval_field_cmov
+     : forall (flag : bool) (a b : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem)
+         (ba bb : Values.block) (_ : not (@eq Values.block ba bb))
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 a))
+         (_ : jet_secp_fe_nv.fe_at m bb BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 b))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_cmov)
+               (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero)
+                     (@cons Values.val (Values.Vint (cmov_int flag)) (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf ba BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5
+                     match flag return (forall _ : nat, Integers.Int64.int) with
+                     | true => b
+                     | false => a
+                     end))
+               (and (jet_secp_fe_nv.fe_at mf bb BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 b))
+                  (and
+                     (Memory.Mem.range_perm mf ba BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf bb BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (jet_sx_mem.lframe
+                              (fun (bi : Values.block) (_ : BinNums.Z) =>
+                               and (not (@eq Values.block bi ba)) (not (@eq Values.block bi bb))) m mf)
+                           (jet_clight_internal_preserve.readonly_preserved m mf)))))))
+### C.jet_secp_field_cmov.cmov_regs
+cmov_regs = jet_secp_multiply_run_run.field_mul_regs
+     : list jet_sx_state.region
+### C.jet_secp_field_cmov.cmov_int
+cmov_int =
+fun flag : bool => match flag return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end
+     : forall _ : bool, Integers.Int.int
+
+Arguments cmov_int flag%bool_scope
+### C.jet_secp_field_cmov.cmov_args
+cmov_args =
+fun flag : bool =>
+@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XI (cmov_int flag)) (@nil jet_sx_expr.sx)))
+     : forall _ : bool, list jet_sx_expr.sx
+
+Arguments cmov_args flag%bool_scope
+### C.jet_secp_field_cmov.cmov_state
+cmov_state =
+fun flag : bool =>
+match
+  jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+    (jet_sx_pure.int_table jet_secp_fns.secp_pure)
+    (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))) jets_secp.f_secp256k1_fe_cmov
+    (cmov_args flag) cmov_regs (@nil jet_sx_eval.event) (S (S (S (S (S (S (S (S (S (S O))))))))))
+  return jet_sx_eval.sstate
+with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ =>
+        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+    end
+| None => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : forall _ : bool, jet_sx_eval.sstate
+
+Arguments cmov_state flag%bool_scope
+### C.jet_secp_field_cmov.cmov_mask
+cmov_mask =
+fun flag : bool =>
+jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XI (cmov_int flag)))
+  (jet_sx_expr.XLnot (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc Integers.Int.zero)))
+     : forall _ : bool, jet_sx_expr.sx
+
+Arguments cmov_mask flag%bool_scope
+### C.jet_secp_field_cmov.cmov_digit
+cmov_digit =
+fun (flag : bool) (i : nat) =>
+jet_sx_expr.XLb jet_sx_expr.Bor (jet_sx_expr.XLb jet_sx_expr.Band (jet_sx_expr.XLv i) (cmov_mask flag))
+  (jet_sx_expr.XLb jet_sx_expr.Band (jet_sx_expr.XLv (Nat.add i (S (S (S (S (S O)))))))
+     (jet_sx_expr.XLnot (cmov_mask flag)))
+     : forall (_ : bool) (_ : nat), jet_sx_expr.sx
+
+Arguments cmov_digit flag%bool_scope i%nat_scope
+### C.jet_secp_field_cmov.cmov_out
+cmov_out =
+fun flag : bool =>
+@List.map nat jet_sx_expr.sx (cmov_digit flag)
+  (@cons nat O
+     (@cons nat (S O) (@cons nat (S (S O)) (@cons nat (S (S (S O))) (@cons nat (S (S (S (S O)))) (@nil nat))))))
+     : forall _ : bool, list jet_sx_expr.sx
+
+Arguments cmov_out flag%bool_scope
+### C.jet_secp_field_cmov.cmov_out_regs
+cmov_out_regs =
+fun flag : bool =>
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (cmov_out flag)) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region
+     (jet_secp_local_regions.free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 (S (S (S (S (S O)))))))
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+     (@nil jet_sx_state.region))
+     : forall _ : bool, list jet_sx_state.region
+
+Arguments cmov_out_regs flag%bool_scope
