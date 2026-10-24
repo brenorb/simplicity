@@ -82,9 +82,35 @@ bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements
 ```
 
 This is not a complete search, wrapper or canonical fee equivalence proof.
-The remaining search branches, sorted-table lookup argument, wrapper
+The full search iteration, sorted-table lookup argument, wrapper
 composition and fee-classification boundary above remain open. It adds no
 public coverage; the ledger remains 514/533.
+
+### Original search branches and one iteration (internal progress)
+
+`jet_elements_fee_lookup_branches.exec_fee_lookup_work` composes the
+comparison with every original branch: matching assets return the stored
+64-bit fee, otherwise the actual length and pointer assignments select the
+lower or upper interval. The sign tests are derived from `memcmp_sign`, not
+assumed comparison answers. Both next lengths are proved nonnegative and
+strictly smaller for every positive represented incoming length, including
+one-entry tables; changed and unchanged temporaries are explicit. Memory is
+unchanged. `exec_fee_lookup_zero` proves the original zero-length exit without
+reading the table or key and without an external-library premise.
+
+The whole-iteration result retains the existing explicit `memcmp_model`
+premise; the branch/zero-exit proofs themselves need no extra libc model.
+All adapters are checked against the original statement tree and the fee
+field offset against the generated composite layout. These are internal
+execution results, not a replacement fee specification. Complete loop
+composition over a represented table, sorted lookup correctness, the public
+wrapper and the hash-classification boundary remain unfinished. No jet is
+registered and coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_elements_fee_lookup_branches.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_fee_lookup_branches
+```
 
 `simplicity_output_is_fee` remains unregistered. `total_fee` also depends on
 fee classification and has further execution/lookup obligations. In the

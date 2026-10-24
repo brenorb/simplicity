@@ -1,0 +1,478 @@
+### C.jet_elements_fee_lookup_branches.fee_lookup_branches_source
+fee_lookup_branches_source
+     : @eq Clight.statement jet_elements_fee_lookup_compare.fee_lookup_after_compare
+         (Clight.Ssequence (Clight.Sifthenelse fee_lookup_eq fee_lookup_hit Clight.Sskip)
+            (Clight.Sifthenelse fee_lookup_gt fee_lookup_upper fee_lookup_lower))
+### C.jet_elements_fee_lookup_branches.fee_lookup_assetFee_field
+fee_lookup_assetFee_field
+     : jet_elements_field_eval.elements_field_at jets_elements._sigOutput jets_elements._assetFee
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
+### C.jet_elements_fee_lookup_branches.fee_lookup_split_bounds
+fee_lookup_split_bounds
+     : forall (len : BinNums.Z) (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned)),
+       and
+         (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))
+            (BinInt.Z.lt (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) len))
+         (and
+            (and
+               (BinInt.Z.le (BinNums.Zpos BinNums.xH)
+                  (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH)))
+               (BinInt.Z.le
+                  (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))
+                  len))
+            (and
+               (BinInt.Z.le BinNums.Z0
+                  (BinInt.Z.sub len
+                     (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))))
+               (BinInt.Z.lt
+                  (BinInt.Z.sub len
+                     (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH)))
+                  len)))
+### C.jet_elements_fee_lookup_branches.fee_lookup_sign_tests
+fee_lookup_sign_tests
+     : forall (c : comparison) (cmp : Integers.Int.int) (_ : jet_memcmp_model.memcmp_sign c cmp),
+       and
+         (@eq bool (Integers.Int.eq Integers.Int.zero cmp)
+            match c return bool with
+            | Eq => true
+            | Lt => false
+            | Gt => false
+            end)
+         (@eq bool (Integers.Int.lt Integers.Int.zero cmp)
+            match c return bool with
+            | Eq => false
+            | Lt => false
+            | Gt => true
+            end)
+### C.jet_elements_fee_lookup_branches.eval_fee_lookup_eq
+eval_fee_lookup_eq
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (cmp : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._cmp le)
+                (@Some Values.val (Values.Vint cmp))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_lookup_eq
+         (Values.Val.of_bool (Integers.Int.eq Integers.Int.zero cmp))
+### C.jet_elements_fee_lookup_branches.eval_fee_lookup_gt
+eval_fee_lookup_gt
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (cmp : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._cmp le)
+                (@Some Values.val (Values.Vint cmp))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_lookup_gt
+         (Values.Val.of_bool (Integers.Int.lt Integers.Int.zero cmp))
+### C.jet_elements_fee_lookup_branches.eval_fee_lookup_offset
+eval_fee_lookup_offset
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned)),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_lookup_offset
+         (Values.Vlong
+            (Integers.Int64.repr
+               (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))))
+### C.jet_elements_fee_lookup_branches.eval_fee_lookup_advance
+eval_fee_lookup_advance
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : BinNums.Z)
+         (bt : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))))
+                Integers.Ptrofs.max_unsigned),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_lookup_advance
+         (Values.Vptr bt
+            (Integers.Ptrofs.repr
+               (BinInt.Z.add base
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                     (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))))))
+### C.jet_elements_fee_lookup_branches.eval_fee_lookup_tail_len
+eval_fee_lookup_tail_len
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned)),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_lookup_tail_len
+         (Values.Vlong
+            (Integers.Int64.repr
+               (BinInt.Z.sub len
+                  (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH)))))
+### C.jet_elements_fee_lookup_branches.eval_fee_lookup_fee
+eval_fee_lookup_fee
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bp : Values.block)
+         (ofs : BinNums.Z) (fee : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._t'2 le)
+                (@Some Values.val (Values.Vptr bp (Integers.Ptrofs.repr ofs)))) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bp
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+                (@Some Values.val (Values.Vlong fee))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m fee_lookup_fee (Values.Vlong fee)
+### C.jet_elements_fee_lookup_branches.exec_fee_lookup_hit
+exec_fee_lookup_hit
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : BinNums.Z) (bt : Values.block)
+         (base : BinNums.Z) (bp : Values.block) (ofs : BinNums.Z) (fee : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mptr m bt
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vptr bp (Integers.Ptrofs.repr ofs))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bp
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+                (@Some Values.val (Values.Vlong fee))),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m fee_lookup_hit Events.E0
+         (fee_lookup_hit_temps bp ofs fee le) m
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type) (@pair Values.val Ctypes.type (Values.Vlong fee) Ctypesdefs.tulong)))
+### C.jet_elements_fee_lookup_branches.exec_fee_lookup_move
+exec_fee_lookup_move
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : BinNums.Z) (bt : Values.block)
+         (base : BinNums.Z) (high : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : forall _ : @eq bool high true,
+              BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))))
+                Integers.Ptrofs.max_unsigned),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m
+         match high return Clight.statement with
+         | true => fee_lookup_upper
+         | false => fee_lookup_lower
+         end Events.E0 (fee_lookup_moved high bt base len le) m ClightBigstep.Out_normal
+### C.jet_elements_fee_lookup_branches.exec_fee_lookup_after_hit
+exec_fee_lookup_after_hit
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : BinNums.Z) (bt : Values.block)
+         (base : BinNums.Z) (bp : Values.block) (ofs : BinNums.Z) (fee : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._cmp le)
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mptr m bt
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vptr bp (Integers.Ptrofs.repr ofs))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bp
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+                (@Some Values.val (Values.Vlong fee))),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m
+         jet_elements_fee_lookup_compare.fee_lookup_after_compare Events.E0 (fee_lookup_hit_temps bp ofs fee le) m
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type) (@pair Values.val Ctypes.type (Values.Vlong fee) Ctypesdefs.tulong)))
+### C.jet_elements_fee_lookup_branches.exec_fee_lookup_after_miss
+exec_fee_lookup_after_miss
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : BinNums.Z) (bt : Values.block)
+         (base : BinNums.Z) (cmp : Integers.Int.int) (high : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._cmp le)
+                (@Some Values.val (Values.Vint cmp))) (_ : @eq bool (Integers.Int.eq Integers.Int.zero cmp) false)
+         (_ : @eq bool (Integers.Int.lt Integers.Int.zero cmp) high)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : forall _ : @eq bool high true,
+              BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))))
+                Integers.Ptrofs.max_unsigned),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m
+         jet_elements_fee_lookup_compare.fee_lookup_after_compare Events.E0 (fee_lookup_moved high bt base len le) m
+         ClightBigstep.Out_normal
+### C.jet_elements_fee_lookup_branches.fee_lookup_compared_frame
+fee_lookup_compared_frame
+     : forall (bp : Values.block) (ofs : BinNums.Z) (cmp : Integers.Int.int) (le : Maps.PTree.tree Values.val)
+         (id : AST.ident) (_ : not (@eq AST.ident id jets_elements._cmp))
+         (_ : not (@eq AST.ident id jets_elements._t'1)) (_ : not (@eq AST.ident id jets_elements._t'4)),
+       @eq (option Values.val)
+         (@Maps.PTree.get Values.val id (jet_elements_fee_lookup_compare.fee_lookup_compared bp ofs cmp le))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_elements_fee_lookup_branches.fee_lookup_next_decreases
+fee_lookup_next_decreases
+     : forall (high : bool) (len : BinNums.Z)
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned)),
+       and (BinInt.Z.le BinNums.Z0 (fee_lookup_next_length high len))
+         (BinInt.Z.lt (fee_lookup_next_length high len) len)
+### C.jet_elements_fee_lookup_branches.fee_lookup_moved_fields
+fee_lookup_moved_fields
+     : forall (high : bool) (bt : Values.block) (base len : BinNums.Z) (le : Maps.PTree.tree Values.val)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base)))),
+       and
+         (@eq (option Values.val)
+            (@Maps.PTree.get Values.val jets_elements._len (fee_lookup_moved high bt base len le))
+            (@Some Values.val (Values.Vlong (Integers.Int64.repr (fee_lookup_next_length high len)))))
+         (and
+            (@eq (option Values.val)
+               (@Maps.PTree.get Values.val jets_elements._feeOutputs (fee_lookup_moved high bt base len le))
+               (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr (fee_lookup_next_base high base len)))))
+            (forall (id : AST.ident) (_ : not (@eq AST.ident id jets_elements._len))
+               (_ : not (@eq AST.ident id jets_elements._feeOutputs)),
+             @eq (option Values.val) (@Maps.PTree.get Values.val id (fee_lookup_moved high bt base len le))
+               (@Maps.PTree.get Values.val id le)))
+### C.jet_elements_fee_lookup_branches.fee_lookup_function_source
+fee_lookup_function_source
+     : @eq Clight.statement (Clight.fn_body jets_elements.f_lookup_fee)
+         (Clight.Ssequence fee_lookup_loop
+            (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint))))
+### C.jet_elements_fee_lookup_branches.exec_fee_lookup_zero
+exec_fee_lookup_zero
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero))),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+         (Clight.fn_body jets_elements.f_lookup_fee) Events.E0 le m
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.zero) Ctypesdefs.tint)))
+### C.jet_elements_fee_lookup_branches.exec_fee_lookup_work
+exec_fee_lookup_work
+     : forall (_ : jet_memcmp_model.memcmp_model) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (len : BinNums.Z) (bt : Values.block) (base : BinNums.Z) (bk : Values.block) (keybase : BinNums.Z)
+         (bp : Values.block) (ofs : BinNums.Z) (key candidate : list Integers.Int.int) (fee : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._assetid le)
+                (@Some Values.val (Values.Vptr bk (Integers.Ptrofs.repr keybase))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) len))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 keybase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add keybase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH))) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mptr m bt
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vptr bp (Integers.Ptrofs.repr ofs))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bp
+                   (BinInt.Z.add ofs
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+                (@Some Values.val (Values.Vlong fee)))
+         (_ : @eq nat (@length Integers.Int.int key)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @eq nat (@length Integers.Int.int candidate)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : jet_memcmp_model.bytes_at m bk keybase key) (_ : jet_memcmp_model.bytes_at m bp ofs candidate),
+       @ex Integers.Int.int
+         (fun cmp : Integers.Int.int =>
+          and (jet_memcmp_model.memcmp_sign (jet_memcmp_model.bytes_cmp key candidate) cmp)
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m
+               jet_elements_fee_lookup_compare.fee_lookup_work Events.E0
+               (fee_lookup_branch_temps (jet_memcmp_model.bytes_cmp key candidate) bt base len bp ofs fee
+                  (jet_elements_fee_lookup_compare.fee_lookup_compared bp ofs cmp le)) m
+               (fee_lookup_branch_out (jet_memcmp_model.bytes_cmp key candidate) fee)))
+### C.jet_elements_fee_lookup_branches.fee_lookup_eq
+fee_lookup_eq =
+Clight.Ebinop Cop.Oeq (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+  (Clight.Etempvar jets_elements._cmp Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_elements_fee_lookup_branches.fee_lookup_gt
+fee_lookup_gt =
+Clight.Ebinop Cop.Olt (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+  (Clight.Etempvar jets_elements._cmp Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_elements_fee_lookup_branches.fee_lookup_offset
+fee_lookup_offset =
+Clight.Ebinop Cop.Oadd jet_elements_fee_lookup_compare.fee_lookup_half
+  (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_elements_fee_lookup_branches.fee_lookup_advance
+fee_lookup_advance =
+Clight.Ebinop Cop.Oadd
+  (Clight.Etempvar jets_elements._feeOutputs
+     (Ctypesdefs.tptr (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)))) fee_lookup_offset
+  (Ctypesdefs.tptr (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)))
+     : Clight.expr
+### C.jet_elements_fee_lookup_branches.fee_lookup_tail_len
+fee_lookup_tail_len =
+Clight.Ebinop Cop.Osub (Clight.Etempvar jets_elements._len Ctypesdefs.tulong) fee_lookup_offset Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_elements_fee_lookup_branches.fee_lookup_upper
+fee_lookup_upper =
+Clight.Ssequence (Clight.Sset jets_elements._feeOutputs fee_lookup_advance)
+  (Clight.Sset jets_elements._len fee_lookup_tail_len)
+     : Clight.statement
+### C.jet_elements_fee_lookup_branches.fee_lookup_lower
+fee_lookup_lower =
+Clight.Sset jets_elements._len jet_elements_fee_lookup_compare.fee_lookup_half
+     : Clight.statement
+### C.jet_elements_fee_lookup_branches.fee_lookup_fee
+fee_lookup_fee =
+Clight.Efield
+  (Clight.Ederef
+     (Clight.Etempvar jets_elements._t'2 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)))
+     (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr)) jets_elements._assetFee Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_elements_fee_lookup_branches.fee_lookup_hit
+fee_lookup_hit =
+Clight.Ssequence (Clight.Sset jets_elements._t'2 jet_elements_fee_lookup_compare.fee_lookup_mid)
+  (Clight.Ssequence (Clight.Sset jets_elements._t'3 fee_lookup_fee)
+     (Clight.Sreturn (@Some Clight.expr (Clight.Etempvar jets_elements._t'3 Ctypesdefs.tulong))))
+     : Clight.statement
+### C.jet_elements_fee_lookup_branches.fee_lookup_hit_temps
+fee_lookup_hit_temps =
+fun (bp : Values.block) (ofs : BinNums.Z) (fee : Integers.Int64.int) (le : Maps.PTree.tree Values.val) =>
+@Maps.PTree.set Values.val jets_elements._t'3 (Values.Vlong fee)
+  (@Maps.PTree.set Values.val jets_elements._t'2 (Values.Vptr bp (Integers.Ptrofs.repr ofs)) le)
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Maps.PTree.tree Values.val),
+       Maps.PTree.tree Values.val
+
+Arguments fee_lookup_hit_temps bp ofs%Z_scope fee le
+### C.jet_elements_fee_lookup_branches.fee_lookup_moved
+fee_lookup_moved =
+fun (high : bool) (bt : Values.block) (base len : BinNums.Z) (le : Maps.PTree.tree Values.val) =>
+match high return (Maps.PTree.tree Values.val) with
+| true =>
+    @Maps.PTree.set Values.val jets_elements._len
+      (Values.Vlong
+         (Integers.Int64.repr
+            (BinInt.Z.sub len
+               (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH)))))
+      (@Maps.PTree.set Values.val jets_elements._feeOutputs
+         (Values.Vptr bt
+            (Integers.Ptrofs.repr
+               (BinInt.Z.add base
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                     (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))))))
+         le)
+| false =>
+    @Maps.PTree.set Values.val jets_elements._len
+      (Values.Vlong (Integers.Int64.repr (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))))) le
+end
+     : forall (_ : bool) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Maps.PTree.tree Values.val),
+       Maps.PTree.tree Values.val
+
+Arguments fee_lookup_moved high%bool_scope bt (base len)%Z_scope le
+### C.jet_elements_fee_lookup_branches.fee_lookup_next_length
+fee_lookup_next_length =
+fun (high : bool) (len : BinNums.Z) =>
+match high return BinNums.Z with
+| true =>
+    BinInt.Z.sub len (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH))
+| false => BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))
+end
+     : forall (_ : bool) (_ : BinNums.Z), BinNums.Z
+
+Arguments fee_lookup_next_length high%bool_scope len%Z_scope
+### C.jet_elements_fee_lookup_branches.fee_lookup_next_base
+fee_lookup_next_base =
+fun (high : bool) (base len : BinNums.Z) =>
+match high return BinNums.Z with
+| true =>
+    BinInt.Z.add base
+      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+         (BinInt.Z.add (BinInt.Z.div len (BinNums.Zpos (BinNums.xO BinNums.xH))) (BinNums.Zpos BinNums.xH)))
+| false => base
+end
+     : forall (_ : bool) (_ : BinNums.Z) (_ : BinNums.Z), BinNums.Z
+
+Arguments fee_lookup_next_base high%bool_scope (base len)%Z_scope
+### C.jet_elements_fee_lookup_branches.fee_lookup_branch_temps
+fee_lookup_branch_temps =
+fun (c : comparison) (bt : Values.block) (base len : BinNums.Z) (bp : Values.block) (ofs : BinNums.Z)
+  (fee : Integers.Int64.int) (le : Maps.PTree.tree Values.val) =>
+match c return (Maps.PTree.tree Values.val) with
+| Eq => fee_lookup_hit_temps bp ofs fee le
+| Lt => fee_lookup_moved false bt base len le
+| Gt => fee_lookup_moved true bt base len le
+end
+     : forall (_ : comparison) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Values.block)
+         (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Maps.PTree.tree Values.val), Maps.PTree.tree Values.val
+
+Arguments fee_lookup_branch_temps c bt (base len)%Z_scope bp ofs%Z_scope fee le
+### C.jet_elements_fee_lookup_branches.fee_lookup_branch_out
+fee_lookup_branch_out =
+fun (c : comparison) (fee : Integers.Int64.int) =>
+match c return ClightBigstep.outcome with
+| Eq =>
+    ClightBigstep.Out_return
+      (@Some (prod Values.val Ctypes.type) (@pair Values.val Ctypes.type (Values.Vlong fee) Ctypesdefs.tulong))
+| Lt => ClightBigstep.Out_normal
+| Gt => ClightBigstep.Out_normal
+end
+     : forall (_ : comparison) (_ : Integers.Int64.int), ClightBigstep.outcome
+
+Arguments fee_lookup_branch_out c fee
+### C.jet_elements_fee_lookup_branches.fee_lookup_loop
+fee_lookup_loop =
+Clight.Swhile (Clight.Etempvar jets_elements._len Ctypesdefs.tulong) jet_elements_fee_lookup_compare.fee_lookup_work
+     : Clight.statement
