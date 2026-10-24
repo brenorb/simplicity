@@ -1,0 +1,184 @@
+### C.jet_secp_modinv_fg_loop_numeric.fg_next_array_word
+fg_next_array_word
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (j k : nat) (_ : lt j (S (S (S (S (S O))))))
+         (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq Integers.Int64.int (fg_array_word (jet_secp_modinv_fg_revalue.fg_next_rho rho k) high j)
+         match PeanoNat.Nat.eqb j (Nat.sub k (S O)) return Integers.Int64.int with
+         | true => jet_secp_modinv_fg_iteration_numeric.fg_iter_limb rho high k
+         | false => fg_array_word rho high j
+         end
+### C.jet_secp_modinv_fg_loop_numeric.fg_next_input
+fg_next_input
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (k : nat),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_modinv_fg_iteration_numeric.fg_iter_input (jet_secp_modinv_fg_revalue.fg_next_rho rho k) high)
+         (jet_secp_modinv_fg_iteration_numeric.fg_iter_carry rho high k)
+### C.jet_secp_modinv_fg_loop_numeric.fg_next_row
+fg_next_row
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (k : nat),
+       and
+         (@eq Integers.Int64.int
+            (jet_secp_modinv_fg_iteration_numeric.fg_iter_u (jet_secp_modinv_fg_revalue.fg_next_rho rho k) high)
+            (jet_secp_modinv_fg_iteration_numeric.fg_iter_u rho high))
+         (@eq Integers.Int64.int
+            (jet_secp_modinv_fg_iteration_numeric.fg_iter_v (jet_secp_modinv_fg_revalue.fg_next_rho rho k) high)
+            (jet_secp_modinv_fg_iteration_numeric.fg_iter_v rho high))
+### C.jet_secp_modinv_fg_loop_numeric.fg_limb_signed_unsigned
+fg_limb_signed_unsigned
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (k : nat),
+       @eq BinNums.Z (Integers.Int64.signed (jet_secp_modinv_fg_iteration_numeric.fg_iter_limb rho high k))
+         (Integers.Int64.unsigned (jet_secp_modinv_fg_iteration_numeric.fg_iter_limb rho high k))
+### C.jet_secp_modinv_fg_loop_numeric.fg_state_iteration_bound
+fg_state_iteration_bound
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (k : nat) (_ : fg_state_bounds rho)
+         (_ : lt k (S (S (S (S (S O)))))), jet_secp_modinv_fg_iteration_numeric.fg_iter_bound rho high k
+### C.jet_secp_modinv_fg_loop_numeric.fg_state_bounds_next
+fg_state_bounds_next
+     : forall (rho : forall _ : nat, Integers.Int64.int) (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O)))))))
+         (_ : fg_state_bounds rho), fg_state_bounds (jet_secp_modinv_fg_revalue.fg_next_rho rho k)
+### C.jet_secp_modinv_fg_loop_numeric.fg_next_combination
+fg_next_combination
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (j k : nat) (_ : lt j (S (S (S (S (S O))))))
+         (_ : and (lt O k) (lt k (S (S (S (S (S O))))))) (_ : not (@eq nat j (Nat.sub k (S O)))),
+       @eq BinNums.Z (fg_combination (jet_secp_modinv_fg_revalue.fg_next_rho rho k) high j) (fg_combination rho high j)
+### C.jet_secp_modinv_fg_loop_numeric.fg_combination_tail_ext
+fg_combination_tail_ext
+     : forall (count : nat) (rho sigma : forall _ : nat, Integers.Int64.int) (high : bool)
+         (k : nat)
+         (_ : forall (j : nat) (_ : and (le k j) (lt j (Nat.add k count))),
+              @eq BinNums.Z (fg_combination rho high j) (fg_combination sigma high j)),
+       @eq BinNums.Z (fg_combination_tail count rho high k) (fg_combination_tail count sigma high k)
+### C.jet_secp_modinv_fg_loop_numeric.fg_loop_preserves_lower
+fg_loop_preserves_lower
+     : forall (count : nat) (rho : forall _ : nat, Integers.Int64.int) (k : nat) (high : bool)
+         (j : nat) (_ : le (S O) k) (_ : le (Nat.add k count) (S (S (S (S (S O)))))) (_ : lt j (Nat.sub k (S O))),
+       @eq Integers.Int64.int (fg_array_word (jet_secp_modinv_fg_loop.fg_loop_rho count rho k) high j)
+         (fg_array_word rho high j)
+### C.jet_secp_modinv_fg_loop_numeric.fg_loop_numeric
+fg_loop_numeric
+     : forall (count : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool) (k : nat)
+         (_ : le (S O) k) (_ : le (Nat.add k count) (S (S (S (S (S O)))))) (_ : fg_state_bounds rho),
+       and
+         (@eq BinNums.Z (fg_completed_value count (jet_secp_modinv_fg_loop.fg_loop_rho count rho k) high k)
+            (BinInt.Z.add
+               (jet_secp_modinv_fg_iteration_arith.fg_pair_value
+                  (jet_secp_modinv_fg_iteration_numeric.fg_iter_input rho high)) (fg_combination_tail count rho high k)))
+         (fg_state_bounds (jet_secp_modinv_fg_loop.fg_loop_rho count rho k))
+### C.jet_secp_modinv_fg_loop_numeric.exec_fg_loop_numeric
+exec_fg_loop_numeric
+     : forall (count k : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem) (_ : le (S O) k)
+         (_ : le (Nat.add k count) (S (S (S (S (S O))))))
+         (_ : @eq Integers.Int.int
+                (Integers.Int64.loword (rho (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+                (Integers.Int.repr (BinInt.Z.of_nat (Nat.add k count)))) (_ : fg_state_bounds rho)
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_fg_iteration_prefix.fg_iter_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps k) le0)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) e),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m jet_secp_modinv_fg_index.fg_loop
+                  Events.E0 lef mf ClightBigstep.Out_normal)
+               (and
+                  (forall high : bool,
+                   @eq BinNums.Z (fg_completed_value count (jet_secp_modinv_fg_loop.fg_loop_rho count rho k) high k)
+                     (BinInt.Z.add
+                        (jet_secp_modinv_fg_iteration_arith.fg_pair_value
+                           (jet_secp_modinv_fg_iteration_numeric.fg_iter_input rho high))
+                        (fg_combination_tail count rho high k)))
+                  (and (fg_state_bounds (jet_secp_modinv_fg_loop.fg_loop_rho count rho k))
+                     (and
+                        (jet_sx_state.rep (jet_secp_modinv_fg_loop.fg_loop_rho count rho k) beta
+                           jet_secp_modinv_fg_iteration_prefix.fg_iter_regs mf)
+                        (and
+                           (jet_sx_eval.tmatch (jet_secp_modinv_fg_loop.fg_loop_rho count rho k) beta
+                              (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps (Nat.add k count)) lef)
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (ofs : BinNums.Z) =>
+                               not
+                                 (jet_sx_state.foot beta
+                                    (@List.map jet_sx_state.region
+                                       (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                       jet_sx_state.rshape jet_secp_modinv_fg_iteration_prefix.fg_iter_regs) b ofs)) m
+                              mf)))))))
+### C.jet_secp_modinv_fg_loop_numeric.fg_array_word
+fg_array_word =
+fun (rho : forall _ : nat, Integers.Int64.int) (high : bool) (j : nat) =>
+rho match high return nat with
+    | true => Nat.add (S (S (S (S (S O))))) j
+    | false => j
+    end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), Integers.Int64.int
+
+Arguments fg_array_word rho%function_scope high%bool_scope j%nat_scope
+### C.jet_secp_modinv_fg_loop_numeric.fg_combination
+fg_combination =
+fun (rho : forall _ : nat, Integers.Int64.int) (high : bool) (j : nat) =>
+BinInt.Z.add
+  (BinInt.Z.mul (Integers.Int64.signed (jet_secp_modinv_fg_iteration_numeric.fg_iter_u rho high))
+     (Integers.Int64.signed (rho j)))
+  (BinInt.Z.mul (Integers.Int64.signed (jet_secp_modinv_fg_iteration_numeric.fg_iter_v rho high))
+     (Integers.Int64.signed (rho (Nat.add (S (S (S (S (S O))))) j))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), BinNums.Z
+
+Arguments fg_combination rho%function_scope high%bool_scope j%nat_scope
+### C.jet_secp_modinv_fg_loop_numeric.fg_state_bounds
+fg_state_bounds =
+fun rho : forall _ : nat, Integers.Int64.int =>
+and
+  (forall high : bool,
+   and
+     (BinInt.Z.le
+        (BinInt.Z.abs
+           (jet_secp_modinv_fg_iteration_arith.fg_pair_value
+              (jet_secp_modinv_fg_iteration_numeric.fg_iter_input rho high)))
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+     (BinInt.Z.le
+        (BinInt.Z.add (BinInt.Z.abs (Integers.Int64.signed (jet_secp_modinv_fg_iteration_numeric.fg_iter_u rho high)))
+           (BinInt.Z.abs (Integers.Int64.signed (jet_secp_modinv_fg_iteration_numeric.fg_iter_v rho high))))
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+  (forall (high : bool) (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+   BinInt.Z.le (BinInt.Z.abs (Integers.Int64.signed (fg_array_word rho high j)))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, Prop
+
+Arguments fg_state_bounds rho%function_scope
+### C.jet_secp_modinv_fg_loop_numeric.fg_combination_tail
+fg_combination_tail =
+fix fg_combination_tail
+  (count : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool) (k : nat) {struct count} : BinNums.Z :=
+  match count return BinNums.Z with
+  | O => BinNums.Z0
+  | S n =>
+      BinInt.Z.add (fg_combination rho high k)
+        (BinInt.Z.mul
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+           (fg_combination_tail n rho high (S k)))
+  end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), BinNums.Z
+
+Arguments fg_combination_tail count%nat_scope rho%function_scope high%bool_scope k%nat_scope
+### C.jet_secp_modinv_fg_loop_numeric.fg_completed_value
+fg_completed_value =
+fix fg_completed_value
+  (count : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool) (k : nat) {struct count} : BinNums.Z :=
+  match count return BinNums.Z with
+  | O => jet_secp_modinv_fg_iteration_arith.fg_pair_value (jet_secp_modinv_fg_iteration_numeric.fg_iter_input rho high)
+  | S n =>
+      BinInt.Z.add (Integers.Int64.signed (fg_array_word rho high (Nat.sub k (S O))))
+        (BinInt.Z.mul
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+           (fg_completed_value n rho high (S k)))
+  end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), BinNums.Z
+
+Arguments fg_completed_value count%nat_scope rho%function_scope high%bool_scope k%nat_scope

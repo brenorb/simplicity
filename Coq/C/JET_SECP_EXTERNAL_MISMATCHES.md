@@ -294,6 +294,17 @@ the loop's execution composition, but the numeric invariant over the entire
 radix value, final stores, allocation/freeing and inverse caller composition
 are still separate obligations. There is no new public coverage entry.
 
+`jet_secp_modinv_fg_loop_numeric.exec_fg_loop_numeric` adds the full-loop
+numeric invariant to that actual execution. The decoded low output limbs
+and final signed-128 carry equal the initial carry plus the remaining
+matrix-weighted input limbs, with exact radix-`2^62` weights. It proves
+preservation of the internal limb, row and carry bounds rather than assuming
+them at each iteration. The arithmetic invariant is closed; the combined
+execution theorem uses only the same six inherited assumptions. Initial
+bounds, the prefix-to-loop handoff, final carry stores, function entry/freeing
+and the complete inverse caller are still to be composed. This loop theorem
+is not a public jet proof and does not change coverage.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -305,6 +316,8 @@ JET_TARGETS=C/jet_secp_modinv_fg_iteration_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_iteration_arith C.jet_secp_modinv_fg_iteration_numeric
 JET_TARGETS=C/jet_secp_modinv_fg_loop.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_revalue C.jet_secp_modinv_fg_loop
+JET_TARGETS=C/jet_secp_modinv_fg_loop_numeric.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_loop_numeric
 ```
 
 ## Reproduction and limits
