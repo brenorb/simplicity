@@ -1896,6 +1896,34 @@ JET_TARGETS="C/jet_secp_scalar_inverse_batch.vo C/jet_secp_scalar_inverse_loop.v
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_batch C.jet_secp_scalar_inverse_loop
 ```
 
+## Scalar loop through literal result and cleanup (internal conditional progress)
+
+`jet_secp_scalar_inverse_loop_finish.exec_scalar_inv_loop_finish` composes
+the actual original loop, terminal sign load, scalar-order normalization,
+copy-back and all five frees. The loop-exit representation discharges the
+finishing theorem's storage, ownership, modulus contents, limb bounds,
+coefficient link, terminal trajectory and zero-input coefficient premises;
+none is assumed as a finished execution or result.
+
+The returned words are normalized and equal the literal scalar-inversion
+numeric result. The theorem also retains the explicit bridge to the literal
+Simplicity word program for an input whose value reduces to the represented
+scalar. It preserves input-object ownership, the scalar modulus global, and
+the composed loop/finish memory frame. Shared array extraction and actual
+six-word modulus reconstruction are proved from the current representation.
+
+This starts at the ready-to-loop boundary, not at the public jet entry.
+Composition with the actual core entry/initialization, enclosing scalar
+unpack and public frame lifecycle still remains. The original CTZ helper's
+execution remains a generalized internal premise over memories and nonzero
+words; it is not discharged by this composition. There is no new external
+model or public coverage entry, and frozen targets remain unchanged.
+
+```sh
+JET_TARGETS=C/jet_secp_scalar_inverse_loop_finish.vo bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_loop_finish
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
