@@ -339,6 +339,24 @@ and coefficient-update calls and the full caller invariant; the read-only
 matrix contract also does not itself restore a caller's stronger matrix
 ownership. This function theorem adds no public jet coverage.
 
+`jet_secp_modinv_fg_permissions.eval_fg_transition_matrix_permissions`
+adds the missing **matrix permission-retention fact** for a caller that
+initially owns the matrix's 32 Freeable bytes. It preserves all conclusions
+of the original variable-length transition call and proves those bytes
+remain Freeable afterwards. The earlier read-only contract is unchanged;
+the stronger internal caller precondition buys a stronger conclusion,
+not a restriction added to a public jet.
+
+`jet_clight_internal_permissions.internal_exec_keeps_permissions` supplies
+the reusable proof: a checked closed table of original internal C functions
+preserves pre-existing permissions. Stores preserve them, function entry
+allocates fresh blocks, and the final freeing of locals avoids every
+pre-existing block. The secp adapter checks the actual seven-function
+call graph, linkage, non-function locals and absence of external/builtin
+calls. No external-call semantics or permission-preservation premise is
+assumed. Rebuilding a complete inverse-caller representation and composing
+its loop remain separate obligations; this result adds no public coverage.
+
 `jet_secp_modinv_de_exec.eval_de_words` executes the original coefficient
 update `secp256k1_modinv64_update_de_62` with the actual field-modulus metadata,
 including entry, both private accumulators, every original call/store, return
@@ -430,6 +448,8 @@ JET_TARGETS=C/jet_secp_modinv_fg_body.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_body
 JET_TARGETS=C/jet_secp_modinv_fg_call.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_multiply_call_lifecycle C.jet_secp_modinv_fg_call
+JET_TARGETS=C/jet_secp_modinv_fg_permissions.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_clight_internal_permissions C.jet_secp_modinv_fg_permissions
 JET_TARGETS=C/jet_secp_modinv_de_exec.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_known C.jet_secp_modinv_de_exec
 JET_TARGETS=C/jet_secp_modinv_de_correction_numeric.vo bash Coq/build-jets.sh -j2

@@ -1,0 +1,82 @@
+### C.jet_clight_internal_permissions.keeps_permissions_refl
+keeps_permissions_refl
+     : forall m : Memory.Mem.mem, keeps_permissions m m
+### C.jet_clight_internal_permissions.keeps_permissions_trans
+keeps_permissions_trans
+     : forall (m mi mf : Memory.Mem.mem) (_ : keeps_permissions m mi) (_ : keeps_permissions mi mf),
+       keeps_permissions m mf
+### C.jet_clight_internal_permissions.alloc_keeps_permissions
+alloc_keeps_permissions
+     : forall (m : Memory.Mem.mem) (lo hi : BinNums.Z) (mf : Memory.Mem.mem') (b : Values.block)
+         (_ : @eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m lo hi)
+                (@pair Memory.Mem.mem' Values.block mf b)), keeps_permissions m mf
+### C.jet_clight_internal_permissions.assign_keeps_permissions
+assign_keeps_permissions
+     : forall (ce : Ctypes.composite_env) (ty : Ctypes.type) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (bf : Ctypes.bitfield) (v : Values.val) (mf : Memory.Mem.mem)
+         (_ : Clight.assign_loc ce ty m b ofs bf v mf), keeps_permissions m mf
+### C.jet_clight_internal_permissions.alloc_variables_keeps_permissions
+alloc_variables_keeps_permissions
+     : forall (ge : Clight.genv) (e : Clight.env) (m : Memory.Mem.mem) (vars : list (prod AST.ident Ctypes.type))
+         (ef : Clight.env) (mf : Memory.Mem.mem) (_ : Clight.alloc_variables ge e m vars ef mf),
+       keeps_permissions m mf
+### C.jet_clight_internal_permissions.entry_keeps_permissions
+entry_keeps_permissions
+     : forall (ge : Clight.genv) (fd : Clight.function) (args : list Values.val) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (mf : Memory.Mem.mem)
+         (_ : Clight.function_entry2 ge fd args m e le mf), keeps_permissions m mf
+### C.jet_clight_internal_permissions.alloc_variables_avoids
+alloc_variables_avoids
+     : forall (ge : Clight.genv) (e : Clight.env) (m : Memory.Mem.mem) (vars : list (prod AST.ident Ctypes.type))
+         (ef : Clight.env) (mf : Memory.Mem.mem) (b : Values.block) (_ : Clight.alloc_variables ge e m vars ef mf)
+         (_ : Memory.Mem.valid_block m b)
+         (_ : forall (id : BinNums.positive) (ty : Ctypes.type),
+              not
+                (@eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                   (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty))))
+         (id : BinNums.positive) (ty : Ctypes.type),
+       not
+         (@eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id ef)
+            (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty)))
+### C.jet_clight_internal_permissions.entry_blocks_avoid
+entry_blocks_avoid
+     : forall (ge : Clight.genv) (fd : Clight.function) (args : list Values.val) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (mf : Memory.Mem.mem) (b : Values.block)
+         (_ : Clight.function_entry2 ge fd args m e le mf) (_ : Memory.Mem.valid_block m b)
+         (lo hi : BinNums.Z),
+       not
+         (@List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+            (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z b lo) hi)
+            (Clight.blocks_of_env ge e))
+### C.jet_clight_internal_permissions.free_list_avoids
+free_list_avoids
+     : forall (blocks : list (prod (prod Values.block BinNums.Z) BinNums.Z)) (mi mf : Memory.Mem.mem)
+         (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.free_list mi blocks) (@Some Memory.Mem.mem mf))
+         (_ : forall lo hi : BinNums.Z,
+              not
+                (@List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                   (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z b lo) hi) blocks))
+         (_ : Memory.Mem.perm mi b ofs k p), Memory.Mem.perm mf b ofs k p
+### C.jet_clight_internal_permissions.internal_exec_keeps_permissions
+internal_exec_keeps_permissions
+     : forall (ge : Clight.genv) (table : list (prod AST.ident Clight.function))
+         (_ : jet_clight_internal_frame.internal_table_ok ge table),
+       and
+         (forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (stmt : Clight.statement)
+            (t : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+            (_ : ClightBigstep.Clight2.exec_stmt ge e le m stmt t lef mf out)
+            (_ : jet_clight_internal_frame.plain_env e)
+            (_ : @eq bool (jet_clight_internal_frame.closed_stmtb table stmt) true), keeps_permissions m mf)
+         (forall (m : Memory.Mem.mem) (f : Clight.fundef) (args : list Values.val) (t : Events.trace)
+            (mf : Memory.Mem.mem) (result : Values.val)
+            (_ : ClightBigstep.Clight2.eval_funcall ge m f args t mf result)
+            (_ : jet_clight_internal_frame.allowed_call table f), keeps_permissions m mf)
+### C.jet_clight_internal_permissions.keeps_permissions
+keeps_permissions =
+fun m mf : Memory.Mem.mem =>
+forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+  (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm mf b ofs k p
+     : forall (_ : Memory.Mem.mem) (_ : Memory.Mem.mem), Prop
+
+Arguments keeps_permissions m mf
