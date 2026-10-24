@@ -417,8 +417,8 @@ their zero loads and memory effects on valid owned destinations. No wNAF,
 split, table lookup, point-loop iteration or helper return is assumed. This
 remains conditional internal progress: the enclosing `secp256k1_ecmult`
 allocations/state setup are composed by the subsequent result below; public
-`simplicity_generate` reader/writer/caller composition and zeroing remain
-outstanding.
+`simplicity_generate` composition is proved by the later result below;
+zeroing remains outstanding.
 No public jet is registered, and coverage stays 514/533. Reproduce the build
 and recursive kernel check with the commands below using
 `C/jet_secp_generator_function.vo` / `C.jet_secp_generator_function`.
@@ -446,12 +446,43 @@ is retained by the enclosing ecmult call rather than assumed afterward.
 This result is still conditional on exactly the original wNAF `memset` steps,
 with their zero loads and memory effects, and inherits the same eight
 assumptions as the Strauss result. It neither introduces a replacement
-external-call model nor changes the C, AST or specification. The remaining
-public composition is source-frame copy, scalar reader, this ecmult call,
-point writer, return and local frees on arbitrary valid evaluator frames,
-including preservation of startup state. Coverage remains 514/533. Reproduce
+external-call model nor changes the C, AST or specification. The public
+composition is completed by the subsequent result below. Coverage remains
+514/533. Reproduce
 the normal build and recursive kernel check with the same commands using
 `C/jet_secp_ecmult_generator.vo` / `C.jet_secp_ecmult_generator`.
+
+`jet_secp_generate_lifecycle.eval_generate_initialized` now executes the
+complete original public `simplicity_generate` function against the literal
+Simplicity `generate` specification, on arbitrary valid frames/cursors
+and every Word256 input. It derives all three allocations, actual by-value
+source copy, scalar read and canonical normalization, the original ecmult
+call with the real static auxiliary arguments, point serialization, true
+return, and all three local frees. The postcondition includes output bits,
+the output prefix/cursor and load framing supplied by `finv`, old-memory
+framing, and retained startup state. No scalar nonzero, curve-membership,
+special cursor, zero-initialized output or input/global-separation premise
+is introduced. The entry/body modules reuse the existing scalar reader,
+allocation, copy, literal-point writer and readonly-preservation lemmas.
+
+`jet_secp_generate_local.generate_initialized_local_spec_from_memset_steps`
+exports exactly the existing `secp_jet_initialized_local_spec`, conditional
+only on the unchanged original zeroing-step parameter. In the same module,
+`generate_runs_from_actual_init` constructs a valid input/output frame pair
+for every Word256 value starting from `Genv.init_mem jets_secp.prog`, invokes
+the whole public function and preserves the initially existing memory loads
+and startup state. `generate_startup_old_blocks` proves that frame construction
+preserves the actual initialized globals, recovering their readability from
+preserved byte loads rather than assuming it.
+
+The public call, local contract and fresh-frame result inherit the same eight
+assumptions as the whole Strauss/ecmult chain. The sole deferred execution
+parameter still supplies the exact original wNAF `memset` statements, their
+129 zero words and memory effects in valid owned destinations. It does not
+assume any internal or public jet execution or specification result. There
+is no new axiom, external-call model or coverage row: coverage stays 514/533.
+Reproduce the normal build and recursive kernel check with the same commands
+using `C/jet_secp_generate_local.vo` / `C.jet_secp_generate_local`.
 
 ## Internal normalization dependency
 

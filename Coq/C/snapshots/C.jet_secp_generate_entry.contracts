@@ -1,0 +1,126 @@
+### C.jet_secp_generate_entry.generate_public_entry
+generate_public_entry
+     : forall (envv : Values.val) (m : Memory.Mem.mem) (ma mb mc : Memory.Mem.mem') (bl bp bn bd : Values.block)
+         (base : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc ma BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                (@pair Memory.Mem.mem' Values.block mb bp))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc mb BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block mc bn)),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_simplicity_generate
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val envv (@nil Values.val))))
+         m (generate_public_env bl bp bn) (jet_secp_public_copy.secp_public_temps envv bd base bs sbase) mc
+### C.jet_secp_generate_entry.generate_public_blocks
+generate_public_blocks
+     : forall bl bp bn : Values.block,
+       @eq (list (prod (prod Values.block BinNums.Z) BinNums.Z))
+         (Clight.blocks_of_env jet_secp_linkage.secp_ge (generate_public_env bl bp bn))
+         (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+            (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bl BinNums.Z0)
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+            (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+               (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bp BinNums.Z0)
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                  (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bn BinNums.Z0)
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                  (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))))
+### C.jet_secp_generate_entry.generate_prepare
+generate_prepare
+     : forall (envv : Values.val) (m0 : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bw : Values.block) (edge cursor N : BinNums.Z)
+         (bi : Values.block) (inedge rc : BinNums.Z) (_ : jet_secp_generator_startup.generator_startup m0)
+         (_ : jet_output_layout.write_frame_at m0 bd base bw edge cursor N)
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m0 bs sbase bi inedge rc),
+       @ex Values.block
+         (fun bl : Values.block =>
+          @ex Values.block
+            (fun bp : Values.block =>
+             @ex Values.block
+               (fun bn : Values.block =>
+                @ex Memory.Mem.mem
+                  (fun mc : Memory.Mem.mem =>
+                   @ex Memory.Mem.mem
+                     (fun md : Memory.Mem.mem =>
+                      and
+                        (Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_simplicity_generate
+                           (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                              (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                                 (@cons Values.val envv (@nil Values.val)))) m0 (generate_public_env bl bp bn)
+                           (jet_secp_public_copy.secp_public_temps envv bd base bs sbase) mc)
+                        (and
+                           (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (generate_public_env bl bp bn)
+                              (jet_secp_public_copy.secp_public_temps envv bd base bs sbase) mc generate_copy Events.E0
+                              (jet_secp_public_copy.secp_public_temps envv bd base bs sbase) md
+                              ClightBigstep.Out_normal)
+                           (and
+                              (Memory.Mem.range_perm md bl BinNums.Z0
+                                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                 Memtype.Cur Memtype.Freeable)
+                              (and
+                                 (Memory.Mem.range_perm md bp BinNums.Z0
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                    Memtype.Cur Memtype.Freeable)
+                                 (and
+                                    (Memory.Mem.range_perm md bn BinNums.Z0
+                                       (BinNums.Zpos
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                       Memtype.Cur Memtype.Freeable)
+                                    (and (jet_frame_layout.frame_fields_at md bl BinNums.Z0 bi inedge rc)
+                                       (and (not (@eq Values.block bp bl))
+                                          (and (not (@eq Values.block bn bl))
+                                             (and (not (@eq Values.block bp bn))
+                                                (and
+                                                   (forall (b : Values.block) (_ : Memory.Mem.valid_block m0 b),
+                                                    and (not (@eq Values.block b bp))
+                                                      (and (not (@eq Values.block b bn)) (not (@eq Values.block b bl))))
+                                                   (and
+                                                      (jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi)
+                                                         (@cons (prod Values.block BinNums.Z)
+                                                            (@pair Values.block BinNums.Z bp BinNums.Z0)
+                                                            (@cons (prod Values.block BinNums.Z)
+                                                               (@pair Values.block BinNums.Z bn BinNums.Z0)
+                                                               (@cons (prod Values.block BinNums.Z)
+                                                                  (@pair Values.block BinNums.Z bl BinNums.Z0)
+                                                                  (@nil ...)))))
+                                                      (and
+                                                         (jet_frame_inv.finv m0 bd base bw edge cursor N bi md false
+                                                            (@nil BitMachine.Cell))
+                                                         (and (jet_secp_generator_startup.generator_startup md)
+                                                            (jet_sx_mem.lframe
+                                                               (fun (b : Values.block) (_ : BinNums.Z) =>
+                                                                and (...) (...)) m0 md))))))))))))))))))
+### C.jet_secp_generate_entry.generate_public_env
+generate_public_env =
+fun bl bp bn : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._ng__2
+  (@pair Values.block Ctypes.type bn (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))
+  (@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._r
+     (@pair Values.block Ctypes.type bp (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))
+     (@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._src
+        (@pair Values.block Ctypes.type bl (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr)) Clight.empty_env))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block), Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments generate_public_env bl bp bn
+### C.jet_secp_generate_entry.generate_copy
+generate_copy =
+Clight.Sassign (Clight.Evar jets_secp._src (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))
+  (Clight.Etempvar jets_secp._src (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))
+     : Clight.statement

@@ -2108,13 +2108,22 @@ ecmult call, including four actual local allocations, all state stores and
 all four frees, retaining the exact literal result and initial read-only
 globals. `jet_secp_generator_startup` establishes and transports the actual
 zero auxiliary scalar and both generator tables from program initialization.
-Next compose the public source-frame copy, scalar reader, this ecmult call,
-point writer, return and three public local frees, including the initialized
-state lifecycle required by that public contract. Do not redo the ecmult
-wrapper, digit or point loops or assume the
-table/specification correspondence. External memset remains deferred; no
-public `generate` coverage increase is claimed. The exact current conditional
-boundary and reproducible checks are recorded in
+`jet_secp_generate_lifecycle.eval_generate_initialized` now composes the
+original public source-frame copy, scalar reader, that ecmult call, point
+writer, return and three public local frees for arbitrary valid frames and
+cursors. `jet_secp_generate_local.generate_initialized_local_spec_from_memset_steps`
+exports the full existing initialized local contract. Its
+`generate_runs_from_actual_init` constructs the frames for every Word256 input
+from actual initialized program memory and proves startup-state preservation,
+so the joint premises are not merely postulated. No scalar/curve restriction
+or input/global separation premise is added.
+
+This completes the public `generate` composition at the explicitly deferred
+original memset boundary. No wNAF, split, table, loop, reader, writer or public
+execution is assumed. Reuse this path for subsequent jets rather than redoing
+it; do not assume the table/specification correspondence. External memset
+remains deferred and no public `generate` coverage increase is claimed.
+The exact current conditional boundary and reproducible checks are recorded in
 `JET_SECP_EXTERNAL_MISMATCHES.md` under Generation.
 
 ## Completed: `simplicity_gej_rescale`
