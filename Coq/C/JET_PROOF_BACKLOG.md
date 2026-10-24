@@ -2318,16 +2318,29 @@ unchanged CTZ contract remains explicit; this is still a conditional prefix,
 not registered public coverage. Its source-tree equalities retain the
 original statement order and original suffix.
 
-Next continue at `swu_after_first_candidate`: copy x1 to x2, add 1 and use the
-original magnitude-3 negation, then build x3, the three cubics, roots, point
-selection, parity, allocations/frees and the public wrapper. Reuse
-`exec_field_copy_owned`, `eval_field_add_int_from_storage` and
-`eval_negate_mag_bounded`; derive no-wrap and magnitude-3 subtraction bounds
-from the returned `field_scaled_bounds 2`, not an assumed intermediate result
-or a magnitude-one substitution. Coverage stays 514/533. Reproduce the normal
-build/kernel check with `C/jet_secp_swu_first_candidate.vo` /
-`C.jet_secp_swu_first_candidate`, plus focused assumption/contract comparisons
-for `jet_secp_swu_constant_add` and `jet_secp_swu_first_candidate`.
+`jet_secp_swu_second_candidate.exec_swu_second_candidate` executes the
+original copy x1 to x2, add-one, and magnitude-3 negation. The no-wrap and
+subtraction bounds follow from the preceding proved `field_scaled_bounds 2`;
+no normalization, magnitude-one substitution or assumed intermediate output
+is used. It derives x2's exact radix value `8*p-(x1+1)`, reusable bounds,
+ownership and preservation. `exec_swu_through_second` composes **all first
+fourteen original statements from input storage**, retains all six owned
+fields, and establishes both `swu_c_candidate1` and `swu_c_candidate2` modulo
+p as well as the exact joint inverse, startup state, readonly preservation
+and memory frame. The same original CTZ contract remains explicit; neither
+result is whole-public SWU coverage.
+
+Next continue at `swu_after_second_candidate`: square wd into x3, multiply
+x3 by wd and jinv, add 1, then build the three cubics, roots, point selection,
+parity, allocations/frees and the public wrapper. Reuse
+`eval_square_separate_from_storage`, `eval_field_pair_multiply` and the
+parameterized add-one proof. Derive wd's loose bounds with `add_int_bounds`
+from `square_output_bounds`; do not assume its representation or bounds.
+Coverage stays 514/533. Reproduce the normal build/kernel check with
+`C/jet_secp_swu_second_candidate.vo` / `C.jet_secp_swu_second_candidate`, plus
+focused assumption/contract comparisons for the new modules
+`jet_secp_swu_constant_add`, `jet_secp_swu_first_candidate` and
+`jet_secp_swu_second_candidate`.
 
 ## Completed: `simplicity_gej_rescale`
 
