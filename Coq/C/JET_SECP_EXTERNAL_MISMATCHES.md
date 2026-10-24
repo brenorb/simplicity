@@ -860,6 +860,33 @@ JET_TARGETS="C/jet_secp_div62_count.vo C/jet_secp_div62_finish.vo" bash Coq/buil
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_statement_prefix C.jet_secp_div62_count C.jet_secp_div62_finish
 ```
 
+## Original divstep cancellation tails (internal progress, no added coverage)
+
+`jet_secp_div62_cancel.exec_div62_cancel` executes both original cancellation
+tails: the selected `w` computation, then `g += f*w`, `q += u*w`,
+`r += v*w`, and the original no-op assertion loop. The statements are
+extracted from the unchanged divstep body, with structural equalities
+checked in Coq. The theorem derives all four assigned temporaries, preserves
+every other temporary, and leaves memory exactly unchanged. The words and
+mask are arbitrary; no divisibility or helper-execution premise is assumed.
+
+The four-bit path retains the original truncation of its first `w` value
+to uint32, uint32 negation, and zero-extension before multiplication. It is
+not silently replaced by unbounded integer or 64-bit negation. The six-bit
+path likewise retains its actual 64-bit arithmetic and uint32 result cast.
+
+These are suffixes **after** branch selection, swaps, limit and mask
+calculation. Their execution and the mathematical cancellation/matrix
+correspondence still require composition with the delayed-division invariant.
+This closes the exact-word execution obligation for the cancellation tail,
+not the CTZ call, complete divstep loop, inversion, or any public jet.
+No external model or public registration is added; coverage stays 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_div62_cancel.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_cancel
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
