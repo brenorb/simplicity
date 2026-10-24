@@ -2023,6 +2023,50 @@ JET_TARGETS="C/jet_secp_closed_helpers.vo C/jet_secp_scalar_inverse_initialized.
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_closed_helpers C.jet_secp_scalar_inverse_initialized
 ```
 
+## Complete original scalar-invert public caller (conditional progress)
+
+`jet_secp_scalar_invert_local.scalar_invert_initialized_local_spec_from_count_calls`
+now proves the **existing full initialized local contract** for
+`f_simplicity_scalar_invert` and `literal_scalar_invert`, conditional on the
+previously explicit CTZ-helper executions. This supersedes the remaining public
+composition obligations in the preceding scalar-inverse progress sections.
+The arbitrary valid caller-frame contract is not replaced by the fresh-frame
+example, nor is the older arbitrary-memory contract silently given startup
+facts.
+
+The original public function is composed end to end: its 16- and 32-byte local
+allocations, by-value source-frame copy, scalar reader, in-place inverse,
+serializer, Boolean return, and local frees. Exact output cells, output prefix,
+cursor movement, arbitrary-chunk caller framing, and initialized modulus state
+are all conclusions. The reader's normalization is bridged to the literal
+inverse of the original input, not substituted as a new specification.
+
+`jet_secp_scalar_io_preserve` extends the checked internal-call subset to the
+original reader/writer and their frame helpers (114 functions), reusing the
+existing internal-Clight preservation proof. `Mem.unchanged_on` directly gives
+complete readonly-block load and permission preservation. Hence the modulus
+survives the same constructed read/invert/write execution, even if the input
+frame refers to it; no blanket input/global separation, final-readability
+premise, determinism, or generic external-call-properties axiom is added.
+
+`jet_secp_scalar_invert_fresh.scalar_invert_runs_from_actual_init` separately
+constructs frames for every Word256 input from actual
+`Genv.init_mem jets_secp.prog`, establishes readiness, executes that whole public
+function, and preserves all old program-memory loads. Its only deferred
+execution premise is the same CTZ call obligation; frame/global premises are
+discharged rather than assumed.
+
+**This is still conditional progress, not accepted coverage.** The CTZ premise
+is not an axiom, a newly installed external model, or a proved property of the
+original builtin. It remains an explicit theorem parameter. The public ledger
+stays at 514/533; no production C, generated AST, canonical specification,
+primitive identity, API, or generation setting is changed.
+
+```sh
+JET_TARGETS="C/jet_secp_scalar_invert_local.vo C/jet_secp_scalar_invert_fresh.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_invert_local C.jet_secp_scalar_invert_fresh
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

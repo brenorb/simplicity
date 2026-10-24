@@ -1,0 +1,298 @@
+### C.jet_secp_scalar_io_preserve.scalar_io_helpers_checked
+scalar_io_helpers_checked
+     : @eq bool
+         (@List.forallb (prod BinNums.positive Clight.function)
+            (fun it : prod BinNums.positive Clight.function =>
+             andb
+               (jet_clight_internal_frame.closed_stmtb scalar_io_helpers
+                  (Clight.fn_body (@snd BinNums.positive Clight.function it)))
+               (@List.forallb (prod AST.ident Ctypes.type)
+                  (fun local : prod AST.ident Ctypes.type =>
+                   jet_clight_internal_frame.nonfunction_type (@snd AST.ident Ctypes.type local))
+                  (Clight.fn_vars (@snd BinNums.positive Clight.function it)))) scalar_io_helpers) true
+### C.jet_secp_scalar_io_preserve.scalar_io_helpers_count
+scalar_io_helpers_count
+     : @eq nat (@length (prod BinNums.positive Clight.function) scalar_io_helpers)
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+### C.jet_secp_scalar_io_preserve.scalar_io_base_lookup
+scalar_io_base_lookup
+     : @eq (list (option Clight.fundef))
+         (@List.map (prod AST.ident Clight.function) (option Clight.fundef)
+            (jet_sx_pure.symbol_lookup jet_secp_linkage.secp_ge) scalar_io_base)
+         (@List.map (prod AST.ident Clight.function) (option (Ctypes.fundef Clight.function))
+            (fun p : prod AST.ident Clight.function =>
+             @Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function (@snd AST.ident Clight.function p))) scalar_io_base)
+### C.jet_secp_scalar_io_preserve.scalar_io_helpers_subset
+scalar_io_helpers_subset
+     : forall (item : prod BinNums.positive Clight.function)
+         (_ : @List.In (prod BinNums.positive Clight.function) item scalar_io_helpers),
+       @List.In (prod BinNums.positive Clight.function) item scalar_io_base
+### C.jet_secp_scalar_io_preserve.scalar_io_helpers_ok
+scalar_io_helpers_ok
+     : jet_clight_internal_frame.internal_table_ok jet_secp_linkage.secp_ge scalar_io_helpers
+### C.jet_secp_scalar_io_preserve.scalar_io_allowed
+scalar_io_allowed
+     : and
+         (jet_clight_internal_frame.allowed_call scalar_io_helpers
+            (@Ctypes.Internal Clight.function jets_secp.f_read_scalar))
+         (jet_clight_internal_frame.allowed_call scalar_io_helpers
+            (@Ctypes.Internal Clight.function jets_secp.f_write_scalar))
+### C.jet_secp_scalar_io_preserve.scalar_reader_preserved
+scalar_reader_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_read_scalar) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_scalar_io_preserve.scalar_writer_preserved
+scalar_writer_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_write_scalar) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_scalar_io_preserve.preserved_readonly_block_frame
+preserved_readonly_block_frame
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (_ : jet_clight_internal_preserve.readonly_preserved m mf)
+         (_ : Memory.Mem.valid_block m b)
+         (_ : forall ofs : BinNums.Z, not (Memory.Mem.perm m b ofs Memtype.Max Memtype.Writable)),
+       jet_sx_mem.lframe (fun (block : Values.block) (_ : BinNums.Z) => @eq Values.block block b) m mf
+### C.jet_secp_scalar_io_preserve.modinfo_scalar_initialized_preserved
+modinfo_scalar_initialized_preserved
+     : forall (m mf : Memory.Mem.mem) (_ : jet_secp_modinfo_scalar_initialized.modinfo_scalar_initialized m)
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf),
+       jet_secp_modinfo_scalar_initialized.modinfo_scalar_initialized mf
+### C.jet_secp_scalar_io_preserve.scalar_io_base
+scalar_io_base =
+@app (prod AST.ident Clight.function) jet_secp_fns.secp_pure
+  (@app (prod AST.ident Clight.function) jet_secp_linkage.secp_core_helpers
+     (@cons (prod AST.ident Clight.function)
+        (@pair AST.ident Clight.function jets_secp._read_scalar jets_secp.f_read_scalar)
+        (@cons (prod AST.ident Clight.function)
+           (@pair AST.ident Clight.function jets_secp._write_scalar jets_secp.f_write_scalar)
+           (@nil (prod AST.ident Clight.function)))))
+     : list (prod AST.ident Clight.function)
+### C.jet_secp_scalar_io_preserve.scalar_io_ids
+scalar_io_ids =
+@cons AST.ident
+  (BinNums.xO
+     (BinNums.xO
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (...)))))))))))))))))))))))
+  (@cons AST.ident
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (...))))))))))))))))))))))
+     (@cons AST.ident
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (...)))))))))))))))))))))
+        (@cons AST.ident
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (...))))))))))))))))))))
+           (@cons AST.ident
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...)))))))))))))))))))
+              (@cons AST.ident
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))))))))))))))
+                 (@cons AST.ident
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (...)))))))))))))))))
+                    (@cons AST.ident
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (...))))))))))))))))
+                       (@cons AST.ident
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))
+                          (@cons AST.ident
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))
+                             (@cons AST.ident
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...)))))))))))))
+                                (@cons AST.ident
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (...))))))))))))
+                                   (@cons AST.ident
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))
+                                      (@cons AST.ident
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (...))))))))))
+                                         (@cons AST.ident
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (...)))))))))
+                                            (@cons AST.ident
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...))))))))
+                                               (@cons AST.ident
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (...)))))))
+                                                  (@cons AST.ident
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...))))))
+                                                     (@cons AST.ident
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (...)))))
+                                                        (@cons AST.ident (BinNums.xO (BinNums.xO (BinNums.xI (...))))
+                                                           (@cons AST.ident (BinNums.xO (BinNums.xO (...)))
+                                                              (@cons AST.ident (BinNums.xO (...))
+                                                                 (@cons AST.ident (...) (...)))))))))))))))))))))))
+     : list AST.ident
+### C.jet_secp_scalar_io_preserve.scalar_io_helpers
+scalar_io_helpers =
+@List.filter (prod BinNums.positive Clight.function)
+  (fun it : prod BinNums.positive Clight.function =>
+   @List.existsb BinNums.positive (BinPos.Pos.eqb (@fst BinNums.positive Clight.function it)) scalar_io_ids)
+  scalar_io_base
+     : list (prod BinNums.positive Clight.function)
