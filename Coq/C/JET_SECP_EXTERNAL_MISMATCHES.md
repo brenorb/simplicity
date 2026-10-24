@@ -360,6 +360,8 @@ literal vector, and the actual return length removes only leading zero
 digits. All old memory outside the output block and the source scalar survive
 cleanup. Input/output block separation is the internal generator layout, not
 a new restriction on public frame layouts.
+The strengthened endpoint also retains exact permissions on every pre-existing
+block, in both directions, despite allocating and freeing the private scalar.
 
 The allocation equation identifies the actual entry allocation; the only
 assumed execution is the exact original external-call statement, not the
@@ -369,6 +371,27 @@ the public `generate` jet. Coverage remains 514/533. Reproduce its build and
 kernel check with the commands below using
 `C/jet_secp_wnaf_function15.vo` / `C.jet_secp_wnaf_function15`; inspect its
 reviewed assumption/contract snapshots for the precise conditional boundary.
+
+`jet_secp_generator_wnaf_setup.exec_generator_wnaf_setup` composes both
+actual caller statements: the low-half call through `_t'6` to `_bits_ng_1`,
+the high-half call through `_t'7` to `_bits_ng_128`, and the original two
+maximum-count updates. It derives the two literal digit arrays, destination
+ownership, exact maximum return length, unchanged other temporaries, external
+memory framing and exact permissions on old blocks. The first array and the
+second scalar survive the intervening calls. Both read-only generator tables
+are preserved from their initial represented state; that preservation is not
+assumed as a postcondition. Local-array separation matches the actual distinct
+Strauss allocations. Every Word128 half is covered, including zero.
+
+The explicit premise supplies only the exact original zeroing statements for
+the two call slots in owned destinations. The wNAF calls, their scalar copies,
+literal results, return assignments and cleanup are proved using the preceding
+function theorem. This introduces no axiom or replacement external semantics.
+It does not discharge the deferred zeroing steps or compose Strauss entry,
+scalar splitting, the point stage, final local frees and public read/write
+into the public `generate` theorem. Coverage is unchanged. Build/check the new
+module with the same commands using `C/jet_secp_generator_wnaf_setup.vo` /
+`C.jet_secp_generator_wnaf_setup`.
 
 ## Internal normalization dependency
 

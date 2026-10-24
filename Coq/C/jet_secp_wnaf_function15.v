@@ -62,7 +62,9 @@ Theorem eval_wnaf_literal15_from_memset_step
     map wnaf_literal_value (literal_wnaf15_digits (Bit.zero,word))=
       rev (map (fun i=>digits (Z.of_nat i)) (seq 0 129)) /\
     map wnaf_literal_value (literal_wnaf15_digits (Bit.zero,word))=
-      repeat 0 (129-Z.to_nat (last+1))++rev (wnaf_slice (Z.to_nat (last+1)) digits 0).
+      repeat 0 (129-Z.to_nat (last+1))++rev (wnaf_slice (Z.to_nat (last+1)) digits 0) /\
+    (forall old pos k p,Mem.valid_block m old ->
+      (Mem.perm mf old pos k p <-> Mem.perm m old pos k p)).
 Proof.
   intros Input Separate Owned Alloc ZeroStep Zeros [ZeroBlocks [ZeroPerm ZeroFrame]].
   assert (AllocFrame:lframe (fun _ _=>True) m mi).
@@ -146,5 +148,16 @@ Proof.
       * rewrite (Mem.nextblock_free _ _ _ _ _ Free),TailBlocks,ZeroBlocks;reflexivity.
       * split;[exact WholeFrame|];split.
         -- eapply scalar_at_lframe;[exact Input|exact WholeFrame|intros;exact Separate].
-        -- split;[exact Literal|];eapply wnaf_literal_return_length;[exact ArrayF|exact Literal].
+        -- split;[exact Literal|];split.
+           ++ eapply wnaf_literal_return_length;[exact ArrayF|exact Literal].
+           ++ intros old pos k p Valid.
+              assert (NotPrivate:old<>bs).
+              { intro Same;subst old;exact (Mem.fresh_block_alloc _ _ _ _ _ Alloc Valid). }
+              split;intro Perm.
+              ** eapply Mem.perm_alloc_4;[exact Alloc| |exact NotPrivate].
+                 apply (proj2 (ZeroPerm old pos k p));apply (proj1 (TailPerm old pos k p)).
+                 eapply Mem.perm_free_3;[exact Free|exact Perm].
+              ** eapply Mem.perm_free_1;[exact Free|left;exact NotPrivate|].
+                 apply (proj2 (TailPerm old pos k p));apply (proj1 (ZeroPerm old pos k p)).
+                 eapply Mem.perm_alloc_1;[exact Alloc|exact Perm].
 Qed.

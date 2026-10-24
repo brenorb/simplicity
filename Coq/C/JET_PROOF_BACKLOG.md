@@ -2091,12 +2091,21 @@ initial temporaries remain explicit premises at this post-memset boundary.
 The actual public `generate` path is `simplicity_generate -> ecmult ->
 strauss_wnaf` with `num=1`, not a substituted `num=0` call. Its static scalar
 `na=0` makes the first processing loop skip the arbitrary-point path, leaving
-`no=0` and `Z=1`. Next handle the stored generator-table decoder/lookup and
-`gej_add_zinv_var` at that actual `Z`, then compose the descending point loop
-against the literal generate program. Table contents must be related to
-`generateSmall`/`generate128Small`, not assumed correct. Entry/freeing,
-external memset and canonical scalar-normalization/split caller composition
-also remain unresolved; there is no public `generate` coverage increase.
+`no=0` and `Z=1`. The earlier loop-development notes above are historical:
+`jet_secp_generator_point_stage` now composes the original infinity setup,
+literal-aware descending point loop and final Z correction from represented
+digit arrays. `jet_secp_generator_entry_split` establishes the actual Strauss
+entry, nine owned/distinct locals, preparation, Z=1 and literal scalar halves.
+`jet_secp_generator_wnaf_setup` now executes both actual wNAF calls, return
+assignments and maximum-length updates, retaining both literal arrays and
+read-only generator tables, conditional only on the original zeroing steps.
+Next connect those checked stages through the guarded scalar branch, preserve
+the initialized globals through the full caller, free the actual locals, and
+compose the enclosing ecmult/public read-write path. Do not redo the digit or
+point loops or assume the table/specification correspondence. External memset
+remains deferred; no public `generate` coverage increase is claimed. The exact
+current conditional boundary and reproducible checks are recorded in
+`JET_SECP_EXTERNAL_MISMATCHES.md` under Generation.
 
 ## Completed: `simplicity_gej_rescale`
 
