@@ -1,0 +1,163 @@
+### C.jet_secp_modinv_fg_iteration_arith.fg_accum_words_exact
+fg_accum_words_exact
+     : forall (p : prod Integers.Int64.int Integers.Int64.int) (a b : Integers.Int64.int)
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.opp
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                   (BinInt.Z.add (fg_pair_value p) (BinInt.Z.mul (Integers.Int64.signed a) (Integers.Int64.signed b))))
+                (BinInt.Z.lt
+                   (BinInt.Z.add (fg_pair_value p) (BinInt.Z.mul (Integers.Int64.signed a) (Integers.Int64.signed b)))
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))),
+       @eq BinNums.Z (fg_pair_value (fg_accum_words p a b))
+         (BinInt.Z.add (fg_pair_value p) (BinInt.Z.mul (Integers.Int64.signed a) (Integers.Int64.signed b)))
+### C.jet_secp_modinv_fg_iteration_arith.fg_row_sum_bounds
+fg_row_sum_bounds
+     : forall (p : prod Integers.Int64.int Integers.Int64.int) (u v f g : Integers.Int64.int)
+         (_ : fg_row_bound p u v f g),
+       and
+         (BinInt.Z.le
+            (BinInt.Z.abs
+               (BinInt.Z.add (fg_pair_value p) (BinInt.Z.mul (Integers.Int64.signed u) (Integers.Int64.signed f))))
+            (BinInt.Z.add
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (BinInt.Z.le (BinInt.Z.abs (fg_row_sum p u v f g))
+            (BinInt.Z.add
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+### C.jet_secp_modinv_fg_iteration_arith.fg_row_words_exact
+fg_row_words_exact
+     : forall (p : prod Integers.Int64.int Integers.Int64.int) (u v f g : Integers.Int64.int)
+         (_ : fg_row_bound p u v f g), @eq BinNums.Z (fg_pair_value (fg_row_words p u v f g)) (fg_row_sum p u v f g)
+### C.jet_secp_modinv_fg_iteration_arith.fg_pair_mod62
+fg_pair_mod62
+     : forall p : prod Integers.Int64.int Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.modulo (fg_pair_value p)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (BinInt.Z.modulo (Integers.Int64.signed (@fst Integers.Int64.int Integers.Int64.int p))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_modinv_fg_iteration_arith.fg_row_step_numeric
+fg_row_step_numeric
+     : forall (p : prod Integers.Int64.int Integers.Int64.int) (u v f g : Integers.Int64.int)
+         (_ : fg_row_bound p u v f g),
+       and
+         (@eq BinNums.Z (fg_pair_value (fg_row_carry p u v f g))
+            (BinInt.Z.div (fg_row_sum p u v f g)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (and
+            (@eq BinNums.Z (Integers.Int64.unsigned (fg_row_limb p u v f g))
+               (BinInt.Z.modulo (fg_row_sum p u v f g)
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+            (and
+               (and (BinInt.Z.le BinNums.Z0 (Integers.Int64.signed (fg_row_limb p u v f g)))
+                  (BinInt.Z.lt (Integers.Int64.signed (fg_row_limb p u v f g))
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+               (and
+                  (BinInt.Z.le (BinInt.Z.abs (fg_pair_value (fg_row_carry p u v f g)))
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                  (@eq BinNums.Z (fg_row_sum p u v f g)
+                     (BinInt.Z.add
+                        (BinInt.Z.mul (fg_pair_value (fg_row_carry p u v f g))
+                           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                        (Integers.Int64.unsigned (fg_row_limb p u v f g)))))))
+### C.jet_secp_modinv_fg_iteration_arith.fg_pair_value
+fg_pair_value =
+fun p : prod Integers.Int64.int Integers.Int64.int =>
+jet_secp_i128_shift62_numeric.i128_signed_value (@fst Integers.Int64.int Integers.Int64.int p)
+  (@snd Integers.Int64.int Integers.Int64.int p)
+     : forall _ : prod Integers.Int64.int Integers.Int64.int, BinNums.Z
+
+Arguments fg_pair_value p
+### C.jet_secp_modinv_fg_iteration_arith.fg_accum_words
+fg_accum_words =
+fun (p : prod Integers.Int64.int Integers.Int64.int) (a b : Integers.Int64.int) =>
+@pair Integers.Int64.int Integers.Int64.int
+  (jet_secp_i128_accum_mul_numeric.smul_accum_lo_word (@fst Integers.Int64.int Integers.Int64.int p) a b)
+  (jet_secp_i128_accum_mul_numeric.smul_accum_hi_word (@fst Integers.Int64.int Integers.Int64.int p)
+     (@snd Integers.Int64.int Integers.Int64.int p) a b)
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       prod Integers.Int64.int Integers.Int64.int
+
+Arguments fg_accum_words p a b
+### C.jet_secp_modinv_fg_iteration_arith.fg_row_words
+fg_row_words =
+fun (p : prod Integers.Int64.int Integers.Int64.int) (u v f g : Integers.Int64.int) =>
+fg_accum_words (fg_accum_words p u f) v g
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), prod Integers.Int64.int Integers.Int64.int
+
+Arguments fg_row_words p u v f g
+### C.jet_secp_modinv_fg_iteration_arith.fg_row_sum
+fg_row_sum =
+fun (p : prod Integers.Int64.int Integers.Int64.int) (u v f g : Integers.Int64.int) =>
+BinInt.Z.add (BinInt.Z.add (fg_pair_value p) (BinInt.Z.mul (Integers.Int64.signed u) (Integers.Int64.signed f)))
+  (BinInt.Z.mul (Integers.Int64.signed v) (Integers.Int64.signed g))
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), BinNums.Z
+
+Arguments fg_row_sum p u v f g
+### C.jet_secp_modinv_fg_iteration_arith.fg_row_bound
+fg_row_bound =
+fun (p : prod Integers.Int64.int Integers.Int64.int) (u v f g : Integers.Int64.int) =>
+and
+  (BinInt.Z.le (BinInt.Z.abs (fg_pair_value p))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+  (and
+     (BinInt.Z.le (BinInt.Z.add (BinInt.Z.abs (Integers.Int64.signed u)) (BinInt.Z.abs (Integers.Int64.signed v)))
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+     (and
+        (BinInt.Z.le (BinInt.Z.abs (Integers.Int64.signed f))
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+        (BinInt.Z.le (BinInt.Z.abs (Integers.Int64.signed g))
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), Prop
+
+Arguments fg_row_bound p u v f g
+### C.jet_secp_modinv_fg_iteration_arith.fg_row_limb
+fg_row_limb =
+fun (p : prod Integers.Int64.int Integers.Int64.int) (u v f g : Integers.Int64.int) =>
+Integers.Int64.and (@fst Integers.Int64.int Integers.Int64.int (fg_row_words p u v f g))
+  (Integers.Int64.repr
+     (BinInt.Z.sub
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+        (BinNums.Zpos BinNums.xH)))
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments fg_row_limb p u v f g
+### C.jet_secp_modinv_fg_iteration_arith.fg_row_carry
+fg_row_carry =
+fun (p : prod Integers.Int64.int Integers.Int64.int) (u v f g : Integers.Int64.int) =>
+@pair Integers.Int64.int Integers.Int64.int
+  (jet_secp_i128_shift62.i128_shift62_low (@fst Integers.Int64.int Integers.Int64.int (fg_row_words p u v f g))
+     (@snd Integers.Int64.int Integers.Int64.int (fg_row_words p u v f g)))
+  (jet_secp_i128_shift62.i128_shift62_high (@snd Integers.Int64.int Integers.Int64.int (fg_row_words p u v f g)))
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), prod Integers.Int64.int Integers.Int64.int
+
+Arguments fg_row_carry p u v f g

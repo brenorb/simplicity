@@ -271,8 +271,18 @@ this keeps symbolic-index conversion from expanding a large interpreter term.
 It is not a different C body or an excluded valid loop index. All proofs close
 under the ordinary ten-second command limit. This is a complete **body**
 execution theorem, not a complete loop, inverse helper or public jet proof.
-The loop's numeric invariant, final stores, entry/freeing and full caller
-composition are still open; no public coverage increment is claimed.
+The full-loop invariant, final stores, entry/freeing and full caller composition
+are still open; no public coverage increment is claimed.
+
+`jet_secp_modinv_fg_iteration_numeric.exec_fg_iteration_numeric` connects this
+same original body execution to the radix-`2^62` recurrence for both rows.
+It derives the physical masked-limb and carry loads, their remainder/quotient
+values, and exact recombination of the pre-shift sum. The shared arithmetic
+proof derives the absence of signed-128 overflow from internal carry, matrix-row
+and limb bounds, and proves preservation of the carry bound for induction.
+Those internal bounds must still be established by the full caller; they do
+not restrict a registered jet's input or add an execution/library assumption.
+This is a numeric **body** result, not the full loop or public inversion proof.
 
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
@@ -281,6 +291,8 @@ JET_TARGETS=C/jet_secp_modinv_fg_iteration_prefix.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_iteration_prefix
 JET_TARGETS=C/jet_secp_modinv_fg_iteration.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_iteration
+JET_TARGETS=C/jet_secp_modinv_fg_iteration_numeric.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_iteration_arith C.jet_secp_modinv_fg_iteration_numeric
 ```
 
 ## Reproduction and limits
