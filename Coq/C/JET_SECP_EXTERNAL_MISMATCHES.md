@@ -49,6 +49,39 @@ preservation, or that such a call exists. These results use six inherited
 assumptions, without the external-call determinism axioms. They do not yet
 extract this call from a complete divstep batch or public inversion jet.
 
+## Scalar inverse conversion dependency (internal progress)
+
+`jet_secp_scalar_signed62_numeric.eval_scalar_to62_value` proves the actual
+`secp256k1_scalar_to_signed62` call for every four-word input in owned scalar
+storage. The five returned signed62 words are canonically positioned and
+have exactly the original 256-bit unsigned value. No scalar normalization
+restriction or result/helper execution is assumed.
+
+`eval_scalar_from62_value` proves the original reverse conversion for every
+canonically positioned five-word signed62 input, returning four scalar
+words with exactly the same unsigned value. Both calls retain the source
+contents, input/output ownership and outside-block framing. Their distinct
+owned regions match the private-signed62/caller-scalar layout of the inverse
+helper; this is not a new public input/output disjointness contract.
+
+The two conversion executions share one symbolic/storage interface in
+`jet_secp_scalar_signed62.v`. Their arithmetic interpretation reuses the
+field repacking bit-window lemmas, accounting for the 64/62-bit boundaries
+and high bits discarded by individual word shifts. No C, AST, generation
+setting, specification or external-call model is changed.
+
+This discharges two original helper calls, not `scalar_inverse_var` or the
+public `scalar_invert` jet. Scalar-modulus readiness, complete modular
+inversion and caller/read/write/return composition remain open. In
+particular, the field-modulus-specific inverse results cannot be reused as
+scalar-order results without a proved modulus-general bridge. Coverage
+remains 514/533; no new library premise is introduced by these helpers.
+
+```sh
+JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_signed62 C.jet_secp_scalar_signed62_numeric
+```
+
 ## Generation: wNAF also calls external memset
 
 The original `secp256k1_ecmult_wnaf` calls `memset` to initialize its digit
