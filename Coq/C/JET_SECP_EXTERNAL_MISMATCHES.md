@@ -978,6 +978,49 @@ JET_TARGETS=C/jet_secp_div62_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_numeric
 ```
 
+## Original non-exit transition/invariant bridge (internal progress, no added coverage)
+
+`jet_secp_div62_transition.exec_div62_transition_matrix` composes the
+original non-exit execution with the canonical divstep matrix. It derives
+an actual `Clight2.exec_stmt` with unchanged memory, and the pending
+representation of `Trans.mul (Trans.transN k state) old_matrix` in the
+resulting C temporaries. The first matrix row remains divided by `2^k`
+until the next count/shift; the second row is already the canonical new
+row. Eta equals the canonical state eta after `k` steps **plus `k`**, and
+the remaining C counter is unchanged by cancellation. The proof does not
+prematurely identify these temporaries with a fully divided state.
+
+The same execution theorem derives `div62_pending_fg`: its first C word
+approximates the new state's `f` modulo `2^(precision-k)` and its second
+word represents `g_approx * 2^k`, with `g_approx` approximating the new
+state's `g` at that precision. Both divisions are justified by the concrete
+cancellation result. The low-bit precision can exceed `k`; exact equality
+of the C input words with the large mathematical state is not required.
+Oddness of the needed approximate operand is derived from congruence with
+the canonical odd operand, not added as another premise.
+
+`div62_positive_transition` / `div62_negative_transition` use the actual
+computed uint32 coefficient in `Trans.transSs` / `Trans.transDs`. Their
+canonical matrix and eta conclusions, and the modular quotient/precision
+lemmas, discharge the mathematics used by the execution theorem. Existing
+`Trans.transN_stepN` composes this new matrix on the left with a preceding
+trajectory; no alternative implementation or checked AST is substituted.
+
+The theorem starts **after the count assignments/test**, at a non-exit
+internal state. Its premises remain the represented four old matrix words,
+represented `f/g`, their low-bit approximation, the internal eta/counter
+bounds, odd canonical `g`, and enough precision for this batch. It does not
+assume a helper call, an execution, a resulting matrix, or a resulting
+representation. Deriving those premises at entry and after each actual CTZ
+call, preserving the full enclosing loop invariant and termination, and
+composing the entire inverse/public jet remain required. No new external
+model or public registration is added; coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_div62_transition.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_transition
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

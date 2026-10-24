@@ -1,0 +1,443 @@
+### C.jet_secp_div62_transition.div62_odd_congruent
+div62_odd_congruent
+     : forall (a b precision : BinNums.Z) (_ : BinInt.Z.le (BinNums.Zpos BinNums.xH) precision)
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a b)
+         (_ : Zeven.Zodd b), BinInt.Z.Odd a
+### C.jet_secp_div62_transition.div62_coefficient_congruent
+div62_coefficient_congruent
+     : forall (a b F G k precision : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 k) (BinInt.Z.le k precision))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a F)
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b G),
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (BinInt.Z.mul (modinv.modInv (BinInt.Z.opp a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)) b)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+         (BinInt.Z.modulo
+            (BinInt.Z.mul (modinv.modInv (BinInt.Z.opp F) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)) G)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_transition.div62_positive_transition
+div62_positive_transition
+     : forall (st : divstep.State) (i a b precision : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 (divstep.eta st))
+                (BinInt.Z.le (divstep.eta st)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : BinInt.Z.le (jet_secp_div62_numeric.div62_cancel_bits false (divstep.eta st) i) precision)
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a (divstep.f st))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b (divstep.g st)),
+       let k : BinNums.Z := jet_secp_div62_numeric.div62_cancel_bits false (divstep.eta st) i in
+       let w : BinNums.Z :=
+         Integers.Int.unsigned
+           (jet_secp_div62_cancel.div62_w_word false (Integers.Int64.repr a) (Integers.Int64.repr b)
+              (jet_secp_div62_limit.div62_mask false (divstep.eta st) i)) in
+       and
+         (@eq divstep.Trans.M2x2 (divstep.Trans.transN (BinInt.Z.to_nat k) st)
+            (divstep.Trans.Build_M2x2 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k) BinNums.Z0 w
+               (BinNums.Zpos BinNums.xH)))
+         (@eq BinNums.Z (divstep.eta (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat k) st)))
+            (BinInt.Z.sub (divstep.eta st) k))
+### C.jet_secp_div62_transition.div62_negative_transition
+div62_negative_transition
+     : forall (st : divstep.State) (i a b precision : BinNums.Z)
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (divstep.eta st)) (BinInt.Z.lt (divstep.eta st) BinNums.Z0))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : Zeven.Zodd (divstep.g st))
+         (_ : BinInt.Z.le (jet_secp_div62_numeric.div62_cancel_bits true (BinInt.Z.opp (divstep.eta st)) i) precision)
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a (divstep.f st))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b (divstep.g st)),
+       let k : BinNums.Z := jet_secp_div62_numeric.div62_cancel_bits true (BinInt.Z.opp (divstep.eta st)) i in
+       let w : BinNums.Z :=
+         Integers.Int.unsigned
+           (jet_secp_div62_cancel.div62_w_word true (Integers.Int64.repr b) (Integers.Int64.repr (BinInt.Z.opp a))
+              (jet_secp_div62_limit.div62_mask true (BinInt.Z.opp (divstep.eta st)) i)) in
+       and
+         (@eq divstep.Trans.M2x2 (divstep.Trans.transN (BinInt.Z.to_nat k) st)
+            (divstep.Trans.Build_M2x2 BinNums.Z0 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               (BinNums.Zneg BinNums.xH) w))
+         (@eq BinNums.Z (divstep.eta (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat k) st)))
+            (BinInt.Z.sub (BinInt.Z.opp (divstep.eta st)) k))
+### C.jet_secp_div62_transition.div62_fg_transition
+div62_fg_transition
+     : forall (st : divstep.State) (k w : BinNums.Z) (neg : bool) (_ : BinInt.Z.le BinNums.Z0 k)
+         (_ : @eq divstep.Trans.M2x2 (divstep.Trans.transN (BinInt.Z.to_nat k) st)
+                match neg return divstep.Trans.M2x2 with
+                | true =>
+                    divstep.Trans.Build_M2x2 BinNums.Z0 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+                      (BinNums.Zneg BinNums.xH) w
+                | false =>
+                    divstep.Trans.Build_M2x2 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k) BinNums.Z0 w
+                      (BinNums.Zpos BinNums.xH)
+                end),
+       and
+         (@eq BinNums.Z (divstep.f (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat k) st)))
+            match neg return BinNums.Z with
+            | true => divstep.g st
+            | false => divstep.f st
+            end)
+         (@eq BinNums.Z
+            (BinInt.Z.mul (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat k) st))))
+            (BinInt.Z.add
+               match neg return BinNums.Z with
+               | true => BinInt.Z.opp (divstep.f st)
+               | false => divstep.g st
+               end (BinInt.Z.mul match neg return BinNums.Z with
+                                 | true => divstep.g st
+                                 | false => divstep.f st
+                                 end w)))
+### C.jet_secp_div62_transition.div62_divide_congruent
+div62_divide_congruent
+     : forall (a b precision k : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 k) (BinInt.Z.le k precision))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a
+                (BinInt.Z.mul (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k) b)),
+       Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub precision k))
+         (BinInt.Z.div a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)) b
+### C.jet_secp_div62_transition.div62_positive_approximation
+div62_positive_approximation
+     : forall (st : divstep.State) (i a b precision : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 (divstep.eta st))
+                (BinInt.Z.le (divstep.eta st)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : BinInt.Z.le (jet_secp_div62_numeric.div62_cancel_bits false (divstep.eta st) i) precision)
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a (divstep.f st))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b (divstep.g st)),
+       let k : BinNums.Z := jet_secp_div62_numeric.div62_cancel_bits false (divstep.eta st) i in
+       let w : BinNums.Z :=
+         Integers.Int.unsigned
+           (jet_secp_div62_cancel.div62_w_word false (Integers.Int64.repr a) (Integers.Int64.repr b)
+              (jet_secp_div62_limit.div62_mask false (divstep.eta st) i)) in
+       and
+         (Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub precision k)) a
+            (divstep.f (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat k) st))))
+         (and
+            (Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub precision k))
+               (BinInt.Z.div (BinInt.Z.add b (BinInt.Z.mul a w))
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+               (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat k) st))))
+            (@eq BinNums.Z (BinInt.Z.add b (BinInt.Z.mul a w))
+               (BinInt.Z.mul (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+                  (BinInt.Z.div (BinInt.Z.add b (BinInt.Z.mul a w))
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))))
+### C.jet_secp_div62_transition.div62_continued_matrix
+div62_continued_matrix
+     : forall (le : Maps.PTree.tree Values.val) (neg : bool) (eta i a b : BinNums.Z) (matrix : divstep.Trans.M2x2)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.Trans.u matrix)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._v le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.Trans.v matrix)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._q le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.Trans.q matrix)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.Trans.r matrix))))),
+       div62_pending_matrix
+         (jet_secp_div62_branch.div62_continued_temps le neg eta i (Integers.Int64.repr a)
+            (Integers.Int64.repr b) (Integers.Int64.repr (divstep.Trans.u matrix))
+            (Integers.Int64.repr (divstep.Trans.v matrix)) (Integers.Int64.repr (divstep.Trans.q matrix))
+            (Integers.Int64.repr (divstep.Trans.r matrix)))
+         (divstep.Trans.mul (div62_continuation_matrix neg eta i a b) matrix)
+         (jet_secp_div62_numeric.div62_cancel_bits neg
+            match neg return BinNums.Z with
+            | true => BinInt.Z.opp eta
+            | false => eta
+            end i)
+### C.jet_secp_div62_transition.div62_negative_approximation
+div62_negative_approximation
+     : forall (st : divstep.State) (i a b precision : BinNums.Z)
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (divstep.eta st)) (BinInt.Z.lt (divstep.eta st) BinNums.Z0))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : Zeven.Zodd (divstep.g st))
+         (_ : BinInt.Z.le (jet_secp_div62_numeric.div62_cancel_bits true (BinInt.Z.opp (divstep.eta st)) i) precision)
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a (divstep.f st))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b (divstep.g st)),
+       let k : BinNums.Z := jet_secp_div62_numeric.div62_cancel_bits true (BinInt.Z.opp (divstep.eta st)) i in
+       let w : BinNums.Z :=
+         Integers.Int.unsigned
+           (jet_secp_div62_cancel.div62_w_word true (Integers.Int64.repr b) (Integers.Int64.repr (BinInt.Z.opp a))
+              (jet_secp_div62_limit.div62_mask true (BinInt.Z.opp (divstep.eta st)) i)) in
+       and
+         (Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub precision k)) b
+            (divstep.f (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat k) st))))
+         (and
+            (Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub precision k))
+               (BinInt.Z.div (BinInt.Z.add (BinInt.Z.opp a) (BinInt.Z.mul b w))
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+               (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat k) st))))
+            (@eq BinNums.Z (BinInt.Z.add (BinInt.Z.opp a) (BinInt.Z.mul b w))
+               (BinInt.Z.mul (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+                  (BinInt.Z.div (BinInt.Z.add (BinInt.Z.opp a) (BinInt.Z.mul b w))
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))))
+### C.jet_secp_div62_transition.div62_branch_transition
+div62_branch_transition
+     : forall (st : divstep.State) (i a b precision : BinNums.Z)
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (divstep.eta st))
+                (BinInt.Z.le (divstep.eta st)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : Zeven.Zodd (divstep.g st)) (_ : BinInt.Z.le (div62_branch_width st i) precision)
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a (divstep.f st))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b (divstep.g st)),
+       and
+         (@eq divstep.Trans.M2x2 (divstep.Trans.transN (BinInt.Z.to_nat (div62_branch_width st i)) st)
+            (div62_continuation_matrix (div62_sign (divstep.eta st)) (divstep.eta st) i a b))
+         (@eq BinNums.Z
+            (BinInt.Z.add
+               (divstep.eta
+                  (@fst divstep.State (list divstep.Step)
+                     (divstep.stepN (BinInt.Z.to_nat (div62_branch_width st i)) st))) (div62_branch_width st i))
+            match div62_sign (divstep.eta st) return BinNums.Z with
+            | true => BinInt.Z.opp (divstep.eta st)
+            | false => divstep.eta st
+            end)
+### C.jet_secp_div62_transition.div62_continued_fg
+div62_continued_fg
+     : forall (le : Maps.PTree.tree Values.val) (st : divstep.State) (i a b precision : BinNums.Z)
+         (matrix : divstep.Trans.M2x2)
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (divstep.eta st))
+                (BinInt.Z.le (divstep.eta st)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : Zeven.Zodd (divstep.g st)) (_ : BinInt.Z.le (div62_branch_width st i) precision)
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a (divstep.f st))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b (divstep.g st))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._f le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr a))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr b)))),
+       div62_pending_fg
+         (jet_secp_div62_branch.div62_continued_temps le (div62_sign (divstep.eta st)) (divstep.eta st) i
+            (Integers.Int64.repr a) (Integers.Int64.repr b) (Integers.Int64.repr (divstep.Trans.u matrix))
+            (Integers.Int64.repr (divstep.Trans.v matrix)) (Integers.Int64.repr (divstep.Trans.q matrix))
+            (Integers.Int64.repr (divstep.Trans.r matrix)))
+         (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat (div62_branch_width st i)) st))
+         (BinInt.Z.sub precision (div62_branch_width st i)) (div62_branch_width st i)
+### C.jet_secp_div62_transition.exec_div62_transition_matrix
+exec_div62_transition_matrix
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (st : divstep.State)
+         (i a b precision : BinNums.Z) (matrix : divstep.Trans.M2x2)
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (divstep.eta st))
+                (BinInt.Z.le (divstep.eta st)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : Zeven.Zodd (divstep.g st)) (_ : BinInt.Z.le (div62_branch_width st i) precision)
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a (divstep.f st))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b (divstep.g st))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.eta st)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._f le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr a))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr b))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.Trans.u matrix)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._v le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.Trans.v matrix)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._q le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.Trans.q matrix)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.Trans.r matrix))))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+               jet_secp_div62_count.div62_after_count_prefix Events.E0 lef m ClightBigstep.Out_normal)
+            (and
+               (div62_pending_matrix lef
+                  (divstep.Trans.mul (divstep.Trans.transN (BinInt.Z.to_nat (div62_branch_width st i)) st) matrix)
+                  (div62_branch_width st i))
+               (and
+                  (div62_pending_fg lef
+                     (@fst divstep.State (list divstep.Step)
+                        (divstep.stepN (BinInt.Z.to_nat (div62_branch_width st i)) st))
+                     (BinInt.Z.sub precision (div62_branch_width st i)) (div62_branch_width st i))
+                  (and
+                     (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta lef)
+                        (@Some Values.val
+                           (Values.Vlong
+                              (Integers.Int64.repr
+                                 (BinInt.Z.add
+                                    (divstep.eta
+                                       (@fst divstep.State (list divstep.Step)
+                                          (divstep.stepN (BinInt.Z.to_nat (div62_branch_width st i)) st)))
+                                    (div62_branch_width st i))))))
+                     (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i lef)
+                        (@Some Values.val (Values.Vint (Integers.Int.repr i))))))))
+### C.jet_secp_div62_transition.div62_continuation_w
+div62_continuation_w =
+fun (neg : bool) (eta i a b : BinNums.Z) =>
+Integers.Int.unsigned
+  (jet_secp_div62_cancel.div62_w_word neg
+     match neg return Integers.Int64.int with
+     | true => Integers.Int64.repr b
+     | false => Integers.Int64.repr a
+     end
+     match neg return Integers.Int64.int with
+     | true => Integers.Int64.neg (Integers.Int64.repr a)
+     | false => Integers.Int64.repr b
+     end
+     (jet_secp_div62_limit.div62_mask neg match neg return BinNums.Z with
+                                          | true => BinInt.Z.opp eta
+                                          | false => eta
+                                          end i))
+     : forall (_ : bool) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z), BinNums.Z
+
+Arguments div62_continuation_w neg%bool_scope (eta i a b)%Z_scope
+### C.jet_secp_div62_transition.div62_continuation_matrix
+div62_continuation_matrix =
+fun (neg : bool) (eta i a b : BinNums.Z) =>
+let k : BinNums.Z :=
+  jet_secp_div62_numeric.div62_cancel_bits neg
+    match neg return BinNums.Z with
+    | true => BinInt.Z.opp eta
+    | false => eta
+    end i in
+let w : BinNums.Z := div62_continuation_w neg eta i a b in
+match neg return divstep.Trans.M2x2 with
+| true =>
+    divstep.Trans.Build_M2x2 BinNums.Z0 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+      (BinNums.Zneg BinNums.xH) w
+| false =>
+    divstep.Trans.Build_M2x2 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k) BinNums.Z0 w
+      (BinNums.Zpos BinNums.xH)
+end
+     : forall (_ : bool) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z), divstep.Trans.M2x2
+
+Arguments div62_continuation_matrix neg%bool_scope (eta i a b)%Z_scope
+### C.jet_secp_div62_transition.div62_pending_matrix
+div62_pending_matrix =
+fun (le : Clight.temp_env) (matrix : divstep.Trans.M2x2) (pending : BinNums.Z) =>
+@ex BinNums.Z
+  (fun u : BinNums.Z =>
+   @ex BinNums.Z
+     (fun v : BinNums.Z =>
+      and
+        (@eq BinNums.Z (divstep.Trans.u matrix)
+           (BinInt.Z.mul u (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) pending)))
+        (and
+           (@eq BinNums.Z (divstep.Trans.v matrix)
+              (BinInt.Z.mul v (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) pending)))
+           (and
+              (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u le)
+                 (@Some Values.val (Values.Vlong (Integers.Int64.repr u))))
+              (and
+                 (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._v le)
+                    (@Some Values.val (Values.Vlong (Integers.Int64.repr v))))
+                 (and
+                    (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._q le)
+                       (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.Trans.q matrix)))))
+                    (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                       (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.Trans.r matrix)))))))))))
+     : forall (_ : Clight.temp_env) (_ : divstep.Trans.M2x2) (_ : BinNums.Z), Prop
+
+Arguments div62_pending_matrix le matrix pending%Z_scope
+### C.jet_secp_div62_transition.div62_sign
+div62_sign =
+fun eta : BinNums.Z => match Coqlib.zlt eta BinNums.Z0 return bool with
+                       | left _ => true
+                       | right _ => false
+                       end
+     : forall _ : BinNums.Z, bool
+
+Arguments div62_sign eta%Z_scope
+### C.jet_secp_div62_transition.div62_branch_width
+div62_branch_width =
+fun (st : divstep.State) (i : BinNums.Z) =>
+jet_secp_div62_numeric.div62_cancel_bits (div62_sign (divstep.eta st))
+  match div62_sign (divstep.eta st) return BinNums.Z with
+  | true => BinInt.Z.opp (divstep.eta st)
+  | false => divstep.eta st
+  end i
+     : forall (_ : divstep.State) (_ : BinNums.Z), BinNums.Z
+
+Arguments div62_branch_width st i%Z_scope
+### C.jet_secp_div62_transition.div62_pending_fg
+div62_pending_fg =
+fun (le : Clight.temp_env) (st : divstep.State) (precision pending : BinNums.Z) =>
+@ex BinNums.Z
+  (fun a : BinNums.Z =>
+   @ex BinNums.Z
+     (fun b : BinNums.Z =>
+      and (Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a (divstep.f st))
+        (and (Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b (divstep.g st))
+           (and
+              (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._f le)
+                 (@Some Values.val (Values.Vlong (Integers.Int64.repr a))))
+              (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le)
+                 (@Some Values.val
+                    (Values.Vlong
+                       (Integers.Int64.repr
+                          (BinInt.Z.mul b (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) pending))))))))))
+     : forall (_ : Clight.temp_env) (_ : divstep.State) (_ : BinNums.Z) (_ : BinNums.Z), Prop
+
+Arguments div62_pending_fg le st (precision pending)%Z_scope
