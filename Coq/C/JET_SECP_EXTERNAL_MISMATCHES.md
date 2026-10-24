@@ -1212,6 +1212,29 @@ JET_TARGETS=C/jet_secp_modinv_var_seed.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_seed
 ```
 
+## First inverse batch: caller arguments and callee entry (internal progress)
+
+`jet_secp_modinv_var_first_batch.inv_first_batch_setup` derives the actual
+first f/g low-word loads from `inv_seed_regs`, evaluates the original
+divstep-call arguments, and establishes the callee's real function entry,
+seven initializer statements and initial `div62_loop_invariant` at 62-bit
+precision. Its modulus/input low-bit correspondence is proved, not assumed;
+the low-word casts retain the original bit patterns. The caller owns the
+32-byte matrix buffer even though its cells remain uninitialized here.
+`inv_divstep_statement_source` identifies these loads and call in the
+unchanged caller statement tree.
+
+This theorem composes setup boundaries, not a full `eval_funcall` of the
+batch: the CTZ call, batch loop, matrix stores/return through the caller,
+outer inverse loop and public jet composition remain unfinished. No extra
+external model, target change or public registration is introduced.
+Coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_modinv_var_first_batch.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_first_batch
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
