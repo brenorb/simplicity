@@ -729,10 +729,11 @@ The temporaries need not be initialized before the first writes. The
 intermediate call executions and memory-preservation facts are derived,
 not new execution premises.
 
-This theorem is an **internal prefix**, expressed with a terminal `Sskip`;
+This arithmetic theorem is an **internal prefix**, expressed with a terminal `Sskip`;
 it does not execute the preceding inversion, the subsequent Z=1/set_xy
 statements, function entry or local reclamation. In particular, zi is not
-claimed to be the inverse of a supplied original input. Those obligations,
+claimed to be the inverse of a supplied original input. The subsequent
+statements and reclamation are addressed below; inversion, function entry,
 the infinity branch, and the public Simplicity composition remain to be
 discharged for `gej_normalize` / `gej_y_is_odd`. No new external model or
 public jet registration is introduced; coverage remains 514/533.
@@ -740,6 +741,41 @@ public jet registration is introduced; coverage remains 514/533.
 ```sh
 JET_TARGETS="C/jet_secp_gej_affine_cube.vo C/jet_secp_gej_affine_arithmetic.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_affine_cube C.jet_secp_gej_affine_arithmetic
+```
+
+`jet_secp_ge_set_xy.eval_ge_set_xy_owned` executes the original affine
+constructor's Mint32 infinity-flag store and both 40-byte Clight struct
+assignments. It accepts an uninitialized owned destination, returns its
+exact X/Y fields and zero flag, preserves all permissions, and frames every
+other block. It reuses `exec_field_copy_owned`, not a libc model or a
+replacement implementation.
+
+`jet_secp_gej_affine_finish.exec_affine_after_inverse` extends the arithmetic
+prefix through the actual Z=1 and `ge_set_xy` calls. The original statement
+context is retained; intermediate call execution, ownership, and preservation
+are all derived. The output point has Z=1, the affine result has the exact
+computed coordinates and zero infinity flag, and the congruences and bounds
+from the arithmetic prefix are retained. The point's original infinity flag
+and unrelated memory remain framed.
+
+`exec_affine_after_inverse_and_free` additionally derives the original
+`Mem.free_list` for `blocks_of_env secp_ge (affine_local_env b2 b3)` and proves
+that the affine fields, flag, numeric facts, and both caller-owned allocations
+survive reclamation. The two temporary fields are not claimed to remain owned
+after they are freed. Their required ownership and distinctness follow from
+the explicit internal preconditions; deriving those from actual function entry
+is still a caller-composition obligation.
+
+These results start **after inversion**, with represented bounded X, Y, zi,
+and distinct owned caller/local allocations. They do not assert that zi is
+the inverse of the original input. The preceding inversion and finite/infinite
+branch selection, complete function-entry composition, and public frame/spec
+bridges are not completed by this suffix. Coverage is still 514/533; no extra
+external-library premise or public registration has been added.
+
+```sh
+JET_TARGETS="C/jet_secp_ge_set_xy.vo C/jet_secp_gej_affine_finish.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_ge_set_xy C.jet_secp_gej_affine_finish
 ```
 
 ## Reproduction and limits
