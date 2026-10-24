@@ -1,0 +1,425 @@
+### C.jet_secp_modinv_var_post.inv_post_source
+inv_post_source
+     : @eq Clight.statement jet_secp_modinv_var_zero.inv_caller_loop_body
+         (jet_secp_statement_prefix.statement_sequence
+            (@List.firstn Clight.statement (S (S (S (S O))))
+               (@fst (list Clight.statement) Clight.statement jet_secp_modinv_var_zero.inv_caller_loop_parts))
+            inv_post_control)
+### C.jet_secp_modinv_var_post.inv_post_out_value
+inv_post_out_value
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (_ : lt O len)
+         (_ : jet_secp_modinv_var_zero.inv_active_low_bounds len
+                (jet_secp_modinv_var_shorten.inv_control_word rho true)),
+       iff (@eq ClightBigstep.outcome (inv_post_out len rho) ClightBigstep.Out_break)
+         (@eq BinNums.Z
+            (jet_secp_modinv_var_zero.inv_active_value len (jet_secp_modinv_var_shorten.inv_control_word rho true))
+            BinNums.Z0)
+### C.jet_secp_modinv_var_post.inv_control_temps_from_length
+inv_control_temps_from_length
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (len : nat)
+         (le : Maps.PTree.tree Values.val)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len))))),
+       jet_sx_eval.tmatch rho beta (jet_secp_modinv_var_zero.inv_control_temps len) le
+### C.jet_secp_modinv_var_post.inv_post_test_frame
+inv_post_test_frame
+     : forall (le lf : Clight.temp_env) (_ : jet_secp_modinv_var_zero.inv_test_frame le lf), inv_post_temp_frame le lf
+### C.jet_secp_modinv_var_post.inv_post_frames
+inv_post_frames
+     : forall (le lm lf : Clight.temp_env) (_ : jet_secp_modinv_var_zero.inv_test_frame le lm)
+         (_ : jet_secp_modinv_var_shorten.inv_shorten_temp_frame lm lf), inv_post_temp_frame le lf
+### C.jet_secp_modinv_var_post.exec_inv_post_control
+exec_inv_post_control
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_var_zero.inv_control_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_modinv_var_zero.inv_control_temps len) le0)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m inv_post_control Events.E0 lef mf
+                  (inv_post_out len rho))
+               (and (jet_sx_state.rep rho beta (inv_post_regs len rho) mf)
+                  (and
+                     (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lef)
+                        (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat (inv_post_length len rho))))))
+                     (and (and (lt O (inv_post_length len rho)) (le (inv_post_length len rho) (S (S (S (S (S O)))))))
+                        (and (inv_post_temp_frame le0 lef)
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (_ : BinNums.Z) =>
+                               and (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S O)))))))
+                                 (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S (S O))))))))) m mf)))))))
+### C.jet_secp_modinv_var_post.inv_post_loads
+inv_post_loads
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta (inv_post_regs len rho) m) (high : bool) (i : nat)
+         (_ : lt i (S (S (S (S (S O)))))),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (jet_secp_modinv_var_shorten.inv_shorten_region high))
+            (BinInt.Z.add (jet_sx_state.bas beta (jet_secp_modinv_var_shorten.inv_shorten_region high))
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))))
+         (@Some Values.val (Values.Vlong (inv_post_word len rho high i)))
+### C.jet_secp_modinv_var_post.inv_post_numeric
+inv_post_numeric
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_secp_modinv_var_zero.inv_active_low_bounds len
+                (jet_secp_modinv_var_shorten.inv_control_word rho high)),
+       and
+         (@eq BinNums.Z
+            (jet_secp_modinv_var_zero.inv_active_value (inv_post_length len rho) (inv_post_word len rho high))
+            (jet_secp_modinv_var_zero.inv_active_value len (jet_secp_modinv_var_shorten.inv_control_word rho high)))
+         (jet_secp_modinv_var_zero.inv_active_low_bounds (inv_post_length len rho) (inv_post_word len rho high))
+### C.jet_secp_modinv_var_post.exec_inv_post_control_numeric
+exec_inv_post_control_numeric
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_var_zero.inv_control_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_modinv_var_zero.inv_control_temps len) le0)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : forall high : bool,
+              jet_secp_modinv_var_zero.inv_active_low_bounds len
+                (jet_secp_modinv_var_shorten.inv_control_word rho high)),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             @ex ClightBigstep.outcome
+               (fun out : ClightBigstep.outcome =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m inv_post_control Events.E0 lef mf
+                     out)
+                  (and
+                     (iff (@eq ClightBigstep.outcome out ClightBigstep.Out_break)
+                        (@eq BinNums.Z
+                           (jet_secp_modinv_var_zero.inv_active_value len
+                              (jet_secp_modinv_var_shorten.inv_control_word rho true)) BinNums.Z0))
+                     (and
+                        (or (@eq ClightBigstep.outcome out ClightBigstep.Out_break)
+                           (@eq ClightBigstep.outcome out ClightBigstep.Out_normal))
+                        (and (jet_sx_state.rep rho beta (inv_post_regs len rho) mf)
+                           (and
+                              (forall (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+                               @eq (option Values.val)
+                                 (Memory.Mem.load AST.Mint64 mf
+                                    (jet_sx_state.blk beta (jet_secp_modinv_var_shorten.inv_shorten_region high))
+                                    (BinInt.Z.add
+                                       (jet_sx_state.bas beta (jet_secp_modinv_var_shorten.inv_shorten_region high))
+                                       (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                          (BinInt.Z.of_nat i))))
+                                 (@Some Values.val (Values.Vlong (inv_post_word len rho high i))))
+                              (and
+                                 (forall high : bool,
+                                  and
+                                    (@eq BinNums.Z
+                                       (jet_secp_modinv_var_zero.inv_active_value (inv_post_length len rho)
+                                          (inv_post_word len rho high))
+                                       (jet_secp_modinv_var_zero.inv_active_value len
+                                          (jet_secp_modinv_var_shorten.inv_control_word rho high)))
+                                    (jet_secp_modinv_var_zero.inv_active_low_bounds (inv_post_length len rho)
+                                       (inv_post_word len rho high)))
+                                 (and
+                                    (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lef)
+                                       (@Some Values.val
+                                          (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat (inv_post_length len rho))))))
+                                    (and
+                                       (and (lt O (inv_post_length len rho))
+                                          (le (inv_post_length len rho) (S (S (S (S (S O)))))))
+                                       (and (inv_post_temp_frame le0 lef)
+                                          (jet_sx_mem.lframe
+                                             (fun (b : Values.block) (_ : BinNums.Z) =>
+                                              and (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S O)))))))
+                                                (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S (...)))))))))
+                                             m mf))))))))))))
+### C.jet_secp_modinv_var_post.inv_post_next_word
+inv_post_next_word
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool) (i : nat)
+         (_ : lt i (S (S (S (S (S O)))))),
+       @eq Integers.Int64.int (jet_secp_modinv_var_shorten.inv_control_word (inv_post_next_rho len rho) high i)
+         (inv_post_word len rho high i)
+### C.jet_secp_modinv_var_post.inv_post_regs_metadata
+inv_post_regs_metadata
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))),
+       and (@eq nat (@length jet_sx_state.region (inv_post_regs len rho)) (S (S (S (S (S (S (S O))))))))
+         (@eq (option BinNums.Z)
+            (jet_sx_state.rfree
+               (@List.nth jet_sx_state.region (jet_secp_modinv_var_shorten.inv_shorten_region high)
+                  (inv_post_regs len rho) (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))))
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_modinv_var_post.inv_post_regs_shapes
+inv_post_regs_shapes
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))),
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (inv_post_regs len rho))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape jet_secp_modinv_var_zero.inv_control_regs)
+### C.jet_secp_modinv_var_post.inv_post_untouched
+inv_post_untouched
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (r : nat)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))) (_ : lt r (S (S (S (S (S (S (S O))))))))
+         (_ : not (@eq nat r (S (S (S (S O)))))) (_ : not (@eq nat r (S (S (S (S (S O))))))),
+       @eq (option jet_sx_state.region) (@List.nth_error jet_sx_state.region (inv_post_regs len rho) r)
+         (@List.nth_error jet_sx_state.region jet_secp_modinv_var_zero.inv_control_regs r)
+### C.jet_secp_modinv_var_post.inv_region_rho_ext
+inv_region_rho_ext
+     : forall (rho rho' : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (r : nat) (reg : jet_sx_state.region)
+         (_ : forall (c : jet_sx_state.cell) (x : jet_sx_expr.sx)
+                (_ : @List.In jet_sx_state.cell c (jet_sx_state.rcells reg))
+                (_ : @eq (option jet_sx_expr.sx) (jet_sx_state.cval c) (@Some jet_sx_expr.sx x)),
+              @eq Values.val (jet_sx_expr.den rho' (jet_sx_state.lay beta) x)
+                (jet_sx_expr.den rho (jet_sx_state.lay beta) x)) (_ : jet_sx_state.region_ok rho beta m r reg),
+       jet_sx_state.region_ok rho' beta m r reg
+### C.jet_secp_modinv_var_post.inv_region_undefined
+inv_region_undefined
+     : forall (rho rho' : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (r : nat) (reg : jet_sx_state.region)
+         (_ : @List.Forall jet_sx_state.cell
+                (fun c : jet_sx_state.cell => @eq (option jet_sx_expr.sx) (jet_sx_state.cval c) (@None jet_sx_expr.sx))
+                (jet_sx_state.rcells reg)) (_ : jet_sx_state.region_ok rho beta m r reg),
+       jet_sx_state.region_ok rho' beta m r reg
+### C.jet_secp_modinv_var_post.inv_post_revalue_array
+inv_post_revalue_array
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (high : bool) (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta (inv_post_regs len rho) m),
+       jet_sx_state.region_ok (inv_post_next_rho len rho) beta m (jet_secp_modinv_var_shorten.inv_shorten_region high)
+         (jet_sx_state.mkreg
+            (jet_sx_rep.u64_cells BinNums.Z0
+               (jet_secp_fe_nv.vars5 (jet_secp_modinv_var_shorten.inv_shorten_offset high))) true
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_modinv_var_post.inv_post_revalue_other
+inv_post_revalue_other
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (r : nat) (reg : jet_sx_state.region) (_ : lt r (S (S (S (S (S (S (S O))))))))
+         (_ : not (@eq nat r (S (S (S (S O)))))) (_ : not (@eq nat r (S (S (S (S (S O)))))))
+         (_ : @eq (option jet_sx_state.region)
+                (@List.nth_error jet_sx_state.region jet_secp_modinv_var_zero.inv_control_regs r)
+                (@Some jet_sx_state.region reg)) (_ : jet_sx_state.region_ok rho beta m r reg),
+       jet_sx_state.region_ok (inv_post_next_rho len rho) beta m r reg
+### C.jet_secp_modinv_var_post.inv_post_revalue
+inv_post_revalue
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta (inv_post_regs len rho) m),
+       jet_sx_state.rep (inv_post_next_rho len rho) beta jet_secp_modinv_var_zero.inv_control_regs m
+### C.jet_secp_modinv_var_post.inv_post_next_value
+inv_post_next_value
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool)
+         (_ : and (lt O (inv_post_length len rho)) (le (inv_post_length len rho) (S (S (S (S (S O))))))),
+       @eq BinNums.Z
+         (jet_secp_modinv_var_zero.inv_active_value (inv_post_length len rho)
+            (jet_secp_modinv_var_shorten.inv_control_word (inv_post_next_rho len rho) high))
+         (jet_secp_modinv_var_zero.inv_active_value (inv_post_length len rho) (inv_post_word len rho high))
+### C.jet_secp_modinv_var_post.inv_post_next_bounds
+inv_post_next_bounds
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool)
+         (_ : and (lt O (inv_post_length len rho)) (le (inv_post_length len rho) (S (S (S (S (S O)))))))
+         (_ : jet_secp_modinv_var_zero.inv_active_low_bounds (inv_post_length len rho) (inv_post_word len rho high)),
+       jet_secp_modinv_var_zero.inv_active_low_bounds (inv_post_length len rho)
+         (jet_secp_modinv_var_shorten.inv_control_word (inv_post_next_rho len rho) high)
+### C.jet_secp_modinv_var_post.inv_post_next_outside
+inv_post_next_outside
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (n : nat)
+         (_ : or (lt n (S (S (S (S (S O)))))) (le (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))) n)),
+       @eq Integers.Int64.int (inv_post_next_rho len rho n) (rho n)
+### C.jet_secp_modinv_var_post.exec_inv_post_ready
+exec_inv_post_ready
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_var_zero.inv_control_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_modinv_var_zero.inv_control_temps len) le0)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : forall high : bool,
+              jet_secp_modinv_var_zero.inv_active_low_bounds len
+                (jet_secp_modinv_var_shorten.inv_control_word rho high)),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             @ex ClightBigstep.outcome
+               (fun out : ClightBigstep.outcome =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m inv_post_control Events.E0 lef mf
+                     out)
+                  (and (jet_sx_state.rep (inv_post_next_rho len rho) beta jet_secp_modinv_var_zero.inv_control_regs mf)
+                     (and
+                        (jet_sx_eval.tmatch (inv_post_next_rho len rho) beta
+                           (jet_secp_modinv_var_zero.inv_control_temps (inv_post_length len rho)) lef)
+                        (and
+                           (forall high : bool,
+                            and
+                              (@eq BinNums.Z
+                                 (jet_secp_modinv_var_zero.inv_active_value (inv_post_length len rho)
+                                    (jet_secp_modinv_var_shorten.inv_control_word (inv_post_next_rho len rho) high))
+                                 (jet_secp_modinv_var_zero.inv_active_value len
+                                    (jet_secp_modinv_var_shorten.inv_control_word rho high)))
+                              (jet_secp_modinv_var_zero.inv_active_low_bounds (inv_post_length len rho)
+                                 (jet_secp_modinv_var_shorten.inv_control_word (inv_post_next_rho len rho) high)))
+                           (and
+                              (iff (@eq ClightBigstep.outcome out ClightBigstep.Out_break)
+                                 (@eq BinNums.Z
+                                    (jet_secp_modinv_var_zero.inv_active_value (inv_post_length len rho)
+                                       (jet_secp_modinv_var_shorten.inv_control_word (inv_post_next_rho len rho) true))
+                                    BinNums.Z0))
+                              (and
+                                 (forall _ : @eq ClightBigstep.outcome out ClightBigstep.Out_normal,
+                                  not
+                                    (@eq BinNums.Z
+                                       (jet_secp_modinv_var_zero.inv_active_value (inv_post_length len rho)
+                                          (jet_secp_modinv_var_shorten.inv_control_word (inv_post_next_rho len rho)
+                                             true)) BinNums.Z0))
+                                 (and
+                                    (or (@eq ClightBigstep.outcome out ClightBigstep.Out_break)
+                                       (@eq ClightBigstep.outcome out ClightBigstep.Out_normal))
+                                    (and
+                                       (and (lt O (inv_post_length len rho))
+                                          (le (inv_post_length len rho) (S (S (S (S (S O)))))))
+                                       (and (inv_post_temp_frame le0 lef)
+                                          (jet_sx_mem.lframe
+                                             (fun (b : Values.block) (_ : BinNums.Z) =>
+                                              and (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S O)))))))
+                                                (not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S (...)))))))))
+                                             m mf))))))))))))
+### C.jet_secp_modinv_var_post.inv_post_control
+inv_post_control =
+Clight.Ssequence jet_secp_modinv_var_zero.inv_zero_test jet_secp_modinv_var_zero.inv_shortening
+     : Clight.statement
+### C.jet_secp_modinv_var_post.inv_control_stops
+inv_control_stops =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+jet_secp_modinv_var_zero.inv_g_is_zero len (jet_secp_modinv_var_shorten.inv_control_word rho true)
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), bool
+
+Arguments inv_control_stops len%nat_scope rho%function_scope
+### C.jet_secp_modinv_var_post.inv_post_out
+inv_post_out =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+match inv_control_stops len rho return ClightBigstep.outcome with
+| true => ClightBigstep.Out_break
+| false => ClightBigstep.Out_normal
+end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), ClightBigstep.outcome
+
+Arguments inv_post_out len%nat_scope rho%function_scope
+### C.jet_secp_modinv_var_post.inv_post_regs
+inv_post_regs =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+match inv_control_stops len rho return (list jet_sx_state.region) with
+| true => jet_secp_modinv_var_zero.inv_control_regs
+| false => jet_secp_modinv_var_shorten.inv_shortened_regs len rho
+end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), list jet_sx_state.region
+
+Arguments inv_post_regs len%nat_scope rho%function_scope
+### C.jet_secp_modinv_var_post.inv_post_length
+inv_post_length =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+match inv_control_stops len rho return nat with
+| true => len
+| false => jet_secp_modinv_var_shorten.inv_shortened_length len rho
+end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), nat
+
+Arguments inv_post_length len%nat_scope rho%function_scope
+### C.jet_secp_modinv_var_post.inv_post_word
+inv_post_word =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool) (i : nat) =>
+match inv_control_stops len rho return Integers.Int64.int with
+| true => jet_secp_modinv_var_shorten.inv_control_word rho high i
+| false => jet_secp_modinv_var_shorten.inv_control_short_word len rho high i
+end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), Integers.Int64.int
+
+Arguments inv_post_word len%nat_scope rho%function_scope high%bool_scope i%nat_scope
+### C.jet_secp_modinv_var_post.inv_post_modified
+inv_post_modified =
+@app AST.ident jet_secp_modinv_var_zero.inv_test_modified jet_secp_modinv_var_shorten.inv_shorten_modified
+     : list AST.ident
+### C.jet_secp_modinv_var_post.inv_post_temp_frame
+inv_post_temp_frame =
+fun le lf : Clight.temp_env =>
+forall (id : AST.ident) (_ : not (@List.In AST.ident id inv_post_modified)),
+@eq (option Values.val) (@Maps.PTree.get Values.val id lf) (@Maps.PTree.get Values.val id le)
+     : forall (_ : Clight.temp_env) (_ : Clight.temp_env), Prop
+
+Arguments inv_post_temp_frame le lf
+### C.jet_secp_modinv_var_post.inv_post_next_rho
+inv_post_next_rho =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) (n : nat) =>
+match n return Integers.Int64.int with
+| O => rho n
+| S n0 =>
+    match n0 return Integers.Int64.int with
+    | O => rho n
+    | S n1 =>
+        match n1 return Integers.Int64.int with
+        | O => rho n
+        | S n2 =>
+            match n2 return Integers.Int64.int with
+            | O => rho n
+            | S n3 =>
+                match n3 return Integers.Int64.int with
+                | O => rho n
+                | S n4 =>
+                    match n4 return Integers.Int64.int with
+                    | O => inv_post_word len rho false O
+                    | S n5 =>
+                        match n5 return Integers.Int64.int with
+                        | O => inv_post_word len rho false (S O)
+                        | S n6 =>
+                            match n6 return Integers.Int64.int with
+                            | O => inv_post_word len rho false (S (S O))
+                            | S n7 =>
+                                match n7 return Integers.Int64.int with
+                                | O => inv_post_word len rho false (S (S (S O)))
+                                | S n8 =>
+                                    match n8 return Integers.Int64.int with
+                                    | O => inv_post_word len rho false (S (S (S (S O))))
+                                    | S n9 =>
+                                        match n9 return Integers.Int64.int with
+                                        | O => inv_post_word len rho true O
+                                        | S n10 =>
+                                            match n10 return Integers.Int64.int with
+                                            | O => inv_post_word len rho true (S O)
+                                            | S n11 =>
+                                                match n11 return Integers.Int64.int with
+                                                | O => inv_post_word len rho true (S (S O))
+                                                | S n12 =>
+                                                    match n12 return Integers.Int64.int with
+                                                    | O => inv_post_word len rho true (S (S (S O)))
+                                                    | S n13 =>
+                                                        match n13 return Integers.Int64.int with
+                                                        | O => inv_post_word len rho true (S (S (S (S O))))
+                                                        | S _ => rho n
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments inv_post_next_rho len%nat_scope rho%function_scope n%nat_scope

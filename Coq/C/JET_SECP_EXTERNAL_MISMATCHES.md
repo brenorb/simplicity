@@ -506,6 +506,23 @@ no extra external-library model. The divstep call, complete loop
 invariant/termination composition and whole inverse return/freeing remain
 required. No public jet coverage is added.
 
+`jet_secp_modinv_var_post.exec_inv_post_ready` composes the actual zero-test
+and shortening statements in the original caller's order, including the
+early `Out_break` that skips shortening. It returns a represented control
+state over the same owned layout, with updated words and active length,
+retained nonnegative lower digits and exact preservation of both integer
+values. Breaking is equivalent to the represented `g` being zero; normal
+continuation implies the next represented `g` is nonzero. Unrelated
+temporaries and memory outside the two array blocks are preserved.
+
+The representation handoff is derived from the actual output loads and
+ownership, reusing the existing owned-word-region construction. It is not
+an assumed post-state or later execution. This closes the post-transition
+control only: the preceding divstep/update calls still need composition
+with the full caller invariant, and whole-loop termination, final
+normalization/copy-back and return/freeing remain required. No external
+model is added and no public jet coverage is claimed.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -547,6 +564,8 @@ JET_TARGETS=C/jet_secp_modinv_var_zero.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_zero
 JET_TARGETS=C/jet_secp_modinv_var_shorten.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_shorten
+JET_TARGETS=C/jet_secp_modinv_var_post.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_post
 ```
 
 ## Reproduction and limits
