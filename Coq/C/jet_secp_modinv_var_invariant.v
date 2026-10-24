@@ -8,6 +8,7 @@ Require Import C.jet_secp_modinv_de_exec C.jet_secp_modinv_de_numeric C.jet_secp
 Require Import C.jet_secp_modinv_fg_prefix C.jet_secp_modinv_fg_body C.jet_secp_modinv_fg_start.
 Require Import C.jet_secp_modinv_fg_loop_numeric C.jet_secp_modinv_fg_iteration_numeric.
 Require Import C.jet_secp_modinv_normalize62_words C.jet_secp_fe_math.
+Require Import C.jet_secp_modinv_var_ranges.
 Require Import C.divstep.
 Import ListNotations.
 Local Open Scope Z_scope.
@@ -192,6 +193,9 @@ Theorem exec_inv_after_divsteps_invariant value len rho st beta e le m :
  (g st=0 -> out=Out_break /\
   de62_input_value (inv_de_rho (inv_iteration_rho len rho)) false mod feP=
    de62_input_value (inv_de_rho rho) false mod feP) /\
+ (inv_fg_value_capacity len rho ->
+  inv_fg_limb_bounds (inv_iteration_rho len rho) /\
+  inv_fg_value_capacity (inv_iteration_length len rho) (inv_iteration_rho len rho)) /\
  (forall high,
   2^62*de62_input_value (inv_de_rho (inv_iteration_rho len rho)) high=de62_matrix_value (inv_de_rho rho) high+
    feP*de62_correction_value (inv_de_rho rho) high /\
@@ -222,8 +226,28 @@ Proof.
  { intro Zero;split.
    - apply (proj2 Stop);rewrite <-(proj2 NextState);apply fixed_g;exact Zero.
    - exact (inv_zero_iteration_coefficient len rho st Zero Matrix (proj1 (DENumeric false))). }
+ assert (NextBounds : inv_fg_value_capacity len rho ->
+  inv_fg_limb_bounds (inv_iteration_rho len rho) /\
+  inv_fg_value_capacity (inv_iteration_length len rho) (inv_iteration_rho len rho)).
+ { intro Capacity.
+   assert (UpdatedLow : inv_tail_low_bounds len (inv_iteration_updates len rho))
+     by (apply inv_fg_next_low;exact Len).
+   assert (AfterValue : forall high,
+    Z.abs (inv_fg_active_value (inv_iteration_length len rho) (inv_iteration_rho len rho) high)<=
+      2^(62*Z.of_nat len)).
+   { assert (Max : Z.max (Z.abs (f st)) (Z.abs (g st))<=2^(62*Z.of_nat len)).
+     { apply Z.max_lub;[rewrite (proj1 State)|rewrite (proj2 State)];apply Capacity. }
+     destruct (fgBounds st 62) as (FB & GB);intro high;destruct high;
+       [rewrite <-(proj2 NextState)|rewrite <-(proj1 NextState)];lia. }
+   assert (UpdatedCapacity : inv_fg_value_capacity len (inv_iteration_updates len rho)).
+   { intro high;rewrite <-(inv_tail_value_preserved len (inv_iteration_updates len rho) high Len UpdatedLow).
+     apply AfterValue. }
+   pose proof (inv_fg_next_ranges len (inv_de_next_rho rho) Len
+     (inv_fg_bounds_after_de len rho FG) UpdatedCapacity) as UpdatedBounds.
+   exact (inv_tail_ranges len (inv_iteration_updates len rho) Len UpdatedLow UpdatedBounds UpdatedCapacity). }
  exists lef,mf,out;split;[exact Exec|];split;[exact Out|];split;[exact NewLen|];split;[exact DEBounds|].
  split;[exact NextLink|];split;[exact NextState|];split;[exact ZeroResult|];
+ split;[exact NextBounds|];
  split;[exact DENumeric|];split;[exact FGNumeric|].
  split;[exact Low|];split;[exact Stop|];split;[exact Nonzero|];split;[exact Outcomes|].
  split;[exact Range|];split;assumption.

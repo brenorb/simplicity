@@ -1,0 +1,140 @@
+### C.jet_secp_modinv_var_ranges.inv_fg_limb_array
+inv_fg_limb_array
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool) (j : nat)
+         (_ : lt j (S (S (S (S (S O)))))),
+       @eq Integers.Int64.int
+         (jet_secp_modinv_fg_loop_numeric.fg_array_word (jet_secp_modinv_var_fg.inv_fg_rho len rho) high j)
+         (rho
+            (Nat.add
+               match high return nat with
+               | true => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))))
+               | false => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+               end j))
+### C.jet_secp_modinv_var_ranges.inv_fg_body_nontop
+inv_fg_body_nontop
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool) (j : nat)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))) (_ : jet_secp_modinv_fg_start.fg_input_bounds rho)
+         (_ : lt j (S (S (S (S (S O)))))) (_ : not (@eq nat j (Nat.sub len (S O)))),
+       BinInt.Z.le (BinInt.Z.abs (Integers.Int64.signed (jet_secp_modinv_fg_body.fg_body_word len rho high j)))
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+### C.jet_secp_modinv_var_ranges.inv_fg_next_ranges
+inv_fg_next_ranges
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_secp_modinv_fg_start.fg_input_bounds (jet_secp_modinv_var_fg.inv_fg_rho len rho))
+         (_ : inv_fg_value_capacity len (jet_secp_modinv_var_fg.inv_fg_next_rho len rho)),
+       inv_fg_limb_bounds (jet_secp_modinv_var_fg.inv_fg_next_rho len rho)
+### C.jet_secp_modinv_var_ranges.inv_fg_next_low
+inv_fg_next_low
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))),
+       jet_secp_modinv_var_tail.inv_tail_low_bounds len (jet_secp_modinv_var_fg.inv_fg_next_rho len rho)
+### C.jet_secp_modinv_var_ranges.inv_shorten_all_bounds
+inv_shorten_all_bounds
+     : forall (len : nat) (w : forall _ : nat, Integers.Int64.int)
+         (_ : and (le (S (S O)) len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_secp_modinv_var_zero.inv_active_low_bounds len w)
+         (_ : jet_secp_modinv_var_shorten.inv_sign_word (w (Nat.sub len (S O))))
+         (_ : forall (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+              BinInt.Z.le (BinInt.Z.abs (Integers.Int64.signed (w j)))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+       BinInt.Z.le (BinInt.Z.abs (Integers.Int64.signed (jet_secp_modinv_var_shorten.inv_shorten_words len w j)))
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+### C.jet_secp_modinv_var_ranges.inv_top_sign_capacity
+inv_top_sign_capacity
+     : forall (len : nat) (w : forall _ : nat, Integers.Int64.int) (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_secp_modinv_var_zero.inv_active_low_bounds len w)
+         (_ : jet_secp_modinv_var_shorten.inv_sign_word (w (Nat.sub len (S O)))),
+       BinInt.Z.le (BinInt.Z.abs (jet_secp_modinv_var_zero.inv_active_value len w))
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+               (BinInt.Z.of_nat (Nat.sub len (S O)))))
+### C.jet_secp_modinv_var_ranges.inv_post_length_valid
+inv_post_length_valid
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))),
+       and (lt O (jet_secp_modinv_var_post.inv_post_length len rho))
+         (le (jet_secp_modinv_var_post.inv_post_length len rho) (S (S (S (S (S O))))))
+### C.jet_secp_modinv_var_ranges.inv_post_ranges
+inv_post_ranges
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : forall high : bool,
+              jet_secp_modinv_var_zero.inv_active_low_bounds len
+                (jet_secp_modinv_var_shorten.inv_control_word rho high))
+         (_ : forall (high : bool) (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+              BinInt.Z.le
+                (BinInt.Z.abs (Integers.Int64.signed (jet_secp_modinv_var_shorten.inv_control_word rho high j)))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : forall high : bool,
+              BinInt.Z.le
+                (BinInt.Z.abs
+                   (jet_secp_modinv_var_zero.inv_active_value len
+                      (jet_secp_modinv_var_shorten.inv_control_word rho high)))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinInt.Z.mul
+                      (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                      (BinInt.Z.of_nat len)))),
+       and
+         (forall (high : bool) (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+          BinInt.Z.le (BinInt.Z.abs (Integers.Int64.signed (jet_secp_modinv_var_post.inv_post_word len rho high j)))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (forall high : bool,
+          BinInt.Z.le
+            (BinInt.Z.abs
+               (jet_secp_modinv_var_zero.inv_active_value (jet_secp_modinv_var_post.inv_post_length len rho)
+                  (jet_secp_modinv_var_post.inv_post_word len rho high)))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                  (BinInt.Z.of_nat (jet_secp_modinv_var_post.inv_post_length len rho)))))
+### C.jet_secp_modinv_var_ranges.inv_tail_value_preserved
+inv_tail_value_preserved
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (high : bool)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))) (_ : jet_secp_modinv_var_tail.inv_tail_low_bounds len rho),
+       @eq BinNums.Z
+         (jet_secp_modinv_var_fg.inv_fg_active_value (jet_secp_modinv_var_tail.inv_tail_length len rho)
+            (jet_secp_modinv_var_tail.inv_tail_next_rho len rho) high)
+         (jet_secp_modinv_var_fg.inv_fg_active_value len rho high)
+### C.jet_secp_modinv_var_ranges.inv_tail_ranges
+inv_tail_ranges
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))) (_ : jet_secp_modinv_var_tail.inv_tail_low_bounds len rho)
+         (_ : inv_fg_limb_bounds rho) (_ : inv_fg_value_capacity len rho),
+       and (inv_fg_limb_bounds (jet_secp_modinv_var_tail.inv_tail_next_rho len rho))
+         (inv_fg_value_capacity (jet_secp_modinv_var_tail.inv_tail_length len rho)
+            (jet_secp_modinv_var_tail.inv_tail_next_rho len rho))
+### C.jet_secp_modinv_var_ranges.inv_fg_limb_bounds
+inv_fg_limb_bounds =
+fun rho : forall _ : nat, Integers.Int64.int =>
+forall (high : bool) (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+BinInt.Z.le
+  (BinInt.Z.abs
+     (Integers.Int64.signed
+        (rho
+           (Nat.add
+              match high return nat with
+              | true => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))
+              | false => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+              end j))))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, Prop
+
+Arguments inv_fg_limb_bounds rho%function_scope
+### C.jet_secp_modinv_var_ranges.inv_fg_value_capacity
+inv_fg_value_capacity =
+fun (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
+forall high : bool,
+BinInt.Z.le (BinInt.Z.abs (jet_secp_modinv_var_fg.inv_fg_active_value len rho high))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+        (BinInt.Z.of_nat len)))
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), Prop
+
+Arguments inv_fg_value_capacity len%nat_scope rho%function_scope

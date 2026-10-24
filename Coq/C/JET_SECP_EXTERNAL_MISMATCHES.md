@@ -1274,6 +1274,31 @@ JET_TARGETS="C/jet_secp_modinv_var_result.vo C/jet_secp_modinv_var_first_batch.v
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_result C.jet_secp_modinv_var_first_batch
 ```
 
+## Preserve inverse loop ranges through actual updates and shrinking
+
+`exec_inv_after_divsteps_invariant` now additionally proves that an incoming
+`inv_fg_value_capacity len rho` is preserved at the actual next length,
+together with `inv_fg_limb_bounds` for **all five stored words**, including
+inactive slots. No premise is added, and all previous conclusions remain;
+this is an additional conditional preservation result.
+`inv_entry_establishes_invariant` also returns both initial bounds, derived
+from the represented input and actual initialization. Initial canonical low
+digits are not required for the sparse modulus's negative first limb.
+
+`jet_secp_signed62_ranges` supplies the radix value window and sharp top-limb
+bound. `jet_secp_modinv_var_ranges` combines the existing helper loop bounds
+for non-top stored slots with that top bound, then uses the real shortening
+guard and sign-extension formula. A discarded top of 0 or -1 establishes
+the smaller capacity while staying bounded as an inactive stored word.
+The inclusive bound `abs(limb)<=2^62` retains the legitimate -2^62 case.
+Canonical divstep contraction is reused from `fgBounds`, not postulated.
+
+This closes the machine-bound recurrence needed for the next batch; it does
+not execute the deferred CTZ call or the complete batch/outer loop, nor add
+public coverage. Coverage remains 514/533. Rebuild and kernel-check the result
+and first-batch modules with the command above; their dependency closures
+include both range modules.
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

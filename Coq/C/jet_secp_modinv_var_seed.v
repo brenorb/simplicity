@@ -10,6 +10,7 @@ Require Import C.jet_secp_modinv_var_invariant C.jet_secp_modinv_de_numeric C.je
 Require Import C.jet_secp_modinv_normalize62_words C.jet_secp_signed62_numeric.
 Require Import C.jet_secp_modinfo_fe_global C.jet_secp_modinfo_fe_copy C.jet_secp_fe_math.
 Require Import C.jet_secp_multiply_normalize_bridge C.divstep.
+Require Import C.jet_secp_modinv_var_ranges.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -147,6 +148,18 @@ Proof.
   rewrite !Z.abs_eq by (unfold feP,feR in *;lia);unfold feP,feR;repeat split;lia.
 Qed.
 
+Lemma inv_seed_limb_bounds w : signed62_normalized w -> inv_fg_limb_bounds (inv_seed_rho w).
+Proof.
+  intros Bounds high j J;rewrite <-(inv_fg_limb_array 5 (inv_seed_rho w) high j J).
+  exact (inv_seed_fg_bounds w Bounds high j J).
+Qed.
+Lemma inv_seed_value_capacity w : signed62_normalized w -> inv_fg_value_capacity 5 (inv_seed_rho w).
+Proof.
+  intros Bounds high;pose proof (inv_seed_input_range w Bounds) as Range.
+  rewrite inv_seed_fg_value by exact Bounds;destruct high;
+    unfold feP,feR in *;rewrite Z.abs_eq by lia;lia.
+Qed.
+
 Theorem inv_entry_establishes_invariant w beta m : signed62_normalized w ->
   rep w beta inv_start_regs m -> bas beta 1=0 -> exists betaN e le mi lef mf,
   function_entry2 secp_ge f_secp256k1_modinv64_var (map (den w (lay beta)) inv_start_args) m e le mi /\
@@ -160,6 +173,7 @@ Theorem inv_entry_establishes_invariant w beta m : signed62_normalized w ->
   inv_state_matches 5 (inv_seed_rho w) (inv_seed_state w) /\
   (forall high j,(j<5)%nat ->
     Z.abs (Int64.signed (fg_array_word (inv_fg_rho 5 (inv_seed_rho w)) high j))<=2^62) /\
+  inv_fg_limb_bounds (inv_seed_rho w) /\ inv_fg_value_capacity 5 (inv_seed_rho w) /\
   delta (inv_seed_state w)=1 /\ eta (inv_seed_state w)= -1 /\
   Z.abs (f (inv_seed_state w))<=2^256 /\ Z.abs (g (inv_seed_state w))<=2^256 /\
   Forall (fun p=>~Mem.valid_block m (fst p)) betaN /\
@@ -173,6 +187,8 @@ Proof.
   pose proof (inv_seed_coefficient_link w Bounds) as Link.
   pose proof (inv_seed_state_matches w Bounds) as State.
   pose proof (inv_seed_fg_bounds w Bounds) as FG.
+  pose proof (inv_seed_limb_bounds w Bounds) as Limbs.
+  pose proof (inv_seed_value_capacity w Bounds) as Capacity.
   destruct (inv_seed_state_range w Bounds) as (Delta & MathEta & FBound & GBound).
   exists betaN,e,le,mi,lef,mf;repeat first [assumption|split].
 Qed.
