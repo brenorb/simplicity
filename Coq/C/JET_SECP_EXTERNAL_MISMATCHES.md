@@ -357,6 +357,18 @@ calls. No external-call semantics or permission-preservation premise is
 assumed. Rebuilding a complete inverse-caller representation and composing
 its loop remain separate obligations; this result adds no public coverage.
 
+`jet_secp_modinv_fg_owned.eval_fg_transition_owned` restores the stronger
+represented matrix ownership required by the inverse caller. It starts
+with an owned matrix and derives the complete original transition call,
+the same output-word/value results, and a post-representation with all
+32 matrix bytes still owned. The proof weakens only the internal input
+representation when applying the existing read-only theorem, then derives
+the stronger post-representation from the proved Freeable permissions,
+the retained loads and separation from the two owned arrays. No output
+ownership or separation is assumed. The prior read-only interface remains
+unchanged. This closes the matrix representation gap, not the whole inverse
+caller or its divstep/termination obligations, and adds no public coverage.
+
 `jet_secp_modinv_de_exec.eval_de_words` executes the original coefficient
 update `secp256k1_modinv64_update_de_62` with the actual field-modulus metadata,
 including entry, both private accumulators, every original call/store, return
@@ -450,6 +462,8 @@ JET_TARGETS=C/jet_secp_modinv_fg_call.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_multiply_call_lifecycle C.jet_secp_modinv_fg_call
 JET_TARGETS=C/jet_secp_modinv_fg_permissions.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_clight_internal_permissions C.jet_secp_modinv_fg_permissions
+JET_TARGETS=C/jet_secp_modinv_fg_owned.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_owned
 JET_TARGETS=C/jet_secp_modinv_de_exec.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_known C.jet_secp_modinv_de_exec
 JET_TARGETS=C/jet_secp_modinv_de_correction_numeric.vo bash Coq/build-jets.sh -j2
