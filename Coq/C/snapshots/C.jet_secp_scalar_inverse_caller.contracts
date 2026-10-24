@@ -1,0 +1,254 @@
+### C.jet_secp_scalar_inverse_caller.scalar_inv_body_source
+scalar_inv_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_scalar_inverse_var)
+         (Clight.Ssequence scalar_inv_pack (Clight.Ssequence scalar_inv_core scalar_inv_unpack))
+### C.jet_secp_scalar_inverse_caller.scalar_inv_modinfo_symbol
+scalar_inv_modinfo_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            jets_secp._secp256k1_const_modinfo_scalar) (@Some Values.block scalar_inv_modinfo_block)
+### C.jet_secp_scalar_inverse_caller.scalar_inv_entry
+scalar_inv_entry
+     : forall (m : Memory.Mem.mem) (mi : Memory.Mem.mem') (bs bd bx : Values.block)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block mi bs)),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_scalar_inverse_var
+         (@cons Values.val (Values.Vptr bd Integers.Ptrofs.zero)
+            (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero) (@nil Values.val))) m (scalar_inv_env bs)
+         (scalar_inv_temps bd bx) mi
+### C.jet_secp_scalar_inverse_caller.scalar_inv_blocks
+scalar_inv_blocks
+     : forall bs : Values.block,
+       @eq (list (prod (prod Values.block BinNums.Z) BinNums.Z))
+         (Clight.blocks_of_env jet_secp_linkage.secp_ge (scalar_inv_env bs))
+         (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+            (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bs BinNums.Z0)
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+            (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))
+### C.jet_secp_scalar_inverse_caller.scalar_inv_core_arguments
+scalar_inv_core_arguments
+     : forall (bs : Values.block) (le : Clight.temp_env) (m : Memory.Mem.mem),
+       Clight.eval_exprlist jet_secp_linkage.secp_ge (scalar_inv_env bs) le m
+         (@cons Clight.expr scalar_inv_s_address (@cons Clight.expr scalar_inv_modinfo_address (@nil Clight.expr)))
+         (Ctypes.type_of_params (Clight.fn_params jets_secp.f_secp256k1_modinv64_var))
+         (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+            (@cons Values.val (Values.Vptr scalar_inv_modinfo_block Integers.Ptrofs.zero) (@nil Values.val)))
+### C.jet_secp_scalar_inverse_caller.scalar_inv_entry_to_core
+scalar_inv_entry_to_core
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bd bx : Values.block)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bx BinNums.Z0
+                (jet_secp_scalar_add_initial.scalar_add_values w O))
+         (_ : Memory.Mem.range_perm m bx BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bd BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Values.block
+         (fun bs : Values.block =>
+          @ex Memory.Mem.mem
+            (fun mi : Memory.Mem.mem =>
+             @ex Memory.Mem.mem
+               (fun mp : Memory.Mem.mem =>
+                and
+                  (Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_scalar_inverse_var
+                     (@cons Values.val (Values.Vptr bd Integers.Ptrofs.zero)
+                        (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero) (@nil Values.val))) m
+                     (scalar_inv_env bs) (scalar_inv_temps bd bx) mi)
+                  (and
+                     (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (scalar_inv_env bs)
+                        (scalar_inv_temps bd bx) mi scalar_inv_pack Events.E0 (scalar_inv_temps bd bx) mp
+                        ClightBigstep.Out_normal)
+                     (and
+                        (Clight.eval_exprlist jet_secp_linkage.secp_ge (scalar_inv_env bs)
+                           (scalar_inv_temps bd bx) mp
+                           (@cons Clight.expr scalar_inv_s_address
+                              (@cons Clight.expr scalar_inv_modinfo_address (@nil Clight.expr)))
+                           (Ctypes.type_of_params (Clight.fn_params jets_secp.f_secp256k1_modinv64_var))
+                           (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+                              (@cons Values.val (Values.Vptr scalar_inv_modinfo_block Integers.Ptrofs.zero)
+                                 (@nil Values.val))))
+                        (and
+                           (jet_secp_fe_nv.fe_at mp bs BinNums.Z0
+                              (jet_secp_multiply_normalize_bridge.words5
+                                 (jet_secp_scalar_signed62.scalar62_words true w)))
+                           (and
+                              (jet_secp_signed62_numeric.signed62_normalized
+                                 (jet_secp_scalar_signed62.scalar62_words true w))
+                              (and
+                                 (@eq BinNums.Z
+                                    (jet_secp_signed62_numeric.signed62_unsigned_value
+                                       (jet_secp_scalar_signed62.scalar62_words true w))
+                                    (jet_secp_scalar_overflow_numeric.scalar_limb_value w))
+                                 (and
+                                    (jet_secp_scalar_get_b32_storage.scalar_at mp bx BinNums.Z0
+                                       (jet_secp_scalar_add_initial.scalar_add_values w O))
+                                    (and
+                                       (Memory.Mem.range_perm mp bs BinNums.Z0
+                                          (BinNums.Zpos
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                          Memtype.Cur Memtype.Freeable)
+                                       (and
+                                          (Memory.Mem.range_perm mp bx BinNums.Z0
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                             Memtype.Cur Memtype.Freeable)
+                                          (and
+                                             (Memory.Mem.range_perm mp bd BinNums.Z0
+                                                (BinNums.Zpos
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                                Memtype.Cur Memtype.Freeable)
+                                             (and (not (@eq Values.block bs bx))
+                                                (and (not (@eq Values.block bd bs))
+                                                   (and (not (Memory.Mem.valid_block m bs))
+                                                      (jet_sx_mem.lframe
+                                                         (fun (b : Values.block) (_ : BinNums.Z) =>
+                                                          and (not (@eq Values.block b bs))
+                                                            (not (@eq Values.block b bx))) m mp))))))))))))))))
+### C.jet_secp_scalar_inverse_caller.exec_scalar_inv_unpack_and_free
+exec_scalar_inv_unpack_and_free
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bs bd : Values.block)
+         (w : forall _ : nat, Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr bd Integers.Ptrofs.zero))) (_ : not (@eq Values.block bd bs))
+         (_ : jet_secp_signed62_numeric.signed62_normalized w)
+         (_ : jet_secp_fe_nv.fe_at m bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bd BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mr : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (scalar_inv_env bs) le m scalar_inv_unpack
+                  Events.E0 le mf ClightBigstep.Out_normal)
+               (and
+                  (@eq (option Memory.Mem.mem)
+                     (Memory.Mem.free_list mf (Clight.blocks_of_env jet_secp_linkage.secp_ge (scalar_inv_env bs)))
+                     (@Some Memory.Mem.mem mr))
+                  (and
+                     (jet_secp_scalar_get_b32_storage.scalar_at mr bd BinNums.Z0
+                        (jet_secp_scalar_add_initial.scalar_add_values
+                           (jet_secp_scalar_signed62.scalar62_words false w) O))
+                     (and
+                        (@eq BinNums.Z
+                           (jet_secp_scalar_overflow_numeric.scalar_limb_value
+                              (jet_secp_scalar_signed62.scalar62_words false w))
+                           (jet_secp_signed62_numeric.signed62_unsigned_value w))
+                        (and
+                           (Memory.Mem.range_perm mr bd BinNums.Z0
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (_ : BinNums.Z) =>
+                               and (not (@eq Values.block b bd)) (not (@eq Values.block b bs))) m mr)))))))
+### C.jet_secp_scalar_inverse_caller.scalar_inv_call_from_core
+scalar_inv_call_from_core
+     : forall (w : forall _ : nat, Integers.Int64.int) (m mi mp mc : Memory.Mem.mem) (bs bd bx : Values.block)
+         (_ : Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_scalar_inverse_var
+                (@cons Values.val (Values.Vptr bd Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero) (@nil Values.val))) m
+                (scalar_inv_env bs) (scalar_inv_temps bd bx) mi)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (scalar_inv_env bs)
+                (scalar_inv_temps bd bx) mi scalar_inv_pack Events.E0 (scalar_inv_temps bd bx) mp
+                ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mp
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_var)
+                (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr scalar_inv_modinfo_block Integers.Ptrofs.zero) (@nil Values.val)))
+                Events.E0 mc Values.Vundef) (_ : not (@eq Values.block bd bs))
+         (_ : jet_secp_signed62_numeric.signed62_normalized w)
+         (_ : jet_secp_fe_nv.fe_at mc bs BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm mc bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm mc bd BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_inverse_var)
+               (@cons Values.val (Values.Vptr bd Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_secp_scalar_get_b32_storage.scalar_at mf bd BinNums.Z0
+                  (jet_secp_scalar_add_initial.scalar_add_values (jet_secp_scalar_signed62.scalar62_words false w) O))
+               (and
+                  (@eq BinNums.Z
+                     (jet_secp_scalar_overflow_numeric.scalar_limb_value
+                        (jet_secp_scalar_signed62.scalar62_words false w))
+                     (jet_secp_signed62_numeric.signed62_unsigned_value w))
+                  (and
+                     (Memory.Mem.range_perm mf bd BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (_ : BinNums.Z) =>
+                         and (not (@eq Values.block b bd)) (not (@eq Values.block b bs))) mc mf)))))
+### C.jet_secp_scalar_inverse_caller.scalar_inv_env
+scalar_inv_env =
+fun bs : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._s
+  (@pair Values.block Ctypes.type bs (Ctypes.Tstruct jets_secp._secp256k1_modinv64_signed62 Ctypes.noattr))
+  Clight.empty_env
+     : forall _ : Values.block, Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments scalar_inv_env bs
+### C.jet_secp_scalar_inverse_caller.scalar_inv_temps
+scalar_inv_temps =
+fun bd bx : Values.block =>
+@Maps.PTree.set Values.val jets_secp._x (Values.Vptr bx Integers.Ptrofs.zero)
+  (@Maps.PTree.set Values.val jets_secp._r (Values.Vptr bd Integers.Ptrofs.zero)
+     (Clight.create_undef_temps (Clight.fn_temps jets_secp.f_secp256k1_scalar_inverse_var)))
+     : forall (_ : Values.block) (_ : Values.block), Maps.PTree.tree Values.val
+
+Arguments scalar_inv_temps bd bx
+### C.jet_secp_scalar_inverse_caller.scalar_inv_s_address
+scalar_inv_s_address =
+Clight.Eaddrof (Clight.Evar jets_secp._s (Ctypes.Tstruct jets_secp._secp256k1_modinv64_signed62 Ctypes.noattr))
+  (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._secp256k1_modinv64_signed62 Ctypes.noattr))
+     : Clight.expr
+### C.jet_secp_scalar_inverse_caller.scalar_inv_modinfo_block
+scalar_inv_modinfo_block =
+jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_const_modinfo_scalar
+     : Values.block
+### C.jet_secp_scalar_inverse_caller.scalar_inv_modinfo_address
+scalar_inv_modinfo_address =
+Clight.Eaddrof
+  (Clight.Evar jets_secp._secp256k1_const_modinfo_scalar
+     (Ctypes.Tstruct jets_secp._secp256k1_modinv64_modinfo Ctypes.noattr))
+  (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._secp256k1_modinv64_modinfo Ctypes.noattr))
+     : Clight.expr
+### C.jet_secp_scalar_inverse_caller.scalar_inv_pack
+scalar_inv_pack =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_to_signed62 jets_secp.f_secp256k1_scalar_to_signed62
+  (@None AST.ident)
+  (@cons Clight.expr scalar_inv_s_address
+     (@cons Clight.expr
+        (Clight.Etempvar jets_secp._x (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr)))
+        (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_scalar_inverse_caller.scalar_inv_core
+scalar_inv_core =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_modinv64_var jets_secp.f_secp256k1_modinv64_var
+  (@None AST.ident)
+  (@cons Clight.expr scalar_inv_s_address (@cons Clight.expr scalar_inv_modinfo_address (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_scalar_inverse_caller.scalar_inv_unpack
+scalar_inv_unpack =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_from_signed62
+  jets_secp.f_secp256k1_scalar_from_signed62 (@None AST.ident)
+  (@cons Clight.expr (Clight.Etempvar jets_secp._r (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr)))
+     (@cons Clight.expr scalar_inv_s_address (@nil Clight.expr)))
+     : Clight.statement

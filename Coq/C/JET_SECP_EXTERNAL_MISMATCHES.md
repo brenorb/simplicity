@@ -70,9 +70,26 @@ field repacking bit-window lemmas, accounting for the 64/62-bit boundaries
 and high bits discarded by individual word shifts. No C, AST, generation
 setting, specification or external-call model is changed.
 
-This discharges two original helper calls, not `scalar_inverse_var` or the
-public `scalar_invert` jet. Scalar-modulus readiness, complete modular
-inversion and caller/read/write/return composition remain open. In
+`jet_secp_scalar_inverse_caller.scalar_inv_entry_to_core` composes the real
+inverse-helper entry, fresh 40-byte local allocation and original packing
+call. It derives the exact packed value and position bounds, ownership,
+separation, retained scalar input and evaluation of the actual core-call
+arguments. Input and output scalars may be the same block, as they are in
+the original public scalar-invert jet. The scalar-modulus symbol lookup is
+proved; initialized contents of that global are not assumed or established
+by this address-evaluation result.
+
+`exec_scalar_inv_unpack_and_free` derives the original reverse conversion
+and actual private-local reclamation from a live, canonically positioned
+signed62 result. `scalar_inv_call_from_core` checks how the proven
+entry/packing stages and that suffix compose into the complete helper call
+when supplied the actual intervening core execution and its live result.
+Those core premises remain unresolved; this call-context theorem is not a
+public scalar-invert equivalence or a new library model.
+
+These results do not discharge the complete `scalar_inverse_var` or public
+`scalar_invert` proof. Scalar-modulus readiness, complete modular inversion
+and public caller/read/write composition remain open. In
 particular, the field-modulus-specific inverse results cannot be reused as
 scalar-order results without a proved modulus-general bridge. Coverage
 remains 514/533; no new library premise is introduced by these helpers.
@@ -80,6 +97,8 @@ remains 514/533; no new library premise is introduced by these helpers.
 ```sh
 JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_signed62 C.jet_secp_scalar_signed62_numeric
+JET_TARGETS=C/jet_secp_scalar_inverse_caller.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_caller
 ```
 
 ## Generation: wNAF also calls external memset
