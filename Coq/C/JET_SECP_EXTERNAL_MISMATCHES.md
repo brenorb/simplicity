@@ -841,6 +841,41 @@ JET_TARGETS=C/jet_secp_gej_norm_infinity.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_norm_infinity
 ```
 
+### Finite caller data and nested inverse preparation (internal progress)
+
+`jet_secp_gej_norm_reads.exec_gej_norm_read_and_tag` composes the original
+`read_gej` and caller header for both canonical flag values. It reuses the
+existing stronger coordinate reader and limb bridge, returning the actual
+normalized X/Y/Z fields after the tag write, the unchanged stored flag,
+advanced source cursor, ownership of all caller locals and the tagged frame
+invariant. No coordinate load, flag, output or helper execution is assumed
+after reading. `affine_inverse_reader_value` identifies the inverse
+preparation's input value with the original Z word modulo the field prime.
+
+`jet_secp_gej_affine_entry.affine_entry_to_inverse_core` derives actual entry
+into `secp256k1_ge_set_gej_var`, its finite-flag guard, evaluation of both
+Z-at-offset-80 arguments, entry into `fe_inv_var`, and its real
+copy/normalize/signed62-pack preparation. It reuses `fe_inv_entry_to_core`;
+the input's packed representation, normalization, numeric value, owned
+storage and fresh local blocks are derived. All pre-existing caller loads
+and permissions are framed through these steps, retaining the computed tag
+when the frame invariant is transported across them. The exact original
+function-body context is checked by `affine_entry_source`.
+
+These are execution/representation prefixes, not a full nested call or a
+finite public-jet equivalence. The concrete `modinfo_fe_global_rep` input
+contract is retained from the existing inverse preparation; its
+initialization is already proved, but caller-level establishment/preservation
+must still be composed with the read/tag prefix. Complete modular inversion,
+its canonical inverse correspondence, finite suffix/call/return composition
+and public cleanup remain required. No new external model, axiom, target
+change or coverage credit: accepted coverage remains 514/533.
+
+```sh
+JET_TARGETS="C/jet_secp_gej_affine_entry.vo C/jet_secp_gej_norm_reads.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_affine_entry C.jet_secp_gej_norm_reads
+```
+
 ## Original field-inverse preparation (internal progress, no added coverage)
 
 `jet_secp_fe_inv_prefix.fe_inv_entry_to_core` derives actual entry into
