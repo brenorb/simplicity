@@ -1,0 +1,209 @@
+### C.jet_elements_fee_lookup_sorted.fee_lookup_find_app
+fee_lookup_find_app
+     : forall (key : list Integers.Int.int) (xs ys : list jet_elements_fee_lookup_table.fee_entry),
+       @eq (option Integers.Int64.int) (fee_lookup_find key (@app jet_elements_fee_lookup_table.fee_entry xs ys))
+         match fee_lookup_find key xs return (option Integers.Int64.int) with
+         | Some value => @Some Integers.Int64.int value
+         | None => fee_lookup_find key ys
+         end
+### C.jet_elements_fee_lookup_sorted.fee_lookup_find_absent
+fee_lookup_find_absent
+     : forall (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : @List.Forall jet_elements_fee_lookup_table.fee_entry
+                (fun x : jet_elements_fee_lookup_table.fee_entry =>
+                 not (@eq (list Integers.Int.int) key (jet_elements_fee_lookup_table.fee_entry_key x))) entries),
+       @eq (option Integers.Int64.int) (fee_lookup_find key entries) (@None Integers.Int64.int)
+### C.jet_elements_fee_lookup_sorted.fee_lookup_find_head
+fee_lookup_find_head
+     : forall (key : list Integers.Int.int) (x : jet_elements_fee_lookup_table.fee_entry)
+         (xs : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : @eq (list Integers.Int.int) key (jet_elements_fee_lookup_table.fee_entry_key x)),
+       @eq (option Integers.Int64.int) (fee_lookup_find key (@cons jet_elements_fee_lookup_table.fee_entry x xs))
+         (@Some Integers.Int64.int (jet_elements_fee_lookup_table.fee_entry_amount x))
+### C.jet_elements_fee_lookup_sorted.fee_split_at
+@fee_split_at
+     : forall (A : Type) (j : nat) (entries : list A) (x : A)
+         (_ : @eq (option A) (@List.nth_error A entries j) (@Some A x)),
+       @eq (list A) entries (@app A (@List.firstn A j entries) (@cons A x (@List.skipn A (S j) entries)))
+### C.jet_elements_fee_lookup_sorted.fee_lookup_sorted_firstn
+fee_lookup_sorted_firstn
+     : forall (k : nat) (entries : list jet_elements_fee_lookup_table.fee_entry) (_ : fee_lookup_sorted entries),
+       fee_lookup_sorted (@List.firstn jet_elements_fee_lookup_table.fee_entry k entries)
+### C.jet_elements_fee_lookup_sorted.fee_lookup_sorted_skipn
+fee_lookup_sorted_skipn
+     : forall (k : nat) (entries : list jet_elements_fee_lookup_table.fee_entry) (_ : fee_lookup_sorted entries),
+       fee_lookup_sorted (@List.skipn jet_elements_fee_lookup_table.fee_entry k entries)
+### C.jet_elements_fee_lookup_sorted.fee_lookup_sorted_part
+fee_lookup_sorted_part
+     : forall (high : bool) (entries : list jet_elements_fee_lookup_table.fee_entry) (_ : fee_lookup_sorted entries),
+       fee_lookup_sorted (jet_elements_fee_lookup_table.fee_search_part high entries)
+### C.jet_elements_fee_lookup_sorted.fee_lookup_pivot_order
+fee_lookup_pivot_order
+     : forall (entries : list jet_elements_fee_lookup_table.fee_entry) (j : nat)
+         (x : jet_elements_fee_lookup_table.fee_entry) (_ : fee_lookup_sorted entries)
+         (_ : @eq (option jet_elements_fee_lookup_table.fee_entry)
+                (@List.nth_error jet_elements_fee_lookup_table.fee_entry entries j)
+                (@Some jet_elements_fee_lookup_table.fee_entry x)),
+       and
+         (@List.Forall jet_elements_fee_lookup_table.fee_entry
+            (fun y : jet_elements_fee_lookup_table.fee_entry =>
+             @eq comparison
+               (jet_memcmp_model.bytes_cmp (jet_elements_fee_lookup_table.fee_entry_key y)
+                  (jet_elements_fee_lookup_table.fee_entry_key x)) Lt)
+            (@List.firstn jet_elements_fee_lookup_table.fee_entry j entries))
+         (@List.Forall jet_elements_fee_lookup_table.fee_entry
+            (fun y : jet_elements_fee_lookup_table.fee_entry =>
+             @eq comparison
+               (jet_memcmp_model.bytes_cmp (jet_elements_fee_lookup_table.fee_entry_key x)
+                  (jet_elements_fee_lookup_table.fee_entry_key y)) Lt)
+            (@List.skipn jet_elements_fee_lookup_table.fee_entry (S j) entries))
+### C.jet_elements_fee_lookup_sorted.fee_lookup_partition
+fee_lookup_partition
+     : forall (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (j : nat) (x : jet_elements_fee_lookup_table.fee_entry)
+         (_ : @eq (option jet_elements_fee_lookup_table.fee_entry)
+                (@List.nth_error jet_elements_fee_lookup_table.fee_entry entries j)
+                (@Some jet_elements_fee_lookup_table.fee_entry x)) (_ : fee_lookup_sorted entries)
+         (_ : @List.Forall jet_elements_fee_lookup_table.fee_entry
+                (fun y : jet_elements_fee_lookup_table.fee_entry =>
+                 @eq nat (@length Integers.Int.int (jet_elements_fee_lookup_table.fee_entry_key y))
+                   (@length Integers.Int.int key)) entries),
+       @eq Integers.Int64.int (fee_lookup_value key entries)
+         match
+           jet_memcmp_model.bytes_cmp key (jet_elements_fee_lookup_table.fee_entry_key x) return Integers.Int64.int
+         with
+         | Eq => jet_elements_fee_lookup_table.fee_entry_amount x
+         | Lt => fee_lookup_value key (@List.firstn jet_elements_fee_lookup_table.fee_entry j entries)
+         | Gt => fee_lookup_value key (@List.skipn jet_elements_fee_lookup_table.fee_entry (S j) entries)
+         end
+### C.jet_elements_fee_lookup_sorted.fee_lookup_answer_sorted
+fee_lookup_answer_sorted
+     : forall (fuel : nat) (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : le (@length jet_elements_fee_lookup_table.fee_entry entries) fuel) (_ : fee_lookup_sorted entries)
+         (_ : @List.Forall jet_elements_fee_lookup_table.fee_entry
+                (fun y : jet_elements_fee_lookup_table.fee_entry =>
+                 @eq nat (@length Integers.Int.int (jet_elements_fee_lookup_table.fee_entry_key y))
+                   (@length Integers.Int.int key)) entries),
+       @eq Integers.Int64.int (jet_elements_fee_lookup_loop.fee_lookup_answer fuel key entries)
+         (fee_lookup_value key entries)
+### C.jet_elements_fee_lookup_sorted.fee_lookup_storage_lengths
+fee_lookup_storage_lengths
+     : forall (m : Memory.Mem.mem) (keyval tableval : Values.val) (key : list Integers.Int.int)
+         (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : jet_elements_fee_lookup_table.fee_lookup_storage m keyval tableval key entries),
+       @List.Forall jet_elements_fee_lookup_table.fee_entry
+         (fun x : jet_elements_fee_lookup_table.fee_entry =>
+          @eq nat (@length Integers.Int.int (jet_elements_fee_lookup_table.fee_entry_key x))
+            (@length Integers.Int.int key)) entries
+### C.jet_elements_fee_lookup_sorted.eval_fee_lookup_sorted
+eval_fee_lookup_sorted
+     : forall (_ : jet_memcmp_model.memcmp_model) (m : Memory.Mem.mem) (keyval tableval : Values.val)
+         (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : jet_elements_fee_lookup_table.fee_lookup_storage m keyval tableval key entries)
+         (_ : fee_lookup_sorted entries),
+       ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+         (@Ctypes.Internal Clight.function jets_elements.f_lookup_fee)
+         (@cons Values.val keyval
+            (@cons Values.val tableval
+               (@cons Values.val
+                  (Values.Vlong
+                     (Integers.Int64.repr (BinInt.Z.of_nat (@length jet_elements_fee_lookup_table.fee_entry entries))))
+                  (@nil Values.val)))) Events.E0 m (Values.Vlong (fee_lookup_value key entries))
+### C.jet_elements_fee_lookup_sorted.fee_lookup_key_unique
+fee_lookup_key_unique
+     : forall (entries : list jet_elements_fee_lookup_table.fee_entry) (i j : nat)
+         (x y : jet_elements_fee_lookup_table.fee_entry) (_ : fee_lookup_sorted entries)
+         (_ : @eq (option jet_elements_fee_lookup_table.fee_entry)
+                (@List.nth_error jet_elements_fee_lookup_table.fee_entry entries i)
+                (@Some jet_elements_fee_lookup_table.fee_entry x))
+         (_ : @eq (option jet_elements_fee_lookup_table.fee_entry)
+                (@List.nth_error jet_elements_fee_lookup_table.fee_entry entries j)
+                (@Some jet_elements_fee_lookup_table.fee_entry y))
+         (_ : @eq (list Integers.Int.int) (jet_elements_fee_lookup_table.fee_entry_key x)
+                (jet_elements_fee_lookup_table.fee_entry_key y)), @eq jet_elements_fee_lookup_table.fee_entry x y
+### C.jet_elements_fee_lookup_sorted.fee_lookup_find_present
+fee_lookup_find_present
+     : forall (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (x : jet_elements_fee_lookup_table.fee_entry) (_ : fee_lookup_sorted entries)
+         (_ : @List.In jet_elements_fee_lookup_table.fee_entry x entries)
+         (_ : @eq (list Integers.Int.int) key (jet_elements_fee_lookup_table.fee_entry_key x)),
+       @eq (option Integers.Int64.int) (fee_lookup_find key entries)
+         (@Some Integers.Int64.int (jet_elements_fee_lookup_table.fee_entry_amount x))
+### C.jet_elements_fee_lookup_sorted.eval_fee_lookup_present
+eval_fee_lookup_present
+     : forall (_ : jet_memcmp_model.memcmp_model) (m : Memory.Mem.mem) (keyval tableval : Values.val)
+         (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (x : jet_elements_fee_lookup_table.fee_entry)
+         (_ : jet_elements_fee_lookup_table.fee_lookup_storage m keyval tableval key entries)
+         (_ : fee_lookup_sorted entries) (_ : @List.In jet_elements_fee_lookup_table.fee_entry x entries)
+         (_ : @eq (list Integers.Int.int) key (jet_elements_fee_lookup_table.fee_entry_key x)),
+       ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+         (@Ctypes.Internal Clight.function jets_elements.f_lookup_fee)
+         (@cons Values.val keyval
+            (@cons Values.val tableval
+               (@cons Values.val
+                  (Values.Vlong
+                     (Integers.Int64.repr (BinInt.Z.of_nat (@length jet_elements_fee_lookup_table.fee_entry entries))))
+                  (@nil Values.val)))) Events.E0 m (Values.Vlong (jet_elements_fee_lookup_table.fee_entry_amount x))
+### C.jet_elements_fee_lookup_sorted.eval_fee_lookup_absent
+eval_fee_lookup_absent
+     : forall (_ : jet_memcmp_model.memcmp_model) (m : Memory.Mem.mem) (keyval tableval : Values.val)
+         (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : jet_elements_fee_lookup_table.fee_lookup_storage m keyval tableval key entries)
+         (_ : fee_lookup_sorted entries)
+         (_ : @List.Forall jet_elements_fee_lookup_table.fee_entry
+                (fun x : jet_elements_fee_lookup_table.fee_entry =>
+                 not (@eq (list Integers.Int.int) key (jet_elements_fee_lookup_table.fee_entry_key x))) entries),
+       ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+         (@Ctypes.Internal Clight.function jets_elements.f_lookup_fee)
+         (@cons Values.val keyval
+            (@cons Values.val tableval
+               (@cons Values.val
+                  (Values.Vlong
+                     (Integers.Int64.repr (BinInt.Z.of_nat (@length jet_elements_fee_lookup_table.fee_entry entries))))
+                  (@nil Values.val)))) Events.E0 m (Values.Vlong Integers.Int64.zero)
+### C.jet_elements_fee_lookup_sorted.fee_lookup_sorted
+fee_lookup_sorted =
+fun entries : list jet_elements_fee_lookup_table.fee_entry =>
+forall (i j : nat) (x y : jet_elements_fee_lookup_table.fee_entry) (_ : lt i j)
+  (_ : @eq (option jet_elements_fee_lookup_table.fee_entry)
+         (@List.nth_error jet_elements_fee_lookup_table.fee_entry entries i)
+         (@Some jet_elements_fee_lookup_table.fee_entry x))
+  (_ : @eq (option jet_elements_fee_lookup_table.fee_entry)
+         (@List.nth_error jet_elements_fee_lookup_table.fee_entry entries j)
+         (@Some jet_elements_fee_lookup_table.fee_entry y)),
+@eq comparison
+  (jet_memcmp_model.bytes_cmp (jet_elements_fee_lookup_table.fee_entry_key x)
+     (jet_elements_fee_lookup_table.fee_entry_key y)) Lt
+     : forall _ : list jet_elements_fee_lookup_table.fee_entry, Prop
+
+Arguments fee_lookup_sorted entries%list_scope
+### C.jet_elements_fee_lookup_sorted.fee_lookup_find
+fee_lookup_find =
+fix fee_lookup_find
+  (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry) {struct entries} :
+    option Integers.Int64.int :=
+  match entries return (option Integers.Int64.int) with
+  | nil => @None Integers.Int64.int
+  | cons x xs =>
+      match
+        @List.list_eq_dec Integers.Int.int Integers.Int.eq_dec key (jet_elements_fee_lookup_table.fee_entry_key x)
+        return (option Integers.Int64.int)
+      with
+      | left _ => @Some Integers.Int64.int (jet_elements_fee_lookup_table.fee_entry_amount x)
+      | right _ => fee_lookup_find key xs
+      end
+  end
+     : forall (_ : list Integers.Int.int) (_ : list jet_elements_fee_lookup_table.fee_entry), option Integers.Int64.int
+
+Arguments fee_lookup_find (key entries)%list_scope
+### C.jet_elements_fee_lookup_sorted.fee_lookup_value
+fee_lookup_value =
+fun (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry) =>
+match fee_lookup_find key entries return Integers.Int64.int with
+| Some value => value
+| None => Integers.Int64.zero
+end
+     : forall (_ : list Integers.Int.int) (_ : list jet_elements_fee_lookup_table.fee_entry), Integers.Int64.int
+
+Arguments fee_lookup_value (key entries)%list_scope

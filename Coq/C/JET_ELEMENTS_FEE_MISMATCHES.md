@@ -131,15 +131,40 @@ NULL table pointers without an artificial nonnull premise.
 
 The functional answer describes the C search choices; it is an internal
 proof adapter, **not** a replacement for the canonical Simplicity fee
-program. Equality to sorted-table lookup, correspondence of the real fee
-table to transaction outputs, public-wrapper composition and the
-hash-classification boundary above still need proof. No jet is registered;
+program. Correspondence of the real fee table to transaction outputs,
+public-wrapper composition and the hash-classification boundary above still
+need proof; sorted lookup is addressed below. No jet is registered;
 coverage remains 514/533. Production C, ASTs, API and canonical
 specifications are unchanged.
 
 ```sh
 JET_TARGETS=C/jet_elements_fee_lookup_loop.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_fee_lookup_loop
+```
+
+### Original lookup implements sorted key lookup (internal C contract)
+
+`jet_elements_fee_lookup_sorted.eval_fee_lookup_sorted` connects the full
+original C call to ordinary key lookup, not merely to its binary-search
+choices. The sortedness predicate is the existing C helper's unique,
+strict bytewise key order, stated on indices. The key lengths needed to
+turn equal byte comparisons into equal keys are derived from the actual
+storage relation. The proof establishes that a discarded half has no
+matching key; it does not assume search completeness.
+
+`eval_fee_lookup_present` returns the exact stored 64-bit fee for any
+present matching key; `eval_fee_lookup_absent` returns zero if no key
+matches. Both retain empty trace, unchanged memory and the existing explicit
+`memcmp_model` premise. These are helper-level implementation results.
+Establishing the real caller's sorted/unique fee table and relating its
+amounts to canonical fee sums, plus public-wrapper composition and the
+hash-classification boundary above, remain open. No production source,
+canonical specification or API contract changes; no public registration or
+new coverage. The ledger remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_elements_fee_lookup_sorted.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_fee_lookup_sorted
 ```
 
 `simplicity_output_is_fee` remains unregistered. `total_fee` also depends on
