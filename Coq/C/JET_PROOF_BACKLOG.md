@@ -2240,6 +2240,17 @@ and recursively check using `C/jet_secp_swu_initial.vo` /
 `C.jet_secp_swu_initial`, and compare focused assumption/contract records for
 `jet_secp_swu_startup`, `jet_secp_swu_constant_product` and `jet_secp_swu_initial`.
 
+The shared `jet_secp_field_add_int` now generalizes the original fixed-7
+execution pattern to every C int, reusing `mul_small_initial` for the owned
+input relation. Its small-addition corollary derives the exact numeric sum,
+stored limbs, ownership, reusable bounds and frame for constants from 0 to 8;
+in particular it supplies the actual additions by 8 and 1 above. Signed
+conversion and machine wraparound are explicit in the unrestricted theorem;
+the numeric theorem proves no overflow from its bounds. This is helper
+execution, not additional public coverage. Build/kernel-check
+`C/jet_secp_field_add_int.vo` / `C.jet_secp_field_add_int` and compare its
+focused assumption/contract records.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
