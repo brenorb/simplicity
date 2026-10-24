@@ -2438,22 +2438,54 @@ objects. No allocation, freeing, internal call or output is assumed. The
 only non-storage premises remain the established startup state and original
 CTZ call contract; this helper is not the public read/write wrapper.
 
-Next compose the original public `simplicity_swu` reader/writer wrapper
-with `eval_swu_function`, using its existential X/Y storage, loose bounds,
-literal output relation and ownership. Reuse the existing affine writer and
-public lifecycle/frame proofs rather than serializing the coordinates with
-a new implementation. Derive startup across the reader and discharge it
-from the real startup caller separately. The deferred CTZ external-call
-obligation is separate and remains visible.
+`jet_secp_swu_public_boundary` and `jet_secp_swu_public_body` now prove the
+original public entry, exact statement tree, call resolution and original
+free list. The source-frame-copy adapter changes only the local environment
+used by its execution derivation; it reuses the existing decompression
+allocation, source-copy and frame facts. It does not substitute a runtime
+implementation or reorder the actual frees.
+`jet_secp_swu_public_rest` derives the canonical reader, complete mapper and
+original affine writer from general frames and owned uninitialized locals.
+It preserves startup across the reader and writer with the existing internal
+helper-table proof. Its generic affine encoding/writer lemmas keep the
+literal result relation separate from serialization. The checked scalar-level
+`swu_limb_list_words` lemma avoids costly kernel conversion of the full
+256-bit normalization term: instantiate that opaque integer-level equality
+in `swu_reader_digits`, rather than using a beta-expanded `generalize` proof
+or directly converting `normalized_value t` to `point_canonical_limbs t`.
+The latter completed its tactics but exceeded the bounded final kernel
+check; the factored proof compiles with the original 10-second limit.
+
+`jet_secp_swu_public_call.eval_swu_literal_public` composes all original
+public allocations, the source-frame copy, every body call, true return
+conversion and frees, with startup, readonly and memory-frame preservation.
+`jet_secp_swu_local.swu_initialized_local_spec_from_count_calls` now states
+the complete existing initialized local contract for `simplicity_swu`
+against `literal_swu`: every Word256 input, exact 512-bit output, arbitrary
+valid cursors, output-prefix/cursor and unaffected-load guarantees, and
+startup preservation. No input canonicality, curve, nonzero, initialized
+output or additional separation premise is exposed. This remains explicitly
+conditional on the same deferred original CTZ call contract and startup
+state; it is not a new accepted row.
+
+The implementation/specification composition is now complete under those
+explicit shared obligations. Next continue independent jet obligations as
+requested, keeping SWU unregistered until CTZ and the real startup-call
+linkage are justified under the accepted policy. `swu_startup_initial` and
+`swu_startup_exists` already establish the globals at `Genv.init_mem` of the
+original program; do not replace a real caller/startup argument with an
+assumed output, alter the external-call relation or broaden coverage merely
+because the conditional local theorem compiles.
 
 Coverage stays 514/533; these are not whole-public SWU registration.
 Reproduce the normal build with
-`JET_TARGETS='C/jet_secp_swu_function.vo'`
+`JET_TARGETS='C/jet_secp_swu_local.vo'`
 and kernel check with
-`-o C.jet_secp_swu_function`, plus focused assumption/contract comparisons for
+`-o C.jet_secp_swu_local`, plus focused assumption/contract comparisons for
 `jet_secp_root_output_bounds`, `jet_secp_swu_before_selection`,
 `jet_secp_swu_parity_fields`, `jet_secp_swu_parity`, `jet_secp_swu_body` and
-`jet_secp_swu_function`.
+`jet_secp_swu_function` and `jet_secp_swu_public_{boundary,body,rest,call}` /
+`jet_secp_swu_local`.
 
 ## Completed: `simplicity_gej_rescale`
 
