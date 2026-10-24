@@ -1,0 +1,241 @@
+### C.jet_sx_known.known_truth_sound
+known_truth_sound
+     : forall (c : jet_sx_expr.sx) (b : bool) (_ : @eq (option bool) (known_truth c) (@Some bool b))
+         (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq bool (jet_sx_expr.truth rho beta c) b
+### C.jet_sx_known.known_stmt_lext
+known_stmt_lext
+     : forall (ce : Ctypes.composite_env) (gv : jet_sx_eval.venv) (fns : list (prod AST.ident jet_sx_exec.fentry))
+         (fuel : nat) (s : Clight.statement) (ve : jet_sx_eval.venv) (st : jet_sx_eval.sstate)
+         (rr : jet_sx_exec.res)
+         (_ : @eq (option jet_sx_exec.res) (known_stmt ce gv fns fuel ve st s) (@Some jet_sx_exec.res rr))
+         (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       jet_sx_exec.lext rho beta (jet_sx_eval.slog st) rr
+### C.jet_sx_known.known_stmt_sound
+known_stmt_sound
+     : forall (ge : Clight.genv) (gv : jet_sx_eval.venv) (fns : list (prod AST.ident jet_sx_exec.fentry))
+         (ev_ok : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event), Prop)
+         (inv : forall (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem), Prop)
+         (ext : forall _ : Values.block, Prop)
+         (_ : forall (rho : forall _ : nat, Integers.Int64.int) (log : list jet_sx_eval.event)
+                (m m' : Memory.Mem.mem) (_ : inv rho log m)
+                (_ : jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => ext b) m m'),
+              inv rho log m')
+         (_ : forall (rho : forall _ : nat, Integers.Int64.int) (log : list jet_sx_eval.event)
+                (m : Memory.Mem.mem) (b : Values.block) (_ : inv rho log m) (_ : ext b), Memory.Mem.valid_block m b)
+         (_ : forall (id : AST.ident) (ent : jet_sx_exec.fentry)
+                (_ : @eq (option jet_sx_exec.fentry) (jet_sx_exec.flookup fns id) (@Some jet_sx_exec.fentry ent)),
+              and
+                (@ex Values.block
+                   (fun b : Values.block =>
+                    and
+                      (@eq (option Values.block)
+                         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+                         (@Some Values.block b))
+                      (@eq (option Clight.fundef)
+                         (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge) b)
+                         (@Some (Ctypes.fundef Clight.function)
+                            (@Ctypes.Internal Clight.function (jet_sx_exec.fentry_fd ent))))))
+                match ent return Prop with
+                | jet_sx_exec.FInt _ => True
+                | jet_sx_exec.FOra fd o => jet_sx_exec.oracle_ok ge ev_ok inv ext fd o
+                end) (fuel : nat),
+       jet_sx_exec.sound_rec ge gv ev_ok inv ext (known_stmt (Clight.genv_cenv ge) gv fns fuel)
+### C.jet_sx_known.known_fun_sound
+known_fun_sound
+     : forall (ge : Clight.genv) (fns : list (prod AST.ident jet_sx_exec.fentry))
+         (_ : forall (id : AST.ident) (ent : jet_sx_exec.fentry)
+                (_ : @eq (option jet_sx_exec.fentry) (jet_sx_exec.flookup fns id) (@Some jet_sx_exec.fentry ent)),
+              and
+                (@ex Values.block
+                   (fun b : Values.block =>
+                    and
+                      (@eq (option Values.block)
+                         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+                         (@Some Values.block b))
+                      (@eq (option Clight.fundef)
+                         (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge) b)
+                         (@Some (Ctypes.fundef Clight.function)
+                            (@Ctypes.Internal Clight.function (jet_sx_exec.fentry_fd ent))))))
+                match ent return Prop with
+                | jet_sx_exec.FInt _ => True
+                | jet_sx_exec.FOra fd o =>
+                    jet_sx_exec.oracle_ok ge
+                      (fun (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event) => True)
+                      (fun (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem)
+                       => True) (fun _ : Values.block => False) fd o
+                end) (fuel : nat) (fd : Clight.function) (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region)
+         (nv : nat) (rr : jet_sx_exec.res)
+         (_ : @eq (option jet_sx_exec.res)
+                (known_fun (Clight.genv_cenv ge) (@nil (prod AST.ident (prod nat Ctypes.type))) fns fuel fd xs regs
+                   (@nil jet_sx_eval.event) nv) (@Some jet_sx_exec.res rr)) (rho : forall _ : nat, Integers.Int64.int)
+         (beta : jet_sx_state.layout) (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex Values.val
+            (fun vres : Values.val =>
+             and
+               (ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function fd)
+                  (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) xs) Events.E0 mf
+                  vres)
+               (and
+                  (jet_sx_state.rep rho beta
+                     (jet_sx_eval.sregs
+                        (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho (jet_sx_state.lay beta) rr)))
+                     mf)
+                  (and
+                     match
+                       @Maps.PTree.get jet_sx_expr.sx BinNums.xH
+                         (jet_sx_eval.stemps
+                            (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho (jet_sx_state.lay beta) rr)))
+                       return Prop
+                     with
+                     | Some x => @eq Values.val vres (jet_sx_expr.den rho (jet_sx_state.lay beta) x)
+                     | None => @eq Values.val vres Values.Vundef
+                     end
+                     (and
+                        (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape
+                              (jet_sx_eval.sregs
+                                 (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                                    (jet_sx_exec.rsel rho (jet_sx_state.lay beta) rr))))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape regs))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape regs) b ofs)) m mf))))))
+### C.jet_sx_known.known_truth
+known_truth =
+fun c : jet_sx_expr.sx =>
+match c return (option bool) with
+| jet_sx_expr.XI _ => @None bool
+| jet_sx_expr.XIc i => @Some bool (negb (Integers.Int.eq i Integers.Int.zero))
+| jet_sx_expr.XL _ => @None bool
+| jet_sx_expr.XLc _ => @None bool
+| jet_sx_expr.XLv _ => @None bool
+| jet_sx_expr.XV _ => @None bool
+| jet_sx_expr.XA _ _ => @None bool
+| jet_sx_expr.XP _ _ => @None bool
+| jet_sx_expr.XIb _ _ _ => @None bool
+| jet_sx_expr.XLb _ _ _ => @None bool
+| jet_sx_expr.XIsh _ _ _ => @None bool
+| jet_sx_expr.XLsh _ _ _ => @None bool
+| jet_sx_expr.XIcmp _ _ _ _ => @None bool
+| jet_sx_expr.XLcmp _ _ _ _ => @None bool
+| jet_sx_expr.XI2L _ _ => @None bool
+| jet_sx_expr.XL2I _ => @None bool
+| jet_sx_expr.XIcast _ _ _ => @None bool
+| jet_sx_expr.XInz _ => @None bool
+| jet_sx_expr.XLnz a =>
+    match a return (option bool) with
+    | jet_sx_expr.XI _ => @None bool
+    | jet_sx_expr.XIc _ => @None bool
+    | jet_sx_expr.XL _ => @None bool
+    | jet_sx_expr.XLc l => @Some bool (negb (Integers.Int64.eq l Integers.Int64.zero))
+    | jet_sx_expr.XLv _ => @None bool
+    | jet_sx_expr.XV _ => @None bool
+    | jet_sx_expr.XA _ _ => @None bool
+    | jet_sx_expr.XP _ _ => @None bool
+    | jet_sx_expr.XIb _ _ _ => @None bool
+    | jet_sx_expr.XLb _ _ _ => @None bool
+    | jet_sx_expr.XIsh _ _ _ => @None bool
+    | jet_sx_expr.XLsh _ _ _ => @None bool
+    | jet_sx_expr.XIcmp _ _ _ _ => @None bool
+    | jet_sx_expr.XLcmp _ _ _ _ => @None bool
+    | jet_sx_expr.XI2L _ _ => @None bool
+    | jet_sx_expr.XL2I _ => @None bool
+    | jet_sx_expr.XIcast _ _ _ => @None bool
+    | jet_sx_expr.XInz _ => @None bool
+    | jet_sx_expr.XLnz _ => @None bool
+    | jet_sx_expr.XIz _ => @None bool
+    | jet_sx_expr.XLz _ => @None bool
+    | jet_sx_expr.XIneg _ => @None bool
+    | jet_sx_expr.XLneg _ => @None bool
+    | jet_sx_expr.XInot _ => @None bool
+    | jet_sx_expr.XLnot _ => @None bool
+    end
+| jet_sx_expr.XIz _ => @None bool
+| jet_sx_expr.XLz _ => @None bool
+| jet_sx_expr.XIneg _ => @None bool
+| jet_sx_expr.XLneg _ => @None bool
+| jet_sx_expr.XInot _ => @None bool
+| jet_sx_expr.XLnot _ => @None bool
+end
+     : forall _ : jet_sx_expr.sx, option bool
+
+Arguments known_truth c
+### C.jet_sx_known.known_stmt
+known_stmt =
+fun (ce : Ctypes.composite_env) (gv : jet_sx_eval.venv) (fns : list (prod AST.ident jet_sx_exec.fentry)) (fuel : nat)
+=>
+fix known_stmt (ve : jet_sx_eval.venv) (st : jet_sx_eval.sstate) (s : Clight.statement) {struct s} :
+    option jet_sx_exec.res :=
+  match s return (option jet_sx_exec.res) with
+  | Clight.Sskip => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Sassign _ _ => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Sset _ _ => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Scall _ _ _ => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Sbuiltin _ _ _ _ => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Ssequence a b =>
+      match known_stmt ve st a return (option jet_sx_exec.res) with
+      | Some r =>
+          jet_sx_exec.tbind r
+            (fun (st' : jet_sx_eval.sstate) (out : jet_sx_exec.xout) =>
+             match out return (option jet_sx_exec.res) with
+             | jet_sx_exec.ONormal => known_stmt ve st' b
+             | jet_sx_exec.OBreak => @Some jet_sx_exec.res (jet_sx_exec.RDone st' out)
+             | jet_sx_exec.OContinue => @Some jet_sx_exec.res (jet_sx_exec.RDone st' out)
+             | jet_sx_exec.OReturn _ => @Some jet_sx_exec.res (jet_sx_exec.RDone st' out)
+             end)
+      | None => @None jet_sx_exec.res
+      end
+  | Clight.Sifthenelse a b c =>
+      match jet_sx_eval.xexpr ce ve gv st a return (option jet_sx_exec.res) with
+      | Some x =>
+          match jet_sx_expr.xbool x (Clight.typeof a) return (option jet_sx_exec.res) with
+          | Some cond =>
+              match known_truth cond return (option jet_sx_exec.res) with
+              | Some choose =>
+                  match choose return (option jet_sx_exec.res) with
+                  | true => known_stmt ve st b
+                  | false => known_stmt ve st c
+                  end
+              | None => jet_sx_exec.xstmt ce gv fns fuel ve st s
+              end
+          | None => @None jet_sx_exec.res
+          end
+      | None => @None jet_sx_exec.res
+      end
+  | Clight.Sloop _ _ => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Sbreak => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Scontinue => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Sreturn _ => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Sswitch _ _ => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Slabel _ _ => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  | Clight.Sgoto _ => jet_sx_exec.xstmt ce gv fns fuel ve st s
+  end
+     : forall (_ : Ctypes.composite_env) (_ : jet_sx_eval.venv) (_ : list (prod AST.ident jet_sx_exec.fentry))
+         (_ : nat) (_ : jet_sx_eval.venv) (_ : jet_sx_eval.sstate) (_ : Clight.statement),
+       option jet_sx_exec.res
+
+Arguments known_stmt ce gv fns%list_scope fuel%nat_scope ve st s
+### C.jet_sx_known.known_fun
+known_fun =
+fun (ce : Ctypes.composite_env) (gv : jet_sx_eval.venv) (fns : list (prod AST.ident jet_sx_exec.fentry))
+  (fuel : nat) (fd : Clight.function) (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region)
+  (log : list jet_sx_eval.event) (nv : nat) =>
+jet_sx_exec.xfun_with ce (known_stmt ce gv fns fuel) fd xs regs log nv
+  (jet_sx_exec.xcall_ret (@Some BinNums.positive BinNums.xH) (Maps.PTree.empty jet_sx_expr.sx)
+     (@length jet_sx_state.region regs) (Clight.fn_return fd))
+     : forall (_ : Ctypes.composite_env) (_ : jet_sx_eval.venv) (_ : list (prod AST.ident jet_sx_exec.fentry))
+         (_ : nat) (_ : Clight.function) (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region)
+         (_ : list jet_sx_eval.event) (_ : nat), option jet_sx_exec.res
+
+Arguments known_fun ce gv fns%list_scope fuel%nat_scope fd (xs regs log)%list_scope nv%nat_scope

@@ -339,6 +339,23 @@ and coefficient-update calls and the full caller invariant; the read-only
 matrix contract also does not itself restore a caller's stronger matrix
 ownership. This function theorem adds no public jet coverage.
 
+`jet_secp_modinv_de_exec.eval_de_words` executes the original coefficient
+update `secp256k1_modinv64_update_de_62` with the actual field-modulus metadata,
+including entry, both private accumulators, every original call/store, return
+and freeing. It derives exact output-word loads, owned `d/e` arrays and matrix,
+the read-only metadata and caller-memory framing. The output words are still
+the execution-derived machine expressions: their modular-value and range
+bridge to the inverse invariant is not yet proved or claimed.
+
+`jet_sx_known` proves constant-condition selection against the unchanged
+Clight statement. It evaluates the original condition and its C boolean
+conversion, and selects a branch only when the result is proved independent
+of the symbolic inputs. Unknown cases retain the existing executor. This
+avoids exploring the impossible nonzero branches of the three zero field
+modulus limbs; it changes no generated C/AST, assertion setting or external
+semantics. Both the branch checker and this actual helper call are proof
+dependencies, not new public jet coverage.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -358,6 +375,8 @@ JET_TARGETS=C/jet_secp_modinv_fg_body.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_body
 JET_TARGETS=C/jet_secp_modinv_fg_call.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_multiply_call_lifecycle C.jet_secp_modinv_fg_call
+JET_TARGETS=C/jet_secp_modinv_de_exec.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_known C.jet_secp_modinv_de_exec
 ```
 
 ## Reproduction and limits
