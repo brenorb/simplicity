@@ -247,9 +247,21 @@ framing. This avoids duplicating the signed accumulation helper's discarded
 verification-expression branches. It is not a libc model, assumed helper
 behavior, a replacement implementation or a new public jet proof.
 
+`jet_secp_modinv_fg_iteration_prefix.exec_fg_iter_prefix` uses that checked
+summary to execute the original loop's two operand loads and four signed
+multiply-accumulates, for every valid nonzero index 1 through 4 of the actual
+five-limb objects. Both accumulators may initially contain arbitrary words.
+Its postcondition derives the exact symbolic output words, ownership,
+temporaries and framing; no intermediate execution or output is assumed.
+The checked source split retains the actual masked stores and shifts as the
+remaining suffix. Full-loop induction, its numeric invariant and caller
+composition remain open. This result adds no public jet coverage.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
+JET_TARGETS=C/jet_secp_modinv_fg_iteration_prefix.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_iteration_prefix
 ```
 
 ## Reproduction and limits
