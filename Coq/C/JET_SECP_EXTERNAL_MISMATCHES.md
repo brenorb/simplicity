@@ -456,6 +456,22 @@ copies, `len`/`eta` setup, the divstep loop and whole-function return/freeing
 remain unproved here. No external-helper behavior or later execution is
 assumed, and no public jet coverage is added.
 
+`jet_secp_modinv_var_copies.inv_entry_to_loop` extends that entry prefix
+through the two original `signed62_assign` calls and the original
+`len=5`/`eta=-1` setup. Both calls reuse the checked Clight by-copy
+implementation, not libc or a replacement sequence of stores. Their
+source readability, destination ownership and separation are derived
+from the caller's represented state. The resulting seven-region state
+retains the initialized coefficients, represents the copied modulus and
+input, and preserves the uninitialized matrix without inventing values.
+All five local allocations, parameter binding, actual prefix execution,
+fresh-local separation and caller-memory framing are conclusions. The
+specialized entry uses metadata at block offset zero, as for the actual
+constant global; it adds no restriction on the five input words. The
+divstep loop, its invariant/termination and whole-function return/freeing
+remain required. No external-helper behavior is assumed, and this caller
+prefix adds no public jet coverage.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -491,6 +507,8 @@ JET_TARGETS=C/jet_secp_modinv_de_revalue.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_revalue
 JET_TARGETS=C/jet_secp_modinv_var_entry.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_entry
+JET_TARGETS=C/jet_secp_modinv_var_copies.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_copies
 ```
 
 ## Reproduction and limits
