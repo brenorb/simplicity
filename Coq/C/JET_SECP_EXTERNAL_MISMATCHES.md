@@ -441,6 +441,21 @@ premise. This makes the coefficient helper reusable by the inverse loop;
 it is not a proof of that caller's divsteps or termination and adds no
 public jet coverage.
 
+`jet_secp_modinv_var_entry.inv_entry_and_initializers` begins the original
+`secp256k1_modinv64_var` caller itself. From represented input words and
+read-only field metadata it derives actual function entry, allocation of
+the five original local objects, parameter binding and execution of the
+ten original `d=0`/`e=1` initializer stores. The resulting memory represents
+the initialized coefficients, with their initial limb/value invariant,
+owned private objects, fresh-local separation and caller-memory framing.
+Future matrix values remain arbitrary: this theorem does not claim that
+the as-yet-uninitialized matrix contains zeroes. The initialized values are
+connected to actual loads, not merely to a separately specified initial
+state. This prefix stops **before both original struct-copy calls**; those
+copies, `len`/`eta` setup, the divstep loop and whole-function return/freeing
+remain unproved here. No external-helper behavior or later execution is
+assumed, and no public jet coverage is added.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -474,6 +489,8 @@ JET_TARGETS=C/jet_secp_modinv_de_call.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_numeric C.jet_secp_modinv_de_call
 JET_TARGETS=C/jet_secp_modinv_de_revalue.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_revalue
+JET_TARGETS=C/jet_secp_modinv_var_entry.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_entry
 ```
 
 ## Reproduction and limits
