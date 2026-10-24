@@ -2173,13 +2173,40 @@ is checked against the exact modular root exponent, not an arbitrary choice of
 square root. Modular field automation uses the existing proved `modInv` and
 field-primality certificate; no new field or inverse axiom is introduced.
 
-Next establish those three representations through the actual C helper calls
-and port/link the exact literal Simplicity candidate and selection tree,
-including the joint inverse's opposite sign and final parity correction. The
-new numeric relations must be derived internally, not retained as public jet
-premises. The explicit original ctz boundary is still deferred. Coverage is
+The later literal bridge below establishes the three representations for the
+canonical term. They must still be established through actual C helper calls,
+not retained as public jet premises. The explicit original ctz boundary is
+still deferred. Coverage is
 514/533, not a new public SWU proof. Build/check with the same commands using
 `C/jet_secp_swu_candidates.vo` / `C.jet_secp_swu_candidates`.
+
+`jet_secp_swu_literal` now ports the exact canonical candidate, selection and
+parity tree (LibSecp256k1.hs:709--733). Its constants follow the canonical FE
+modular-power and halving computations; closed proofs identify their values
+with the C constants. Its parametricity proof is closed. The third root test
+and `(0,0)` failure branch are retained in the port, not removed by definition.
+
+`jet_secp_swu_literal_bridge.swu_literal_candidates_c` connects that term's
+candidate values to the C joint-inverse formulas on every Word256 input.
+`swu_joint_inverse_opposite` proves the inverse-sign bridge, including zero.
+`swu_literal_third_check` discharges the third-test-success obligation for
+the exact literal candidates with **no representation or success premise**.
+`swu_literal_select_no_fallback` and `swu_literal_selected_step` then derive
+the three-way selected literal point and original final parity correction;
+they prove the canonical fallback unreachable rather than changing the term.
+The literal-program bridges inherit only functional extensionality; the new
+inverse-sign fact is closed. No new library model is declared.
+
+Next execute the original `f_shallue_van_de_woestijne` call: thirteen owned
+40-byte field locals, the actual global constants, all field calls and copies,
+three root calls, conditional moves, point setup, parity correction and frees.
+Use the numeric bridge above to relate those results, then compose the public
+reader/writer wrapper. Only the previously deferred original ctz steps may
+remain conditional; do not introduce premises for internal call execution,
+candidate success or the final literal equality. Coverage remains 514/533.
+Reproduce the targeted normal build/kernel check with
+`C/jet_secp_swu_literal_bridge.vo` / `C.jet_secp_swu_literal_bridge` and focused
+assumption/contract comparisons for these two modules and `jet_secp_swu_candidates`.
 
 ## Completed: `simplicity_gej_rescale`
 

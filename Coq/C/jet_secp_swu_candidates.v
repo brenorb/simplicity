@@ -209,4 +209,22 @@ Proof.
         swu_cubic (swu_c_candidate3 t))).
     apply (Zmult_eqm feP);[apply (Zmult_eqm feP);assumption|exact Z].
 Qed.
+(** The literal program inverts -j whereas the C program inverts j. Cover
+    the zero denominator too; do not use field cancellation there. *)
+Lemma swu_joint_inverse_opposite t :
+  eqm feP (swu_inv ((t*t+8)*(3*t*t))) (-swu_joint_inverse t).
+Proof.
+  destruct (Z.eq_dec (t mod feP) 0) as [Zero|Nonzero].
+  - assert (Tzero:eqm feP t 0) by exact Zero.
+    assert (PositiveZero:eqm feP ((t*t+8)*(3*t*t)) 0)
+      by (setoid_rewrite Tzero;ring).
+    assert (NegativeZero:eqm feP ((t*t+8)*(-3*t*t)) 0)
+      by (setoid_rewrite Tzero;ring).
+    unfold swu_joint_inverse,swu_inv.
+    rewrite (modInv_eqm feP _ _ PositiveZero),(modInv_eqm feP _ _ NegativeZero),modInv_zero.
+    reflexivity.
+  - pose proof (swu_candidate_denominator_nonzero t) as Wnonzero.
+    unfold swu_joint_inverse.
+    field;repeat split;first [assumption|unfold eqm;vm_compute;discriminate].
+Qed.
 End SwuCandidateAlgebra.
