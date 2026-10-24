@@ -380,6 +380,24 @@ framing guarantees and assumes only the original represented inputs. This
 is a machine-word recurrence bridge, not yet its integer-value/range proof
 or a complete public inversion theorem; public coverage is unchanged.
 
+`jet_secp_modinv_de_call.eval_de_transition` closes that coefficient-update
+integer-value/range bridge for the **complete original C helper call**.
+From represented inputs, the internal matrix-row bounds, and the input
+limb/value invariant, it derives every stored word, the exact row value
+`(u*d + v*e + p*correction)/2^62`, preservation modulo the field order,
+and the original strict output limb and `(-2p,p)` value bounds. The
+signed-128 accumulator bounds, signed-64 final carries and initial
+divisibility are proved from those internal inputs, not assumed. The proof
+reuses the existing normalization arithmetic to bound the sign-adjusted
+coefficient values. Entry, local allocation/freeing, output ownership
+(including the matrix) and caller-memory framing come from the actual
+execution proof; no alternative implementation or external model is used.
+
+The numeric lemmas are closed. This helper result does not itself establish
+the divstep matrix, its row bounds or the variable inverse caller's loop
+invariants/termination; those remain required for the public inversion jet,
+as does the reported external-call boundary. No coverage entry is added.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -405,6 +423,8 @@ JET_TARGETS=C/jet_secp_modinv_de_correction_numeric.vo bash Coq/build-jets.sh -j
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_correction C.jet_secp_modinv_de_correction_numeric
 JET_TARGETS=C/jet_secp_modinv_de_recurrence_words.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_recurrence C.jet_secp_modinv_de_recurrence_words
+JET_TARGETS=C/jet_secp_modinv_de_call.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_numeric C.jet_secp_modinv_de_call
 ```
 
 ## Reproduction and limits
