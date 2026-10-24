@@ -22,15 +22,19 @@ Qed.
 Lemma de62_mul_mod62 a b : Int64.signed (Int64.mul a b) mod 2^62=
  (Int64.signed a*Int64.signed b) mod 2^62.
 Proof. rewrite Int64.mul_signed;apply de62_repr_mod62. Qed.
-Lemma de62_mask_correction low start x : Int64.signed low mod 2^62=x mod 2^62 ->
- Int64.signed (Int64.and (Int64.add (Int64.mul (Int64.repr 2866531139136965327) low) start)
-  (Int64.repr (2^62-1)))=(2866531139136965327*x+Int64.signed start) mod 2^62.
+Lemma de62_mask_correction_word inverse low start x : Int64.signed low mod 2^62=x mod 2^62 ->
+ Int64.signed (Int64.and (Int64.add (Int64.mul inverse low) start)
+  (Int64.repr (2^62-1)))=(Int64.signed inverse*x+Int64.signed start) mod 2^62.
 Proof.
  intro Low;rewrite norm62_mask_signed,Int64.add_signed,de62_repr_mod62.
  rewrite <-Z.add_mod_idemp_l by lia;rewrite de62_mul_mod62.
- change (Int64.signed (Int64.repr 2866531139136965327)) with 2866531139136965327.
  rewrite <-Z.mul_mod_idemp_r by lia;rewrite Low,Z.mul_mod_idemp_r,Z.add_mod_idemp_l by lia;reflexivity.
 Qed.
+
+Lemma de62_mask_correction low start x : Int64.signed low mod 2^62=x mod 2^62 ->
+ Int64.signed (Int64.and (Int64.add (Int64.mul (Int64.repr 2866531139136965327) low) start)
+  (Int64.repr (2^62-1)))=(2866531139136965327*x+Int64.signed start) mod 2^62.
+Proof. exact(de62_mask_correction_word (Int64.repr 2866531139136965327) low start x). Qed.
 
 Definition de62_row_bound (rho : nat->int64) (high : bool) :=
  Z.abs (Int64.signed (rho (if high then 12%nat else 10%nat)))+

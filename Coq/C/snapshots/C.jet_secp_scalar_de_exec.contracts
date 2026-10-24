@@ -1,0 +1,253 @@
+### C.jet_secp_scalar_de_exec.scalar_de62_run_ok_true
+scalar_de62_run_ok_true
+     : @eq bool scalar_de62_run_ok true
+### C.jet_secp_scalar_de_exec.scalar_de62_run_eq
+scalar_de62_run_eq
+     : @eq (option jet_sx_exec.res) scalar_de62_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone scalar_de62_state jet_sx_exec.ONormal))
+### C.jet_secp_scalar_de_exec.scalar_de62_return
+scalar_de62_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps scalar_de62_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_scalar_de_exec.scalar_de62_limbs_properties
+scalar_de62_limbs_properties
+     : forall high : bool,
+       and (@eq nat (@length jet_sx_expr.sx (scalar_de62_limbs high)) (S (S (S (S (S O))))))
+         (and (@eq bool (@List.forallb jet_sx_expr.sx (jet_sx_expr.isk jet_sx_expr.KL) (scalar_de62_limbs high)) true)
+            (@eq bool (@List.forallb jet_sx_expr.sx (jet_sx_mem.xp_lt O) (scalar_de62_limbs high)) true))
+### C.jet_secp_scalar_de_exec.scalar_de62_out_shape
+scalar_de62_out_shape
+     : forall high : bool,
+       @eq (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+         (jet_sx_state.rshape (scalar_de62_out_region high))
+         (@pair (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)
+            (@pair (list (prod BinNums.Z AST.memory_chunk)) bool
+               (jet_secp_multiply_run_run.field_u64_shapes BinNums.Z0 (S (S (S (S (S O)))))) true)
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_scalar_de_exec.scalar_de62_out_defined
+scalar_de62_out_defined
+     : forall high : bool,
+       @eq bool (jet_secp_multiply_run_run.field_cells_defined (jet_sx_state.rcells (scalar_de62_out_region high)))
+         true
+### C.jet_secp_scalar_de_exec.scalar_de62_tail
+scalar_de62_tail
+     : @eq (list jet_sx_state.region) (@List.skipn jet_sx_state.region (S (S O)) (jet_sx_eval.sregs scalar_de62_state))
+         (@List.skipn jet_sx_state.region (S (S O)) scalar_de62_regs)
+### C.jet_secp_scalar_de_exec.scalar_de62_out_rebuild
+scalar_de62_out_rebuild
+     : forall high : bool,
+       @eq jet_sx_state.region (scalar_de62_out_region high)
+         (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (scalar_de62_limbs high)) true
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_scalar_de_exec.scalar_de62_two_heads
+scalar_de62_two_heads
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs scalar_de62_state)
+         (@cons jet_sx_state.region (scalar_de62_out_region false)
+            (@cons jet_sx_state.region (scalar_de62_out_region true)
+               (@List.skipn jet_sx_state.region (S (S O)) (jet_sx_eval.sregs scalar_de62_state))))
+### C.jet_secp_scalar_de_exec.scalar_de62_output_regs
+scalar_de62_output_regs
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs scalar_de62_state)
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (scalar_de62_limbs false)) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@cons jet_sx_state.region
+               (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (scalar_de62_limbs true)) true
+                  (@Some BinNums.Z
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+               (@cons jet_sx_state.region
+                  (@List.nth jet_sx_state.region (S (S O)) scalar_de62_regs
+                     (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z)))
+                  (@cons jet_sx_state.region
+                     (@List.nth jet_sx_state.region (S (S (S O))) scalar_de62_regs
+                        (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z)))
+                     (@nil jet_sx_state.region)))))
+### C.jet_secp_scalar_de_exec.scalar_eval_de_symbolic
+scalar_eval_de_symbolic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta scalar_de62_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_update_de_62)
+               (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta))
+                  jet_secp_modinv_de_exec.de62_args) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs scalar_de62_state) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape scalar_de62_regs) b ofs)) m mf)))
+### C.jet_secp_scalar_de_exec.scalar_de62_word_den
+scalar_de62_word_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq Values.val
+         (jet_sx_expr.den rho beta
+            (@List.nth jet_sx_expr.sx i (scalar_de62_limbs high) (jet_sx_expr.XLc Integers.Int64.zero)))
+         (Values.Vlong (scalar_de62_word rho high i))
+### C.jet_secp_scalar_de_exec.scalar_de62_output_load
+scalar_de62_output_load
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs scalar_de62_state) m) (high : bool)
+         (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m
+            (jet_sx_state.blk beta match high return nat with
+                                   | true => S O
+                                   | false => O
+                                   end)
+            (BinInt.Z.add (jet_sx_state.bas beta match high return nat with
+                                                 | true => S O
+                                                 | false => O
+                                                 end)
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))))
+         (@Some Values.val (Values.Vlong (scalar_de62_word rho high i)))
+### C.jet_secp_scalar_de_exec.scalar_eval_de_words
+scalar_eval_de_words
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta scalar_de62_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_update_de_62)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O)))))
+                        (@cons Values.val
+                           (Values.Vptr (jet_sx_state.blk beta (S (S (S O))))
+                              (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S (S O))))))
+                           (@nil Values.val))))) Events.E0 mf Values.Vundef)
+            (and
+               (forall (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf
+                     (jet_sx_state.blk beta match high return nat with
+                                            | true => S O
+                                            | false => O
+                                            end)
+                     (BinInt.Z.add (jet_sx_state.bas beta match high return nat with
+                                                          | true => S O
+                                                          | false => O
+                                                          end)
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                           (BinInt.Z.of_nat i)))) (@Some Values.val (Values.Vlong (scalar_de62_word rho high i))))
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs scalar_de62_state) mf)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot beta
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape scalar_de62_regs) b ofs)) m mf))))
+### C.jet_secp_scalar_de_exec.scalar_de62_regs
+scalar_de62_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (jet_sx_rep.u64_cells BinNums.Z0
+        (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S O))))) (@nil jet_sx_expr.sx))))))) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region
+     (jet_sx_state.mkreg
+        (jet_sx_rep.u64_cells BinNums.Z0
+           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S O))))))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S O)))))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S O))))))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S O)))))))))
+                       (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S O))))))))))
+                          (@nil jet_sx_expr.sx))))))) true
+        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     (@cons jet_sx_state.region
+        (jet_sx_state.mkreg
+           (jet_sx_rep.u64_cells BinNums.Z0
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+                       (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+                          (@nil jet_sx_expr.sx)))))) true
+           (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (@cons jet_sx_state.region
+           (jet_sx_state.mkreg
+              (jet_sx_rep.u64_cells BinNums.Z0
+                 (@List.map Integers.Int64.int jet_sx_expr.sx jet_sx_expr.XLc
+                    jet_secp_modinfo_scalar_global.modinfo_scalar_words)) false (@None BinNums.Z))
+           (@nil jet_sx_state.region))))
+     : list jet_sx_state.region
+### C.jet_secp_scalar_de_exec.scalar_de62_run
+scalar_de62_run =
+jet_sx_known.known_fun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_modinv_fg_iteration_prefix.fg_fast_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  jets_secp.f_secp256k1_modinv64_update_de_62 jet_secp_modinv_de_exec.de62_args scalar_de62_regs
+  (@nil jet_sx_eval.event) (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+     : option jet_sx_exec.res
+### C.jet_secp_scalar_de_exec.scalar_de62_run_ok
+scalar_de62_run_ok =
+match scalar_de62_run return bool with
+| Some r =>
+    match r return bool with
+    | jet_sx_exec.RDone _ o =>
+        match o return bool with
+        | jet_sx_exec.ONormal => true
+        | jet_sx_exec.OBreak => false
+        | jet_sx_exec.OContinue => false
+        | jet_sx_exec.OReturn _ => false
+        end
+    | jet_sx_exec.RIf _ _ _ => false
+    end
+| None => false
+end
+     : bool
+### C.jet_secp_scalar_de_exec.scalar_de62_state
+scalar_de62_state =
+match scalar_de62_run return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ =>
+        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+    end
+| None => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : jet_sx_eval.sstate
+### C.jet_secp_scalar_de_exec.scalar_de62_out_region
+scalar_de62_out_region =
+fun high : bool =>
+@List.nth jet_sx_state.region match high return nat with
+                              | true => S O
+                              | false => O
+                              end (jet_sx_eval.sregs scalar_de62_state)
+  (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+     : forall _ : bool, jet_sx_state.region
+
+Arguments scalar_de62_out_region high%bool_scope
+### C.jet_secp_scalar_de_exec.scalar_de62_limbs
+scalar_de62_limbs =
+fun high : bool =>
+@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_multiply_run_run.field_cell_value
+  (jet_sx_state.rcells (scalar_de62_out_region high))
+     : forall _ : bool, list jet_sx_expr.sx
+
+Arguments scalar_de62_limbs high%bool_scope
+### C.jet_secp_scalar_de_exec.scalar_de62_word
+scalar_de62_word =
+fun (rho : forall _ : nat, Integers.Int64.int) (high : bool) (i : nat) =>
+jet_sx_expr.il
+  (jet_sx_expr.den rho (fun _ : nat => @pair BinNums.positive BinNums.Z BinNums.xH BinNums.Z0)
+     (@List.nth jet_sx_expr.sx i (scalar_de62_limbs high) (jet_sx_expr.XLc Integers.Int64.zero)))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool) (_ : nat), Integers.Int64.int
+
+Arguments scalar_de62_word rho%function_scope high%bool_scope i%nat_scope

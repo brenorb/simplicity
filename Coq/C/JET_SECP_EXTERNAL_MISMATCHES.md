@@ -167,6 +167,31 @@ and framing are all derived from the stated internal memory/invariant
 premises. This is not yet a whole core call, scalar-invert jet theorem or
 new public proof entry. CTZ remains deferred and coverage stays 514/533.
 
+`jet_secp_scalar_de_numeric.eval_scalar_de_value` now proves the actual
+`modinv64_update_de_62` call with the six scalar modulus/metadata words.
+For each matrix row it derives the exact integer equation
+`2^62 * output = matrix_value + canonical_group_order * correction`, plus
+the corresponding congruence, all ten actual output-word loads, representation
+and framing. The complete call uses the existing verified 128-bit helper
+table; its word recurrence is checked against the real C outputs using the
+existing proved symbolic-expression comparator. It does not assume a
+coefficient-update execution or output value.
+
+The recurrence includes the scalar modulus's nonzero second limb and signed
+third limb -21, as well as its distinct low-limb inverse coefficient. A shared
+correction-mask lemma retains the original field contract as a specialization.
+Scalar intermediate carries are treated as full signed-128 values, not
+forced into the field proof's signed-64 carry bound; the last modulus limb
+256 gives a separate tight bound proving that the final stored carry does
+fit signed 64 bits. The scalar low-limb divisibility follows from the checked
+actual inverse coefficient.
+
+Matrix-row bounds and input-limb bounds are internal loop premises here.
+Scalar state construction, output value/limb-range preservation, coefficient
+link preservation and whole loop/caller composition remain required before
+public acceptance. CTZ remains deferred; no new external model, target change
+or public proof entry is added, and coverage remains 514/533.
+
 ```sh
 JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_signed62 C.jet_secp_scalar_signed62_numeric
@@ -180,6 +205,8 @@ JET_TARGETS="C/jet_secp_scalar_inverse_finish.vo C/jet_secp_modinv_var_result.vo
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_finish C.jet_secp_modinv_var_result
 JET_TARGETS="C/jet_secp_scalar_prime.vo C/jet_secp_scalar_invert_literal.vo C/jet_secp_scalar_inverse_result.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_prime C.jet_secp_scalar_invert_literal C.jet_secp_scalar_inverse_result
+JET_TARGETS="C/jet_secp_scalar_de_exec.vo C/jet_secp_scalar_de_recurrence.vo C/jet_secp_scalar_de_numeric.vo C/jet_secp_scalar_inverse_result.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_de_exec C.jet_secp_scalar_de_recurrence C.jet_secp_scalar_de_numeric C.jet_secp_scalar_inverse_result
 ```
 
 ## Generation: wNAF also calls external memset
