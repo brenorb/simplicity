@@ -112,6 +112,23 @@ particular, the field-modulus-specific inverse results cannot be reused as
 scalar-order results without a proved modulus-general bridge. Coverage
 remains 514/533; no new library premise is introduced by these helpers.
 
+The normalization part of that bridge is now shared in
+`jet_secp_modinv_normalize62_modulus.modnorm62_machine_numeric`. It derives
+canonical signed62 words and the exact signed residue for modulus limbs
+whose signed radix value is M, with proved per-limb bounds and
+2^248 <= M <= 2^256. The existing field numeric lemmas keep their statements
+and specialize this shared derivation; they are not repurposed as scalar
+results.
+
+`jet_secp_scalar_normalize62.eval_scalar_norm62_numeric` instantiates those
+premises with the actual scalar global, derives its loads from global
+readiness, and executes the original C `modinv64_normalize_62`. It proves
+the canonical result modulo the scalar group order, ownership, framing and
+preservation of all six modulus words. Its signed-limb/value bounds are
+internal obligations still to be established by the scalar inverse loop.
+There is no assumed normalize call, output fact, or new external model.
+This completes normalization only, not inversion or public jet coverage.
+
 ```sh
 JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_signed62 C.jet_secp_scalar_signed62_numeric
@@ -119,6 +136,8 @@ JET_TARGETS=C/jet_secp_scalar_inverse_caller.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_caller
 JET_TARGETS=C/jet_secp_modinfo_scalar_global.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinfo_scalar_global
+JET_TARGETS="C/jet_secp_modinv_normalize62_modulus.vo C/jet_secp_modinv_normalize62_numeric.vo C/jet_secp_scalar_normalize62.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_normalize62_modulus C.jet_secp_modinv_normalize62_numeric C.jet_secp_scalar_normalize62
 ```
 
 ## Generation: wNAF also calls external memset
