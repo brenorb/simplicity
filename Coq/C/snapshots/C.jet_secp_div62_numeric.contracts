@@ -1,0 +1,279 @@
+### C.jet_secp_div62_numeric.div62_repr_add
+div62_repr_add
+     : forall a b : BinNums.Z,
+       @eq Integers.Int64.int (Integers.Int64.add (Integers.Int64.repr a) (Integers.Int64.repr b))
+         (Integers.Int64.repr (BinInt.Z.add a b))
+### C.jet_secp_div62_numeric.div62_repr_sub
+div62_repr_sub
+     : forall a b : BinNums.Z,
+       @eq Integers.Int64.int (Integers.Int64.sub (Integers.Int64.repr a) (Integers.Int64.repr b))
+         (Integers.Int64.repr (BinInt.Z.sub a b))
+### C.jet_secp_div62_numeric.div62_repr_mul
+div62_repr_mul
+     : forall a b : BinNums.Z,
+       @eq Integers.Int64.int (Integers.Int64.mul (Integers.Int64.repr a) (Integers.Int64.repr b))
+         (Integers.Int64.repr (BinInt.Z.mul a b))
+### C.jet_secp_div62_numeric.div62_repr_and
+div62_repr_and
+     : forall a b : BinNums.Z,
+       @eq Integers.Int64.int (Integers.Int64.and (Integers.Int64.repr a) (Integers.Int64.repr b))
+         (Integers.Int64.repr (BinInt.Z.land a b))
+### C.jet_secp_div62_numeric.div62_loword_repr
+div62_loword_repr
+     : forall a : BinNums.Z, @eq Integers.Int.int (Integers.Int64.loword (Integers.Int64.repr a)) (Integers.Int.repr a)
+### C.jet_secp_div62_numeric.div62_repr64_lowbits
+div62_repr64_lowbits
+     : forall (a k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.le k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (Integers.Int64.unsigned (Integers.Int64.repr a))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+         (BinInt.Z.modulo a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_numeric.div62_repr32_lowbits
+div62_repr32_lowbits
+     : forall (a k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.le k
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (Integers.Int.unsigned (Integers.Int.repr a))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+         (BinInt.Z.modulo a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_numeric.div62_ones_bound
+div62_ones_bound
+     : forall (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.le k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       and (BinInt.Z.le BinNums.Z0 (BinInt.Z.ones k)) (BinInt.Z.le (BinInt.Z.ones k) Integers.Int64.max_unsigned)
+### C.jet_secp_div62_numeric.div62_cancel_bits_bound
+div62_cancel_bits_bound
+     : forall (neg : bool) (eta i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       and (BinInt.Z.le (BinNums.Zpos BinNums.xH) (div62_cancel_bits neg eta i))
+         (BinInt.Z.le (div62_cancel_bits neg eta i)
+            match neg return BinNums.Z with
+            | true => BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))
+            | false => BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))
+            end)
+### C.jet_secp_div62_numeric.div62_mask_value
+div62_mask_value
+     : forall (neg : bool) (eta i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       @eq Integers.Int64.int (jet_secp_div62_limit.div62_mask neg eta i)
+         (Integers.Int64.repr (BinInt.Z.ones (div62_cancel_bits neg eta i)))
+### C.jet_secp_div62_numeric.div62_mask_unsigned
+div62_mask_unsigned
+     : forall (a : Integers.Int64.int) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.and a (Integers.Int64.repr (BinInt.Z.ones k))))
+         (BinInt.Z.modulo (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_numeric.div62_mask_loword
+div62_mask_loword
+     : forall (a : Integers.Int64.int) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k) (BinInt.Z.le k (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))))),
+       @eq BinNums.Z
+         (Integers.Int.unsigned (Integers.Int64.loword (Integers.Int64.and a (Integers.Int64.repr (BinInt.Z.ones k)))))
+         (BinInt.Z.modulo (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_numeric.div62_w6_polynomial
+div62_w6_polynomial
+     : forall (f g k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k) (BinInt.Z.le k (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))))),
+       @eq BinNums.Z
+         (Integers.Int.unsigned
+            (jet_secp_div62_cancel.div62_w6 (Integers.Int64.repr f) (Integers.Int64.repr g)
+               (Integers.Int64.repr (BinInt.Z.ones k))))
+         (BinInt.Z.modulo
+            (BinInt.Z.mul (BinInt.Z.mul f g) (BinInt.Z.sub (BinInt.Z.mul f f) (BinNums.Zpos (BinNums.xO BinNums.xH))))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_numeric.div62_w4_first_value
+div62_w4_first_value
+     : forall f : BinNums.Z,
+       @eq Integers.Int.int (jet_secp_div62_cancel.div62_w4_first (Integers.Int64.repr f))
+         (Integers.Int.repr (div62_w4_polynomial f))
+### C.jet_secp_div62_numeric.div62_w4_polynomial_value
+div62_w4_polynomial_value
+     : forall (f g k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k) (BinInt.Z.le k (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))),
+       @eq BinNums.Z
+         (Integers.Int.unsigned
+            (jet_secp_div62_cancel.div62_w4 (Integers.Int64.repr f) (Integers.Int64.repr g)
+               (Integers.Int64.repr (BinInt.Z.ones k))))
+         (BinInt.Z.modulo (BinInt.Z.mul (BinInt.Z.opp (div62_w4_polynomial f)) g)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_numeric.div62_odd_gcd_power
+div62_odd_gcd_power
+     : forall (a k : BinNums.Z) (_ : BinInt.Z.Odd a) (_ : BinInt.Z.le BinNums.Z0 k),
+       @eq BinNums.Z (BinInt.Z.gcd a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)) (BinNums.Zpos BinNums.xH)
+### C.jet_secp_div62_numeric.div62_inverse_reduce
+div62_inverse_reduce
+     : forall (a k n : BinNums.Z) (_ : BinInt.Z.Odd a)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) k) (BinInt.Z.le k n)),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (modinv.modInv a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) n))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+         (modinv.modInv a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_numeric.div62_formula_reduce
+div62_formula_reduce
+     : forall (a poly k n : BinNums.Z) (_ : BinInt.Z.Odd a)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) k) (BinInt.Z.le k n))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo poly (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) n))
+                (modinv.modInv (BinInt.Z.opp a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) n))),
+       @eq BinNums.Z (BinInt.Z.modulo poly (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+         (modinv.modInv (BinInt.Z.opp a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_numeric.div62_w6_inverse
+div62_w6_inverse
+     : forall (f g k : BinNums.Z) (_ : BinInt.Z.Odd f)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) k)
+                (BinInt.Z.le k (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))))),
+       @eq BinNums.Z
+         (Integers.Int.unsigned
+            (jet_secp_div62_cancel.div62_w6 (Integers.Int64.repr f) (Integers.Int64.repr g)
+               (Integers.Int64.repr (BinInt.Z.ones k))))
+         (BinInt.Z.modulo
+            (BinInt.Z.mul (modinv.modInv (BinInt.Z.opp f) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)) g)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_numeric.div62_w4_inverse
+div62_w4_inverse
+     : forall (f g k : BinNums.Z) (_ : BinInt.Z.Odd f)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) k)
+                (BinInt.Z.le k (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))),
+       @eq BinNums.Z
+         (Integers.Int.unsigned
+            (jet_secp_div62_cancel.div62_w4 (Integers.Int64.repr f) (Integers.Int64.repr g)
+               (Integers.Int64.repr (BinInt.Z.ones k))))
+         (BinInt.Z.modulo
+            (BinInt.Z.mul (modinv.modInv (BinInt.Z.opp f) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)) g)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_div62_numeric.div62_w_unsigned
+div62_w_unsigned
+     : forall (neg : bool) (eta i f g : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : BinInt.Z.Odd f),
+       @eq BinNums.Z
+         (Integers.Int.unsigned
+            (jet_secp_div62_cancel.div62_w_word neg (Integers.Int64.repr f) (Integers.Int64.repr g)
+               (jet_secp_div62_limit.div62_mask neg eta i)))
+         (BinInt.Z.modulo
+            (BinInt.Z.mul
+               (modinv.modInv (BinInt.Z.opp f)
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (div62_cancel_bits neg eta i))) g)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (div62_cancel_bits neg eta i)))
+### C.jet_secp_div62_numeric.div62_w_long_value
+div62_w_long_value
+     : forall (neg : bool) (eta i f g : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : BinInt.Z.Odd f),
+       @eq Integers.Int64.int
+         (jet_secp_div62_cancel.div62_w_long neg (Integers.Int64.repr f) (Integers.Int64.repr g)
+            (jet_secp_div62_limit.div62_mask neg eta i))
+         (Integers.Int64.repr
+            (BinInt.Z.modulo
+               (BinInt.Z.mul
+                  (modinv.modInv (BinInt.Z.opp f)
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (div62_cancel_bits neg eta i))) g)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (div62_cancel_bits neg eta i))))
+### C.jet_secp_div62_numeric.div62_inverse_cancellation
+div62_inverse_cancellation
+     : forall (f g k : BinNums.Z) (_ : BinInt.Z.Odd f) (_ : BinInt.Z.le (BinNums.Zpos BinNums.xH) k),
+       BinInt.Z.divide (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+         (BinInt.Z.add g
+            (BinInt.Z.mul f
+               (BinInt.Z.modulo
+                  (BinInt.Z.mul
+                     (modinv.modInv (BinInt.Z.opp f) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)) g)
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))))
+### C.jet_secp_div62_numeric.div62_cancellation
+div62_cancellation
+     : forall (neg : bool) (eta i f g : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : BinInt.Z.Odd f),
+       let k : BinNums.Z := div62_cancel_bits neg eta i in
+       let w : BinNums.Z :=
+         Integers.Int.unsigned
+           (jet_secp_div62_cancel.div62_w_word neg (Integers.Int64.repr f) (Integers.Int64.repr g)
+              (jet_secp_div62_limit.div62_mask neg eta i)) in
+       and (and (BinInt.Z.le BinNums.Z0 w) (BinInt.Z.lt w (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+         (and
+            (BinInt.Z.divide (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               (BinInt.Z.add g (BinInt.Z.mul f w)))
+            (@eq Integers.Int64.int
+               (Integers.Int64.and
+                  (Integers.Int64.add (Integers.Int64.repr g)
+                     (Integers.Int64.mul (Integers.Int64.repr f)
+                        (jet_secp_div62_cancel.div62_w_long neg (Integers.Int64.repr f) (Integers.Int64.repr g)
+                           (jet_secp_div62_limit.div62_mask neg eta i)))) (jet_secp_div62_limit.div62_mask neg eta i))
+               Integers.Int64.zero))
+### C.jet_secp_div62_numeric.div62_cancel_bits
+div62_cancel_bits =
+fun (neg : bool) (eta i : BinNums.Z) =>
+BinInt.Z.min (jet_secp_div62_limit.div62_limit eta i)
+  match neg return BinNums.Z with
+  | true => BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))
+  | false => BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))
+  end
+     : forall (_ : bool) (_ : BinNums.Z) (_ : BinNums.Z), BinNums.Z
+
+Arguments div62_cancel_bits neg%bool_scope (eta i)%Z_scope
+### C.jet_secp_div62_numeric.div62_w4_polynomial
+div62_w4_polynomial =
+fun f : BinNums.Z =>
+BinInt.Z.add f
+  (BinInt.Z.shiftl
+     (BinInt.Z.land (BinInt.Z.add f (BinNums.Zpos BinNums.xH)) (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+     (BinNums.Zpos BinNums.xH))
+     : forall _ : BinNums.Z, BinNums.Z
+
+Arguments div62_w4_polynomial f%Z_scope

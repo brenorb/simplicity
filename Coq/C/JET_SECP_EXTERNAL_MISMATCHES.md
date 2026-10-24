@@ -949,6 +949,35 @@ JET_TARGETS=C/jet_secp_div62_branch.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_branch
 ```
 
+## Original cancellation arithmetic bridge (internal progress, no added coverage)
+
+`jet_secp_div62_numeric.div62_cancellation` proves that the cancellation
+words used by the original execution have their intended bounded integer
+value: with `k = min(limit,6)` in the swap branch or `min(limit,4)` in the
+other branch, the actual uint32 result is exactly
+`(modInv(-f,2^k) * g) mod 2^k`. It is below `2^k`, the integer `g+f*w` is
+divisible by `2^k`, and the actual updated 64-bit `g` word masked by the
+actual mask is zero. This holds for arbitrary integer representatives of
+the machine words, assuming odd `f` and the internal eta/counter bounds.
+
+The proof derives the mask as the low-`k`-bit mask, retains all original
+64-bit wraparound and the four-bit path's uint32 cast/negation/widening,
+and reuses `HackersDelightA/B` from `C.modinv`. Reduction of the inverse
+formulas to a smaller cancellation width is proved, not assumed. These
+lemmas bridge the concrete word expressions executed in the preceding
+modules to the coefficient in `Trans.transSs`/`Trans.transDs`; they do not
+substitute a pure algorithm for the C execution.
+
+Still required are the transition-matrix/delayed-division invariant bridge,
+derivation of oddness/count/bounds at each actual loop head, CTZ semantics,
+outer-loop termination/result and public-jet composition. No external model,
+new public premise or registration is added; coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_div62_numeric.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_numeric
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
