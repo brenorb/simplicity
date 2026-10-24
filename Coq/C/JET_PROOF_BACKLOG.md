@@ -2298,13 +2298,36 @@ and readonly preservation. No square/denominator representation or internal
 call is assumed. The original CTZ contract remains explicit; the result is
 still a conditional **prefix**, not a whole-public theorem.
 
-Next continue the same body at `swu_after_joint_inverse`: multiply x1 by x3d
-and jinv, add the readonly d constant, copy/negate x2, build x3 and the three
-cubics, then roots, point selection, parity, allocations/frees and the public
-wrapper. Coverage stays 514/533. Reproduce the normal build/kernel check with
-`C/jet_secp_swu_before_candidates.vo` / `C.jet_secp_swu_before_candidates`,
-plus focused assumption/contract comparisons for `jet_secp_swu_joint_setup`,
-`jet_secp_swu_joint_inverse` and `jet_secp_swu_before_candidates`.
+`jet_secp_swu_constant_add.eval_swu_constant_add` now executes the original
+in-place `fe_add` with either initialized SWU constant as a readonly right
+operand. It reuses the existing addition state and shared sum lemmas, deriving
+the owned/borrowed representation from actual storage. It returns exact
+stored limbs, numeric sum, magnitude-two bounds, ownership, unchanged other
+memory and startup/readonly preservation. No writable-global, separation,
+execution or output premise is assumed.
+
+`jet_secp_swu_first_candidate.exec_swu_first_candidate` composes the actual
+next three calls: x1*=x3d; x1*=jinv; x1+=d. It derives their execution from
+owned storage, preserving x3d/jinv and their ownership, deriving both modular
+value and reusable bounds. `exec_swu_through_first` then composes **all first
+eleven original statements from input storage**, derives x3d's square-model
+value and connects the stored x1 to `swu_c_candidate1 (radix_value input)`.
+Input, wd, x3d and jinv storage are retained, all five objects remain owned,
+and startup/readonly preservation and old-memory framing are derived. The
+unchanged CTZ contract remains explicit; this is still a conditional prefix,
+not registered public coverage. Its source-tree equalities retain the
+original statement order and original suffix.
+
+Next continue at `swu_after_first_candidate`: copy x1 to x2, add 1 and use the
+original magnitude-3 negation, then build x3, the three cubics, roots, point
+selection, parity, allocations/frees and the public wrapper. Reuse
+`exec_field_copy_owned`, `eval_field_add_int_from_storage` and
+`eval_negate_mag_bounded`; derive no-wrap and magnitude-3 subtraction bounds
+from the returned `field_scaled_bounds 2`, not an assumed intermediate result
+or a magnitude-one substitution. Coverage stays 514/533. Reproduce the normal
+build/kernel check with `C/jet_secp_swu_first_candidate.vo` /
+`C.jet_secp_swu_first_candidate`, plus focused assumption/contract comparisons
+for `jet_secp_swu_constant_add` and `jet_secp_swu_first_candidate`.
 
 ## Completed: `simplicity_gej_rescale`
 
