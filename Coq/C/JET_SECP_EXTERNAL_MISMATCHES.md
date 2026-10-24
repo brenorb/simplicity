@@ -327,6 +327,18 @@ caller still has to supply the actual divstep matrix and discharge its own
 invariants. This closes body composition, not function entry/allocation/freeing
 or the complete public inversion jet. No coverage entry is added.
 
+`jet_secp_modinv_fg_call.eval_fg_transition` closes the original transition
+**function call**, including actual function entry, local allocation, body,
+void result and freeing. It derives all active output loads, the two row
+quotients, output ownership and caller-memory framing. The shared lifecycle
+lemma now admits an explicit internal precondition and a revalued final word
+state; the previous unconditional/identity-state interface is retained as a
+proved corollary with the same contract. No production function or helper
+execution is substituted. The variable inverse still needs the actual divstep
+and coefficient-update calls and the full caller invariant; the read-only
+matrix contract also does not itself restore a caller's stronger matrix
+ownership. This function theorem adds no public jet coverage.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -344,6 +356,8 @@ JET_TARGETS=C/jet_secp_modinv_fg_finish_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_finish C.jet_secp_modinv_fg_finish_numeric
 JET_TARGETS=C/jet_secp_modinv_fg_body.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_body
+JET_TARGETS=C/jet_secp_modinv_fg_call.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_multiply_call_lifecycle C.jet_secp_modinv_fg_call
 ```
 
 ## Reproduction and limits

@@ -1,4 +1,5 @@
-(** Actual allocation/entry/freeing around a supplied proved normal void body. *)
+(** Actual allocation/entry/freeing around a proved normal void body, with
+    internal preconditions and a faithfully revalued final word state. *)
 From Coq Require Import ZArith List Lia Bool.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Globalenvs Maps Memory Events Values.
 Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
@@ -6,25 +7,27 @@ Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 
-Theorem owned_void_call (ge : genv) fd xs regs regsN veN ts0 (final_regs : (nat -> int64) -> list region) :
+Theorem owned_void_call_state (ge : genv) fd xs regs regsN veN ts0
+  (pre : (nat -> int64) -> Prop) (final_rho : (nat -> int64) -> nat -> int64)
+  (final_regs : (nat -> int64) -> list region) :
   fn_okb fd = true -> fn_return fd = Tvoid ->
   forallb (xp_lt (length regs)) xs = true ->
   xalloc (std_cells (genv_cenv ge)) (genv_cenv ge) (fn_vars fd) (length regs) = Some (regsN, veN) ->
   xbind (fn_params fd) xs (PTree.empty sx) = Some ts0 ->
   (forall rho, map rshape (final_regs rho) = map rshape (regs ++ regsN)) ->
-  (forall rho beta e le m,
+  (forall rho beta e le m, pre rho ->
     rep rho beta (regs ++ regsN) m -> tmatch rho beta ts0 le -> ematch beta veN e ->
     exists le' mf,
       Clight2.exec_stmt ge e le m (fn_body fd) E0 le' mf Out_normal /\
-      rep rho beta (final_regs rho) mf /\
+      rep (final_rho rho) beta (final_regs rho) mf /\
       lframe (fun b ofs => ~ foot beta (map rshape (regs ++ regsN)) b ofs) m mf) ->
-  forall rho beta m, rep rho beta regs m ->
+  forall rho beta m, pre rho -> rep rho beta regs m ->
   exists mf,
     Clight2.eval_funcall ge m (Internal fd) (map (den rho (lay beta)) xs) E0 mf Vundef /\
-    rep rho beta (firstn (length regs) (final_regs rho)) mf /\
+    rep (final_rho rho) beta (firstn (length regs) (final_regs rho)) mf /\
     lframe (fun b ofs => ~ foot beta (map rshape regs) b ofs) m mf.
 Proof.
-  intros Fok Rvoid Fa Eal Ebd Hshape Hbody rho beta m Hrep.
+  intros Fok Rvoid Fa Eal Ebd Hshape Hbody rho beta m Hpre Hrep.
   destruct (fn_okb_true fd Fok) as (Hnr1 & Hnr2 & Hdj).
   assert (Hlen : length beta = length regs) by (destruct Hrep as (HH & _); exact HH).
   destruct (xalloc_sound ge rho (std_cells (genv_cenv ge)) (fn_vars fd) (length regs) regsN veN beta regs m empty_env Eal Hrep Hlen Hnr1)
@@ -45,7 +48,7 @@ Proof.
   assert (HNinv : forall b, In b (map fst betaN) -> ~ Mem.valid_block m b).
   { intros b Hin; apply in_map_iff in Hin; destruct Hin as (p & <- & Hp).
     exact (proj1 (Forall_forall _ _) Hnv p Hp). }
-  destruct (Hbody rho beta' e' le1 m1 Hrep1 Htm0 Hem) as (le2 & m2 & Hexb & Hrepb & HFb).
+  destruct (Hbody rho beta' e' le1 m1 Hpre Hrep1 Htm0 Hem) as (le2 & m2 & Hexb & Hrepb & HFb).
   pose proof (Hshape rho) as Hshb.
   assert (Hlenb : length beta' = length (regs ++ regsN)).
   { unfold beta'; rewrite !app_length; lia. }
@@ -89,7 +92,7 @@ Proof.
     unfold blk, lay in Hv; replace (nth r beta (1%positive, 0)) with p in Hv by (symmetry; exact Hnth); exact Hv. }
   assert (Hlenb2 : length (final_regs rho) = length (regs ++ regsN)).
   { rewrite <- (map_length rshape (final_regs rho)), Hshb, map_length; reflexivity. }
-  assert (Hrep3 : rep rho beta (firstn (length regs) (final_regs rho)) m3).
+  assert (Hrep3 : rep (final_rho rho) beta (firstn (length regs) (final_regs rho)) m3).
   { eapply rep_mem with (m := m2).
     - eapply Mem.unchanged_on_implies; [exact Hun3|]; intros b ofs Hb _ Hin.
       exact (HbetaN b Hb (HinN b Hin)).
@@ -120,4 +123,28 @@ Proof.
       apply lframe_unchanged; eapply Mem.unchanged_on_implies; [exact Hun3|].
       intros b ofs (Hv & _) _ Hin; exact (HNinv b (HinN b Hin) Hv). }
     eapply lframe_implies; [exact HF|]; intros b ofs Houtside Hvalid; split; assumption.
+Qed.
+
+(** Original interface retained as the identity-state, unconditional case. *)
+Theorem owned_void_call (ge : genv) fd xs regs regsN veN ts0 (final_regs : (nat -> int64) -> list region) :
+  fn_okb fd = true -> fn_return fd = Tvoid ->
+  forallb (xp_lt (length regs)) xs = true ->
+  xalloc (std_cells (genv_cenv ge)) (genv_cenv ge) (fn_vars fd) (length regs) = Some (regsN, veN) ->
+  xbind (fn_params fd) xs (PTree.empty sx) = Some ts0 ->
+  (forall rho, map rshape (final_regs rho) = map rshape (regs ++ regsN)) ->
+  (forall rho beta e le m,
+    rep rho beta (regs ++ regsN) m -> tmatch rho beta ts0 le -> ematch beta veN e ->
+    exists le' mf,
+      Clight2.exec_stmt ge e le m (fn_body fd) E0 le' mf Out_normal /\
+      rep rho beta (final_regs rho) mf /\
+      lframe (fun b ofs => ~ foot beta (map rshape (regs ++ regsN)) b ofs) m mf) ->
+  forall rho beta m, rep rho beta regs m ->
+  exists mf,
+    Clight2.eval_funcall ge m (Internal fd) (map (den rho (lay beta)) xs) E0 mf Vundef /\
+    rep rho beta (firstn (length regs) (final_regs rho)) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape regs) b ofs) m mf.
+Proof.
+  intros Fok Rvoid Fa Eal Ebd Shape Body rho beta m Rep.
+  exact (owned_void_call_state ge fd xs regs regsN veN ts0 (fun _=>True) (fun r=>r)
+    final_regs Fok Rvoid Fa Eal Ebd Shape (fun r b e l mm _=>Body r b e l mm) rho beta m I Rep).
 Qed.
