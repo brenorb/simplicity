@@ -1081,6 +1081,44 @@ JET_TARGETS=C/jet_secp_div62_entry.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_entry
 ```
 
+## Original trajectory-indexed post-count invariant (internal progress, no added coverage)
+
+`jet_secp_div62_invariant.exec_div62_postcount_invariant` composes the
+original count/shift, break test and cancellation paths into one actual
+execution of `div62_after_count`. Its invariant uses the canonical state
+and matrix after `n` divsteps, the pending division, remaining precision,
+actual eta/counter temporaries, and unchanged output pointer. The entry
+corollary derives this invariant at `n=0` from the real function entry and
+initializers.
+
+The post-count theorem derives either an actual break with the canonical
+62-step invariant and no pending division, or an actual normal return with
+the same invariant at a strictly greater `n <= 62`. Thus the progress bound
+is on canonical divsteps, not the C counter alone (which cancellation does
+not decrement). Eta bounds at the cancellation point are derived from the
+initial `[-683,683)` bound and `etaBounds`, not supplied as an extra
+intermediate assumption. Both 62- and 64-bit initial precision are covered.
+
+`jet_clight_temp_frame.exec_temp_frame` supplies reusable framing for
+call-free, temporary-only statements. A conservative syntax check rejects
+calls, stores and other unsupported statements. Closed checks on the actual
+count and cancellation statements establish that they do not assign the
+output pointer. Its preservation is derived from their real executions.
+
+This theorem still starts **after the counting helper returns**, with
+`zeros` equal to the expected mathematical count. It does not assume an
+execution, resulting invariant or progress fact, but also does not prove
+that the actual abstract CTZ builtin establishes that input-state relation.
+The full enclosing loop/function and public inverse proof remain unfinished;
+strict per-step progress does not by itself prove actual CTZ termination or
+full-function execution. No external model or public registration is added;
+coverage remains 514/533.
+
+```sh
+JET_TARGETS="C/jet_clight_temp_frame.vo C/jet_secp_div62_invariant.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_clight_temp_frame C.jet_secp_div62_invariant
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

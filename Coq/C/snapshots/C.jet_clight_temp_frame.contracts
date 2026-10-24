@@ -1,0 +1,31 @@
+### C.jet_clight_temp_frame.exec_temp_frame
+exec_temp_frame
+     : forall (ge : Clight.genv) (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (s : Clight.statement) (t : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem)
+         (out : ClightBigstep.outcome) (allowed : list BinNums.positive)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le m s t lef mf out)
+         (_ : @eq bool (temp_writes_within allowed s) true) (id : BinNums.positive)
+         (_ : not (@List.In BinNums.positive id allowed)),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id lef) (@Maps.PTree.get Values.val id le)
+### C.jet_clight_temp_frame.temp_writes_within
+temp_writes_within =
+fix temp_writes_within (allowed : list BinNums.positive) (s : Clight.statement) {struct s} : bool :=
+  match s return bool with
+  | Clight.Sskip => true
+  | Clight.Sassign _ _ => false
+  | Clight.Sset id _ => @List.existsb BinNums.positive (BinPos.Pos.eqb id) allowed
+  | Clight.Scall _ _ _ => false
+  | Clight.Sbuiltin _ _ _ _ => false
+  | Clight.Ssequence a b => andb (temp_writes_within allowed a) (temp_writes_within allowed b)
+  | Clight.Sifthenelse _ a b => andb (temp_writes_within allowed a) (temp_writes_within allowed b)
+  | Clight.Sloop a b => andb (temp_writes_within allowed a) (temp_writes_within allowed b)
+  | Clight.Sbreak => true
+  | Clight.Scontinue => true
+  | Clight.Sreturn _ => false
+  | Clight.Sswitch _ _ => false
+  | Clight.Slabel _ _ => false
+  | Clight.Sgoto _ => false
+  end
+     : forall (_ : list BinNums.positive) (_ : Clight.statement), bool
+
+Arguments temp_writes_within allowed%list_scope s

@@ -1,0 +1,279 @@
+### C.jet_secp_div62_invariant.div62_count_safe
+div62_count_safe
+     : @eq bool (jet_clight_temp_frame.temp_writes_within div62_modified jet_secp_div62_count.div62_count_prefix) true
+### C.jet_secp_div62_invariant.div62_cancel_safe
+div62_cancel_safe
+     : @eq bool (jet_clight_temp_frame.temp_writes_within div62_modified jet_secp_div62_count.div62_after_count_prefix)
+         true
+### C.jet_secp_div62_invariant.div62_after_count_safe
+div62_after_count_safe
+     : @eq bool (jet_clight_temp_frame.temp_writes_within div62_modified jet_secp_div62_count.div62_after_count) true
+### C.jet_secp_div62_invariant.div62_step_t
+div62_step_t
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (s : Clight.statement)
+         (lef : Clight.temp_env) (out : ClightBigstep.outcome)
+         (_ : @eq bool (jet_clight_temp_frame.temp_writes_within div62_modified s) true)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m s Events.E0 lef m out),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t lef)
+         (@Maps.PTree.get Values.val jets_secp._t le)
+### C.jet_secp_div62_invariant.div62_invariant_count_bounds
+div62_invariant_count_bounds
+     : forall (start : divstep.State) (precision : BinNums.Z) (n : nat) (pending : BinNums.Z)
+         (b : Values.block) (le : Clight.temp_env) (_ : div62_loop_invariant start precision n pending b le),
+       and
+         (BinInt.Z.le pending
+            (jet_secp_div62_consume.div62_expected_count le
+               (BinInt.Z.add
+                  (BinInt.Z.sub
+                     (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                     (BinInt.Z.of_nat n)) pending)))
+         (BinInt.Z.le
+            (jet_secp_div62_consume.div62_expected_count le
+               (BinInt.Z.add
+                  (BinInt.Z.sub
+                     (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                     (BinInt.Z.of_nat n)) pending))
+            (BinInt.Z.add
+               (BinInt.Z.sub (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                  (BinInt.Z.of_nat n)) pending))
+### C.jet_secp_div62_invariant.div62_branch_width_bound
+div62_branch_width_bound
+     : forall (st : divstep.State) (i : BinNums.Z)
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (divstep.eta st))
+                (BinInt.Z.le (divstep.eta st)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       and (BinInt.Z.le (BinNums.Zpos BinNums.xH) (jet_secp_div62_transition.div62_branch_width st i))
+         (BinInt.Z.le (jet_secp_div62_transition.div62_branch_width st i) i)
+### C.jet_secp_div62_invariant.div62_entry_invariant
+div62_entry_invariant
+     : forall (m : Memory.Mem.mem) (st : divstep.State) (precision : BinNums.Z) (f0 g0 : Integers.Int64.int)
+         (b : Values.block)
+         (_ : and
+                (BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                   precision)
+                (BinInt.Z.le precision
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) (Integers.Int64.unsigned f0)
+                (divstep.f st))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) (Integers.Int64.unsigned g0)
+                (divstep.g st)),
+       @ex Clight.temp_env
+         (fun le0 : Clight.temp_env =>
+          @ex Clight.temp_env
+            (fun le1 : Clight.temp_env =>
+             and
+               (Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_modinv64_divsteps_62_var
+                  (@cons Values.val (Values.Vlong (Integers.Int64.repr (divstep.eta st)))
+                     (@cons Values.val (Values.Vlong f0)
+                        (@cons Values.val (Values.Vlong g0)
+                           (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero) (@nil Values.val))))) m
+                  Clight.empty_env le0 m)
+               (and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le0 m
+                     jet_secp_div62_entry.div62_initializers Events.E0 le1 m ClightBigstep.Out_normal)
+                  (div62_loop_invariant st precision O BinNums.Z0 b le1))))
+### C.jet_secp_div62_invariant.exec_div62_consume_invariant
+exec_div62_consume_invariant
+     : forall (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem) (start : divstep.State)
+         (precision : BinNums.Z) (n : nat) (pending : BinNums.Z) (b : Values.block)
+         (_ : and
+                (BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                   precision)
+                (BinInt.Z.le precision
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : div62_loop_invariant start precision n pending b le0)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._zeros le0)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.repr
+                         (jet_secp_div62_consume.div62_expected_count le0
+                            (BinInt.Z.add
+                               (BinInt.Z.sub
+                                  (BinNums.Zpos
+                                     (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                                  (BinInt.Z.of_nat n)) pending)))))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex nat
+            (fun n1 : nat =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+                  jet_secp_div62_count.div62_count_prefix Events.E0 lef m
+                  (jet_secp_div62_count.div62_count_outcome
+                     (BinInt.Z.add
+                        (BinInt.Z.sub
+                           (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                           (BinInt.Z.of_nat n)) pending)
+                     (jet_secp_div62_consume.div62_expected_count le0
+                        (BinInt.Z.add
+                           (BinInt.Z.sub
+                              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                              (BinInt.Z.of_nat n)) pending))))
+               (and (and (le n n1) (le n1 (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))
+                  (and
+                     (@eq BinNums.Z (BinInt.Z.of_nat n1)
+                        (BinInt.Z.sub
+                           (BinInt.Z.add (BinInt.Z.of_nat n)
+                              (jet_secp_div62_consume.div62_expected_count le0
+                                 (BinInt.Z.add
+                                    (BinInt.Z.sub
+                                       (BinNums.Zpos
+                                          (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                                       (BinInt.Z.of_nat n)) pending))) pending))
+                     (and (div62_loop_invariant start precision n1 BinNums.Z0 b lef)
+                        (or (@eq nat n1 (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))
+                           (Zeven.Zodd (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n1 start))))))))))
+### C.jet_secp_div62_invariant.exec_div62_cancel_invariant
+exec_div62_cancel_invariant
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (start : divstep.State)
+         (precision : BinNums.Z) (n : nat) (b : Values.block)
+         (_ : and
+                (BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                   precision)
+                (BinInt.Z.le precision
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (divstep.eta start))
+                (BinInt.Z.lt (divstep.eta start)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : div62_loop_invariant start precision n BinNums.Z0 b le)
+         (_ : lt n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : Zeven.Zodd (divstep.g (@fst divstep.State (list divstep.Step) (divstep.stepN n start)))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex nat
+            (fun n2 : nat =>
+             @ex BinNums.Z
+               (fun pending : BinNums.Z =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                     jet_secp_div62_count.div62_after_count_prefix Events.E0 lef m ClightBigstep.Out_normal)
+                  (and (lt n n2) (div62_loop_invariant start precision n2 pending b lef)))))
+### C.jet_secp_div62_invariant.exec_div62_postcount_invariant
+exec_div62_postcount_invariant
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (start : divstep.State)
+         (precision : BinNums.Z) (n : nat) (pending : BinNums.Z) (b : Values.block)
+         (_ : and
+                (BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                   precision)
+                (BinInt.Z.le precision
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (divstep.eta start))
+                (BinInt.Z.lt (divstep.eta start)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : div62_loop_invariant start precision n pending b le)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._zeros le)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.repr
+                         (jet_secp_div62_consume.div62_expected_count le
+                            (BinInt.Z.add
+                               (BinInt.Z.sub
+                                  (BinNums.Zpos
+                                     (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                                  (BinInt.Z.of_nat n)) pending)))))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex ClightBigstep.outcome
+            (fun out : ClightBigstep.outcome =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_div62_count.div62_after_count
+                  Events.E0 lef m out)
+               (or
+                  (and (@eq ClightBigstep.outcome out ClightBigstep.Out_break)
+                     (div62_loop_invariant start precision
+                        (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))) BinNums.Z0 b lef))
+                  (and (@eq ClightBigstep.outcome out ClightBigstep.Out_normal)
+                     (@ex nat
+                        (fun n2 : nat =>
+                         @ex BinNums.Z
+                           (fun p2 : BinNums.Z => and (lt n n2) (div62_loop_invariant start precision n2 p2 b lef))))))))
+### C.jet_secp_div62_invariant.div62_modified
+div62_modified =
+@cons AST.ident jets_secp._i
+  (@cons AST.ident jets_secp._eta
+     (@cons AST.ident jets_secp._g
+        (@cons AST.ident jets_secp._u
+           (@cons AST.ident jets_secp._v
+              (@cons AST.ident jets_secp._f
+                 (@cons AST.ident jets_secp._q
+                    (@cons AST.ident jets_secp._r
+                       (@cons AST.ident jets_secp._w
+                          (@cons AST.ident jets_secp._m
+                             (@cons AST.ident jets_secp._limit
+                                (@cons AST.ident jets_secp._tmp
+                                   (@cons AST.ident jets_secp._t'2 (@cons AST.ident jets_secp._t'3 (@nil AST.ident))))))))))))))
+     : list AST.ident
+### C.jet_secp_div62_invariant.div62_loop_invariant
+div62_loop_invariant =
+fun (start : divstep.State) (precision : BinNums.Z) (n : nat) (pending : BinNums.Z) (b : Values.block)
+  (le0 : Clight.temp_env) =>
+and (le n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  (and (and (BinInt.Z.le BinNums.Z0 pending) (BinInt.Z.le pending (BinInt.Z.of_nat n)))
+     (and (jet_secp_div62_transition.div62_pending_matrix le0 (divstep.Trans.transN n start) pending)
+        (and
+           (jet_secp_div62_transition.div62_pending_fg le0
+              (@fst divstep.State (list divstep.Step) (divstep.stepN n start))
+              (BinInt.Z.sub precision (BinInt.Z.of_nat n)) pending)
+           (and
+              (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le0)
+                 (@Some Values.val
+                    (Values.Vlong
+                       (Integers.Int64.repr
+                          (BinInt.Z.add (divstep.eta (@fst divstep.State (list divstep.Step) (divstep.stepN n start)))
+                             pending)))))
+              (and
+                 (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le0)
+                    (@Some Values.val
+                       (Values.Vint
+                          (Integers.Int.repr
+                             (BinInt.Z.add
+                                (BinInt.Z.sub
+                                   (BinNums.Zpos
+                                      (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                                   (BinInt.Z.of_nat n)) pending)))))
+                 (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t le0)
+                    (@Some Values.val (Values.Vptr b Integers.Ptrofs.zero))))))))
+     : forall (_ : divstep.State) (_ : BinNums.Z) (_ : nat) (_ : BinNums.Z) (_ : Values.block) (_ : Clight.temp_env),
+       Prop
+
+Arguments div62_loop_invariant start precision%Z_scope n%nat_scope pending%Z_scope b le
