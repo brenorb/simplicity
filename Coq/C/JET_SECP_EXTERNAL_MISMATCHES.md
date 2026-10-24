@@ -1835,6 +1835,36 @@ JET_TARGETS=C/jet_secp_div62_loop.vo bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_loop
 ```
 
+## Complete scalar inverse batch (internal conditional progress)
+
+`jet_secp_scalar_inverse_batch.exec_scalar_inv_batch` executes one complete
+original inverse loop body, including the caller's loads, the entire divstep
+function, eta assignment, the scalar-modulus coefficient update, the `f/g`
+update, and stop/shortening control. The incoming matrix may be undefined;
+its canonical correspondence is derived from the divstep execution rather
+than assumed. `jet_secp_modinv_batch_modulus` provides shared caller loading
+and representation restoration for arbitrary six-word modulus metadata,
+including the real scalar metadata (not the field modulus).
+
+The scalar batch establishes the next canonical state, coefficient link,
+limb and active-value bounds, eta and length, zero-input coefficient
+preservation, and the break condition exactly when the next canonical `g`
+is zero. It also frames unmodified temporaries and memory outside the batch's
+matrix/update footprints. The checked forget adapter converts a completed
+batch's state to the next batch's input representation without losing
+ownership; no matrix-value initialization is needed.
+
+The CTZ execution premise from the preceding section remains explicit at
+the batch's input memory. This is internal conditional composition, not a
+discharged library premise or accepted public jet. Whole-outer-loop
+termination and finish/unpack/public-frame composition remain required.
+Neither frozen targets nor the public coverage ledger are changed (514/533).
+
+```sh
+JET_TARGETS="C/jet_secp_modinv_batch_modulus.vo C/jet_secp_scalar_inverse_batch.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_batch_modulus C.jet_secp_scalar_inverse_batch
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

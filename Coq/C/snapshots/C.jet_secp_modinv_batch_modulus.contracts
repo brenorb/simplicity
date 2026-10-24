@@ -1,0 +1,122 @@
+### C.jet_secp_modinv_batch_modulus.inv_mod_pre_batch_regs
+inv_mod_pre_batch_regs
+     : forall mu : forall _ : nat, Integers.Int64.int,
+       @eq (list jet_sx_state.region) (jet_secp_modinv_seed_modulus.inv_mod_seed_regs mu)
+         (jet_sx_forget_cells.forget_after (S (S (S (S (S (S O))))))
+            (jet_secp_modinv_loop_modulus.inv_mod_loop_regs mu))
+### C.jet_secp_modinv_batch_modulus.inv_mod_pre_batch_forget
+inv_mod_pre_batch_forget
+     : forall (mu rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_secp_modinv_loop_modulus.inv_mod_loop_regs mu) m),
+       jet_sx_state.rep rho beta (jet_secp_modinv_seed_modulus.inv_mod_seed_regs mu) m
+### C.jet_secp_modinv_batch_modulus.inv_mod_batch_low_load
+inv_mod_batch_low_load
+     : forall (mu rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (high : bool) (_ : jet_sx_state.rep rho beta (jet_secp_modinv_seed_modulus.inv_mod_seed_regs mu) m),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m
+            (jet_sx_state.blk beta
+               match high return nat with
+               | true => S (S (S (S (S O))))
+               | false => S (S (S (S O)))
+               end) BinNums.Z0)
+         (@Some Values.val
+            (Values.Vlong
+               (rho
+                  match high return nat with
+                  | true => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))
+                  | false => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+                  end)))
+### C.jet_secp_modinv_batch_modulus.inv_mod_batch_restore
+inv_mod_batch_restore
+     : forall (mu : forall _ : nat, Integers.Int64.int) (st : divstep.State) (rho : forall _ : nat, Integers.Int64.int)
+         (beta : jet_sx_state.layout) (m mf : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_secp_modinv_seed_modulus.inv_mod_seed_regs mu) m)
+         (_ : Memory.Mem.range_perm mf (jet_sx_state.blk beta (S (S (S (S (S (S O))))))) BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : forall (j : nat) (_ : lt j (S (S (S (S O))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk beta (S (S (S (S (S (S O)))))))
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat j)))
+                (@Some Values.val (Values.Vlong (jet_secp_div62_exit.div62_exit_words st j))))
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S (S (S O))))))))) m mf),
+       jet_sx_state.rep (jet_secp_modinv_var_batch_exit.inv_batch_result_rho st rho) beta
+         (jet_secp_modinv_loop_modulus.inv_mod_loop_regs mu) mf
+### C.jet_secp_modinv_batch_modulus.inv_divstep_returned_outside
+inv_divstep_returned_outside
+     : forall (st : divstep.State) (rho : forall _ : nat, Integers.Int64.int) (le : Maps.PTree.tree Values.val)
+         (id : AST.ident) (_ : not (@eq AST.ident id jets_secp._t'1)) (_ : not (@eq AST.ident id jets_secp._t'7))
+         (_ : not (@eq AST.ident id jets_secp._t'8)),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (inv_divstep_returned st rho le))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_modinv_batch_modulus.exec_inv_mod_batch
+exec_inv_mod_batch
+     : forall (mu : forall _ : nat, Integers.Int64.int) (len : nat) (rho : forall _ : nat, Integers.Int64.int)
+         (st : divstep.State) (beta : jet_sx_state.layout) (e : Clight.env) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem)
+         (_ : forall (x : Integers.Int64.int) (_ : not (@eq BinNums.Z (Integers.Int64.unsigned x) BinNums.Z0)),
+              ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ctz64_var)
+                (@cons Values.val (Values.Vlong x) (@nil Values.val)) Events.E0 m
+                (Values.Vint (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned x)))))
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (divstep.eta st))
+                (BinInt.Z.lt (divstep.eta st)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta (jet_secp_modinv_seed_modulus.inv_mod_seed_regs mu) m)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le0)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.eta st)))))
+         (_ : jet_secp_modinv_var_invariant.inv_state_matches len rho st),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m inv_divstep_batch Events.E0
+               (inv_divstep_returned st rho le0) mf ClightBigstep.Out_normal)
+            (and
+               (jet_sx_state.rep (jet_secp_modinv_var_batch_exit.inv_batch_result_rho st rho) beta
+                  (jet_secp_modinv_loop_modulus.inv_mod_loop_regs mu) mf)
+               (and
+                  (jet_secp_modinv_var_invariant.inv_matrix_matches
+                     (jet_secp_modinv_var_batch_exit.inv_batch_result_rho st rho) st)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (_ : BinNums.Z) =>
+                      not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S (S (S O))))))))) m mf))))
+### C.jet_secp_modinv_batch_modulus.inv_divstep_batch
+inv_divstep_batch =
+jet_secp_statement_prefix.statement_sequence
+  (@cons Clight.statement (jet_secp_modinv_var_first_batch.inv_divstep_load false)
+     (@cons Clight.statement (jet_secp_modinv_var_first_batch.inv_divstep_load true) (@nil Clight.statement)))
+  jet_secp_modinv_var_first_batch.inv_divstep_call
+     : Clight.statement
+### C.jet_secp_modinv_batch_modulus.inv_divstep_returned
+inv_divstep_returned =
+fun (st : divstep.State) (rho : forall _ : nat, Integers.Int64.int) (le : Maps.PTree.tree Values.val) =>
+@Maps.PTree.set Values.val jets_secp._t'1
+  (Values.Vlong
+     (Integers.Int64.repr
+        (divstep.eta
+           (@fst divstep.State (list divstep.Step)
+              (divstep.stepN (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))) st)))))
+  (jet_secp_modinv_var_first_batch.inv_divstep_loaded_values
+     (rho (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+     (rho (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))))))) le)
+     : forall (_ : divstep.State) (_ : forall _ : nat, Integers.Int64.int) (_ : Maps.PTree.tree Values.val),
+       Maps.PTree.tree Values.val
+
+Arguments inv_divstep_returned st rho%function_scope le
