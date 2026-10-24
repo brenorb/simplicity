@@ -1325,6 +1325,28 @@ JET_TARGETS="C/jet_secp_modinv_var_batch_entry.vo C/jet_secp_modinv_var_result.v
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_batch_entry C.jet_secp_modinv_var_result
 ```
 
+## Inverse batch final-store adapter (internal progress)
+
+`jet_secp_modinv_var_batch_exit.exec_inv_batch_exit` executes the original
+four matrix stores and eta return from the terminal divstep invariant. It
+derives the exact stored machine words, restores `inv_loop_regs` from the
+pre-batch layout with an undefined but owned matrix, and establishes
+`inv_matrix_matches` for the canonical 62-step transformation. All other
+caller regions are preserved using their existing separation and the actual
+store frame; no matrix initialization or output-load premise is added to
+this execution theorem. Only the four matrix slots change in the value map.
+
+This connects the terminal store boundary to the representation required by
+the existing post-batch update proof. It does not show that the complete
+batch reaches that boundary: actual CTZ behavior, full batch/outer-loop
+execution and public jet composition remain open. No new external model or
+public coverage is introduced; coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_modinv_var_batch_exit.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_batch_exit
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
