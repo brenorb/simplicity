@@ -1021,6 +1021,42 @@ JET_TARGETS=C/jet_secp_div62_transition.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_transition
 ```
 
+## Original count/shift invariant restoration (internal progress, no added coverage)
+
+`jet_secp_div62_consume.exec_div62_consume` executes the original count/shift
+prefix, including its break test, from the pending matrix and `f/g`
+representations established by cancellation. It derives the unscaled matrix
+`Trans.mul (Trans.transN (zeros-pending) state) old_matrix`, new modular
+`f/g` approximations, canonical eta, reduced counter and unchanged memory.
+If it does not exit, the new canonical `g` is proved odd. Matrix scaling,
+word truncation and precision loss are derived rather than assumed as
+postconditions. The internal precision bounds include the 62-bit initial
+precision case as well as a 64-bit one.
+
+The pure sentinel lemmas prove properties of the **exact word expression**
+passed to the counting helper: nonzero input, count in `[0,i]`, low-bit
+divisibility, consumption of all pending zero bits, and the first remaining
+bit being set unless the counter is exhausted. `div62_sentinel_source`
+identifies that argument in the unchanged original loop, and
+`eval_div62_sentinel` proves its actual Clight expression evaluation.
+These results reuse `C.extraMath.Z_ctz`; they do not replace or prove the
+production CTZ builtin.
+
+**Unresolved boundary:** the execution theorem starts with the internal
+`zeros` temporary equal to `div62_expected_count` of the represented `g`
+and counter. That is an input-state relation, not an assertion that the
+actual helper call establishes it. Its non-exit/exit outcome is derived
+from that value. No external call, library-behavior model or helper
+execution is postulated or added to public coverage. Establishing this
+relation from the real abstract external builtin, original function entry,
+full-loop composition/termination and the public inverse proof remain
+required. Coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_div62_consume.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_consume
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

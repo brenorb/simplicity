@@ -1,0 +1,258 @@
+### C.jet_secp_div62_consume.div62_shl_repr
+div62_shl_repr
+     : forall (a z : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 z)
+                (BinInt.Z.le z
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       @eq Integers.Int64.int (Integers.Int64.shl (Integers.Int64.repr a) (Integers.Int64.repr z))
+         (Integers.Int64.repr (BinInt.Z.mul a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) z)))
+### C.jet_secp_div62_consume.div62_shru_repr
+div62_shru_repr
+     : forall (a z : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 z)
+                (BinInt.Z.le z
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       @eq Integers.Int64.int (Integers.Int64.shru (Integers.Int64.repr a) (Integers.Int64.repr z))
+         (Integers.Int64.repr
+            (BinInt.Z.modulo (BinInt.Z.div a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) z))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinInt.Z.sub
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) z))))
+### C.jet_secp_div62_consume.div62_shift_pending
+div62_shift_pending
+     : forall (b pending z : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 pending) (BinInt.Z.le pending z))
+         (_ : BinInt.Z.le z (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))),
+       @eq Integers.Int64.int
+         (Integers.Int64.shru
+            (Integers.Int64.repr (BinInt.Z.mul b (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) pending)))
+            (Integers.Int64.repr z))
+         (Integers.Int64.repr
+            (BinInt.Z.modulo
+               (BinInt.Z.div b (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub z pending)))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinInt.Z.sub
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) z))))
+### C.jet_secp_div62_consume.div62_halving_divides
+div62_halving_divides
+     : forall (st : divstep.State) (b precision h : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 h) (BinInt.Z.le h precision))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b (divstep.g st))
+         (_ : BinInt.Z.divide (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) h) b),
+       BinInt.Z.divide (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) h) (divstep.g st)
+### C.jet_secp_div62_consume.div62_shift_approximation
+div62_shift_approximation
+     : forall (st : divstep.State) (a b precision pending z : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 pending) (BinInt.Z.le pending z))
+         (_ : BinInt.Z.le z (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : BinInt.Z.le (BinInt.Z.sub z pending) precision)
+         (_ : BinInt.Z.le (BinInt.Z.add precision pending)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) a (divstep.f st))
+         (_ : Zdiv.eqm (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) precision) b (divstep.g st))
+         (_ : BinInt.Z.divide (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub z pending)) b),
+       and
+         (Zdiv.eqm
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub precision (BinInt.Z.sub z pending))) a
+            (divstep.f
+               (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat (BinInt.Z.sub z pending)) st))))
+         (Zdiv.eqm
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub precision (BinInt.Z.sub z pending)))
+            (BinInt.Z.modulo
+               (BinInt.Z.div b (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub z pending)))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinInt.Z.sub
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) z)))
+            (divstep.g
+               (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat (BinInt.Z.sub z pending)) st))))
+### C.jet_secp_div62_consume.div62_sentinel_bits
+div62_sentinel_bits
+     : forall (g : Integers.Int64.int) (i bit : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit)
+                (BinInt.Z.lt bit
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (div62_sentinel_word g i) bit)
+         match Coqlib.zlt bit i return bool with
+         | left _ => Integers.Int64.testbit g bit
+         | right _ => true
+         end
+### C.jet_secp_div62_consume.div62_sentinel_nonzero
+div62_sentinel_nonzero
+     : forall (g : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       not (@eq BinNums.Z (Integers.Int64.unsigned (div62_sentinel_word g i)) BinNums.Z0)
+### C.jet_secp_div62_consume.div62_sentinel_count_bound
+div62_sentinel_count_bound
+     : forall (g : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       and (BinInt.Z.le BinNums.Z0 (div62_sentinel_count g i)) (BinInt.Z.le (div62_sentinel_count g i) i)
+### C.jet_secp_div62_consume.div62_sentinel_low_bits
+div62_sentinel_low_bits
+     : forall (g : Integers.Int64.int) (i bit : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit) (BinInt.Z.lt bit (div62_sentinel_count g i))),
+       @eq bool (Integers.Int64.testbit g bit) false
+### C.jet_secp_div62_consume.div62_sentinel_divides
+div62_sentinel_divides
+     : forall (g : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       BinInt.Z.divide (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (div62_sentinel_count g i))
+         (Integers.Int64.unsigned g)
+### C.jet_secp_div62_consume.div62_sentinel_first_bit
+div62_sentinel_first_bit
+     : forall (g : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : BinInt.Z.lt (div62_sentinel_count g i) i),
+       @eq bool (Integers.Int64.testbit g (div62_sentinel_count g i)) true
+### C.jet_secp_div62_consume.div62_sentinel_consumes_pending
+div62_sentinel_consumes_pending
+     : forall (b pending i : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 pending) (BinInt.Z.le pending i))
+         (_ : BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))),
+       BinInt.Z.le pending
+         (div62_sentinel_count
+            (Integers.Int64.repr (BinInt.Z.mul b (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) pending))) i)
+### C.jet_secp_div62_consume.div62_sentinel_unwrapped
+div62_sentinel_unwrapped
+     : forall (b pending i : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 pending) (BinInt.Z.le pending i))
+         (_ : BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))),
+       BinInt.Z.divide
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinInt.Z.sub
+               (div62_sentinel_count
+                  (Integers.Int64.repr (BinInt.Z.mul b (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) pending)))
+                  i) pending)) b
+### C.jet_secp_div62_consume.div62_sentinel_odd_quotient
+div62_sentinel_odd_quotient
+     : forall (b pending i : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 pending) (BinInt.Z.le pending i))
+         (_ : BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))),
+       let z : BinNums.Z :=
+         div62_sentinel_count
+           (Integers.Int64.repr (BinInt.Z.mul b (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) pending))) i in
+       forall _ : BinInt.Z.lt z i,
+       Zeven.Zodd
+         (BinInt.Z.modulo
+            (BinInt.Z.div b (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub z pending)))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinInt.Z.sub
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) z)))
+### C.jet_secp_div62_consume.div62_sentinel_source
+div62_sentinel_source
+     : @eq Clight.statement jet_secp_div62_count.div62_loop_body
+         (Clight.Ssequence Clight.Sskip
+            (Clight.Ssequence
+               (Clight.Ssequence
+                  (Clight.Scall (@Some AST.ident jets_secp._t'1)
+                     (Clight.Evar jets_secp._secp256k1_ctz64_var
+                        (Ctypes.Tfunction (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil) Ctypesdefs.tint AST.cc_default))
+                     (@cons Clight.expr div62_sentinel_expr (@nil Clight.expr))) jet_secp_div62_count.div62_copy_count)
+               jet_secp_div62_count.div62_after_count))
+### C.jet_secp_div62_consume.eval_div62_sentinel
+eval_div62_sentinel
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (g : Integers.Int64.int)
+         (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le) (@Some Values.val (Values.Vlong g)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m div62_sentinel_expr (Values.Vlong (div62_sentinel_word g i))
+### C.jet_secp_div62_consume.exec_div62_consume
+exec_div62_consume
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (st : divstep.State)
+         (matrix : divstep.Trans.M2x2) (precision pending i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 pending) (BinInt.Z.le pending i))
+         (_ : BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : BinInt.Z.le (BinInt.Z.sub i pending) precision)
+         (_ : BinInt.Z.le (BinInt.Z.add precision pending)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : jet_secp_div62_transition.div62_pending_matrix le matrix pending)
+         (_ : jet_secp_div62_transition.div62_pending_fg le st precision pending)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (BinInt.Z.add (divstep.eta st) pending)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._zeros le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (div62_expected_count le i))))),
+       let z : BinNums.Z := div62_expected_count le i in
+       let h : BinNums.Z := BinInt.Z.sub z pending in
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_div62_count.div62_count_prefix
+               Events.E0 lef m (jet_secp_div62_count.div62_count_outcome i z))
+            (and
+               (jet_secp_div62_transition.div62_pending_matrix lef
+                  (divstep.Trans.mul (divstep.Trans.transN (BinInt.Z.to_nat h) st) matrix) BinNums.Z0)
+               (and
+                  (jet_secp_div62_transition.div62_pending_fg lef
+                     (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat h) st))
+                     (BinInt.Z.sub precision h) BinNums.Z0)
+                  (and
+                     (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta lef)
+                        (@Some Values.val
+                           (Values.Vlong
+                              (Integers.Int64.repr
+                                 (divstep.eta
+                                    (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat h) st)))))))
+                     (and
+                        (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i lef)
+                           (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.sub i z)))))
+                        (or (@eq BinNums.Z z i)
+                           (Zeven.Zodd
+                              (divstep.g
+                                 (@fst divstep.State (list divstep.Step) (divstep.stepN (BinInt.Z.to_nat h) st))))))))))
+### C.jet_secp_div62_consume.div62_sentinel_word
+div62_sentinel_word =
+fun (g : Integers.Int64.int) (i : BinNums.Z) =>
+Integers.Int64.or g (Integers.Int64.shl Integers.Int64.mone (Integers.Int64.repr i))
+     : forall (_ : Integers.Int64.int) (_ : BinNums.Z), Integers.Int64.int
+
+Arguments div62_sentinel_word g i%Z_scope
+### C.jet_secp_div62_consume.div62_sentinel_count
+div62_sentinel_count =
+fun (g : Integers.Int64.int) (i : BinNums.Z) => extraMath.Z_ctz (Integers.Int64.unsigned (div62_sentinel_word g i))
+     : forall (_ : Integers.Int64.int) (_ : BinNums.Z), BinNums.Z
+
+Arguments div62_sentinel_count g i%Z_scope
+### C.jet_secp_div62_consume.div62_sentinel_expr
+div62_sentinel_expr =
+Clight.Ebinop Cop.Oor (Clight.Etempvar jets_secp._g Ctypesdefs.tulong)
+  (Clight.Ebinop Cop.Oshl (Clight.Econst_long Integers.Int64.mone Ctypesdefs.tulong)
+     (Clight.Etempvar jets_secp._i Ctypesdefs.tint) Ctypesdefs.tulong) Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_secp_div62_consume.div62_expected_count
+div62_expected_count =
+fun (le : Clight.temp_env) (i : BinNums.Z) =>
+match @Maps.PTree.get Values.val jets_secp._g le return BinNums.Z with
+| Some v =>
+    match v return BinNums.Z with
+    | Values.Vundef => BinNums.Z0
+    | Values.Vint _ => BinNums.Z0
+    | Values.Vlong g => div62_sentinel_count g i
+    | Values.Vfloat _ => BinNums.Z0
+    | Values.Vsingle _ => BinNums.Z0
+    | Values.Vptr _ _ => BinNums.Z0
+    end
+| None => BinNums.Z0
+end
+     : forall (_ : Clight.temp_env) (_ : BinNums.Z), BinNums.Z
+
+Arguments div62_expected_count le i%Z_scope
