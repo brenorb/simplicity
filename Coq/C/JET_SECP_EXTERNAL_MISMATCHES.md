@@ -369,6 +369,17 @@ step, not the five-limb coefficient value/range invariant or the complete
 public inversion jet. Those obligations and the caller's divstep bounds
 remain; no coverage entry is added.
 
+`jet_secp_modinv_de_recurrence_words.eval_de_recurrence` relates the whole
+original coefficient-update call to an explicit five-limb machine recurrence.
+A checked comparison covers all ten actual output words, including the
+negative low-modulus correction, three zero middle modulus limbs, the final
+`256` modulus limb and both final signed-carry stores. Denotation lemmas link
+the symbolic recurrence to the actual `Int64` multiply-accumulate and shift
+operations. The result retains the existing entry/freeing, ownership and
+framing guarantees and assumes only the original represented inputs. This
+is a machine-word recurrence bridge, not yet its integer-value/range proof
+or a complete public inversion theorem; public coverage is unchanged.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -392,6 +403,8 @@ JET_TARGETS=C/jet_secp_modinv_de_exec.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_known C.jet_secp_modinv_de_exec
 JET_TARGETS=C/jet_secp_modinv_de_correction_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_correction C.jet_secp_modinv_de_correction_numeric
+JET_TARGETS=C/jet_secp_modinv_de_recurrence_words.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_recurrence C.jet_secp_modinv_de_recurrence_words
 ```
 
 ## Reproduction and limits

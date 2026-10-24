@@ -1,0 +1,106 @@
+### C.jet_secp_modinv_de_recurrence.de62_recurrence_matches
+de62_recurrence_matches
+     : forall (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq jet_sx_expr.sx
+         (@List.nth jet_sx_expr.sx i (jet_secp_modinv_de_exec.de62_limbs high) (jet_sx_expr.XLc Integers.Int64.zero))
+         (de62_recurrence_sx high i)
+### C.jet_secp_modinv_de_recurrence.de62_shift_sx
+de62_shift_sx =
+fun p : prod jet_sx_expr.sx jet_sx_expr.sx =>
+@pair jet_sx_expr.sx jet_sx_expr.sx
+  (jet_secp_i128_shift62_rep.i128_shift62_lo_sx (@fst jet_sx_expr.sx jet_sx_expr.sx p)
+     (@snd jet_sx_expr.sx jet_sx_expr.sx p))
+  (jet_secp_i128_shift62_rep.i128_shift62_hi_sx (@snd jet_sx_expr.sx jet_sx_expr.sx p))
+     : forall _ : prod jet_sx_expr.sx jet_sx_expr.sx, prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments de62_shift_sx p
+### C.jet_secp_modinv_de_recurrence.de62_acc_sx
+de62_acc_sx =
+fix de62_acc_sx (high : bool) (k : nat) {struct k} : prod jet_sx_expr.sx jet_sx_expr.sx :=
+  match k return (prod jet_sx_expr.sx jet_sx_expr.sx) with
+  | O =>
+      jet_secp_modinv_fg_iteration_prefix.fg_iter_accum
+        (@pair jet_sx_expr.sx jet_sx_expr.sx
+           (jet_secp_modinv_fg_prefix.fg_row_lo
+              (jet_sx_expr.XLv
+                 match high return nat with
+                 | true => S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                 | false => S (S (S (S (S (S (S (S (S (S O)))))))))
+                 end)
+              (jet_sx_expr.XLv
+                 match high return nat with
+                 | true => S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+                 | false => S (S (S (S (S (S (S (S (S (S (S O))))))))))
+                 end))
+           (jet_secp_modinv_fg_prefix.fg_row_hi
+              (jet_sx_expr.XLv
+                 match high return nat with
+                 | true => S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                 | false => S (S (S (S (S (S (S (S (S (S O)))))))))
+                 end)
+              (jet_sx_expr.XLv
+                 match high return nat with
+                 | true => S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+                 | false => S (S (S (S (S (S (S (S (S (S (S O))))))))))
+                 end)))
+        (jet_sx_expr.XLc
+           (Integers.Int64.repr
+              (BinNums.Zneg
+                 (BinNums.xI
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO
+                                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))))))))
+        (jet_secp_modinv_de_correction.de62_correction_sx high)
+  | S n =>
+      let next : prod jet_sx_expr.sx jet_sx_expr.sx :=
+        jet_secp_modinv_fg_iteration_prefix.fg_iter_accum
+          (jet_secp_modinv_fg_iteration_prefix.fg_iter_accum (de62_shift_sx (de62_acc_sx high n))
+             (jet_sx_expr.XLv
+                match high return nat with
+                | true => S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                | false => S (S (S (S (S (S (S (S (S (S O)))))))))
+                end) (jet_sx_expr.XLv (S n)))
+          (jet_sx_expr.XLv
+             match high return nat with
+             | true => S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+             | false => S (S (S (S (S (S (S (S (S (S (S O))))))))))
+             end) (jet_sx_expr.XLv (Nat.add (S (S (S (S (S O))))) (S n))) in
+      match PeanoNat.Nat.eqb (S n) (S (S (S (S O)))) return (prod jet_sx_expr.sx jet_sx_expr.sx) with
+      | true =>
+          jet_secp_modinv_fg_iteration_prefix.fg_iter_accum next
+            (jet_sx_expr.XLc
+               (Integers.Int64.repr
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+            (jet_secp_modinv_de_correction.de62_correction_sx high)
+      | false => next
+      end
+  end
+     : forall (_ : bool) (_ : nat), prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments de62_acc_sx high%bool_scope k%nat_scope
+### C.jet_secp_modinv_de_recurrence.de62_recurrence_sx
+de62_recurrence_sx =
+fun (high : bool) (i : nat) =>
+match PeanoNat.Nat.eqb i (S (S (S (S O)))) return jet_sx_expr.sx with
+| true => @fst jet_sx_expr.sx jet_sx_expr.sx (de62_shift_sx (de62_acc_sx high (S (S (S (S O))))))
+| false =>
+    jet_sx_expr.XLb jet_sx_expr.Band (@fst jet_sx_expr.sx jet_sx_expr.sx (de62_acc_sx high (S i)))
+      jet_secp_modinv_normalize62_exec.norm62_mask
+end
+     : forall (_ : bool) (_ : nat), jet_sx_expr.sx
+
+Arguments de62_recurrence_sx high%bool_scope i%nat_scope
