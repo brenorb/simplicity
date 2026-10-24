@@ -147,6 +147,26 @@ does not prove the complete core call or identify the terminal coefficient
 with the frozen scalar inverse specification. Public scalar caller
 composition and the deferred CTZ boundary remain open; coverage is unchanged.
 
+`jet_secp_scalar_inverse_result.exec_scalar_inv_finish_literal` interprets
+that same actual finishing execution against the frozen Haskell
+`scalar_invert` program, not merely an abstract inverse. Its literal port in
+`jet_secp_scalar_invert_literal.v` reuses the word-exact Bezout simulation,
+proved EEA termination and existing literal scalar negation. The bridge
+covers every 256-bit input, including zero and the word equal to the scalar
+order. It retains the literal result for the original word before canonical
+input reduction, and explicitly equates the recovered output word with the
+literal Simplicity program's result. The needed scalar-order primality is checked with ordinary
+Coq reduction from explicit certificate data; no unchecked example proof or
+primality assumption is imported.
+
+The terminal suffix requires the actual loop to establish its trajectory,
+coefficient congruence, lower-limb bounds, stopped g and zero-case invariant.
+Those are not established by the suffix theorem. Its C execution,
+normalization, copy-back, frees, canonical output, ownership, global state
+and framing are all derived from the stated internal memory/invariant
+premises. This is not yet a whole core call, scalar-invert jet theorem or
+new public proof entry. CTZ remains deferred and coverage stays 514/533.
+
 ```sh
 JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_signed62 C.jet_secp_scalar_signed62_numeric
@@ -158,6 +178,8 @@ JET_TARGETS="C/jet_secp_modinv_normalize62_modulus.vo C/jet_secp_modinv_normaliz
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_normalize62_modulus C.jet_secp_modinv_normalize62_numeric C.jet_secp_scalar_normalize62
 JET_TARGETS="C/jet_secp_scalar_inverse_finish.vo C/jet_secp_modinv_var_result.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_finish C.jet_secp_modinv_var_result
+JET_TARGETS="C/jet_secp_scalar_prime.vo C/jet_secp_scalar_invert_literal.vo C/jet_secp_scalar_inverse_result.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_prime C.jet_secp_scalar_invert_literal C.jet_secp_scalar_inverse_result
 ```
 
 ## Generation: wNAF also calls external memset
