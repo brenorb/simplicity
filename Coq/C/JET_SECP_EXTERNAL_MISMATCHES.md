@@ -1188,6 +1188,30 @@ JET_TARGETS=C/jet_secp_modinv_var_invariant.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_invariant
 ```
 
+## Establish the inverse invariant from actual entry (internal progress)
+
+`jet_secp_modinv_var_seed.inv_entry_establishes_invariant` reuses the original
+`modinv64_var` entry, initialization, f/g struct copies and len/eta setup.
+It derives a current-memory representation with the initialized coefficients
+`d=0,e=1`, sparse modulus `f`, input `g`, `len=5` and `eta=-1`, together with
+the coefficient link and canonical divstep-state match. It also establishes
+the coefficient bounds, f/g limb bounds and initial 256-bit state bounds.
+Ownership, the actual local environment, temporary matches, allocation
+freshness and the prefix's memory frame are retained.
+
+The 32-byte transition matrix is still explicitly uninitialized in
+`inv_seed_regs`; no matrix result or execution is assumed. The input premise
+is the canonical signed62 representation already produced by the checked
+field-inversion pack step. Zero input is included, and no below-modulus
+restriction is added to this internal prefix theorem. This does not establish
+the divstep call, the outer loop or the final inverse value, and adds no
+public coverage or external model. Coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_modinv_var_seed.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_seed
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
