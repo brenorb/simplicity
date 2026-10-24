@@ -1865,6 +1865,37 @@ JET_TARGETS="C/jet_secp_modinv_batch_modulus.vo C/jet_secp_scalar_inverse_batch.
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_batch_modulus C.jet_secp_scalar_inverse_batch
 ```
 
+## Complete scalar inverse outer loop (internal conditional progress)
+
+`jet_secp_scalar_inverse_loop.exec_scalar_inv_loop` executes the original
+outer `modinv64_var` loop through its actual break, preserving the represented
+scalar state, coefficient relation, canonical trajectory, eta/length,
+limb/value bounds and the zero-input coefficient invariant. Its stopping
+state has canonical `g=0` and the low-limb bounds needed by the existing
+sign/normalization finishing proof. The batch theorem is strengthened only
+by retaining those already derived low-limb bounds in its conclusion.
+
+Termination is derived from the existing integer divstep termination theorem,
+not assumed as a fixed iteration bound. The fuel proof consumes 62 canonical
+steps per continuing batch. Even zero input executes a real batch before
+breaking, matching C rather than exiting artificially at loop entry. Eta
+safety follows from the existing live-trajectory bounds. The initial ready
+invariant is derived from the actual initialized/copy-complete seed by
+`scalar_inv_seed_ready`; matrix initialization is still unnecessary.
+
+The internal execution premise is now quantified over memories, since each
+outer batch updates its storage before the next CTZ call. The original CTZ
+helper must execute silently, count correctly on nonzero words, and preserve
+memory. This remains an unresolved premise, not a new external model or an
+accepted public result. Core finish/free composition, outer unpack and public
+frame composition, and eventual CTZ discharge remain required. Frozen targets
+and public coverage remain unchanged (514/533).
+
+```sh
+JET_TARGETS="C/jet_secp_scalar_inverse_batch.vo C/jet_secp_scalar_inverse_loop.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_batch C.jet_secp_scalar_inverse_loop
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

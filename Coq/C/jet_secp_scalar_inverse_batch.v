@@ -59,6 +59,7 @@ Theorem exec_scalar_inv_batch value len rho st beta e le m :
  inv_state_matches (scalar_inv_batch_length len st rho) (scalar_inv_batch_rho len st rho) (fst(stepN 62 st)) /\
  inv_fg_limb_bounds(scalar_inv_batch_rho len st rho) /\
  inv_fg_value_capacity (scalar_inv_batch_length len st rho) (scalar_inv_batch_rho len st rho) /\
+ inv_tail_low_bounds (scalar_inv_batch_length len st rho) (scalar_inv_batch_rho len st rho) /\
  (g st=0 -> out=Out_break /\
   de62_input_value(inv_de_rho(scalar_inv_batch_rho len st rho)) false mod canonical_group_order=
   de62_input_value(inv_de_rho rho) false mod canonical_group_order) /\
@@ -107,7 +108,7 @@ Proof.
    eapply exec_Sseq_1 with (t1:=E0) (t2:=E0);[exact Batch|exact Assign].
  - split;[exact Post|];split;[exact NewLen|];split;[exact NewEta|];split;[exact NewDE|];
    split;[exact NewLink|];split;[exact NewState|];split;[exact NewLimbs|];split;[exact NewCapacity|];
-   split;[exact ZeroNext|];split;[exact StopNext|];split;[exact Outcomes|];split;[exact Range|];split;[exact Temps|].
+   split;[exact Low|];split;[exact ZeroNext|];split;[exact StopNext|];split;[exact Outcomes|];split;[exact Range|];split;[exact Temps|].
    eapply lframe_trans;[eapply lframe_implies;[exact BFrame|]|eapply lframe_implies;[exact Frame|]];
    intros b ofs [B Rest] Valid;tauto.
 Qed.
