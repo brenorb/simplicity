@@ -22,8 +22,10 @@ Definition inv_divstep_call := curve_call _secp256k1_modinv64_divsteps_62_var
   f_secp256k1_modinv64_divsteps_62_var (Some _t'1)
   [Etempvar _eta tlong;Etempvar _t'7 tlong;Etempvar _t'8 tlong;inv_matrix_address].
 Definition inv_divstep_loads := statement_sequence [inv_divstep_load false;inv_divstep_load true] Sskip.
+Definition inv_divstep_loaded_values f0 g0 le :=
+  PTree.set _t'8 (Vlong g0) (PTree.set _t'7 (Vlong f0) le).
 Definition inv_divstep_loaded (w : nat->int64) le :=
-  PTree.set _t'8 (Vlong (w 0%nat)) (PTree.set _t'7 (Vlong (modinfo_fe_limb 0)) le).
+  inv_divstep_loaded_values (modinfo_fe_limb 0) (w 0%nat) le.
 Lemma inv_divstep_statement_source : nth 1 (fst inv_caller_loop_parts) Sskip=
   Ssequence (statement_sequence [inv_divstep_load false;inv_divstep_load true] inv_divstep_call)
     (Sset _eta (Etempvar _t'1 tlong)).
@@ -55,40 +57,52 @@ Proof.
   rewrite Base,Z.add_0_l in Value;destruct high;exact Value.
 Qed.
 
+Lemma exec_inv_divstep_load_values e le m bf bg f0 g0 :
+  e!_f=Some (bf,fg_s62_type) -> e!_g=Some (bg,fg_s62_type) ->
+  Mem.load Mint64 m bf 0=Some (Vlong f0) -> Mem.load Mint64 m bg 0=Some (Vlong g0) ->
+  Clight2.exec_stmt secp_ge e le m inv_divstep_loads E0 (inv_divstep_loaded_values f0 g0 le) m Out_normal.
+Proof.
+  intros F G LF LG;unfold inv_divstep_loads,inv_divstep_loaded_values;cbn [statement_sequence].
+  eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=m)
+    (le1:=PTree.set _t'7 (Vlong f0) le).
+  - apply exec_Sset;unfold inv_divstep_load.
+    eapply eval_inv_local_load with (j:=0%nat) (b:=bf).
+    + lia.
+    + reflexivity.
+    + exact F.
+    + constructor.
+    + exact LF.
+  - eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=m).
+    + apply exec_Sset;unfold inv_divstep_load.
+      eapply eval_inv_local_load with (j:=0%nat) (b:=bg).
+      * lia.
+      * reflexivity.
+      * exact G.
+      * constructor.
+      * exact LG.
+    + constructor.
+Qed.
+
 Theorem exec_inv_first_loads w beta e le m : rep (inv_seed_rho w) beta inv_seed_regs m ->
   ematch beta (snd inv_start_alloc) e ->
   Clight2.exec_stmt secp_ge e le m inv_divstep_loads E0 (inv_divstep_loaded w le) m Out_normal.
 Proof.
-  intros Rep Env;unfold inv_divstep_loads,inv_divstep_loaded;cbn [statement_sequence].
-  eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=m)
-    (le1:=PTree.set _t'7 (Vlong (modinfo_fe_limb 0)) le).
-  - apply exec_Sset;unfold inv_divstep_load.
-    eapply eval_inv_local_load with (j:=0%nat) (b:=blk beta 4).
-    + lia.
-    + reflexivity.
-    + exact (proj1 (Env _f)).
-    + constructor.
-    + exact (inv_seed_first_load w beta m false Rep).
-  - eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=m).
-    + apply exec_Sset;unfold inv_divstep_load.
-      eapply eval_inv_local_load with (j:=0%nat) (b:=blk beta 5).
-      * lia.
-      * reflexivity.
-      * exact (proj1 (Env _g)).
-      * constructor.
-      * exact (inv_seed_first_load w beta m true Rep).
-    + constructor.
+  intros Rep Env;eapply exec_inv_divstep_load_values with (bf:=blk beta 4) (bg:=blk beta 5).
+  - exact (proj1 (Env _f)).
+  - exact (proj1 (Env _g)).
+  - exact (inv_seed_first_load w beta m false Rep).
+  - exact (inv_seed_first_load w beta m true Rep).
 Qed.
 
-Lemma inv_first_divstep_arguments w beta e le m :
-  ematch beta (snd inv_start_alloc) e -> le!_eta=Some (Vlong (Int64.repr (-1))) ->
-  eval_exprlist secp_ge e (inv_divstep_loaded w le) m
+Lemma inv_divstep_arguments_values beta e le m eta0 f0 g0 :
+  ematch beta (snd inv_start_alloc) e -> le!_eta=Some (Vlong eta0) ->
+  eval_exprlist secp_ge e (inv_divstep_loaded_values f0 g0 le) m
     [Etempvar _eta tlong;Etempvar _t'7 tlong;Etempvar _t'8 tlong;inv_matrix_address]
     (type_of_params (fn_params f_secp256k1_modinv64_divsteps_62_var))
-    [Vlong (Int64.repr (-1));Vlong (modinfo_fe_limb 0);Vlong (w 0%nat);Vptr (blk beta 6) Ptrofs.zero].
+    [Vlong eta0;Vlong f0;Vlong g0;Vptr (blk beta 6) Ptrofs.zero].
 Proof.
   intros Env Eta.
-  unfold inv_divstep_loaded.
+  unfold inv_divstep_loaded_values.
   eapply eval_Econs.
   - apply eval_Etempvar;rewrite !PTree.gso by discriminate;exact Eta.
   - reflexivity.
@@ -104,6 +118,14 @@ Proof.
         -- reflexivity.
         -- constructor.
 Qed.
+
+Lemma inv_first_divstep_arguments w beta e le m :
+  ematch beta (snd inv_start_alloc) e -> le!_eta=Some (Vlong (Int64.repr (-1))) ->
+  eval_exprlist secp_ge e (inv_divstep_loaded w le) m
+    [Etempvar _eta tlong;Etempvar _t'7 tlong;Etempvar _t'8 tlong;inv_matrix_address]
+    (type_of_params (fn_params f_secp256k1_modinv64_divsteps_62_var))
+    [Vlong (Int64.repr (-1));Vlong (modinfo_fe_limb 0);Vlong (w 0%nat);Vptr (blk beta 6) Ptrofs.zero].
+Proof. apply inv_divstep_arguments_values. Qed.
 
 Theorem inv_first_divstep_entry w m b : exists le0 le1,
   function_entry2 secp_ge f_secp256k1_modinv64_divsteps_62_var

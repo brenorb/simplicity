@@ -1299,6 +1299,32 @@ public coverage. Coverage remains 514/533. Rebuild and kernel-check the result
 and first-batch modules with the command above; their dependency closures
 include both range modules.
 
+## General inverse batch entry (internal progress)
+
+`jet_secp_modinv_var_batch_entry.inv_batch_setup` generalizes the actual
+low-word loads, argument evaluation, callee entry and initializer execution
+to every represented canonical batch state and valid active length, including
+one-limb and negative signed-limb states. The low-62-bit correspondence to
+the active f/g integer values is derived using `s62_value_mod_low` and the
+unsigned/signed word congruence, without assuming nonnegative digits.
+
+The first-batch execution/argument proofs now reuse value-parameterized
+helpers in `jet_secp_modinv_var_first_batch`; their original contracts are
+retained. `inv_pre_batch_forget` transfers a completed caller representation
+to the common pre-batch layout by forgetting only obsolete matrix values,
+retaining the actual buffer's Freeable ownership. It never initializes
+memory or changes C code. The original statement-source equality is retained.
+
+This completes entry setup, not the full divstep call or loop. CTZ behavior,
+complete batch execution/return and outer-loop/public composition remain
+unfinished. No new external model or public coverage is introduced; coverage
+remains 514/533.
+
+```sh
+JET_TARGETS="C/jet_secp_modinv_var_batch_entry.vo C/jet_secp_modinv_var_result.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_batch_entry C.jet_secp_modinv_var_result
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

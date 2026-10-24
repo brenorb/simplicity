@@ -5,6 +5,12 @@ Require Import C.jet_secp_modinv_normalize62_words.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 
+Lemma s62_value_mod_low n w : norm62_value_z n w mod 2^62=w 0%nat mod 2^62.
+Proof.
+  destruct n;[reflexivity|];cbn [norm62_value_z].
+  rewrite (Z.mul_comm (2^62)),Z_mod_plus_full;reflexivity.
+Qed.
+
 Lemma s62_radix_power_succ n :
   2^(62*Z.of_nat (S n))=2^62*2^(62*Z.of_nat n).
 Proof.
