@@ -231,10 +231,28 @@ arbitrary six-word metadata; their field specializations are definitionally
 the existing field representations. They reuse the original statement and
 allocation layout, checked signed62 By_copy execution, copy-argument,
 representation-preservation and loop-setup proofs. No libc copy premise is
-needed. The scalar loop must still produce its canonical matrix, lift the
-coefficient and f/g transformations into one represented loop state, and
-compose iteration/termination with the checked finishing path. CTZ remains
-deferred, and public coverage remains 514/533.
+needed. The scalar loop must still produce its canonical matrix and compose
+the represented updates, stopping/shortening control and iteration/termination
+with the checked finishing path. CTZ remains deferred, and public coverage
+remains 514/533.
+
+`jet_secp_scalar_inverse_updates.exec_scalar_inv_updates_invariant` now
+executes the actual coefficient-update and f/g-update call pair in the
+original caller's one represented seven-object layout. It derives both
+calls, the complete updated representation and ownership, the scalar
+coefficient bounds and exact correction equations, lower f/g limb bounds,
+framing, coefficient congruence and the canonical `stepN 62` f/g state.
+The separate zero-case d residue is preserved. The modulus-independent
+f/g call and caller restoration are reused through
+`jet_secp_modinv_loop_modulus`, which retains arbitrary six-word metadata
+and specializes definitionally to the original field layout. Scalar d/e
+values are proved unchanged by the subsequent f/g call; f/g inputs and
+matrix are proved unchanged by the preceding coefficient call. Incoming
+matrix correspondence and numeric limb/state invariants are internal loop
+premises, not assumed C executions or post-update results. Actual divsteps
+must establish that correspondence. Stopping/shortening, inactive-limb and
+value-capacity preservation, and full-loop/finishing composition remain
+separate obligations; this is not a full inverse or new public jet proof.
 
 ```sh
 JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
@@ -257,6 +275,8 @@ JET_TARGETS="C/jet_secp_scalar_de_invariant.vo C/jet_secp_modinv_var_result.vo C
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_de_invariant C.jet_secp_modinv_var_result C.jet_secp_scalar_inverse_result
 JET_TARGETS="C/jet_secp_modinv_entry_modulus.vo C/jet_secp_modinv_copies_modulus.vo C/jet_secp_scalar_inverse_seed.vo" bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_entry_modulus C.jet_secp_modinv_copies_modulus C.jet_secp_scalar_inverse_seed
+JET_TARGETS="C/jet_secp_modinv_loop_modulus.vo C/jet_secp_scalar_inverse_updates.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_loop_modulus C.jet_secp_scalar_inverse_updates
 ```
 
 ## Generation: wNAF also calls external memset
