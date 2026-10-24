@@ -102,6 +102,24 @@ Definition inv_matrix_matches rho st :=
  inv_matrix_v rho false=Trans.v (Trans.transN 62 st) /\
  inv_matrix_u rho true=Trans.q (Trans.transN 62 st) /\
  inv_matrix_v rho true=Trans.r (Trans.transN 62 st).
+Lemma inv_matrix_row_bounds rho st : inv_matrix_matches rho st ->
+ forall high,de62_row_bound (inv_de_rho rho) high.
+Proof.
+ intros (U & V & Q & R) high.
+ pose proof (Trans.bounded_transN 62 st) as Bound;unfold Trans.bounded in Bound.
+ change (Z.of_nat 62) with 62 in Bound.
+ change (Z.abs (inv_matrix_u rho high)+Z.abs (inv_matrix_v rho high)<=2^62).
+ destruct high;[rewrite Q,R|rewrite U,V];lia.
+Qed.
+Lemma inv_fg_bounds_from_matrix len rho st : inv_matrix_matches rho st ->
+ (forall high j,(j<5)%nat ->
+  Z.abs (Int64.signed (fg_array_word (inv_fg_rho len rho) high j))<=2^62) ->
+ fg_input_bounds (inv_fg_rho len rho).
+Proof.
+ intros Matrix Limbs;split;[|exact Limbs].
+ intro high;pose proof (inv_matrix_row_bounds rho st Matrix high) as Row.
+ destruct high;exact Row.
+Qed.
 Lemma inv_matrix_scaled_state len rho st high : (0<len<=5)%nat ->
  inv_state_matches len rho st -> inv_matrix_matches rho st ->
  fg_matrix_value (inv_fg_rho len (inv_de_next_rho rho)) high len=
@@ -136,8 +154,10 @@ Theorem exec_inv_after_divsteps_invariant value len rho st beta e le m :
  (0<len<=5)%nat -> rep rho beta inv_loop_regs m -> ematch beta (snd inv_start_alloc) e ->
  le!_modinfo=Some (Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))) ->
  le!_len=Some (Vint (Int.repr (Z.of_nat len))) ->
- (forall high,de62_row_bound (inv_de_rho rho) high) -> de62_state_bounds (inv_de_rho rho) ->
- fg_input_bounds (inv_fg_rho len rho) -> inv_coefficient_link value len rho ->
+ de62_state_bounds (inv_de_rho rho) ->
+ (forall high j,(j<5)%nat ->
+  Z.abs (Int64.signed (fg_array_word (inv_fg_rho len rho) high j))<=2^62) ->
+ inv_coefficient_link value len rho ->
  inv_state_matches len rho st -> inv_matrix_matches rho st -> exists lef mf out,
  Clight2.exec_stmt secp_ge e le m inv_after_divsteps E0 lef mf out /\
  rep (inv_iteration_rho len rho) beta inv_loop_regs mf /\
@@ -159,7 +179,9 @@ Theorem exec_inv_after_divsteps_invariant value len rho st beta e le m :
  lframe (fun b ofs=>~foot (inv_de_layout beta) (map rshape de62_regs) b ofs /\
   ~foot (inv_fg_layout beta) (map rshape fg_regs) b ofs /\ b<>blk beta 4 /\ b<>blk beta 5) m mf.
 Proof.
- intros Len Rep Env Modinfo Length Rows Bounds FG Link State Matrix.
+ intros Len Rep Env Modinfo Length Bounds FGLimbs Link State Matrix.
+ pose proof (inv_matrix_row_bounds rho st Matrix) as Rows.
+ pose proof (inv_fg_bounds_from_matrix len rho st Matrix FGLimbs) as FG.
  destruct (exec_inv_after_divsteps len rho beta e le m Len Rep Env Modinfo Length Rows Bounds FG)
   as (lef & mf & out & Exec & Out & NewLen & DEBounds & DENumeric & FGNumeric & Low & Stop & Nonzero & Outcomes & Range & TFrame & Frame).
  assert (NextLink : inv_coefficient_link value (inv_iteration_length len rho) (inv_iteration_rho len rho)).

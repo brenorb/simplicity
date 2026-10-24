@@ -1165,6 +1165,29 @@ JET_TARGETS=C/jet_secp_fe_inv_finish.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_fe_inv_finish
 ```
 
+## Derive inverse matrix row bounds (internal strengthening, no added coverage)
+
+`jet_secp_modinv_var_invariant.inv_matrix_row_bounds` derives both coefficient
+row bounds directly from `inv_matrix_matches` and `Trans.bounded_transN`.
+`inv_fg_bounds_from_matrix` supplies those same bounds for the f/g update's
+projected matrix. `exec_inv_after_divsteps_invariant` now uses these results
+internally instead of requiring matrix row bounds either as a separate
+caller premise or as part of `fg_input_bounds`: only its f/g limb-bound
+component remains a premise. All previous execution, representation,
+coefficient/state, range and framing conclusions are retained. This is an
+assumption-free arithmetic bridge to the original update executions, not an
+assumption that divsteps ran correctly.
+
+The matrix-match fact, f/g machine bounds, initial coefficient/state relation,
+actual divstep execution, CTZ boundary and public inverse composition still
+need to be discharged along the full call path. No new external model or
+public registration is introduced; coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_modinv_var_invariant.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_invariant
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

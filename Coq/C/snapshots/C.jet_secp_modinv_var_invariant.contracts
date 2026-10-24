@@ -156,10 +156,14 @@ exec_inv_after_divsteps_invariant
                    (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))))
          (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
                 (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
-         (_ : forall high : bool,
-              jet_secp_modinv_de_correction_numeric.de62_row_bound (jet_secp_modinv_var_de.inv_de_rho rho) high)
          (_ : jet_secp_modinv_de_numeric.de62_state_bounds (jet_secp_modinv_var_de.inv_de_rho rho))
-         (_ : jet_secp_modinv_fg_start.fg_input_bounds (jet_secp_modinv_var_fg.inv_fg_rho len rho))
+         (_ : forall (high : bool) (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+              BinInt.Z.le
+                (BinInt.Z.abs
+                   (Integers.Int64.signed
+                      (jet_secp_modinv_fg_loop_numeric.fg_array_word (jet_secp_modinv_var_fg.inv_fg_rho len rho) high j)))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
          (_ : inv_coefficient_link value len rho) (_ : inv_state_matches len rho st) (_ : inv_matrix_matches rho st),
        @ex Clight.temp_env
          (fun lef : Clight.temp_env =>
@@ -267,6 +271,23 @@ exec_inv_after_divsteps_invariant
                                                             (fun (b : Values.block) (ofs : BinNums.Z) =>
                                                              and (not (jet_sx_state.foot (...) (...) b ofs))
                                                                (and (not (...)) (and (...) (...)))) m mf)))))))))))))))))
+### C.jet_secp_modinv_var_invariant.inv_matrix_row_bounds
+inv_matrix_row_bounds
+     : forall (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State) (_ : inv_matrix_matches rho st)
+         (high : bool),
+       jet_secp_modinv_de_correction_numeric.de62_row_bound (jet_secp_modinv_var_de.inv_de_rho rho) high
+### C.jet_secp_modinv_var_invariant.inv_fg_bounds_from_matrix
+inv_fg_bounds_from_matrix
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State)
+         (_ : inv_matrix_matches rho st)
+         (_ : forall (high : bool) (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+              BinInt.Z.le
+                (BinInt.Z.abs
+                   (Integers.Int64.signed
+                      (jet_secp_modinv_fg_loop_numeric.fg_array_word (jet_secp_modinv_var_fg.inv_fg_rho len rho) high j)))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       jet_secp_modinv_fg_start.fg_input_bounds (jet_secp_modinv_var_fg.inv_fg_rho len rho)
 ### C.jet_secp_modinv_var_invariant.inv_coefficient_link
 inv_coefficient_link =
 fun (value : BinNums.Z) (len : nat) (rho : forall _ : nat, Integers.Int64.int) =>
