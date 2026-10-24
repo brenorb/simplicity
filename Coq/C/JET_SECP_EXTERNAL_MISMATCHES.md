@@ -709,6 +709,39 @@ JET_TARGETS=C/jet_secp_modinv_var_invariant.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_invariant
 ```
 
+## Post-inversion affine arithmetic (internal progress, no added coverage)
+
+`jet_secp_gej_affine_arithmetic.exec_affine_arithmetic` composes the original
+square and three multiply calls from `secp256k1_ge_set_gej_var`, after the
+in-place inversion of its Z coordinate. `affine_arithmetic_source` checks
+the statement context against the unchanged generated function body. The
+cube-call adapter in `jet_secp_gej_affine_cube.v` reuses the checked field
+multiplier at the caller's actual layout: fresh 40-byte output, Z at offset
+80 in an owned 128-byte point, and the separate squared temporary.
+
+For bounded field limbs X, Y, and the **already-inverted** field zi, the
+composed theorem derives execution of all four calls, exact output limbs,
+reusable bounds, and X * zi^2 / Y * zi^3 congruences modulo the field prime.
+It retains ownership of the point and both local temporaries, preserves Z
+and both computed temporaries, and frames all memory outside the point's
+three field slices and the temporaries (including the infinity flag).
+The temporaries need not be initialized before the first writes. The
+intermediate call executions and memory-preservation facts are derived,
+not new execution premises.
+
+This theorem is an **internal prefix**, expressed with a terminal `Sskip`;
+it does not execute the preceding inversion, the subsequent Z=1/set_xy
+statements, function entry or local reclamation. In particular, zi is not
+claimed to be the inverse of a supplied original input. Those obligations,
+the infinity branch, and the public Simplicity composition remain to be
+discharged for `gej_normalize` / `gej_y_is_odd`. No new external model or
+public jet registration is introduced; coverage remains 514/533.
+
+```sh
+JET_TARGETS="C/jet_secp_gej_affine_cube.vo C/jet_secp_gej_affine_arithmetic.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_affine_cube C.jet_secp_gej_affine_arithmetic
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
