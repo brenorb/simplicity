@@ -102,14 +102,44 @@ The whole-iteration result retains the existing explicit `memcmp_model`
 premise; the branch/zero-exit proofs themselves need no extra libc model.
 All adapters are checked against the original statement tree and the fee
 field offset against the generated composite layout. These are internal
-execution results, not a replacement fee specification. Complete loop
-composition over a represented table, sorted lookup correctness, the public
-wrapper and the hash-classification boundary remain unfinished. No jet is
+execution results, not a replacement fee specification. Sorted lookup
+correctness, the public wrapper and the hash-classification boundary remain
+unfinished; complete loop composition is addressed below. No jet is
 registered and coverage remains 514/533.
 
 ```sh
 JET_TARGETS=C/jet_elements_fee_lookup_branches.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_fee_lookup_branches
+```
+
+### Complete original lookup call (internal C contract)
+
+`jet_elements_fee_lookup_loop.eval_fee_lookup_table` executes the entire
+original `f_lookup_fee`, including function entry, every search iteration,
+return conversion and local cleanup. Its result is exactly
+`fee_lookup_answer (length entries) key entries`, with memory unchanged and
+empty trace, under the existing explicit `memcmp_model` premise. The
+iteration bound is discharged by strict decrease of each selected table
+half; no loop execution, return value or termination is assumed.
+
+`jet_elements_fee_lookup_table` represents the pointer array, each actual
+entry's comparison bytes and fee load. Its slice lemmas preserve those
+loads and pointer bounds. Empty tables need no key/table storage, allowing
+NULL table pointers without an artificial nonnull premise.
+`eval_fee_lookup_empty` separately proves that full call without a
+`memcmp_model` premise for arbitrary initial key/table values.
+
+The functional answer describes the C search choices; it is an internal
+proof adapter, **not** a replacement for the canonical Simplicity fee
+program. Equality to sorted-table lookup, correspondence of the real fee
+table to transaction outputs, public-wrapper composition and the
+hash-classification boundary above still need proof. No jet is registered;
+coverage remains 514/533. Production C, ASTs, API and canonical
+specifications are unchanged.
+
+```sh
+JET_TARGETS=C/jet_elements_fee_lookup_loop.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_fee_lookup_loop
 ```
 
 `simplicity_output_is_fee` remains unregistered. `total_fee` also depends on

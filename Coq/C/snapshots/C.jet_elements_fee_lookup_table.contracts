@@ -1,0 +1,176 @@
+### C.jet_elements_fee_lookup_table.fee_firstn_entry
+@fee_firstn_entry
+     : forall (A : Type) (k : nat) (xs : list A) (j : nat) (x : A)
+         (_ : @eq (option A) (@List.nth_error A (@List.firstn A k xs) j) (@Some A x)),
+       @eq (option A) (@List.nth_error A xs j) (@Some A x)
+### C.jet_elements_fee_lookup_table.fee_skipn_entry
+@fee_skipn_entry
+     : forall (A : Type) (k : nat) (xs : list A) (j : nat),
+       @eq (option A) (@List.nth_error A (@List.skipn A k xs) j) (@List.nth_error A xs (Nat.add k j))
+### C.jet_elements_fee_lookup_table.fee_table_firstn
+fee_table_firstn
+     : forall (m : Memory.Mem.mem) (bt : Values.block) (base : BinNums.Z) (entries : list fee_entry)
+         (k : nat) (_ : fee_table_at m bt base entries), fee_table_at m bt base (@List.firstn fee_entry k entries)
+### C.jet_elements_fee_lookup_table.fee_table_skipn
+fee_table_skipn
+     : forall (m : Memory.Mem.mem) (bt : Values.block) (base : BinNums.Z) (entries : list fee_entry)
+         (k : nat) (_ : le k (@length fee_entry entries)) (_ : fee_table_at m bt base entries),
+       fee_table_at m bt
+         (BinInt.Z.add base
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat k)))
+         (@List.skipn fee_entry k entries)
+### C.jet_elements_fee_lookup_table.fee_search_part_length
+fee_search_part_length
+     : forall (high : bool) (entries : list fee_entry) (_ : not (@eq (list fee_entry) entries (@nil fee_entry))),
+       @eq BinNums.Z (BinInt.Z.of_nat (@length fee_entry (fee_search_part high entries)))
+         (jet_elements_fee_lookup_branches.fee_lookup_next_length high (BinInt.Z.of_nat (@length fee_entry entries)))
+### C.jet_elements_fee_lookup_table.fee_search_part_small
+fee_search_part_small
+     : forall (high : bool) (entries : list fee_entry) (_ : not (@eq (list fee_entry) entries (@nil fee_entry))),
+       lt (@length fee_entry (fee_search_part high entries)) (@length fee_entry entries)
+### C.jet_elements_fee_lookup_table.fee_search_part_in
+fee_search_part_in
+     : forall (high : bool) (entries : list fee_entry) (x : fee_entry)
+         (_ : @List.In fee_entry x (fee_search_part high entries)), @List.In fee_entry x entries
+### C.jet_elements_fee_lookup_table.fee_table_part
+fee_table_part
+     : forall (high : bool) (m : Memory.Mem.mem) (bt : Values.block) (base : BinNums.Z) (entries : list fee_entry)
+         (_ : not (@eq (list fee_entry) entries (@nil fee_entry))) (_ : fee_table_at m bt base entries),
+       fee_table_at m bt
+         (jet_elements_fee_lookup_branches.fee_lookup_next_base high base (BinInt.Z.of_nat (@length fee_entry entries)))
+         (fee_search_part high entries)
+### C.jet_elements_fee_lookup_table.fee_entry
+Variant fee_entry : Type :=
+    mk_fee_entry : forall (_ : Values.block) (_ : BinNums.Z) (_ : list Integers.Int.int) (_ : Integers.Int64.int),
+                   fee_entry.
+
+Arguments mk_fee_entry fee_entry_block fee_entry_offset%Z_scope fee_entry_key%list_scope fee_entry_amount
+### C.jet_elements_fee_lookup_table.mk_fee_entry
+Variant fee_entry : Type :=
+    mk_fee_entry : forall (_ : Values.block) (_ : BinNums.Z) (_ : list Integers.Int.int) (_ : Integers.Int64.int),
+                   fee_entry.
+
+Arguments mk_fee_entry fee_entry_block fee_entry_offset%Z_scope fee_entry_key%list_scope fee_entry_amount
+### C.jet_elements_fee_lookup_table.fee_entry_block
+fee_entry_block =
+fun f : fee_entry => match f return Values.block with
+                     | mk_fee_entry fee_entry_block _ _ _ => fee_entry_block
+                     end
+     : forall _ : fee_entry, Values.block
+
+Arguments fee_entry_block f
+### C.jet_elements_fee_lookup_table.fee_entry_offset
+fee_entry_offset =
+fun f : fee_entry => match f return BinNums.Z with
+                     | mk_fee_entry _ fee_entry_offset _ _ => fee_entry_offset
+                     end
+     : forall _ : fee_entry, BinNums.Z
+
+Arguments fee_entry_offset f
+### C.jet_elements_fee_lookup_table.fee_entry_key
+fee_entry_key =
+fun f : fee_entry =>
+match f return (list Integers.Int.int) with
+| mk_fee_entry _ _ fee_entry_key _ => fee_entry_key
+end
+     : forall _ : fee_entry, list Integers.Int.int
+
+Arguments fee_entry_key f
+### C.jet_elements_fee_lookup_table.fee_entry_amount
+fee_entry_amount =
+fun f : fee_entry =>
+match f return Integers.Int64.int with
+| mk_fee_entry _ _ _ fee_entry_amount => fee_entry_amount
+end
+     : forall _ : fee_entry, Integers.Int64.int
+
+Arguments fee_entry_amount f
+### C.jet_elements_fee_lookup_table.fee_entry_at
+fee_entry_at =
+fun (m : Memory.Mem.mem) (x : fee_entry) =>
+and (BinInt.Z.le BinNums.Z0 (fee_entry_offset x))
+  (and
+     (BinInt.Z.le
+        (BinInt.Z.add (fee_entry_offset x)
+           (BinNums.Zpos
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+        (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH)))
+     (and
+        (@eq nat (@length Integers.Int.int (fee_entry_key x))
+           (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))
+        (and (jet_memcmp_model.bytes_at m (fee_entry_block x) (fee_entry_offset x) (fee_entry_key x))
+           (@eq (option Values.val)
+              (Memory.Mem.load AST.Mint64 m (fee_entry_block x)
+                 (BinInt.Z.add (fee_entry_offset x)
+                    (BinNums.Zpos
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+              (@Some Values.val (Values.Vlong (fee_entry_amount x)))))))
+     : forall (_ : Memory.Mem.mem) (_ : fee_entry), Prop
+
+Arguments fee_entry_at m x
+### C.jet_elements_fee_lookup_table.fee_key_at
+fee_key_at =
+fun (m : Memory.Mem.mem) (bk : Values.block) (base : BinNums.Z) (key : list Integers.Int.int) =>
+and (BinInt.Z.le BinNums.Z0 base)
+  (and
+     (BinInt.Z.le
+        (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+        (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH)))
+     (and
+        (@eq nat (@length Integers.Int.int key)
+           (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))
+        (jet_memcmp_model.bytes_at m bk base key)))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : list Integers.Int.int), Prop
+
+Arguments fee_key_at m bk base%Z_scope key%list_scope
+### C.jet_elements_fee_lookup_table.fee_table_at
+fee_table_at =
+fun (m : Memory.Mem.mem) (bt : Values.block) (base : BinNums.Z) (entries : list fee_entry) =>
+and (BinInt.Z.le BinNums.Z0 base)
+  (and
+     (BinInt.Z.le
+        (BinInt.Z.add base
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+              (BinInt.Z.of_nat (@length fee_entry entries)))) Integers.Ptrofs.max_unsigned)
+     (forall (j : nat) (x : fee_entry)
+        (_ : @eq (option fee_entry) (@List.nth_error fee_entry entries j) (@Some fee_entry x)),
+      and
+        (@eq (option Values.val)
+           (Memory.Mem.load AST.Mptr m bt
+              (BinInt.Z.add base
+                 (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat j))))
+           (@Some Values.val (Values.Vptr (fee_entry_block x) (Integers.Ptrofs.repr (fee_entry_offset x)))))
+        (fee_entry_at m x)))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : list fee_entry), Prop
+
+Arguments fee_table_at m bt base%Z_scope entries%list_scope
+### C.jet_elements_fee_lookup_table.fee_lookup_storage
+fee_lookup_storage =
+fun (m : Memory.Mem.mem) (keyval tableval : Values.val) (key : list Integers.Int.int) (entries : list fee_entry) =>
+or (@eq (list fee_entry) entries (@nil fee_entry))
+  (@ex Values.block
+     (fun bk : Values.block =>
+      @ex BinNums.Z
+        (fun keybase : BinNums.Z =>
+         @ex Values.block
+           (fun bt : Values.block =>
+            @ex BinNums.Z
+              (fun base : BinNums.Z =>
+               and (@eq Values.val keyval (Values.Vptr bk (Integers.Ptrofs.repr keybase)))
+                 (and (@eq Values.val tableval (Values.Vptr bt (Integers.Ptrofs.repr base)))
+                    (and (fee_key_at m bk keybase key) (fee_table_at m bt base entries))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : Values.val) (_ : list Integers.Int.int) (_ : list fee_entry),
+       Prop
+
+Arguments fee_lookup_storage m keyval tableval (key entries)%list_scope
+### C.jet_elements_fee_lookup_table.fee_search_part
+fee_search_part =
+fun (high : bool) (entries : list fee_entry) =>
+match high return (list fee_entry) with
+| true => @List.skipn fee_entry (S (PeanoNat.Nat.div (@length fee_entry entries) (S (S O)))) entries
+| false => @List.firstn fee_entry (PeanoNat.Nat.div (@length fee_entry entries) (S (S O))) entries
+end
+     : forall (_ : bool) (_ : list fee_entry), list fee_entry
+
+Arguments fee_search_part high%bool_scope entries%list_scope

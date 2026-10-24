@@ -1,0 +1,158 @@
+### C.jet_elements_fee_lookup_loop.fee_lookup_guard
+fee_lookup_guard
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned)),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m
+         (Clight.Sifthenelse (Clight.Etempvar jets_elements._len Ctypesdefs.tulong) Clight.Sskip Clight.Sbreak)
+         Events.E0 le m ClightBigstep.Out_normal
+### C.jet_elements_fee_lookup_loop.fee_lookup_loop_continue
+fee_lookup_loop_continue
+     : forall (le : Maps.PTree.tree Values.val) (lm lf : Clight.temp_env) (m : Memory.Mem.mem)
+         (out : ClightBigstep.outcome) (len : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m
+                jet_elements_fee_lookup_compare.fee_lookup_work Events.E0 lm m ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env lm m
+                jet_elements_fee_lookup_branches.fee_lookup_loop Events.E0 lf m out),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m
+         jet_elements_fee_lookup_branches.fee_lookup_loop Events.E0 lf m out
+### C.jet_elements_fee_lookup_loop.fee_lookup_loop_hit
+fee_lookup_loop_hit
+     : forall (le : Maps.PTree.tree Values.val) (lf : Clight.temp_env) (m : Memory.Mem.mem)
+         (len : BinNums.Z) (fee : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m
+                jet_elements_fee_lookup_compare.fee_lookup_work Events.E0 lf m
+                (ClightBigstep.Out_return
+                   (@Some (prod Values.val Ctypes.type)
+                      (@pair Values.val Ctypes.type (Values.Vlong fee) Ctypesdefs.tulong)))),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m
+         jet_elements_fee_lookup_branches.fee_lookup_loop Events.E0 lf m
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type) (@pair Values.val Ctypes.type (Values.Vlong fee) Ctypesdefs.tulong)))
+### C.jet_elements_fee_lookup_loop.exec_fee_lookup_loop
+exec_fee_lookup_loop
+     : forall (_ : jet_memcmp_model.memcmp_model) (fuel : nat) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : le (@length jet_elements_fee_lookup_table.fee_entry entries) fuel) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (keyval tableval : Values.val) (key : list Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le)
+                (@Some Values.val
+                   (Values.Vlong
+                      (Integers.Int64.repr (BinInt.Z.of_nat (@length jet_elements_fee_lookup_table.fee_entry entries))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._assetid le) (@Some Values.val keyval))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le)
+                (@Some Values.val tableval))
+         (_ : jet_elements_fee_lookup_table.fee_lookup_storage m keyval tableval key entries),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex ClightBigstep.outcome
+            (fun out : ClightBigstep.outcome =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le m
+                  jet_elements_fee_lookup_branches.fee_lookup_loop Events.E0 lef m out)
+               (fee_lookup_loop_value out (fee_lookup_answer fuel key entries))))
+### C.jet_elements_fee_lookup_loop.exec_fee_lookup_body
+exec_fee_lookup_body
+     : forall (_ : jet_memcmp_model.memcmp_model) (fuel : nat) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (keyval tableval : Values.val)
+         (key : list Integers.Int.int) (_ : le (@length jet_elements_fee_lookup_table.fee_entry entries) fuel)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._len le0)
+                (@Some Values.val
+                   (Values.Vlong
+                      (Integers.Int64.repr (BinInt.Z.of_nat (@length jet_elements_fee_lookup_table.fee_entry entries))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._assetid le0) (@Some Values.val keyval))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._feeOutputs le0)
+                (@Some Values.val tableval))
+         (_ : jet_elements_fee_lookup_table.fee_lookup_storage m keyval tableval key entries),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex ClightBigstep.outcome
+            (fun out : ClightBigstep.outcome =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge Clight.empty_env le0 m
+                  (Clight.fn_body jets_elements.f_lookup_fee) Events.E0 lef m out)
+               (ClightBigstep.outcome_result_value out Ctypesdefs.tulong
+                  (Values.Vlong (fee_lookup_answer fuel key entries)) m)))
+### C.jet_elements_fee_lookup_loop.fee_lookup_function_entry
+fee_lookup_function_entry
+     : forall (m : Memory.Mem.mem) (keyval tableval : Values.val) (len : BinNums.Z),
+       Clight.function_entry2 jet_elements_linkage.elements_ge jets_elements.f_lookup_fee
+         (@cons Values.val keyval
+            (@cons Values.val tableval (@cons Values.val (Values.Vlong (Integers.Int64.repr len)) (@nil Values.val))))
+         m Clight.empty_env (fee_lookup_initial_temps keyval tableval len) m
+### C.jet_elements_fee_lookup_loop.eval_fee_lookup_table
+eval_fee_lookup_table
+     : forall (_ : jet_memcmp_model.memcmp_model) (m : Memory.Mem.mem) (keyval tableval : Values.val)
+         (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry)
+         (_ : jet_elements_fee_lookup_table.fee_lookup_storage m keyval tableval key entries),
+       ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+         (@Ctypes.Internal Clight.function jets_elements.f_lookup_fee)
+         (@cons Values.val keyval
+            (@cons Values.val tableval
+               (@cons Values.val
+                  (Values.Vlong
+                     (Integers.Int64.repr (BinInt.Z.of_nat (@length jet_elements_fee_lookup_table.fee_entry entries))))
+                  (@nil Values.val)))) Events.E0 m
+         (Values.Vlong (fee_lookup_answer (@length jet_elements_fee_lookup_table.fee_entry entries) key entries))
+### C.jet_elements_fee_lookup_loop.eval_fee_lookup_empty
+eval_fee_lookup_empty
+     : forall (m : Memory.Mem.mem) (keyval tableval : Values.val),
+       ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+         (@Ctypes.Internal Clight.function jets_elements.f_lookup_fee)
+         (@cons Values.val keyval
+            (@cons Values.val tableval (@cons Values.val (Values.Vlong Integers.Int64.zero) (@nil Values.val))))
+         Events.E0 m (Values.Vlong Integers.Int64.zero)
+### C.jet_elements_fee_lookup_loop.fee_lookup_answer
+fee_lookup_answer =
+fix fee_lookup_answer
+  (fuel : nat) (key : list Integers.Int.int) (entries : list jet_elements_fee_lookup_table.fee_entry) {struct fuel} :
+    Integers.Int64.int :=
+  match fuel return Integers.Int64.int with
+  | O => Integers.Int64.zero
+  | S fuel0 =>
+      match
+        @List.nth_error jet_elements_fee_lookup_table.fee_entry entries
+          (PeanoNat.Nat.div (@length jet_elements_fee_lookup_table.fee_entry entries) (S (S O)))
+        return Integers.Int64.int
+      with
+      | Some x =>
+          match
+            jet_memcmp_model.bytes_cmp key (jet_elements_fee_lookup_table.fee_entry_key x) return Integers.Int64.int
+          with
+          | Eq => jet_elements_fee_lookup_table.fee_entry_amount x
+          | Lt => fee_lookup_answer fuel0 key (jet_elements_fee_lookup_table.fee_search_part false entries)
+          | Gt => fee_lookup_answer fuel0 key (jet_elements_fee_lookup_table.fee_search_part true entries)
+          end
+      | None => Integers.Int64.zero
+      end
+  end
+     : forall (_ : nat) (_ : list Integers.Int.int) (_ : list jet_elements_fee_lookup_table.fee_entry),
+       Integers.Int64.int
+
+Arguments fee_lookup_answer fuel%nat_scope (key entries)%list_scope
+### C.jet_elements_fee_lookup_loop.fee_lookup_loop_value
+fee_lookup_loop_value =
+fun (out : ClightBigstep.outcome) (value : Integers.Int64.int) =>
+or (and (@eq ClightBigstep.outcome out ClightBigstep.Out_normal) (@eq Integers.Int64.int value Integers.Int64.zero))
+  (@eq ClightBigstep.outcome out
+     (ClightBigstep.Out_return
+        (@Some (prod Values.val Ctypes.type) (@pair Values.val Ctypes.type (Values.Vlong value) Ctypesdefs.tulong))))
+     : forall (_ : ClightBigstep.outcome) (_ : Integers.Int64.int), Prop
+
+Arguments fee_lookup_loop_value out value
+### C.jet_elements_fee_lookup_loop.fee_lookup_initial_temps
+fee_lookup_initial_temps =
+fun (keyval tableval : Values.val) (len : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_elements._len (Values.Vlong (Integers.Int64.repr len))
+  (@Maps.PTree.set Values.val jets_elements._feeOutputs tableval
+     (@Maps.PTree.set Values.val jets_elements._assetid keyval
+        (Clight.create_undef_temps (Clight.fn_temps jets_elements.f_lookup_fee))))
+     : forall (_ : Values.val) (_ : Values.val) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments fee_lookup_initial_temps keyval tableval len%Z_scope
