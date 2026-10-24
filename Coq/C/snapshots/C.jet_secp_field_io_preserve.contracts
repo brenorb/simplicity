@@ -1,0 +1,51 @@
+### C.jet_secp_field_io_preserve.field_io_helpers_checked
+field_io_helpers_checked
+     : @eq bool
+         (@List.forallb (prod AST.ident Clight.function)
+            (fun it : prod AST.ident Clight.function =>
+             andb
+               (jet_clight_internal_frame.closed_stmtb field_io_helpers
+                  (Clight.fn_body (@snd AST.ident Clight.function it)))
+               (@List.forallb (prod AST.ident Ctypes.type)
+                  (fun local : prod AST.ident Ctypes.type =>
+                   jet_clight_internal_frame.nonfunction_type (@snd AST.ident Ctypes.type local))
+                  (Clight.fn_vars (@snd AST.ident Clight.function it)))) field_io_helpers) true
+### C.jet_secp_field_io_preserve.field_io_helpers_lookup
+field_io_helpers_lookup
+     : @eq (list (option Clight.fundef))
+         (@List.map (prod AST.ident Clight.function) (option Clight.fundef)
+            (jet_sx_pure.symbol_lookup jet_secp_linkage.secp_ge) field_io_helpers)
+         (@List.map (prod AST.ident Clight.function) (option (Ctypes.fundef Clight.function))
+            (fun p : prod AST.ident Clight.function =>
+             @Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function (@snd AST.ident Clight.function p))) field_io_helpers)
+### C.jet_secp_field_io_preserve.field_io_allowed
+field_io_allowed
+     : and
+         (jet_clight_internal_frame.allowed_call field_io_helpers
+            (@Ctypes.Internal Clight.function jets_secp.f_read_fe))
+         (jet_clight_internal_frame.allowed_call field_io_helpers
+            (@Ctypes.Internal Clight.function jets_secp.f_write_fe))
+### C.jet_secp_field_io_preserve.field_io_helpers_ok
+field_io_helpers_ok
+     : jet_clight_internal_frame.internal_table_ok jet_secp_linkage.secp_ge field_io_helpers
+### C.jet_secp_field_io_preserve.field_reader_preserved
+field_reader_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_read_fe) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_field_io_preserve.field_writer_preserved
+field_writer_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_write_fe) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_field_io_preserve.field_io_helpers
+field_io_helpers =
+@cons (prod AST.ident Clight.function) (@pair AST.ident Clight.function jets_secp._read_fe jets_secp.f_read_fe)
+  (@cons (prod AST.ident Clight.function) (@pair AST.ident Clight.function jets_secp._write_fe jets_secp.f_write_fe)
+     jet_secp_scalar_io_preserve.scalar_io_helpers)
+     : list (prod AST.ident Clight.function)

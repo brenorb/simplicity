@@ -2139,6 +2139,44 @@ JET_TARGETS="C/jet_secp_fe_inverse_state.vo C/jet_secp_fe_inverse_var.vo" bash C
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_fe_inverse_state C.jet_secp_fe_inverse_var
 ```
 
+## Complete original public `fe_invert` caller (conditional progress)
+
+`jet_secp_fe_invert_local.fe_invert_initialized_local_spec_from_count_calls`
+establishes the existing full initialized local contract for the original
+`simplicity_fe_invert` jet and its literal Simplicity specification. The proof
+composes actual function entry, source-frame copy, canonical field reader,
+in-place inverse, original field writer, true return and both local frees.
+The output word is derived from the inverse's stored limbs, not assumed as a
+writer or arithmetic premise. Input normalization preserves the literal
+specification for every Word256 input, including zero and noncanonical fields.
+
+The result retains arbitrary valid caller cursors and frames, output prefix,
+arbitrary-chunk memory framing, and the existing `modinfo_fe_state` startup
+state. Shared reader/writer preservation results carry readonly memory through
+the same constructed executions. The modulus block is not excluded from the
+public memory frame, and no final-global-readability premise is required.
+
+`jet_secp_fe_invert_fresh.field_invert_runs_from_actual_init` additionally
+constructs valid frames for every input from the original program's actual
+`Genv.init_mem`. The field-modulus state is established there and preserved
+through fresh frame allocation and the full jet execution; all pre-existing
+program-memory loads are retained.
+
+The original CTZ call's execution and result remain the explicit deferred
+parameter of these theorems. This is a complete **conditional public caller**
+composition, not a discharged CTZ dependency or an accepted coverage row.
+Accepted coverage remains 514/533. No new external-call model, production C,
+generated AST, specification, primitive identity, API or generation setting is
+introduced or changed. Snapshot audits distinguish this parameter from the
+inherited axioms; recursive kernel checking does not discharge it.
+
+With the pinned dependencies from `Coq/JET_BUILD.md`:
+
+```sh
+JET_TARGETS="C/jet_secp_fe_invert_local.vo C/jet_secp_fe_invert_fresh.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_fe_invert_local C.jet_secp_fe_invert_fresh
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
