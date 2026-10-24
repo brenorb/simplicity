@@ -398,6 +398,19 @@ the divstep matrix, its row bounds or the variable inverse caller's loop
 invariants/termination; those remain required for the public inversion jet,
 as does the reported external-call boundary. No coverage entry is added.
 
+`jet_secp_modinv_de_revalue.eval_de_step` closes the coefficient-state
+handoff: the actual helper returns memory representing `de62_next_rho`
+under the same owned-array/matrix and read-only metadata layout. The
+result derives the next state's limb/value bounds and its scaled exact
+and modular row relations. The matrix row values are unchanged by this
+coefficient update. Representation transport uses the existing 64-bit
+region transport lemma; a small abstract four-region assembly proof avoids
+expanding the large symbolic word expressions during kernel conversion.
+No ownership, output state, bound or helper execution is assumed as a new
+premise. This makes the coefficient helper reusable by the inverse loop;
+it is not a proof of that caller's divsteps or termination and adds no
+public jet coverage.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -425,6 +438,8 @@ JET_TARGETS=C/jet_secp_modinv_de_recurrence_words.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_recurrence C.jet_secp_modinv_de_recurrence_words
 JET_TARGETS=C/jet_secp_modinv_de_call.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_numeric C.jet_secp_modinv_de_call
+JET_TARGETS=C/jet_secp_modinv_de_revalue.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_de_revalue
 ```
 
 ## Reproduction and limits
