@@ -1,0 +1,59 @@
+### C.jet_secp_scalar_de_ranges.scalar_de62_state_input_bound
+scalar_de62_state_input_bound
+     : forall (rho : forall _ : nat, Integers.Int64.int) (_ : scalar_de62_state_bounds rho),
+       jet_secp_modinv_de_numeric.de62_input_bound rho
+### C.jet_secp_scalar_de_ranges.scalar_de62_balanced_range
+scalar_de62_balanced_range
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (_ : scalar_de62_state_bounds rho),
+       and
+         (BinInt.Z.lt (BinInt.Z.opp jet_secp_canonical_scalar.canonical_group_order)
+            (scalar_de62_balanced_value rho high))
+         (BinInt.Z.lt (scalar_de62_balanced_value rho high) jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_scalar_de_ranges.scalar_de62_output_range
+scalar_de62_output_range
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool)
+         (_ : jet_secp_modinv_de_correction_numeric.de62_row_bound rho high) (_ : scalar_de62_state_bounds rho),
+       and
+         (BinInt.Z.lt
+            (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order)
+            (jet_secp_scalar_de_numeric.scalar_de62_output_value rho high))
+         (BinInt.Z.lt (jet_secp_scalar_de_numeric.scalar_de62_output_value rho high)
+            jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_scalar_de_ranges.scalar_de62_output_limb_bounds
+scalar_de62_output_limb_bounds
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool)
+         (_ : jet_secp_modinv_de_correction_numeric.de62_row_bound rho high) (_ : scalar_de62_state_bounds rho),
+       jet_secp_modinv_normalize62_modulus.modnorm62_limb_bounds
+         (jet_secp_scalar_de_recurrence.scalar_de62_recurrence_word rho high)
+### C.jet_secp_scalar_de_ranges.scalar_de62_state_bounds
+scalar_de62_state_bounds =
+fun rho : forall _ : nat, Integers.Int64.int =>
+and
+  (forall high : bool,
+   jet_secp_modinv_normalize62_modulus.modnorm62_limb_bounds (jet_secp_modinv_de_numeric.de62_array rho high))
+  (forall high : bool,
+   and
+     (BinInt.Z.lt (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order)
+        (jet_secp_modinv_de_numeric.de62_input_value rho high))
+     (BinInt.Z.lt (jet_secp_modinv_de_numeric.de62_input_value rho high)
+        jet_secp_canonical_scalar.canonical_group_order))
+     : forall _ : forall _ : nat, Integers.Int64.int, Prop
+
+Arguments scalar_de62_state_bounds rho%function_scope
+### C.jet_secp_scalar_de_ranges.scalar_de62_balanced_value
+scalar_de62_balanced_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (high : bool) =>
+BinInt.Z.add (jet_secp_modinv_de_numeric.de62_input_value rho high)
+  match
+    Integers.Int64.lt
+      (rho match high return nat with
+           | true => S (S (S (S (S (S (S (S (S O))))))))
+           | false => S (S (S (S O)))
+           end) Integers.Int64.zero return BinNums.Z
+  with
+  | true => jet_secp_canonical_scalar.canonical_group_order
+  | false => BinNums.Z0
+  end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool), BinNums.Z
+
+Arguments scalar_de62_balanced_value rho%function_scope high%bool_scope

@@ -187,10 +187,21 @@ fit signed 64 bits. The scalar low-limb divisibility follows from the checked
 actual inverse coefficient.
 
 Matrix-row bounds and input-limb bounds are internal loop premises here.
-Scalar state construction, output value/limb-range preservation, coefficient
-link preservation and whole loop/caller composition remain required before
+Scalar state construction, coefficient-link preservation and whole
+loop/caller composition remain required before
 public acceptance. CTZ remains deferred; no new external model, target change
 or public proof entry is added, and coverage remains 514/533.
+
+`jet_secp_scalar_de_revalue.eval_scalar_de_step` derives the complete next
+coefficient-update representation from that real call, retaining the original
+matrix, scalar modulus metadata, ownership and memory frame. The output's
+value range (-2*N,N) and signed62 limb bounds are now proved preserved by
+`jet_secp_scalar_de_ranges`, not assumed as postconditions. Its balancing
+argument specializes the existing modulus-general normalization proof;
+the field and scalar cases share `de62_balanced_row_modulus`. All original
+field contracts are retained. The input bounds and represented initial state
+remain internal loop premises to be established by the actual caller; this
+state-transformer result is not a complete inverse-loop or public jet proof.
 
 ```sh
 JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
@@ -207,6 +218,8 @@ JET_TARGETS="C/jet_secp_scalar_prime.vo C/jet_secp_scalar_invert_literal.vo C/je
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_prime C.jet_secp_scalar_invert_literal C.jet_secp_scalar_inverse_result
 JET_TARGETS="C/jet_secp_scalar_de_exec.vo C/jet_secp_scalar_de_recurrence.vo C/jet_secp_scalar_de_numeric.vo C/jet_secp_scalar_inverse_result.vo" bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_de_exec C.jet_secp_scalar_de_recurrence C.jet_secp_scalar_de_numeric C.jet_secp_scalar_inverse_result
+JET_TARGETS="C/jet_secp_scalar_de_ranges.vo C/jet_secp_scalar_de_revalue.vo C/jet_secp_scalar_inverse_result.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_de_ranges C.jet_secp_scalar_de_revalue C.jet_secp_scalar_inverse_result
 ```
 
 ## Generation: wNAF also calls external memset

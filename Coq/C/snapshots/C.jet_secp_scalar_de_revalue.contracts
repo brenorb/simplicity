@@ -1,0 +1,185 @@
+### C.jet_secp_scalar_de_revalue.scalar_de62_next_array
+scalar_de62_next_array
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq Integers.Int64.int (jet_secp_modinv_de_numeric.de62_array (scalar_de62_next_rho rho) high i)
+         (jet_secp_scalar_de_recurrence.scalar_de62_recurrence_word rho high i)
+### C.jet_secp_scalar_de_revalue.scalar_de62_next_input_value
+scalar_de62_next_input_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool),
+       @eq BinNums.Z (jet_secp_modinv_de_numeric.de62_input_value (scalar_de62_next_rho rho) high)
+         (jet_secp_scalar_de_numeric.scalar_de62_output_value rho high)
+### C.jet_secp_scalar_de_revalue.scalar_de62_next_rows
+scalar_de62_next_rows
+     : forall (rho : forall _ : nat, Integers.Int64.int) (high : bool),
+       @eq Prop (jet_secp_modinv_de_correction_numeric.de62_row_bound (scalar_de62_next_rho rho) high)
+         (jet_secp_modinv_de_correction_numeric.de62_row_bound rho high)
+### C.jet_secp_scalar_de_revalue.scalar_de62_state_bounds_next
+scalar_de62_state_bounds_next
+     : forall (rho : forall _ : nat, Integers.Int64.int)
+         (_ : forall high : bool, jet_secp_modinv_de_correction_numeric.de62_row_bound rho high)
+         (_ : jet_secp_scalar_de_ranges.scalar_de62_state_bounds rho),
+       jet_secp_scalar_de_ranges.scalar_de62_state_bounds (scalar_de62_next_rho rho)
+### C.jet_secp_scalar_de_revalue.scalar_de62_next_limbs_den
+scalar_de62_next_limbs_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (high : bool),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den (scalar_de62_next_rho rho) beta)
+            (@List.map nat jet_sx_expr.sx jet_sx_expr.XLv
+               (List.seq match high return nat with
+                         | true => S (S (S (S (S O))))
+                         | false => O
+                         end (S (S (S (S (S O))))))))
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho beta)
+            (jet_secp_scalar_de_exec.scalar_de62_limbs high))
+### C.jet_secp_scalar_de_revalue.scalar_de62_call_shape
+scalar_de62_call_shape
+     : @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_sx_eval.sregs jet_secp_scalar_de_exec.scalar_de62_state))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape jet_secp_scalar_de_exec.scalar_de62_regs)
+### C.jet_secp_scalar_de_revalue.scalar_de62_revalue_array
+scalar_de62_revalue_array
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (high : bool)
+         (_ : jet_sx_state.region_ok rho beta m match high return nat with
+                                                | true => S O
+                                                | false => O
+                                                end
+                (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_scalar_de_exec.scalar_de62_limbs high))
+                   true
+                   (@Some BinNums.Z
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))),
+       jet_sx_state.region_ok (scalar_de62_next_rho rho) beta m
+         match high return nat with
+         | true => S O
+         | false => O
+         end
+         (jet_sx_state.mkreg
+            (jet_sx_rep.u64_cells BinNums.Z0
+               (@List.map nat jet_sx_expr.sx jet_sx_expr.XLv
+                  (List.seq match high return nat with
+                            | true => S (S (S (S (S O))))
+                            | false => O
+                            end (S (S (S (S (S O)))))))) true
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_scalar_de_revalue.scalar_de62_result_regs_eq
+scalar_de62_result_regs_eq
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs jet_secp_scalar_de_exec.scalar_de62_state)
+         scalar_de62_result_regs
+### C.jet_secp_scalar_de_revalue.scalar_de62_result_shape
+scalar_de62_result_shape
+     : @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape scalar_de62_result_regs)
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape jet_secp_scalar_de_exec.scalar_de62_regs)
+### C.jet_secp_scalar_de_revalue.scalar_de62_revalue_matrix
+scalar_de62_revalue_matrix
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.region_ok rho beta m (S (S O))
+                (@List.nth jet_sx_state.region (S (S O)) jet_secp_scalar_de_exec.scalar_de62_regs
+                   (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z)))),
+       jet_sx_state.region_ok (scalar_de62_next_rho rho) beta m (S (S O))
+         (@List.nth jet_sx_state.region (S (S O)) jet_secp_scalar_de_exec.scalar_de62_regs
+            (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z)))
+### C.jet_secp_scalar_de_revalue.scalar_de62_revalue_modinfo
+scalar_de62_revalue_modinfo
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.region_ok rho beta m (S (S (S O)))
+                (@List.nth jet_sx_state.region (S (S (S O))) jet_secp_scalar_de_exec.scalar_de62_regs
+                   (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z)))),
+       jet_sx_state.region_ok (scalar_de62_next_rho rho) beta m (S (S (S O)))
+         (@List.nth jet_sx_state.region (S (S (S O))) jet_secp_scalar_de_exec.scalar_de62_regs
+            (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z)))
+### C.jet_secp_scalar_de_revalue.scalar_de62_revalue_result
+scalar_de62_revalue_result
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta scalar_de62_result_regs m),
+       jet_sx_state.rep (scalar_de62_next_rho rho) beta jet_secp_scalar_de_exec.scalar_de62_regs m
+### C.jet_secp_scalar_de_revalue.scalar_de62_revalue
+scalar_de62_revalue
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_scalar_de_exec.scalar_de62_state) m),
+       jet_sx_state.rep (scalar_de62_next_rho rho) beta jet_secp_scalar_de_exec.scalar_de62_regs m
+### C.jet_secp_scalar_de_revalue.eval_scalar_de_step
+eval_scalar_de_step
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta jet_secp_scalar_de_exec.scalar_de62_regs m)
+         (_ : forall high : bool, jet_secp_modinv_de_correction_numeric.de62_row_bound rho high)
+         (_ : jet_secp_scalar_de_ranges.scalar_de62_state_bounds rho),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_update_de_62)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O)))))
+                        (@cons Values.val
+                           (Values.Vptr (jet_sx_state.blk beta (S (S (S O))))
+                              (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S (S O))))))
+                           (@nil Values.val))))) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep (scalar_de62_next_rho rho) beta jet_secp_scalar_de_exec.scalar_de62_regs mf)
+               (and (jet_secp_scalar_de_ranges.scalar_de62_state_bounds (scalar_de62_next_rho rho))
+                  (and
+                     (forall high : bool,
+                      and
+                        (@eq BinNums.Z
+                           (BinInt.Z.mul
+                              (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                              (jet_secp_modinv_de_numeric.de62_input_value (scalar_de62_next_rho rho) high))
+                           (BinInt.Z.add (jet_secp_modinv_de_numeric.de62_matrix_value rho high)
+                              (BinInt.Z.mul jet_secp_canonical_scalar.canonical_group_order
+                                 (jet_secp_scalar_de_numeric.scalar_de62_correction_value rho high))))
+                        (@eq BinNums.Z
+                           (BinInt.Z.modulo
+                              (BinInt.Z.sub
+                                 (BinInt.Z.mul
+                                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                       (BinNums.Zpos
+                                          (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                                    (jet_secp_modinv_de_numeric.de62_input_value (scalar_de62_next_rho rho) high))
+                                 (jet_secp_modinv_de_numeric.de62_matrix_value rho high))
+                              jet_secp_canonical_scalar.canonical_group_order) BinNums.Z0))
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (ofs : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot beta
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape jet_secp_scalar_de_exec.scalar_de62_regs) b ofs)) m mf)))))
+### C.jet_secp_scalar_de_revalue.scalar_de62_next_rho
+scalar_de62_next_rho =
+fun (rho : forall _ : nat, Integers.Int64.int) (n : nat) =>
+match PeanoNat.Nat.ltb n (S (S (S (S (S (S (S (S (S (S O)))))))))) return Integers.Int64.int with
+| true =>
+    jet_secp_scalar_de_recurrence.scalar_de62_recurrence_word rho (PeanoNat.Nat.leb (S (S (S (S (S O))))) n)
+      (PeanoNat.Nat.modulo n (S (S (S (S (S O))))))
+| false => rho n
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments scalar_de62_next_rho rho%function_scope n%nat_scope
+### C.jet_secp_scalar_de_revalue.scalar_de62_result_regs
+scalar_de62_result_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_scalar_de_exec.scalar_de62_limbs false)) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region
+     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_scalar_de_exec.scalar_de62_limbs true)) true
+        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     (@cons jet_sx_state.region
+        (@List.nth jet_sx_state.region (S (S O)) jet_secp_scalar_de_exec.scalar_de62_regs
+           (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z)))
+        (@cons jet_sx_state.region
+           (@List.nth jet_sx_state.region (S (S (S O))) jet_secp_scalar_de_exec.scalar_de62_regs
+              (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))) (@nil jet_sx_state.region))))
+     : list jet_sx_state.region

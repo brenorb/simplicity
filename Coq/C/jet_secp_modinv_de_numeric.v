@@ -212,21 +212,25 @@ Proof.
  rewrite Z.mul_1_l in Range;exact Range.
 Qed.
 
-Lemma de62_balanced_row u v d e : Z.abs u+Z.abs v<=2^62 ->
- -feP<d<feP -> -feP<e<feP -> -2^62*feP<u*d+v*e<2^62*feP.
+Lemma de62_balanced_row_modulus M u v d e : 0<M -> Z.abs u+Z.abs v<=2^62 ->
+ -M<d<M -> -M<e<M -> -2^62*M<u*d+v*e<2^62*M.
 Proof.
- intros Row D E.
- assert (AD : Z.abs d<=feP-1) by (apply Z.abs_le;lia).
- assert (AE : Z.abs e<=feP-1) by (apply Z.abs_le;lia).
- assert (UD : Z.abs (u*d)<=Z.abs u*(feP-1)).
+ intros Positive Row D E.
+ assert (AD : Z.abs d<=M-1) by (apply Z.abs_le;lia).
+ assert (AE : Z.abs e<=M-1) by (apply Z.abs_le;lia).
+ assert (UD : Z.abs (u*d)<=Z.abs u*(M-1)).
  { rewrite Z.abs_mul;apply Z.mul_le_mono_nonneg_l;[apply Z.abs_nonneg|exact AD]. }
- assert (VE : Z.abs (v*e)<=Z.abs v*(feP-1)).
+ assert (VE : Z.abs (v*e)<=Z.abs v*(M-1)).
  { rewrite Z.abs_mul;apply Z.mul_le_mono_nonneg_l;[apply Z.abs_nonneg|exact AE]. }
  pose proof (Z.abs_triangle (u*d) (v*e)) as Triangle.
  pose proof (Z.abs_nonneg u);pose proof (Z.abs_nonneg v).
- assert (Sum : Z.abs (u*d+v*e)<=2^62*(feP-1)) by (unfold feP,feR in *;lia).
- apply Z.abs_le in Sum;unfold feP,feR in *;lia.
+ assert (Sum : Z.abs (u*d+v*e)<=2^62*(M-1)) by nia.
+ apply Z.abs_le in Sum;lia.
 Qed.
+
+Lemma de62_balanced_row u v d e : Z.abs u+Z.abs v<=2^62 ->
+ -feP<d<feP -> -feP<e<feP -> -2^62*feP<u*d+v*e<2^62*feP.
+Proof. exact(de62_balanced_row_modulus feP u v d e ltac:(unfold feP,feR;lia)). Qed.
 
 Theorem de62_output_range rho high : de62_row_bound rho high -> de62_state_bounds rho ->
  -2*feP<de62_output_value rho high<feP.
