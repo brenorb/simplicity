@@ -2427,22 +2427,33 @@ The original CTZ call contract remains explicit. This is a conditional
 **complete statement-body** theorem, not function-entry/freeing or public
 jet coverage.
 
-Next prove actual `f_shallue_van_de_woestijne` function entry and its thirteen
-local allocations, instantiate `exec_swu_body`, and free exactly its original
-`blocks_of_env` list. Keep the caller's reader field and output point, derive
-separation/ownership and startup through allocation rather than assuming
-them, then compose the original public reader/writer wrapper. Reuse the
-ordinary entry/free/frame lemmas and the standard NoDup append/remove
-lemmas; do not duplicate the candidate execution chain. The deferred CTZ
-external-call obligation is separate and remains visible.
+`jet_secp_swu_function.eval_swu_function` now composes the entire original
+helper call. It derives function entry, all thirteen fresh 40-byte local
+allocations in the actual `fn_vars` order, the separation and ownership
+needed by `exec_swu_body`, and the exact original `blocks_of_env` frees.
+It keeps the caller's reader allocation and output point, derives stored
+X/Y and bounds, the zero infinity flag, equality to `literal_swu t`, startup,
+readonly preservation, and old-memory framing outside the two caller
+objects. No allocation, freeing, internal call or output is assumed. The
+only non-storage premises remain the established startup state and original
+CTZ call contract; this helper is not the public read/write wrapper.
+
+Next compose the original public `simplicity_swu` reader/writer wrapper
+with `eval_swu_function`, using its existential X/Y storage, loose bounds,
+literal output relation and ownership. Reuse the existing affine writer and
+public lifecycle/frame proofs rather than serializing the coordinates with
+a new implementation. Derive startup across the reader and discharge it
+from the real startup caller separately. The deferred CTZ external-call
+obligation is separate and remains visible.
 
 Coverage stays 514/533; these are not whole-public SWU registration.
 Reproduce the normal build with
-`JET_TARGETS='C/jet_secp_swu_body.vo'`
+`JET_TARGETS='C/jet_secp_swu_function.vo'`
 and kernel check with
-`-o C.jet_secp_swu_body`, plus focused assumption/contract comparisons for
+`-o C.jet_secp_swu_function`, plus focused assumption/contract comparisons for
 `jet_secp_root_output_bounds`, `jet_secp_swu_before_selection`,
-`jet_secp_swu_parity_fields`, `jet_secp_swu_parity` and `jet_secp_swu_body`.
+`jet_secp_swu_parity_fields`, `jet_secp_swu_parity`, `jet_secp_swu_body` and
+`jet_secp_swu_function`.
 
 ## Completed: `simplicity_gej_rescale`
 
