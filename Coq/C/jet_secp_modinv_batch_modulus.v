@@ -12,6 +12,7 @@ Require Import C.extraMath C.divstep C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C
  C.jet_secp_modinv_var_batch_entry C.jet_secp_modinv_var_batch_exit
  C.jet_secp_div62_loop C.jet_secp_div62_exit C.jet_secp_local_regions C.jet_secp_fe_nv
  C.jet_secp_u128_shift64_rep C.jet_secp_statement_prefix.
+Require Import C.jet_clight_internal_preserve.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -95,7 +96,7 @@ Theorem exec_inv_mod_batch mu len rho st beta e le m :
  Clight2.exec_stmt secp_ge e le m inv_divstep_batch E0 (inv_divstep_returned st rho le) mf Out_normal /\
  rep (inv_batch_result_rho st rho) beta (inv_mod_loop_regs mu) mf /\
  inv_matrix_matches (inv_batch_result_rho st rho) st /\
- lframe(fun b _=>b<>blk beta 6) m mf.
+ lframe(fun b _=>b<>blk beta 6) m mf /\ readonly_preserved m mf.
 Proof.
  intros CountCall EtaRange Length Rep Env Eta State.
  pose proof(exec_inv_divstep_load_values e le m (blk beta 4) (blk beta 5) (rho 15%nat) (rho 20%nat)
@@ -107,7 +108,7 @@ Proof.
   ltac:(lia) EtaRange
   ltac:(rewrite(proj1 State);exact(inv_batch_low_modulo len rho false))
   ltac:(rewrite(proj2 State);exact(inv_batch_low_modulo len rho true)) Free)
-  as(mf & Call & SignedLoads & ExactLoads & Returned & Owned & Frame).
+  as(mf & Call & SignedLoads & ExactLoads & Returned & Owned & Frame & Readonly).
  assert(ExecCall:Clight2.exec_stmt secp_ge e (inv_divstep_loaded_values (rho 15%nat) (rho 20%nat) le)
   m inv_divstep_call E0 (inv_divstep_returned st rho le) mf Out_normal).
  { unfold inv_divstep_call,inv_divstep_returned;eapply exec_curve_call with
@@ -119,5 +120,5 @@ Proof.
    - exact Call. }
  exists mf;split.
  - unfold inv_divstep_batch;eapply exec_statement_prefix_then_last;[exact Loads|exact ExecCall].
- - split;[eapply inv_mod_batch_restore;eassumption|];split;[apply inv_batch_result_matrix|exact Frame].
+ - split;[eapply inv_mod_batch_restore;eassumption|];split;[apply inv_batch_result_matrix|];split;assumption.
 Qed.

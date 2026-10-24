@@ -16,6 +16,7 @@ Require Import C.extraMath C.divstep C.jet_sx_expr C.jet_sx_state C.jet_sx_eval 
  C.jet_secp_scalar_normalize62 C.jet_secp_scalar_de_exec C.jet_secp_modinv_fg_prefix
  C.jet_secp_modinv_normalize62_exec C.jet_secp_scalar_invert_literal C.jet_secp_signed62_numeric
  C.jet_secp_canonical_scalar C.jet_secp_fe_nv C.jet_secp_multiply_normalize_bridge.
+Require Import C.jet_secp_closed_helpers C.jet_clight_internal_preserve.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -77,7 +78,7 @@ Theorem eval_scalar_inv_core w m bs :
  (forall input:Ty.tySem(Word 8),signed62_unsigned_value w=@toZ (WordToZ 8) input mod canonical_group_order ->
   @fromZ (WordToZ 8) (signed62_unsigned_value words)=@literal_scalar_invert Alg.CoreFunSem input) /\
  Mem.range_perm mr bs 0 40 Cur Freeable /\ modinfo_scalar_global_rep mr /\
- lframe(fun b _=>b<>bs /\ b<>scalar_inv_modinfo_block) m mr.
+ lframe(fun b _=>b<>bs /\ b<>scalar_inv_modinfo_block) m mr /\ readonly_preserved m mr.
 Proof.
  intros CountCall Normal Range Sep Input Free Global.
  pose proof(scalar_inv_start_rep w m bs Sep Input Free Global) as Start.
@@ -96,7 +97,7 @@ Proof.
  pose proof(scalar_inv_seed_ready w beta e lc mc Normal Seed Env Eta Modinfo Len) as Ready.
  destruct(exec_scalar_inv_loop_finish (signed62_unsigned_value w) 0 beta e lc mc 5
   (inv_mod_seed_rho modinfo_scalar_limb w) CountCall Range Ready Block Base X)
-  as(words & lf & mf & mr & LoopFinish & Freed & Output & OutNormal & Numeric & Simplicity & Owned & OutGlobal & FFrame).
+  as(words & lf & mf & mr & LoopFinish & Freed & Output & OutNormal & Numeric & Simplicity & Owned & OutGlobal & FFrame & FinishReadonly).
  assert(Call:Clight2.eval_funcall secp_ge m (Internal f_secp256k1_modinv64_var)
   [Vptr bs Ptrofs.zero;Vptr scalar_inv_modinfo_block Ptrofs.zero] E0 mr Vundef).
  { eapply eval_funcall_internal with(e:=e)(le1:=le)(le2:=lf)(m1:=mi)(m2:=mf)(out:=Out_normal).
@@ -114,5 +115,8 @@ Proof.
        exact(scalar_inv_core_private_outside m bs betaN b NewLen Fresh Valid).
    - intros b ofs(Xb & Mb) Valid;repeat split;assumption. }
  exists words,mr;split;[exact Call|];split;[exact Output|];split;[exact OutNormal|];split;[exact Numeric|];
- split;[exact Simplicity|];split;[exact Owned|];split;[exact OutGlobal|exact Frame].
+ split;[exact Simplicity|];split;[exact Owned|];split;[exact OutGlobal|];split;[exact Frame|].
+ eapply preserved_trans;[eapply entry_preserved;exact Entry|].
+ eapply preserved_trans;[|exact FinishReadonly].
+ eapply secp_closed_stmt_preserved;[exact Prefix|apply(inv_env_plain beta e Env)|exact secp_closed_ready_prefix].
 Qed.

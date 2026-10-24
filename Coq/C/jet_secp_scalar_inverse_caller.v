@@ -7,6 +7,7 @@ Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_fns C.jet_secp_curve_st
 Require Import C.jet_secp_scalar_signed62 C.jet_secp_scalar_signed62_numeric C.jet_secp_signed62_numeric.
 Require Import C.jet_secp_scalar_get_b32_storage C.jet_secp_scalar_add_initial C.jet_secp_scalar_add_reader_support.
 Require Import C.jet_secp_scalar_overflow_numeric C.jet_secp_fe_nv C.jet_secp_multiply_normalize_bridge.
+Require Import C.jet_secp_closed_helpers C.jet_clight_internal_preserve C.jet_clight_internal_frame.
 Import ListNotations Ctypes Values.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -170,7 +171,8 @@ Theorem scalar_inv_call_from_core w m mi mp mc bs bd bx :
     [Vptr bd Ptrofs.zero;Vptr bx Ptrofs.zero] E0 mf Vundef /\
   scalar_at mf bd 0 (scalar_add_values(scalar62_words false w)0) /\
   scalar_limb_value(scalar62_words false w)=signed62_unsigned_value w /\
-  Mem.range_perm mf bd 0 32 Cur Freeable /\ lframe (fun b _=>b<>bd /\ b<>bs) mc mf.
+  Mem.range_perm mf bd 0 32 Cur Freeable /\ lframe (fun b _=>b<>bd /\ b<>bs) mc mf /\
+  (readonly_preserved mp mc -> readonly_preserved m mf).
 Proof.
   intros Entry Pack Core Separate Normal Input FS FD.
   destruct(exec_scalar_inv_unpack_and_free (scalar_inv_temps bd bx) mc bs bd w
@@ -195,5 +197,13 @@ Proof.
         (le1:=scalar_inv_temps bd bx);[exact CoreStmt|exact Unpack].
     - reflexivity.
     - exact Free. }
-  exists mf;repeat first[assumption|split].
+  exists mf;split;[exact Call|];split;[exact Output|];split;[exact Value|];split;[exact Owned|];split;[exact Frame|].
+  intro CoreReadonly.
+  assert(Plain:plain_env(scalar_inv_env bs)) by(eapply entry_plain;[exact Entry|reflexivity]).
+  eapply preserved_trans;[eapply entry_preserved;exact Entry|].
+  eapply preserved_trans.
+  - eapply secp_closed_stmt_preserved;[exact Pack|exact Plain|vm_compute;reflexivity].
+  - eapply preserved_trans;[exact CoreReadonly|].
+    eapply preserved_trans;[|eapply freelist_preserved;exact Free].
+    eapply secp_closed_stmt_preserved;[exact Unpack|exact Plain|vm_compute;reflexivity].
 Qed.

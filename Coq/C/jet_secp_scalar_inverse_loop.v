@@ -13,6 +13,7 @@ Require Import C.extraMath C.divstep C.jet_sx_state C.jet_sx_eval C.jet_sx_mem
  C.jet_secp_modinv_var_tail C.jet_secp_modinv_var_invariant C.jet_secp_modinv_var_ranges
  C.jet_secp_scalar_de_ranges C.jet_secp_scalar_de_invariant C.jet_secp_scalar_normalize62
  C.jet_secp_modinv_de_numeric C.jet_secp_canonical_scalar.
+Require Import C.jet_clight_internal_preserve.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -72,14 +73,14 @@ Theorem exec_scalar_inv_loop_fuel fuel : forall value n beta e le m len rho,
  g(scalar_inv_trajectory value (62*fuel+n)%nat)=0 -> exists nf lenf rhof lef mf,
  Clight2.exec_stmt secp_ge e le m inv_caller_loop E0 lef mf Out_normal /\
  (n+62<=nf)%nat /\ scalar_inv_loop_done value nf beta lef mf lenf rhof /\
- scalar_inv_loop_temps le lef /\ lframe(scalar_inv_batch_frame beta) m mf.
+ scalar_inv_loop_temps le lef /\ lframe(scalar_inv_batch_frame beta) m mf /\ readonly_preserved m mf.
 Proof.
  induction fuel using lt_wf_ind;intros value n beta e le m len rho Range
   (Length & Rep & Env & Eta & Modinfo & Len & DE & State & Link & Limbs & Capacity & Zero & Live) Terminal.
  destruct(exec_scalar_inv_batch value len rho (scalar_inv_trajectory value n) beta e le m
   (CountCall m) (scalar_inv_loop_eta value n Range Live) Length Rep Env Eta Modinfo Len DE State Link Limbs Capacity)
   as(le1 & m1 & out & Body & Post & NewLen & NewEta & NewDE & NewLink & NewState & NewLimbs & NewCapacity &
-   Low & BatchZero & Stop & Outcomes & NewLength & Temps & Frame).
+   Low & BatchZero & Stop & Outcomes & NewLength & Temps & Frame & Readonly).
  rewrite scalar_inv_trajectory_batch in NewEta,NewLink,NewState,Stop.
  set (r:=scalar_inv_batch_rho len (scalar_inv_trajectory value n) rho) in *.
  set (l:=scalar_inv_batch_length len (scalar_inv_trajectory value n) rho) in *.
@@ -93,7 +94,7 @@ Proof.
        split;[exact NewLen|];split;[exact NewDE|];split;[exact NewState|];split;[exact NewLink|];
        split;[exact NewLimbs|];split;[exact NewCapacity|];split;[exact Low|];split;[exact NextZero|].
        apply Stop;reflexivity.
-     * split;[exact Temps|exact Frame].
+     * split;[exact Temps|];split;[exact Frame|exact Readonly].
  - assert(NextLive:g(scalar_inv_trajectory value (62+n)%nat)<>0).
    { intro Z;apply Stop in Z;discriminate Z. }
    destruct fuel as[|fuel].
@@ -109,21 +110,21 @@ Proof.
      assert(NextTerminal:g(scalar_inv_trajectory value (62*fuel+(62+n))%nat)=0).
      { replace(62*fuel+(62+n))%nat with(62*S fuel+n)%nat by lia;exact Terminal. }
      destruct(H fuel ltac:(lia) value (62+n)%nat beta e le1 m1 l r Range Next NextTerminal)
-      as(nf & lenf & rhof & lef & mf & Repeat & Progress & Done & TFrame & MFrame).
+      as(nf & lenf & rhof & lef & mf & Repeat & Progress & Done & TFrame & MFrame & RReadonly).
      exists nf,lenf,rhof,lef,mf;split.
      * rewrite inv_caller_loop_source in Repeat |- *.
        eapply exec_Sloop_loop with(t1:=E0)(t2:=E0)(t3:=E0)(le1:=le1)(le2:=le1)
         (m1:=m1)(m2:=m1)(out1:=Out_normal);[exact Body|constructor|constructor|exact Repeat].
      * split;[lia|];split;[exact Done|];split.
        -- intros id E T1 T7 T8 Outside;rewrite(TFrame id E T1 T7 T8 Outside);apply Temps;assumption.
-       -- eapply lframe_trans;[exact Frame|exact MFrame].
+       -- split;[eapply lframe_trans;[exact Frame|exact MFrame]|eapply preserved_trans;[exact Readonly|exact RReadonly]].
 Qed.
 
 Theorem exec_scalar_inv_loop value n beta e le m len rho : 0<=value<canonical_group_order ->
  scalar_inv_loop_ready value n beta e le m len rho -> exists nf lenf rhof lef mf,
  Clight2.exec_stmt secp_ge e le m inv_caller_loop E0 lef mf Out_normal /\
  (n+62<=nf)%nat /\ scalar_inv_loop_done value nf beta lef mf lenf rhof /\
- scalar_inv_loop_temps le lef /\ lframe(scalar_inv_batch_frame beta) m mf.
+ scalar_inv_loop_temps le lef /\ lframe(scalar_inv_batch_frame beta) m mf /\ readonly_preserved m mf.
 Proof.
  intros Range Ready.
  destruct(inv_divstep_batches_terminate (scalar_inv_trajectory value n)) as[fuel Terminal].

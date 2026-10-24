@@ -9,6 +9,7 @@ Require Import C.extraMath C.divstep C.jet_sx_mem C.jet_secp_linkage C.jets_secp
   C.jet_secp_statement_prefix C.jet_secp_div62_count C.jet_secp_div62_consume
   C.jet_secp_div62_transition C.jet_secp_div62_entry C.jet_secp_div62_invariant
   C.jet_secp_div62_finish C.jet_secp_div62_exit.
+Require Import C.jet_secp_closed_helpers C.jet_clight_internal_preserve C.jet_clight_internal_frame.
 Import ListNotations Ctypes Values.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -150,7 +151,7 @@ Theorem eval_div62_from_count_calls st precision f0 g0 b :
       Int64.signed w=div62_matrix_field (Trans.transN 62 st) j) /\
     (forall j,(j<4)%nat -> Mem.load Mint64 mf b (8*Z.of_nat j)=Some(Vlong(div62_exit_words st j))) /\
     Int64.signed(Int64.repr(eta(fst(stepN 62 st))))=eta(fst(stepN 62 st)) /\
-    Mem.range_perm mf b 0 32 Cur Freeable /\ lframe(fun bx _=>bx<>b) m mf.
+    Mem.range_perm mf b 0 32 Cur Freeable /\ lframe(fun bx _=>bx<>b) m mf /\ readonly_preserved m mf.
 Proof.
   intros Precision Initial F G Free.
   destruct (div62_entry_invariant m st precision f0 g0 b Precision F G)
@@ -163,8 +164,10 @@ Proof.
     Mem.load Mint64 mf b (8*Z.of_nat j)=Some(Vlong(div62_exit_words st j))).
   { intros j J;destruct (Loads j J) as (w & Load & Signed).
     rewrite div62_exit_words_field by exact J;rewrite <- Signed,Int64.repr_signed;exact Load. }
+  assert(Readonly:readonly_preserved m mf).
+  { eapply secp_closed_stmt_preserved;[exact Finish|apply plain_empty|reflexivity]. }
   exists mf;split;[|split;[exact Loads|];split;[exact ExactLoads|];
-    split;[exact Eta|];split;[exact Owned|exact Frame]].
+    split;[exact Eta|];split;[exact Owned|];split;[exact Frame|exact Readonly]].
   eapply eval_funcall_internal with (e:=empty_env) (le1:=le0) (le2:=lef) (m1:=m) (m2:=mf)
     (out:=Out_return(Some(Vlong(Int64.repr(eta(fst(stepN 62 st)))),tlong))).
   - exact Entry.

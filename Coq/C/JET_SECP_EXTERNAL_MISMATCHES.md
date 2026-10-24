@@ -1988,6 +1988,41 @@ JET_TARGETS=C/jet_secp_modinfo_scalar_initialized.vo bash Coq/build-jets.sh -j1
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinfo_scalar_initialized
 ```
 
+## Complete scalar-helper modulus byte frame (internal conditional progress)
+
+`jet_secp_scalar_inverse_initialized.eval_scalar_inverse_var_initialized`
+closes the modulus-block exclusion described above. It returns the complete
+original scalar inverse call, its literal output bridge, preserved initialized
+state, and a memory frame excluding only the caller's scalar input/output
+objects. The modulus block is no longer excluded: arbitrary chunks and
+permissions there are covered by the existing `readonly_region_lframe` proof.
+Scalar input/output aliasing remains allowed.
+
+The proof now carries `readonly_preserved` through the **same constructed
+execution**: divstep final stores, coefficient/f-g updates, outer batches,
+finish, allocation/copy preparation, unpacking and frees. Count-call witnesses
+return the identical memory, so no preservation fact about some other CTZ
+execution, determinism argument, or generic external-call-properties axiom
+is used. Earlier execution/numeric/framing conclusions are retained; the
+changed internal contracts only append preservation certificates.
+
+`jet_secp_closed_helpers` reuses the existing internal-Clight preservation
+mechanism. It checks a 94-function subset of the unchanged helper table for
+actual linkage, closed calls and non-function locals. The table is a proof
+subset, not a replacement implementation; CTZ and open call paths are excluded.
+Only identifiers are materialized during subset selection, avoiding repeated
+normalization of all generated function bodies in symbolic proof terms.
+
+The original CTZ execution premise remains unresolved. Full public
+read/invert/write execution and initialized caller preservation still need
+composition, and coverage remains 514/533. No C, AST, canonical specification,
+API, generation setting or external-call model is changed.
+
+```sh
+JET_TARGETS="C/jet_secp_closed_helpers.vo C/jet_secp_scalar_inverse_initialized.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_closed_helpers C.jet_secp_scalar_inverse_initialized
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

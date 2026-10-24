@@ -1,0 +1,313 @@
+### C.jet_secp_closed_helpers.secp_closed_helpers_subset
+secp_closed_helpers_subset
+     : forall (item : prod BinNums.positive Clight.function)
+         (_ : @List.In (prod BinNums.positive Clight.function) item secp_closed_helpers),
+       @List.In (prod BinNums.positive Clight.function) item jet_secp_fns.secp_pure
+### C.jet_secp_closed_helpers.secp_closed_helpers_checked
+secp_closed_helpers_checked
+     : @eq bool
+         (@List.forallb (prod BinNums.positive Clight.function)
+            (fun it : prod BinNums.positive Clight.function =>
+             andb
+               (jet_clight_internal_frame.closed_stmtb secp_closed_helpers
+                  (Clight.fn_body (@snd BinNums.positive Clight.function it)))
+               (@List.forallb (prod AST.ident Ctypes.type)
+                  (fun local : prod AST.ident Ctypes.type =>
+                   jet_clight_internal_frame.nonfunction_type (@snd AST.ident Ctypes.type local))
+                  (Clight.fn_vars (@snd BinNums.positive Clight.function it)))) secp_closed_helpers) true
+### C.jet_secp_closed_helpers.secp_closed_helpers_count
+secp_closed_helpers_count
+     : @eq nat (@length (prod BinNums.positive Clight.function) secp_closed_helpers)
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+### C.jet_secp_closed_helpers.secp_closed_helpers_ok
+secp_closed_helpers_ok
+     : jet_clight_internal_frame.internal_table_ok jet_secp_linkage.secp_ge secp_closed_helpers
+### C.jet_secp_closed_helpers.secp_closed_ready_prefix
+secp_closed_ready_prefix
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb secp_closed_helpers jet_secp_modinv_var_copies.inv_ready_prefix) true
+### C.jet_secp_closed_helpers.secp_closed_after_divsteps
+secp_closed_after_divsteps
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb secp_closed_helpers jet_secp_modinv_var_tail.inv_after_divsteps) true
+### C.jet_secp_closed_helpers.secp_closed_finish
+secp_closed_finish
+     : @eq bool (jet_clight_internal_frame.closed_stmtb secp_closed_helpers jet_secp_modinv_var_finish.inv_finish) true
+### C.jet_secp_closed_helpers.secp_closed_scalar_pack
+secp_closed_scalar_pack
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_scalar_to_signed62)) true
+### C.jet_secp_closed_helpers.secp_closed_scalar_unpack
+secp_closed_scalar_unpack
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_scalar_from_signed62)) true
+### C.jet_secp_closed_helpers.inv_env_plain
+inv_env_plain
+     : forall (beta : jet_sx_state.layout) (e : Clight.env)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e),
+       jet_clight_internal_frame.plain_env e
+### C.jet_secp_closed_helpers.secp_closed_stmt_preserved
+secp_closed_stmt_preserved
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (stmt : Clight.statement)
+         (t : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m stmt t lef mf out)
+         (_ : jet_clight_internal_frame.plain_env e)
+         (_ : @eq bool (jet_clight_internal_frame.closed_stmtb secp_closed_helpers stmt) true),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_closed_helpers.secp_closed_function_preserved
+secp_closed_function_preserved
+     : forall (fd : Clight.function) (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace)
+         (mf : Memory.Mem.mem) (result : Values.val)
+         (_ : @eq bool (jet_clight_internal_frame.closed_stmtb secp_closed_helpers (Clight.fn_body fd)) true)
+         (_ : @eq bool
+                (@List.forallb (prod AST.ident Ctypes.type)
+                   (fun local : prod AST.ident Ctypes.type =>
+                    jet_clight_internal_frame.nonfunction_type (@snd AST.ident Ctypes.type local))
+                   (Clight.fn_vars fd)) true)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m (@Ctypes.Internal Clight.function fd) args
+                t mf result), jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_closed_helpers.secp_preserved_readback
+secp_preserved_readback
+     : forall (m mf : Memory.Mem.mem) (_ : jet_clight_internal_preserve.readonly_preserved m mf),
+       jet_clight_readonly.readonly_readback m mf
+### C.jet_secp_closed_helpers.secp_closed_prune
+secp_closed_prune =
+fix secp_closed_prune (fuel : nat) (table : list (prod AST.ident Clight.function)) {struct fuel} :
+    list (prod AST.ident Clight.function) :=
+  match fuel return (list (prod AST.ident Clight.function)) with
+  | O => table
+  | S k =>
+      secp_closed_prune k
+        (@List.filter (prod AST.ident Clight.function)
+           (fun it : prod AST.ident Clight.function =>
+            jet_clight_internal_frame.closed_stmtb table (Clight.fn_body (@snd AST.ident Clight.function it))) table)
+  end
+     : forall (_ : nat) (_ : list (prod AST.ident Clight.function)), list (prod AST.ident Clight.function)
+
+Arguments secp_closed_prune fuel%nat_scope table%list_scope
+### C.jet_secp_closed_helpers.secp_closed_ids
+secp_closed_ids =
+@cons AST.ident
+  (BinNums.xO
+     (BinNums.xO
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (...)))))))))))))))))))))))
+  (@cons AST.ident
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (...))))))))))))))))))))))
+     (@cons AST.ident
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (...)))))))))))))))))))))
+        (@cons AST.ident
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (...))))))))))))))))))))
+           (@cons AST.ident
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...)))))))))))))))))))
+              (@cons AST.ident
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))))))))))))))
+                 (@cons AST.ident
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (...)))))))))))))))))
+                    (@cons AST.ident
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (...))))))))))))))))
+                       (@cons AST.ident
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))
+                          (@cons AST.ident
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))
+                             (@cons AST.ident
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...)))))))))))))
+                                (@cons AST.ident
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (...))))))))))))
+                                   (@cons AST.ident
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))
+                                      (@cons AST.ident
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (...))))))))))
+                                         (@cons AST.ident
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (...)))))))))
+                                            (@cons AST.ident
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...))))))))
+                                               (@cons AST.ident
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (...)))))))
+                                                  (@cons AST.ident
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...))))))
+                                                     (@cons AST.ident
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (...)))))
+                                                        (@cons AST.ident (BinNums.xO (BinNums.xO (BinNums.xI (...))))
+                                                           (@cons AST.ident (BinNums.xO (BinNums.xO (...)))
+                                                              (@cons AST.ident (BinNums.xO (...))
+                                                                 (@cons AST.ident (...) (...)))))))))))))))))))))))
+     : list AST.ident
+### C.jet_secp_closed_helpers.secp_closed_helpers
+secp_closed_helpers =
+@List.filter (prod BinNums.positive Clight.function)
+  (fun it : prod BinNums.positive Clight.function =>
+   @List.existsb BinNums.positive (BinPos.Pos.eqb (@fst BinNums.positive Clight.function it)) secp_closed_ids)
+  jet_secp_fns.secp_pure
+     : list (prod BinNums.positive Clight.function)

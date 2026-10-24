@@ -10,6 +10,7 @@ Require Import C.extraMath C.jet_sx_mem C.jet_secp_linkage C.jets_secp
  C.jet_secp_scalar_signed62 C.jet_secp_scalar_add_initial C.jet_secp_scalar_get_b32_storage
  C.jet_secp_scalar_overflow_numeric C.jet_secp_scalar_invert_literal C.jet_secp_canonical_scalar
  C.jet_secp_signed62_numeric C.jet_secp_curve_frame.
+Require Import C.jet_clight_internal_preserve.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -29,7 +30,7 @@ Theorem eval_scalar_inverse_var w m bd bx :
  (forall input:Ty.tySem(Word 8),scalar_limb_value w=@toZ (WordToZ 8) input mod canonical_group_order ->
   @fromZ (WordToZ 8) (scalar_limb_value result)=@literal_scalar_invert Alg.CoreFunSem input) /\
  Mem.range_perm mf bd 0 32 Cur Freeable /\ modinfo_scalar_global_rep mf /\
- lframe(fun b _=>b<>bd /\ b<>bx /\ b<>scalar_inv_modinfo_block) m mf.
+ lframe(fun b _=>b<>bd /\ b<>bx /\ b<>scalar_inv_modinfo_block) m mf /\ readonly_preserved m mf.
 Proof.
  intros CountCall Global Input FX FD Range.
  destruct(scalar_inv_entry_with_modinfo w m bd bx Global Input FX FD)
@@ -42,11 +43,11 @@ Proof.
    eapply Mem.perm_implies;[apply(FD 0);lia|constructor]. }
  destruct(eval_scalar_inv_core (scalar62_words true w) mp bs CountCall Normal
   ltac:(rewrite Value;exact Range) SG Packed FS Metadata)
-  as(words & mc & Core & Result & OutNormal & Numeric & Simplicity & Owned & CoreGlobal & CFrame).
+  as(words & mc & Core & Result & OutNormal & Numeric & Simplicity & Owned & CoreGlobal & CFrame & CoreReadonly).
  assert(FDC:Mem.range_perm mc bd 0 32 Cur Freeable).
  { eapply curve_keep_free;[lia|exact FDP|exact CFrame|];intros;split;assumption. }
  destruct(scalar_inv_call_from_core words m mi mp mc bs bd bx Entry Pack Core DS OutNormal Result Owned FDC)
-  as(mf & Call & Output & Converted & Free & UFrame).
+  as(mf & Call & Output & Converted & Free & UFrame & CallReadonly).
  assert(NumericOut:scalar_limb_value(scalar62_words false words)=literal_scalar_invert_numeric(scalar_limb_value w)).
  { rewrite Converted,Numeric,Value;reflexivity. }
  assert(Literal:forall input:Ty.tySem(Word 8),scalar_limb_value w=@toZ (WordToZ 8) input mod canonical_group_order ->
@@ -66,5 +67,5 @@ Proof.
          split;[exact D|intro Same;apply Fresh;rewrite <-Same;exact Valid].
    - intros b ofs(D & X & G) Valid;repeat split;assumption. }
  exists(scalar62_words false words),mf;split;[exact Call|];split;[exact Output|];split;[exact NumericOut|];
- split;[exact Literal|];split;[exact Free|];split;[exact OutGlobal|exact Frame].
+ split;[exact Literal|];split;[exact Free|];split;[exact OutGlobal|];split;[exact Frame|apply CallReadonly;exact CoreReadonly].
 Qed.

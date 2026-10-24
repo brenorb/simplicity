@@ -14,6 +14,7 @@ Require Import C.extraMath C.divstep C.jet_sx_expr C.jet_sx_state C.jet_sx_eval 
  C.jet_secp_scalar_de_exec C.jet_secp_scalar_de_numeric C.jet_secp_scalar_normalize62
  C.jet_secp_modinv_de_numeric C.jet_secp_modinv_fg_prefix C.jet_secp_modinv_fg_body C.jet_secp_modinv_fg_loop_numeric
  C.jet_secp_canonical_scalar C.jet_secp_modinv_normalize62_words.
+Require Import C.jet_secp_closed_helpers C.jet_clight_internal_preserve.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -67,11 +68,11 @@ Theorem exec_scalar_inv_batch value len rho st beta e le m :
  (0<scalar_inv_batch_length len st rho<=5)%nat /\
  (forall id,id<>_eta -> id<>_t'1 -> id<>_t'7 -> id<>_t'8 ->
    ~In id inv_post_modified -> lef!id=le!id) /\
- lframe(scalar_inv_batch_frame beta) m mf.
+ lframe(scalar_inv_batch_frame beta) m mf /\ readonly_preserved m mf.
 Proof.
  intros CountCall EtaRange Length Rep Env Eta Modinfo Len Bounds State Link Limbs Capacity.
  destruct(exec_inv_mod_batch modinfo_scalar_limb len rho st beta e le m CountCall EtaRange Length Rep Env Eta State)
-  as(mb & Batch & BatchRep & Matrix & BFrame).
+  as(mb & Batch & BatchRep & Matrix & BFrame & BReadonly).
  set (r:=inv_batch_result_rho st rho).
  set (le1:=PTree.set _eta (Vlong(Int64.repr(eta(fst(stepN 62 st))))) (inv_divstep_returned st rho le)).
  assert(Assign:Clight2.exec_stmt secp_ge e (inv_divstep_returned st rho le) mb inv_return_eta E0 le1 mb Out_normal).
@@ -108,7 +109,9 @@ Proof.
    eapply exec_Sseq_1 with (t1:=E0) (t2:=E0);[exact Batch|exact Assign].
  - split;[exact Post|];split;[exact NewLen|];split;[exact NewEta|];split;[exact NewDE|];
    split;[exact NewLink|];split;[exact NewState|];split;[exact NewLimbs|];split;[exact NewCapacity|];
-   split;[exact Low|];split;[exact ZeroNext|];split;[exact StopNext|];split;[exact Outcomes|];split;[exact Range|];split;[exact Temps|].
-   eapply lframe_trans;[eapply lframe_implies;[exact BFrame|]|eapply lframe_implies;[exact Frame|]];
-   intros b ofs [B Rest] Valid;tauto.
+   split;[exact Low|];split;[exact ZeroNext|];split;[exact StopNext|];split;[exact Outcomes|];split;[exact Range|];split;[exact Temps|];split.
+   + eapply lframe_trans;[eapply lframe_implies;[exact BFrame|]|eapply lframe_implies;[exact Frame|]];
+     intros b ofs [B Rest] Valid;tauto.
+   + eapply preserved_trans;[exact BReadonly|].
+     eapply secp_closed_stmt_preserved;[exact Updates|apply(inv_env_plain beta e Env)|exact secp_closed_after_divsteps].
 Qed.

@@ -17,6 +17,7 @@ Require Import C.extraMath C.divstep C.jet_sx_expr C.jet_sx_state C.jet_sx_eval 
  C.jet_secp_modinv_de_numeric C.jet_secp_modinv_normalize62_words C.jet_secp_modinv_normalize62_modulus
  C.jet_secp_signed62_numeric C.jet_secp_canonical_scalar C.jet_secp_fe_nv C.jet_secp_local_regions
  C.jet_secp_u128_shift64_rep C.jet_secp_modinv_normalize62_exec C.jet_secp_multiply_normalize_bridge.
+Require Import C.jet_secp_closed_helpers C.jet_clight_internal_preserve.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -85,13 +86,13 @@ Theorem exec_scalar_inv_loop_finish value n beta e le m len rho :
  (forall input:Ty.tySem(Word 8),value=@toZ (WordToZ 8) input mod canonical_group_order ->
   @fromZ (WordToZ 8) (signed62_unsigned_value words)=@literal_scalar_invert Alg.CoreFunSem input) /\
  Mem.range_perm mr (blk beta 0) 0 40 Cur Freeable /\ modinfo_scalar_global_rep mr /\
- lframe(scalar_inv_loop_finish_frame beta) m mr.
+ lframe(scalar_inv_loop_finish_frame beta) m mr /\ readonly_preserved m mr.
 Proof.
  intros CountCall Range Ready Block Base X.
  pose proof Ready as(_ & _ & Env & _ & Modinfo & _).
  destruct(exec_scalar_inv_loop CountCall value n beta e le m len rho Range Ready)
   as(nf & lenf & rhof & lf & ml & Loop & Progress &
-    (Length & Rep & Eta & Len & DE & State & Link & Limbs & Capacity & Low & Zero & Stop) & Temps & Frame).
+    (Length & Rep & Eta & Len & DE & State & Link & Limbs & Capacity & Low & Zero & Stop) & Temps & Frame & LoopReadonly).
  assert(ModinfoF:lf!_modinfo=Some(Vptr scalar_inv_modinfo_block Ptrofs.zero)).
  { rewrite(Temps _modinfo) by(unfold C.jet_secp_modinv_var_post.inv_post_modified,
     C.jet_secp_modinv_var_zero.inv_test_modified,C.jet_secp_modinv_var_shorten.inv_shorten_modified;
@@ -126,7 +127,10 @@ Proof.
   (scalar_inv_finish_temps lenf (fun i=>rhof(15+i)%nat) lf),mf,mr;split.
  - eapply exec_Sseq_1 with(t1:=E0)(t2:=E0);[exact Loop|exact Finish].
  - split;[exact Free|];split;[exact Output|];split;[exact Normal|];split;[exact Numeric|];
-   split;[exact Simplicity|];split;[exact Owned|];split;[exact Global|].
-   eapply lframe_trans;[eapply lframe_implies;[exact Frame|]|eapply lframe_implies;[exact FFrame|]];
-   intros b ofs [LoopOutside FinishOutside] Valid;assumption.
+   split;[exact Simplicity|];split;[exact Owned|];split;[exact Global|];split.
+   + eapply lframe_trans;[eapply lframe_implies;[exact Frame|]|eapply lframe_implies;[exact FFrame|]];
+     intros b ofs [LoopOutside FinishOutside] Valid;assumption.
+   + eapply preserved_trans;[exact LoopReadonly|].
+     eapply preserved_trans;[|eapply freelist_preserved;exact Free].
+     eapply secp_closed_stmt_preserved;[exact Finish|apply(inv_env_plain beta e Env)|exact secp_closed_finish].
 Qed.
