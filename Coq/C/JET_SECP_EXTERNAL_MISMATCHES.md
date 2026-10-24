@@ -1235,6 +1235,37 @@ JET_TARGETS=C/jet_secp_modinv_var_first_batch.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_first_batch
 ```
 
+## Original inverse finish against the literal result (internal progress)
+
+`jet_secp_modinv_var_result.exec_inv_finish_literal` connects the original
+finishing execution, copy-back and five-local reclamation to
+`literal_invert_numeric`, preserving canonical storage, ownership, globals
+and framing. The proof derives that the highest active limb's sign matches
+the represented f value. At a stopped nonzero trajectory, the existing
+divstep gcd theorem and checked field-prime bridge give `abs(f)=1`; the
+coefficient link then identifies the exact modular inverse. A normalization
+adapter retains the literal result for the original 256-bit word before C's
+canonical input normalization, including the word equal to the modulus.
+
+Zero input is included under its own coefficient invariant, not discarded:
+`inv_seed_coefficient_zero` establishes that invariant at the actual seed,
+and `inv_trajectory_zero_coefficient` preserves it using the canonical zero-g
+matrix and the exact numeric coefficient equation furnished by the checked
+C-update theorem. The coefficient link alone is insufficient for zero.
+
+This is a terminal-state suffix theorem, not a whole inverse call. Its
+terminal trajectory, stopped g, coefficient link, bounds and zero invariant
+must still be connected by the complete actual loop; the CTZ boundary and
+public jet composition remain open. The zero-preservation lemma takes the
+numeric update fact already returned by the execution proof; it does not
+assume an unproved execution or add an external model. No public theorem is
+registered; coverage remains 514/533.
+
+```sh
+JET_TARGETS=C/jet_secp_modinv_var_result.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_result
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
