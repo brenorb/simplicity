@@ -2251,6 +2251,19 @@ execution, not additional public coverage. Build/kernel-check
 `C/jet_secp_field_add_int.vo` / `C.jet_secp_field_add_int` and compare its
 focused assumption/contract records.
 
+`jet_secp_field_negate_magnitude` likewise executes the original in-place
+`fe_negate` with a parameterized magnitude, sharing `mul_small_initial`
+instead of duplicating region construction. The unrestricted storage theorem
+retains C's machine operations. `eval_negate_mag_bounded` proves exact
+`2*(m+1)*p-input`, stored limbs, ownership, reusable bounds and framing for
+magnitudes 0..7 with a proved subtraction bound. `negate_mag_scaled_input`
+discharges that bound for `fe_mul_int(m)` applied to tight limbs: instantiate
+m=3 after the SWU copy and multiply. This does not substitute a magnitude-one
+call. Compose these steps plus the parameterized addition into
+`swu_after_initial` next; no new public jet is registered. Build/kernel-check
+`C/jet_secp_field_negate_magnitude.vo` /
+`C.jet_secp_field_negate_magnitude` and compare its focused records.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
