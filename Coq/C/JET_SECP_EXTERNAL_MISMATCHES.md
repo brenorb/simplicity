@@ -887,6 +887,35 @@ JET_TARGETS=C/jet_secp_div62_cancel.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_cancel
 ```
 
+## Original divstep limit/mask suffixes (internal progress, no added coverage)
+
+`jet_secp_div62_limit.exec_div62_limit` executes the original conditional
+limit selection, limit assignment, assertion no-op and mask calculation in
+both eta branches. From the internal bounds `0 <= eta <= 745` and
+`1 <= i <= 62`, it derives `limit = min(i, eta+1)`, the actual mask word,
+all three assigned temporaries and unchanged memory. All other temporaries
+are preserved. The long-to-int cast, signed comparison and arithmetic, and
+unsigned-long shift guard are proved under these bounds; in particular the
+shift count `64-limit` may be 63, not merely at most 62.
+
+`exec_div62_after_swap` composes this execution with the original `w`
+calculation. It takes the eta and words **after** the negative-eta swaps,
+or unchanged for the nonnegative branch; it does not assume the mask or
+execution of either suffix. Structural source equalities select the real
+branch substatements, with their distinct generated conditional temporaries.
+
+The preceding swaps/branch selection, derivation of these internal bounds
+from the delayed-division loop invariant, the mathematical mask/cancellation
+and transition-matrix bridges, CTZ call and complete inversion/public-jet
+composition remain required. These internal-state bounds are not public
+jet input exclusions or a newly accepted public theorem. Coverage remains
+514/533, and no external-behavior model has been added.
+
+```sh
+JET_TARGETS=C/jet_secp_div62_limit.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_limit
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:

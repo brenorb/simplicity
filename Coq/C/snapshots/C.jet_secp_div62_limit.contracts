@@ -1,0 +1,264 @@
+### C.jet_secp_div62_limit.div62_limit_source
+div62_limit_source
+     : forall neg : bool,
+       @eq Clight.statement (div62_limit_prefix neg)
+         (Clight.Ssequence
+            (Clight.Ssequence
+               (Clight.Sifthenelse
+                  (Clight.Ebinop Cop.Ogt div62_eta_plus (Clight.Etempvar jets_secp._i Ctypesdefs.tint) Ctypesdefs.tint)
+                  (Clight.Sset (div62_limit_temp neg)
+                     (Clight.Ecast (Clight.Etempvar jets_secp._i Ctypesdefs.tint) Ctypesdefs.tint))
+                  (Clight.Sset (div62_limit_temp neg) (Clight.Ecast div62_eta_plus Ctypesdefs.tint)))
+               (Clight.Sset jets_secp._limit (Clight.Etempvar (div62_limit_temp neg) Ctypesdefs.tint)))
+            (Clight.Ssequence
+               (Clight.Sloop
+                  (Clight.Sifthenelse
+                     (Clight.Ebinop Cop.Ogt (Clight.Etempvar jets_secp._limit Ctypesdefs.tint)
+                        (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint) Clight.Sskip
+                     Clight.Sskip) Clight.Sbreak)
+               (Clight.Ssequence
+                  (Clight.Sset jets_secp._m
+                     (Clight.Ebinop Cop.Oand
+                        (Clight.Ebinop Cop.Oshr (Clight.Econst_long Integers.Int64.mone Ctypesdefs.tulong)
+                           (Clight.Ebinop Cop.Osub
+                              (Clight.Econst_int
+                                 (Integers.Int.repr
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                 Ctypesdefs.tint) (Clight.Etempvar jets_secp._limit Ctypesdefs.tint) Ctypesdefs.tint)
+                           Ctypesdefs.tulong)
+                        (Clight.Econst_int
+                           (Integers.Int.repr
+                              match neg return BinNums.Z with
+                              | true =>
+                                  BinNums.Zpos
+                                    (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))
+                              | false => BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))
+                              end) Ctypesdefs.tuint) Ctypesdefs.tulong)) Clight.Sskip)))
+### C.jet_secp_div62_limit.div62_limit_bounds
+div62_limit_bounds
+     : forall (eta i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       and (BinInt.Z.le (BinNums.Zpos BinNums.xH) (div62_limit eta i))
+         (BinInt.Z.le (div62_limit eta i)
+            (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+### C.jet_secp_div62_limit.eval_div62_eta_plus
+eval_div62_eta_plus
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (eta : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr eta)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m div62_eta_plus
+         (Values.Vint (Integers.Int.repr (BinInt.Z.add eta (BinNums.Zpos BinNums.xH))))
+### C.jet_secp_div62_limit.eval_div62_limit_test
+eval_div62_limit_test
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (eta i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr eta))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (Clight.Ebinop Cop.Ogt div62_eta_plus (Clight.Etempvar jets_secp._i Ctypesdefs.tint) Ctypesdefs.tint)
+         (Values.Vint
+            match Coqlib.zlt i (BinInt.Z.add eta (BinNums.Zpos BinNums.xH)) return Integers.Int.int with
+            | left _ => Integers.Int.one
+            | right _ => Integers.Int.zero
+            end)
+### C.jet_secp_div62_limit.eval_div62_mask
+eval_div62_mask
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (neg : bool)
+         (eta i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._limit le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (div62_limit eta i))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (Clight.Ebinop Cop.Oand
+            (Clight.Ebinop Cop.Oshr (Clight.Econst_long Integers.Int64.mone Ctypesdefs.tulong)
+               (Clight.Ebinop Cop.Osub
+                  (Clight.Econst_int
+                     (Integers.Int.repr
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                     Ctypesdefs.tint) (Clight.Etempvar jets_secp._limit Ctypesdefs.tint) Ctypesdefs.tint)
+               Ctypesdefs.tulong)
+            (Clight.Econst_int
+               (Integers.Int.repr
+                  match neg return BinNums.Z with
+                  | true => BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))
+                  | false => BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))
+                  end) Ctypesdefs.tuint) Ctypesdefs.tulong) (Values.Vlong (div62_mask neg eta i))
+### C.jet_secp_div62_limit.exec_div62_limit
+exec_div62_limit
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (neg : bool)
+         (eta i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr eta))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (div62_limit_prefix neg) Events.E0
+         (div62_limit_temps le neg eta i) m ClightBigstep.Out_normal
+### C.jet_secp_div62_limit.div62_limit_temps_outside
+div62_limit_temps_outside
+     : forall (le : Maps.PTree.tree Values.val) (neg : bool) (eta i : BinNums.Z) (id : AST.ident)
+         (_ : not
+                (@List.In AST.ident id
+                   (@cons AST.ident jets_secp._m
+                      (@cons AST.ident jets_secp._limit (@cons AST.ident (div62_limit_temp neg) (@nil AST.ident)))))),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (div62_limit_temps le neg eta i))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_div62_limit.div62_after_swap_source
+div62_after_swap_source
+     : forall neg : bool,
+       @eq Clight.statement (div62_after_swap neg)
+         (jet_secp_statement_prefix.statement_sequence
+            (@List.firstn Clight.statement (S (S (S O))) (div62_limit_parts neg))
+            (jet_secp_div62_cancel.div62_w_statement neg))
+### C.jet_secp_div62_limit.exec_div62_after_swap
+exec_div62_after_swap
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (neg : bool)
+         (eta i : BinNums.Z) (f g : Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 eta)
+                (BinInt.Z.le eta
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr eta))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._f le) (@Some Values.val (Values.Vlong f)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le) (@Some Values.val (Values.Vlong g))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (div62_after_swap neg) Events.E0
+         (div62_prepared_temps le neg eta i f g) m ClightBigstep.Out_normal
+### C.jet_secp_div62_limit.div62_limit_temp
+div62_limit_temp =
+fun neg : bool => match neg return AST.ident with
+                  | true => jets_secp._t'2
+                  | false => jets_secp._t'3
+                  end
+     : forall _ : bool, AST.ident
+
+Arguments div62_limit_temp neg%bool_scope
+### C.jet_secp_div62_limit.div62_limit_parts
+div62_limit_parts =
+fun neg : bool =>
+@List.skipn Clight.statement
+  match neg return nat with
+  | true => S (S (S (S (S (S (S (S (S (S O)))))))))
+  | false => O
+  end (@fst (list Clight.statement) Clight.statement (jet_secp_div62_cancel.div62_eta_parts neg))
+     : forall _ : bool, list Clight.statement
+
+Arguments div62_limit_parts neg%bool_scope
+### C.jet_secp_div62_limit.div62_limit_prefix
+div62_limit_prefix =
+fun neg : bool =>
+jet_secp_statement_prefix.statement_sequence (@List.firstn Clight.statement (S (S (S O))) (div62_limit_parts neg))
+  Clight.Sskip
+     : forall _ : bool, Clight.statement
+
+Arguments div62_limit_prefix neg%bool_scope
+### C.jet_secp_div62_limit.div62_limit
+div62_limit =
+fun eta i : BinNums.Z => BinInt.Z.min i (BinInt.Z.add eta (BinNums.Zpos BinNums.xH))
+     : forall (_ : BinNums.Z) (_ : BinNums.Z), BinNums.Z
+
+Arguments div62_limit (eta i)%Z_scope
+### C.jet_secp_div62_limit.div62_mask
+div62_mask =
+fun (neg : bool) (eta i : BinNums.Z) =>
+Integers.Int64.and
+  (Integers.Int64.shru Integers.Int64.mone
+     (Integers.Int64.repr
+        (BinInt.Z.sub
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+           (div62_limit eta i))))
+  (Integers.Int64.repr
+     match neg return BinNums.Z with
+     | true => BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))
+     | false => BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))
+     end)
+     : forall (_ : bool) (_ : BinNums.Z) (_ : BinNums.Z), Integers.Int64.int
+
+Arguments div62_mask neg%bool_scope (eta i)%Z_scope
+### C.jet_secp_div62_limit.div62_limit_temps
+div62_limit_temps =
+fun (le : Maps.PTree.tree Values.val) (neg : bool) (eta i : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_secp._m (Values.Vlong (div62_mask neg eta i))
+  (@Maps.PTree.set Values.val jets_secp._limit (Values.Vint (Integers.Int.repr (div62_limit eta i)))
+     (@Maps.PTree.set Values.val (div62_limit_temp neg) (Values.Vint (Integers.Int.repr (div62_limit eta i))) le))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : bool) (_ : BinNums.Z) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments div62_limit_temps le neg%bool_scope (eta i)%Z_scope
+### C.jet_secp_div62_limit.div62_eta_plus
+div62_eta_plus =
+Clight.Ebinop Cop.Oadd (Clight.Ecast (Clight.Etempvar jets_secp._eta Ctypesdefs.tlong) Ctypesdefs.tint)
+  (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_secp_div62_limit.div62_after_swap
+div62_after_swap =
+fun neg : bool =>
+jet_secp_statement_prefix.statement_sequence (div62_limit_parts neg)
+  (@snd (list Clight.statement) Clight.statement (jet_secp_div62_cancel.div62_eta_parts neg))
+     : forall _ : bool, Clight.statement
+
+Arguments div62_after_swap neg%bool_scope
+### C.jet_secp_div62_limit.div62_prepared_temps
+div62_prepared_temps =
+fun (le : Maps.PTree.tree Values.val) (neg : bool) (eta i : BinNums.Z) (f g : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets_secp._w
+  (Values.Vint (jet_secp_div62_cancel.div62_w_word neg f g (div62_mask neg eta i))) (div62_limit_temps le neg eta i)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : bool) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments div62_prepared_temps le neg%bool_scope (eta i)%Z_scope f g
