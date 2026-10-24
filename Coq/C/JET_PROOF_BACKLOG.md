@@ -2343,13 +2343,32 @@ seven owned fields and the exact joint inverse. Its source equality preserves
 the unchanged statement tree and suffix. The same CTZ contract remains
 explicit; this is a conditional prefix, not whole-public SWU coverage.
 
-Next continue at `swu_after_third_candidate`: build the three cubics, roots,
-point selection, parity, allocations/frees and the public wrapper. Reuse the
-generic square, in-place multiply, bounded add-seven and root contracts;
-do not require canonical limbs for the loose cubic inputs. Coverage stays
-514/533. Reproduce the normal build/kernel check with
-`C/jet_secp_swu_third_candidate.vo` / `C.jet_secp_swu_third_candidate`, plus
-focused assumption/contract comparisons for `jet_secp_swu_third_candidate`.
+`jet_secp_swu_cubics.exec_swu_cubic` shares the original square/multiply/add-7
+execution proof across the three radicands; `exec_swu_cubics` composes all
+nine calls. It derives bounds, values, unchanged candidates, ownership,
+readonly preservation and framing from loose input bounds and uninitialized
+owned output storage. `jet_secp_swu_before_roots.exec_swu_through_cubics`
+composes **all first twenty-seven original statements from input storage**,
+retaining all ten fields and deriving the three cubic values from the input.
+Its source equality preserves the exact original suffix.
+
+`jet_secp_swu_root_inputs.swu_root_inputs_match` connects those modular
+radicand values to the exact literal Simplicity root inputs, for any input
+`root_words_match w t`. The candidate formulas respect modular equality
+(including inversion at zero); no exact raw-input equality or canonical-limb
+assumption is needed. This matters because the original reader normalizes
+modulo p. Instantiate the existing `eval_root_function` with these matches,
+not its reader-only corollary. These are still conditional prefix results,
+not public SWU coverage; the original CTZ contract remains explicit.
+
+Next continue at `swu_after_cubics`: three original `fe_sqrt_var` calls,
+point selection, parity, allocations/frees and the public wrapper. Reuse
+`eval_root_function`, `root_candidate_output` and `root_result_matches` for
+the loose radicands. Coverage stays 514/533. Reproduce the normal build with
+`JET_TARGETS='C/jet_secp_swu_before_roots.vo C/jet_secp_swu_root_inputs.vo'`
+and kernel check with `-o C.jet_secp_swu_before_roots C.jet_secp_swu_root_inputs`,
+plus focused assumption/contract comparisons for `jet_secp_swu_cubics`,
+`jet_secp_swu_before_roots` and `jet_secp_swu_root_inputs`.
 
 ## Completed: `simplicity_gej_rescale`
 
