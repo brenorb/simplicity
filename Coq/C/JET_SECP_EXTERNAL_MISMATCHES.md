@@ -1959,6 +1959,35 @@ JET_TARGETS="C/jet_secp_scalar_inverse_core.vo C/jet_secp_scalar_inverse_var.vo"
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_core C.jet_secp_scalar_inverse_var
 ```
 
+## Scalar readiness from the actual initializer (proof support)
+
+`jet_secp_modinfo_scalar_initialized` proves the actual scalar modulus's
+exact permission bounds: its readable interval is `[0,48)`, with no writable
+permission. Together with the six initialized words this defines
+`modinfo_scalar_initialized`. The predicate is derived from `Genv.init_mem`
+of the unchanged program; an initialized memory is proved to exist.
+It implies the earlier `modinfo_scalar_state` without replacing that predicate.
+Its old-block transport lemma matches the guarantees of fresh-frame
+construction and adds no input/global disjointness requirement.
+
+The intended public target is the **existing**
+`secp_jet_initialized_local_spec`, which retains output, prefix, cursor and
+arbitrary-chunk framing and additionally preserves readiness. It is distinct
+from the unrestricted arbitrary-memory template; neither template is edited.
+The complete scalar helper above still requires CTZ and still excludes the
+modulus block from its byte frame. Closing that exclusion requires actual
+readonly preservation of the constructed execution, not just its six word
+loads. Reuse the existing allocation/store/free preservation results and
+memory-identical count-call witnesses; do not silently import determinism or
+generic external-call properties as an unchanged six-assumption proof.
+Public read/write composition, readiness preservation through its real caller,
+and CTZ discharge remain open. This adds no public coverage.
+
+```sh
+JET_TARGETS=C/jet_secp_modinfo_scalar_initialized.vo bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinfo_scalar_initialized
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
