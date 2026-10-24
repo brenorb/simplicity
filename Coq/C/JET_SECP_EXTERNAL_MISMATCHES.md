@@ -254,8 +254,8 @@ five-limb objects. Both accumulators may initially contain arbitrary words.
 Its postcondition derives the exact symbolic output words, ownership,
 temporaries and framing; no intermediate execution or output is assumed.
 The checked source split retains the actual masked stores and shifts as the
-remaining suffix. Full-loop induction, its numeric invariant and caller
-composition remain open. This result adds no public jet coverage.
+remaining suffix. This prefix alone does not establish full-loop induction,
+its numeric invariant or caller composition. It adds no public jet coverage.
 
 `jet_secp_modinv_fg_iteration.exec_fg_iteration` then completes the original
 loop body: it derives both computed-index masked stores and both signed
@@ -284,6 +284,16 @@ Those internal bounds must still be established by the full caller; they do
 not restrict a registered jet's input or add an execution/library assumption.
 This is a numeric **body** result, not the full loop or public inversion proof.
 
+`jet_secp_modinv_fg_loop.exec_fg_loop_from_body` composes the actual loop
+guard, checked body, index increment and exit by induction. It covers all
+remaining iteration counts with `1 <= k <= k+count <= 5`, retaining exact
+machine-word state, ownership, temporary bindings and byte-range framing.
+The revaluation layer derives the next iteration's represented storage from
+the previous actual output; it does not assume loads or stores. This closes
+the loop's execution composition, but the numeric invariant over the entire
+radix value, final stores, allocation/freeing and inverse caller composition
+are still separate obligations. There is no new public coverage entry.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -293,6 +303,8 @@ JET_TARGETS=C/jet_secp_modinv_fg_iteration.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_iteration
 JET_TARGETS=C/jet_secp_modinv_fg_iteration_numeric.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_iteration_arith C.jet_secp_modinv_fg_iteration_numeric
+JET_TARGETS=C/jet_secp_modinv_fg_loop.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_fg_revalue C.jet_secp_modinv_fg_loop
 ```
 
 ## Reproduction and limits

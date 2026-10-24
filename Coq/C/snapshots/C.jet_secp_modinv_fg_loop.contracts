@@ -1,0 +1,150 @@
+### C.jet_secp_modinv_fg_loop.fg_fixed_initial
+fg_fixed_initial
+     : forall k : nat,
+       @eq (Maps.PTree.tree jet_sx_expr.sx) (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps k)
+         (@Maps.PTree.set jet_sx_expr.sx jets_secp._i (jet_sx_expr.XIc (Integers.Int.repr (BinInt.Z.of_nat k)))
+            (jet_secp_multiply_second_temps.temps_of fg_fixed_bindings))
+### C.jet_secp_modinv_fg_loop.fg_fixed_final
+fg_fixed_final
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @List.Forall (prod BinNums.positive jet_sx_expr.sx)
+         (fun p : prod BinNums.positive jet_sx_expr.sx =>
+          @eq (option jet_sx_expr.sx)
+            (@Maps.PTree.get jet_sx_expr.sx (@fst BinNums.positive jet_sx_expr.sx p)
+               (jet_sx_eval.stemps (jet_secp_modinv_fg_iteration.fg_iter_final_state k)))
+            (@Some jet_sx_expr.sx (@snd BinNums.positive jet_sx_expr.sx p))) fg_fixed_bindings
+### C.jet_secp_modinv_fg_loop.fg_final_index
+fg_final_index
+     : forall (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O))))))),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._i
+            (jet_sx_eval.stemps (jet_secp_modinv_fg_iteration.fg_iter_final_state k)))
+         (@Some jet_sx_expr.sx (jet_sx_expr.XIc (Integers.Int.repr (BinInt.Z.of_nat k))))
+### C.jet_secp_modinv_fg_loop.fg_fixed_den
+fg_fixed_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (k : nat),
+       @eq (list (prod AST.ident Values.val))
+         (jet_secp_multiply_second_temps.binding_values (jet_secp_modinv_fg_revalue.fg_next_rho rho k) beta
+            fg_fixed_bindings) (jet_secp_multiply_second_temps.binding_values rho beta fg_fixed_bindings)
+### C.jet_secp_modinv_fg_loop.fg_iteration_next_temps
+fg_iteration_next_temps
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Clight.temp_env)
+         (k : nat) (_ : and (lt O k) (lt k (S (S (S (S (S O)))))))
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (jet_secp_modinv_fg_iteration.fg_iter_final_state k)) le),
+       jet_sx_eval.tmatch (jet_secp_modinv_fg_revalue.fg_next_rho rho k) beta
+         (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps (S k))
+         (@Maps.PTree.set Values.val jets_secp._i (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat (S k)))) le)
+### C.jet_secp_modinv_fg_loop.fg_initial_index
+fg_initial_index
+     : forall k : nat,
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._i (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps k))
+         (@Some jet_sx_expr.sx (jet_sx_expr.XIc (Integers.Int.repr (BinInt.Z.of_nat k))))
+### C.jet_secp_modinv_fg_loop.fg_initial_length
+fg_initial_length
+     : forall k : nat,
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._len (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps k))
+         (@Some jet_sx_expr.sx
+            (jet_sx_expr.XL2I (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+### C.jet_secp_modinv_fg_loop.exec_fg_iteration_advance
+exec_fg_iteration_advance
+     : forall (k : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : and (lt O k) (lt k (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_fg_iteration_prefix.fg_iter_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps k) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) e),
+       @ex Clight.temp_env
+         (fun lb : Clight.temp_env =>
+          @ex Clight.temp_env
+            (fun lef : Clight.temp_env =>
+             @ex Memory.Mem.mem
+               (fun mf : Memory.Mem.mem =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_modinv_fg_index.fg_work
+                     Events.E0 lb mf ClightBigstep.Out_normal)
+                  (and
+                     (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e lb mf jet_secp_modinv_fg_index.fg_step
+                        Events.E0 lef mf ClightBigstep.Out_normal)
+                     (and
+                        (jet_sx_state.rep (jet_secp_modinv_fg_revalue.fg_next_rho rho k) beta
+                           jet_secp_modinv_fg_iteration_prefix.fg_iter_regs mf)
+                        (and
+                           (jet_sx_eval.tmatch (jet_secp_modinv_fg_revalue.fg_next_rho rho k) beta
+                              (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps (S k)) lef)
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (ofs : BinNums.Z) =>
+                               not
+                                 (jet_sx_state.foot beta
+                                    (@List.map jet_sx_state.region
+                                       (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                       jet_sx_state.rshape jet_secp_modinv_fg_iteration_prefix.fg_iter_regs) b ofs)) m
+                              mf)))))))
+### C.jet_secp_modinv_fg_loop.exec_fg_loop_from_body
+exec_fg_loop_from_body
+     : forall (count k : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem) (_ : le (S O) k)
+         (_ : le (Nat.add k count) (S (S (S (S (S O))))))
+         (_ : @eq Integers.Int.int
+                (Integers.Int64.loword (rho (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+                (Integers.Int.repr (BinInt.Z.of_nat (Nat.add k count))))
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_fg_iteration_prefix.fg_iter_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps k) le0)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_fg_prefix.fg_alloc) e),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m jet_secp_modinv_fg_index.fg_loop
+                  Events.E0 lef mf ClightBigstep.Out_normal)
+               (and
+                  (jet_sx_state.rep (fg_loop_rho count rho k) beta jet_secp_modinv_fg_iteration_prefix.fg_iter_regs mf)
+                  (and
+                     (jet_sx_eval.tmatch (fg_loop_rho count rho k) beta
+                        (jet_secp_modinv_fg_iteration_prefix.fg_iter_temps (Nat.add k count)) lef)
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (ofs : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot beta
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape jet_secp_modinv_fg_iteration_prefix.fg_iter_regs) b ofs)) m mf)))))
+### C.jet_secp_modinv_fg_loop.fg_fixed_bindings
+fg_fixed_bindings =
+@cons (prod AST.ident jet_sx_expr.sx)
+  (@pair AST.ident jet_sx_expr.sx jets_secp._M62 jet_secp_modinv_fg_iteration_numeric.fg_iter_mask)
+  (@cons (prod AST.ident jet_sx_expr.sx)
+     (@pair AST.ident jet_sx_expr.sx jets_secp._r
+        (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))
+     (@cons (prod AST.ident jet_sx_expr.sx)
+        (@pair AST.ident jet_sx_expr.sx jets_secp._q
+           (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+        (@cons (prod AST.ident jet_sx_expr.sx)
+           (@pair AST.ident jet_sx_expr.sx jets_secp._v (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+           (@cons (prod AST.ident jet_sx_expr.sx)
+              (@pair AST.ident jet_sx_expr.sx jets_secp._u (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S O))))))))))))
+              (@cons (prod AST.ident jet_sx_expr.sx)
+                 (@pair AST.ident jet_sx_expr.sx jets_secp._len
+                    (jet_sx_expr.XL2I (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+                 (@cons (prod AST.ident jet_sx_expr.sx)
+                    (@pair AST.ident jet_sx_expr.sx jets_secp._t (jet_sx_expr.XP (S (S O)) BinNums.Z0))
+                    (@cons (prod AST.ident jet_sx_expr.sx)
+                       (@pair AST.ident jet_sx_expr.sx jets_secp._g (jet_sx_expr.XP (S O) BinNums.Z0))
+                       (@cons (prod AST.ident jet_sx_expr.sx)
+                          (@pair AST.ident jet_sx_expr.sx jets_secp._f (jet_sx_expr.XP O BinNums.Z0))
+                          (@nil (prod AST.ident jet_sx_expr.sx))))))))))
+     : list (prod AST.ident jet_sx_expr.sx)
+### C.jet_secp_modinv_fg_loop.fg_loop_rho
+fg_loop_rho =
+fix fg_loop_rho (count : nat) (rho : forall _ : nat, Integers.Int64.int) (k : nat) {struct count} :
+    forall _ : nat, Integers.Int64.int :=
+  match count return (forall _ : nat, Integers.Int64.int) with
+  | O => rho
+  | S n => fg_loop_rho n (jet_secp_modinv_fg_revalue.fg_next_rho rho k) (S k)
+  end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : nat) (_ : nat), Integers.Int64.int
+
+Arguments fg_loop_rho count%nat_scope rho%function_scope (k _)%nat_scope
