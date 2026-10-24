@@ -472,6 +472,20 @@ divstep loop, its invariant/termination and whole-function return/freeing
 remain required. No external-helper behavior is assumed, and this caller
 prefix adds no public jet coverage.
 
+`jet_secp_modinv_var_zero.exec_inv_zero_test` executes the original caller's
+post-transition zero-test for every active length 1 through 5. Its actual
+Clight outcome is `Out_break` exactly when all active `g` words are zero.
+The bounded OR-accumulation loop is proved directly by its remaining limb
+count; every array read is in range. The memory is exactly unchanged, as
+are all temporaries other than the four actually assigned by this test.
+There is no premise about a callee, an execution, a result, or a library
+model. The numerical corollary relates that same break outcome to the
+signed62 integer being zero under the internal nonnegative lower-digit
+bounds, without restricting the top word. These bounds remain caller-loop
+invariant obligations, not added public-input preconditions. The subsequent
+limb-shortening code, divstep execution, invariant composition and complete
+inverse call remain unproved; this control-flow result adds no coverage.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -509,6 +523,8 @@ JET_TARGETS=C/jet_secp_modinv_var_entry.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_entry
 JET_TARGETS=C/jet_secp_modinv_var_copies.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_copies
+JET_TARGETS=C/jet_secp_modinv_var_zero.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_zero
 ```
 
 ## Reproduction and limits

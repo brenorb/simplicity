@@ -1,0 +1,442 @@
+### C.jet_secp_modinv_var_zero.inv_caller_loop_source
+inv_caller_loop_source
+     : @eq Clight.statement inv_caller_loop (Clight.Sloop inv_caller_loop_body Clight.Sskip)
+### C.jet_secp_modinv_var_zero.inv_caller_control_source
+inv_caller_control_source
+     : @eq Clight.statement inv_caller_loop_body
+         (jet_secp_statement_prefix.statement_sequence
+            (@List.firstn Clight.statement (S (S (S (S O))))
+               (@fst (list Clight.statement) Clight.statement inv_caller_loop_parts))
+            (Clight.Ssequence inv_zero_test inv_shortening))
+### C.jet_secp_modinv_var_zero.inv_zero_test_source
+inv_zero_test_source
+     : @eq Clight.statement inv_zero_test
+         (Clight.Ssequence
+            (Clight.Sset jets_secp._t'5 (inv_g_index (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)))
+            (Clight.Sifthenelse
+               (Clight.Ebinop Cop.Oeq (Clight.Etempvar jets_secp._t'5 Ctypesdefs.tlong)
+                  (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint)
+               (Clight.Ssequence
+                  (Clight.Sset jets_secp._cond
+                     (Clight.Ecast (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tlong))
+                  (Clight.Ssequence
+                     (Clight.Ssequence (Clight.Sset jets_secp._j (Clight.Econst_int Integers.Int.one Ctypesdefs.tint))
+                        inv_gather_loop)
+                     (Clight.Sifthenelse
+                        (Clight.Ebinop Cop.Oeq (Clight.Etempvar jets_secp._cond Ctypesdefs.tlong)
+                           (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint) Clight.Sbreak
+                        Clight.Sskip))) Clight.Sskip))
+### C.jet_secp_modinv_var_zero.inv_test_frame_refl
+inv_test_frame_refl
+     : forall le : Clight.temp_env, inv_test_frame le le
+### C.jet_secp_modinv_var_zero.inv_test_frame_trans
+inv_test_frame_trans
+     : forall (le lm lf : Clight.temp_env) (_ : inv_test_frame le lm) (_ : inv_test_frame lm lf), inv_test_frame le lf
+### C.jet_secp_modinv_var_zero.inv_test_frame_set
+inv_test_frame_set
+     : forall (le : Clight.temp_env) (id : AST.ident) (v : Values.val) (_ : @List.In AST.ident id inv_test_modified),
+       inv_test_frame le (@Maps.PTree.set Values.val id v le)
+### C.jet_secp_modinv_var_zero.inv_test_frame_length
+inv_test_frame_length
+     : forall (le lf : Clight.temp_env) (_ : inv_test_frame le lf),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lf)
+         (@Maps.PTree.get Values.val jets_secp._len le)
+### C.jet_secp_modinv_var_zero.eval_inv_g_array
+eval_inv_g_array
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (b : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._g e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b jet_secp_modinv_fg_index.fg_s62_type))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m inv_g_array (Values.Vptr b Integers.Ptrofs.zero)
+### C.jet_secp_modinv_var_zero.eval_inv_g_index
+eval_inv_g_index
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (b : Values.block) (ix : Clight.expr) (j : nat) (w : Integers.Int64.int)
+         (_ : lt j (S (S (S (S (S O)))))) (_ : @eq Ctypes.type (Clight.typeof ix) Ctypesdefs.tint)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._g e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m ix (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat j))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat j)))
+                (@Some Values.val (Values.Vlong w))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (inv_g_index ix) (Values.Vlong w)
+### C.jet_secp_modinv_var_zero.eval_inv_gather_guard
+eval_inv_gather_guard
+     : forall (e : Clight.env) (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (j len : nat)
+         (_ : and (le j len) (le len (S (S (S (S (S O)))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._j le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat j)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le0 m inv_gather_guard
+         (Values.Vint
+            match PeanoNat.Nat.ltb j len return Integers.Int.int with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+### C.jet_secp_modinv_var_zero.exec_inv_gather_step
+exec_inv_gather_step
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (j : nat)
+         (_ : lt j (S (S (S (S (S O))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._j le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat j))))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m inv_gather_step Events.E0
+         (@Maps.PTree.set Values.val jets_secp._j (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat (S j)))) le) m
+         ClightBigstep.Out_normal
+### C.jet_secp_modinv_var_zero.exec_inv_gather_work
+exec_inv_gather_work
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (b : Values.block) (j : nat) (acc w : Integers.Int64.int)
+         (_ : lt j (S (S (S (S (S O))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._g e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._j le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat j)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._cond le)
+                (@Some Values.val (Values.Vlong acc)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat j)))
+                (@Some Values.val (Values.Vlong w))),
+       and
+         (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m inv_gather_work Events.E0
+            (inv_gather_work_env le w acc) m ClightBigstep.Out_normal)
+         (inv_test_frame le (inv_gather_work_env le w acc))
+### C.jet_secp_modinv_var_zero.exec_inv_gather
+exec_inv_gather
+     : forall (n len j : nat) (w : forall _ : nat, Integers.Int64.int) (acc : Integers.Int64.int)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (b : Values.block) (_ : @eq nat (Nat.add j n) len)
+         (_ : and (and (le (S O) j) (le j len)) (le len (S (S (S (S (S O)))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._g e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._j le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat j)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._cond le0)
+                (@Some Values.val (Values.Vlong acc)))
+         (_ : forall (i : nat) (_ : lt i len),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vlong (w i)))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m inv_gather_loop Events.E0 lef m
+               ClightBigstep.Out_normal)
+            (and
+               (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._cond lef)
+                  (@Some Values.val (Values.Vlong (inv_gather_words n w j acc)))) (inv_test_frame le0 lef)))
+### C.jet_secp_modinv_var_zero.inv_or_zero
+inv_or_zero
+     : forall a b : Integers.Int64.int,
+       iff (@eq Integers.Int64.int (Integers.Int64.or a b) Integers.Int64.zero)
+         (and (@eq Integers.Int64.int a Integers.Int64.zero) (@eq Integers.Int64.int b Integers.Int64.zero))
+### C.jet_secp_modinv_var_zero.inv_gather_zero
+inv_gather_zero
+     : forall (n : nat) (w : forall _ : nat, Integers.Int64.int) (j : nat) (acc : Integers.Int64.int),
+       iff (@eq Integers.Int64.int (inv_gather_words n w j acc) Integers.Int64.zero)
+         (and (@eq Integers.Int64.int acc Integers.Int64.zero)
+            (forall (i : nat) (_ : lt i n), @eq Integers.Int64.int (w (Nat.add j i)) Integers.Int64.zero))
+### C.jet_secp_modinv_var_zero.inv_int64_zero_eq
+inv_int64_zero_eq
+     : forall a : Integers.Int64.int,
+       iff (@eq bool (Integers.Int64.eq a Integers.Int64.zero) true) (@eq Integers.Int64.int a Integers.Int64.zero)
+### C.jet_secp_modinv_var_zero.inv_g_is_zero_correct
+inv_g_is_zero_correct
+     : forall (len : nat) (w : forall _ : nat, Integers.Int64.int) (_ : lt O len),
+       iff (@eq bool (inv_g_is_zero len w) true)
+         (forall (i : nat) (_ : lt i len), @eq Integers.Int64.int (w i) Integers.Int64.zero)
+### C.jet_secp_modinv_var_zero.inv_zero_out_correct
+inv_zero_out_correct
+     : forall (len : nat) (w : forall _ : nat, Integers.Int64.int) (_ : lt O len),
+       iff (@eq ClightBigstep.outcome (inv_zero_out len w) ClightBigstep.Out_break)
+         (forall (i : nat) (_ : lt i len), @eq Integers.Int64.int (w i) Integers.Int64.zero)
+### C.jet_secp_modinv_var_zero.eval_inv_long_zero
+eval_inv_long_zero
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (id : BinNums.positive)
+         (w : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le) (@Some Values.val (Values.Vlong w))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (Clight.Ebinop Cop.Oeq (Clight.Etempvar id Ctypesdefs.tlong)
+            (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint)
+         (Values.Vint
+            match Integers.Int64.eq w Integers.Int64.zero return Integers.Int.int with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+### C.jet_secp_modinv_var_zero.exec_inv_zero_from_loads
+exec_inv_zero_from_loads
+     : forall (len : nat) (w : forall _ : nat, Integers.Int64.int)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (b : Values.block) (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._g e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b jet_secp_modinv_fg_index.fg_s62_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+         (_ : forall (i : nat) (_ : lt i len),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vlong (w i)))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m inv_zero_test Events.E0 lef m
+               (inv_zero_out len w)) (inv_test_frame le0 lef))
+### C.jet_secp_modinv_var_zero.inv_control_g_load
+inv_control_g_load
+     : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload inv_control_regs (S (S (S (S (S O)))))
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))
+            Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (jet_sx_expr.XLv (Nat.add (S (S (S (S (S (S (S (S (S (S O)))))))))) i)))
+### C.jet_secp_modinv_var_zero.exec_inv_zero_test
+exec_inv_zero_test
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))) (_ : jet_sx_state.rep rho beta inv_control_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (inv_control_temps len) le0)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m inv_zero_test Events.E0 lef m
+               (inv_zero_out len (fun i : nat => rho (Nat.add (S (S (S (S (S (S (S (S (S (S O)))))))))) i))))
+            (and (inv_test_frame le0 lef)
+               (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lef)
+                  (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))))
+### C.jet_secp_modinv_var_zero.inv_signed62_zero
+inv_signed62_zero
+     : forall (n : nat) (w : forall _ : nat, BinNums.Z)
+         (_ : forall (i : nat) (_ : lt i n),
+              and (BinInt.Z.le BinNums.Z0 (w i))
+                (BinInt.Z.lt (w i)
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))),
+       iff (@eq BinNums.Z (jet_secp_modinv_normalize62_words.norm62_value_z n w) BinNums.Z0)
+         (forall (i : nat) (_ : le i n), @eq BinNums.Z (w i) BinNums.Z0)
+### C.jet_secp_modinv_var_zero.inv_zero_out_value
+inv_zero_out_value
+     : forall (len : nat) (w : forall _ : nat, Integers.Int64.int) (_ : lt O len) (_ : inv_active_low_bounds len w),
+       iff (@eq ClightBigstep.outcome (inv_zero_out len w) ClightBigstep.Out_break)
+         (@eq BinNums.Z (inv_active_value len w) BinNums.Z0)
+### C.jet_secp_modinv_var_zero.exec_inv_zero_test_numeric
+exec_inv_zero_test_numeric
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : and (lt O len) (le len (S (S (S (S (S O))))))) (_ : jet_sx_state.rep rho beta inv_control_regs m)
+         (_ : jet_sx_eval.tmatch rho beta (inv_control_temps len) le0)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : inv_active_low_bounds len (fun i : nat => rho (Nat.add (S (S (S (S (S (S (S (S (S (S O)))))))))) i))),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex ClightBigstep.outcome
+            (fun out : ClightBigstep.outcome =>
+             and (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m inv_zero_test Events.E0 lef m out)
+               (and
+                  (iff (@eq ClightBigstep.outcome out ClightBigstep.Out_break)
+                     (@eq BinNums.Z
+                        (inv_active_value len
+                           (fun i : nat => rho (Nat.add (S (S (S (S (S (S (S (S (S (S O)))))))))) i))) BinNums.Z0))
+                  (and
+                     (or (@eq ClightBigstep.outcome out ClightBigstep.Out_break)
+                        (@eq ClightBigstep.outcome out ClightBigstep.Out_normal))
+                     (and (inv_test_frame le0 lef)
+                        (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len lef)
+                           (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len))))))))))
+### C.jet_secp_modinv_var_zero.inv_caller_loop
+inv_caller_loop =
+match jet_secp_modinv_var_copies.inv_after_ready return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence s _ => s
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_modinv_var_zero.inv_caller_loop_body
+inv_caller_loop_body =
+match inv_caller_loop return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ _ => Clight.Sskip
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop s _ => s
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_modinv_var_zero.inv_caller_loop_parts
+inv_caller_loop_parts =
+jet_secp_statement_prefix.split_statement_last inv_caller_loop_body
+     : prod (list Clight.statement) Clight.statement
+### C.jet_secp_modinv_var_zero.inv_zero_test
+inv_zero_test =
+@List.nth Clight.statement (S (S (S (S O)))) (@fst (list Clight.statement) Clight.statement inv_caller_loop_parts)
+  Clight.Sskip
+     : Clight.statement
+### C.jet_secp_modinv_var_zero.inv_shortening
+inv_shortening =
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement (S (S (S (S (S O)))))
+     (@fst (list Clight.statement) Clight.statement inv_caller_loop_parts))
+  (@snd (list Clight.statement) Clight.statement inv_caller_loop_parts)
+     : Clight.statement
+### C.jet_secp_modinv_var_zero.inv_control_regs
+inv_control_regs =
+@jet_sx_state.upd jet_sx_state.region
+  (@jet_sx_state.upd jet_sx_state.region (jet_sx_eval.sregs jet_secp_modinv_var_entry.inv_start_state)
+     (S (S (S (S O))))
+     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_fe_nv.vars5 (S (S (S (S (S O))))))) true
+        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+  (S (S (S (S (S O)))))
+  (jet_sx_state.mkreg
+     (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_fe_nv.vars5 (S (S (S (S (S (S (S (S (S (S O)))))))))))) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     : list jet_sx_state.region
+### C.jet_secp_modinv_var_zero.inv_control_temps
+inv_control_temps =
+fun len : nat =>
+@Maps.PTree.set jet_sx_expr.sx jets_secp._len (jet_sx_expr.XIc (Integers.Int.repr (BinInt.Z.of_nat len)))
+  (Maps.PTree.empty jet_sx_expr.sx)
+     : forall _ : nat, Maps.PTree.tree jet_sx_expr.sx
+
+Arguments inv_control_temps len%nat_scope
+### C.jet_secp_modinv_var_zero.inv_g_array
+inv_g_array =
+Clight.Efield (Clight.Evar jets_secp._g jet_secp_modinv_fg_index.fg_s62_type) jets_secp._v
+  (Ctypesdefs.tarray Ctypesdefs.tlong (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))))
+     : Clight.expr
+### C.jet_secp_modinv_var_zero.inv_g_index
+inv_g_index =
+fun ix : Clight.expr =>
+Clight.Ederef (Clight.Ebinop Cop.Oadd inv_g_array ix (Ctypesdefs.tptr Ctypesdefs.tlong)) Ctypesdefs.tlong
+     : forall _ : Clight.expr, Clight.expr
+
+Arguments inv_g_index ix
+### C.jet_secp_modinv_var_zero.inv_gather_guard
+inv_gather_guard =
+Clight.Ebinop Cop.Olt (Clight.Etempvar jets_secp._j Ctypesdefs.tint) (Clight.Etempvar jets_secp._len Ctypesdefs.tint)
+  Ctypesdefs.tint
+     : Clight.expr
+### C.jet_secp_modinv_var_zero.inv_gather_work
+inv_gather_work =
+Clight.Ssequence (Clight.Sset jets_secp._t'6 (inv_g_index (Clight.Etempvar jets_secp._j Ctypesdefs.tint)))
+  (Clight.Sset jets_secp._cond
+     (Clight.Ebinop Cop.Oor (Clight.Etempvar jets_secp._cond Ctypesdefs.tlong)
+        (Clight.Etempvar jets_secp._t'6 Ctypesdefs.tlong) Ctypesdefs.tlong))
+     : Clight.statement
+### C.jet_secp_modinv_var_zero.inv_gather_step
+inv_gather_step =
+Clight.Sset jets_secp._j
+  (Clight.Ebinop Cop.Oadd (Clight.Etempvar jets_secp._j Ctypesdefs.tint)
+     (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint)
+     : Clight.statement
+### C.jet_secp_modinv_var_zero.inv_gather_loop
+inv_gather_loop =
+Clight.Sloop (Clight.Ssequence (Clight.Sifthenelse inv_gather_guard Clight.Sskip Clight.Sbreak) inv_gather_work)
+  inv_gather_step
+     : Clight.statement
+### C.jet_secp_modinv_var_zero.inv_test_modified
+inv_test_modified =
+@cons AST.ident jets_secp._t'5
+  (@cons AST.ident jets_secp._cond (@cons AST.ident jets_secp._j (@cons AST.ident jets_secp._t'6 (@nil AST.ident))))
+     : list AST.ident
+### C.jet_secp_modinv_var_zero.inv_test_frame
+inv_test_frame =
+fun le lf : Clight.temp_env =>
+forall (id : AST.ident) (_ : not (@List.In AST.ident id inv_test_modified)),
+@eq (option Values.val) (@Maps.PTree.get Values.val id lf) (@Maps.PTree.get Values.val id le)
+     : forall (_ : Clight.temp_env) (_ : Clight.temp_env), Prop
+
+Arguments inv_test_frame le lf
+### C.jet_secp_modinv_var_zero.inv_gather_words
+inv_gather_words =
+fix inv_gather_words
+  (n : nat) (w : forall _ : nat, Integers.Int64.int) (j : nat) (acc : Integers.Int64.int) {struct n} :
+    Integers.Int64.int :=
+  match n return Integers.Int64.int with
+  | O => acc
+  | S n0 => inv_gather_words n0 w (S j) (Integers.Int64.or acc (w j))
+  end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int) (_ : nat) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments inv_gather_words n%nat_scope w%function_scope j%nat_scope acc
+### C.jet_secp_modinv_var_zero.inv_gather_work_env
+inv_gather_work_env =
+fun (le : Maps.PTree.tree Values.val) (w acc : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets_secp._cond (Values.Vlong (Integers.Int64.or acc w))
+  (@Maps.PTree.set Values.val jets_secp._t'6 (Values.Vlong w) le)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Maps.PTree.tree Values.val
+
+Arguments inv_gather_work_env le w acc
+### C.jet_secp_modinv_var_zero.inv_g_is_zero
+inv_g_is_zero =
+fun (len : nat) (w : forall _ : nat, Integers.Int64.int) =>
+andb (Integers.Int64.eq (w O) Integers.Int64.zero)
+  (Integers.Int64.eq (inv_gather_words (Nat.sub len (S O)) w (S O) Integers.Int64.zero) Integers.Int64.zero)
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), bool
+
+Arguments inv_g_is_zero len%nat_scope w%function_scope
+### C.jet_secp_modinv_var_zero.inv_zero_out
+inv_zero_out =
+fun (len : nat) (w : forall _ : nat, Integers.Int64.int) =>
+match inv_g_is_zero len w return ClightBigstep.outcome with
+| true => ClightBigstep.Out_break
+| false => ClightBigstep.Out_normal
+end
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), ClightBigstep.outcome
+
+Arguments inv_zero_out len%nat_scope w%function_scope
+### C.jet_secp_modinv_var_zero.inv_active_value
+inv_active_value =
+fun (len : nat) (w : forall _ : nat, Integers.Int64.int) =>
+jet_secp_modinv_normalize62_words.norm62_value_z (Nat.sub len (S O)) (fun i : nat => Integers.Int64.signed (w i))
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), BinNums.Z
+
+Arguments inv_active_value len%nat_scope w%function_scope
+### C.jet_secp_modinv_var_zero.inv_active_low_bounds
+inv_active_low_bounds =
+fun (len : nat) (w : forall _ : nat, Integers.Int64.int) =>
+forall (i : nat) (_ : lt (S i) len),
+and (BinInt.Z.le BinNums.Z0 (Integers.Int64.signed (w i)))
+  (BinInt.Z.lt (Integers.Int64.signed (w i))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+     : forall (_ : nat) (_ : forall _ : nat, Integers.Int64.int), Prop
+
+Arguments inv_active_low_bounds len%nat_scope w%function_scope
