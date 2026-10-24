@@ -184,9 +184,9 @@ pointer-width type is derived from the actual memory load. In particular,
 the initialized NULL used for an empty table is retained; an uninitialized
 pointer is not treated as a valid builder-produced environment. The existing
 `memcmp_model` premise remains explicit. This is a suffix proof, not a
-whole-wrapper or canonical fee-equivalence theorem: entry/source copying,
-freeing locals, and the environment and canonical-fee connections above remain
-open; the reader-to-key adapter is addressed below. No public registration or
+whole-wrapper or canonical fee-equivalence theorem. The reader-to-key adapter
+and whole-wrapper composition are addressed below; the environment and
+canonical-fee connections above remain open. No public registration or
 coverage change; the ledger remains 514/533. Frozen targets are unchanged.
 
 ```sh
@@ -204,10 +204,9 @@ table through these writes; lookup storage is derived, not assumed anew after
 the call. An empty table still permits its actual NULL pointer.
 
 This reader contract uses no external-library premise. The subsequent lookup
-retains its existing explicit `memcmp_model` premise. Function entry, the
-source-frame copy, local cleanup and composition with the checked suffix remain
-to be proved, as do the environment and canonical-fee connections described
-above. This is not a whole-jet equivalence or a new public registration;
+retains its existing explicit `memcmp_model` premise. Whole-wrapper composition
+is addressed below; the environment and canonical-fee connections described
+above remain open. This is not a whole-jet equivalence or a new public registration;
 accepted coverage remains 514/533. Frozen targets are unchanged.
 
 ```sh
@@ -215,8 +214,35 @@ JET_TARGETS=C/jet_elements_total_fee_read.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_total_fee_read
 ```
 
+### Complete original total_fee wrapper (stored-table contract)
+
+`jet_elements_total_fee_jet.eval_total_fee_stored_table` proves the complete
+original `f_simplicity_total_fee` call. Its premises concern only the initial
+frames, input word, represented stored table and its strict unique-key order.
+The proof derives function entry and the two fresh local allocations, the
+actual by-value frame copy, `readHash`, environment loads, complete lookup,
+`write64`, successful return conversion and freeing both locals. No execution,
+expected result, fresh-block separation or post-read representation is assumed.
+
+The output is the exact stored-table lookup value for any 256-bit key. The
+result includes arbitrary valid output cursors (including word crossings),
+preservation of the prefix, updated cursor and framing of all original blocks
+outside the actual output ranges. Empty tables permit the initialized NULL
+pointer. The only explicit library premise is the existing `memcmp_model`.
+
+This closes the wrapper execution obligation, not the canonical equivalence.
+The real builder must still establish the represented sorted/unique table and
+its sums' relationship to the canonical fee program. The hash-classification
+boundary above remains unresolved. No public registration or coverage change:
+514/533. Production C, original specifications, ASTs and API are unchanged.
+
+```sh
+JET_TARGETS=C/jet_elements_total_fee_jet.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_total_fee_jet
+```
+
 `simplicity_output_is_fee` remains unregistered. `total_fee` also depends on
-fee classification and has further execution/lookup obligations. In the
+fee classification and the environment/table-to-canonical-fee bridge. In the
 hypothetical witness case their classification or accumulated fee could
 differ from the canonical programs; no reachable consensus failure, exploit,
 monetary loss or native misbehavior has been established. The demonstrated
