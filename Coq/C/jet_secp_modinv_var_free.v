@@ -42,14 +42,13 @@ Proof.
  - split;left;[apply Distinct;lia|rewrite <-Block;apply Distinct;lia].
  - apply Distinct;lia.
 Qed.
-Theorem inv_free_env_blocks rho beta e m : rep rho beta inv_loop_regs m ->
+Theorem inv_free_env_blocks_structural beta e : length beta=7%nat -> inv_loop_distinct beta ->
  ematch beta (snd inv_start_alloc) e ->
  (forall b lo hi,In (b,lo,hi) (blocks_of_env secp_ge e) ->
   exists r,(2<=r<7)%nat /\ b=blk beta r /\ lo=0 /\ hi=inv_local_size r) /\
  list_norepet (map (fun x=>fst (fst x)) (blocks_of_env secp_ge e)).
 Proof.
- intros Rep Env;pose proof (inv_loop_rep_distinct rho beta m Rep) as Distinct.
- assert (Size : length beta=7%nat) by exact (proj1 Rep).
+ intros Size Distinct Env.
  destruct (callee_env_blocks secp_ge beta (snd inv_start_alloc) e) as (Blocks & NoRepeat).
  - intros id1 id2 r1 r2 ty1 ty2 A B Equal.
    destruct (Nat.eq_dec r1 r2) as [Same|Ne];[exact Same|exfalso].
@@ -64,6 +63,16 @@ Proof.
    destruct (Blocks b lo hi Member) as (id & r & ty & At & -> & -> & ->).
    destruct (inv_local_lookup id r ty At) as (R & Ty & Key).
    exists r;split;[exact R|];split;[reflexivity|];split;[reflexivity|exact Ty].
+Qed.
+
+Theorem inv_free_env_blocks rho beta e m : rep rho beta inv_loop_regs m ->
+ ematch beta (snd inv_start_alloc) e ->
+ (forall b lo hi,In (b,lo,hi) (blocks_of_env secp_ge e) ->
+  exists r,(2<=r<7)%nat /\ b=blk beta r /\ lo=0 /\ hi=inv_local_size r) /\
+ list_norepet (map (fun x=>fst (fst x)) (blocks_of_env secp_ge e)).
+Proof.
+ intros Rep Env;apply inv_free_env_blocks_structural;
+ [exact(proj1 Rep)|exact(inv_loop_rep_distinct rho beta m Rep)|exact Env].
 Qed.
 
 Definition inv_free_outside beta b := forall r,(2<=r<7)%nat -> b<>blk beta r.

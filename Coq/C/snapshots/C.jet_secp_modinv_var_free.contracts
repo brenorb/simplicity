@@ -153,6 +153,28 @@ exec_inv_finish_and_free
                                           b ofs)
                                        (and (not (@eq Values.block b (jet_sx_state.blk beta O)))
                                           (inv_free_outside beta b))) m mr)))))))))
+### C.jet_secp_modinv_var_free.inv_free_env_blocks_structural
+inv_free_env_blocks_structural
+     : forall (beta : list (prod Values.block BinNums.Z)) (e : Clight.env)
+         (_ : @eq nat (@length (prod Values.block BinNums.Z) beta) (S (S (S (S (S (S (S O))))))))
+         (_ : jet_secp_modinv_var_de.inv_loop_distinct beta)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e),
+       and
+         (forall (b : Values.block) (lo hi : BinNums.Z)
+            (_ : @List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                   (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z b lo) hi)
+                   (Clight.blocks_of_env jet_secp_linkage.secp_ge e)),
+          @ex nat
+            (fun r : nat =>
+             and (and (le (S (S O)) r) (lt r (S (S (S (S (S (S (S O)))))))))
+               (and (@eq Values.block b (jet_sx_state.blk beta r))
+                  (and (@eq BinNums.Z lo BinNums.Z0) (@eq BinNums.Z hi (inv_local_size r))))))
+         (@Coqlib.list_norepet Values.block
+            (@List.map (prod (prod Values.block BinNums.Z) BinNums.Z) Values.block
+               (fun x : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                @fst Values.block BinNums.Z (@fst (prod Values.block BinNums.Z) BinNums.Z x))
+               (Clight.blocks_of_env jet_secp_linkage.secp_ge e)))
 ### C.jet_secp_modinv_var_free.inv_local_size
 inv_local_size =
 fun r : nat =>

@@ -129,6 +129,24 @@ internal obligations still to be established by the scalar inverse loop.
 There is no assumed normalize call, output fact, or new external model.
 This completes normalization only, not inversion or public jet coverage.
 
+`jet_secp_scalar_inverse_finish.exec_scalar_inv_finish_and_free` additionally
+executes the original core's final sign load, normalization and signed62
+copy-back, then frees its actual five local objects. The sign is loaded
+from represented f storage, not supplied as an assumed temporary. The
+result remains canonical in the caller's signed62 buffer with the exact
+signed residue modulo the scalar order, ownership and the complete modulus
+global preserved. The field and scalar cleanups reuse
+`inv_free_env_blocks_structural`, which depends only on the actual local
+environment, layout length and distinct allocated blocks; the original field
+cleanup contract is unchanged.
+
+This is a terminal-state suffix: its memory, signed-limb/value bounds, length
+and local ownership must still be established by the actual inverse loop.
+It does not assume an execution or a post-normalization output, but also
+does not prove the complete core call or identify the terminal coefficient
+with the frozen scalar inverse specification. Public scalar caller
+composition and the deferred CTZ boundary remain open; coverage is unchanged.
+
 ```sh
 JET_TARGETS="C/jet_secp_scalar_signed62.vo C/jet_secp_scalar_signed62_numeric.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_signed62 C.jet_secp_scalar_signed62_numeric
@@ -138,6 +156,8 @@ JET_TARGETS=C/jet_secp_modinfo_scalar_global.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinfo_scalar_global
 JET_TARGETS="C/jet_secp_modinv_normalize62_modulus.vo C/jet_secp_modinv_normalize62_numeric.vo C/jet_secp_scalar_normalize62.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_normalize62_modulus C.jet_secp_modinv_normalize62_numeric C.jet_secp_scalar_normalize62
+JET_TARGETS="C/jet_secp_scalar_inverse_finish.vo C/jet_secp_modinv_var_result.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_inverse_finish C.jet_secp_modinv_var_result
 ```
 
 ## Generation: wNAF also calls external memset
