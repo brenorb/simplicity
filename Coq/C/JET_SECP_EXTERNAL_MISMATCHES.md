@@ -628,6 +628,30 @@ and termination still need composition, including the argument that the
 normalized coefficient is the requested inverse. No public jet coverage
 is added by this internal finishing-and-freeing theorem.
 
+`jet_secp_modinv_var_invariant.exec_inv_after_divsteps_invariant` strengthens
+the actual suffix execution with preservation of the input/coefficient
+relation: `input*d = f (mod p)` and `input*e = g (mod p)`, using the values
+represented by the caller's actual words. It retains the checked execution,
+memory/temporary results, coefficient bounds and numeric output relations.
+The final represented `f`/`g` state is related to 62 integer divsteps of
+the initial represented state, including after any limb shortening.
+
+The proof uses the C coefficient-update equality, its actual `f`/`g`
+quotients and the existing `Trans.transN_step` theorem. Divisibility by
+`2^62` is derived from that matrix theorem; cancellation modulo the actual
+field prime is proved by a closed coprimality check. It does not assume a
+new matrix-divisibility fact, a callee execution or an output state in the
+composed execution theorem. These arithmetic bridge lemmas are closed;
+the execution retains the six inherited assumptions and no library model.
+
+The correspondence between the four represented matrix words and the
+62-divstep transition remains an explicit internal precondition, together
+with the entry invariant and row/limb bounds. Executing the original C
+divstep routine and deriving that matrix correspondence is still required,
+as are full-loop invariant/termination composition and the canonical
+inverse argument, including zero input. This result adds no public jet
+coverage and does not discharge the external ctz boundary.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -681,6 +705,8 @@ JET_TARGETS=C/jet_secp_modinv_var_finish.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_finish
 JET_TARGETS=C/jet_secp_modinv_var_free.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_free
+JET_TARGETS=C/jet_secp_modinv_var_invariant.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_invariant
 ```
 
 ## Reproduction and limits
