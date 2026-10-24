@@ -1,0 +1,152 @@
+### C.jet_secp_swu_before_candidates.swu_before_candidates_source
+swu_before_candidates_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_shallue_van_de_woestijne)
+         (jet_secp_statement_prefix.statement_sequence swu_before_candidates_statements
+            jet_secp_swu_joint_inverse.swu_after_joint_inverse)
+### C.jet_secp_swu_before_candidates.exec_swu_initial_then
+exec_swu_initial_then
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (lm : Clight.temp_env)
+         (mm : Memory.Mem.mem) (lf : Clight.temp_env) (mf : Memory.Mem.mem) (suffix : Clight.statement)
+         (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                (Clight.Ssequence jet_secp_swu_initial.swu_initial_square jet_secp_swu_initial.swu_initial_product)
+                Events.E0 lm mm ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e lm mm suffix Events.E0 lf mf out),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (Clight.Ssequence jet_secp_swu_initial.swu_initial_square
+            (Clight.Ssequence jet_secp_swu_initial.swu_initial_product suffix)) Events.E0 lf mf out
+### C.jet_secp_swu_before_candidates.exec_swu_before_candidates
+exec_swu_before_candidates
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bt bw ba bx bj : Values.block)
+         (w : forall _ : nat, Integers.Int64.int)
+         (_ : forall (mc : Memory.Mem.mem) (x : Integers.Int64.int)
+                (_ : not (@eq BinNums.Z (Integers.Int64.unsigned x) BinNums.Z0)),
+              ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mc
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ctz64_var)
+                (@cons Values.val (Values.Vlong x) (@nil Values.val)) Events.E0 mc
+                (Values.Vint (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned x)))))
+         (_ : jet_clight_internal_frame.plain_env e)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_sqr e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_mul e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._negc e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_mul_int e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_negate e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_add_int e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_inv_var e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._wd e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bw jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._x1 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type ba jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._x3d e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._jinv e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bj jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t le)
+                (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero)))
+         (_ : @List.NoDup Values.block
+                (@cons Values.block bt
+                   (@cons Values.block bw
+                      (@cons Values.block ba (@cons Values.block bx (@cons Values.block bj (@nil Values.block)))))))
+         (_ : jet_secp_swu_startup.swu_startup m) (_ : jet_secp_square_columns.square_input_bounds w)
+         (_ : jet_secp_fe_nv.fe_at m bt BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : @List.Forall Values.block
+                (fun b : Values.block =>
+                 Memory.Mem.range_perm m b BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                   Memtype.Cur Memtype.Freeable)
+                (@cons Values.block bt
+                   (@cons Values.block bw
+                      (@cons Values.block ba (@cons Values.block bx (@cons Values.block bj (@nil Values.block))))))),
+       @ex (forall _ : nat, Integers.Int64.int)
+         (fun result : forall _ : nat, Integers.Int64.int =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m swu_before_candidates Events.E0 le mf
+                  ClightBigstep.Out_normal)
+               (and (jet_secp_fe_nv.fe_at mf bt BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+                  (and
+                     (jet_secp_fe_nv.fe_at mf bw BinNums.Z0
+                        (jet_secp_multiply_normalize_bridge.words5
+                           (jet_secp_swu_joint_setup.swu_setup_wd (jet_secp_square_numeric.square_words w))))
+                     (and
+                        (jet_secp_fe_nv.fe_at mf ba BinNums.Z0
+                           (jet_secp_multiply_normalize_bridge.words5 (jet_secp_swu_initial.swu_initial_a w)))
+                        (and
+                           (jet_secp_fe_nv.fe_at mf bx BinNums.Z0
+                              (jet_secp_multiply_normalize_bridge.words5
+                                 (jet_secp_swu_joint_setup.swu_setup_x3d (jet_secp_square_numeric.square_words w))))
+                           (and
+                              (jet_secp_fe_nv.fe_at mf bj BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 result))
+                              (and
+                                 (@List.Forall Values.block
+                                    (fun b : Values.block =>
+                                     Memory.Mem.range_perm mf b BinNums.Z0
+                                       (BinNums.Zpos
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                       Memtype.Cur Memtype.Freeable)
+                                    (@cons Values.block bt
+                                       (@cons Values.block bw
+                                          (@cons Values.block ba
+                                             (@cons Values.block bx (@cons Values.block bj (@nil Values.block)))))))
+                                 (and (jet_secp_square_columns.square_input_bounds result)
+                                    (and
+                                       (jet_secp_field_mul_small.mul_small_input_bounds
+                                          (jet_secp_swu_initial.swu_initial_a w))
+                                       (and
+                                          (@eq BinNums.Z
+                                             (BinInt.Z.modulo
+                                                (jet_secp_multiply_finish_product.radix_value
+                                                   (jet_secp_swu_initial.swu_initial_a w)) jet_secp_fe_math.feP)
+                                             (BinInt.Z.modulo
+                                                (BinInt.Z.mul jet_secp_swu_candidates.swu_negc_constant
+                                                   (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value w)
+                                                      (jet_secp_multiply_finish_product.radix_value w)))
+                                                jet_secp_fe_math.feP))
+                                          (and
+                                             (@eq BinNums.Z (jet_secp_multiply_finish_product.radix_value result)
+                                                (jet_secp_swu_candidates.swu_joint_inverse
+                                                   (jet_secp_multiply_finish_product.radix_value w)))
+                                             (and (jet_secp_swu_startup.swu_startup mf)
+                                                (and
+                                                   (jet_sx_mem.lframe
+                                                      (fun (b : Values.block) (_ : BinNums.Z) =>
+                                                       not
+                                                         (@List.In Values.block b
+                                                            (@cons Values.block bt
+                                                               (@cons Values.block bw
+                                                                  (@cons Values.block ba (@cons Values.block bx ...))))))
+                                                      m mf) (jet_clight_internal_preserve.readonly_preserved m mf)))))))))))))))
+### C.jet_secp_swu_before_candidates.swu_before_candidates_statements
+swu_before_candidates_statements =
+@app Clight.statement
+  (@cons Clight.statement jet_secp_swu_initial.swu_initial_square
+     (@cons Clight.statement jet_secp_swu_initial.swu_initial_product (@nil Clight.statement)))
+  jet_secp_swu_joint_inverse.swu_joint_inverse_statements
+     : list Clight.statement
+### C.jet_secp_swu_before_candidates.swu_before_candidates
+swu_before_candidates =
+jet_secp_statement_prefix.statement_sequence swu_before_candidates_statements Clight.Sskip
+     : Clight.statement

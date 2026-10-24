@@ -2286,18 +2286,25 @@ represents `t*t` modulo p, including zero. Setup and inversion both inherit
 the usual six assumptions; inspect the quantified CTZ premise in the
 contract, not just the assumption list.
 
-Next compose this six-statement prefix with `exec_swu_initial` on the actual
-square result; derive tight square bounds from `square_output_bounds`, retain
-the original t and x1 storage through the returned frame, and derive the
-inverse's link to `swu_joint_inverse (radix_value t)` from
-`square_output_numeric` and `swu_joint_inverse_congruent`. Continue the same
-body at `swu_after_joint_inverse`: multiply x1 by x3d and jinv, add the readonly
-d constant, copy/negate x2, build x3 and the three cubics, then roots, point
-selection, parity, allocations/frees and the public wrapper. Coverage stays
-514/533. Reproduce the normal build/kernel check with
-`C/jet_secp_swu_joint_inverse.vo` / `C.jet_secp_swu_joint_inverse`, plus focused
-assumption/contract comparisons for `jet_secp_swu_joint_setup` and
-`jet_secp_swu_joint_inverse`.
+`jet_secp_swu_before_candidates.exec_swu_before_candidates` composes this
+six-statement prefix with `exec_swu_initial`: all original first eight
+statements now execute from input storage and initially uninitialized
+intermediates. It derives tight square bounds from `square_output_bounds`,
+retains the original input and initial x1 storage, and derives the actual
+inverse's exact equality to `swu_joint_inverse (radix_value input)` using
+`square_output_numeric` and `swu_joint_inverse_congruent`. It returns all five
+owned fields, value/range facts, initialized globals, unchanged other memory
+and readonly preservation. No square/denominator representation or internal
+call is assumed. The original CTZ contract remains explicit; the result is
+still a conditional **prefix**, not a whole-public theorem.
+
+Next continue the same body at `swu_after_joint_inverse`: multiply x1 by x3d
+and jinv, add the readonly d constant, copy/negate x2, build x3 and the three
+cubics, then roots, point selection, parity, allocations/frees and the public
+wrapper. Coverage stays 514/533. Reproduce the normal build/kernel check with
+`C/jet_secp_swu_before_candidates.vo` / `C.jet_secp_swu_before_candidates`,
+plus focused assumption/contract comparisons for `jet_secp_swu_joint_setup`,
+`jet_secp_swu_joint_inverse` and `jet_secp_swu_before_candidates`.
 
 ## Completed: `simplicity_gej_rescale`
 
