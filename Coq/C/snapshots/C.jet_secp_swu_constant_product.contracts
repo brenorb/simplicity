@@ -1,0 +1,161 @@
+### C.jet_secp_swu_constant_product.swu_product_run_eq
+swu_product_run_eq
+     : @eq (option jet_sx_exec.res)
+         (jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+            jet_secp_point_mul_run.point_mul_table
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+            jets_secp.f_secp256k1_fe_mul jet_secp_field_product_owned.field_product_args swu_product_regs
+            (@nil jet_sx_eval.event) (S (S (S (S (S (S (S (S (S (S O)))))))))))
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone swu_product_state jet_sx_exec.ONormal))
+### C.jet_secp_swu_constant_product.swu_product_log_eq
+swu_product_log_eq
+     : @eq (list jet_sx_eval.event) (jet_sx_eval.slog swu_product_state) jet_secp_field_mul_word_model.fe_mul_log
+### C.jet_secp_swu_constant_product.swu_product_out_eq
+swu_product_out_eq
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs swu_product_state) swu_product_out_regs
+### C.jet_secp_swu_constant_product.swu_product_return
+swu_product_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps swu_product_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_swu_constant_product.eval_swu_product_symbolic
+eval_swu_product_symbolic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta swu_product_regs m)
+         (_ : @List.Forall jet_sx_eval.event (jet_secp_u128_word_oracle.u128_evok rho)
+                jet_secp_field_mul_word_model.fe_mul_log),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O))))) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_sx_state.rep rho beta swu_product_out_regs mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape swu_product_regs) b pos)) m mf)))
+### C.jet_secp_swu_constant_product.swu_product_initial
+swu_product_initial
+     : forall (d : bool) (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bo bw : Values.block)
+         (_ : not (@eq Values.block bo bw)) (_ : jet_secp_swu_startup.swu_constant_state d m)
+         (_ : Memory.Mem.range_perm m bo BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bw BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bw BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       jet_sx_state.rep (jet_secp_point_mul_storage.point_mul_valuation (jet_secp_swu_startup.swu_constant_digits d) w)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bo BinNums.Z0)
+            (@cons (prod Values.block BinNums.Z)
+               (@pair Values.block BinNums.Z (jet_secp_swu_startup.swu_constant_block d) BinNums.Z0)
+               (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bw BinNums.Z0)
+                  (@nil (prod Values.block BinNums.Z))))) swu_product_regs m
+### C.jet_secp_swu_constant_product.swu_product_fields
+swu_product_fields
+     : forall (d : bool) (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bo bw : Values.block)
+         (_ : jet_sx_state.rep
+                (jet_secp_point_mul_storage.point_mul_valuation (jet_secp_swu_startup.swu_constant_digits d) w)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bo BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z)
+                      (@pair Values.block BinNums.Z (jet_secp_swu_startup.swu_constant_block d) BinNums.Z0)
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bw BinNums.Z0)
+                         (@nil (prod Values.block BinNums.Z))))) swu_product_out_regs m),
+       and
+         (jet_secp_fe_nv.fe_at m bo BinNums.Z0
+            (jet_secp_multiply_normalize_bridge.words5
+               (jet_secp_point_mul_storage.point_mul_words (jet_secp_swu_startup.swu_constant_digits d) w)))
+         (and (jet_secp_fe_nv.fe_at m bw BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+            (and
+               (Memory.Mem.range_perm m bo BinNums.Z0
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  Memtype.Cur Memtype.Freeable)
+               (Memory.Mem.range_perm m bw BinNums.Z0
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  Memtype.Cur Memtype.Freeable)))
+### C.jet_secp_swu_constant_product.swu_constant_square_bounds
+swu_constant_square_bounds
+     : forall d : bool, jet_secp_square_columns.square_input_bounds (jet_secp_swu_startup.swu_constant_digits d)
+### C.jet_secp_swu_constant_product.swu_product_closed
+swu_product_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_closed_helpers.secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_fe_mul)) true
+### C.jet_secp_swu_constant_product.eval_swu_constant_product
+eval_swu_constant_product
+     : forall (d : bool) (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bo bw : Values.block)
+         (_ : not (@eq Values.block bo bw)) (_ : jet_secp_swu_startup.swu_startup m)
+         (_ : jet_secp_square_columns.square_input_bounds w)
+         (_ : Memory.Mem.range_perm m bo BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bw BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m bw BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+               (@cons Values.val (Values.Vptr bo Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr (jet_secp_swu_startup.swu_constant_block d) Integers.Ptrofs.zero)
+                     (@cons Values.val (Values.Vptr bw Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf bo BinNums.Z0
+                  (jet_secp_multiply_normalize_bridge.words5
+                     (jet_secp_point_mul_storage.point_mul_words (jet_secp_swu_startup.swu_constant_digits d) w)))
+               (and (jet_secp_fe_nv.fe_at mf bw BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+                  (and
+                     (Memory.Mem.range_perm mf bo BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf bw BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and (jet_secp_swu_startup.swu_startup mf)
+                           (and
+                              (@eq BinNums.Z
+                                 (BinInt.Z.modulo
+                                    (jet_secp_multiply_finish_product.radix_value
+                                       (jet_secp_point_mul_storage.point_mul_words
+                                          (jet_secp_swu_startup.swu_constant_digits d) w)) jet_secp_fe_math.feP)
+                                 (BinInt.Z.modulo
+                                    (BinInt.Z.mul
+                                       match d return BinNums.Z with
+                                       | true => jet_secp_swu_candidates.swu_d_constant
+                                       | false => jet_secp_swu_candidates.swu_negc_constant
+                                       end (jet_secp_multiply_finish_product.radix_value w)) jet_secp_fe_math.feP))
+                              (and
+                                 (jet_secp_field_mul_small.mul_small_input_bounds
+                                    (jet_secp_point_mul_storage.point_mul_words
+                                       (jet_secp_swu_startup.swu_constant_digits d) w))
+                                 (and
+                                    (jet_sx_mem.lframe
+                                       (fun (b : Values.block) (_ : BinNums.Z) =>
+                                        and (not (@eq Values.block b bo)) (not (@eq Values.block b bw))) m mf)
+                                    (jet_clight_internal_preserve.readonly_preserved m mf))))))))))
+### C.jet_secp_swu_constant_product.swu_product_regs
+swu_product_regs =
+jet_borrowed_region.borrow_at (S O) jet_secp_field_product_owned.field_product_regs
+     : list jet_sx_state.region
+### C.jet_secp_swu_constant_product.swu_product_state
+swu_product_state =
+jet_secp_multiply_borrowed_transport.borrow_state (S O) jet_secp_field_product_owned.field_product_state
+     : jet_sx_eval.sstate
+### C.jet_secp_swu_constant_product.swu_product_out_regs
+swu_product_out_regs =
+jet_borrowed_region.borrow_at (S O) jet_secp_field_product_owned.field_product_out_regs
+     : list jet_sx_state.region

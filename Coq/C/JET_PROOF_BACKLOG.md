@@ -2208,6 +2208,38 @@ Reproduce the targeted normal build/kernel check with
 `C/jet_secp_swu_literal_bridge.vo` / `C.jet_secp_swu_literal_bridge` and focused
 assumption/contract comparisons for these two modules and `jet_secp_swu_candidates`.
 
+`jet_secp_swu_startup` now derives the actual `negc` and `d` limbs, their
+numeric values and exact readonly bounds from `Genv.init_mem jets_secp.prog`.
+It combines those constants with the existing field-inversion modulus state,
+proves initialization exists and proves preservation through the existing
+readonly-preservation contract. Fresh owned storage is automatically separate
+from all three globals; no input/global separation premise is introduced.
+
+`jet_secp_swu_constant_product.eval_swu_constant_product` executes the original
+three-address C multiply into an uninitialized private field, with the
+initialized constant as a **readonly** first operand. It reuses the existing
+field-product symbolic state, u128 log and proved actual-C oracles, deriving
+the input relation from storage rather than assuming it. It returns the exact
+stored limbs, tight bounds, ownership, numeric product, startup preservation
+and memory frame. The constant is never made writable in the proof.
+
+`jet_secp_swu_initial.exec_swu_initial` composes the actual helper's first two
+calls (`wd=t^2; x1=negc*wd`), identified in its unchanged body by
+`swu_initial_source`. It derives both calls from owned caller storage, retains
+the input, all three owned fields, exact product, result bounds, startup state
+and old-memory framing. Its C execution inherits the usual six assumptions;
+there is no extra execution, result or external-helper premise at this prefix.
+
+Next continue **that same body** from `swu_after_initial`: the `x3d=wd` struct
+copy, multiply by 3, magnitude-3 negation, add 8 to wd, multiply the joint
+denominator and invoke the already-proved original inversion with explicit
+ctz steps. The rest of the candidate calls, roots, conditional moves, point
+setup, parity correction, helper allocations/frees and public wrapper remain
+open. This prefix is not public SWU coverage: the count stays 514/533. Build
+and recursively check using `C/jet_secp_swu_initial.vo` /
+`C.jet_secp_swu_initial`, and compare focused assumption/contract records for
+`jet_secp_swu_startup`, `jet_secp_swu_constant_product` and `jet_secp_swu_initial`.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
