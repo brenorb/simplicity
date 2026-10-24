@@ -1119,6 +1119,30 @@ JET_TARGETS="C/jet_clight_temp_frame.vo C/jet_secp_div62_invariant.vo" bash Coq/
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_clight_temp_frame C.jet_secp_div62_invariant
 ```
 
+## Canonical matrix stores and eta return (internal progress, no added coverage)
+
+`jet_secp_div62_exit.exec_div62_exit` executes the original four final
+matrix stores and eta return from the terminal 62-step invariant. Each
+stored word's **signed value** is exactly the corresponding coefficient
+of `Trans.transN 62 start`, and the returned word's signed value is the
+canonical final eta. The coefficient ranges are derived from
+`Trans.bounded_transN`, and eta's range from `etaBounds`; no signed-value
+or representability premise is added for those outputs. Freeable ownership
+of the 32-byte matrix is retained, and other memory blocks are framed.
+
+The theorem reuses `exec_div62_finish` on the unchanged original stores.
+It starts with the terminal invariant, so it does not claim that the
+enclosing loop has executed or the CTZ builtin has returned the expected
+counts. Together with the entry and post-count results this supplies the
+canonical end-state/store boundary; actual full-loop/function execution,
+the CTZ dependency and public inverse composition remain unfinished.
+Coverage stays 514/533, with no new external model or public registration.
+
+```sh
+JET_TARGETS=C/jet_secp_div62_exit.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_div62_exit
+```
+
 ## Reproduction and limits
 
 With the pinned dependencies from `Coq/JET_BUILD.md`:
