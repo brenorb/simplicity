@@ -18,36 +18,53 @@ Lemma inv_field_modulus_nonzero : feP<>0.
 Proof. unfold feP,feR;lia. Qed.
 Lemma inv_batch_coprime : rel_prime feP (2^62).
 Proof. apply Zgcd_1_rel_prime;vm_compute;reflexivity. Qed.
-Lemma inv_cancel_batch a b : (2^62*a) mod feP=(2^62*b) mod feP -> a mod feP=b mod feP.
+Lemma inv_cancel_batch_modulus M a b : M<>0 -> rel_prime M (2^62) ->
+ (2^62*a) mod M=(2^62*b) mod M -> a mod M=b mod M.
 Proof.
- intro Same.
- assert (Divide : (feP | 2^62*(a-b))).
- { apply Z.mod_divide;[exact inv_field_modulus_nonzero|].
+ intros Nonzero Coprime Same.
+ assert (Divide : (M | 2^62*(a-b))).
+ { apply Z.mod_divide;[exact Nonzero|].
    replace (2^62*(a-b)) with (2^62*a-2^62*b) by ring.
    rewrite Zminus_mod,Same,Z.sub_diag,Zmod_0_l;reflexivity. }
- destruct (Gauss feP (2^62) (a-b) Divide inv_batch_coprime) as (k & Equal).
- replace a with (b+k*feP) by lia;apply Z_mod_plus_full.
+ destruct (Gauss M (2^62) (a-b) Divide Coprime) as (k & Equal).
+ replace a with (b+k*M) by lia;apply Z_mod_plus_full.
+Qed.
+Lemma inv_cancel_batch a b : (2^62*a) mod feP=(2^62*b) mod feP -> a mod feP=b mod feP.
+Proof. exact(inv_cancel_batch_modulus feP a b inv_field_modulus_nonzero inv_batch_coprime). Qed.
+
+Lemma inv_linear_mod_modulus M value d e f g u v : (value*d) mod M=f mod M ->
+ (value*e) mod M=g mod M ->
+ (value*(u*d+v*e)) mod M=(u*f+v*g) mod M.
+Proof.
+ intros D E.
+ assert (U : (u*(value*d)) mod M=(u*f) mod M).
+ { rewrite <-(Zmult_mod_idemp_r (value*d) u M),D,Zmult_mod_idemp_r;reflexivity. }
+ assert (V : (v*(value*e)) mod M=(v*g) mod M).
+ { rewrite <-(Zmult_mod_idemp_r (value*e) v M),E,Zmult_mod_idemp_r;reflexivity. }
+ replace (value*(u*d+v*e)) with (u*(value*d)+v*(value*e)) by ring.
+ rewrite (Zplus_mod (u*(value*d)) (v*(value*e)) M),U,V,<-Zplus_mod;reflexivity.
 Qed.
 Lemma inv_linear_mod value d e f g u v : (value*d) mod feP=f mod feP ->
  (value*e) mod feP=g mod feP ->
  (value*(u*d+v*e)) mod feP=(u*f+v*g) mod feP.
+Proof. exact(inv_linear_mod_modulus feP value d e f g u v). Qed.
+
+Lemma inv_scaled_coefficient_modulus M value dnew fnew drow frow correction :
+ M<>0 -> rel_prime M (2^62) ->
+ 2^62*dnew=drow+M*correction -> 2^62*fnew=frow ->
+ (value*drow) mod M=frow mod M -> (value*dnew) mod M=fnew mod M.
 Proof.
- intros D E.
- assert (U : (u*(value*d)) mod feP=(u*f) mod feP).
- { rewrite <-(Zmult_mod_idemp_r (value*d) u feP),D,Zmult_mod_idemp_r;reflexivity. }
- assert (V : (v*(value*e)) mod feP=(v*g) mod feP).
- { rewrite <-(Zmult_mod_idemp_r (value*e) v feP),E,Zmult_mod_idemp_r;reflexivity. }
- replace (value*(u*d+v*e)) with (u*(value*d)+v*(value*e)) by ring.
- rewrite (Zplus_mod (u*(value*d)) (v*(value*e)) feP),U,V,<-Zplus_mod;reflexivity.
+ intros Nonzero Coprime DE FG Link;apply(inv_cancel_batch_modulus M _ _ Nonzero Coprime).
+ replace (2^62*(value*dnew)) with (value*(2^62*dnew)) by ring;rewrite DE.
+ replace (value*(drow+M*correction)) with (value*drow+(value*correction)*M) by ring.
+ rewrite Z_mod_plus_full,Link,FG;reflexivity.
 Qed.
 Lemma inv_scaled_coefficient value dnew fnew drow frow correction :
  2^62*dnew=drow+feP*correction -> 2^62*fnew=frow ->
  (value*drow) mod feP=frow mod feP -> (value*dnew) mod feP=fnew mod feP.
 Proof.
- intros DE FG Link;apply inv_cancel_batch.
- replace (2^62*(value*dnew)) with (value*(2^62*dnew)) by ring;rewrite DE.
- replace (value*(drow+feP*correction)) with (value*drow+(value*correction)*feP) by ring.
- rewrite Z_mod_plus_full,Link,FG;reflexivity.
+ exact(inv_scaled_coefficient_modulus feP value dnew fnew drow frow correction
+   inv_field_modulus_nonzero inv_batch_coprime).
 Qed.
 
 Definition inv_coefficient_link value len rho := forall high,

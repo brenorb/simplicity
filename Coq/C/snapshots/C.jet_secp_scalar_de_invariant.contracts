@@ -1,0 +1,210 @@
+### C.jet_secp_scalar_de_invariant.scalar_inv_batch_coprime
+scalar_inv_batch_coprime
+     : Znumtheory.rel_prime jet_secp_canonical_scalar.canonical_group_order
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+### C.jet_secp_scalar_de_invariant.scalar_inv_modulus_nonzero
+scalar_inv_modulus_nonzero
+     : not (@eq BinNums.Z jet_secp_canonical_scalar.canonical_group_order BinNums.Z0)
+### C.jet_secp_scalar_de_invariant.scalar_de62_matrix_row_bounds
+scalar_de62_matrix_row_bounds
+     : forall (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State) (_ : scalar_de62_matrix_matches rho st)
+         (high : bool), jet_secp_modinv_de_correction_numeric.de62_row_bound rho high
+### C.jet_secp_scalar_de_invariant.scalar_de62_matrix_scaled_state
+scalar_de62_matrix_scaled_state
+     : forall (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State) (high : bool)
+         (_ : scalar_de62_matrix_matches rho st),
+       @eq BinNums.Z
+         (BinInt.Z.mul
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+            match high return BinNums.Z with
+            | true =>
+                divstep.g
+                  (@fst divstep.State (list divstep.Step)
+                     (divstep.stepN (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))) st))
+            | false =>
+                divstep.f
+                  (@fst divstep.State (list divstep.Step)
+                     (divstep.stepN (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))) st))
+            end)
+         (BinInt.Z.add (BinInt.Z.mul (scalar_de62_matrix_u rho high) (divstep.f st))
+            (BinInt.Z.mul (scalar_de62_matrix_v rho high) (divstep.g st)))
+### C.jet_secp_scalar_de_invariant.scalar_de62_next_coefficient_link
+scalar_de62_next_coefficient_link
+     : forall (value : BinNums.Z) (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State)
+         (_ : scalar_de62_matrix_matches rho st) (_ : scalar_de62_coefficient_link value rho st)
+         (_ : forall high : bool,
+              @eq BinNums.Z
+                (BinInt.Z.mul
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                   (jet_secp_modinv_de_numeric.de62_input_value (jet_secp_scalar_de_revalue.scalar_de62_next_rho rho)
+                      high))
+                (BinInt.Z.add (jet_secp_modinv_de_numeric.de62_matrix_value rho high)
+                   (BinInt.Z.mul jet_secp_canonical_scalar.canonical_group_order
+                      (jet_secp_scalar_de_numeric.scalar_de62_correction_value rho high)))),
+       scalar_de62_coefficient_link value (jet_secp_scalar_de_revalue.scalar_de62_next_rho rho)
+         (@fst divstep.State (list divstep.Step)
+            (divstep.stepN (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))) st))
+### C.jet_secp_scalar_de_invariant.scalar_de62_zero_matrix_row
+scalar_de62_zero_matrix_row
+     : forall (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State)
+         (_ : @eq BinNums.Z (divstep.g st) BinNums.Z0) (_ : scalar_de62_matrix_matches rho st),
+       and
+         (@eq BinNums.Z (scalar_de62_matrix_u rho false)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (@eq BinNums.Z (scalar_de62_matrix_v rho false) BinNums.Z0)
+### C.jet_secp_scalar_de_invariant.scalar_de62_zero_coefficient
+scalar_de62_zero_coefficient
+     : forall (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State)
+         (_ : @eq BinNums.Z (divstep.g st) BinNums.Z0) (_ : scalar_de62_matrix_matches rho st)
+         (_ : @eq BinNums.Z
+                (BinInt.Z.mul
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                   (jet_secp_modinv_de_numeric.de62_input_value (jet_secp_scalar_de_revalue.scalar_de62_next_rho rho)
+                      false))
+                (BinInt.Z.add (jet_secp_modinv_de_numeric.de62_matrix_value rho false)
+                   (BinInt.Z.mul jet_secp_canonical_scalar.canonical_group_order
+                      (jet_secp_scalar_de_numeric.scalar_de62_correction_value rho false)))),
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (jet_secp_modinv_de_numeric.de62_input_value (jet_secp_scalar_de_revalue.scalar_de62_next_rho rho) false)
+            jet_secp_canonical_scalar.canonical_group_order)
+         (BinInt.Z.modulo (jet_secp_modinv_de_numeric.de62_input_value rho false)
+            jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_scalar_de_invariant.eval_scalar_de_invariant
+eval_scalar_de_invariant
+     : forall (value : BinNums.Z) (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State)
+         (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta jet_secp_scalar_de_exec.scalar_de62_regs m)
+         (_ : jet_secp_scalar_de_ranges.scalar_de62_state_bounds rho) (_ : scalar_de62_matrix_matches rho st)
+         (_ : scalar_de62_coefficient_link value rho st),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_update_de_62)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O)))))
+                        (@cons Values.val
+                           (Values.Vptr (jet_sx_state.blk beta (S (S (S O))))
+                              (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S (S O))))))
+                           (@nil Values.val))))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep (jet_secp_scalar_de_revalue.scalar_de62_next_rho rho) beta
+                  jet_secp_scalar_de_exec.scalar_de62_regs mf)
+               (and
+                  (jet_secp_scalar_de_ranges.scalar_de62_state_bounds
+                     (jet_secp_scalar_de_revalue.scalar_de62_next_rho rho))
+                  (and
+                     (scalar_de62_coefficient_link value (jet_secp_scalar_de_revalue.scalar_de62_next_rho rho)
+                        (@fst divstep.State (list divstep.Step)
+                           (divstep.stepN (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))) st)))
+                     (and
+                        (forall _ : @eq BinNums.Z (divstep.g st) BinNums.Z0,
+                         @eq BinNums.Z
+                           (BinInt.Z.modulo
+                              (jet_secp_modinv_de_numeric.de62_input_value
+                                 (jet_secp_scalar_de_revalue.scalar_de62_next_rho rho) false)
+                              jet_secp_canonical_scalar.canonical_group_order)
+                           (BinInt.Z.modulo (jet_secp_modinv_de_numeric.de62_input_value rho false)
+                              jet_secp_canonical_scalar.canonical_group_order))
+                        (and
+                           (forall high : bool,
+                            and
+                              (@eq BinNums.Z
+                                 (BinInt.Z.mul
+                                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                       (BinNums.Zpos
+                                          (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                                    (jet_secp_modinv_de_numeric.de62_input_value
+                                       (jet_secp_scalar_de_revalue.scalar_de62_next_rho rho) high))
+                                 (BinInt.Z.add (jet_secp_modinv_de_numeric.de62_matrix_value rho high)
+                                    (BinInt.Z.mul jet_secp_canonical_scalar.canonical_group_order
+                                       (jet_secp_scalar_de_numeric.scalar_de62_correction_value rho high))))
+                              (@eq BinNums.Z
+                                 (BinInt.Z.modulo
+                                    (BinInt.Z.sub
+                                       (BinInt.Z.mul
+                                          (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                                          (jet_secp_modinv_de_numeric.de62_input_value
+                                             (jet_secp_scalar_de_revalue.scalar_de62_next_rho rho) high))
+                                       (jet_secp_modinv_de_numeric.de62_matrix_value rho high))
+                                    jet_secp_canonical_scalar.canonical_group_order) BinNums.Z0))
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (ofs : BinNums.Z) =>
+                               not
+                                 (jet_sx_state.foot beta
+                                    (@List.map jet_sx_state.region
+                                       (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                       jet_sx_state.rshape jet_secp_scalar_de_exec.scalar_de62_regs) b ofs)) m mf)))))))
+### C.jet_secp_scalar_de_invariant.scalar_de62_matrix_u
+scalar_de62_matrix_u =
+fun (rho : forall _ : nat, Integers.Int64.int) (high : bool) =>
+Integers.Int64.signed
+  (rho
+     match high return nat with
+     | true => S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+     | false => S (S (S (S (S (S (S (S (S (S O)))))))))
+     end)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool), BinNums.Z
+
+Arguments scalar_de62_matrix_u rho%function_scope high%bool_scope
+### C.jet_secp_scalar_de_invariant.scalar_de62_matrix_v
+scalar_de62_matrix_v =
+fun (rho : forall _ : nat, Integers.Int64.int) (high : bool) =>
+Integers.Int64.signed
+  (rho
+     match high return nat with
+     | true => S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+     | false => S (S (S (S (S (S (S (S (S (S (S O))))))))))
+     end)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool), BinNums.Z
+
+Arguments scalar_de62_matrix_v rho%function_scope high%bool_scope
+### C.jet_secp_scalar_de_invariant.scalar_de62_matrix_matches
+scalar_de62_matrix_matches =
+fun (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State) =>
+and
+  (@eq BinNums.Z (scalar_de62_matrix_u rho false)
+     (divstep.Trans.u
+        (divstep.Trans.transN (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))) st)))
+  (and
+     (@eq BinNums.Z (scalar_de62_matrix_v rho false)
+        (divstep.Trans.v
+           (divstep.Trans.transN (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))) st)))
+     (and
+        (@eq BinNums.Z (scalar_de62_matrix_u rho true)
+           (divstep.Trans.q
+              (divstep.Trans.transN (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))) st)))
+        (@eq BinNums.Z (scalar_de62_matrix_v rho true)
+           (divstep.Trans.r
+              (divstep.Trans.transN (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))) st)))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : divstep.State), Prop
+
+Arguments scalar_de62_matrix_matches rho%function_scope st
+### C.jet_secp_scalar_de_invariant.scalar_de62_coefficient_link
+scalar_de62_coefficient_link =
+fun (value : BinNums.Z) (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State) =>
+forall high : bool,
+@eq BinNums.Z
+  (BinInt.Z.modulo (BinInt.Z.mul value (jet_secp_modinv_de_numeric.de62_input_value rho high))
+     jet_secp_canonical_scalar.canonical_group_order)
+  (BinInt.Z.modulo match high return BinNums.Z with
+                   | true => divstep.g st
+                   | false => divstep.f st
+                   end jet_secp_canonical_scalar.canonical_group_order)
+     : forall (_ : BinNums.Z) (_ : forall _ : nat, Integers.Int64.int) (_ : divstep.State), Prop
+
+Arguments scalar_de62_coefficient_link value%Z_scope rho%function_scope st
