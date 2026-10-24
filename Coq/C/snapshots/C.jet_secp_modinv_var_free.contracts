@@ -1,0 +1,202 @@
+### C.jet_secp_modinv_var_free.inv_local_lookup
+inv_local_lookup
+     : forall (id : AST.ident) (r : nat) (ty : Ctypes.type)
+         (_ : @eq (option (prod nat Ctypes.type))
+                (jet_sx_eval.vlookup
+                   (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) id)
+                (@Some (prod nat Ctypes.type) (@pair nat Ctypes.type r ty))),
+       and (and (le (S (S O)) r) (lt r (S (S (S (S (S (S (S O)))))))))
+         (and (@eq BinNums.Z (Ctypes.sizeof (Clight.genv_cenv jet_secp_linkage.secp_ge) ty) (inv_local_size r))
+            (@eq AST.ident id (inv_local_id r)))
+### C.jet_secp_modinv_var_free.inv_local_owned
+inv_local_owned
+     : forall (r : nat) (_ : and (le (S (S O)) r) (lt r (S (S (S (S (S (S (S O))))))))),
+       @eq (option BinNums.Z)
+         (jet_sx_state.rfree
+            (@List.nth jet_sx_state.region r jet_secp_modinv_var_de.inv_loop_regs
+               (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))))
+         (@Some BinNums.Z (inv_local_size r))
+### C.jet_secp_modinv_var_free.inv_finish_locals_freeable
+inv_finish_locals_freeable
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m mf : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_var_de.inv_loop_regs m)
+         (_ : @eq Values.block (jet_sx_state.blk beta (S O)) jet_secp_modinfo_fe_global.modinfo_fe_block)
+         (_ : Memory.Mem.range_perm mf (jet_sx_state.blk beta (S (S O))) BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (ofs : BinNums.Z) =>
+                 and
+                   (jet_secp_modinv_normalize62_exec.norm62_outside (jet_sx_state.blk beta (S (S O)))
+                      jet_secp_modinfo_fe_global.modinfo_fe_block b ofs)
+                   (not (@eq Values.block b (jet_sx_state.blk beta O)))) m mf) (r : nat)
+         (_ : and (le (S (S O)) r) (lt r (S (S (S (S (S (S (S O))))))))),
+       Memory.Mem.range_perm mf (jet_sx_state.blk beta r) BinNums.Z0 (inv_local_size r) Memtype.Cur Memtype.Freeable
+### C.jet_secp_modinv_var_free.inv_free_env_blocks
+inv_free_env_blocks
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta jet_secp_modinv_var_de.inv_loop_regs m)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e),
+       and
+         (forall (b : Values.block) (lo hi : BinNums.Z)
+            (_ : @List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                   (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z b lo) hi)
+                   (Clight.blocks_of_env jet_secp_linkage.secp_ge e)),
+          @ex nat
+            (fun r : nat =>
+             and (and (le (S (S O)) r) (lt r (S (S (S (S (S (S (S O)))))))))
+               (and (@eq Values.block b (jet_sx_state.blk beta r))
+                  (and (@eq BinNums.Z lo BinNums.Z0) (@eq BinNums.Z hi (inv_local_size r))))))
+         (@Coqlib.list_norepet Values.block
+            (@List.map (prod (prod Values.block BinNums.Z) BinNums.Z) Values.block
+               (fun x : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                @fst Values.block BinNums.Z (@fst (prod Values.block BinNums.Z) BinNums.Z x))
+               (Clight.blocks_of_env jet_secp_linkage.secp_ge e)))
+### C.jet_secp_modinv_var_free.inv_free_not_listed
+inv_free_not_listed
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (m : Memory.Mem.mem) (b : Values.block) (_ : jet_sx_state.rep rho beta jet_secp_modinv_var_de.inv_loop_regs m)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : inv_free_outside beta b),
+       not
+         (@List.In Values.block b
+            (@List.map (prod (prod Values.block BinNums.Z) BinNums.Z) Values.block
+               (fun x : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                @fst Values.block BinNums.Z (@fst (prod Values.block BinNums.Z) BinNums.Z x))
+               (Clight.blocks_of_env jet_secp_linkage.secp_ge e)))
+### C.jet_secp_modinv_var_free.inv_free_actual_locals
+inv_free_actual_locals
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (m mf : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta jet_secp_modinv_var_de.inv_loop_regs m)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : @eq Values.block (jet_sx_state.blk beta (S O)) jet_secp_modinfo_fe_global.modinfo_fe_block)
+         (_ : Memory.Mem.range_perm mf (jet_sx_state.blk beta (S (S O))) BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (ofs : BinNums.Z) =>
+                 and
+                   (jet_secp_modinv_normalize62_exec.norm62_outside (jet_sx_state.blk beta (S (S O)))
+                      jet_secp_modinfo_fe_global.modinfo_fe_block b ofs)
+                   (not (@eq Values.block b (jet_sx_state.blk beta O)))) m mf),
+       @ex Memory.Mem.mem
+         (fun mr : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem) (Memory.Mem.free_list mf (Clight.blocks_of_env jet_secp_linkage.secp_ge e))
+               (@Some Memory.Mem.mem mr))
+            (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => inv_free_outside beta b) mf mr))
+### C.jet_secp_modinv_var_free.exec_inv_finish_and_free
+exec_inv_finish_and_free
+     : forall (len : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta jet_secp_modinv_var_de.inv_loop_regs m)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : @eq Values.block (jet_sx_state.blk beta (S O)) jet_secp_modinfo_fe_global.modinfo_fe_block)
+         (_ : @eq BinNums.Z (jet_sx_state.bas beta (S O)) BinNums.Z0)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._len le0)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat len)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._modinfo le0)
+                (@Some Values.val
+                   (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._x le0)
+                (@Some Values.val (Values.Vptr (jet_sx_state.blk beta O) Integers.Ptrofs.zero)))
+         (_ : jet_secp_modinv_de_numeric.de62_state_bounds (jet_secp_modinv_var_de.inv_de_rho rho)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mr : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m jet_secp_modinv_var_finish.inv_finish
+                  Events.E0 (jet_secp_modinv_var_finish.inv_finish_temps len rho le0) mf ClightBigstep.Out_normal)
+               (and
+                  (@eq (option Memory.Mem.mem)
+                     (Memory.Mem.free_list mf (Clight.blocks_of_env jet_secp_linkage.secp_ge e))
+                     (@Some Memory.Mem.mem mr))
+                  (and
+                     (jet_secp_fe_nv.fe_at mr (jet_sx_state.blk beta O) BinNums.Z0
+                        (jet_secp_multiply_normalize_bridge.words5
+                           (jet_secp_modinv_var_finish.inv_finish_words len rho)))
+                     (and
+                        (jet_secp_signed62_numeric.signed62_normalized
+                           (jet_secp_modinv_var_finish.inv_finish_words len rho))
+                        (and
+                           (@eq BinNums.Z
+                              (jet_secp_signed62_numeric.signed62_unsigned_value
+                                 (jet_secp_modinv_var_finish.inv_finish_words len rho))
+                              (BinInt.Z.modulo
+                                 (BinInt.Z.mul
+                                    match
+                                      Integers.Int64.lt (jet_secp_modinv_var_finish.inv_finish_sign len rho)
+                                        Integers.Int64.zero return BinNums.Z
+                                    with
+                                    | true => BinNums.Zneg BinNums.xH
+                                    | false => BinNums.Zpos BinNums.xH
+                                    end
+                                    (jet_secp_modinv_de_numeric.de62_input_value
+                                       (jet_secp_modinv_var_de.inv_de_rho rho) false)) jet_secp_fe_math.feP))
+                           (and
+                              (Memory.Mem.range_perm mr (jet_sx_state.blk beta O) BinNums.Z0
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                 Memtype.Cur Memtype.Freeable)
+                              (and (jet_secp_modinfo_fe_global.modinfo_fe_global_rep mr)
+                                 (jet_sx_mem.lframe
+                                    (fun (b : Values.block) (ofs : BinNums.Z) =>
+                                     and
+                                       (jet_secp_modinv_normalize62_exec.norm62_outside
+                                          (jet_sx_state.blk beta (S (S O))) jet_secp_modinfo_fe_global.modinfo_fe_block
+                                          b ofs)
+                                       (and (not (@eq Values.block b (jet_sx_state.blk beta O)))
+                                          (inv_free_outside beta b))) m mr)))))))))
+### C.jet_secp_modinv_var_free.inv_local_size
+inv_local_size =
+fun r : nat =>
+match PeanoNat.Nat.eqb r (S (S (S (S (S (S O)))))) return BinNums.Z with
+| true => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+| false => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+end
+     : forall _ : nat, BinNums.Z
+
+Arguments inv_local_size r%nat_scope
+### C.jet_secp_modinv_var_free.inv_local_id
+inv_local_id =
+fun r : nat =>
+match r return AST.ident with
+| O => jets_secp._t
+| S n =>
+    match n return AST.ident with
+    | O => jets_secp._t
+    | S n0 =>
+        match n0 return AST.ident with
+        | O => jets_secp._d
+        | S n1 =>
+            match n1 return AST.ident with
+            | O => jets_secp._e
+            | S n2 =>
+                match n2 return AST.ident with
+                | O => jets_secp._f
+                | S n3 => match n3 return AST.ident with
+                          | O => jets_secp._g
+                          | S _ => jets_secp._t
+                          end
+                end
+            end
+        end
+    end
+end
+     : forall _ : nat, AST.ident
+
+Arguments inv_local_id r%nat_scope
+### C.jet_secp_modinv_var_free.inv_free_outside
+inv_free_outside =
+fun (beta : jet_sx_state.layout) (b : Values.block) =>
+forall (r : nat) (_ : and (le (S (S O)) r) (lt r (S (S (S (S (S (S (S O))))))))),
+not (@eq Values.block b (jet_sx_state.blk beta r))
+     : forall (_ : jet_sx_state.layout) (_ : Values.block), Prop
+
+Arguments inv_free_outside beta b

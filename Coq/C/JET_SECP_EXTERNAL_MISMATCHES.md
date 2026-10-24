@@ -608,6 +608,26 @@ the complete loop invariant, divstep execution and termination, and the
 whole-function allocation/return/free composition remains open. This
 finishing-path result alone adds no public jet coverage.
 
+`jet_secp_modinv_var_free.exec_inv_finish_and_free` executes the finishing
+statements and proves that CompCert's actual `free_list` on
+`blocks_of_env secp_ge e` succeeds. The five local blocks, their sizes and
+their non-duplication are derived from the real caller environment and
+generated allocation map. The needed final permissions come from the
+checked normalization/copy-back result and its memory frame, not a new
+permission or execution premise.
+
+The canonical output in `x`, its unsigned modular-value relation and its
+ownership survive local reclamation; the complete modulus-global readiness
+and the external memory frame also survive. The local `d` object is freed
+and is deliberately not claimed as live output afterward. The helper uses
+only the six inherited execution assumptions and no external-library model.
+
+This closes local reclamation after the finishing path, not the entire
+inverse call. The actual entry, complete divstep/loop execution, invariant
+and termination still need composition, including the argument that the
+normalized coefficient is the requested inverse. No public jet coverage
+is added by this internal finishing-and-freeing theorem.
+
 ```sh
 JET_TARGETS="C/jet_sx_void_oracle.vo C/jet_secp_modinv_fg_index.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sx_void_oracle C.jet_secp_modinv_fg_index
@@ -659,6 +679,8 @@ JET_TARGETS=C/jet_secp_modinv_var_tail.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_tail
 JET_TARGETS=C/jet_secp_modinv_var_finish.vo bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_finish
+JET_TARGETS=C/jet_secp_modinv_var_free.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_modinv_var_free
 ```
 
 ## Reproduction and limits
