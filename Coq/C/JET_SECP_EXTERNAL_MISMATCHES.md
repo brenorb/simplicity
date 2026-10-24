@@ -899,16 +899,41 @@ application calls.
 These are execution/representation prefixes, not a full nested call or a
 finite public-jet equivalence. Complete modular inversion,
 its canonical inverse correspondence, finite suffix/call/return composition
-and public cleanup remain required. In particular, the existing
-`exec_fe_inv_unpack_and_free` handles a base-zero output; the point caller
-still needs unpacking into Z at offset 80 while retaining X/Y and full point
-ownership. This is a proof-interface gap, not a C/specification mismatch.
+and public cleanup remain required.
+
+`jet_secp_signed62_slice.eval_fe_repack_to_slice` now executes both original
+field/signed62 conversions with an arbitrary aligned destination slice.
+The original symbolic expressions and numeric bridges are reused. Slice
+regions no longer pretend to be whole allocations; preservation of all old
+permissions is derived from the actual closed internal helper execution.
+Framing is byte-range-sensitive, including elsewhere in the output block.
+
+`jet_secp_fe_inv_finish.exec_fe_inv_unpack_slice_and_free` composes this
+original conversion call with reclamation of the inverse helper's actual
+two locals. The old base-zero result is a specialization with its unchanged
+contract. `exec_fe_inv_unpack_point_and_free` supplies the Z-at-80 case:
+X/Y and the full 128-byte point ownership survive, the output's bounds and
+exact value are derived from the canonical signed62 input, and only bytes
+80--119 of the point may change. This closes the earlier slice-interface
+gap, not the modular-inverse execution: the canonical signed62 inverse
+result must still be produced by that call before this suffix applies.
+
+`jet_secp_gej_norm_output.exec_inverse_return_normalized_output` immediately
+composes that real Z unpack/free with the checked affine arithmetic, affine
+temporary reclamation and original `write_ge`. It derives the exact literal
+finite normalization encoding and preserves the tag and remaining caller
+ownership. The inverse loop's canonical signed62 output, its inverse-value
+equality and surviving caller invariant remain explicit internal boundary
+conditions; this is not an all-input public jet proof or coverage entry.
+
 No new external model, axiom, target
 change or coverage credit: accepted coverage remains 514/533.
 
 ```sh
 JET_TARGETS="C/jet_secp_gej_norm_infinity.vo C/jet_secp_gej_norm_reads.vo" bash Coq/build-jets.sh -j2
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_gej_norm_infinity C.jet_secp_gej_norm_reads
+JET_TARGETS="C/jet_secp_signed62_slice.vo C/jet_secp_fe_inv_finish.vo C/jet_secp_gej_norm_output.vo" bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_signed62_slice C.jet_secp_fe_inv_finish C.jet_secp_gej_norm_output
 ```
 
 ## Original field-inverse preparation (internal progress, no added coverage)

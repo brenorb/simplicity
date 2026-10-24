@@ -14,6 +14,7 @@ Require Import C.jet_secp_point_write_field C.jet_secp_rescale_writer C.jet_secp
 Require Import C.jet_secp_gej_norm_literal C.jet_secp_gej_negate_literal C.jet_secp_eea_numeric.
 Require Import C.jet_secp_invert_literal C.jet_secp_multiply_checkpoint_columns.
 Require Import C.jet_secp_gej_affine_arithmetic C.jet_secp_gej_affine_finish C.jet_secp_affine_write_prefix.
+Require Import C.jet_secp_fe_inv_finish C.jet_secp_fe_inv_statements C.jet_secp_signed62_numeric C.jet_secp_signed62_repack.
 Import ListNotations Ctypes Values.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -118,4 +119,76 @@ Proof.
     split;[split|split];try assumption.
     unfold affine_arithmetic_frame;intros [[Eq _]|[[Eq _]|[Eq _]]];congruence.
   - intros bx pos (NP & NA & N2 & N3 & NE) Valid;split;assumption.
+Qed.
+
+(** Actual inverse unpack/free through affine arithmetic/free and output.
+    The preceding inverse loop must still supply the canonical signed62
+    result and its inverse-value equality; neither is claimed here. *)
+Theorem exec_inverse_return_normalized_output m0 bd base bw edge cursor N bi (rc:Z)
+    le ile m bp ba b2 b3 bt bs x y w (a b c:Ty.tySem Word256) :
+  write_frame_at m0 bd base bw edge cursor N -> 513<=N ->
+  finv m0 bd base bw edge cursor N bi m true [Some true] ->
+  xsep (extA m0 bd bw bi) [(bp,0);(ba,0);(b2,0);(b3,0);(bt,0);(bs,0)] ->
+  NoDup [bp;ba;b2;b3;bt;bs] ->
+  le!_a=Some(Vptr bp Ptrofs.zero) -> le!_r=Some(Vptr ba Ptrofs.zero) ->
+  ile!_r=Some(Vptr bp(Ptrofs.repr 80)) ->
+  square_input_bounds x -> square_input_bounds y -> signed62_normalized w ->
+  fe_at m bp 0 (words5 x) -> fe_at m bp 40 (words5 y) -> fe_at m bs 0 (words5 w) ->
+  Mem.range_perm m bp 0 128 Cur Freeable -> Mem.range_perm m ba 0 88 Cur Freeable ->
+  Mem.range_perm m b2 0 40 Cur Freeable -> Mem.range_perm m b3 0 40 Cur Freeable ->
+  Mem.range_perm m bt 0 40 Cur Freeable -> Mem.range_perm m bs 0 40 Cur Freeable ->
+  radix_value x mod feP=@toZ (WordToZ 8) a mod feP ->
+  radix_value y mod feP=@toZ (WordToZ 8) b mod feP ->
+  signed62_unsigned_value w=literal_invert_numeric(@toZ (WordToZ 8) c) ->
+  exists mu mr mx ma mf,
+  Clight2.exec_stmt secp_ge (fe_inv_env bt bs) ile m fe_inv_unpack E0 ile mu Out_normal /\
+  Mem.free_list mu (blocks_of_env secp_ge (fe_inv_env bt bs))=Some mr /\
+  Clight2.exec_stmt secp_ge (affine_local_env b2 b3) le mr
+    (affine_arithmetic_context affine_finish_statement) E0 le mx Out_normal /\
+  Mem.free_list mx (blocks_of_env secp_ge (affine_local_env b2 b3))=Some ma /\
+  Clight2.eval_funcall secp_ge ma (Internal f_write_ge)
+    [Vptr bd(Ptrofs.repr base);Vptr ba Ptrofs.zero] E0 mf Vundef /\
+  finv m0 bd base bw edge cursor N bi mf true
+    ([Some true]++Simplicity.Translate.encode(@literal_gej_norm Alg.CoreFunSem ((a,b),c))) /\
+  Mem.range_perm mf bp 0 128 Cur Freeable /\ Mem.range_perm mf ba 0 88 Cur Freeable /\
+  lframe (fun bx _=>bx<>bp /\ bx<>ba /\ bx<>b2 /\ bx<>b3 /\ bx<>bt /\ bx<>bs /\ ~extA m0 bd bw bi bx) m mf.
+Proof.
+  intros Output Cap Prefix Sep Distinct HA HR IR BX BY Normal X Y Packed FP FA F2 F3 FT FS RX RY RI.
+  assert(Pairs:bp<>b2 /\ bp<>b3 /\ b2<>b3 /\ ba<>bp /\ ba<>b2 /\ ba<>b3 /\
+    bt<>bs /\ bp<>bt /\ bp<>bs /\ ba<>bt /\ ba<>bs /\ b2<>bt /\ b2<>bs /\ b3<>bt /\ b3<>bs).
+  { repeat rewrite NoDup_cons_iff in Distinct;cbn [In] in Distinct;intuition congruence. }
+  destruct Pairs as (P2 & P3 & N23 & AP & A2 & A3 & TS & PT & PS & AT & AS & T2 & S2 & T3 & S3).
+  destruct(exec_fe_inv_unpack_point_and_free ile m bt bs bp w x y IR TS PT PS Normal Packed X Y FS FT FP)
+    as (mu & mr & Unpack & FreeInv & XR & YR & ZR & FPR & BZ & Value & UnpackFrame).
+  assert(NotP:~extA m0 bd bw bi bp) by (exact(Sep 0%nat ltac:(cbn;lia))).
+  assert(NotT:~extA m0 bd bw bi bt) by (exact(Sep 4%nat ltac:(cbn;lia))).
+  assert(NotS:~extA m0 bd bw bi bs) by (exact(Sep 5%nat ltac:(cbn;lia))).
+  assert(External:eqext m0 bd bw bi m mr).
+  { eapply lframe_implies;[exact UnpackFrame|];intros bx pos Ext Valid.
+    split;[left|split];intro Same;subst bx;contradiction. }
+  assert(PrefixR:finv m0 bd base bw edge cursor N bi mr true [Some true]).
+  { eapply finv_stable;[exact Output|exact Prefix|exact External]. }
+  assert(FAR:Mem.range_perm mr ba 0 88 Cur Freeable).
+  { eapply curve_keep_free;[lia|exact FA|exact UnpackFrame|];intros;split;[left;exact AP|];split;assumption. }
+  assert(F2R:Mem.range_perm mr b2 0 40 Cur Freeable).
+  { eapply curve_keep_free;[lia|exact F2|exact UnpackFrame|];intros;split;[left;congruence|];split;assumption. }
+  assert(F3R:Mem.range_perm mr b3 0 40 Cur Freeable).
+  { eapply curve_keep_free;[lia|exact F3|exact UnpackFrame|];intros;split;[left;congruence|];split;assumption. }
+  assert(SepAffine:xsep (extA m0 bd bw bi) [(bp,0);(ba,0);(b2,0);(b3,0)]).
+  { intros [|[|[|[|i]]]] Bound;
+      [exact(Sep 0%nat ltac:(cbn;lia))|exact(Sep 1%nat ltac:(cbn;lia))|
+       exact(Sep 2%nat ltac:(cbn;lia))|exact(Sep 3%nat ltac:(cbn;lia))|cbn in Bound;lia]. }
+  assert(Inverse:radix_value(fe_repack_words false w) mod feP=
+    literal_invert_numeric(@toZ (WordToZ 8) c) mod feP) by (rewrite Value,RI;reflexivity).
+  destruct(exec_affine_normalized_output m0 bd base bw edge cursor N bi rc le mr bp ba b2 b3
+    x y (fe_repack_words false w) a b c Output Cap PrefixR SepAffine HA HR P2 P3 N23 AP A2 A3
+    BX BY BZ XR YR ZR FPR FAR F2R F3R RX RY Inverse)
+    as (mx & ma & mf & Affine & FreeAffine & Write & Final & FPF & FAF & AffineFrame).
+  assert(Whole:lframe (fun bx _=>bx<>bp /\ bx<>ba /\ bx<>b2 /\ bx<>b3 /\ bx<>bt /\ bx<>bs /\ ~extA m0 bd bw bi bx) m mf).
+  { eapply lframe_trans.
+    - eapply lframe_implies;[exact UnpackFrame|];intros bx pos (NP & NA & N2 & N3 & NT & NS & NE) Valid.
+      split;[left;exact NP|];split;assumption.
+    - eapply lframe_implies;[exact AffineFrame|];intros bx pos (NP & NA & N2 & N3 & NT & NS & NE) Valid.
+      repeat split;assumption. }
+  exists mu,mr,mx,ma,mf;repeat first[assumption|split].
 Qed.
