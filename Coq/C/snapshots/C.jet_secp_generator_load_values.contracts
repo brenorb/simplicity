@@ -1,0 +1,103 @@
+### C.jet_secp_generator_load_values.generator_zreg_den
+generator_zreg_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (bnd : forall _ : nat, prod BinNums.Z BinNums.Z)
+         (beta : forall _ : nat, prod Values.block BinNums.Z) (cs : list jet_sx_state.cell)
+         (_ : forall n : nat,
+              and (BinInt.Z.le (@fst BinNums.Z BinNums.Z (bnd n)) (Integers.Int64.unsigned (rho n)))
+                (BinInt.Z.le (Integers.Int64.unsigned (rho n)) (@snd BinNums.Z BinNums.Z (bnd n))))
+         (ofs : BinNums.Z) (_ : @eq bool (jet_sx_zrep.zreg_okb bnd ofs cs) true),
+       @eq (list Values.val)
+         (@List.map jet_sx_state.cell Values.val
+            (fun c : jet_sx_state.cell =>
+             jet_sx_expr.den rho beta
+               match jet_sx_state.cval c return jet_sx_expr.sx with
+               | Some x => x
+               | None => jet_sx_expr.XL Integers.Int64.zero
+               end) cs)
+         (@List.map BinNums.Z Values.val (fun z : BinNums.Z => Values.Vlong (Integers.Int64.repr z))
+            (jet_sx_zrep.zcells (jet_sx_zval.zrho rho) cs))
+### C.jet_secp_generator_load_values.generator_field_den
+generator_field_den
+     : forall (bytes : list BinNums.Z) (beta : jet_sx_state.layout)
+         (_ : @eq nat (@length BinNums.Z bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @List.Forall BinNums.Z
+                (fun x : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 x)
+                   (BinInt.Z.le x
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val
+            (jet_sx_expr.den (jet_secp_b32_exec.byte_rho bytes) (jet_sx_state.lay beta))
+            jet_secp_generator_load.generator_field_exprs)
+         (@List.map Integers.Int64.int Values.val Values.Vlong
+            (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+               (jet_secp_fe_math.fe_limbs_of (jet_secp_fe_math.be_val bytes))))
+### C.jet_secp_generator_load_values.generator_pair_bound
+generator_pair_bound
+     : forall (xs ys : list BinNums.Z)
+         (_ : @List.Forall BinNums.Z
+                (fun x : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 x)
+                   (BinInt.Z.le x
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                xs)
+         (_ : @List.Forall BinNums.Z
+                (fun y : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 y)
+                   (BinInt.Z.le y
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                ys) (n : nat),
+       and
+         (BinInt.Z.le (@fst BinNums.Z BinNums.Z (jet_secp_b32_exec.byte_bnd n))
+            (Integers.Int64.unsigned (generator_byte_pair xs ys n)))
+         (BinInt.Z.le (Integers.Int64.unsigned (generator_byte_pair xs ys n))
+            (@snd BinNums.Z BinNums.Z (jet_secp_b32_exec.byte_bnd n)))
+### C.jet_secp_generator_load_values.generator_pair_left
+generator_pair_left
+     : forall (xs ys : list BinNums.Z) (beta : jet_sx_state.layout),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den (generator_byte_pair xs ys) (jet_sx_state.lay beta))
+            jet_secp_generator_load.generator_field_exprs)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den (jet_secp_b32_exec.byte_rho xs) (jet_sx_state.lay beta))
+            jet_secp_generator_load.generator_field_exprs)
+### C.jet_secp_generator_load_values.generator_pair_right
+generator_pair_right
+     : forall (xs ys : list BinNums.Z) (beta : jet_sx_state.layout),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den (generator_byte_pair xs ys) (jet_sx_state.lay beta))
+            (@List.map jet_sx_expr.sx jet_sx_expr.sx
+               (jet_sx_rename.sx_rename
+                  (fun n : nat => Nat.add n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))
+               jet_secp_generator_load.generator_field_exprs))
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den (jet_secp_b32_exec.byte_rho ys) (jet_sx_state.lay beta))
+            jet_secp_generator_load.generator_field_exprs)
+### C.jet_secp_generator_load_values.generator_pair_as_bytes
+generator_pair_as_bytes
+     : forall (xs ys : list BinNums.Z)
+         (_ : @eq nat (@length BinNums.Z xs)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (n : nat),
+       @eq Integers.Int64.int (generator_byte_pair xs ys n) (jet_secp_b32_exec.byte_rho (@app BinNums.Z xs ys) n)
+### C.jet_secp_generator_load_values.generator_byte_pair
+generator_byte_pair =
+fun (xs ys : list BinNums.Z) (n : nat) =>
+match
+  PeanoNat.Nat.ltb n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))
+  return Integers.Int64.int
+with
+| true => jet_secp_b32_exec.byte_rho xs n
+| false =>
+    jet_secp_b32_exec.byte_rho ys
+      (Nat.sub n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))
+end
+     : forall (_ : list BinNums.Z) (_ : list BinNums.Z) (_ : nat), Integers.Int64.int
+
+Arguments generator_byte_pair (xs ys)%list_scope n%nat_scope

@@ -2487,6 +2487,71 @@ and kernel check with
 `jet_secp_swu_function` and `jet_secp_swu_public_{boundary,body,rest,call}` /
 `jet_secp_swu_local`.
 
+## Active `hash_to_curve` frontier
+
+The exact public target is `f_simplicity_hash_to_curve` against Haskell's
+`hash_to_curve = assert hash_to_curve_core` (LibSecp256k1.hs:729--742,
+836--837). No previous generator load/save execution proof was found in
+the current ordinary or experimental Coq sources. Its main path is input
+byte reading, `generator_generate` with NULL blinding, two prefixed SHA
+computations and two SWU calls, mixed addition and affine conversion,
+generator save, generator load and affine writing. The SHA functions are
+internal in the frozen secp unit; reuse/transport their existing proofs,
+not a different generated program or an external SHA oracle.
+
+`jet_secp_generator_load` now executes the entire original
+`secp256k1_generator_load`, including both set_b32 calls, retained verification
+loops, ignored conversion flags and infinity=0 store. It reuses the original
+symbolic executor and the existing set_b32 expressions. The source is the
+actual owned 64-byte local generator, not the unrelated readonly generator
+tables used by ecmult. Neither source nor output is assumed initialized
+beyond the source byte loads.
+
+`jet_secp_generator_load_values` reuses `sb_output_numeric` and its checked
+machine-value bounds for both coordinate halves. `generator_zreg_den` shares
+the denotation bridge for a checked integer-valued cell list, and the paired
+valuation has a proved connection to the physical concatenated byte array.
+`jet_secp_generator_load_storage.eval_generator_load_from_storage` derives
+the actual call from two arbitrary 32-byte halves, initial typed loads and
+separate owned allocations. It returns the exact raw 256-bit X/Y limbs,
+zero infinity flag, both allocations, unchanged source bytes, outside-block
+framing and readonly preservation. There is **no** field-value-less-than-p,
+curve, initialized-output, CTZ or libc premise.
+
+`jet_secp_generator_load_write.eval_generator_load_write` composes this with
+the original affine writer for arbitrary valid destination frames/cursors.
+It derives the exact encoded coordinate pair, ownership, memory frame and
+readonly preservation. Its value lemma identifies each serialized coordinate
+as the corresponding big-endian source integer modulo p. It reuses the
+already checked integer-level limb-list equality and generic affine writer
+from the SWU caller proof, avoiding the normalization-conversion slowdown.
+This is the actual final load/write span, not a whole-public hash_to_curve
+theorem or a registration. Coverage remains 514/533.
+
+Next prove original `generator_save` from arbitrary bounded point storage,
+then carry its actual bytes through the checked final span. For the earlier
+generator caller, retain both SHA-derived set_b32 flags and every original
+operation before its return: C does **not** exit early for a rejected digest.
+The current literal SWU theorem requires the normalized reader form; an
+out-of-range raw digest must instead get a justified execution path with its
+actual oddness, even though the public jet eventually rejects. Do not assume
+both digests are below p to avoid proving the rejection execution.
+
+The sum-at-infinity branch also needs attention before a whole-public claim.
+The canonical program can fail at `gej_normalize`, whereas the C return flag
+only accumulates the two set_b32 results and generator_save's infinity check
+is not a rejecting branch in the frozen AST. No actual input producing this
+state has been exhibited. This is a source-review question, **not a proved
+public mismatch**; exact evidence and limits are in
+[JET_SECP_HASH_TO_CURVE_MISMATCHES.md](JET_SECP_HASH_TO_CURVE_MISMATCHES.md).
+Do not add a non-infinity or hash-preimage restriction to the public theorem.
+
+Reproduce the normal build with
+`JET_TARGETS=C/jet_secp_generator_load_write.vo bash Coq/build-jets.sh -j2`,
+recursive kernel check with `bash Coq/build-jets.sh --coqchk
+-bytecode-compiler yes -silent -o C.jet_secp_generator_load_write`, and the
+existing focused assumption/contract comparisons for these four modules.
+
 ## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
