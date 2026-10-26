@@ -2742,8 +2742,21 @@ call or final global invariant is assumed. The existing bounded `memcpy_model`
 remains explicit, and no coverage is added. Rebuild
 `C/jet_secp_sha_u64_full.vo`, recursively kernel-check
 `C.jet_secp_sha_u64_full`, and compare its focused assumption/contract records.
-Still missing: original finalization of the 48-byte generator message in the
-secp program, global-state preservation through the full caller, and composition
+`jet_secp_sha_finalize48.eval_secp_sha_finalize48` now executes that original
+finalizer for every 48-byte buffered message and every eight-word state.
+The existing proof of all 64 padding-array stores is reused by checked
+statement transport, and both actual absorption callers are composed. The
+theorem includes the original 64-byte array allocation, saved return flag,
+bit-length calculation, padding count, all calls, return conversion and free.
+It derives exactly `SHA256.hash_block regs (be_words (l ++ sha_pad 48))`,
+counter 64, false overflow, unchanged output pointer, ownership, framing,
+readonly and startup preservation. `memcpy_model` remains explicit; no source,
+AST, specification, generation setting or public coverage row is changed.
+Build `C/jet_secp_sha_finalize48.vo`, recursively kernel-check
+`C.jet_secp_sha_finalize48`, and compare its focused records. Still missing:
+the SHA byte-string/specification bridge and composition of initialization,
+prefix/key calls, finalization and digest serialization in each actual
+generator SHA block, global-state preservation through the full caller, and composition
 with the digest mapper and remaining generator/public lifecycle.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
