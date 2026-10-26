@@ -2563,6 +2563,20 @@ arbitrary-valid-cursor output invariant, ownership, memory frame and readonly
 preservation. Every intermediate byte load and frame fact is established by
 the preceding call, not assumed as a postcondition.
 
+`jet_secp_affine_set_infinity.eval_affine_set_infinity_owned` now proves the
+original infinity setter from ownership alone: it stores the flag and invokes
+both actual field-clearing loops, producing zero coordinates and flag 1.
+`jet_secp_affine_infinite.eval_affine_infinite_owned` composes it into the
+whole original `ge_set_gej_var` infinity branch for every nonzero machine
+flag, including both unused local allocations, early return and local frees.
+It preserves source ownership and all pre-existing memory outside the output
+point. Source coordinates need not be initialized. Neither theorem requires
+CTZ, libc behavior or an assumed helper execution. They do not establish that
+hash_to_curve reaches infinity, nor a whole-public result or new coverage.
+Build `C/jet_secp_affine_infinite.vo`, kernel-check
+`C.jet_secp_affine_infinite`, and run the existing focused assumption/contract
+comparisons for both affine infinity modules.
+
 This is a complete serialization span, not execution of the intervening
 generator return/free and public wrapper statements, nor a whole-public
 hash_to_curve equivalence. Coverage stays 514/533. Next connect the real
