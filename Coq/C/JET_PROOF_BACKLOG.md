@@ -461,9 +461,18 @@ all thirteen owners from initial storage. It supports the existing loose-X
 proof mode and loose Y, and retains the affine source's X/Y/finite flag for
 the next table iteration. Neither a desired execution nor intermediate H/I
 values are assumed. Earlier positioned/offset-zero contracts stay unchanged.
-Still compose the incoming-infinity indexed-ratio branch, real function
-entry/ten allocations/frees, and the enclosing odd-table callers before the
-canonical table bridge. These internal results do not add public coverage.
+`jet_secp_mixed_infinite_ratio_slice` executes the incoming-infinity branch's
+actual ratio clear and affine-to-projective call at the indexed destination.
+`jet_secp_mixed_body_ratio_slice` joins it with the finite body without an
+assumed intermediate execution. Finally,
+`jet_secp_mixed_function_ratio_slice.eval_mixed_ratio_slice_mode` proves the
+whole original call, with real entry, ten allocations and ten frees, every
+incoming flag, loose coordinates, an aligned ratio slice and its full array
+owner. Exact point/ratio limbs and their bounds, affine source fields and
+finite flag, caller ownership, old permissions, unrelated memory and readonly
+globals are returned. No external-helper or desired-result premise is added.
+The enclosing odd-table loop and its connection to the canonical table tree
+remain open. These internal results do not add public coverage.
 
 `jet_secp_ge_set_xy_indexed` proves the whole original affine constructor at
 any valid aligned result offset, retaining exact permission equivalence and
