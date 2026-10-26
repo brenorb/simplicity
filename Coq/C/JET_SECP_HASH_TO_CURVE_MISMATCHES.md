@@ -131,6 +131,21 @@ C execution remain explicit, and coverage is unchanged. Reproduce with the
 normal build/kernel check of `C.jet_secp_hash_public_literal` and focused
 audits of the strengthened generator/public modules and their consumers.
 
+The outer assertion is now included in
+`jet_secp_hash_to_curve_spec.literal_hash_to_curve`, with the original
+Programs.Bit.assert structure and canonical pruned-branch commitment.
+`jet_secp_hash_to_curve_compare.eval_hash_to_curve_compared` compares that
+specification with the complete original public C call and its output/frame
+observations on every represented key, retaining explicit memcpy/CTZ
+premises. `hash_public_return_agreement_iff` gives an exact criterion: the
+returns agree when the digests reject or the computed sum flag is zero; an
+accepted infinite sum yields C success and specification failure. It does
+not supply or assume a key producing that state. This is an all-case
+comparison, not an exhibited public divergence or a proof excluding the
+suspected case. No coverage is added. Reproduce using the normal build and
+recursive kernel check of `C.jet_secp_hash_to_curve_compare` and focused
+assumption/contract audits of the two `jet_secp_hash_to_curve_*` modules.
+
 Reproduce the source inspection, without modifying or mocking SHA:
 
 ```sh

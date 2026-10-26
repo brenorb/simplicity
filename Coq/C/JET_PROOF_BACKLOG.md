@@ -301,21 +301,22 @@ must remain scoped to that exact commit and input set.
 
 ## Active `generate` frontier
 
-The full original 129-cell wNAF loop/return now matches the decoded literal
-`wnaf15` vector (`jet_secp_wnaf_literal_loop`), and the actual copy/sign/loop
-phase after memset is composed (`jet_secp_wnaf_literal_prepare`). Do not
-restart either proof. The descending generator point loop now has a checked
-execution theorem and a bridge to the literal step129 program (details below).
-The original eight-statement preparation prefix now derives no=0 and the
-denominator-one field from the caller's initial storage (details below).
-The actual ecmult state setup, Strauss entry/preparation and scalar-split call
-are now composed (`jet_secp_generator_entry_split`); the original count-max
-suffix is also derived (`jet_secp_generator_bits_max`). The wNAF entry and
-pre-memset setup are now derived at the actual 129/15 arguments
-(`jet_secp_wnaf_entry15`). Original external memset/zeroing, both complete wNAF
-calls and releases, establishment/preservation of all point-stage premises
-through those calls, and the outer writer/return/freeing remain open. Do not
-restart the completed entry, split, post-memset loop or count-control proofs.
+The existing `jet_secp_generate_local` already contains the complete public
+`generate_initialized_local_spec_from_memset_steps` and
+`generate_runs_from_actual_init`, retaining the explicit deferred original
+memset-step premise. `jet_secp_generator_function`, `jet_secp_ecmult_generator`
+and `jet_secp_generate_lifecycle` cover the original calls, entry, returns and
+frees. Do not restart that lifecycle or the completed wNAF/point-loop proofs.
+These are conditional results, not accepted whole-jet coverage. The earlier
+milestones below record their construction; their then-pending composition
+steps must not be mistaken for current missing proofs. Rebuild the actual
+public root before making a fresh acceptance claim.
+
+The next independent multiplication work is the general non-generator path
+used by `off_curve_scale`/`off_curve_linear_combination_1`. Inspect existing
+candidate endpoints and claim its scope before adding proofs; reuse the
+generator and shared point arithmetic where applicable. The external memset
+boundary remains deferred and must stay explicit.
 
 `jet_secp_wnaf_literal_values` proves every reachable literal `Some` digit
 is odd and nonzero in the signed range, zero C integers correspond exactly
@@ -2954,12 +2955,27 @@ mixed addition and normalization. The comparison and program are parametric;
 key represented by `hash_public_value`, including digest rejection and the
 infinity branch. The latter yields the core failure tag, while C's computed
 return still depends only on the two digest acceptances. No actual common-key
-infinity witness or impossibility theorem is established. Next connect the
-outer assertion result and settle that reachability boundary; do not turn
+infinity witness or impossibility theorem is established. Do not turn
 the finite implication into a public input restriction. Build and recursively
 kernel-check `C.jet_secp_hash_public_literal`, and audit the strengthened
 generator/public contracts and their rebuilt consumers with the existing
 focused tools.
+`jet_secp_hash_to_curve_spec.literal_hash_to_curve` now includes the exact
+outer Programs.Bit.assert with the existing canonical `assertion_cmr_fail0`.
+Its parametricity and option-semantics proof connect the core failure tag to
+assertion failure. `jet_secp_hash_to_curve_compare.eval_hash_to_curve_compared`
+combines that exact specification with the complete original public C call,
+its actual result/outputs/cursors and memory frame, for every represented key.
+The checked `hash_public_return_agreement_iff` states that the computed return
+agrees precisely when the digests reject or the sum flag is zero. In the
+accepted-infinity case the C call succeeds and the assertion fails. Neither
+that case's actual key reachability nor its impossibility is established;
+there is no public counterexample or new coverage. Existing memcpy/CTZ
+premises remain explicit. Rebuild and recursively kernel-check
+`C.jet_secp_hash_to_curve_compare`, and use the existing focused audits for
+these two modules. The assertion/caller composition is closed; leave the
+reachability and deferred helper obligations open, and continue independent
+jet families rather than replacing SHA or narrowing the public input.
 These internal calls add no public coverage: 514/533 remains incomplete.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet

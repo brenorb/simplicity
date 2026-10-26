@@ -1,0 +1,170 @@
+### C.jet_secp_hash_to_curve_compare.hash_public_expected_return
+hash_public_expected_return
+     : forall (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (sx sy sz : forall _ : nat, Integers.Int64.int) (flag : Integers.Int.int)
+         (ox oy : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_hash_public_call.hash_public_value key sx sy sz flag ox oy),
+       @eq Values.val
+         match
+           @jet_secp_hash_to_curve_spec.literal_hash_to_curve (Alg.AssertionSem Option.option_Monad_Zero) key
+           return Values.val
+         with
+         | Some _ => Values.Vint Integers.Int.one
+         | None => Values.Vint Integers.Int.zero
+         end
+         (Values.Vint
+            (jet_secp_field_cmov.cmov_int
+               (andb
+                  (andb (jet_secp_generator_hash_map.generator_hash_accepted false key)
+                     (jet_secp_generator_hash_map.generator_hash_accepted true key))
+                  (Integers.Int.eq flag Integers.Int.zero))))
+### C.jet_secp_hash_to_curve_compare.hash_public_return_agreement_iff
+hash_public_return_agreement_iff
+     : forall (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (sx sy sz : forall _ : nat, Integers.Int64.int) (flag : Integers.Int.int)
+         (ox oy : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_hash_public_call.hash_public_value key sx sy sz flag ox oy),
+       iff
+         (@eq Values.val
+            (Values.Vint
+               (jet_secp_field_cmov.cmov_int
+                  (andb (jet_secp_generator_hash_map.generator_hash_accepted false key)
+                     (jet_secp_generator_hash_map.generator_hash_accepted true key))))
+            match
+              @jet_secp_hash_to_curve_spec.literal_hash_to_curve (Alg.AssertionSem Option.option_Monad_Zero) key
+              return Values.val
+            with
+            | Some _ => Values.Vint Integers.Int.one
+            | None => Values.Vint Integers.Int.zero
+            end)
+         (or
+            (@eq bool
+               (andb (jet_secp_generator_hash_map.generator_hash_accepted false key)
+                  (jet_secp_generator_hash_map.generator_hash_accepted true key)) false)
+            (@eq Integers.Int.int flag Integers.Int.zero))
+### C.jet_secp_hash_to_curve_compare.eval_hash_to_curve_compared
+eval_hash_to_curve_compared
+     : forall (_ : jet_memcpy_model.memcpy_model) (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (v_env : Values.val) (m0 : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bw : Values.block) (outedge cursor N : BinNums.Z)
+         (bi : Values.block) (edge rc : BinNums.Z)
+         (_ : forall (mc : Memory.Mem.mem) (x : Integers.Int64.int)
+                (_ : not (@eq BinNums.Z (Integers.Int64.unsigned x) BinNums.Z0)),
+              ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mc
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ctz64_var)
+                (@cons Values.val (Values.Vlong x) (@nil Values.val)) Events.E0 mc
+                (Values.Vint (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned x)))))
+         (_ : jet_secp_sha_startup.secp_sha_startup m0) (_ : jet_secp_swu_startup.swu_startup m0)
+         (_ : forall prefix : bool, jet_secp_generator_sha_absorb.generator_sha_prefix_state prefix m0)
+         (_ : jet_output_layout.write_frame_at m0 bd base bw outedge cursor N)
+         (_ : BinInt.Z.le
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                N) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m0 bs sbase bi edge rc)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) key)) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex (forall _ : nat, Integers.Int64.int)
+            (fun sx : forall _ : nat, Integers.Int64.int =>
+             @ex (forall _ : nat, Integers.Int64.int)
+               (fun sy : forall _ : nat, Integers.Int64.int =>
+                @ex (forall _ : nat, Integers.Int64.int)
+                  (fun sz : forall _ : nat, Integers.Int64.int =>
+                   @ex Integers.Int.int
+                     (fun flag : Integers.Int.int =>
+                      @ex (forall _ : nat, Integers.Int64.int)
+                        (fun ox : forall _ : nat, Integers.Int64.int =>
+                         @ex (forall _ : nat, Integers.Int64.int)
+                           (fun oy : forall _ : nat, Integers.Int64.int =>
+                            and
+                              (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m0
+                                 (@Ctypes.Internal Clight.function jets_secp.f_simplicity_hash_to_curve)
+                                 (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                                    (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                                       (@cons Values.val v_env (@nil Values.val)))) Events.E0 mf
+                                 (Values.Vint
+                                    (jet_secp_field_cmov.cmov_int
+                                       (andb (jet_secp_generator_hash_map.generator_hash_accepted false key)
+                                          (jet_secp_generator_hash_map.generator_hash_accepted true key)))))
+                              (and
+                                 (@eq
+                                    (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                                       (Ty.tySem
+                                          (Ty.Prod (Word.Word (S (S (S (S (S (S ...)))))))
+                                             (Word.Word (S (S (S (S (S (S ...))))))))))
+                                    (@jet_secp_hash_to_curve_spec.literal_hash_to_curve
+                                       (Alg.AssertionSem Option.option_Monad_Zero) key)
+                                    match
+                                      andb (jet_secp_generator_hash_map.generator_hash_accepted false key)
+                                        (jet_secp_generator_hash_map.generator_hash_accepted true key)
+                                      return
+                                        (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                                           (Ty.tySem
+                                              (Ty.Prod (Word.Word (S (S (S (S ...))))) (Word.Word (S (S (S (S ...))))))))
+                                    with
+                                    | true =>
+                                        match
+                                          Integers.Int.eq flag Integers.Int.zero
+                                          return
+                                            (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                                               (Ty.tySem
+                                                  (Ty.Prod (Word.Word (S (S (S ...)))) (Word.Word (S (S (S ...)))))))
+                                        with
+                                        | true =>
+                                            @Some
+                                              (prod (Ty.tySem (Word.Word (S (S (S (S (...)))))))
+                                                 (Ty.tySem (Word.Word (S (S (S (S (...))))))))
+                                              (@pair (Ty.tySem (Word.Word (S (S (S (S (...)))))))
+                                                 (Ty.tySem (Word.Word (S (S (S (S (...)))))))
+                                                 (jet_secp_rescale_literal.rescale_field_output ox)
+                                                 (jet_secp_rescale_literal.rescale_field_output oy))
+                                        | false =>
+                                            @None
+                                              (Ty.tySem
+                                                 (Ty.Prod (Word.Word (S (S (S (S (...))))))
+                                                    (Word.Word (S (S (S (S (...))))))))
+                                        end
+                                    | false =>
+                                        @None
+                                          (Ty.tySem
+                                             (Ty.Prod (Word.Word (S (S (S (S (S (...)))))))
+                                                (Word.Word (S (S (S (S (S (...)))))))))
+                                    end)
+                                 (and (jet_secp_hash_public_call.hash_public_value key sx sy sz flag ox oy)
+                                    (and
+                                       (jet_frame_inv.finv m0 bd base bw outedge cursor N bi mf
+                                          (andb (jet_secp_generator_hash_map.generator_hash_accepted false key)
+                                             (jet_secp_generator_hash_map.generator_hash_accepted true key))
+                                          match
+                                            andb (jet_secp_generator_hash_map.generator_hash_accepted false key)
+                                              (jet_secp_generator_hash_map.generator_hash_accepted true key)
+                                            return (list BitMachine.Cell)
+                                          with
+                                          | true =>
+                                              @Translate.encode
+                                                (Ty.Prod (Word.Word (S (S (S (S (...))))))
+                                                   (Word.Word (S (S (S (S (...)))))))
+                                                (@pair (Ty.tySem (Word.Word (S (S (S (...))))))
+                                                   (Ty.tySem (Word.Word (S (S (S (...))))))
+                                                   (jet_secp_rescale_literal.rescale_field_output ox)
+                                                   (jet_secp_rescale_literal.rescale_field_output oy))
+                                          | false => @nil BitMachine.Cell
+                                          end)
+                                       (and
+                                          (jet_sx_mem.lframe
+                                             (fun (b : Values.block) (_ : BinNums.Z) =>
+                                              not (jet_secp_frame.extA m0 bd bw bi b)) m0 mf)
+                                          (jet_clight_internal_preserve.readonly_preserved m0 mf))))))))))))
