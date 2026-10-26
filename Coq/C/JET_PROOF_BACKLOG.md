@@ -2635,6 +2635,32 @@ the existing focused assumption/contract tools. Next compose the real SHA
 blocks, accumulator initialization/addition, function entry and return/free
 statements around these stages; the stage alone is not a public hash_to_curve
 contract and adds no coverage.
+
+`jet_secp_sha_pure_transport` reuses the existing transport proof and checked
+core/SHA bodies for six helpers in the frozen secp program: sha256_iv/init,
+ReadBE32, WriteBE32/64 and sha256_fromMidstate. Computed checks establish the
+actual function lookups and layout/call compatibility in both source programs;
+the closed helper table also yields readonly preservation. This is not a
+transport theorem for SHA compression or its dispatch/global accesses.
+`jet_secp_sha_owned` instantiates complete initialization and midstate-to-byte
+serialization from actual owned storage. Its exact 32-byte list is bounded
+in 0..255 and matches the generator digest mapper's byte representation.
+`jet_secp_generator_sha_start.exec_generator_sha_start_owned` composes the
+original initializer call and actual By_copy assignment for both generator
+SHA blocks, identified by source equalities. It derives the context output
+pointer, zero counter/overflow, IV words, ownership, framing and readonly
+preservation. No libc model or intermediate call is assumed in these results.
+The existing SHA dependency objects were rebuilt under the pinned toolchain
+after detecting an inconsistent frame-interface cache; proof sources were
+not changed to resolve that cache error. Build
+`C/jet_secp_generator_sha_start.vo` and `C/jet_secp_sha_owned.vo`, recursively
+kernel-check both roots, and compare all three modules' focused records.
+Still missing: actual prefix/key absorption and finalization/compression in
+the secp program, establishment of its SHA global/dispatch startup, and their
+composition with the digest mapper and remaining generator/public lifecycle.
+The serialization theorem alone does not identify registers with a computed
+SHA digest, and neither these results nor their checked helper count add jet
+coverage. Coverage remains 514/533.
 Do not assume both digests are below p to avoid the rejection execution.
 
 The sum-at-infinity branch also needs attention before a whole-public claim.
