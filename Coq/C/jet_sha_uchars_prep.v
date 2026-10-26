@@ -86,6 +86,59 @@ Proof.
   rewrite app_nth2 by lia. rewrite L1, Nat.sub_diag. reflexivity.
 Qed.
 
+Lemma memcpy_bytes_effect_store (Hmodel : memcpy_model) (ge : Senv.t) m bs os bd od (xs : list int) :
+  let n := Z.of_nat (length xs) in
+  0 < n <= 64 -> Ptrofs.unsigned os + n <= Ptrofs.max_unsigned -> Ptrofs.unsigned od + n <= Ptrofs.max_unsigned ->
+  (forall i, (i < length xs)%nat ->
+     Mem.load Mint8unsigned m bs (Ptrofs.unsigned os + Z.of_nat i) = Some (Vint (nth i xs Int.zero))) ->
+  Mem.range_perm m bd (Ptrofs.unsigned od) (Ptrofs.unsigned od + n) Cur Writable ->
+  bs <> bd ->
+  exists m',
+    external_call (EF_external "memcpy" memcpy_sig) ge
+      [Vptr bd od; Vptr bs os; Vlong (Int64.repr n)] m E0 (Vptr bd od) m' /\
+    (forall i, (i < length xs)%nat ->
+       Mem.load Mint8unsigned m' bd (Ptrofs.unsigned od + Z.of_nat i) = Some (Vint (nth i xs Int.zero))) /\
+    (forall ch b ofs,
+       (b <> bd \/ ofs + size_chunk ch <= Ptrofs.unsigned od \/ Ptrofs.unsigned od + n <= ofs) ->
+       Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block m' b) /\
+    exists bytes,Mem.storebytes m bd (Ptrofs.unsigned od) bytes=Some m'.
+Proof.
+  intros n Hn Hos Hod HL HP Hne.
+  assert (HR : Mem.range_perm m bs (Ptrofs.unsigned os) (Ptrofs.unsigned os + n) Cur Readable).
+  { intros ofs Ho. pose proof (HL (Z.to_nat (ofs - Ptrofs.unsigned os)) ltac:(unfold n in Ho; lia)) as H.
+    apply Mem.load_valid_access in H. destruct H as [H _].
+    apply H. change (size_chunk Mint8unsigned) with 1. lia. }
+  destruct (Mem.range_perm_loadbytes m bs (Ptrofs.unsigned os) n HR) as [bytes HB].
+  pose proof (Mem.loadbytes_length _ _ _ _ _ HB) as HBL.
+  assert (HSrcValid : Mem.valid_block m bs).
+  { eapply Mem.perm_valid_block. apply (HR (Ptrofs.unsigned os)). lia. }
+  assert (HDstValid : Mem.valid_block m bd).
+  { eapply Mem.perm_valid_block. apply (HP (Ptrofs.unsigned od)). lia. }
+  destruct (Hmodel ge m bd od bs os n bytes HSrcValid HDstValid HB HP ltac:(left; exact Hne)
+    ltac:(change Int64.max_unsigned with 18446744073709551615;
+          change Ptrofs.max_unsigned with 18446744073709551615 in Hos;
+          pose proof (Ptrofs.unsigned_range os); lia)
+    ltac:(lia) ltac:(lia)) as (m' & HS & HX).
+  exists m'. split; [exact HX|]. split; [|split; [|split;[|split]]].
+  - intros i Hi.
+    pose proof (Mem.loadbytes_storebytes_same _ _ _ _ _ HS) as HSame.
+    rewrite HBL, Z2Nat.id in HSame by lia.
+    pose proof (loadbytes_byte _ _ _ _ _ (Z.of_nat i) HSame ltac:(unfold n; lia)) as HD.
+    pose proof (loadbytes_byte _ _ _ _ _ (Z.of_nat i) HB ltac:(unfold n; lia)) as HSrc.
+    apply (Mem.loadbytes_load Mint8unsigned) in HD; [|exists (Ptrofs.unsigned od + Z.of_nat i); cbn; lia].
+    apply (Mem.loadbytes_load Mint8unsigned) in HSrc; [|exists (Ptrofs.unsigned os + Z.of_nat i); cbn; lia].
+    rewrite HD. rewrite <- (HL i Hi). symmetry. exact HSrc.
+  - intros ch b ofs Hcond. eapply Mem.load_storebytes_other; [exact HS|].
+    rewrite HBL, Z2Nat.id by lia. destruct Hcond as [H|[H|H]]; [left; exact H|right; left; exact H|right; right; exact H].
+  - intros b ofs k p Hp. eapply Mem.perm_storebytes_1; eauto.
+  - intros b Hv. eapply Mem.storebytes_valid_block_1; eauto.
+  - exists bytes;exact HS.
+Qed.
+
+(** Preserve the existing caller interface; expose the concrete store effect
+    above for callers that also need readonly/forward-memory preservation. *)
 Lemma memcpy_bytes_effect (Hmodel : memcpy_model) (ge : Senv.t) m bs os bd od (xs : list int) :
   let n := Z.of_nat (length xs) in
   0 < n <= 64 -> Ptrofs.unsigned os + n <= Ptrofs.max_unsigned -> Ptrofs.unsigned od + n <= Ptrofs.max_unsigned ->
@@ -104,35 +157,10 @@ Lemma memcpy_bytes_effect (Hmodel : memcpy_model) (ge : Senv.t) m bs os bd od (x
     (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
     (forall b, Mem.valid_block m b -> Mem.valid_block m' b).
 Proof.
-  intros n Hn Hos Hod HL HP Hne.
-  assert (HR : Mem.range_perm m bs (Ptrofs.unsigned os) (Ptrofs.unsigned os + n) Cur Readable).
-  { intros ofs Ho. pose proof (HL (Z.to_nat (ofs - Ptrofs.unsigned os)) ltac:(unfold n in Ho; lia)) as H.
-    apply Mem.load_valid_access in H. destruct H as [H _].
-    apply H. change (size_chunk Mint8unsigned) with 1. lia. }
-  destruct (Mem.range_perm_loadbytes m bs (Ptrofs.unsigned os) n HR) as [bytes HB].
-  pose proof (Mem.loadbytes_length _ _ _ _ _ HB) as HBL.
-  assert (HSrcValid : Mem.valid_block m bs).
-  { eapply Mem.perm_valid_block. apply (HR (Ptrofs.unsigned os)). lia. }
-  assert (HDstValid : Mem.valid_block m bd).
-  { eapply Mem.perm_valid_block. apply (HP (Ptrofs.unsigned od)). lia. }
-  destruct (Hmodel ge m bd od bs os n bytes HSrcValid HDstValid HB HP ltac:(left; exact Hne)
-    ltac:(change Int64.max_unsigned with 18446744073709551615;
-          change Ptrofs.max_unsigned with 18446744073709551615 in Hos;
-          pose proof (Ptrofs.unsigned_range os); lia)
-    ltac:(lia) ltac:(lia)) as (m' & HS & HX).
-  exists m'. split; [exact HX|]. split; [|split; [|split]].
-  - intros i Hi.
-    pose proof (Mem.loadbytes_storebytes_same _ _ _ _ _ HS) as HSame.
-    rewrite HBL, Z2Nat.id in HSame by lia.
-    pose proof (loadbytes_byte _ _ _ _ _ (Z.of_nat i) HSame ltac:(unfold n; lia)) as HD.
-    pose proof (loadbytes_byte _ _ _ _ _ (Z.of_nat i) HB ltac:(unfold n; lia)) as HSrc.
-    apply (Mem.loadbytes_load Mint8unsigned) in HD; [|exists (Ptrofs.unsigned od + Z.of_nat i); cbn; lia].
-    apply (Mem.loadbytes_load Mint8unsigned) in HSrc; [|exists (Ptrofs.unsigned os + Z.of_nat i); cbn; lia].
-    rewrite HD. rewrite <- (HL i Hi). symmetry. exact HSrc.
-  - intros ch b ofs Hcond. eapply Mem.load_storebytes_other; [exact HS|].
-    rewrite HBL, Z2Nat.id by lia. destruct Hcond as [H|[H|H]]; [left; exact H|right; left; exact H|right; right; exact H].
-  - intros b ofs k p Hp. eapply Mem.perm_storebytes_1; eauto.
-  - intros b Hv. eapply Mem.storebytes_valid_block_1; eauto.
+  intros n Range SourceBound DestBound Source Dest Separate.
+  destruct (memcpy_bytes_effect_store Hmodel ge m bs os bd od xs Range SourceBound DestBound Source Dest Separate)
+    as (mf & Call & Bytes & Loads & Perm & Valid & Store).
+  exists mf;repeat split;assumption.
 Qed.
 
 (** ** Linkage *)

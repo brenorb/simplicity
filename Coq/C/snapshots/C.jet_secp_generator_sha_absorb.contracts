@@ -1,0 +1,387 @@
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_length
+generator_sha_prefix_length
+     : forall second : bool,
+       @eq nat (@length Integers.Int.int (generator_sha_prefix_bytes second))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_symbol
+generator_sha_prefix_symbol
+     : forall second : bool,
+       @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            (generator_sha_prefix_id second)) (@Some Values.block (generator_sha_prefix_block second))
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_info
+generator_sha_prefix_info
+     : forall second : bool,
+       @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info (Ctypes.fundef Clight.function) Ctypes.type
+            (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.program_of_program Clight.function jets_secp.prog)) (generator_sha_prefix_block second))
+         (@Some (AST.globvar Ctypes.type) (generator_sha_prefix_var second))
+### C.jet_secp_generator_sha_absorb.generator_sha_uchars_symbol
+generator_sha_uchars_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            jets_secp._sha256_uchars)
+         (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._sha256_uchars))
+### C.jet_secp_generator_sha_absorb.generator_sha_uchars_funct
+generator_sha_uchars_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._sha256_uchars) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_secp.f_sha256_uchars))
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_initial
+generator_sha_prefix_initial
+     : forall (second : bool) (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       generator_sha_prefix_state second m
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_preserved
+generator_sha_prefix_preserved
+     : forall (second : bool) (m mf : Memory.Mem.mem) (_ : generator_sha_prefix_state second m)
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf), generator_sha_prefix_state second mf
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_separate
+generator_sha_prefix_separate
+     : forall (second : bool) (m : Memory.Mem.mem) (bx : Values.block) (_ : generator_sha_prefix_state second m)
+         (_ : Memory.Mem.range_perm m bx BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable), not (@eq Values.block bx (generator_sha_prefix_block second))
+### C.jet_secp_generator_sha_absorb.generator_sha_absorb_source
+generator_sha_absorb_source
+     : forall second : bool,
+       @eq Clight.statement
+         (@List.nth Clight.statement
+            match second return nat with
+            | true => S (S (S (S (S (S (S (S (S (S (S O))))))))))
+            | false => S (S (S (S (S (S (S O))))))
+            end
+            (@fst (list Clight.statement) Clight.statement
+               (jet_secp_statement_prefix.split_statement_last
+                  (Clight.fn_body jets_secp.f_secp256k1_generator_generate_internal))) Clight.Sskip)
+         (Clight.Ssequence (jet_secp_generator_sha_start.generator_sha_start second)
+            (jet_secp_statement_prefix.statement_sequence
+               (@cons Clight.statement (generator_sha_absorb_call second false)
+                  (@cons Clight.statement (generator_sha_absorb_call second true) (@nil Clight.statement)))
+               (generator_sha_final_calls second)))
+### C.jet_secp_generator_sha_absorb.exec_generator_sha_absorb_call
+exec_generator_sha_absorb_call
+     : forall (second key : bool) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bc ba : Values.block) (oa : Integers.Ptrofs.int)
+         (bytes : list Integers.Int.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._sha256_uchars e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type)
+                   (jet_secp_generator_sha_start.generator_sha_context_id second) e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc jet_secp_generator_sha_start.generator_sha_ctx_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) (generator_sha_prefix_id second) e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._key32 le)
+                (@Some Values.val (Values.Vptr ba oa)))
+         (_ : @eq nat (@length Integers.Int.int bytes)
+                match key return nat with
+                | true => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))
+                | false => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))
+                end)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_sha256_uchars)
+                (@cons Values.val (Values.Vptr bc Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      match key return Values.val with
+                      | true => Values.Vptr ba oa
+                      | false => Values.Vptr (generator_sha_prefix_block second) Integers.Ptrofs.zero
+                      end
+                      (@cons Values.val
+                         (Values.Vlong (Integers.Int64.repr (BinInt.Z.of_nat (@length Integers.Int.int bytes))))
+                         (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (generator_sha_absorb_call second key) Events.E0
+         le mf ClightBigstep.Out_normal
+### C.jet_secp_generator_sha_absorb.exec_generator_sha_absorb_owned
+exec_generator_sha_absorb_owned
+     : forall (_ : jet_memcpy_model.memcpy_model) (second : bool) (key : list Integers.Int.int)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bc ba : Values.block) (oa : Integers.Ptrofs.int) (out : Values.val)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._sha256_uchars e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type)
+                   (jet_secp_generator_sha_start.generator_sha_context_id second) e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc jet_secp_generator_sha_start.generator_sha_ctx_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) (generator_sha_prefix_id second) e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._key32 le)
+                (@Some Values.val (Values.Vptr ba oa))) (_ : not (@eq Values.block bc ba))
+         (_ : @eq nat (@length Integers.Int.int key)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oa)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned) (_ : generator_sha_prefix_state second m)
+         (_ : jet_secp_sha_startup.secp_sha_startup m)
+         (_ : Memory.Mem.range_perm m bc BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m bc BinNums.Z0) (@Some Values.val out))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bc (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m bc
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : forall (i : nat)
+                (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m ba
+                   (BinInt.Z.add (Integers.Ptrofs.unsigned oa) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vint (@List.nth Integers.Int.int i key Integers.Int.zero)))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (generator_sha_absorb second) Events.E0 le
+               mf ClightBigstep.Out_normal)
+            (and (@eq (option Values.val) (Memory.Mem.load AST.Mptr mf bc BinNums.Z0) (@Some Values.val out))
+               (and
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf bc (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                     (@Some Values.val
+                        (Values.Vlong
+                           (Integers.Int64.repr
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+                  (and
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint8unsigned mf bc
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (@Some Values.val (Values.Vint Integers.Int.zero)))
+                     (and
+                        (forall (i : nat) (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))),
+                         @eq (option Values.val)
+                           (Memory.Mem.load AST.Mint8unsigned mf bc
+                              (BinInt.Z.add
+                                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                 (BinInt.Z.of_nat i)))
+                           (@Some Values.val
+                              (Values.Vint
+                                 (@List.nth Integers.Int.int i
+                                    (@app Integers.Int.int (generator_sha_prefix_bytes second) key) Integers.Int.zero))))
+                        (and
+                           (Memory.Mem.range_perm mf bc BinNums.Z0
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and
+                              (jet_sx_mem.lframe
+                                 (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bc)) m mf)
+                              (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                                 (and (jet_secp_sha_startup.secp_sha_startup mf) (generator_sha_prefix_state second mf))))))))))
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_id
+generator_sha_prefix_id =
+fun second : bool => match second return AST.ident with
+                     | true => jets_secp._prefix2
+                     | false => jets_secp._prefix1
+                     end
+     : forall _ : bool, AST.ident
+
+Arguments generator_sha_prefix_id second%bool_scope
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_var
+generator_sha_prefix_var =
+fun second : bool =>
+match second return (AST.globvar Ctypes.type) with
+| true => jets_secp.v_prefix2
+| false => jets_secp.v_prefix1
+end
+     : forall _ : bool, AST.globvar Ctypes.type
+
+Arguments generator_sha_prefix_var second%bool_scope
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_block
+generator_sha_prefix_block =
+fun second : bool => jet_secp_linkage.secp_symbol_block (generator_sha_prefix_id second)
+     : forall _ : bool, Values.block
+
+Arguments generator_sha_prefix_block second%bool_scope
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_bytes
+generator_sha_prefix_bytes =
+fun second : bool =>
+@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+  (@app BinNums.Z
+     match second return (list BinNums.Z) with
+     | true =>
+         @cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+           (@cons BinNums.Z
+              (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+              (@cons BinNums.Z
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                 (@nil BinNums.Z)))
+     | false =>
+         @cons BinNums.Z (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+           (@cons BinNums.Z
+              (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+              (@cons BinNums.Z
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                 (@nil BinNums.Z)))
+     end
+     (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+        (@cons BinNums.Z
+           (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+           (@cons BinNums.Z
+              (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+              (@cons BinNums.Z
+                 (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                 (@cons BinNums.Z
+                    (BinNums.Zpos
+                       (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                    (@cons BinNums.Z
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                       (@cons BinNums.Z
+                          (BinNums.Zpos
+                             (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                          (@cons BinNums.Z
+                             (BinNums.Zpos
+                                (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                             (@cons BinNums.Z
+                                (BinNums.Zpos
+                                   (BinNums.xI
+                                      (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                                (@cons BinNums.Z
+                                   (BinNums.Zpos
+                                      (BinNums.xI
+                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                                   (@cons BinNums.Z
+                                      (BinNums.Zpos
+                                         (BinNums.xO
+                                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                                      (@cons BinNums.Z
+                                         (BinNums.Zpos
+                                            (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))
+                                         (@cons BinNums.Z
+                                            (BinNums.Zpos
+                                               (BinNums.xO
+                                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                            (@nil BinNums.Z)))))))))))))))
+     : forall _ : bool, list Integers.Int.int
+
+Arguments generator_sha_prefix_bytes second%bool_scope
+### C.jet_secp_generator_sha_absorb.generator_sha_prefix_state
+generator_sha_prefix_state =
+fun (second : bool) (m : Memory.Mem.mem) =>
+and
+  (forall (i : nat) (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))),
+   @eq (option Values.val)
+     (Memory.Mem.load AST.Mint8unsigned m (generator_sha_prefix_block second) (BinInt.Z.of_nat i))
+     (@Some Values.val
+        (Values.Vint (@List.nth Integers.Int.int i (generator_sha_prefix_bytes second) Integers.Int.zero))))
+  (forall pos : BinNums.Z, not (Memory.Mem.perm m (generator_sha_prefix_block second) pos Memtype.Max Memtype.Writable))
+     : forall (_ : bool) (_ : Memory.Mem.mem), Prop
+
+Arguments generator_sha_prefix_state second%bool_scope m
+### C.jet_secp_generator_sha_absorb.generator_sha_absorb_call
+generator_sha_absorb_call =
+fun second key : bool =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_secp._sha256_uchars (Clight.type_of_function jets_secp.f_sha256_uchars))
+  (@cons Clight.expr
+     (Clight.Eaddrof
+        (Clight.Evar (jet_secp_generator_sha_start.generator_sha_context_id second)
+           jet_secp_generator_sha_start.generator_sha_ctx_type)
+        (Ctypesdefs.tptr jet_secp_generator_sha_start.generator_sha_ctx_type))
+     (@cons Clight.expr
+        match key return Clight.expr with
+        | true => Clight.Etempvar jets_secp._key32 (Ctypesdefs.tptr Ctypesdefs.tuchar)
+        | false =>
+            Clight.Evar (generator_sha_prefix_id second)
+              (Ctypesdefs.tarray Ctypesdefs.tuchar
+                 (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+        end
+        (@cons Clight.expr
+           (Clight.Econst_int
+              (Integers.Int.repr
+                 match key return BinNums.Z with
+                 | true => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                 | false => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                 end) Ctypesdefs.tint) (@nil Clight.expr))))
+     : forall (_ : bool) (_ : bool), Clight.statement
+
+Arguments generator_sha_absorb_call (second key)%bool_scope
+### C.jet_secp_generator_sha_absorb.generator_sha_absorb
+generator_sha_absorb =
+fun second : bool =>
+jet_secp_statement_prefix.statement_sequence
+  (@cons Clight.statement (generator_sha_absorb_call second false)
+     (@cons Clight.statement (generator_sha_absorb_call second true) (@nil Clight.statement))) Clight.Sskip
+     : forall _ : bool, Clight.statement
+
+Arguments generator_sha_absorb second%bool_scope
+### C.jet_secp_generator_sha_absorb.generator_sha_final_calls
+generator_sha_final_calls =
+fun second : bool =>
+match
+  @List.nth Clight.statement
+    match second return nat with
+    | true => S (S (S (S (S (S (S (S (S (S (S O))))))))))
+    | false => S (S (S (S (S (S (S O))))))
+    end
+    (@fst (list Clight.statement) Clight.statement
+       (jet_secp_statement_prefix.split_statement_last
+          (Clight.fn_body jets_secp.f_secp256k1_generator_generate_internal))) Clight.Sskip
+  return Clight.statement
+with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ rest => rest
+        | Clight.Sifthenelse _ _ _ => Clight.Sskip
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : forall _ : bool, Clight.statement
+
+Arguments generator_sha_final_calls second%bool_scope

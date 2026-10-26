@@ -1,0 +1,120 @@
+### C.jet_secp_sha_context.secp_sha_ctx_checked
+secp_sha_ctx_checked
+     : forall (k : jet_sha_uchars_prep.ctx_slot) (id : AST.ident),
+       @eq bool
+         (jet_transport.expr_okb jet_sha_linkage.sha_ge jet_secp_linkage.secp_ge
+            (jet_sha_uchars_prep.ctx_field_expr k id)) true
+### C.jet_secp_sha_context.secp_sha_counter_symbol
+secp_sha_counter_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            jets_sha._sha256_max_counter)
+         (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._sha256_max_counter))
+### C.jet_secp_sha_context.eval_secp_ctx_field_lvalue
+eval_secp_ctx_field_lvalue
+     : forall (k : jet_sha_uchars_prep.ctx_slot) (id : BinNums.positive) (e : Clight.env)
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bc : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr bc (Integers.Ptrofs.repr base)))),
+       Clight.eval_lvalue jet_secp_linkage.secp_ge e le m (jet_sha_uchars_prep.ctx_field_expr k id) bc
+         (Integers.Ptrofs.add (Integers.Ptrofs.repr base) (Integers.Ptrofs.repr (jet_sha_uchars_prep.ctx_offset k)))
+         Ctypes.Full
+### C.jet_secp_sha_context.eval_secp_ctx_field
+eval_secp_ctx_field
+     : forall (k : jet_sha_uchars_prep.ctx_slot) (id : BinNums.positive) (e : Clight.env)
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bc : Values.block) (base : BinNums.Z)
+         (chunk : AST.memory_chunk) (v : Values.val) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq Ctypes.mode (Ctypes.access_mode (jet_sha_uchars_prep.ctx_field_type k)) (Ctypes.By_value chunk))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr bc (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load chunk m bc (BinInt.Z.add base (jet_sha_uchars_prep.ctx_offset k)))
+                (@Some Values.val v)),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (jet_sha_uchars_prep.ctx_field_expr k id) v
+### C.jet_secp_sha_context.eval_secp_ctx_block
+eval_secp_ctx_block
+     : forall (id : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (bc : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr bc (Integers.Ptrofs.repr base)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (jet_sha_uchars_prep.ctx_field_expr jet_sha_uchars_prep.SBlock id)
+         (Values.Vptr bc
+            (Integers.Ptrofs.add (Integers.Ptrofs.repr base)
+               (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_sha_context.exec_secp_ctx_assign
+exec_secp_ctx_assign
+     : forall (k : jet_sha_uchars_prep.ctx_slot) (id : BinNums.positive) (e : Clight.env)
+         (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bc : Values.block) (base : BinNums.Z)
+         (chunk : AST.memory_chunk) (a : Clight.expr) (v v' : Values.val) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq Ctypes.mode (Ctypes.access_mode (jet_sha_uchars_prep.ctx_field_type k)) (Ctypes.By_value chunk))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr bc (Integers.Ptrofs.repr base))))
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m a v)
+         (_ : @eq (option Values.val) (Cop.sem_cast v (Clight.typeof a) (jet_sha_uchars_prep.ctx_field_type k) m)
+                (@Some Values.val v'))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store chunk m bc (BinInt.Z.add base (jet_sha_uchars_prep.ctx_offset k)) v')
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (Clight.Sassign (jet_sha_uchars_prep.ctx_field_expr k id) a) Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_sha_context.secp_sha_small_overflow
+secp_sha_small_overflow
+     : forall (c vn : Integers.Int64.int)
+         (_ : BinInt.Z.lt (BinInt.Z.add (Integers.Int64.unsigned c) (Integers.Int64.unsigned vn))
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+       @eq bool (Integers.Int64.cmpu Integers.Cle (Integers.Int64.sub jet_sha_uchars_exec.sha_max_counter c) vn) false
+### C.jet_secp_sha_context.exec_secp_sha_small_overflow
+exec_secp_sha_small_overflow
+     : forall (m : Memory.Mem.mem) (le : Maps.PTree.tree Values.val) (bx : Values.block) (c vn : Integers.Int64.int)
+         (_ : BinInt.Z.lt (BinInt.Z.add (Integers.Int64.unsigned c) (Integers.Int64.unsigned vn))
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._ctx le)
+                (@Some Values.val (Values.Vptr bx Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._len le)
+                (@Some Values.val (Values.Vlong vn)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bx (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@Some Values.val (Values.Vlong c)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m bx
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m (jet_secp_linkage.secp_symbol_block jets_secp._sha256_max_counter)
+                   BinNums.Z0) (@Some Values.val (Values.Vlong jet_sha_uchars_exec.sha_max_counter)))
+         (_ : Memory.Mem.valid_access m AST.Mint8unsigned bx
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Writable),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m
+                  jet_sha_uchars_exec.uc_ovf Events.E0 lef mf ClightBigstep.Out_normal)
+               (and
+                  (@eq (option Memory.Mem.mem)
+                     (Memory.Mem.store AST.Mint8unsigned m bx
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                        (Values.Vint Integers.Int.zero)) (@Some Memory.Mem.mem mf))
+                  (forall (id : AST.ident)
+                     (_ : @List.In AST.ident id
+                            (@cons AST.ident jets_sha._ctx
+                               (@cons AST.ident jets_sha._arr
+                                  (@cons AST.ident jets_sha._len
+                                     (@cons AST.ident jets_sha._delta
+                                        (@cons AST.ident jets_sha._block (@nil AST.ident))))))),
+                   @eq (option Values.val) (@Maps.PTree.get Values.val id lef) (@Maps.PTree.get Values.val id le)))))

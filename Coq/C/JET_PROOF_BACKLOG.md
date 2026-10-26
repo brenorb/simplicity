@@ -2672,8 +2672,31 @@ ownership rather than assuming a final global-state premise. Mutable dispatch
 preservation uses the call's framing; readonly preservation alone is insufficient.
 Build `C/jet_secp_sha_startup.vo` and `C/jet_secp_sha_compression.vo`, recursively
 kernel-check both roots, and compare all three modules' focused records.
-Still missing: actual prefix/key absorption and finalization in the secp
-program, their global-state preservation through the full caller, and composition
+`jet_secp_sha_context` reuses the checked context-field layouts by expression
+transport and proves the actual low-counter overflow branch. The original
+`memcpy_bytes_effect` proof is factored to expose its already-constructed
+`Mem.storebytes` witness in `memcpy_bytes_effect_store`; the existing public
+interface is unchanged. This permits readonly preservation without assuming
+external-call properties or a final-memory invariant.
+`jet_secp_sha_absorb_short.eval_secp_sha_absorb_short` executes the complete
+original `sha256_uchars` call whenever the current buffer and supplied bytes
+total less than 64. It covers empty and nonempty inputs, actual overflow and
+counter updates, the loop exit, conditional memcpy, return conversion and
+freeing the empty local list. It derives the exact buffered concatenation,
+ownership, framing, readonly and SHA-startup preservation. The existing
+bounded `memcpy_model` remains explicit; this does not discharge libc linkage.
+`jet_secp_generator_sha_absorb` derives both 16-byte prefixes and their readonly
+permissions from the actual secp initializer, proves their preservation and
+separation from owned contexts, and identifies both call pairs in the frozen
+generator body. `exec_generator_sha_absorb_owned` composes those actual prefix
+and key calls for every 32-byte key, yielding exactly prefix++key in the
+context, counter 48, overflow false, unchanged output pointer, ownership,
+framing and preserved startup/prefix state. This is the original internal
+caller fragment, not an independently chosen message or a whole-public theorem.
+Build `C/jet_secp_generator_sha_absorb.vo`, recursively kernel-check that root,
+and compare the three new modules plus `C.jet_sha_uchars_prep` with the existing
+focused assumption/contract audits. Still missing: actual finalization in the
+secp program, global-state preservation through the full caller, and composition
 with the digest mapper and remaining generator/public lifecycle.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
