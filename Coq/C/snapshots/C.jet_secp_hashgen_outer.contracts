@@ -1,0 +1,152 @@
+### C.jet_secp_hashgen_outer.hashgen_outer_source
+hashgen_outer_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_generator_generate)
+         (Clight.Ssequence (hashgen_nonnull_check jets_secp._gen (Ctypes.Tstruct jets_secp.__6563 Ctypes.noattr))
+            (Clight.Ssequence (hashgen_nonnull_check jets_secp._key32 Ctypesdefs.tuchar)
+               (Clight.Ssequence hashgen_outer_call
+                  (Clight.Sreturn (@Some Clight.expr (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tint))))))
+### C.jet_secp_hashgen_outer.hashgen_outer_entry
+hashgen_outer_entry
+     : forall (m : Memory.Mem.mem) (bg ba : Values.block) (oa : Integers.Ptrofs.int),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_generator_generate
+         (@cons Values.val (Values.Vptr bg Integers.Ptrofs.zero)
+            (@cons Values.val (Values.Vptr ba oa) (@nil Values.val))) m Clight.empty_env (hashgen_outer_temps bg ba oa)
+         m
+### C.jet_secp_hashgen_outer.hashgen_outer_link
+hashgen_outer_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._secp256k1_generator_generate_internal)
+            (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_generator_generate_internal)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_generator_generate_internal)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_generator_generate_internal)))
+### C.jet_secp_hashgen_outer.exec_hashgen_nonnull
+exec_hashgen_nonnull
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (id : BinNums.positive)
+         (ty : Ctypes.type) (b : Values.block) (ofs : Integers.Ptrofs.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le) (@Some Values.val (Values.Vptr b ofs)))
+         (_ : @eq bool (Memory.Mem.weak_valid_pointer m b (Integers.Ptrofs.unsigned ofs)) true),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (hashgen_nonnull_check id ty) Events.E0 le m
+         ClightBigstep.Out_normal
+### C.jet_secp_hashgen_outer.eval_hashgen_generate
+eval_hashgen_generate
+     : forall (_ : jet_memcpy_model.memcpy_model) (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (m : Memory.Mem.mem) (bg ba : Values.block) (oa : Integers.Ptrofs.int)
+         (_ : forall (mc : Memory.Mem.mem) (x : Integers.Int64.int)
+                (_ : not (@eq BinNums.Z (Integers.Int64.unsigned x) BinNums.Z0)),
+              ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mc
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ctz64_var)
+                (@cons Values.val (Values.Vlong x) (@nil Values.val)) Events.E0 mc
+                (Values.Vint (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned x)))))
+         (_ : not (@eq Values.block ba bg))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oa)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned) (_ : jet_secp_sha_startup.secp_sha_startup m)
+         (_ : jet_secp_swu_startup.swu_startup m)
+         (_ : forall prefix : bool, jet_secp_generator_sha_absorb.generator_sha_prefix_state prefix m)
+         (_ : Memory.Mem.range_perm m bg BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : forall (i : nat)
+                (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m ba
+                   (BinInt.Z.add (Integers.Ptrofs.unsigned oa) (BinInt.Z.of_nat i)))
+                (@Some Values.val
+                   (Values.Vint
+                      (@List.nth Integers.Int.int i
+                         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int
+                            jet_read8s_layout.word8_array_value
+                            (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) key))
+                         Integers.Int.zero)))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex (forall _ : nat, Integers.Int64.int)
+            (fun sx : forall _ : nat, Integers.Int64.int =>
+             @ex (forall _ : nat, Integers.Int64.int)
+               (fun sy : forall _ : nat, Integers.Int64.int =>
+                @ex (forall _ : nat, Integers.Int64.int)
+                  (fun sz : forall _ : nat, Integers.Int64.int =>
+                   @ex Integers.Int.int
+                     (fun sumflag : Integers.Int.int =>
+                      @ex (forall _ : nat, Integers.Int64.int)
+                        (fun ox : forall _ : nat, Integers.Int64.int =>
+                         @ex (forall _ : nat, Integers.Int64.int)
+                           (fun oy : forall _ : nat, Integers.Int64.int =>
+                            and
+                              (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                                 (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_generator_generate)
+                                 (@cons Values.val (Values.Vptr bg Integers.Ptrofs.zero)
+                                    (@cons Values.val (Values.Vptr ba oa) (@nil Values.val))) Events.E0 mf
+                                 (Values.Vint
+                                    (jet_secp_field_cmov.cmov_int
+                                       (andb (jet_secp_generator_hash_map.generator_hash_accepted false key)
+                                          (jet_secp_generator_hash_map.generator_hash_accepted true key)))))
+                              (and (jet_secp_hashgen_function.hashgen_result key mf bg sx sy sz sumflag ox oy)
+                                 (and
+                                    (Memory.Mem.range_perm mf bg BinNums.Z0
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                       Memtype.Cur Memtype.Freeable)
+                                    (and
+                                       (forall (i : nat) (_ : lt i (S (S (S (S (S (S (...)))))))),
+                                        @eq (option Values.val)
+                                          (Memory.Mem.load AST.Mint8unsigned mf ba
+                                             (BinInt.Z.add (Integers.Ptrofs.unsigned oa) (BinInt.Z.of_nat i)))
+                                          (@Some Values.val
+                                             (Values.Vint
+                                                (@List.nth Integers.Int.int i
+                                                   (@List.map (Ty.tySem (Word.Word (S (...)))) Integers.Int.int
+                                                      jet_read8s_layout.word8_array_value
+                                                      (jet_buffer_input.vector_values (Word.Word (S (...)))
+                                                         (S (S (...))) key)) Integers.Int.zero))))
+                                       (and
+                                          (jet_sx_mem.lframe
+                                             (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bg)) m
+                                             mf)
+                                          (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                                             (and (jet_secp_sha_startup.secp_sha_startup mf)
+                                                (and (jet_secp_swu_startup.swu_startup mf)
+                                                   (forall prefix : bool,
+                                                    jet_secp_generator_sha_absorb.generator_sha_prefix_state prefix mf)))))))))))))))
+### C.jet_secp_hashgen_outer.hashgen_nonnull_check
+hashgen_nonnull_check =
+fun (id : AST.ident) (ty : Ctypes.type) =>
+Clight.Sloop
+  (Clight.Sifthenelse
+     (Clight.Eunop Cop.Onotbool
+        (Clight.Ebinop Cop.One (Clight.Etempvar id (Ctypesdefs.tptr ty))
+           (Clight.Ecast (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tvoid))
+           Ctypesdefs.tint) Ctypesdefs.tint)
+     (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint))) Clight.Sskip)
+  Clight.Sbreak
+     : forall (_ : AST.ident) (_ : Ctypes.type), Clight.statement
+
+Arguments hashgen_nonnull_check id ty
+### C.jet_secp_hashgen_outer.hashgen_outer_temps
+hashgen_outer_temps =
+fun (bg ba : Values.block) (oa : Integers.Ptrofs.int) =>
+@Maps.PTree.set Values.val jets_secp._key32 (Values.Vptr ba oa)
+  (@Maps.PTree.set Values.val jets_secp._gen (Values.Vptr bg Integers.Ptrofs.zero)
+     (Clight.create_undef_temps (Clight.fn_temps jets_secp.f_secp256k1_generator_generate)))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Integers.Ptrofs.int), Maps.PTree.tree Values.val
+
+Arguments hashgen_outer_temps bg ba oa
+### C.jet_secp_hashgen_outer.hashgen_outer_call
+hashgen_outer_call =
+Clight.Scall (@Some AST.ident jets_secp._t'1)
+  (Clight.Evar jets_secp._secp256k1_generator_generate_internal
+     (Clight.type_of_function jets_secp.f_secp256k1_generator_generate_internal))
+  (@cons Clight.expr (Clight.Etempvar jets_secp._gen (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6563 Ctypes.noattr)))
+     (@cons Clight.expr (Clight.Etempvar jets_secp._key32 (Ctypesdefs.tptr Ctypesdefs.tuchar))
+        (@cons Clight.expr
+           (Clight.Ecast (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tvoid))
+           (@nil Clight.expr))))
+     : Clight.statement

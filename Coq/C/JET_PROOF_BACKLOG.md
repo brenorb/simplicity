@@ -2884,10 +2884,35 @@ The proof reuses the fourteen-statement prefix so its raw SWU bounds remain
 available for the flag lemma; no previously recorded contract is weakened.
 Build `C/jet_secp_generator_generate_body.vo`, recursively kernel-check its
 root, and use the existing focused audits for the three new modules and their
-reused execution/bridge dependencies. Still missing: actual internal function
-entry and freeing its eleven locals, the outer generator/public lifecycle,
-and the final canonical hash-to-curve result/mismatch boundary. Coverage stays
-514/533. An infinity-sum key is not assumed to exist or excluded.
+reused execution/bridge dependencies. The then-missing entry/free and outer
+generator call are now discharged below; the public lifecycle and final
+canonical result/mismatch boundary remain open. Coverage stays 514/533.
+An infinity-sum key is not assumed to exist or excluded.
+`jet_secp_hashgen_entry.hashgen_entry` now constructs actual original function
+entry with all eleven allocations, the exact parameter/temporary environment,
+local ownership, distinctness/freshness, old-memory framing and readonly
+preservation. `hashgen_blocks` checks the exact sorted freeing list.
+`jet_secp_hashgen_function.eval_hashgen_internal` composes that entry, the
+checked entire body, return conversion and all eleven original frees. The
+audited `hashgen_result` retains the sum bounds, canonical correspondence on
+accepted digests, actual infinity flag, exact saved bytes and finite/infinite
+affine results. The call preserves the key, generator ownership, all other old
+memory and SHA/SWU/prefix startup. No initialized output data is required.
+`jet_secp_hashgen_outer.eval_hashgen_generate` then executes the original
+outer `secp256k1_generator_generate`, including both pointer-check loops,
+its NULL-blinding call, result conversion and return. The pointer checks are
+proved from initial ownership/readability. The existing memcpy/CTZ premises
+remain explicit; neither execution nor its desired output is assumed.
+Build `C/jet_secp_hashgen_outer.vo`, recursively kernel-check that root, and
+run focused assumption/contract checks for these three modules and the reused
+body/tail/flag/prefix dependencies. Next connect the public jet's source-frame
+copy, read8s, fresh key/gen/ge allocations, generator return branch, existing
+load/write span and local frees. The exact canonical assertion result and the
+possible infinity mismatch remain to be settled without narrowing inputs.
+Reuse `jet_secp_frame.secp_read8s_layout` with
+`vector_values (Word 3) 5 key` for the raw key. Do not substitute `read_fe`:
+its field normalization would change keys at or above p before hashing.
+These internal calls add no public coverage: 514/533 remains incomplete.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
 coverage. Coverage remains 514/533.

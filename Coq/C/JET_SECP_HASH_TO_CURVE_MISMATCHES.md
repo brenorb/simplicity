@@ -77,6 +77,17 @@ reachability of an infinity sum. No public divergence is claimed. Build
 `C/jet_secp_generator_generate_body.vo` and recursively kernel-check
 `C.jet_secp_generator_generate_body` with the existing `build-jets.sh` tools.
 
+`C.jet_secp_hashgen_outer.eval_hashgen_generate` now wraps that body in both
+original generator functions: actual internal entry, all eleven allocations
+and frees, return conversion, both outer pointer-check loops, NULL-blinding
+call and outer return. Its audited `hashgen_result` retains the computed sum,
+infinity flag and both affine/serialization branches; key and outside memory
+are preserved. The existing explicit memcpy/CTZ premises remain. This closes
+the generator-call lifecycle, not the public frame read/write/failure/free
+composition or an actual key witnessing the suspected mismatch. Build
+`C/jet_secp_hashgen_outer.vo` and recursively kernel-check
+`C.jet_secp_hashgen_outer`; no new public divergence is claimed.
+
 Reproduce the source inspection, without modifying or mocking SHA:
 
 ```sh
