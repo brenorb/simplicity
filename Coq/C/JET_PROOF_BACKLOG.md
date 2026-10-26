@@ -2753,10 +2753,28 @@ counter 64, false overflow, unchanged output pointer, ownership, framing,
 readonly and startup preservation. `memcpy_model` remains explicit; no source,
 AST, specification, generation setting or public coverage row is changed.
 Build `C/jet_secp_sha_finalize48.vo`, recursively kernel-check
-`C.jet_secp_sha_finalize48`, and compare its focused records. Still missing:
-the SHA byte-string/specification bridge and composition of initialization,
-prefix/key calls, finalization and digest serialization in each actual
-generator SHA block, global-state preservation through the full caller, and composition
+`C.jet_secp_sha_finalize48`, and compare its focused records.
+`jet_secp_sha_bytestring48.secp_sha48_bytestring` now connects the exact
+register formula to `Digest.byteStringHash` for every 48-byte message. It
+reuses the ordinary byte/word conversion proof and existing SHA functional
+bridge; no host hashing oracle or archived environment-unit execution is
+imported. `jet_secp_generator_sha_complete.exec_generator_sha_block_owned`
+composes the actual initialization/copy, both absorption calls, finalization
+and digest serialization for each of the two original generator SHA spans.
+It derives exact digest bytes and registers, preserves all four owned local
+objects and framing, and re-establishes SHA startup and readonly prefix state.
+The corollary `exec_generator_sha_block_bytestring` connects that actual
+statement execution and memory result directly to
+`Digest.byteStringHash (prefix ++ key)` for every 32-byte key, retaining the
+same ownership, framing and preservation conclusions. No digest-below-p or
+other key-value restriction is introduced. The existing `memcpy_model` remains
+explicit, and no public coverage row is added.
+Build `C/jet_secp_generator_sha_complete.vo`, recursively kernel-check that
+root, and compare both new modules' focused records. Rebuilt byte-writer,
+hash-serialization and pure byte-block dependency records must still match.
+Still missing: the connection to the canonical Simplicity hash-to-curve
+program and its digest-to-field inputs, global-state preservation through
+the enclosing generator/public caller, and composition
 with the digest mapper and remaining generator/public lifecycle.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
