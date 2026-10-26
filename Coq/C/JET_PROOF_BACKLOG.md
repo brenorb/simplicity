@@ -2807,10 +2807,31 @@ state and both startup families. No source, specification or digest-domain
 restriction was added. Build `C/jet_secp_generator_two_maps.vo`, recursively
 kernel-check `C.jet_secp_generator_two_maps`, and compare both modules'
 focused assumption/contract records with the existing audit scripts.
+`jet_secp_generator_begin.exec_generator_initial_prefix` executes all five
+original FE_CONST limb stores, ret=1 and the initial NULL-blinding branch.
+The closed RHS evaluation and actual uint64 stores are proved without an
+initial value for the local field. Ownership, framing and readonly state
+are derived from the stores. `jet_secp_generator_points_prefix` composes
+this prefix with both hash-to-point passes: `exec_generator_points_prefix`
+executes the first fourteen original statements and derives both points
+and the exact conjunction of hash-conversion flags. It preserves the key,
+all nine owned objects, framing, readonly state and both startup families.
+The previous incoming-ret premise is discharged by the actual ret=1 assignment.
+The existing memcpy/ctz premises remain explicit. Build
+`C/jet_secp_generator_points_prefix.vo`, recursively kernel-check
+`C.jet_secp_generator_points_prefix`, and compare both new modules' records.
 Still missing: the enclosing canonical Simplicity hash-to-curve program's
-branching/return connection; the initial stores/return-flag setup and
-NULL-blinding test; entry/allocation and final mixed addition, affine/save
-and public load/write/return/free composition with global preservation.
+branching/return connection; entry/allocation and final mixed addition,
+affine/save and public load/write/return/free composition with global preservation.
+For mixed addition, reuse its actual X normalization, not an assumed tighter
+SWU output bound. `eval_mixed_function_loose` currently permits a loose Y but
+still requires `fe_limbs_ok` for X; SWU's X can have magnitude 2 or 4
+(`generator_impl.h`, candidate add/negate sequence), and the current SWU
+contract correctly exposes only `square_input_bounds`. Generalize the
+mixed-addition proof to loose X while retaining the original accumulator X
+for its equal-point/doubling branch. The existing weak-normalization proof
+and loose-Y preparation/dispatch structure are available. This is a proof
+interface gap, not an observed implementation/specification mismatch.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
 coverage. Coverage remains 514/533.
