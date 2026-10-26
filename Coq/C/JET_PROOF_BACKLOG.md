@@ -359,11 +359,29 @@ external helper premise or new axiom is introduced.
 Next compose the table's existing constructor calls and new doubling/zinv
 calls, then its seven mixed additions, final Z product and nonempty global-Z
 pass. `ge_set_xy` and `gej_set_ge` have existing owned execution proofs.
-Indexed `ge_set_gej_zinv` result offsets and the whole table call are still
-open; the new offset-zero helper is not a proof of those cases or of a public
-multiplication jet. Use the existing scoped build/kernel/audit commands with
-the separate-doubling and ge-zinv module names; registry entries here audit
-helpers, not new jet coverage.
+The whole table call remains open; the offset-zero helper above is not a
+public multiplication-jet proof. `jet_secp_ge_zinv_indexed_product` now reuses
+the generic field-slice multiplication for arbitrary aligned result offsets,
+retaining the real table owner. The indexed arithmetic/function/literal modules
+compose the unchanged original statement tree, both allocations, flag copy and
+all frees, and relate the decoded pair to the same existing literal `zinv`.
+The earlier offset-zero results remain available. No curve/inverse equation,
+nonzero-factor restriction or new external-helper premise is introduced.
+
+`jet_secp_globalz_indexed_call.exec_globalz_indexed_scale` instantiates that
+whole-call result at the actual Scall node in the nonempty global-Z loop for
+all eight table positions. It retains the 704-byte table, source temporary,
+factor, output bounds, source/destination flags, caller permissions, framing
+and readonly globals, and gives the literal Simplicity result. The temporary's
+Z field is not assumed initialized: the C caller only writes X/Y/infinity,
+and the helper only reads those fields. This proves the indexed call step;
+it does not establish its storage premises through the rest of the caller.
+The nonempty global-Z normalization, cumulative in-place factor products,
+coordinate copies, decrement/loop guards, function entry and frees still need
+composition. The whole odd-multiple table and its seven mixed additions also
+remain open. Use the existing scoped build/kernel/audit commands with the
+separate-doubling, ge-zinv and global-Z module names; registry entries here
+audit helpers, not new jet coverage.
 
 `jet_secp_ge_set_xy_indexed` proves the whole original affine constructor at
 any valid aligned result offset, retaining exact permission equivalence and
