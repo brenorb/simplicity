@@ -115,6 +115,22 @@ canonical assertion equivalence/common-key infinity reachability obligation
 remains unresolved; this theorem adds neither public coverage nor a public
 counterexample.
 
+The generator-to-public result contracts now retain the numeric X/Y equalities
+already derived by the original affine execution, without adding a premise
+or dropping an earlier conclusion. In `jet_secp_hash_public_literal`,
+`hash_public_finite_literal` identifies the finite output with the literal
+normalization term, and `hash_public_core_result` gives the exact core
+specification result for every computed public value: rejected digests yield
+the failure tag; accepted finite sums yield the actual coordinate pair;
+accepted infinite sums yield the failure tag. The checked composition
+`literal_hash_to_curve_core` follows Haskell lines 729--742 and reuses the
+existing verified components. This makes the outstanding assertion/infinity
+boundary precise; it supplies neither a common-key infinity witness nor an
+all-key proof that such a sum is impossible. The memcpy/CTZ premises of the
+C execution remain explicit, and coverage is unchanged. Reproduce with the
+normal build/kernel check of `C.jet_secp_hash_public_literal` and focused
+audits of the strengthened generator/public modules and their consumers.
+
 Reproduce the source inspection, without modifying or mocking SHA:
 
 ```sh

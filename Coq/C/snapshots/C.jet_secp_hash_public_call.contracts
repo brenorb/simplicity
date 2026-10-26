@@ -162,10 +162,29 @@ and (jet_secp_square_columns.square_input_bounds sx)
                                 (@eq (forall _ : nat, Integers.Int64.int) ox
                                    (jet_secp_point_mul_storage.point_mul_words sx
                                       (jet_secp_square_numeric.square_words zi)))
-                                (@eq (forall _ : nat, Integers.Int64.int) oy
-                                   (jet_secp_point_mul_storage.point_mul_words sy
-                                      (jet_secp_point_mul_storage.point_mul_words zi
-                                         (jet_secp_square_numeric.square_words zi)))))))
+                                (and
+                                   (@eq (forall _ : nat, Integers.Int64.int) oy
+                                      (jet_secp_point_mul_storage.point_mul_words sy
+                                         (jet_secp_point_mul_storage.point_mul_words zi
+                                            (jet_secp_square_numeric.square_words zi))))
+                                   (and
+                                      (@eq BinNums.Z
+                                         (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value ox)
+                                            jet_secp_fe_math.feP)
+                                         (BinInt.Z.modulo
+                                            (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value sx)
+                                               (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value zi)
+                                                  (jet_secp_multiply_finish_product.radix_value zi)))
+                                            jet_secp_fe_math.feP))
+                                      (@eq BinNums.Z
+                                         (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value oy)
+                                            jet_secp_fe_math.feP)
+                                         (BinInt.Z.modulo
+                                            (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value sy)
+                                               (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value zi)
+                                                  (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value zi)
+                                                     (jet_secp_multiply_finish_product.radix_value zi))))
+                                            jet_secp_fe_math.feP)))))))
                        (forall _ : not (@eq Integers.Int.int sumflag Integers.Int.zero),
                         and
                           (@eq (forall _ : nat, Integers.Int64.int) ox

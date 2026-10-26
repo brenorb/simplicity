@@ -36,7 +36,9 @@ Definition hashgen_result key m bg sx sy sz sumflag ox oy : Prop :=
        (if second then 5 else 0))) Int.zero))) /\
  square_input_bounds ox /\square_input_bounds oy /\
  (sumflag=Int.zero ->exists zi,radix_value zi=literal_invert_numeric (fe_inv_value sz) /\
-   ox=point_mul_words sx (square_words zi) /\oy=point_mul_words sy (point_mul_words zi (square_words zi))) /\
+   ox=point_mul_words sx (square_words zi) /\oy=point_mul_words sy (point_mul_words zi (square_words zi)) /\
+   radix_value ox mod feP=(radix_value sx*(radix_value zi*radix_value zi)) mod feP /\
+   radix_value oy mod feP=(radix_value sy*(radix_value zi*(radix_value zi*radix_value zi))) mod feP) /\
  (sumflag<>Int.zero ->ox=generator_infinite_words /\oy=generator_infinite_words).
 
 Lemma hashgen_result_lframe key m mf bg sx sy sz sumflag ox oy P :

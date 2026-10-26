@@ -58,7 +58,9 @@ Theorem eval_generator_affine_all x y z flag m bp br :
   Mem.load Mint32 mf br 80=Some (Vint (if Int.eq flag Int.zero then Int.zero else Int.one)) /\
   square_input_bounds ox /\square_input_bounds oy /\
   (flag=Int.zero ->exists zi,radix_value zi=literal_invert_numeric (fe_inv_value z) /\
-    ox=point_mul_words x (square_words zi) /\oy=point_mul_words y (point_mul_words zi (square_words zi))) /\
+    ox=point_mul_words x (square_words zi) /\oy=point_mul_words y (point_mul_words zi (square_words zi)) /\
+    radix_value ox mod feP=(radix_value x*(radix_value zi*radix_value zi)) mod feP /\
+    radix_value oy mod feP=(radix_value y*(radix_value zi*(radix_value zi*radix_value zi))) mod feP) /\
   (flag<>Int.zero ->ox=generator_infinite_words /\oy=generator_infinite_words) /\
   Mem.range_perm mf bp 0 128 Cur Freeable /\Mem.range_perm mf br 0 88 Cur Freeable /\
   lframe (fun b _=>b<>bp /\b<>br) m mf /\readonly_preserved m mf.
@@ -70,7 +72,8 @@ Proof.
     exists mf,(point_mul_words x (square_words zi)),(point_mul_words y (point_mul_words zi (square_words zi))).
     rewrite Int.eq_true;split;[exact Call|];split;[exact XO|];split;[exact YO|];split;[exact FlagO|];
       split;[exact BXO|];split;[exact BYO|];split.
-    + intro;exists zi;split;[exact Inverse|];split;reflexivity.
+    + intro;exists zi;rewrite field_prime_matches_normalizer in VX,VY;
+      split;[exact Inverse|];split;[reflexivity|];split;[reflexivity|];split;assumption.
     + split;[contradiction|];split;[exact FPF|];split;[exact FRF|];split;assumption.
   - destruct (eval_affine_infinite_owned m bp br flag Sep Nonzero Flag FP FR)
       as (mf & Call & XO & YO & FlagO & FPF & FRF & Frame & Read).
@@ -101,7 +104,9 @@ Theorem eval_generator_affine_save x y z flag m bp br bg :
         (if second then 5 else 0))) Int.zero))) /\
   square_input_bounds ox /\square_input_bounds oy /\
   (flag=Int.zero ->exists zi,radix_value zi=literal_invert_numeric (fe_inv_value z) /\
-    ox=point_mul_words x (square_words zi) /\oy=point_mul_words y (point_mul_words zi (square_words zi))) /\
+    ox=point_mul_words x (square_words zi) /\oy=point_mul_words y (point_mul_words zi (square_words zi)) /\
+    radix_value ox mod feP=(radix_value x*(radix_value zi*radix_value zi)) mod feP /\
+    radix_value oy mod feP=(radix_value y*(radix_value zi*(radix_value zi*radix_value zi))) mod feP) /\
   (flag<>Int.zero ->ox=generator_infinite_words /\oy=generator_infinite_words) /\
   Mem.range_perm mf bp 0 128 Cur Freeable /\Mem.range_perm mf br 0 88 Cur Freeable /\Mem.range_perm mf bg 0 64 Cur Freeable /\
   lframe (fun b _=>b<>bp /\b<>br /\b<>bg) m mf /\readonly_preserved m mf.
@@ -169,7 +174,9 @@ Theorem exec_generator_finish e le m bp br bg x y z flag ret :
         (if second then 5 else 0))) Int.zero))) /\
   square_input_bounds ox /\square_input_bounds oy /\
   (flag=Int.zero ->exists zi,radix_value zi=literal_invert_numeric (fe_inv_value z) /\
-    ox=point_mul_words x (square_words zi) /\oy=point_mul_words y (point_mul_words zi (square_words zi))) /\
+    ox=point_mul_words x (square_words zi) /\oy=point_mul_words y (point_mul_words zi (square_words zi)) /\
+    radix_value ox mod feP=(radix_value x*(radix_value zi*radix_value zi)) mod feP /\
+    radix_value oy mod feP=(radix_value y*(radix_value zi*(radix_value zi*radix_value zi))) mod feP) /\
   (flag<>Int.zero ->ox=generator_infinite_words /\oy=generator_infinite_words) /\
   Mem.range_perm mf bp 0 128 Cur Freeable /\Mem.range_perm mf br 0 88 Cur Freeable /\Mem.range_perm mf bg 0 64 Cur Freeable /\
   lframe (fun b _=>b<>bp /\b<>br /\b<>bg) m mf /\readonly_preserved m mf /\

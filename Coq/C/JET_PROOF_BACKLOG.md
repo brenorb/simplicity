@@ -2939,13 +2939,27 @@ divergence witness. The next obligation is that final specification connection,
 including the possible infinity mismatch, without narrowing inputs. The raw reader uses
 `vector_values (Word 3) 5 key`; do not substitute `read_fe`, whose normalization
 would change keys at or above p before hashing.
-For the finite specification bridge, preserve the already-proved numeric X/Y
-equalities (`VX`/`VY`) exposed by `eval_affine_finite_initialized` through the
-generator result contracts: `eval_generator_affine_all` currently discards
-them while retaining the inverse radix value and machine-word formulas.
-`affine_normalized_words_literal` consumes exactly those equalities. Strengthen
-the intermediate results to retain this evidence rather than re-proving the
-affine arithmetic or assuming the desired literal output.
+The finite specification bridge now retains the already-proved numeric X/Y
+equalities (`VX`/`VY`) from `eval_affine_finite_initialized` throughout
+`eval_generator_affine_all`, affine/save/return, the complete generator body
+and calls, and `hash_public_value` after the complete public call. These are
+stronger postconditions; all previous conclusions and initial premises remain.
+`jet_secp_hash_public_literal.hash_public_finite_literal` consumes that evidence
+with `affine_normalized_words_literal` to identify the exact finite coordinate
+pair with the fixed literal normalization program. Its
+`literal_hash_to_curve_core` is the composition at Haskell lines 729--742,
+reusing the checked SHA terms, canonical field modulus/comparison, SWU,
+mixed addition and normalization. The comparison and program are parametric;
+`hash_public_core_result` identifies the core specification result on every
+key represented by `hash_public_value`, including digest rejection and the
+infinity branch. The latter yields the core failure tag, while C's computed
+return still depends only on the two digest acceptances. No actual common-key
+infinity witness or impossibility theorem is established. Next connect the
+outer assertion result and settle that reachability boundary; do not turn
+the finite implication into a public input restriction. Build and recursively
+kernel-check `C.jet_secp_hash_public_literal`, and audit the strengthened
+generator/public contracts and their rebuilt consumers with the existing
+focused tools.
 These internal calls add no public coverage: 514/533 remains incomplete.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
