@@ -1,0 +1,227 @@
+### C.jet_secp_generator_save_values.generator_save_leaf_regs
+generator_save_leaf_regs
+     : forall (flag : Integers.Int.int) (x y : bool),
+       @eq (list jet_sx_state.region) (jet_sx_eval.sregs (generator_save_leaf flag x y))
+         (generator_save_output_regs flag x y)
+### C.jet_secp_generator_save_values.generator_save_selected_regs
+generator_save_selected_regs
+     : forall (flag : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout),
+       @eq (list jet_sx_state.region)
+         (jet_sx_eval.sregs
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout
+               (jet_sx_exec.rsel rho (jet_sx_state.lay beta) (jet_secp_generator_save.generator_save_result flag))))
+         (generator_save_final_regs flag rho beta)
+### C.jet_secp_generator_save_values.generator_save_choice_as_writer
+generator_save_choice_as_writer
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (offset : nat),
+       @eq bool (generator_save_choice rho beta offset)
+         (jet_sx_expr.truth (generator_save_coord_rho rho offset) (jet_sx_state.lay beta)
+            (jet_secp_write_fe_numeric.write_fe_condition BinNums.xH Integers.Ptrofs.zero))
+### C.jet_secp_generator_save_values.generator_save_bytes_as_writer
+generator_save_bytes_as_writer
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (offset : nat) (branch : bool),
+       @eq (list Integers.Int.int)
+         (@List.map jet_sx_expr.sx Integers.Int.int
+            (fun x : jet_sx_expr.sx => jet_sx_expr.ii (jet_sx_expr.den rho (jet_sx_state.lay beta) x))
+            (generator_save_bytes offset branch))
+         (@List.map jet_sx_expr.sx Integers.Int.int
+            (fun x : jet_sx_expr.sx =>
+             jet_sx_expr.ii (jet_sx_expr.den (generator_save_coord_rho rho offset) (jet_sx_state.lay beta) x))
+            match branch return (list jet_sx_expr.sx) with
+            | true => jet_secp_write_fe_numeric.write_fe_true_bytes BinNums.xH Integers.Ptrofs.zero
+            | false => jet_secp_write_fe_numeric.write_fe_false_bytes BinNums.xH Integers.Ptrofs.zero
+            end)
+### C.jet_secp_generator_save_values.generator_save_machine_bytes
+generator_save_machine_bytes
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (offset : nat)
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+              BinInt.Z.le (Integers.Int64.unsigned (rho (Nat.add i offset)))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       @eq (list Integers.Int.int)
+         (@List.map jet_sx_expr.sx Integers.Int.int
+            (fun x : jet_sx_expr.sx => jet_sx_expr.ii (jet_sx_expr.den rho (jet_sx_state.lay beta) x))
+            (generator_save_bytes offset (generator_save_choice rho beta offset)))
+         (@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+            (jet_secp_fe_b32.be_bytes (generator_save_value rho offset)))
+### C.jet_secp_generator_save_values.generator_save_bytes_length
+generator_save_bytes_length
+     : forall (offset : nat) (branch : bool),
+       @eq nat (@length jet_sx_expr.sx (generator_save_bytes offset branch))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+### C.jet_secp_generator_save_values.generator_save_bytes_are_int
+generator_save_bytes_are_int
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (offset : nat) (branch : bool),
+       @List.Forall jet_sx_expr.sx
+         (fun x : jet_sx_expr.sx =>
+          @eq Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) x)
+            (Values.Vint (jet_sx_expr.ii (jet_sx_expr.den rho (jet_sx_state.lay beta) x))))
+         (generator_save_bytes offset branch)
+### C.jet_secp_generator_save_values.generator_save_byte_value
+generator_save_byte_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (offset i : nat)
+         (expr : jet_sx_expr.sx)
+         (_ : forall (j : nat) (_ : lt j (S (S (S (S (S O)))))),
+              BinInt.Z.le (Integers.Int64.unsigned (rho (Nat.add j offset)))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option jet_sx_expr.sx)
+                (@List.nth_error jet_sx_expr.sx (generator_save_bytes offset (generator_save_choice rho beta offset)) i)
+                (@Some jet_sx_expr.sx expr)),
+       @eq Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) expr)
+         (Values.Vint
+            (@List.nth Integers.Int.int i
+               (@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+                  (jet_secp_fe_b32.be_bytes (generator_save_value rho offset))) Integers.Int.zero))
+### C.jet_secp_generator_save_values.generator_save_byte_cell_member
+generator_save_byte_cell_member
+     : forall (bytes : list jet_sx_expr.sx) (ofs : BinNums.Z) (i : nat) (x : jet_sx_expr.sx)
+         (_ : @eq (option jet_sx_expr.sx) (@List.nth_error jet_sx_expr.sx bytes i) (@Some jet_sx_expr.sx x)),
+       @List.In jet_sx_state.cell
+         (jet_sx_state.mkcell (BinInt.Z.add ofs (BinInt.Z.of_nat i)) AST.Mint8unsigned (@Some jet_sx_expr.sx x))
+         (generator_save_byte_cells ofs bytes)
+### C.jet_secp_generator_save_values.generator_save_shift
+generator_save_shift = fun offset n : nat => Nat.add (Nat.sub n (S O)) offset
+     : forall (_ : nat) (_ : nat), nat
+
+Arguments generator_save_shift (offset n)%nat_scope
+### C.jet_secp_generator_save_values.generator_save_condition
+generator_save_condition =
+fun offset : nat =>
+jet_sx_rename.sx_rename (generator_save_shift offset)
+  (jet_secp_write_fe_numeric.write_fe_condition BinNums.xH Integers.Ptrofs.zero)
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments generator_save_condition offset%nat_scope
+### C.jet_secp_generator_save_values.generator_save_normalized
+generator_save_normalized =
+fun (offset : nat) (state : jet_sx_eval.sstate) =>
+@List.map jet_sx_expr.sx jet_sx_expr.sx (jet_sx_rename.sx_rename (fun n : nat => Nat.add offset n))
+  (@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_frame.cell_sx (jet_secp_fe_nv.cells0 state))
+     : forall (_ : nat) (_ : jet_sx_eval.sstate), list jet_sx_expr.sx
+
+Arguments generator_save_normalized offset%nat_scope state
+### C.jet_secp_generator_save_values.generator_save_bytes
+generator_save_bytes =
+fun (offset : nat) (branch : bool) =>
+@List.map jet_sx_expr.sx jet_sx_expr.sx (jet_sx_rename.sx_rename (generator_save_shift offset))
+  match branch return (list jet_sx_expr.sx) with
+  | true => jet_secp_write_fe_numeric.write_fe_true_bytes BinNums.xH Integers.Ptrofs.zero
+  | false => jet_secp_write_fe_numeric.write_fe_false_bytes BinNums.xH Integers.Ptrofs.zero
+  end
+     : forall (_ : nat) (_ : bool), list jet_sx_expr.sx
+
+Arguments generator_save_bytes offset%nat_scope branch%bool_scope
+### C.jet_secp_generator_save_values.generator_save_byte_cells
+generator_save_byte_cells =
+fix generator_save_byte_cells (ofs : BinNums.Z) (bytes : list jet_sx_expr.sx) {struct bytes} :
+    list jet_sx_state.cell :=
+  match bytes return (list jet_sx_state.cell) with
+  | nil => @nil jet_sx_state.cell
+  | cons x xs =>
+      @cons jet_sx_state.cell (jet_sx_state.mkcell ofs AST.Mint8unsigned (@Some jet_sx_expr.sx x))
+        (generator_save_byte_cells (BinInt.Z.add ofs (BinNums.Zpos BinNums.xH)) xs)
+  end
+     : forall (_ : BinNums.Z) (_ : list jet_sx_expr.sx), list jet_sx_state.cell
+
+Arguments generator_save_byte_cells ofs%Z_scope bytes%list_scope
+### C.jet_secp_generator_save_values.generator_save_choice
+generator_save_choice =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (offset : nat) =>
+jet_sx_expr.truth rho (jet_sx_state.lay beta) (generator_save_condition offset)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : nat), bool
+
+Arguments generator_save_choice rho%function_scope beta offset%nat_scope
+### C.jet_secp_generator_save_values.generator_save_output_regs
+generator_save_output_regs =
+fun (flag : Integers.Int.int) (x y : bool) =>
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (@app jet_sx_state.cell
+        (jet_sx_rep.u64_cells BinNums.Z0
+           (generator_save_normalized O
+              match x return jet_sx_eval.sstate with
+              | true => jet_secp_fe_nv.nv_a
+              | false => jet_secp_fe_nv.nv_b
+              end))
+        (@app jet_sx_state.cell
+           (jet_sx_rep.u64_cells
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+              (generator_save_normalized (S (S (S (S (S O)))))
+                 match y return jet_sx_eval.sstate with
+                 | true => jet_secp_fe_nv.nv_a
+                 | false => jet_secp_fe_nv.nv_b
+                 end))
+           (@cons jet_sx_state.cell
+              (jet_sx_state.mkcell
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                 AST.Mint32 (@Some jet_sx_expr.sx (jet_sx_expr.XI flag))) (@nil jet_sx_state.cell)))) true
+     (@Some BinNums.Z
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+  (@cons jet_sx_state.region
+     (jet_sx_state.mkreg
+        (@app jet_sx_state.cell (generator_save_byte_cells BinNums.Z0 (generator_save_bytes O x))
+           (generator_save_byte_cells
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+              (generator_save_bytes (S (S (S (S (S O))))) y))) true
+        (@Some BinNums.Z
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+     (@nil jet_sx_state.region))
+     : forall (_ : Integers.Int.int) (_ : bool) (_ : bool), list jet_sx_state.region
+
+Arguments generator_save_output_regs flag (x y)%bool_scope
+### C.jet_secp_generator_save_values.generator_save_final_regs
+generator_save_final_regs =
+fun (flag : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) =>
+generator_save_output_regs flag (generator_save_choice rho beta O)
+  (generator_save_choice rho beta (S (S (S (S (S O))))))
+     : forall (_ : Integers.Int.int) (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout),
+       list jet_sx_state.region
+
+Arguments generator_save_final_regs flag rho%function_scope beta
+### C.jet_secp_generator_save_values.generator_save_leaf
+generator_save_leaf =
+fun (flag : Integers.Int.int) (x y : bool) =>
+let rx : jet_sx_exec.res :=
+  match jet_secp_generator_save.generator_save_result flag return jet_sx_exec.res with
+  | jet_sx_exec.RDone Σ o => jet_sx_exec.RDone Σ o
+  | jet_sx_exec.RIf _ a b => match x return jet_sx_exec.res with
+                             | true => a
+                             | false => b
+                             end
+  end in
+let ry : jet_sx_exec.res :=
+  match rx return jet_sx_exec.res with
+  | jet_sx_exec.RDone _ _ => rx
+  | jet_sx_exec.RIf _ a b => match y return jet_sx_exec.res with
+                             | true => a
+                             | false => b
+                             end
+  end in
+match ry return jet_sx_eval.sstate with
+| jet_sx_exec.RDone st _ => st
+| jet_sx_exec.RIf _ _ _ =>
+    jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : forall (_ : Integers.Int.int) (_ : bool) (_ : bool), jet_sx_eval.sstate
+
+Arguments generator_save_leaf flag (x y)%bool_scope
+### C.jet_secp_generator_save_values.generator_save_coord_rho
+generator_save_coord_rho =
+fun (rho : forall _ : nat, Integers.Int64.int) (offset : nat) =>
+jet_secp_write_fe_wide_values.wide_fe_rho (rho offset) (rho (Nat.add (S O) offset)) (rho (Nat.add (S (S O)) offset))
+  (rho (Nat.add (S (S (S O))) offset)) (rho (Nat.add (S (S (S (S O)))) offset)) BinNums.Z0
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat) (_ : nat), Integers.Int64.int
+
+Arguments generator_save_coord_rho rho%function_scope (offset n)%nat_scope
+### C.jet_secp_generator_save_values.generator_save_value
+generator_save_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (offset : nat) =>
+BinInt.Z.modulo
+  (jet_secp_fe_math.fe_val (Integers.Int64.unsigned (rho offset))
+     (Integers.Int64.unsigned (rho (Nat.add (S O) offset))) (Integers.Int64.unsigned (rho (Nat.add (S (S O)) offset)))
+     (Integers.Int64.unsigned (rho (Nat.add (S (S (S O))) offset)))
+     (Integers.Int64.unsigned (rho (Nat.add (S (S (S (S O)))) offset)))) jet_secp_fe_math.feP
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), BinNums.Z
+
+Arguments generator_save_value rho%function_scope offset%nat_scope

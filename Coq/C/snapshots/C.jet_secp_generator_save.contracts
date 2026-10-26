@@ -1,0 +1,106 @@
+### C.jet_secp_generator_save.generator_save_run_eq
+generator_save_run_eq
+     : forall flag : Integers.Int.int,
+       @eq (option jet_sx_exec.res) (generator_save_run flag) (@Some jet_sx_exec.res (generator_save_result flag))
+### C.jet_secp_generator_save.generator_save_return
+generator_save_return
+     : forall (flag : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH
+            (jet_sx_eval.stemps
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                  (jet_sx_exec.rsel rho (jet_sx_state.lay beta) (generator_save_result flag)))))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_generator_save.eval_generator_save_symbolic
+eval_generator_save_symbolic
+     : forall (flag : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta (generator_save_regs flag) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_generator_save)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                     (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep rho beta
+                  (jet_sx_eval.sregs
+                     (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                        (jet_sx_exec.rsel rho (jet_sx_state.lay beta) (generator_save_result flag)))) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape (generator_save_regs flag)) b pos)) m mf)))
+### C.jet_secp_generator_save.generator_save_buffer
+generator_save_buffer =
+jet_sx_state.mkreg
+  (@List.map jet_sx_state.cell jet_sx_state.cell
+     (fun c : jet_sx_state.cell =>
+      jet_sx_state.mkcell (jet_sx_state.cofs c) (jet_sx_state.cchunk c) (@None jet_sx_expr.sx))
+     (jet_secp_fe_b32.byte_cells BinNums.Z0
+        (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))) O)) true
+  (@Some BinNums.Z
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+     : jet_sx_state.region
+### C.jet_secp_generator_save.generator_save_point
+generator_save_point =
+fun flag : Integers.Int.int =>
+jet_sx_state.mkreg
+  (@app jet_sx_state.cell
+     (jet_sx_rep.u64_cells BinNums.Z0 (@List.map nat jet_sx_expr.sx jet_sx_expr.XLv (List.seq O (S (S (S (S (S O))))))))
+     (@app jet_sx_state.cell
+        (jet_sx_rep.u64_cells
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+           (@List.map nat jet_sx_expr.sx jet_sx_expr.XLv (List.seq (S (S (S (S (S O))))) (S (S (S (S (S O))))))))
+        (@cons jet_sx_state.cell
+           (jet_sx_state.mkcell
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+              AST.Mint32 (@Some jet_sx_expr.sx (jet_sx_expr.XI flag))) (@nil jet_sx_state.cell)))) true
+  (@Some BinNums.Z
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     : forall _ : Integers.Int.int, jet_sx_state.region
+
+Arguments generator_save_point flag
+### C.jet_secp_generator_save.generator_save_regs
+generator_save_regs =
+fun flag : Integers.Int.int =>
+@cons jet_sx_state.region (generator_save_point flag)
+  (@cons jet_sx_state.region generator_save_buffer (@nil jet_sx_state.region))
+     : forall _ : Integers.Int.int, list jet_sx_state.region
+
+Arguments generator_save_regs flag
+### C.jet_secp_generator_save.generator_save_args
+generator_save_args =
+@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0)
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0) (@nil jet_sx_expr.sx))
+     : list jet_sx_expr.sx
+### C.jet_secp_generator_save.generator_save_run
+generator_save_run =
+fun flag : Integers.Int.int =>
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  (jet_sx_pure.int_table jet_secp_fns.secp_pure)
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  jets_secp.f_secp256k1_generator_save generator_save_args (generator_save_regs flag) (@nil jet_sx_eval.event)
+  (S (S (S (S (S (S (S (S (S (S O))))))))))
+     : forall _ : Integers.Int.int, option jet_sx_exec.res
+
+Arguments generator_save_run flag
+### C.jet_secp_generator_save.generator_save_result
+generator_save_result =
+fun flag : Integers.Int.int =>
+match generator_save_tree flag return jet_sx_exec.res with
+| Some rr => rr
+| None =>
+    jet_sx_exec.RDone
+      (jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O)
+      jet_sx_exec.ONormal
+end
+     : forall _ : Integers.Int.int, jet_sx_exec.res
+
+Arguments generator_save_result flag

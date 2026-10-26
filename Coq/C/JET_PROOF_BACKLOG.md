@@ -2528,8 +2528,26 @@ from the SWU caller proof, avoiding the normalization-conversion slowdown.
 This is the actual final load/write span, not a whole-public hash_to_curve
 theorem or a registration. Coverage remains 514/533.
 
-Next prove original `generator_save` from arbitrary bounded point storage,
-then carry its actual bytes through the checked final span. For the earlier
+`jet_secp_generator_save` now executes the full original saver, retaining its
+one-iteration infinity inspection and both normalization/get_b32 calls.
+The initial infinity flag is an arbitrary machine int, not required to be zero.
+`jet_secp_generator_save_values` identifies all four branch outputs with the
+existing writer expressions, then reuses `wide_write_selected_machine_bytes`
+to derive the two exact 32-byte big-endian coordinate residues modulo p.
+It uses an explicit selected-leaf projection to avoid expanding unrelated
+symbolic conditionals while matching the representation.
+
+`jet_secp_generator_save_storage.eval_generator_save_bytes` composes actual
+execution with physical byte loads of both coordinate halves, unchanged
+infinity flag, both owned 88/64-byte allocations, the outside-memory frame and
+readonly preservation. Its premises are the initial private-region
+representation and bounds <=2^60 on the ten input limbs. No call, expected
+output, CTZ or libc behavior is assumed. These are internal caller premises:
+the generator caller must establish them from its actual point and allocation.
+This result is not yet a whole-public hash_to_curve theorem or new coverage.
+
+Next construct that saver representation from the actual preceding caller,
+then compose its physical bytes with the checked load/write span. For the earlier
 generator caller, retain both SHA-derived set_b32 flags and every original
 operation before its return: C does **not** exit early for a rejected digest.
 The current literal SWU theorem requires the normalized reader form; an
@@ -2551,6 +2569,9 @@ Reproduce the normal build with
 recursive kernel check with `bash Coq/build-jets.sh --coqchk
 -bytecode-compiler yes -silent -o C.jet_secp_generator_load_write`, and the
 existing focused assumption/contract comparisons for these four modules.
+For the saver, use `JET_TARGETS=C/jet_secp_generator_save_storage.vo` with the
+same normal build, kernel-check `C.jet_secp_generator_save_storage`, and focus
+the existing assumption/contract comparisons on the three new saver modules.
 
 ## Completed: `simplicity_gej_rescale`
 
