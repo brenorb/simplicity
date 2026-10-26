@@ -319,8 +319,8 @@ generator and shared point arithmetic where applicable. The external memset
 boundary remains deferred and must stay explicit.
 
 The non-generator table calls `gej_double_var(&d, a, NULL)` with distinct
-source and destination. Existing whole doubling execution proofs are in-place;
-they cannot justify this call by silently copying the source into the result.
+source and destination. The earlier whole doubling proofs were in-place and
+cannot justify this call by silently copying the source into the result.
 `jet_secp_double_separate_product` proves the actual first multiplication
 `d.z = a.z * a.y` with two source fields in one allocation and an initially
 uninitialized destination field. It reuses the verified u128 multiplication
@@ -328,13 +328,27 @@ oracles and derives its event obligations internally.
 `jet_secp_double_separate_prefix.exec_double_separate_prefix` composes the
 first five original arithmetic calls, preserving all three source coordinates,
 both projective owners and the S/L temporaries, and deriving reusable result
-bounds. This is an arithmetic prefix, not whole doubling/table execution or
-additional jet coverage. Next: the remaining ten arithmetic calls with the
-same distinct source, then original entry/flag handling/frees and double_var's
-finite wrapper, before composing odd-multiple table construction. Do not add
-on-curve or nonzero-Y assumptions: the off-curve public target admits those
-inputs. Scoped verification uses the two new module names with the commands
-already documented here; no new public coverage is claimed.
+bounds. Its frame now also retains both infinity-flag locations.
+`jet_secp_double_separate_middle`, `_tail` and `_body` complete all fifteen
+actual arithmetic calls and the real flag copy. `jet_secp_double_separate_function`
+proves the whole original `gej_double`, including its three allocations, void
+return and all frees. `jet_secp_double_var_separate` adds the original finite
+input dispatch, NULL-ratio skip, normalizes-to-zero call and final flag store.
+`jet_secp_double_separate_literal.eval_double_var_separate_literal` connects
+that complete call to the existing literal Simplicity doubling term when the
+represented input infinity flag is false. Source coordinates and source flag,
+both projective owners, output bounds, precise framing and readonly globals
+are retained. There is no on-curve or nonzero-Y premise and no new external
+helper premise. These are checked helper results, not odd-table execution or
+additional public coverage.
+
+Next compose the table's constructor and `ge_set_gej_zinv` calls before its
+seven mixed additions and nonempty global-Z pass. `ge_set_xy` and `gej_set_ge`
+have existing owned execution proofs; no original `ge_set_gej_zinv` call
+theorem was found in the current normal modules. Its supplied Z factor can
+be zero: do not import a nonzero-inverse assumption from affine normalization.
+Use the existing scoped build/kernel/audit commands with the separate-doubling
+module names; registry entries here audit helpers, not new jet coverage.
 
 `jet_secp_wnaf_literal_values` proves every reachable literal `Some` digit
 is odd and nonzero in the signed range, zero C integers correspond exactly

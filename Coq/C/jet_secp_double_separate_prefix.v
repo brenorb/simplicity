@@ -58,7 +58,8 @@ Theorem exec_double_separate_prefix le x y z m br ba bs bl bt :
  Mem.range_perm mf bs 0 40 Cur Freeable /\ Mem.range_perm mf bl 0 40 Cur Freeable /\
  square_input_bounds (point_mul_words z y) /\ mul_small_input_bounds (square_words y) /\
  square_input_bounds (double_l_words (square_words x)) /\
- lframe (fun b _=>b<>br /\ b<>ba /\ b<>bs /\ b<>bl) m mf.
+ lframe (fun b pos=>b<>bs /\ b<>bl /\
+   (b<>br \/ pos<80 \/ 120<=pos) /\ (b<>ba \/ pos<0 \/ 120<=pos)) m mf.
 Proof.
  intros HA HR BX BY BZ RA RS RL AS AL SL X Y ZAt RF AF SF LF.
  destruct (eval_double_separate_product z y m br ba BZ BY RA RF ZAt Y AF)
@@ -130,13 +131,18 @@ Proof.
    split;[intros i HI;exact (proj2 (BTS i HI))|];split;[exact BL5|].
    eapply lframe_trans.
    + eapply lframe_implies;[exact F1|].
-     intros b pos (NR & NA & NS & NL) Valid;split;left;assumption.
+     intros b pos (NS & NL & NR & NA) Valid;split;[exact NR|].
+     destruct NA as [NA|[NA|NA]];[left;exact NA|right;left;lia|right;right;exact NA].
    + eapply lframe_trans.
-     * eapply lframe_implies;[exact E2|].
-       intros b pos (NR & NA & NS & NL) Valid;split;assumption.
+     * eapply lframe_implies;[exact F2|].
+       intros b pos (NS & NL & NR & NA) Valid.
+       unfold point_square_coordinate_frame;intros [[Same Range]|[Same Range]];
+         [congruence|subst b;destruct NA as [NA|[NA|NA]];cbn [point_coordinate_offset] in Range;intuition lia].
      * eapply lframe_trans.
-       -- eapply lframe_implies;[exact E3|].
-          intros b pos (NR & NA & NS & NL) Valid;split;assumption.
+       -- eapply lframe_implies;[exact F3|].
+          intros b pos (NS & NL & NR & NA) Valid.
+          unfold point_square_coordinate_frame;intros [[Same Range]|[Same Range]];
+            [congruence|subst b;destruct NA as [NA|[NA|NA]];cbn [point_coordinate_offset] in Range;intuition lia].
        -- eapply lframe_implies;[exact F45|].
-          intros b pos (NR & NA & NS & NL) Valid;exact NL.
+          intros b pos (NS & NL & NR & NA) Valid;exact NL.
 Qed.
