@@ -449,9 +449,21 @@ the original H/I tests and both H=0 outcomes: doubling for I=0, or ratio-zero
 initialization and point infinity for I<>0. The ratio and point bounds needed
 by subsequent table/global-Z calls are returned; unrelated array entries are
 framed. No on-curve or positioned-Y premise is added. These are checked
-internal branch results, not a whole-public jet theorem. Still compose the
-nonzero-H indexed-ratio path, the incoming-infinity branch and the enclosing
-loose-input mixed-addition/table callers before the canonical table bridge.
+internal branch results, not a whole-public jet theorem.
+`jet_secp_mixed_nonzero_ratio_slice` now composes the actual nonzero-H ratio
+copy, H guard, Z/H2 operations, existing private-field products and XY tail
+for an arbitrary aligned ratio slice with its full array owner. The existing
+verified arithmetic is reused and neighboring ratio entries are framed.
+`jet_secp_mixed_finite_ratio_slice.exec_mixed_finite_ratio_slice` executes the
+complete original finite-point function body, deriving the normalized
+temporaries, H/I, both H outcomes, exact point/ratio limbs, output bounds and
+all thirteen owners from initial storage. It supports the existing loose-X
+proof mode and loose Y, and retains the affine source's X/Y/finite flag for
+the next table iteration. Neither a desired execution nor intermediate H/I
+values are assumed. Earlier positioned/offset-zero contracts stay unchanged.
+Still compose the incoming-infinity indexed-ratio branch, real function
+entry/ten allocations/frees, and the enclosing odd-table callers before the
+canonical table bridge. These internal results do not add public coverage.
 
 `jet_secp_ge_set_xy_indexed` proves the whole original affine constructor at
 any valid aligned result offset, retaining exact permission equivalence and
