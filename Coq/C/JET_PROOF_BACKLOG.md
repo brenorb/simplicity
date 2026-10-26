@@ -2919,12 +2919,33 @@ the original generator call, deriving its digest-acceptance return flag and
 `hashgen_result` while retaining all four public locals and startup invariants.
 The existing memcpy/CTZ premises remain explicit. Build and recursively
 kernel-check `C.jet_secp_hash_public_generate`, then run the existing focused
-audits for these three public-prefix modules. Next compose the public return
-branch, existing load/write span, actual public return and frees. The exact
-canonical assertion result and possible infinity mismatch remain to be settled
-without narrowing inputs. The raw reader uses
+audits for these three public-prefix modules.
+`jet_secp_hash_public_finish.exec_hash_public_rest` now derives the public
+failure/success branch, original load/write calls and actual return. Rejected
+digests return zero without output writes; accepted digests write the saved
+coordinates and return one, retaining the infinity case.
+`jet_secp_hash_public_call.eval_hash_public_original` composes the entire
+original public function, including actual entry, copy/read, generator call,
+both branches, output writes, return conversion and all four frees. Its
+`hash_public_value` retains the computed point bounds, literal mapped sum when
+the digests accept, infinity flag and finite/infinite affine formulas after
+the local storage is freed. It derives the output invariant and caller-memory
+framing, at arbitrary valid frame cursors; it adds no input/output-disjointness
+premise. Existing memcpy/CTZ premises remain explicit. Build and recursively
+kernel-check `C.jet_secp_hash_public_call`, and run the existing focused audits
+for these two final public modules. This is a complete C execution/result
+characterization, not yet the canonical assertion equivalence or a public
+divergence witness. The next obligation is that final specification connection,
+including the possible infinity mismatch, without narrowing inputs. The raw reader uses
 `vector_values (Word 3) 5 key`; do not substitute `read_fe`, whose normalization
 would change keys at or above p before hashing.
+For the finite specification bridge, preserve the already-proved numeric X/Y
+equalities (`VX`/`VY`) exposed by `eval_affine_finite_initialized` through the
+generator result contracts: `eval_generator_affine_all` currently discards
+them while retaining the inverse radix value and machine-word formulas.
+`affine_normalized_words_literal` consumes exactly those equalities. Strengthen
+the intermediate results to retain this evidence rather than re-proving the
+affine arithmetic or assuming the desired literal output.
 These internal calls add no public coverage: 514/533 remains incomplete.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet

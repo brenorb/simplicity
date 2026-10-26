@@ -100,6 +100,21 @@ or new coverage is claimed. Reproduce with the normal build and recursive
 kernel check of `C.jet_secp_hash_public_generate`, and the existing focused
 assumption/contract audits of the three `jet_secp_hash_public_*` modules.
 
+`C.jet_secp_hash_public_call.eval_hash_public_original` now closes the complete
+original public C execution, including both return branches, original
+generator load/affine write, result conversion and all four public frees.
+It derives the digest-acceptance return value, output cells/cursor/prefix and
+caller-memory frame. Its pure `hash_public_value` retains the canonical mapped
+sum on accepted digests, actual sum infinity flag and finite/infinite affine
+formulas after freeing local storage. No key, digest or infinity input is
+excluded, and no input/output-disjointness premise is added. The established
+memcpy/CTZ premises remain explicit. Reproduce with the normal build and
+recursive kernel check of `C.jet_secp_hash_public_call` and the focused audits
+of `jet_secp_hash_public_finish` and `jet_secp_hash_public_call`. The final
+canonical assertion equivalence/common-key infinity reachability obligation
+remains unresolved; this theorem adds neither public coverage nor a public
+counterexample.
+
 Reproduce the source inspection, without modifying or mocking SHA:
 
 ```sh
