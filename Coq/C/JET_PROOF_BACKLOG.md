@@ -2546,8 +2546,27 @@ output, CTZ or libc behavior is assumed. These are internal caller premises:
 the generator caller must establish them from its actual point and allocation.
 This result is not yet a whole-public hash_to_curve theorem or new coverage.
 
-Next construct that saver representation from the actual preceding caller,
-then compose its physical bytes with the checked load/write span. For the earlier
+`jet_secp_generator_save_initial.generator_save_initial_from_fields` now
+constructs that representation from the two concrete coordinate fields, the
+loaded infinity flag and ownership of the point and generator allocations.
+The destination bytes are not assumed initialized. Its generic field-slice
+constructor shares the existing region append and limb-index lemmas.
+
+`jet_secp_generator_codec` proves the exact big-endian save/load round trip:
+the 32-byte halves are in range, their decoded values are precisely the
+coordinate residues, and the final writer preserves those residues exactly.
+The byte/value lemmas are closed and use no hash or cryptographic assumption.
+`jet_secp_generator_roundtrip.eval_generator_save_load_write` composes the
+three actual C calls from the concrete initial fields, flag, owned allocations
+and limb bounds. It derives the final 512-bit encoded coordinate pair,
+arbitrary-valid-cursor output invariant, ownership, memory frame and readonly
+preservation. Every intermediate byte load and frame fact is established by
+the preceding call, not assumed as a postcondition.
+
+This is a complete serialization span, not execution of the intervening
+generator return/free and public wrapper statements, nor a whole-public
+hash_to_curve equivalence. Coverage stays 514/533. Next connect the real
+generator's affine-conversion output and lifecycle to this span. For the earlier
 generator caller, retain both SHA-derived set_b32 flags and every original
 operation before its return: C does **not** exit early for a rejected digest.
 The current literal SWU theorem requires the normalized reader form; an
@@ -2572,6 +2591,10 @@ existing focused assumption/contract comparisons for these four modules.
 For the saver, use `JET_TARGETS=C/jet_secp_generator_save_storage.vo` with the
 same normal build, kernel-check `C.jet_secp_generator_save_storage`, and focus
 the existing assumption/contract comparisons on the three new saver modules.
+For the concrete round trip, build `C/jet_secp_generator_roundtrip.vo`,
+kernel-check `C.jet_secp_generator_roundtrip`, and compare the existing
+assumption/contract snapshots for `jet_secp_generator_save_initial`,
+`jet_secp_generator_codec` and `jet_secp_generator_roundtrip`.
 
 ## Completed: `simplicity_gej_rescale`
 

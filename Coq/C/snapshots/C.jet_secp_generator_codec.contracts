@@ -1,0 +1,71 @@
+### C.jet_secp_generator_codec.generator_be_chunks_length
+generator_be_chunks_length
+     : forall (count : nat) (value : BinNums.Z),
+       @eq nat (@length BinNums.Z (jet_secp_output_bytes.be_chunks count value)) count
+### C.jet_secp_generator_codec.generator_be_chunks_value
+generator_be_chunks_value
+     : forall (count : nat) (value : BinNums.Z),
+       @eq BinNums.Z (jet_secp_fe_math.be_val (jet_secp_output_bytes.be_chunks count value))
+         (BinInt.Z.modulo value
+            (BinInt.Z.pow
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (BinInt.Z.of_nat count)))
+### C.jet_secp_generator_codec.generator_be_bytes_value
+generator_be_bytes_value
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq BinNums.Z (jet_secp_fe_math.be_val (jet_secp_fe_b32.be_bytes value)) value
+### C.jet_secp_generator_codec.generator_saved_bytes_length
+generator_saved_bytes_length
+     : forall (rho : forall _ : nat, Integers.Int64.int) (offset : nat),
+       @eq nat (@length BinNums.Z (generator_saved_bytes rho offset))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+### C.jet_secp_generator_codec.generator_saved_bytes_bound
+generator_saved_bytes_bound
+     : forall (rho : forall _ : nat, Integers.Int64.int) (offset : nat),
+       @List.Forall BinNums.Z
+         (fun x : BinNums.Z =>
+          and (BinInt.Z.le BinNums.Z0 x)
+            (BinInt.Z.le x
+               (BinNums.Zpos
+                  (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (generator_saved_bytes rho offset)
+### C.jet_secp_generator_codec.generator_saved_value_range
+generator_saved_value_range
+     : forall (rho : forall _ : nat, Integers.Int64.int) (offset : nat),
+       and (BinInt.Z.le BinNums.Z0 (jet_secp_generator_save_values.generator_save_value rho offset))
+         (BinInt.Z.lt (jet_secp_generator_save_values.generator_save_value rho offset)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+### C.jet_secp_generator_codec.generator_saved_bytes_decode
+generator_saved_bytes_decode
+     : forall (rho : forall _ : nat, Integers.Int64.int) (offset : nat),
+       @eq BinNums.Z (jet_secp_fe_math.be_val (generator_saved_bytes rho offset))
+         (jet_secp_generator_save_values.generator_save_value rho offset)
+### C.jet_secp_generator_codec.generator_saved_output_value
+generator_saved_output_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (offset : nat),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (jet_secp_rescale_literal.rescale_field_output
+               (jet_secp_generator_load_write.generator_loaded_words (generator_saved_bytes rho offset))))
+         (jet_secp_generator_save_values.generator_save_value rho offset)
+### C.jet_secp_generator_codec.generator_saved_bytes
+generator_saved_bytes =
+fun (rho : forall _ : nat, Integers.Int64.int) (offset : nat) =>
+jet_secp_fe_b32.be_bytes (jet_secp_generator_save_values.generator_save_value rho offset)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), list BinNums.Z
+
+Arguments generator_saved_bytes rho%function_scope offset%nat_scope
