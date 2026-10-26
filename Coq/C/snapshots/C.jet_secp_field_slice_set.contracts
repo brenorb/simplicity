@@ -1,0 +1,42 @@
+### C.jet_secp_field_slice_set.eval_field_slice_set
+eval_field_slice_set
+     : forall (bit : bool) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m b base
+                (BinInt.Z.add base
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_set_int)
+               (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base))
+                  (@cons Values.val
+                     (Values.Vint
+                        match bit return Integers.Int.int with
+                        | true => Integers.Int.one
+                        | false => Integers.Int.zero
+                        end) (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf b base
+                  (jet_secp_multiply_normalize_bridge.words5 (jet_secp_point_set_bit.point_set_bit_words bit)))
+               (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                  (and
+                     (jet_sx_mem.lframe
+                        (fun (bx : Values.block) (pos : BinNums.Z) =>
+                         or (not (@eq Values.block bx b))
+                           (or (BinInt.Z.lt pos base)
+                              (BinInt.Z.le
+                                 (BinInt.Z.add base
+                                    (BinNums.Zpos
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                 pos))) m mf) (jet_clight_internal_preserve.readonly_preserved m mf)))))
+### C.jet_secp_field_slice_set.field_slice_set_regs
+field_slice_set_regs =
+@cons jet_sx_state.region jet_secp_fe_b32.fe_undef (@nil jet_sx_state.region)
+     : list jet_sx_state.region

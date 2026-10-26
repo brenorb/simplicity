@@ -435,6 +435,24 @@ do not reimpose the older ratio function's positioned-X/Y premises on table
 outputs. The NULL-ratio callers are complete; the remaining adaptation here
 is the non-NULL ratio path at the actual `zr[i]` offset and its array owner.
 
+`jet_secp_double_var_ratio_slice` now covers the complete original finite
+`gej_double_var` call with loose raw Y and a ratio output at an arbitrary
+aligned slice of a real array owner. The actual copy/weak-normalize calls
+write `weak_loose_words y` to that slice, while doubling uses the raw point;
+all output bounds, ownership, old permissions, framing and readonly globals
+are retained. The earlier positioned-Y/offset-zero proofs remain unchanged.
+`jet_secp_field_slice_set` proves the actual `fe_set_int(0/1)` call on such a
+slice, without requiring initialized contents or substituting `fe_clear`.
+`jet_secp_mixed_equal_ratio_slice` and
+`jet_secp_mixed_inverse_ratio_slice.exec_mixed_zero_head_ratio_slice` compose
+the original H/I tests and both H=0 outcomes: doubling for I=0, or ratio-zero
+initialization and point infinity for I<>0. The ratio and point bounds needed
+by subsequent table/global-Z calls are returned; unrelated array entries are
+framed. No on-curve or positioned-Y premise is added. These are checked
+internal branch results, not a whole-public jet theorem. Still compose the
+nonzero-H indexed-ratio path, the incoming-infinity branch and the enclosing
+loose-input mixed-addition/table callers before the canonical table bridge.
+
 `jet_secp_ge_set_xy_indexed` proves the whole original affine constructor at
 any valid aligned result offset, retaining exact permission equivalence and
 framing outside that entry's 84 written bytes. `jet_secp_odd_table_write` applies
