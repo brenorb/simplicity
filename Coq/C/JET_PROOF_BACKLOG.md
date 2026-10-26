@@ -482,10 +482,34 @@ Starting from the initialized prefix and bounded accumulator, it derives
 all eight table/ratio fields and bounds, the final accumulator, preserved
 affine source, caller ownership, old permissions, unrelated memory and
 readonly globals. The exact limb recurrence `odd_table_walk` is an internal
-execution result, not a replacement for `scalarTable5`. The odd-table
-initialization calls, final Z product, entry/frees and the connection to
-the canonical table tree remain to be composed. These internal results do
-not add public coverage.
+execution result, not a replacement for `scalarTable5`.
+`jet_secp_odd_table_head` now derives the first table entry and affine helper
+point from the actual distinct-destination doubling and coordinate-scaling
+calls, retaining the input and doubled Z even for zero-Y/off-curve points.
+`jet_secp_odd_table_seed` composes the actual accumulator constructor and both
+typed field copies, deriving the initialized table/ratio prefix and bounded
+accumulator without requiring values for unwritten entries.
+`jet_secp_odd_table_body.exec_odd_table_body` composes that initialization,
+the complete seven-iteration loop and the original final Z multiplication.
+It returns exact table/ratio limbs, bounds, accumulator and Z product, the
+preserved original input, all seven owners, old permissions, unrelated memory
+and readonly globals. No intermediate helper result or library model is an
+added premise.
+`jet_secp_odd_table_function.eval_ecmult_odd_table_eight` now proves the whole
+original helper call for the actual eight-entry caller: three allocations,
+parameter binding, complete body, void result and all three frees. It returns
+all eight table/ratio entries and bounds, the exact Z product, the preserved
+input and all four caller owners, old permissions, unrelated memory and
+readonly globals. Initial destination contents need not be initialized.
+The canonical table bridge remains open: reuse the existing normalized-ratio
+literal proof for its loose-coordinate generalization, and then relate the
+checked odd-table/global-Z traversals to `scalarTable5`/`pass2_8`. Do not assume
+raw ratio equality or replace that fixed tree with group scalar arithmetic.
+These internal results do not add public coverage.
+Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
+Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
+Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_odd_table_function` under the pinned toolchain and stack setting.
 
 `jet_secp_ge_set_xy_indexed` proves the whole original affine constructor at
 any valid aligned result offset, retaining exact permission equivalence and
