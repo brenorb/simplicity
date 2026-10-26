@@ -2865,6 +2865,29 @@ and the reused prefix/addition dependencies. This closes the loose-coordinate
 mixed-addition bridge and the first fifteen statements, not the generator's
 affine/save/entry/return/free or whole-public caller. No new coverage is claimed;
 the remaining suspected hash-to-curve infinity issue is not assumed away.
+`jet_secp_generator_finish` now derives the original affine/save calls from
+owned point fields for every machine infinity flag, then executes the actual
+two tail statements and return. The saver adapter exposes both concrete
+32-byte halves, retaining the original inspection and normalization calls.
+`jet_secp_generator_sum_flag.generator_sum_flag_consistent` relates the
+mixed-addition C flag to the canonical zero test of its decoded Z for the
+actual initialized Z=1 input, including zero-H/doubling and infinity cases.
+`jet_secp_generator_generate_body.exec_generator_generate_body` composes the
+entire original NULL-blinding body, not a substituted program: initialization,
+both SHA/SWU passes, addition, affine conversion, save and return. Every key
+executes; the returned flag is exactly the conjunction of digest acceptance.
+The postcondition identifies the canonical point sum on accepted digests,
+the actual sum infinity flag, finite inverse/coordinate formulas or cleared
+infinite coordinates, exact saved bytes, ownership, key/outside-memory framing
+and preserved startup state. It retains explicit memcpy/CTZ premises.
+The proof reuses the fourteen-statement prefix so its raw SWU bounds remain
+available for the flag lemma; no previously recorded contract is weakened.
+Build `C/jet_secp_generator_generate_body.vo`, recursively kernel-check its
+root, and use the existing focused audits for the three new modules and their
+reused execution/bridge dependencies. Still missing: actual internal function
+entry and freeing its eleven locals, the outer generator/public lifecycle,
+and the final canonical hash-to-curve result/mismatch boundary. Coverage stays
+514/533. An infinity-sum key is not assumed to exist or excluded.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
 coverage. Coverage remains 514/533.

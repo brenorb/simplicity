@@ -64,6 +64,19 @@ hashes, point addition, actual generator/public return statements or common-key
 reachability. The whole-public conditional path and a public counterexample
 remain unproved; the status above is unchanged.
 
+`C.jet_secp_generator_generate_body.exec_generator_generate_body` now composes
+the entire original internal generator body from the represented key and owned
+local storage, retaining the existing explicit memcpy and CTZ premises. It
+derives the conjunction of the two digest acceptance flags as the actual return
+value, identifies their canonical mapped point sum when both accept, relates
+the actual sum infinity flag to the decoded Z zero test, and exposes the exact
+saved bytes for either affine branch. The infinite branch exposes cleared
+coordinate words. This closes the generator body, including its return; it
+does not establish entry/free, the outer public execution, or common-key
+reachability of an infinity sum. No public divergence is claimed. Build
+`C/jet_secp_generator_generate_body.vo` and recursively kernel-check
+`C.jet_secp_generator_generate_body` with the existing `build-jets.sh` tools.
+
 Reproduce the source inspection, without modifying or mocking SHA:
 
 ```sh
