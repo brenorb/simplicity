@@ -21,16 +21,16 @@ Lemma secp_sha_memcpy_funct : Genv.find_funct secp_ge
 Proof. vm_compute;reflexivity. Qed.
 Local Opaque sha_ge secp_ge.
 
-Lemma exec_secp_sha_memcpy (Hmodel:memcpy_model) bx ba ob oa xs le m :
+Lemma exec_secp_sha_memcpy_n (Hmodel:memcpy_model) n bx ba ob oa xs le m :
   bx<>ba -> (0<length xs<=64)%nat ->
   Ptrofs.unsigned oa+Z.of_nat (length xs)<=Ptrofs.max_unsigned ->
   Ptrofs.unsigned ob+Z.of_nat (length xs)<=Ptrofs.max_unsigned ->
   le!jets_sha._block=Some (Vptr bx ob) -> le!jets_sha._arr=Some (Vptr ba oa) ->
-  le!jets_sha._len=Some (Vlong (Int64.repr (Z.of_nat (length xs)))) ->
+  le!n=Some (Vlong (Int64.repr (Z.of_nat (length xs)))) ->
   (forall i,(i<length xs)%nat -> Mem.load Mint8unsigned m ba (Ptrofs.unsigned oa+Z.of_nat i)=
     Some (Vint (nth i xs Int.zero))) ->
   Mem.range_perm m bx (Ptrofs.unsigned ob) (Ptrofs.unsigned ob+Z.of_nat (length xs)) Cur Writable ->
-  exists mf,Clight2.exec_stmt secp_ge empty_env le m (uc_memcpy jets_sha._len) E0 le mf Out_normal /\
+  exists mf,Clight2.exec_stmt secp_ge empty_env le m (uc_memcpy n) E0 le mf Out_normal /\
   (forall i,(i<length xs)%nat -> Mem.load Mint8unsigned mf bx (Ptrofs.unsigned ob+Z.of_nat i)=
     Some (Vint (nth i xs Int.zero))) /\
   (forall ch b ofs,(b<>bx \/ ofs+size_chunk ch<=Ptrofs.unsigned ob \/
@@ -60,6 +60,24 @@ Proof.
   - split;[exact Bytes|];split;[exact Loads|];split;[exact Perm|];split;[exact Valid|].
     eapply storebytes_preserved;exact Store.
 Qed.
+
+Lemma exec_secp_sha_memcpy (Hmodel:memcpy_model) bx ba ob oa xs le m :
+  bx<>ba -> (0<length xs<=64)%nat ->
+  Ptrofs.unsigned oa+Z.of_nat (length xs)<=Ptrofs.max_unsigned ->
+  Ptrofs.unsigned ob+Z.of_nat (length xs)<=Ptrofs.max_unsigned ->
+  le!jets_sha._block=Some (Vptr bx ob) -> le!jets_sha._arr=Some (Vptr ba oa) ->
+  le!jets_sha._len=Some (Vlong (Int64.repr (Z.of_nat (length xs)))) ->
+  (forall i,(i<length xs)%nat -> Mem.load Mint8unsigned m ba (Ptrofs.unsigned oa+Z.of_nat i)=
+    Some (Vint (nth i xs Int.zero))) ->
+  Mem.range_perm m bx (Ptrofs.unsigned ob) (Ptrofs.unsigned ob+Z.of_nat (length xs)) Cur Writable ->
+  exists mf,Clight2.exec_stmt secp_ge empty_env le m (uc_memcpy jets_sha._len) E0 le mf Out_normal /\
+  (forall i,(i<length xs)%nat -> Mem.load Mint8unsigned mf bx (Ptrofs.unsigned ob+Z.of_nat i)=
+    Some (Vint (nth i xs Int.zero))) /\
+  (forall ch b ofs,(b<>bx \/ ofs+size_chunk ch<=Ptrofs.unsigned ob \/
+    Ptrofs.unsigned ob+Z.of_nat (length xs)<=ofs) ->Mem.load ch mf b ofs=Mem.load ch m b ofs) /\
+  (forall b ofs k p,Mem.perm m b ofs k p ->Mem.perm mf b ofs k p) /\
+  (forall b,Mem.valid_block m b ->Mem.valid_block mf b) /\ readonly_preserved m mf.
+Proof. exact (exec_secp_sha_memcpy_n Hmodel jets_sha._len bx ba ob oa xs le m). Qed.
 
 Lemma secp_sha_uchars_entry m bx ba oa vn :
   function_entry2 secp_ge jets_secp.f_sha256_uchars [Vptr bx Ptrofs.zero;Vptr ba oa;Vlong vn] m

@@ -2695,7 +2695,25 @@ framing and preserved startup/prefix state. This is the original internal
 caller fragment, not an independently chosen message or a whole-public theorem.
 Build `C/jet_secp_generator_sha_absorb.vo`, recursively kernel-check that root,
 and compare the three new modules plus `C.jet_sha_uchars_prep` with the existing
-focused assumption/contract audits. Still missing: actual finalization in the
+focused assumption/contract audits.
+`jet_secp_sha_absorb_block.exec_secp_sha_fill_block` now executes the original
+loop when the remaining bytes exactly fill the current partial block. It
+composes the bounded memcpy, actual pointer/count updates, context output-pointer
+read, real compression-wrapper call and reset with the next false loop test.
+It derives exact `SHA256.hash_block` registers, zero remaining length, reset
+block/delta temporaries, both owned objects, preservation of the context's
+non-buffer fields, framing, readonly and SHA-startup preservation. It applies
+to every partial-buffer length below 64 and exactly enough remaining bytes;
+it does not assume the compression call or its resulting registers.
+The shared memcpy-call proof is parameterized by its actual count temporary,
+and owned compression permits a byte offset; the previous theorem interfaces
+remain unchanged wrappers. This is an internal loop result conditional on
+the existing `memcpy_model`, not another whole-public coverage entry.
+Build `C/jet_secp_sha_absorb_block.vo` and
+`C/jet_secp_generator_sha_absorb.vo`, recursively kernel-check both roots,
+and compare the block/startup/short modules' focused records.
+Still missing: the complete block-filling `sha256_uchars` call (entry, setup,
+this loop and return), original finalization and length-byte caller in the
 secp program, global-state preservation through the full caller, and composition
 with the digest mapper and remaining generator/public lifecycle.
 The serialization theorem alone does not identify registers with a computed

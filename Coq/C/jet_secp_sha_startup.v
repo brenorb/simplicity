@@ -91,25 +91,26 @@ Proof.
     + intros ofs Perm;apply (NoFree ofs);exact (proj2 (Forward _ VD) ofs Freeable Perm).
 Qed.
 
-Theorem eval_secp_sha_compression_uchar_owned regs bytes m bs bb :
+Theorem eval_secp_sha_compression_uchar_owned_at regs bytes m bs bb ob :
   length regs=8%nat -> length bytes=64%nat -> secp_sha_startup m ->
   uint32_array_at m bs 0 regs -> Mem.range_perm m bs 0 32 Cur Freeable ->
-  (forall i,(i<64)%nat -> Mem.load Mint8unsigned m bb (Z.of_nat i)=Some (Vint (nth i bytes Int.zero))) ->
+  Ptrofs.unsigned ob+64<=Ptrofs.max_unsigned ->
+  (forall i,(i<64)%nat -> Mem.load Mint8unsigned m bb (Ptrofs.unsigned ob+Z.of_nat i)=Some (Vint (nth i bytes Int.zero))) ->
   exists mf,Clight2.eval_funcall secp_ge m (Internal jets_secp.f_sha256_compression_uchar)
-    [Vptr bs Ptrofs.zero;Vptr bb Ptrofs.zero] E0 mf Vundef /\
+    [Vptr bs Ptrofs.zero;Vptr bb ob] E0 mf Vundef /\
   uint32_array_at mf bs 0 (SHA256.hash_block regs (be_words bytes)) /\
   Mem.range_perm mf bs 0 32 Cur Freeable /\ lframe (fun b _=>b<>bs) m mf /\
   readonly_preserved m mf /\ secp_sha_startup mf.
 Proof.
-  intros LR LB Startup State Owned Bytes.
+  intros LR LB Startup State Owned ByteHi Bytes.
   assert (Access:forall i,(i<8)%nat ->Mem.valid_access m Mint32 bs (4*Z.of_nat i) Writable).
   { intros i Index;split.
     - intros pos Range;eapply Mem.perm_implies with (p1:=Freeable).
       + apply Owned;change (4*Z.of_nat i<=pos<4*Z.of_nat i+4) in Range;lia.
       + apply Memtype.perm_F_any.
     - change (4|4*Z.of_nat i);exists (Z.of_nat i);lia. }
-  destruct (eval_secp_sha_compression_uchar m bs Ptrofs.zero bb Ptrofs.zero regs bytes LR LB
-    ltac:(change (32<=18446744073709551615);lia) ltac:(change (64<=18446744073709551615);lia)
+  destruct (eval_secp_sha_compression_uchar m bs Ptrofs.zero bb ob regs bytes LR LB
+    ltac:(change (32<=18446744073709551615);lia) ByteHi
     (proj1 (proj1 Startup))
     ltac:(intros i Index;split;
       [apply State;apply nth_error_nth';rewrite LR;exact Index|apply Access;exact Index]) Bytes)
@@ -131,4 +132,19 @@ Proof.
     + split;[exact Frame|];split;[exact Preserved|].
       eapply secp_sha_startup_preserved;[exact Startup|exact Preserved|exact Frame|].
       intros ofs;destruct (secp_sha_startup_separate m bs 32 Startup ltac:(lia) Owned) as [Other _];congruence.
+Qed.
+
+Theorem eval_secp_sha_compression_uchar_owned regs bytes m bs bb :
+  length regs=8%nat -> length bytes=64%nat -> secp_sha_startup m ->
+  uint32_array_at m bs 0 regs -> Mem.range_perm m bs 0 32 Cur Freeable ->
+  (forall i,(i<64)%nat -> Mem.load Mint8unsigned m bb (Z.of_nat i)=Some (Vint (nth i bytes Int.zero))) ->
+  exists mf,Clight2.eval_funcall secp_ge m (Internal jets_secp.f_sha256_compression_uchar)
+    [Vptr bs Ptrofs.zero;Vptr bb Ptrofs.zero] E0 mf Vundef /\
+  uint32_array_at mf bs 0 (SHA256.hash_block regs (be_words bytes)) /\
+  Mem.range_perm mf bs 0 32 Cur Freeable /\ lframe (fun b _=>b<>bs) m mf /\
+  readonly_preserved m mf /\ secp_sha_startup mf.
+Proof.
+  intros LR LB Startup State Owned Bytes.
+  exact (eval_secp_sha_compression_uchar_owned_at regs bytes m bs bb Ptrofs.zero LR LB Startup State Owned
+    ltac:(change (64<=18446744073709551615);lia) Bytes).
 Qed.

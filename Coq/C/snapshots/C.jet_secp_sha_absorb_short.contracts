@@ -71,6 +71,56 @@ exec_secp_sha_memcpy
                         (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm mf b ofs k p)
                      (and (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)
                         (jet_clight_internal_preserve.readonly_preserved m mf))))))
+### C.jet_secp_sha_absorb_short.exec_secp_sha_memcpy_n
+exec_secp_sha_memcpy_n
+     : forall (_ : jet_memcpy_model.memcpy_model) (n : BinNums.positive) (bx ba : Values.block)
+         (ob oa : Integers.Ptrofs.int) (xs : list Integers.Int.int) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (_ : not (@eq Values.block bx ba))
+         (_ : and (lt O (@length Integers.Int.int xs))
+                (le (@length Integers.Int.int xs)
+                   (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned oa) (BinInt.Z.of_nat (@length Integers.Int.int xs)))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned ob) (BinInt.Z.of_nat (@length Integers.Int.int xs)))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._block le0)
+                (@Some Values.val (Values.Vptr bx ob)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._arr le0)
+                (@Some Values.val (Values.Vptr ba oa)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val n le0)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (BinInt.Z.of_nat (@length Integers.Int.int xs))))))
+         (_ : forall (i : nat) (_ : lt i (@length Integers.Int.int xs)),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m ba
+                   (BinInt.Z.add (Integers.Ptrofs.unsigned oa) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vint (@List.nth Integers.Int.int i xs Integers.Int.zero))))
+         (_ : Memory.Mem.range_perm m bx (Integers.Ptrofs.unsigned ob)
+                (BinInt.Z.add (Integers.Ptrofs.unsigned ob) (BinInt.Z.of_nat (@length Integers.Int.int xs)))
+                Memtype.Cur Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le0 m
+               (jet_sha_uchars_loop.uc_memcpy n) Events.E0 le0 mf ClightBigstep.Out_normal)
+            (and
+               (forall (i : nat) (_ : lt i (@length Integers.Int.int xs)),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint8unsigned mf bx
+                     (BinInt.Z.add (Integers.Ptrofs.unsigned ob) (BinInt.Z.of_nat i)))
+                  (@Some Values.val (Values.Vint (@List.nth Integers.Int.int i xs Integers.Int.zero))))
+               (and
+                  (forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b bx))
+                            (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk ch)) (Integers.Ptrofs.unsigned ob))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add (Integers.Ptrofs.unsigned ob)
+                                     (BinInt.Z.of_nat (@length Integers.Int.int xs))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load ch mf b ofs) (Memory.Mem.load ch m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                        (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm mf b ofs k p)
+                     (and (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)
+                        (jet_clight_internal_preserve.readonly_preserved m mf))))))
 ### C.jet_secp_sha_absorb_short.secp_sha_uchars_entry
 secp_sha_uchars_entry
      : forall (m : Memory.Mem.mem) (bx ba : Values.block) (oa : Integers.Ptrofs.int) (vn : Integers.Int64.int),
