@@ -1,0 +1,358 @@
+### C.jet_secp_odd_table_loop.odd_table_loop_source
+odd_table_loop_source
+     : @eq Clight.statement jet_secp_odd_table_iteration.odd_table_loop
+         (Clight.Sloop
+            (Clight.Ssequence (Clight.Sifthenelse odd_table_loop_guard Clight.Sskip Clight.Sbreak)
+               jet_secp_odd_table_iteration.odd_table_loop_body) jet_secp_odd_table_iteration.odd_table_increment)
+### C.jet_secp_odd_table_loop.eval_odd_table_loop_guard
+eval_odd_table_loop_guard
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val
+                   (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m odd_table_loop_guard
+         (Values.Vint
+            match
+              BinInt.Z.ltb i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) return Integers.Int.int
+            with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+### C.jet_secp_odd_table_loop.exec_odd_table_loop_done
+exec_odd_table_loop_done
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val
+                   (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val
+                   (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_odd_table_iteration.odd_table_loop
+         Events.E0 le m ClightBigstep.Out_normal
+### C.jet_secp_odd_table_loop.exec_odd_table_loop_join
+exec_odd_table_loop_join
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (i : BinNums.Z)
+         (le1 : Clight.temp_env) (m1 : Memory.Mem.mem) (lef : Clight.temp_env) (mf : Memory.Mem.mem)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) i)
+                (BinInt.Z.lt i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val
+                   (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                jet_secp_odd_table_iteration.odd_table_iteration Events.E0 le1 m1 ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le1 m1
+                jet_secp_odd_table_iteration.odd_table_loop Events.E0 lef mf ClightBigstep.Out_normal),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_odd_table_iteration.odd_table_loop
+         Events.E0 lef mf ClightBigstep.Out_normal
+### C.jet_secp_odd_table_loop.odd_table_prefix_next
+odd_table_prefix_next
+     : forall (m mf : Memory.Mem.mem) (br ba bg bz : Values.block) (n : nat) (s : odd_table_state)
+         (u v : forall _ : nat, Integers.Int64.int) (_ : lt n (S (S (S (S (S (S (S (S O)))))))))
+         (_ : not (@eq Values.block br ba)) (_ : not (@eq Values.block br bg)) (_ : not (@eq Values.block br bz))
+         (_ : not (@eq Values.block bz ba)) (_ : not (@eq Values.block bz bg)) (_ : odd_table_prefix m br bz n s)
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at mf br
+                (BinInt.Z.mul
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                   (BinInt.Z.of_nat n))
+                (jet_secp_multiply_normalize_bridge.words5 (odd_table_x (odd_table_next s u v n))))
+         (_ : jet_secp_fe_nv.fe_at mf br
+                (BinInt.Z.add
+                   (BinInt.Z.mul
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                      (BinInt.Z.of_nat n))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (jet_secp_multiply_normalize_bridge.words5 (odd_table_y (odd_table_next s u v n))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 mf br
+                   (BinInt.Z.add
+                      (BinInt.Z.mul
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                         (BinInt.Z.of_nat n))
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : jet_secp_fe_nv.fe_at mf bz
+                (BinInt.Z.mul
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                   (BinInt.Z.of_nat n))
+                (jet_secp_multiply_normalize_bridge.words5 (odd_table_ratios (odd_table_next s u v n) n)))
+         (_ : jet_sx_mem.lframe
+                (jet_secp_odd_table_iteration.odd_table_iteration_frame br ba bg bz (BinInt.Z.of_nat n)) m mf),
+       odd_table_prefix mf br bz (S n) (odd_table_next s u v n)
+### C.jet_secp_odd_table_loop.exec_odd_table_loop
+exec_odd_table_loop
+     : forall (n j : nat) (_ : le (S O) j) (_ : @eq nat (Nat.add j n) (S (S (S (S (S (S (S (S O)))))))))
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (br ba bg bz : Values.block) (s : odd_table_state)
+         (u v : forall _ : nat, Integers.Int64.int)
+         (_ : @List.NoDup Values.block
+                (@cons Values.block br
+                   (@cons Values.block ba (@cons Values.block bg (@cons Values.block bz (@nil Values.block))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._ai e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type ba (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._d_ge e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bg jet_secp_curve_statements.curve_ge_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_gej_add_ge_var e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ge_set_xy e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._pre_a le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._zr le)
+                (@Some Values.val (Values.Vptr bz Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat j)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val
+                   (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : odd_table_prefix m br bz j s) (_ : odd_table_prefix_bounds j s) (_ : odd_table_accumulator m ba s)
+         (_ : odd_table_accumulator_bounds s) (_ : jet_secp_square_columns.square_input_bounds u)
+         (_ : jet_secp_square_columns.square_input_bounds v)
+         (_ : jet_secp_fe_nv.fe_at m bg BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 u))
+         (_ : jet_secp_fe_nv.fe_at m bg
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_multiply_normalize_bridge.words5 v))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m bg
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bg BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bz BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                Memtype.Cur Memtype.Freeable),
+       let sf : odd_table_state := odd_table_walk n j s u v in
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  jet_secp_odd_table_iteration.odd_table_loop Events.E0 lef mf ClightBigstep.Out_normal)
+               (and
+                  (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i lef)
+                     (@Some Values.val
+                        (Values.Vint
+                           (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                  (and
+                     (forall (id : AST.ident) (_ : not (@eq AST.ident id jets_secp._i)),
+                      @eq (option Values.val) (@Maps.PTree.get Values.val id lef) (@Maps.PTree.get Values.val id le))
+                     (and (odd_table_prefix mf br bz (S (S (S (S (S (S (S (S O)))))))) sf)
+                        (and (odd_table_prefix_bounds (S (S (S (S (S (S (S (S O)))))))) sf)
+                           (and (odd_table_accumulator mf ba sf)
+                              (and (odd_table_accumulator_bounds sf)
+                                 (and
+                                    (jet_secp_fe_nv.fe_at mf bg BinNums.Z0
+                                       (jet_secp_multiply_normalize_bridge.words5 u))
+                                    (and
+                                       (jet_secp_fe_nv.fe_at mf bg
+                                          (BinNums.Zpos
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                          (jet_secp_multiply_normalize_bridge.words5 v))
+                                       (and
+                                          (@eq (option Values.val)
+                                             (Memory.Mem.load AST.Mint32 mf bg
+                                                (BinNums.Zpos
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                                             (@Some Values.val (Values.Vint Integers.Int.zero)))
+                                          (and
+                                             (Memory.Mem.range_perm mf br BinNums.Z0
+                                                (BinNums.Zpos
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))
+                                                Memtype.Cur Memtype.Freeable)
+                                             (and
+                                                (Memory.Mem.range_perm mf ba BinNums.Z0
+                                                   (BinNums.Zpos
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))
+                                                   Memtype.Cur Memtype.Freeable)
+                                                (and
+                                                   (Memory.Mem.range_perm mf bg BinNums.Z0
+                                                      (BinNums.Zpos
+                                                         (BinNums.xO
+                                                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI ...))))))
+                                                      Memtype.Cur Memtype.Freeable)
+                                                   (and
+                                                      (Memory.Mem.range_perm mf bz BinNums.Z0
+                                                         (BinNums.Zpos
+                                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))
+                                                         Memtype.Cur Memtype.Freeable)
+                                                      (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                                                         (and
+                                                            (jet_sx_mem.lframe (odd_table_loop_frame br ba bg bz) m mf)
+                                                            (jet_clight_internal_preserve.readonly_preserved m mf))))))))))))))))))
+### C.jet_secp_odd_table_loop.odd_table_replace
+odd_table_replace =
+fun (xs : forall (_ : nat) (_ : nat), Integers.Int64.int) (j : nat) (w : forall _ : nat, Integers.Int64.int) (k : nat)
+=> match PeanoNat.Nat.eq_dec k j return (forall _ : nat, Integers.Int64.int) with
+   | left _ => w
+   | right _ => xs k
+   end
+     : forall (_ : forall (_ : nat) (_ : nat), Integers.Int64.int) (_ : nat) (_ : forall _ : nat, Integers.Int64.int)
+         (_ : nat) (_ : nat), Integers.Int64.int
+
+Arguments odd_table_replace xs%function_scope j%nat_scope w%function_scope (k _)%nat_scope
+### C.jet_secp_odd_table_loop.odd_table_next
+odd_table_next =
+fun (s : odd_table_state) (u v : forall _ : nat, Integers.Int64.int) (j : nat) =>
+let x : forall _ : nat, Integers.Int64.int :=
+  jet_secp_mixed_body_loose.mixed_mode_body_x_words true (odd_table_flag s) (odd_table_x s)
+    (odd_table_y s) (odd_table_z s) u v in
+let y : forall _ : nat, Integers.Int64.int :=
+  jet_secp_mixed_body_loose.mixed_mode_body_y_words true (odd_table_flag s) (odd_table_x s)
+    (odd_table_y s) (odd_table_z s) u v in
+let z : forall _ : nat, Integers.Int64.int :=
+  jet_secp_mixed_body_loose.mixed_mode_body_z_words true (odd_table_flag s) (odd_table_x s)
+    (odd_table_y s) (odd_table_z s) u v in
+let ratio : forall _ : nat, Integers.Int64.int :=
+  jet_secp_mixed_body_ratio_slice.mixed_mode_slice_ratio_words true (odd_table_flag s) (odd_table_x s)
+    (odd_table_y s) (odd_table_z s) u v in
+Build_odd_table_state (odd_table_replace (odd_table_xs s) j x) (odd_table_replace (odd_table_ys s) j y)
+  (odd_table_replace (odd_table_ratios s) j ratio) x y z
+  (jet_secp_mixed_body_loose.mixed_mode_body_flag true (odd_table_flag s) (odd_table_x s) (odd_table_y s)
+     (odd_table_z s) u v)
+     : forall (_ : odd_table_state) (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, Integers.Int64.int)
+         (_ : nat), odd_table_state
+
+Arguments odd_table_next s (u v)%function_scope j%nat_scope
+### C.jet_secp_odd_table_loop.odd_table_walk
+odd_table_walk =
+fix odd_table_walk (n j : nat) (s : odd_table_state) (u v : forall _ : nat, Integers.Int64.int) {struct n} :
+    odd_table_state :=
+  match n return odd_table_state with
+  | O => s
+  | S k => odd_table_walk k (S j) (odd_table_next s u v j) u v
+  end
+     : forall (_ : nat) (_ : nat) (_ : odd_table_state) (_ : forall _ : nat, Integers.Int64.int)
+         (_ : forall _ : nat, Integers.Int64.int), odd_table_state
+
+Arguments odd_table_walk (n j)%nat_scope s (u v)%function_scope
+### C.jet_secp_odd_table_loop.odd_table_prefix
+odd_table_prefix =
+fun (m : Memory.Mem.mem) (br bz : Values.block) (n : nat) (s : odd_table_state) =>
+forall (j : nat) (_ : lt j n),
+and
+  (jet_secp_fe_nv.fe_at m br
+     (BinInt.Z.mul
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+        (BinInt.Z.of_nat j)) (jet_secp_multiply_normalize_bridge.words5 (odd_table_xs s j)))
+  (and
+     (jet_secp_fe_nv.fe_at m br
+        (BinInt.Z.add
+           (BinInt.Z.mul
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+              (BinInt.Z.of_nat j))
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+        (jet_secp_multiply_normalize_bridge.words5 (odd_table_ys s j)))
+     (and
+        (@eq (option Values.val)
+           (Memory.Mem.load AST.Mint32 m br
+              (BinInt.Z.add
+                 (BinInt.Z.mul
+                    (BinNums.Zpos
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                    (BinInt.Z.of_nat j))
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+           (@Some Values.val (Values.Vint Integers.Int.zero)))
+        (jet_secp_fe_nv.fe_at m bz
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+              (BinInt.Z.of_nat j)) (jet_secp_multiply_normalize_bridge.words5 (odd_table_ratios s j)))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : Values.block) (_ : nat) (_ : odd_table_state), Prop
+
+Arguments odd_table_prefix m br bz n%nat_scope s
+### C.jet_secp_odd_table_loop.odd_table_prefix_bounds
+odd_table_prefix_bounds =
+fun (n : nat) (s : odd_table_state) =>
+forall (j : nat) (_ : lt j n),
+and (jet_secp_square_columns.square_input_bounds (odd_table_xs s j))
+  (and (jet_secp_square_columns.square_input_bounds (odd_table_ys s j))
+     (jet_secp_square_columns.square_input_bounds (odd_table_ratios s j)))
+     : forall (_ : nat) (_ : odd_table_state), Prop
+
+Arguments odd_table_prefix_bounds n%nat_scope s
+### C.jet_secp_odd_table_loop.odd_table_accumulator
+odd_table_accumulator =
+fun (m : Memory.Mem.mem) (ba : Values.block) (s : odd_table_state) =>
+and (jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 (odd_table_x s)))
+  (and
+     (jet_secp_fe_nv.fe_at m ba
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+        (jet_secp_multiply_normalize_bridge.words5 (odd_table_y s)))
+     (and
+        (jet_secp_fe_nv.fe_at m ba
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+           (jet_secp_multiply_normalize_bridge.words5 (odd_table_z s)))
+        (@eq (option Values.val)
+           (Memory.Mem.load AST.Mint32 m ba
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+           (@Some Values.val (Values.Vint (odd_table_flag s))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : odd_table_state), Prop
+
+Arguments odd_table_accumulator m ba s
+### C.jet_secp_odd_table_loop.odd_table_accumulator_bounds
+odd_table_accumulator_bounds =
+fun s : odd_table_state =>
+and (jet_secp_square_columns.square_input_bounds (odd_table_x s))
+  (and (jet_secp_square_columns.square_input_bounds (odd_table_y s))
+     (jet_secp_square_columns.square_input_bounds (odd_table_z s)))
+     : forall _ : odd_table_state, Prop
+
+Arguments odd_table_accumulator_bounds s
+### C.jet_secp_odd_table_loop.odd_table_loop_frame
+odd_table_loop_frame =
+fun (br ba bg bz b : Values.block) (_ : BinNums.Z) =>
+and (not (@eq Values.block b br))
+  (and (not (@eq Values.block b ba)) (and (not (@eq Values.block b bg)) (not (@eq Values.block b bz))))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block)
+         (_ : BinNums.Z), Prop
+
+Arguments odd_table_loop_frame br ba bg bz b _%Z_scope
+### C.jet_secp_odd_table_loop.odd_table_loop_guard
+odd_table_loop_guard =
+Clight.Ebinop Cop.Olt (Clight.Etempvar jets_secp._i Ctypesdefs.tint) (Clight.Etempvar jets_secp._n Ctypesdefs.tint)
+  Ctypesdefs.tint
+     : Clight.expr

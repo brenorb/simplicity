@@ -471,8 +471,21 @@ incoming flag, loose coordinates, an aligned ratio slice and its full array
 owner. Exact point/ratio limbs and their bounds, affine source fields and
 finite flag, caller ownership, old permissions, unrelated memory and readonly
 globals are returned. No external-helper or desired-result premise is added.
-The enclosing odd-table loop and its connection to the canonical table tree
-remain open. These internal results do not add public coverage.
+`jet_secp_odd_table_iteration` composes the original indexed mixed call,
+affine table writer and increment for every loop index 1 through 7. Its
+result includes the updated accumulator (including its actual infinity
+flag), table entry, ratio entry, affine source, bounds, all four owners,
+old permissions and the frame outside the selected entries.
+`jet_secp_odd_table_loop.exec_odd_table_loop` now proves the complete original
+ascending loop, including guards, increments and termination at index 8.
+Starting from the initialized prefix and bounded accumulator, it derives
+all eight table/ratio fields and bounds, the final accumulator, preserved
+affine source, caller ownership, old permissions, unrelated memory and
+readonly globals. The exact limb recurrence `odd_table_walk` is an internal
+execution result, not a replacement for `scalarTable5`. The odd-table
+initialization calls, final Z product, entry/frees and the connection to
+the canonical table tree remain to be composed. These internal results do
+not add public coverage.
 
 `jet_secp_ge_set_xy_indexed` proves the whole original affine constructor at
 any valid aligned result offset, retaining exact permission equivalence and
