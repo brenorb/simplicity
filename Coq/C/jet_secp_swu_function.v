@@ -6,7 +6,7 @@ Require Import Simplicity.Ty Simplicity.Word Simplicity.Alg.
 Require Import C.extraMath C.jet_sx_exec C.jet_sx_mem C.jet_secp_linkage C.jets_secp C.jet_secp_fe_nv
   C.jet_secp_curve_statements C.jet_secp_curve_frame C.jet_secp_field_read_preservation
   C.jet_secp_swu_body C.jet_secp_swu_startup C.jet_secp_swu_literal C.jet_secp_square_spec_bridge
-  C.jet_secp_square_columns C.jet_secp_rescale_literal C.jet_secp_multiply_normalize_bridge
+  C.jet_secp_square_columns C.jet_secp_rescale_literal C.jet_secp_root_chain_numeric C.jet_secp_root_function_literal C.jet_secp_swu_word_parity C.jet_secp_multiply_normalize_bridge
   C.jet_clight_internal_frame C.jet_clight_internal_preserve.
 Import ListNotations Ctypes Values.
 Local Open Scope Z_scope.
@@ -89,11 +89,11 @@ Local Ltac swu_alloc_frame := lazymatch goal with |- lframe _ ?ma ?mb =>
     eapply lframe_trans with (m2:=mi);
       [apply lframe_unchanged;eapply Mem.alloc_unchanged_on;exact Alloc|swu_alloc_frame] end end.
 
-Theorem eval_swu_function t m bp bi :
+Theorem eval_swu_function_words w t m bp bi :
   (forall mc x,Int64.unsigned x<>0 ->
     Clight2.eval_funcall secp_ge mc (Internal f_secp256k1_ctz64_var) [Vlong x]
       E0 mc (Vint (Int.repr (Z_ctz (Int64.unsigned x))))) ->
-  bp<>bi -> swu_startup m -> fe_at m bi 0 (words5 (square_reader_rho t)) ->
+  bp<>bi -> swu_startup m -> root_words_match w t -> fe_at m bi 0 (words5 w) ->
   Mem.range_perm m bi 0 40 Cur Freeable -> Mem.range_perm m bp 0 88 Cur Freeable ->
   exists mf x y,
   Clight2.eval_funcall secp_ge m (Internal f_shallue_van_de_woestijne)
@@ -102,10 +102,10 @@ Theorem eval_swu_function t m bp bi :
   Mem.load Mint32 mf bp 80=Some (Vint Int.zero) /\
   Mem.range_perm mf bi 0 40 Cur Freeable /\ Mem.range_perm mf bp 0 88 Cur Freeable /\
   square_input_bounds x /\ square_input_bounds y /\
-  (rescale_field_output x,rescale_field_output y)=@literal_swu Alg.CoreFunSem t /\
+  (rescale_field_output x,rescale_field_output y)=swu_words_literal_output w t /\
   swu_startup mf /\ lframe (fun b _=>b<>bp /\ b<>bi) m mf /\ readonly_preserved m mf.
 Proof.
-  intros Count PI Ready Input FI FP.
+  intros Count PI Ready Match Input FI FP.
   assert (VI:Mem.valid_block m bi) by (eapply Mem.perm_valid_block;apply (FI 0);lia).
   assert (VP:Mem.valid_block m bp) by (eapply Mem.perm_valid_block;apply (FP 0);lia).
   destruct (Mem.alloc m 0 40) as (m1 & bw) eqn:A1.
@@ -143,10 +143,10 @@ Proof.
     all: intros pos Range;swu_alloc_perm Range. }
   assert (Plain:plain_env (swu_function_env bw bx bj bt ba bb bc bA bB bC by1 by2 by3)) by
     (eapply entry_plain;[exact Entry|reflexivity]).
-  pose proof (exec_swu_body t (swu_function_env bw bx bj bt ba bb bc bA bB bC by1 by2 by3)
+  pose proof (exec_swu_body_words w t (swu_function_env bw bx bj bt ba bb bc bA bB bC by1 by2 by3)
     (swu_function_temps bp bi) mi bp bi bw ba bx bj bb bc bA bB bC by1 by2 by3 bt Count Plain) as Run.
   do 28 specialize (Run eq_refl).
-  destruct (Run Sep ReadyI InputI FreeI FPI)
+  destruct (Run Sep ReadyI Match InputI FreeI FPI)
     as (lef & mo & x & y & Body & X & Y & Flag & FPO & FreeO & BX & BY & Literal & ReadyO & FrameB & ROB).
   pose proof FreeO as AllFree;rewrite Forall_forall in AllFree.
   destruct (free_list_exists
@@ -197,4 +197,29 @@ Proof.
         split;[exact BX|];split;[exact BY|];split;[exact Literal|];split.
       * eapply swu_startup_preserved;[exact ReadyO|exact ROF].
       * split;[|exact ReadOnly];eapply lframe_implies;[exact FrameOld|];intros b pos Apart Valid;split;assumption.
+Qed.
+
+(** The original normalized-input theorem keeps its exact interface. *)
+Theorem eval_swu_function t m bp bi :
+  (forall mc x,Int64.unsigned x<>0 ->
+    Clight2.eval_funcall secp_ge mc (Internal f_secp256k1_ctz64_var) [Vlong x]
+      E0 mc (Vint (Int.repr (Z_ctz (Int64.unsigned x))))) ->
+  bp<>bi -> swu_startup m -> fe_at m bi 0 (words5 (square_reader_rho t)) ->
+  Mem.range_perm m bi 0 40 Cur Freeable -> Mem.range_perm m bp 0 88 Cur Freeable ->
+  exists mf x y,
+  Clight2.eval_funcall secp_ge m (Internal f_shallue_van_de_woestijne)
+    [Vptr bp Ptrofs.zero;Vptr bi Ptrofs.zero] E0 mf Vundef /\
+  fe_at mf bp 0 (words5 x) /\ fe_at mf bp 40 (words5 y) /\
+  Mem.load Mint32 mf bp 80=Some (Vint Int.zero) /\
+  Mem.range_perm mf bi 0 40 Cur Freeable /\ Mem.range_perm mf bp 0 88 Cur Freeable /\
+  square_input_bounds x /\ square_input_bounds y /\
+  (rescale_field_output x,rescale_field_output y)=@literal_swu Alg.CoreFunSem t /\
+  swu_startup mf /\ lframe (fun b _=>b<>bp /\ b<>bi) m mf /\ readonly_preserved m mf.
+Proof.
+  intros Count Separate Ready Input FI FP.
+  destruct (eval_swu_function_words (square_reader_rho t) t m bp bi Count Separate Ready
+    (root_reader_matches t) Input FI FP)
+    as (mf & x & y & Call & X & Y & Flag & FIF & FPF & BX & BY & Literal & ReadyF & Frame & Readonly).
+  rewrite swu_words_literal_output_reader in Literal.
+  exists mf,x,y;repeat first [assumption|split].
 Qed.

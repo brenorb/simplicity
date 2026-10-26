@@ -2601,10 +2601,22 @@ are now connected; next compose the actual generator/public-wrapper lifecycle
 and preceding hash/SWU calls. For the earlier
 generator caller, retain both SHA-derived set_b32 flags and every original
 operation before its return: C does **not** exit early for a rejected digest.
-The current literal SWU theorem requires the normalized reader form; an
-out-of-range raw digest must instead get a justified execution path with its
-actual oddness, even though the public jet eventually rejects. Do not assume
-both digests are below p to avoid proving the rejection execution.
+`jet_secp_swu_raw_input.eval_swu_raw_function` now supplies the whole original
+SWU helper execution for every raw Word256 representation, including rejected
+digests >=p, retaining the original explicit CTZ condition and actual startup
+state. The body and function proofs are shared with the old normalized-reader
+theorems, whose statements are unchanged. The generic `field_words_odd` and
+`exec_swu_words_parity` results read the low bit actually stored by C, instead
+of assuming canonical parity. `swu_raw_accepted_output` identifies the result
+with the existing literal SWU result when the digest is below p; no such input
+restriction is imposed on the execution theorem. `swu_digest_value` and
+`swu_digest_input` connect arbitrary 32-byte set_b32 output limbs to this raw
+input contract. Build both `C/jet_secp_swu_raw_input.vo` and
+`C/jet_secp_swu_local.vo`, recursively kernel-check the two roots, and compare
+the existing focused records for the new modules and SWU body/function/public
+chain. Next compose the actual set_b32 calls and generator statements using
+these contracts, preserving the rejection flags through every executed call.
+Do not assume both digests are below p to avoid the rejection execution.
 
 The sum-at-infinity branch also needs attention before a whole-public claim.
 The canonical program can fail at `gej_normalize`, whereas the C return flag

@@ -1,4 +1,5 @@
-(** Entire original SWU statement body from the real reader representation.
+(** Entire original SWU statement body from bounded machine limbs and their
+    matched logical field value; the real reader theorem is a specialization.
     Function entry/freeing and the public read/write wrapper remain outside
     this theorem. The original CTZ call contract remains explicit. *)
 From Coq Require Import ZArith List Lia.
@@ -8,7 +9,7 @@ Require Import C.extraMath C.jet_sx_mem C.jet_secp_linkage C.jets_secp C.jet_sec
   C.jet_secp_swu_startup C.jet_secp_swu_first_candidate C.jet_secp_swu_second_candidate
   C.jet_secp_swu_third_candidate C.jet_secp_swu_before_selection C.jet_secp_swu_roots
   C.jet_secp_swu_select_exec C.jet_secp_swu_selected_literal C.jet_secp_swu_parity
-  C.jet_secp_swu_literal C.jet_secp_swu_literal_bridge C.jet_secp_root_chain_numeric C.jet_secp_root_check
+  C.jet_secp_swu_literal C.jet_secp_swu_literal_bridge C.jet_secp_field_odd_words C.jet_secp_swu_word_parity C.jet_secp_root_chain_numeric C.jet_secp_root_check
   C.jet_secp_root_function_literal C.jet_secp_field_cmov C.jet_secp_ge_set_xy_separate
   C.jet_secp_field_negate_separate C.jet_secp_field_mul_small C.jet_secp_square_columns
   C.jet_secp_square_spec_bridge C.jet_secp_rescale_literal C.jet_secp_multiply_normalize_bridge
@@ -47,7 +48,7 @@ Proof.
   - exact Call.
 Qed.
 
-Theorem exec_swu_body t e le m bp bi bw ba bx bj bb bc bA bB bC by1 by2 by3 bt :
+Theorem exec_swu_body_words w t e le m bp bi bw ba bx bj bb bc bA bB bC by1 by2 by3 bt :
   (forall mc x,Int64.unsigned x<>0 ->
     Clight2.eval_funcall secp_ge mc (Internal f_secp256k1_ctz64_var) [Vlong x]
       E0 mc (Vint (Int.repr (Z_ctz (Int64.unsigned x))))) ->
@@ -63,8 +64,8 @@ Theorem exec_swu_body t e le m bp bi bw ba bx bj bb bc bA bB bC by1 by2 by3 bt :
   e!_gammain=Some (bC,curve_fe_type) -> e!_y1=Some (by1,curve_fe_type) ->
   e!_y2=Some (by2,curve_fe_type) -> e!_y3=Some (by3,curve_fe_type) -> e!_tmp=Some (bt,curve_fe_type) ->
   le!_t=Some (Vptr bi Ptrofs.zero) -> le!_ge=Some (Vptr bp Ptrofs.zero) ->
-  NoDup [bp;bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3;bt] -> swu_startup m ->
-  fe_at m bi 0 (words5 (square_reader_rho t)) ->
+  NoDup [bp;bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3;bt] -> swu_startup m -> root_words_match w t ->
+  fe_at m bi 0 (words5 w) ->
   Forall (fun b=>Mem.range_perm m b 0 40 Cur Freeable) [bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3;bt] ->
   Mem.range_perm m bp 0 88 Cur Freeable -> exists lef mf x y,
   Clight2.exec_stmt secp_ge e le m (fn_body f_shallue_van_de_woestijne) E0 lef mf Out_normal /\
@@ -72,12 +73,12 @@ Theorem exec_swu_body t e le m bp bi bw ba bx bj bb bc bA bB bC by1 by2 by3 bt :
   Mem.load Mint32 mf bp 80=Some (Vint Int.zero) /\ Mem.range_perm mf bp 0 88 Cur Freeable /\
   Forall (fun b=>Mem.range_perm mf b 0 40 Cur Freeable) [bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3;bt] /\
   square_input_bounds x /\ square_input_bounds y /\
-  (rescale_field_output x,rescale_field_output y)=@literal_swu Alg.CoreFunSem t /\
+  (rescale_field_output x,rescale_field_output y)=swu_words_literal_output w t /\
   swu_startup mf /\
   lframe (fun b _=>~In b [bp;bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3;bt]) m mf /\ readonly_preserved m mf.
 Proof.
   intros Count Plain ES EM EN EC EG EA EI EAdd ED ERoot EMove ESet EOdd EW EX EXD EJ EX2 EX3 EAlpha EBeta EGamma
-    EY1 EY2 EY3 ET T Ge Sep Ready Input Free FP.
+    EY1 EY2 EY3 ET T Ge Sep Ready Match Input Free FP.
   apply NoDup_cons_iff in Sep;destruct Sep as [PointOutside PoolSep].
   assert (RootSep:NoDup [bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3]) by
     (exact (@NoDup_app_remove_r block [bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3] [bt] PoolSep)).
@@ -87,10 +88,9 @@ Proof.
   assert (RootFree:Forall (fun b=>Mem.range_perm m b 0 40 Cur Freeable)
     [bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3]).
   { rewrite Forall_forall in *;intros b Member;apply Free;clear -Member;cbn [In] in *;tauto. }
-  set (w:=square_reader_rho t).
   destruct (exec_swu_through_roots e le m bi bw ba bx bj bb bc bA bB bC by1 by2 by3 w t Count Plain
     ES EM EN EC EG EA EI EAdd ED ERoot EW EX EXD EJ EX2 EX3 EAlpha EBeta EGamma EY1 EY2 EY3 T
-    RootSep Ready (root_reader_matches t) Input RootFree)
+    RootSep Ready Match Input RootFree)
     as (inv & m1 & Roots & I1 & X1 & X2 & X3 & Y1 & Y2 & Y3 & Free1Root & Bounds & TightY & Ready1 & F1 & R1 & Literal).
   set (alpha:=root_check_flag (swu_alpha_words w inv)).
   set (beta:=root_check_flag (swu_beta_words w inv)).
@@ -178,7 +178,7 @@ Proof.
     - apply AllTight;left;reflexivity.
     - apply AllTight;right;left;reflexivity.
     - apply AllTight;right;right;left;reflexivity. }
-  destruct (exec_swu_parity t sy e le1 m3 bi bt bp EG EOdd EMove ET Ge1 T1 ParitySep YSTight I3 YG
+  destruct (exec_swu_words_parity w sy e le1 m3 bi bt bp EG EOdd EMove ET Ge1 T1 ParitySep YSTight I3 YG
     (All3 bi ltac:(left;reflexivity)) (All3 bt ltac:(do 13 right;left;reflexivity)) FP3)
     as (mf & Parity & YF & FIF & FTF & FPF & F4 & R4).
   assert (XFinal:fe_at mf bp 0 (words5 sx)).
@@ -207,7 +207,7 @@ Proof.
   assert (ReadOnly:readonly_preserved m mf) by
     (eapply preserved_trans;[exact R1|];eapply preserved_trans;[exact R2|];
      eapply preserved_trans;[exact R3|exact R4]).
-  exists (swu_parity_temps t le1),mf,sx,(swu_parity_words t sy);split.
+  exists (swu_words_parity_temps w le1),mf,sx,(swu_words_parity w sy);split.
   - rewrite swu_through_roots_source,swu_select_source,swu_parity_source.
     eapply exec_statement_prefix_then_last;[exact Roots|].
     eapply exec_statement_prefix_then_last;[exact Select|].
@@ -215,10 +215,10 @@ Proof.
       [eapply exec_swu_construct_call;eassumption|exact Parity].
   - split;[exact XFinal|];split;[exact YF|];split;[exact FlagFinal|];split;[exact FPF|];
       split;[exact FreeFinal|];split;[exact XSBounds|];split.
-    + unfold swu_parity_words;destruct (swu_input_odd t).
+    + unfold swu_words_parity;destruct (field_words_odd w).
       * exact (proj2 (negate_sep_numeric sy YSTight)).
       * intros i Index;pose proof (YSTight i Index);destruct (Nat.eqb i 4);lia.
-    + split;[exact (swu_parity_of_selected_matches t sx sy YSTight Selected)|];split;
+    + split;[unfold swu_words_literal_output;rewrite (swu_words_parity_matches_literal w sx sy YSTight),Selected;reflexivity|];split;
         [eapply swu_startup_preserved;[exact Ready|exact ReadOnly] | ];split;[|exact ReadOnly].
       eapply lframe_trans with (m2:=m1).
       { eapply lframe_implies;[exact F1|];intros b pos Outside Valid;clear -Outside;cbn [In] in *;tauto. }
@@ -230,4 +230,44 @@ Proof.
       * intro Same;apply Outside;subst;right;left;reflexivity.
       * intro Same;apply Outside;subst;do 14 right;left;reflexivity.
       * left;intro Same;apply Outside;subst;left;reflexivity.
+Qed.
+
+(** Preserve the original canonical-reader statement as a specialization. *)
+Theorem exec_swu_body t e le m bp bi bw ba bx bj bb bc bA bB bC by1 by2 by3 bt :
+  (forall mc x,Int64.unsigned x<>0 ->
+    Clight2.eval_funcall secp_ge mc (Internal f_secp256k1_ctz64_var) [Vlong x]
+      E0 mc (Vint (Int.repr (Z_ctz (Int64.unsigned x))))) ->
+  plain_env e -> e!_secp256k1_fe_sqr=None -> e!_secp256k1_fe_mul=None -> e!_negc=None ->
+  e!_secp256k1_fe_mul_int=None -> e!_secp256k1_fe_negate=None ->
+  e!_secp256k1_fe_add_int=None -> e!_secp256k1_fe_inv_var=None ->
+  e!_secp256k1_fe_add=None -> e!_d=None -> e!_secp256k1_fe_sqrt_var=None ->
+  e!_secp256k1_fe_cmov=None -> e!_secp256k1_ge_set_xy=None -> e!_secp256k1_fe_is_odd=None ->
+  e!_wd=Some (bw,curve_fe_type) -> e!_x1=Some (ba,curve_fe_type) ->
+  e!_x3d=Some (bx,curve_fe_type) -> e!_jinv=Some (bj,curve_fe_type) ->
+  e!_x2=Some (bb,curve_fe_type) -> e!_x3=Some (bc,curve_fe_type) ->
+  e!_alphain=Some (bA,curve_fe_type) -> e!_betain=Some (bB,curve_fe_type) ->
+  e!_gammain=Some (bC,curve_fe_type) -> e!_y1=Some (by1,curve_fe_type) ->
+  e!_y2=Some (by2,curve_fe_type) -> e!_y3=Some (by3,curve_fe_type) -> e!_tmp=Some (bt,curve_fe_type) ->
+  le!_t=Some (Vptr bi Ptrofs.zero) -> le!_ge=Some (Vptr bp Ptrofs.zero) ->
+  NoDup [bp;bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3;bt] -> swu_startup m ->
+  fe_at m bi 0 (words5 (square_reader_rho t)) ->
+  Forall (fun b=>Mem.range_perm m b 0 40 Cur Freeable) [bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3;bt] ->
+  Mem.range_perm m bp 0 88 Cur Freeable -> exists lef mf x y,
+  Clight2.exec_stmt secp_ge e le m (fn_body f_shallue_van_de_woestijne) E0 lef mf Out_normal /\
+  fe_at mf bp 0 (words5 x) /\ fe_at mf bp 40 (words5 y) /\
+  Mem.load Mint32 mf bp 80=Some (Vint Int.zero) /\ Mem.range_perm mf bp 0 88 Cur Freeable /\
+  Forall (fun b=>Mem.range_perm mf b 0 40 Cur Freeable) [bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3;bt] /\
+  square_input_bounds x /\ square_input_bounds y /\
+  (rescale_field_output x,rescale_field_output y)=@literal_swu Alg.CoreFunSem t /\
+  swu_startup mf /\
+  lframe (fun b _=>~In b [bp;bi;bw;ba;bx;bj;bb;bc;bA;bB;bC;by1;by2;by3;bt]) m mf /\ readonly_preserved m mf.
+Proof.
+  intros Count Plain ES EM EN EC EG EA EI EAdd ED ERoot EMove ESet EOdd EW EX EXD EJ EX2 EX3 EAlpha EBeta EGamma
+    EY1 EY2 EY3 ET T Ge Sep Ready Input Free FP.
+  destruct (exec_swu_body_words (square_reader_rho t) t e le m bp bi bw ba bx bj bb bc bA bB bC by1 by2 by3 bt
+    Count Plain ES EM EN EC EG EA EI EAdd ED ERoot EMove ESet EOdd EW EX EXD EJ EX2 EX3 EAlpha EBeta EGamma
+    EY1 EY2 EY3 ET T Ge Sep Ready (root_reader_matches t) Input Free FP)
+    as (lef & mf & x & y & Run & X & Y & Flag & FPF & FreeF & BX & BY & Literal & ReadyF & Frame & Readonly).
+  rewrite swu_words_literal_output_reader in Literal.
+  exists lef,mf,x,y;repeat first [assumption|split].
 Qed.

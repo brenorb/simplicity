@@ -1,0 +1,41 @@
+### C.jet_secp_field_odd_words.field_words_odd_value
+field_words_odd_value
+     : forall w : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.and (w O) Integers.Int64.one))
+         (BinInt.Z.b2z (field_words_odd w))
+### C.jet_secp_field_odd_words.field_odd_words_initial
+field_odd_words_initial
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (b : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       jet_sx_state.rep (jet_secp_curve_tail_values.curve_shift_words w)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+            (@nil (prod Values.block BinNums.Z))) jet_secp_local_regions.local_write_initial_regs m
+### C.jet_secp_field_odd_words.eval_field_odd_words
+eval_field_odd_words
+     : forall (w : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (b : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_is_odd)
+               (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf
+               (Values.Vint (jet_secp_field_cmov.cmov_int (field_words_odd w))))
+            (and
+               (Memory.Mem.range_perm mf b BinNums.Z0
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  Memtype.Cur Memtype.Freeable)
+               (and (jet_sx_mem.lframe (fun (bx : Values.block) (_ : BinNums.Z) => not (@eq Values.block bx b)) m mf)
+                  (jet_clight_internal_preserve.readonly_preserved m mf))))
+### C.jet_secp_field_odd_words.field_words_odd
+field_words_odd =
+fun w : forall _ : nat, Integers.Int64.int => BinInt.Z.testbit (Integers.Int64.unsigned (w O)) BinNums.Z0
+     : forall _ : forall _ : nat, Integers.Int64.int, bool
+
+Arguments field_words_odd w%function_scope
