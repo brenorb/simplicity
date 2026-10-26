@@ -2730,7 +2730,19 @@ Build `C/jet_secp_sha_absorb_full.vo` and
 `C/jet_secp_generator_sha_absorb.vo`, recursively kernel-check both roots,
 and compare head/full/context records plus the unchanged short/block/generator
 records with the existing focused audit scripts. This does not add public jet
-coverage. Still missing: original finalization and length-byte caller in the
+coverage.
+`jet_secp_sha_u64_full.eval_secp_sha_u64_full` now executes the complete
+original `sha256_u64be` caller for every supplied 64-bit word and every
+56-byte buffer. It reuses the checked `WriteBE64` through existing validated
+transport and the full byte-absorption call. The proof includes its actual
+8-byte allocation, serialization, call, return conversion and free, exact
+hash-block registers, counter 64, false overflow, output pointer, both owned
+objects, framing, readonly and startup preservation. No stored byte, intermediate
+call or final global invariant is assumed. The existing bounded `memcpy_model`
+remains explicit, and no coverage is added. Rebuild
+`C/jet_secp_sha_u64_full.vo`, recursively kernel-check
+`C.jet_secp_sha_u64_full`, and compare its focused assumption/contract records.
+Still missing: original finalization of the 48-byte generator message in the
 secp program, global-state preservation through the full caller, and composition
 with the digest mapper and remaining generator/public lifecycle.
 The serialization theorem alone does not identify registers with a computed
