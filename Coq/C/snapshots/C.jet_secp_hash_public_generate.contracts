@@ -1,0 +1,168 @@
+### C.jet_secp_hash_public_generate.hash_public_tail_source
+hash_public_tail_source
+     : @eq Clight.statement jet_secp_hash_public_read.hash_public_tail
+         (Clight.Ssequence (Clight.Ssequence hash_public_generate hash_public_decision) hash_public_finish)
+### C.jet_secp_hash_public_generate.hash_public_generator_link
+hash_public_generator_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._secp256k1_generator_generate)
+            (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_generator_generate)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_generator_generate)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_generator_generate)))
+### C.jet_secp_hash_public_generate.exec_hash_public_generate
+exec_hash_public_generate
+     : forall (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bl bk bg bp : Values.block) (ret : Integers.Int.int)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_generator_generate)
+                (@cons Values.val (Values.Vptr bg Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                (Values.Vint ret)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_hash_public_entry.hash_public_env bl bk bg bp) le m hash_public_generate Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint ret) le) mf ClightBigstep.Out_normal
+### C.jet_secp_hash_public_generate.hash_public_begin
+hash_public_begin
+     : forall (_ : jet_memcpy_model.memcpy_model) (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (v_env : Values.val) (m0 : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z)
+         (_ : forall (mc : Memory.Mem.mem) (x : Integers.Int64.int)
+                (_ : not (@eq BinNums.Z (Integers.Int64.unsigned x) BinNums.Z0)),
+              ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mc
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ctz64_var)
+                (@cons Values.val (Values.Vlong x) (@nil Values.val)) Events.E0 mc
+                (Values.Vint (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned x)))))
+         (_ : jet_secp_sha_startup.secp_sha_startup m0) (_ : jet_secp_swu_startup.swu_startup m0)
+         (_ : forall prefix : bool, jet_secp_generator_sha_absorb.generator_sha_prefix_state prefix m0)
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m0 bs sbase bi edge rc)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) key)) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned),
+       @ex Memory.Mem.mem
+         (fun mi : Memory.Mem.mem =>
+          @ex Values.block
+            (fun bl : Values.block =>
+             @ex Values.block
+               (fun bk : Values.block =>
+                @ex Values.block
+                  (fun bg : Values.block =>
+                   @ex Values.block
+                     (fun bp : Values.block =>
+                      @ex Memory.Mem.mem
+                        (fun mf : Memory.Mem.mem =>
+                         @ex (forall _ : nat, Integers.Int64.int)
+                           (fun sx : forall _ : nat, Integers.Int64.int =>
+                            @ex (forall _ : nat, Integers.Int64.int)
+                              (fun sy : forall _ : nat, Integers.Int64.int =>
+                               @ex (forall _ : nat, Integers.Int64.int)
+                                 (fun sz : forall _ : nat, Integers.Int64.int =>
+                                  @ex Integers.Int.int
+                                    (fun sumflag : Integers.Int.int =>
+                                     @ex (forall _ : nat, Integers.Int64.int)
+                                       (fun ox : forall _ : nat, Integers.Int64.int =>
+                                        @ex (forall _ : nat, Integers.Int64.int)
+                                          (fun oy : forall _ : nat, Integers.Int64.int =>
+                                           and
+                                             (Clight.function_entry2 jet_secp_linkage.secp_ge
+                                                jets_secp.f_simplicity_hash_to_curve
+                                                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                                                   (@cons Values.val (Values.Vptr bs (...))
+                                                      (@cons Values.val v_env (...)))) m0
+                                                (jet_secp_hash_public_entry.hash_public_env bl bk bg bp)
+                                                (jet_secp_hash_public_entry.hash_public_temps v_env bd base bs sbase)
+                                                mi)
+                                             (and
+                                                (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                                                   (jet_secp_hash_public_entry.hash_public_env bl bk bg bp)
+                                                   (jet_secp_hash_public_entry.hash_public_temps v_env bd base bs sbase)
+                                                   mi
+                                                   (Clight.Ssequence jet_secp_hash_public_read.hash_public_prefix
+                                                      hash_public_generate) Events.E0
+                                                   (@Maps.PTree.set Values.val jets_secp._t'1
+                                                      (Values.Vint (...))
+                                                      (jet_secp_hash_public_entry.hash_public_temps v_env bd base bs
+                                                         sbase)) mf ClightBigstep.Out_normal)
+                                                (and
+                                                   (jet_secp_hashgen_function.hashgen_result key mf bg sx sy sz sumflag
+                                                      ox oy) (and (@List.NoDup Values.block (...)) (and (...) (...)))))))))))))))))
+### C.jet_secp_hash_public_generate.hash_public_generate
+hash_public_generate =
+Clight.Scall (@Some AST.ident jets_secp._t'1)
+  (Clight.Evar jets_secp._secp256k1_generator_generate
+     (Clight.type_of_function jets_secp.f_secp256k1_generator_generate))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets_secp._gen (Ctypes.Tstruct jets_secp.__6563 Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6563 Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Evar jets_secp._key
+           (Ctypesdefs.tarray Ctypesdefs.tuchar
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_hash_public_generate.hash_public_decision
+hash_public_decision =
+match jet_secp_hash_public_read.hash_public_tail return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence s _ =>
+    match s return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ branch => branch
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_hash_public_generate.hash_public_finish
+hash_public_finish =
+match jet_secp_hash_public_read.hash_public_tail return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ rest => rest
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement

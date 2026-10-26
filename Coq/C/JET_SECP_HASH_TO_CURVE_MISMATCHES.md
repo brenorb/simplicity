@@ -88,6 +88,18 @@ composition or an actual key witnessing the suspected mismatch. Build
 `C/jet_secp_hashgen_outer.vo` and recursively kernel-check
 `C.jet_secp_hashgen_outer`; no new public divergence is claimed.
 
+`C.jet_secp_hash_public_generate.hash_public_begin` additionally derives the
+public entry with all four allocations, its actual by-value source-frame copy,
+the raw 32-byte read and the original generator call. The represented input
+is every Word256 key, without field normalization, alignment of the bit cursor,
+or a digest-acceptance premise. It preserves caller memory and startup and
+derives the computed return flag and `hashgen_result`. A separate free-list
+lemma covers the four public locals. The public failure/success branch,
+load/write/return and freeing still need composition; no whole-public mismatch
+or new coverage is claimed. Reproduce with the normal build and recursive
+kernel check of `C.jet_secp_hash_public_generate`, and the existing focused
+assumption/contract audits of the three `jet_secp_hash_public_*` modules.
+
 Reproduce the source inspection, without modifying or mocking SHA:
 
 ```sh

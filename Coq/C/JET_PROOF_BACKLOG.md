@@ -2905,13 +2905,26 @@ proved from initial ownership/readability. The existing memcpy/CTZ premises
 remain explicit; neither execution nor its desired output is assumed.
 Build `C/jet_secp_hashgen_outer.vo`, recursively kernel-check that root, and
 run focused assumption/contract checks for these three modules and the reused
-body/tail/flag/prefix dependencies. Next connect the public jet's source-frame
-copy, read8s, fresh key/gen/ge allocations, generator return branch, existing
-load/write span and local frees. The exact canonical assertion result and the
-possible infinity mismatch remain to be settled without narrowing inputs.
-Reuse `jet_secp_frame.secp_read8s_layout` with
-`vector_values (Word 3) 5 key` for the raw key. Do not substitute `read_fe`:
-its field normalization would change keys at or above p before hashing.
+body/tail/flag/prefix dependencies.
+`jet_secp_hash_public_entry.hash_public_entry` now derives the public jet's
+actual four allocations (16/32/64/88 bytes), fresh ownership and exact entry;
+`hash_public_free` proves its exact four-object freeing list from ownership.
+`jet_secp_hash_public_read.hash_public_prepare` executes the actual by-value
+source-frame copy and raw `read8s` call at arbitrary valid cursors, including
+word crossings. It derives all 32 key bytes, the advanced local cursor, retained
+ownership and preservation of all caller memory. No output initialization or
+field-range restriction is required. `hash_public_begin` in
+`jet_secp_hash_public_generate` composes actual public entry, that prefix and
+the original generator call, deriving its digest-acceptance return flag and
+`hashgen_result` while retaining all four public locals and startup invariants.
+The existing memcpy/CTZ premises remain explicit. Build and recursively
+kernel-check `C.jet_secp_hash_public_generate`, then run the existing focused
+audits for these three public-prefix modules. Next compose the public return
+branch, existing load/write span, actual public return and frees. The exact
+canonical assertion result and possible infinity mismatch remain to be settled
+without narrowing inputs. The raw reader uses
+`vector_values (Word 3) 5 key`; do not substitute `read_fe`, whose normalization
+would change keys at or above p before hashing.
 These internal calls add no public coverage: 514/533 remains incomplete.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
