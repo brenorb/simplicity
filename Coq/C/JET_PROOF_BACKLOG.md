@@ -2786,10 +2786,31 @@ by themselves execute the enclosing caller or prove its return condition.
 Build `C/jet_secp_generator_hash_literal.vo`, recursively kernel-check that
 root, and compare its focused records, including the rebuilt unchanged
 SHA/Bitcoin serialization dependencies. No public coverage row is added.
+`jet_secp_generator_hash_map.exec_generator_hash_map` now composes the actual
+SHA, conversion/return-flag update and SWU statements for either pass.
+The computed digest and acceptance test are identified with the canonical
+Simplicity hash expression. Rejected digests still execute the actual mapper;
+the theorem derives their raw output too, without assuming successful
+conversion. It preserves the key bytes, all six owned local objects,
+framing, readonly state, both prefixes, and SHA/SWU startup, including the
+mutable SHA dispatch cell. The existing `memcpy_model` and deferred ctz call
+premise remain explicit; this is not a new accepted public theorem.
+`jet_secp_generator_two_maps.exec_generator_two_maps` composes both passes
+with the original intervening unblinded `gej_set_ge` call. It executes the
+seven actual statements at generator indices 7--13 on the NULL-blinding
+path selected by the public wrapper. Its output gives the first computed
+point in the finite Jacobian accumulator with Z=1, the second computed
+affine point, both coordinate bounds and canonical-SWU bridges on accepted
+digests, and the exact conjunction of prior/conversion return flags.
+It preserves all nine owned local objects, the key, framing, readonly
+state and both startup families. No source, specification or digest-domain
+restriction was added. Build `C/jet_secp_generator_two_maps.vo`, recursively
+kernel-check `C.jet_secp_generator_two_maps`, and compare both modules'
+focused assumption/contract records with the existing audit scripts.
 Still missing: the enclosing canonical Simplicity hash-to-curve program's
-branching/return connection, global-state preservation through
-the enclosing generator/public caller, and composition
-with the digest mapper and remaining generator/public lifecycle.
+branching/return connection; the initial stores/return-flag setup and
+NULL-blinding test; entry/allocation and final mixed addition, affine/save
+and public load/write/return/free composition with global preservation.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
 coverage. Coverage remains 514/533.
