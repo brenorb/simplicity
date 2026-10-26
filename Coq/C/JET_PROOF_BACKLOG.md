@@ -342,13 +342,28 @@ are retained. There is no on-curve or nonzero-Y premise and no new external
 helper premise. These are checked helper results, not odd-table execution or
 additional public coverage.
 
-Next compose the table's constructor and `ge_set_gej_zinv` calls before its
-seven mixed additions and nonempty global-Z pass. `ge_set_xy` and `gej_set_ge`
-have existing owned execution proofs; no original `ge_set_gej_zinv` call
-theorem was found in the current normal modules. Its supplied Z factor can
-be zero: do not import a nonzero-inverse assumption from affine normalization.
-Use the existing scoped build/kernel/audit commands with the separate-doubling
-module names; registry entries here audit helpers, not new jet coverage.
+`jet_secp_ge_zinv_function.eval_ge_set_gej_zinv` now proves the whole original
+coordinate-scaling call, including its two allocations, four arithmetic calls,
+flag copy, void return and releases. `jet_secp_ge_zinv_literal` connects its
+decoded pair to the existing literal Simplicity `zinv` program for arbitrary
+residue-matching X/Y/factor words. The factor can be zero; no inverse equation
+or curve equation is assumed. Both actual factor layouts are covered: a
+40-byte field at offset zero, or Z at offset 80 of an owned 128-byte point.
+The result owner size is parameterized (88 bytes or a larger table allocation),
+with the affine result starting at offset zero. Source X/Y/flag, factor limbs,
+ownership, output bounds, readonly globals and framing of unread source Z and
+the remaining table bytes are retained. `jet_secp_affine_gej_product` shares
+the X/Y arithmetic layout proof and verified u128 facts; no C substitution,
+external helper premise or new axiom is introduced.
+
+Next compose the table's existing constructor calls and new doubling/zinv
+calls, then its seven mixed additions, final Z product and nonempty global-Z
+pass. `ge_set_xy` and `gej_set_ge` have existing owned execution proofs.
+Indexed affine-result offsets within the table and the whole table call are
+still open; the new offset-zero helper is not a proof of those cases or of a
+public multiplication jet. Use the existing scoped build/kernel/audit commands
+with the separate-doubling and ge-zinv module names; registry entries here audit
+helpers, not new jet coverage.
 
 `jet_secp_wnaf_literal_values` proves every reachable literal `Some` digit
 is odd and nonzero in the signed range, zero C integers correspond exactly

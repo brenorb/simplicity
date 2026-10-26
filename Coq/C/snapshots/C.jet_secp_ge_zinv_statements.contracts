@@ -1,0 +1,79 @@
+### C.jet_secp_ge_zinv_statements.ge_zinv_body_source
+ge_zinv_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_ge_set_gej_zinv)
+         (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+            (jet_secp_statement_prefix.statement_sequence ge_zinv_statements ge_zinv_flag_statement))
+### C.jet_secp_ge_zinv_statements.ge_zinv_env
+ge_zinv_env =
+fun b2 b3 : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._zi3
+  (@pair Values.block Ctypes.type b3 jet_secp_curve_statements.curve_fe_type)
+  (@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._zi2
+     (@pair Values.block Ctypes.type b2 jet_secp_curve_statements.curve_fe_type) Clight.empty_env)
+     : forall (_ : Values.block) (_ : Values.block), Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments ge_zinv_env b2 b3
+### C.jet_secp_ge_zinv_statements.ge_zinv_square_statement
+ge_zinv_square_statement =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_sqr jets_secp.f_secp256k1_fe_sqr
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._zi2)
+     (@cons Clight.expr (Clight.Etempvar jets_secp._zi (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type))
+        (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_ge_zinv_statements.ge_zinv_cube_statement
+ge_zinv_cube_statement =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_mul jets_secp.f_secp256k1_fe_mul
+  (@None AST.ident)
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._zi3)
+     (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._zi2)
+        (@cons Clight.expr (Clight.Etempvar jets_secp._zi (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type))
+           (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_secp_ge_zinv_statements.ge_zinv_product_statement
+ge_zinv_product_statement =
+fun y : bool =>
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_mul jets_secp.f_secp256k1_fe_mul
+  (@None AST.ident)
+  (@cons Clight.expr
+     (ge_zinv_result_address match y return AST.ident with
+                             | true => jets_secp._y
+                             | false => jets_secp._x
+                             end)
+     (@cons Clight.expr
+        (jet_secp_double_statements.double_point_address jets_secp._a
+           match y return AST.ident with
+           | true => jets_secp._y
+           | false => jets_secp._x
+           end)
+        (@cons Clight.expr
+           (jet_secp_curve_statements.curve_local_address
+              match y return AST.ident with
+              | true => jets_secp._zi3
+              | false => jets_secp._zi2
+              end) (@nil Clight.expr))))
+     : forall _ : bool, Clight.statement
+
+Arguments ge_zinv_product_statement y%bool_scope
+### C.jet_secp_ge_zinv_statements.ge_zinv_arithmetic
+ge_zinv_arithmetic =
+Clight.Ssequence ge_zinv_square_statement
+  (Clight.Ssequence ge_zinv_cube_statement
+     (Clight.Ssequence (ge_zinv_product_statement false)
+        (Clight.Ssequence (ge_zinv_product_statement true) Clight.Sskip)))
+     : Clight.statement
+### C.jet_secp_ge_zinv_statements.ge_zinv_flag_statement
+ge_zinv_flag_statement =
+Clight.Ssequence
+  (Clight.Sset jets_secp._t'1
+     (jet_secp_double_statements.double_point_field jets_secp._a jets_secp._infinity Ctypesdefs.tint))
+  (Clight.Sassign (ge_zinv_result_field jets_secp._infinity Ctypesdefs.tint)
+     (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tint))
+     : Clight.statement
+### C.jet_secp_ge_zinv_statements.ge_zinv_statements
+ge_zinv_statements =
+@cons Clight.statement ge_zinv_square_statement
+  (@cons Clight.statement ge_zinv_cube_statement
+     (@cons Clight.statement (ge_zinv_product_statement false)
+        (@cons Clight.statement (ge_zinv_product_statement true) (@nil Clight.statement))))
+     : list Clight.statement
