@@ -392,9 +392,21 @@ and readonly globals, and gives the literal Simplicity result. The temporary's
 Z field is not assumed initialized: the C caller only writes X/Y/infinity,
 and the helper only reads those fields. This proves the indexed call step;
 it does not establish its storage premises through the rest of the caller.
-The nonempty global-Z normalization, cumulative in-place factor products,
-coordinate copies, decrement/loop guards, function entry and frees still need
-composition. The whole odd-multiple table and its seven mixed additions also
+`jet_secp_field_slice_accumulate` now proves the original in-place multiply
+at arbitrary field offsets, reusing the same verified word log and numeric
+bridge as the disjoint-slice result. `jet_secp_globalz_factor_call` proves the
+actual indexed factor branch, including the first-iteration skip, and relates
+the result to literal field multiplication. `jet_secp_globalz_prepare` proves
+the actual typed X/Y copies and finite flag store without requiring tmpa.Z.
+`jet_secp_globalz_iteration.exec_globalz_iteration` composes a complete original
+iteration for every starting index 1..7: factor branch, machine decrement,
+coordinate copies, flag store and literal coordinate scaling, preserving all
+four caller allocation owners, output/factor bounds, framing and readonly
+globals. It assumes initial table coordinates and factor/ratio storage, not
+execution or any desired helper result. These remain internal helper results.
+The nonempty global-Z initial normalization/copy, seven-iteration composition,
+loop guards, function entry and frees still need composition. The whole
+odd-multiple table and its seven mixed additions also
 remain open. Use the existing scoped build/kernel/audit commands with the
 separate-doubling, ge-zinv and global-Z module names; registry entries here
 audit helpers, not new jet coverage.
