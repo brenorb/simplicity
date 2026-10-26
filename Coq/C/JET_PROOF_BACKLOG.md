@@ -2772,8 +2772,22 @@ explicit, and no public coverage row is added.
 Build `C/jet_secp_generator_sha_complete.vo`, recursively kernel-check that
 root, and compare both new modules' focused records. Rebuilt byte-writer,
 hash-serialization and pure byte-block dependency records must still match.
-Still missing: the connection to the canonical Simplicity hash-to-curve
-program and its digest-to-field inputs, global-state preservation through
+`jet_secp_generator_hash_literal` ports each exact `hashBlock` expression
+inside Haskell's `hash_to_curve_core`: the appropriate 16-byte prefix,
+the two input halves, the `2^127 + 128 + 256` postfix, and the canonical IV.
+`generator_sha_regs_literal` identifies the original generator's computed
+registers with that Simplicity expression. `generator_digest_word_literal`
+identifies the word consumed by SWU, and `generator_digest_value_literal`
+identifies its full numeric value for C's conversion acceptance test.
+The shared byte-vector decoding lemma works at every vector depth; the
+existing word/vector cast and serialization lemmas are reused. These bridges
+cover every Word256 key without assuming either digest below p. They do not
+by themselves execute the enclosing caller or prove its return condition.
+Build `C/jet_secp_generator_hash_literal.vo`, recursively kernel-check that
+root, and compare its focused records, including the rebuilt unchanged
+SHA/Bitcoin serialization dependencies. No public coverage row is added.
+Still missing: the enclosing canonical Simplicity hash-to-curve program's
+branching/return connection, global-state preservation through
 the enclosing generator/public caller, and composition
 with the digest mapper and remaining generator/public lifecycle.
 The serialization theorem alone does not identify registers with a computed
