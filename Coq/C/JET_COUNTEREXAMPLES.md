@@ -1,0 +1,4 @@
+| Jet | Input and layout | Specification result | C result | Formal counterexample |
+| --- | --- | --- | --- | --- |
+| `simplicity_gej_ge_add_ex` | `A=((0,p),1)`, `B=(0,0)`, where `p=0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f`; disjoint valid input/output frames. | Ratio `p`. | Success; ratio `0`. | [`gej_ge_add_ex_public_counterexample`](jet_secp_mixed_ex_counterexample.v) |
+| `simplicity_output_null_datum` — stand-alone overlapping-buffer call | Indices `(0,0)`; output script `6a 51` (`OP_RETURN OP_1`); represented null-data environment; shared input/output backing storage; 64-bit words; input read edge `40` bytes and cursor `0`; output write edge `0` and cursor/capacity `261` bits. | Output present, datum present (`OP_1`); tags `1,1`. | Success; output present, datum absent; tags `1,0`; final output cursor `0`. | [`null_data_overlap_counterexample`](jet_elements_null_overlap_counterexample.v) |
