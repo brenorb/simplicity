@@ -359,11 +359,35 @@ external helper premise or new axiom is introduced.
 Next compose the table's existing constructor calls and new doubling/zinv
 calls, then its seven mixed additions, final Z product and nonempty global-Z
 pass. `ge_set_xy` and `gej_set_ge` have existing owned execution proofs.
-Indexed affine-result offsets within the table and the whole table call are
-still open; the new offset-zero helper is not a proof of those cases or of a
-public multiplication jet. Use the existing scoped build/kernel/audit commands
-with the separate-doubling and ge-zinv module names; registry entries here audit
+Indexed `ge_set_gej_zinv` result offsets and the whole table call are still
+open; the new offset-zero helper is not a proof of those cases or of a public
+multiplication jet. Use the existing scoped build/kernel/audit commands with
+the separate-doubling and ge-zinv module names; registry entries here audit
 helpers, not new jet coverage.
+
+`jet_secp_ge_set_xy_indexed` proves the whole original affine constructor at
+any valid aligned result offset, retaining exact permission equivalence and
+framing outside that entry's 84 written bytes. `jet_secp_odd_table_write` applies
+it to the actual original loop call for every `0 <= i < 8`, retaining the full
+704-byte table owner and framing other entries. This closes the indexed
+constructor/writer step, not the mixed-addition step or the whole loop.
+
+For subsequent indexed arithmetic, `jet_secp_field_slice_product` proves the
+original `fe_mul` on three arbitrary aligned disjoint 40-byte field slices;
+the slices can share an allocation. It derives the u128 event obligations,
+concrete limbs, numeric result and bounds from initial storage. Ownership at
+offset zero is not required: `jet_secp_slice_permissions` reuses the already
+existing `jet_clight_internal_permissions` theorem and the checked original
+internal call table to retain every initial permission, including Freeable.
+This does not change the execution model or assume a helper result. Reuse
+these facts to generalize indexed ratio/result destinations rather than
+adding more fixed-offset multiplication layouts. The initial writable-field
+and pairwise slice-separation premises must be discharged at callers; this
+three-region result does not cover an output aliasing an input.
+
+The independent scoped kernel roots for this batch are
+`C.jet_secp_field_slice_product` and `C.jet_secp_odd_table_write`; check both
+with the existing `build-jets.sh --coqchk` command. Public coverage is unchanged.
 
 `jet_secp_wnaf_literal_values` proves every reachable literal `Some` digit
 is odd and nonzero in the signed range, zero C integers correspond exactly

@@ -1,0 +1,19 @@
+### C.jet_secp_slice_permissions.secp_internal_keeps_permissions
+secp_internal_keeps_permissions
+     : forall (fd : Clight.function) (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace)
+         (mf : Memory.Mem.mem) (result : Values.val)
+         (_ : @eq bool
+                (jet_clight_internal_frame.closed_stmtb jet_secp_closed_helpers.secp_closed_helpers (Clight.fn_body fd))
+                true)
+         (_ : @eq bool
+                (@List.forallb (prod AST.ident Ctypes.type)
+                   (fun local : prod AST.ident Ctypes.type =>
+                    jet_clight_internal_frame.nonfunction_type (@snd AST.ident Ctypes.type local))
+                   (Clight.fn_vars fd)) true)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m (@Ctypes.Internal Clight.function fd) args
+                t mf result), jet_clight_internal_permissions.keeps_permissions m mf
+### C.jet_secp_slice_permissions.keeps_range_permissions
+keeps_range_permissions
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (lo hi : BinNums.Z) (k : Memtype.perm_kind)
+         (p : Memtype.permission) (_ : jet_clight_internal_permissions.keeps_permissions m mf)
+         (_ : Memory.Mem.range_perm m b lo hi k p), Memory.Mem.range_perm mf b lo hi k p

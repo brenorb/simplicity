@@ -1,0 +1,166 @@
+### C.jet_secp_field_slice_product.eval_field_slice_product_symbolic
+eval_field_slice_product_symbolic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta field_slice_product_regs m)
+         (_ : @List.Forall jet_sx_eval.event (jet_secp_u128_word_oracle.u128_evok rho)
+                jet_secp_field_mul_word_model.fe_mul_log),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O))))) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_sx_state.rep rho beta field_slice_product_out mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape field_slice_product_regs) b pos)) m mf)))
+### C.jet_secp_field_slice_product.field_slice_product_initial
+field_slice_product_initial
+     : forall (a b : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bo : Values.block)
+         (oo : BinNums.Z) (ba : Values.block) (oa : BinNums.Z) (bb : Values.block) (ob : BinNums.Z)
+         (_ : field_slice_separated bo oo ba oa) (_ : field_slice_separated bo oo bb ob)
+         (_ : field_slice_separated ba oa bb ob) (_ : BinInt.Z.le BinNums.Z0 oo)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) oo)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add oo
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bo oo
+                (BinInt.Z.add oo
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable)
+         (_ : jet_secp_fe_nv.fe_at m ba oa (jet_secp_multiply_normalize_bridge.words5 a))
+         (_ : jet_secp_fe_nv.fe_at m bb ob (jet_secp_multiply_normalize_bridge.words5 b)),
+       jet_sx_state.rep (jet_secp_point_mul_storage.point_mul_valuation a b)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bo oo)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba oa)
+               (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bb ob)
+                  (@nil (prod Values.block BinNums.Z))))) field_slice_product_regs m
+### C.jet_secp_field_slice_product.field_slice_product_fields
+field_slice_product_fields
+     : forall (a b : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep (jet_secp_point_mul_storage.point_mul_valuation a b) beta field_slice_product_out m),
+       and
+         (jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta O) (jet_sx_state.bas beta O)
+            (jet_secp_multiply_normalize_bridge.words5 (jet_secp_point_mul_storage.point_mul_words a b)))
+         (and
+            (jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta (S O)) (jet_sx_state.bas beta (S O))
+               (jet_secp_multiply_normalize_bridge.words5 a))
+            (jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta (S (S O))) (jet_sx_state.bas beta (S (S O)))
+               (jet_secp_multiply_normalize_bridge.words5 b)))
+### C.jet_secp_field_slice_product.eval_field_slice_product
+eval_field_slice_product
+     : forall (a b : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bo : Values.block)
+         (oo : BinNums.Z) (ba : Values.block) (oa : BinNums.Z) (bb : Values.block) (ob : BinNums.Z)
+         (_ : jet_secp_square_columns.square_input_bounds a) (_ : jet_secp_square_columns.square_input_bounds b)
+         (_ : field_slice_separated bo oo ba oa) (_ : field_slice_separated bo oo bb ob)
+         (_ : field_slice_separated ba oa bb ob) (_ : BinInt.Z.le BinNums.Z0 oo)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) oo)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add oo
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bo oo
+                (BinInt.Z.add oo
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable)
+         (_ : jet_secp_fe_nv.fe_at m ba oa (jet_secp_multiply_normalize_bridge.words5 a))
+         (_ : jet_secp_fe_nv.fe_at m bb ob (jet_secp_multiply_normalize_bridge.words5 b)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+               (@cons Values.val (Values.Vptr bo (Integers.Ptrofs.repr oo))
+                  (@cons Values.val (Values.Vptr ba (Integers.Ptrofs.repr oa))
+                     (@cons Values.val (Values.Vptr bb (Integers.Ptrofs.repr ob)) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf bo oo
+                  (jet_secp_multiply_normalize_bridge.words5 (jet_secp_point_mul_storage.point_mul_words a b)))
+               (and (jet_secp_fe_nv.fe_at mf ba oa (jet_secp_multiply_normalize_bridge.words5 a))
+                  (and (jet_secp_fe_nv.fe_at mf bb ob (jet_secp_multiply_normalize_bridge.words5 b))
+                     (and
+                        (@eq BinNums.Z
+                           (BinInt.Z.modulo
+                              (jet_secp_multiply_finish_product.radix_value
+                                 (jet_secp_point_mul_storage.point_mul_words a b)) jet_secp_fe_math.feP)
+                           (BinInt.Z.modulo
+                              (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value a)
+                                 (jet_secp_multiply_finish_product.radix_value b)) jet_secp_fe_math.feP))
+                        (and
+                           (jet_secp_square_columns.square_input_bounds
+                              (jet_secp_point_mul_storage.point_mul_words a b))
+                           (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                              (jet_sx_mem.lframe
+                                 (fun (bx : Values.block) (pos : BinNums.Z) =>
+                                  and
+                                    (or (not (@eq Values.block bx bo))
+                                       (or (BinInt.Z.lt pos oo)
+                                          (BinInt.Z.le
+                                             (BinInt.Z.add oo
+                                                (BinNums.Zpos
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                             pos)))
+                                    (and
+                                       (or (not (@eq Values.block bx ba))
+                                          (or (BinInt.Z.lt pos oa)
+                                             (BinInt.Z.le
+                                                (BinInt.Z.add oa
+                                                   (BinNums.Zpos
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                                pos)))
+                                       (or (not (@eq Values.block bx bb))
+                                          (or (BinInt.Z.lt pos ob)
+                                             (BinInt.Z.le
+                                                (BinInt.Z.add ob
+                                                   (BinNums.Zpos
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                                pos))))) m mf))))))))
+### C.jet_secp_field_slice_product.field_slice_separated
+field_slice_separated =
+fun (ba : Values.block) (oa : BinNums.Z) (bb : Values.block) (ob : BinNums.Z) =>
+or (not (@eq Values.block ba bb))
+  (or
+     (BinInt.Z.le
+        (BinInt.Z.add oa (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))) ob)
+     (BinInt.Z.le
+        (BinInt.Z.add ob (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))) oa))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments field_slice_separated ba oa%Z_scope bb ob%Z_scope
+### C.jet_secp_field_slice_product.field_slice_product_regs
+field_slice_product_regs =
+@cons jet_sx_state.region jet_secp_fe_b32.fe_undef
+  (@cons jet_sx_state.region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 O))
+     (@cons jet_sx_state.region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 (S (S (S (S (S O)))))))
+        (@nil jet_sx_state.region)))
+     : list jet_sx_state.region
+### C.jet_secp_field_slice_product.field_slice_product_args
+field_slice_product_args =
+@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XP (S (S O)) BinNums.Z0) (@nil jet_sx_expr.sx)))
+     : list jet_sx_expr.sx
+### C.jet_secp_field_slice_product.field_slice_product_out
+field_slice_product_out =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 jet_secp_point_mul_run.point_mul_out) true (@None BinNums.Z))
+  (@cons jet_sx_state.region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 O))
+     (@cons jet_sx_state.region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 (S (S (S (S (S O)))))))
+        (@nil jet_sx_state.region)))
+     : list jet_sx_state.region
