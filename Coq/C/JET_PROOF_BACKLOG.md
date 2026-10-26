@@ -64,6 +64,22 @@ lemmas rather than rebuilding the conversion, loop or return proofs.
 Current statements, remaining boundaries and reproducible commands are in
 [JET_SECP_EXTERNAL_MISMATCHES.md](JET_SECP_EXTERNAL_MISMATCHES.md).
 
+Russell O'Connor's hand-written modular-inverse proof is already in the
+repository (introduced by `c1dddedd`, 2023-11-28). Reuse `C/modinv.v`:
+`modInv_mul_unique_l` is already used by `jet_secp_invert_modinv` and
+`jet_secp_scalar_invert_literal` to identify the literal Simplicity programs'
+results with the same modular inverse, including separate zero/modulus cases.
+The older C proof is
+`secp256k1/verif_modinv64_impl.v:body_secp256k1_modinv64_var`. It is a VST
+proof over `jets_secp256k1.v`, whose CTZ wrapper calls its internal de Bruijn
+implementation. The current frozen `jets_secp.v` wrapper instead selects
+`__builtin_ctzl`; `jet_secp_ctz_external_call` exhibits that exact boundary.
+The old theorem is useful proof structure and arithmetic evidence, but does
+not discharge that external call for the current program. Do not regenerate
+the AST or replace the helper to import the old result. The remaining task
+for these inverse callers is the deferred helper behavior, not a new proof
+of modular-inverse mathematics.
+
 ### Historical normalization-only milestone (superseded)
 
 The following records the earlier normalizer milestone. Its then-missing
