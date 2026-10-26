@@ -2844,6 +2844,27 @@ or complete the generator/public lifecycle. Build
 kernel-check the addition root, and audit the six affected modules plus
 rebuilt dependencies. Existing registered/legacy theorem and definition
 records must still match exactly; coverage remains 514/533.
+`jet_secp_mixed_xy_literal.eval_mixed_xy_literal` now connects the full original
+mixed-addition helper on arbitrary matching loose coordinates to the complete
+literal Simplicity expression. It reuses the general H/I residue tests and
+nonzero arithmetic, retains raw-coordinate doubling, and covers the infinity
+branch. There is no on-curve, canonical-input, nonzero-H, non-infinity-output,
+libc or CTZ assumption. The input flag represents the initial Z zero test, as
+in the existing reader theorem. `mixed_xy_affine_outputs_literal` specializes
+the result to the generator's actual Z=1 initialization and decoded raw X/Y.
+`jet_secp_generator_points_add.exec_generator_points_add` composes all first
+fifteen original statements, including initialization, both SHA/SWU passes
+and actual mixed addition. It executes every key; both digest acceptance
+flags occur only in the postcondition identifying the canonical point sum,
+not as restrictions on execution. It preserves the key, ownership of all caller
+allocations, outside-block memory and SHA/SWU/prefix startup state. The existing
+memcpy and deferred CTZ call premises remain explicit for the SHA/SWU prefix.
+Build `C/jet_secp_generator_points_add.vo`, recursively kernel-check its root,
+and run the existing focused assumption/contract audits for both new modules
+and the reused prefix/addition dependencies. This closes the loose-coordinate
+mixed-addition bridge and the first fifteen statements, not the generator's
+affine/save/entry/return/free or whole-public caller. No new coverage is claimed;
+the remaining suspected hash-to-curve infinity issue is not assumed away.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
 coverage. Coverage remains 514/533.
