@@ -5,7 +5,8 @@ From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Memory Values Events.
 Require Import C.jet_memcpy_model C.jet_sha_linkage C.jet_secp_linkage
   C.jet_sha_uchars_prep C.jet_sha_uchars_loop C.jet_sha_uchars_exec C.jet_readBit_layout
-  C.jet_secp_sha_context C.jet_secp_sha_startup C.jet_sx_mem C.jet_clight_internal_preserve.
+  C.jet_secp_sha_context C.jet_secp_sha_startup C.jet_secp_sha_absorb_head C.jet_sx_mem
+  C.jet_secp_statement_prefix C.jet_clight_internal_preserve.
 Require C.jets_sha C.jets_secp.
 Import ListNotations Ctypes Values Clightdefs.
 Local Open Scope Z_scope.
@@ -114,54 +115,24 @@ Theorem eval_secp_sha_absorb_short (Hmodel:memcpy_model) l bytes m bx ba oa out 
   readonly_preserved m mf /\ secp_sha_startup mf.
 Proof.
   intros Short Separate Startup Owned SourceHi Pointer Counter Overflow Buffer Source.
-  set (c:=Int64.repr (Z.of_nat (length l))).
   set (vn:=Int64.repr (Z.of_nat (length bytes))).
-  assert (CU:Int64.unsigned c=Z.of_nat (length l)) by
-    (unfold c;apply Int64.unsigned_repr;change Int64.max_unsigned with 18446744073709551615;lia).
+  destruct (exec_secp_sha_absorb_head (length l) (length bytes) m bx ba oa ltac:(lia) ltac:(lia)
+    Startup Owned Counter Overflow) as
+    (le4 & m4 & Head & HC & HA & HN & HD & HB & HeadCounter & HeadOverflow & OwnedI &
+     L34 & HeadBuffer & P34 & HeadFrame & R34 & StartupI).
+  set (vd:=Int64.repr (64-Z.of_nat (length l))).
+  set (ob:=Ptrofs.repr (16+Z.of_nat (length l))).
+  set (le2:=PTree.set jets_sha._block (Vptr bx ob)
+    (PTree.set jets_sha._delta (Vlong vd) (uc_le0 bx 0 ba oa vn))).
+  assert (DU:Int64.unsigned vd=64-Z.of_nat (length l)) by
+    (unfold vd;apply Int64.unsigned_repr;change Int64.max_unsigned with 18446744073709551615;lia).
   assert (NU:Int64.unsigned vn=Z.of_nat (length bytes)) by
     (unfold vn;apply Int64.unsigned_repr;change Int64.max_unsigned with 18446744073709551615;lia).
-  assert (Mod:Int64.modu c c64=c).
-  { rewrite modu64,CU,Z.mod_small by lia;reflexivity. }
-  set (vd:=Int64.sub c64 (Int64.modu c c64)).
-  assert (DU:Int64.unsigned vd=64-Z.of_nat (length l)).
-  { unfold vd;rewrite Mod,long_sub_unsigned,CU;change (Int64.unsigned c64) with 64;lia. }
-  set (oblk:=Ptrofs.add (Ptrofs.repr 0) (Ptrofs.repr 16)).
-  set (ob:=Ptrofs.add oblk (Ptrofs.mul (Ptrofs.repr 1) (Ptrofs.of_int64 (Int64.modu c c64)))).
-  assert (BU:Ptrofs.unsigned ob=16+Z.of_nat (length l)).
-  { unfold ob;rewrite ptr_add_long by
-      (rewrite Mod,CU;change (Ptrofs.unsigned oblk) with 16;
-       change Ptrofs.max_unsigned with 18446744073709551615;lia).
-    rewrite Mod,CU;reflexivity. }
-  set (le0:=uc_le0 bx 0 ba oa vn).
-  set (le1:=PTree.set jets_sha._delta (Vlong vd) (PTree.set jets_sha._t'9 (Vlong c) le0)).
-  set (le2:=PTree.set jets_sha._block (Vptr bx ob) (PTree.set jets_sha._t'8 (Vlong c) le1)).
-  assert (Access80:Mem.valid_access m Mint8unsigned bx 80 Writable).
-  { split;[intros pos Range;eapply Mem.perm_implies;[apply Owned;change (80<=pos<81) in Range;lia|constructor]|
-      exists 80;reflexivity]. }
-  destruct (exec_secp_sha_small_overflow m le2 bx c vn ltac:(rewrite CU,NU;lia) eq_refl eq_refl
-    Counter Overflow (proj2 (proj1 Startup)) Access80) as (le3 & m3 & Run3 & Store3 & Temps3).
-  set (le4:=PTree.set jets_sha._t'4 (Vlong c) le3).
-  assert (Access8:Mem.valid_access m3 Mint64 bx 8 Writable).
-  { split.
-    - intros pos Range;eapply Mem.perm_store_1;[exact Store3|].
-      eapply Mem.perm_implies;[apply Owned;change (8<=pos<16) in Range;lia|constructor].
-    - exists 1;reflexivity. }
-  destruct (Mem.valid_access_store m3 Mint64 bx 8 (Vlong (Int64.add c vn)) Access8) as (m4 & Store4).
-  assert (L34:forall ch b ofs,(b<>bx \/ ofs+size_chunk ch<=8 \/ 81<=ofs) ->
-    Mem.load ch m4 b ofs=Mem.load ch m b ofs).
-  { intros ch b ofs Outside;rewrite (Mem.load_store_other _ _ _ _ _ _ Store4)
-      by (change (size_chunk Mint64) with 8;destruct Outside as [Other|[Before|After]];[left;exact Other|right;left;lia|right;right;lia]).
-    apply (Mem.load_store_other _ _ _ _ _ _ Store3);change (size_chunk Mint8unsigned) with 1;
-      destruct Outside as [Other|[Before|After]];[left;exact Other|right;left;lia|right;right;lia]. }
-  assert (P34:forall b ofs k p,Mem.perm m b ofs k p ->Mem.perm m4 b ofs k p).
-  { intros;eapply Mem.perm_store_1;[exact Store4|];eapply Mem.perm_store_1;[exact Store3|assumption]. }
-  assert (V34:forall b,Mem.valid_block m b ->Mem.valid_block m4 b).
-  { intros;eapply Mem.store_valid_block_1;[exact Store4|];eapply Mem.store_valid_block_1;[exact Store3|assumption]. }
-  assert (R34:readonly_preserved m m4).
-  { eapply preserved_trans;[eapply store_preserved;exact Store3|eapply store_preserved;exact Store4]. }
+  assert (BU:Ptrofs.unsigned ob=16+Z.of_nat (length l)) by
+    (unfold ob;apply Ptrofs.unsigned_repr;change Ptrofs.max_unsigned with 18446744073709551615;lia).
+  assert (V34:forall b,Mem.valid_block m b ->Mem.valid_block m4 b) by (exact (proj2 (proj2 HeadFrame))).
   assert (Temps4:forall id,In id [jets_sha._ctx;jets_sha._arr;jets_sha._len;jets_sha._delta;jets_sha._block] ->le4!id=le2!id).
-  { intros id Member;unfold le4;rewrite PTree.gso by
-      (destruct Member as [<-|[<-|[<-|[<-|[<-|[]]]]]];discriminate);apply Temps3;exact Member. }
+  { intros id [<-|[<-|[<-|[<-|[<-|[]]]]]];[exact HC|exact HA|exact HN|exact HD|exact HB]. }
   assert (Tail:exists mf,
     Clight2.exec_stmt secp_ge empty_env le4 m4
       (Sifthenelse (Etempvar jets_sha._len tulong) (uc_memcpy jets_sha._len) Sskip) E0 le4 mf Out_normal /\
@@ -195,8 +166,7 @@ Proof.
   destruct Tail as (mf & TailRun & NewBytes & TailFrame & TailPerm & TailValid & TailPreserved).
   assert (OverflowF:Mem.load Mint8unsigned mf bx 80=Some (Vint Int.zero)).
   { rewrite TailFrame by (right;right;lia).
-    rewrite (Mem.load_store_other _ _ _ _ _ _ Store4) by (right;right;cbn;lia).
-    rewrite (Mem.load_store_same _ _ _ _ _ _ Store3);reflexivity. }
+    exact HeadOverflow. }
   set (lef:=PTree.set jets_sha._t'2 (Vint Int.zero) le4).
   assert (Frame:lframe (fun b _=>b<>bx) m mf).
   { split.
@@ -205,32 +175,11 @@ Proof.
     - split;[intros;apply TailPerm,P34;assumption|intros;apply TailValid,V34;assumption]. }
   assert (Preserved:readonly_preserved m mf) by (eapply preserved_trans;[exact R34|exact TailPreserved]).
   exists mf;split.
-  - eapply eval_funcall_internal with (e:=empty_env) (le1:=le0) (m1:=m) (le2:=lef) (m2:=mf)
+  - eapply eval_funcall_internal with (e:=empty_env) (le1:=uc_le0 bx 0 ba oa vn) (m1:=m) (le2:=lef) (m2:=mf)
       (out:=Out_return (Some (Vint Int.one,tint))).
     + apply secp_sha_uchars_entry.
-    + change (fn_body jets_secp.f_sha256_uchars) with
-        (Ssequence uc_pre1 (Ssequence uc_pre2 (Ssequence uc_ovf (Ssequence uc_count (Ssequence uc_loop uc_tail))))).
-      eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (le1:=le1) (m1:=m).
-      { unfold uc_pre1;eapply exec_Sseq_1 with (t1:=E0) (t2:=E0).
-        - apply exec_Sset;eapply (eval_secp_ctx_field SCounter) with (chunk:=Mint64) (base:=0);
-            [lia|change (88<=18446744073709551615);lia|reflexivity|reflexivity|exact Counter].
-        - apply exec_Sset;eapply eval_Ebinop with (v1:=Vint (Int.repr 64)) (v2:=Vlong (Int64.modu c c64));
-            [constructor|eapply eval_Ebinop;[apply eval_Etempvar;apply PTree.gss|constructor|reflexivity]|reflexivity]. }
-      eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (le1:=le2) (m1:=m).
-      { unfold uc_pre2;eapply exec_Sseq_1 with (t1:=E0) (t2:=E0).
-        - apply exec_Sset;eapply (eval_secp_ctx_field SCounter) with (chunk:=Mint64) (base:=0);
-            [lia|change (88<=18446744073709551615);lia|reflexivity|reflexivity|exact Counter].
-        - apply exec_Sset;eapply eval_Ebinop with (v1:=Vptr bx oblk) (v2:=Vlong (Int64.modu c c64));
-            [apply eval_secp_ctx_block;reflexivity|eapply eval_Ebinop;[apply eval_Etempvar;apply PTree.gss|constructor|reflexivity]|reflexivity]. }
-      eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (le1:=le3) (m1:=m3);[exact Run3|].
-      eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (le1:=le4) (m1:=m4).
-      { unfold uc_count;eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (le1:=le4) (m1:=m3).
-        - apply exec_Sset;eapply (eval_secp_ctx_field SCounter) with (chunk:=Mint64) (base:=0);
-            [lia|change (88<=18446744073709551615);lia|reflexivity|rewrite Temps3 by (left;reflexivity);reflexivity|].
-          rewrite (Mem.load_store_other _ _ _ _ _ _ Store3) by (right;left;cbn;lia);exact Counter.
-        - eapply (exec_secp_ctx_assign SCounter) with (chunk:=Mint64) (base:=0) (v:=Vlong (Int64.add c vn));
-            [lia|change (88<=18446744073709551615);lia|reflexivity|rewrite Temps4 by (left;reflexivity);reflexivity| |reflexivity|exact Store4].
-          eapply eval_Ebinop;[apply eval_Etempvar;apply PTree.gss|apply eval_Etempvar;rewrite Temps4 by (do 2 right;left;reflexivity);reflexivity|reflexivity]. }
+    + rewrite secp_sha_absorb_body.
+      eapply exec_statement_prefix_then_last;[exact Head|].
       eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (le1:=le4) (m1:=m4).
       { unfold uc_loop,Swhile;eapply exec_Sloop_stop1 with (out':=Out_break);[|constructor].
         eapply exec_Sseq_2;[|discriminate];eapply exec_Sifthenelse with (b:=false);[| |constructor].
@@ -250,14 +199,12 @@ Proof.
     + rewrite TailFrame by (right;left;change (size_chunk Mptr) with 8;lia);rewrite L34 by (right;left;reflexivity);exact Pointer.
     + split.
       * rewrite TailFrame by (right;left;change (size_chunk Mint64) with 8;lia).
-        rewrite (Mem.load_store_same _ _ _ _ _ _ Store4);unfold Int64.add;rewrite CU,NU.
-        rewrite app_length,Nat2Z.inj_add;reflexivity.
+        rewrite app_length;exact HeadCounter.
       * split;[exact OverflowF|];split.
         -- intros i Index;rewrite app_length in Index;destruct (lt_dec i (length l)) as [Before|After].
            ++ rewrite app_nth1 by exact Before.
               rewrite TailFrame by (right;left;change (size_chunk Mint8unsigned) with 1;lia).
-              rewrite (Mem.load_store_other _ _ _ _ _ _ Store4) by (right;right;change (size_chunk Mint64) with 8;lia).
-              rewrite (Mem.load_store_other _ _ _ _ _ _ Store3) by (right;left;change (size_chunk Mint8unsigned) with 1;lia);apply Buffer;exact Before.
+              rewrite HeadBuffer by (change (size_chunk Mint8unsigned) with 1;lia);apply Buffer;exact Before.
            ++ rewrite app_nth2 by lia;replace (16+Z.of_nat i) with
                 (16+Z.of_nat (length l)+Z.of_nat (i-length l)) by lia;apply NewBytes;lia.
         -- split;[intros pos Range;apply TailPerm,P34,Owned;exact Range|];split;[exact Frame|];split;[exact Preserved|].

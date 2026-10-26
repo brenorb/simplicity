@@ -2712,8 +2712,25 @@ the existing `memcpy_model`, not another whole-public coverage entry.
 Build `C/jet_secp_sha_absorb_block.vo` and
 `C/jet_secp_generator_sha_absorb.vo`, recursively kernel-check both roots,
 and compare the block/startup/short modules' focused records.
-Still missing: the complete block-filling `sha256_uchars` call (entry, setup,
-this loop and return), original finalization and length-byte caller in the
+`jet_secp_sha_absorb_head.exec_secp_sha_absorb_head` factors the actual
+pre-loop setup, through the exact 64-byte boundary, out of the partial-block
+proof. It derives the context/array/block/count temporaries, actual counter
+and overflow stores, ownership, preservation of buffered bytes and other
+loads, framing, readonly and startup preservation. The previous small-overflow
+interfaces remain wrappers of the new bounded lemmas, and the partial-block
+theorem now reuses this setup with its original statement and assumptions.
+`jet_secp_sha_absorb_full.eval_secp_sha_absorb_full` composes actual function
+entry, that setup, the checked block-filling loop, zero-length tail, overflow
+read, true return conversion and empty local free. It proves exact hash-block
+registers, counter 64, false overflow, preserved output pointer, both owned
+objects, framing, readonly and startup for every partial buffer completed by
+the supplied bytes. The existing `memcpy_model` stays explicit. No helper
+execution or final-state invariant is assumed.
+Build `C/jet_secp_sha_absorb_full.vo` and
+`C/jet_secp_generator_sha_absorb.vo`, recursively kernel-check both roots,
+and compare head/full/context records plus the unchanged short/block/generator
+records with the existing focused audit scripts. This does not add public jet
+coverage. Still missing: original finalization and length-byte caller in the
 secp program, global-state preservation through the full caller, and composition
 with the digest mapper and remaining generator/public lifecycle.
 The serialization theorem alone does not identify registers with a computed

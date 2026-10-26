@@ -52,7 +52,7 @@ Proof.
   eapply assign_loc_value;[exact Mode|];unfold Mem.storev;rewrite ctx_address by assumption;exact Store.
 Qed.
 
-Lemma secp_sha_small_overflow c vn : Int64.unsigned c+Int64.unsigned vn<64 ->
+Lemma secp_sha_bounded_overflow c vn : Int64.unsigned c+Int64.unsigned vn<=64 ->
   Int64.cmpu Cle (Int64.sub sha_max_counter c) vn=false.
 Proof.
   intro Small;pose proof (Int64.unsigned_range c) as C;pose proof (Int64.unsigned_range vn) as N.
@@ -60,8 +60,12 @@ Proof.
     change (Int64.unsigned sha_max_counter) with 2305843009213693952;[apply Z.leb_gt|];lia.
 Qed.
 
-Lemma exec_secp_sha_small_overflow m le bx c vn :
-  Int64.unsigned c+Int64.unsigned vn<64 ->
+Lemma secp_sha_small_overflow c vn : Int64.unsigned c+Int64.unsigned vn<64 ->
+  Int64.cmpu Cle (Int64.sub sha_max_counter c) vn=false.
+Proof. intro Small;apply secp_sha_bounded_overflow;lia. Qed.
+
+Lemma exec_secp_sha_bounded_overflow m le bx c vn :
+  Int64.unsigned c+Int64.unsigned vn<=64 ->
   le!jets_sha._ctx=Some (Vptr bx Ptrofs.zero) -> le!jets_sha._len=Some (Vlong vn) ->
   Mem.load Mint64 m bx 8=Some (Vlong c) -> Mem.load Mint8unsigned m bx 80=Some (Vint Int.zero) ->
   Mem.load Mint64 m (secp_symbol_block jets_secp._sha256_max_counter) 0=Some (Vlong sha_max_counter) ->
@@ -97,7 +101,7 @@ Proof.
               apply eval_Etempvar;apply PTree.gss|reflexivity].
         -- apply eval_Etempvar;unfold le7,le6,le5;rewrite !PTree.gso by discriminate;exact Len.
         -- change (Some (Val.of_bool (Int64.cmpu Cle (Int64.sub sha_max_counter c) vn))=Some (Val.of_bool false)).
-           rewrite secp_sha_small_overflow by exact Small;reflexivity.
+           rewrite secp_sha_bounded_overflow by exact Small;reflexivity.
     + eapply (exec_secp_ctx_assign SOverflow) with (chunk:=Mint8unsigned) (base:=0) (v:=Vint Int.zero);
         [lia|change (88<=18446744073709551615);lia|reflexivity| | |reflexivity|exact Store].
       * unfold lef,le7,le6,le5;rewrite !PTree.gso by discriminate;exact Ctx.
@@ -107,3 +111,14 @@ Proof.
     repeat rewrite PTree.gso by (destruct Member as [<-|[<-|[<-|[<-|[<-|[]]]]]];discriminate).
     reflexivity.
 Qed.
+
+Lemma exec_secp_sha_small_overflow m le bx c vn :
+  Int64.unsigned c+Int64.unsigned vn<64 ->
+  le!jets_sha._ctx=Some (Vptr bx Ptrofs.zero) -> le!jets_sha._len=Some (Vlong vn) ->
+  Mem.load Mint64 m bx 8=Some (Vlong c) -> Mem.load Mint8unsigned m bx 80=Some (Vint Int.zero) ->
+  Mem.load Mint64 m (secp_symbol_block jets_secp._sha256_max_counter) 0=Some (Vlong sha_max_counter) ->
+  Mem.valid_access m Mint8unsigned bx 80 Writable ->exists lef mf,
+  Clight2.exec_stmt secp_ge empty_env le m uc_ovf E0 lef mf Out_normal /\
+  Mem.store Mint8unsigned m bx 80 (Vint Int.zero)=Some mf /\
+  (forall id,In id [jets_sha._ctx;jets_sha._arr;jets_sha._len;jets_sha._delta;jets_sha._block] ->lef!id=le!id).
+Proof. intro Small;apply exec_secp_sha_bounded_overflow;lia. Qed.
