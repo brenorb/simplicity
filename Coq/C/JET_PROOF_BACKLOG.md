@@ -2655,9 +2655,26 @@ after detecting an inconsistent frame-interface cache; proof sources were
 not changed to resolve that cache error. Build
 `C/jet_secp_generator_sha_start.vo` and `C/jet_secp_sha_owned.vo`, recursively
 kernel-check both roots, and compare all three modules' focused records.
-Still missing: actual prefix/key absorption and finalization/compression in
-the secp program, establishment of its SHA global/dispatch startup, and their
-composition with the digest mapper and remaining generator/public lifecycle.
+`jet_secp_sha_compression` now transports the existing checked portable round
+chain into the original secp program. It also derives exact `SHA256.hash_block`
+state words, ownership, unchanged block input, framing and readonly preservation
+for the actual portable call. `jet_secp_sha_dispatch` reuses the byte-reading
+prefix through checked statement transport and then executes the actual mutable
+dispatch load and indirect call. Its complete byte-wrapper theorem includes
+the private 64-byte array's allocation and free, exact hash-block state, framing
+and readonly preservation. It needs no libc or compression oracle.
+`jet_secp_sha_startup` establishes the dispatch pointer and counter constant
+from the original program's actual `Genv.init_mem`, whose existence is already
+proved. It proves the counter cannot be written and the dispatch cell cannot
+be owned as Freeable storage. The owned byte-compression theorem composes this
+with the real call and preserves startup, deriving global separation from
+ownership rather than assuming a final global-state premise. Mutable dispatch
+preservation uses the call's framing; readonly preservation alone is insufficient.
+Build `C/jet_secp_sha_startup.vo` and `C/jet_secp_sha_compression.vo`, recursively
+kernel-check both roots, and compare all three modules' focused records.
+Still missing: actual prefix/key absorption and finalization in the secp
+program, their global-state preservation through the full caller, and composition
+with the digest mapper and remaining generator/public lifecycle.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
 coverage. Coverage remains 514/533.

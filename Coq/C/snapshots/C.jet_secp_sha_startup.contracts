@@ -1,0 +1,104 @@
+### C.jet_secp_sha_startup.secp_sha_dispatch_info
+secp_sha_dispatch_info
+     : @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info (Ctypes.fundef Clight.function) Ctypes.type
+            (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.program_of_program Clight.function jets_secp.prog)) secp_sha_dispatch_block)
+         (@Some (AST.globvar Ctypes.type) jets_secp.v_simplicity_sha256_compression)
+### C.jet_secp_sha_startup.secp_sha_counter_info
+secp_sha_counter_info
+     : @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info (Ctypes.fundef Clight.function) Ctypes.type
+            (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.program_of_program Clight.function jets_secp.prog)) secp_sha_counter_block)
+         (@Some (AST.globvar Ctypes.type) jets_secp.v_sha256_max_counter)
+### C.jet_secp_sha_startup.secp_sha_compression_ast_symbol
+secp_sha_compression_ast_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol (Ctypes.fundef Clight.function) Ctypes.type
+            (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.program_of_program Clight.function jets_secp.prog)) jets_secp._sha256_compression_portable)
+         (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._sha256_compression_portable))
+### C.jet_secp_sha_startup.secp_sha_startup_initial
+secp_sha_startup_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       secp_sha_startup m
+### C.jet_secp_sha_startup.secp_sha_startup_exists
+secp_sha_startup_exists
+     : @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                  (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m))
+            (secp_sha_startup m))
+### C.jet_secp_sha_startup.secp_sha_startup_separate
+secp_sha_startup_separate
+     : forall (m : Memory.Mem.mem) (b : Values.block) (size : BinNums.Z) (_ : secp_sha_startup m)
+         (_ : BinInt.Z.lt BinNums.Z0 size) (_ : Memory.Mem.range_perm m b BinNums.Z0 size Memtype.Cur Memtype.Freeable),
+       and (not (@eq Values.block b secp_sha_dispatch_block)) (not (@eq Values.block b secp_sha_counter_block))
+### C.jet_secp_sha_startup.secp_sha_startup_preserved
+secp_sha_startup_preserved
+     : forall (m mf : Memory.Mem.mem) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : secp_sha_startup m) (_ : jet_clight_internal_preserve.readonly_preserved m mf)
+         (_ : jet_sx_mem.lframe P m mf) (_ : forall ofs : BinNums.Z, P secp_sha_dispatch_block ofs),
+       secp_sha_startup mf
+### C.jet_secp_sha_startup.eval_secp_sha_compression_uchar_owned
+eval_secp_sha_compression_uchar_owned
+     : forall (regs bytes : list Integers.Int.int) (m : Memory.Mem.mem) (bs bb : Values.block)
+         (_ : @eq nat (@length Integers.Int.int regs) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : @eq nat (@length Integers.Int.int bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : secp_sha_startup m) (_ : jet_uint32_array_init.uint32_array_at m bs BinNums.Z0 regs)
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : forall (i : nat)
+                (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))),
+              @eq (option Values.val) (Memory.Mem.load AST.Mint8unsigned m bb (BinInt.Z.of_nat i))
+                (@Some Values.val (Values.Vint (@List.nth Integers.Int.int i bytes Integers.Int.zero)))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_sha256_compression_uchar)
+               (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_uint32_array_init.uint32_array_at mf bs BinNums.Z0
+                  (SHA256.hash_block regs (jet_sha_ctx8_model.be_words bytes)))
+               (and
+                  (Memory.Mem.range_perm mf bs BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bs)) m mf)
+                     (and (jet_clight_internal_preserve.readonly_preserved m mf) (secp_sha_startup mf))))))
+### C.jet_secp_sha_startup.secp_sha_dispatch_block
+secp_sha_dispatch_block =
+jet_secp_linkage.secp_symbol_block jets_secp._simplicity_sha256_compression
+     : Values.block
+### C.jet_secp_sha_startup.secp_sha_counter_block
+secp_sha_counter_block = jet_secp_linkage.secp_symbol_block jets_secp._sha256_max_counter
+     : Values.block
+### C.jet_secp_sha_startup.secp_sha_globals_ok
+secp_sha_globals_ok =
+fun m : Memory.Mem.mem =>
+and (jet_secp_sha_dispatch.secp_sha_dispatch_ok m)
+  (@eq (option Values.val) (Memory.Mem.load AST.Mint64 m secp_sha_counter_block BinNums.Z0)
+     (@Some Values.val (Values.Vlong jet_sha_uchars_exec.sha_max_counter)))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments secp_sha_globals_ok m
+### C.jet_secp_sha_startup.secp_sha_startup
+secp_sha_startup =
+fun m : Memory.Mem.mem =>
+and (secp_sha_globals_ok m)
+  (and (forall ofs : BinNums.Z, not (Memory.Mem.perm m secp_sha_counter_block ofs Memtype.Max Memtype.Writable))
+     (forall ofs : BinNums.Z, not (Memory.Mem.perm m secp_sha_dispatch_block ofs Memtype.Max Memtype.Freeable)))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments secp_sha_startup m
