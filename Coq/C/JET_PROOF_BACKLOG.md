@@ -404,12 +404,36 @@ coordinate copies, flag store and literal coordinate scaling, preserving all
 four caller allocation owners, output/factor bounds, framing and readonly
 globals. It assumes initial table coordinates and factor/ratio storage, not
 execution or any desired helper result. These remain internal helper results.
-The nonempty global-Z initial normalization/copy, seven-iteration composition,
-loop guards, function entry and frees still need composition. The whole
-odd-multiple table and its seven mixed additions also
-remain open. Use the existing scoped build/kernel/audit commands with the
+`jet_secp_globalz_loop.exec_globalz_loop` now composes the actual descending
+loop through index zero, deriving each iteration's table/factor storage and
+bounds and preserving all eight ratios and finite flags. Its `globalz_walk`
+records the exact checked limb recurrence; it is an internal execution model,
+not a replacement for the canonical public Simplicity program.
+`jet_secp_field_slice_weak` reuses the existing normalization carry-pass and
+numeric proofs at arbitrary field offsets. `jet_secp_globalz_start` composes
+the original last-Y normalization and ratio-to-zs typed copy.
+`jet_secp_globalz_function.eval_ge_table_set_globalz_eight` proves the whole
+original function for the eight-entry single-point table used by this caller:
+both actual local allocations, prefix, all seven iterations, void return and
+both frees, exact limb outputs, all ratio fields, both caller owners, old
+permissions, unrelated memory and readonly globals. Initial table fields may
+be loose within the shared multiplier bounds; no on-curve, nonzero-factor,
+inverse equation or external-helper premise is added. Input table flags are
+finite, as established by the odd-table constructor calls.
+The whole odd-multiple table, its seven indexed mixed additions and the
+connection to the canonical `scalarTable5`/`pass2_8` tree remain open; the
+whole global-Z execution theorem alone is not public jet coverage. Use the
+existing scoped build/kernel/audit commands with the
 separate-doubling, ge-zinv and global-Z module names; registry entries here
 audit helpers, not new jet coverage.
+
+For the next mixed-addition step, reuse
+`jet_secp_mixed_function_loose.eval_mixed_function_xy`, its shared proof-mode
+preparation/body modules and `jet_secp_mixed_xy_literal`. They already handle
+loose X/Y with actual normalized temporary values and raw-coordinate doubling;
+do not reimpose the older ratio function's positioned-X/Y premises on table
+outputs. The NULL-ratio callers are complete; the remaining adaptation here
+is the non-NULL ratio path at the actual `zr[i]` offset and its array owner.
 
 `jet_secp_ge_set_xy_indexed` proves the whole original affine constructor at
 any valid aligned result offset, retaining exact permission equivalence and
