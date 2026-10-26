@@ -1,0 +1,314 @@
+### C.jet_secp_generator_digest_mapping.generator_digest_stage_source
+generator_digest_stage_source
+     : forall second : bool,
+       @eq Clight.statement (generator_after_hash second)
+         (jet_secp_statement_prefix.statement_sequence
+            (@cons Clight.statement (generator_digest_read second)
+               (@cons Clight.statement generator_digest_map (@nil Clight.statement))) (generator_after_mapping second))
+### C.jet_secp_generator_digest_mapping.generator_hash_prefix_source
+generator_hash_prefix_source
+     : forall second : bool,
+       @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_generator_generate_internal)
+         (jet_secp_statement_prefix.statement_sequence
+            (@List.firstn Clight.statement (generator_digest_index second)
+               (@fst (list Clight.statement) Clight.statement
+                  (jet_secp_statement_prefix.split_statement_last
+                     (Clight.fn_body jets_secp.f_secp256k1_generator_generate_internal))))
+            (generator_after_hash second))
+### C.jet_secp_generator_digest_mapping.generator_digest_bit_repr
+generator_digest_bit_repr
+     : forall flag : bool,
+       @eq Integers.Int.int (Integers.Int.repr (jet_sx_zval.b2z flag)) (jet_secp_field_cmov.cmov_int flag)
+### C.jet_secp_generator_digest_mapping.generator_digest_ret
+generator_digest_ret
+     : forall (second prior : bool) (bytes : list BinNums.Z) (le : Maps.PTree.tree Values.val),
+       @eq (option Values.val)
+         (@Maps.PTree.get Values.val jets_secp._ret (generator_digest_temps second prior bytes le))
+         (@Some Values.val (Values.Vint (jet_secp_field_cmov.cmov_int (andb prior (generator_digest_accept bytes)))))
+### C.jet_secp_generator_digest_mapping.generator_digest_rejected_ret
+generator_digest_rejected_ret
+     : forall (second prior : bool) (bytes : list BinNums.Z) (le : Maps.PTree.tree Values.val)
+         (_ : @eq bool (generator_digest_accept bytes) false),
+       @eq (option Values.val)
+         (@Maps.PTree.get Values.val jets_secp._ret (generator_digest_temps second prior bytes le))
+         (@Some Values.val (Values.Vint Integers.Int.zero))
+### C.jet_secp_generator_digest_mapping.generator_digest_temps_other
+generator_digest_temps_other
+     : forall (second prior : bool) (bytes : list BinNums.Z) (le : Maps.PTree.tree Values.val)
+         (id : AST.ident) (_ : not (@eq AST.ident id jets_secp._ret))
+         (_ : not (@eq AST.ident id (generator_digest_slot second))),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (generator_digest_temps second prior bytes le))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_generator_digest_mapping.exec_generator_digest_set
+exec_generator_digest_set
+     : forall (second : bool) (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (bt bb : Values.block) (flag : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_set_b32 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._t e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bt jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._b32 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bb
+                      (Ctypesdefs.tarray Ctypesdefs.tuchar
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_set_b32)
+                (@cons Values.val (Values.Vptr bt Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                (Values.Vint (jet_secp_field_cmov.cmov_int flag))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (generator_digest_set_call second) Events.E0
+         (@Maps.PTree.set Values.val (generator_digest_slot second) (Values.Vint (jet_secp_field_cmov.cmov_int flag))
+            le) mf ClightBigstep.Out_normal
+### C.jet_secp_generator_digest_mapping.exec_generator_digest_update
+exec_generator_digest_update
+     : forall (second prior : bool) (bytes : list BinNums.Z) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._ret le)
+                (@Some Values.val (Values.Vint (jet_secp_field_cmov.cmov_int prior)))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e
+         (@Maps.PTree.set Values.val (generator_digest_slot second)
+            (Values.Vint (jet_secp_field_cmov.cmov_int (generator_digest_accept bytes))) le) m
+         (Clight.Sset jets_secp._ret
+            (Clight.Ebinop Cop.Oand (Clight.Etempvar jets_secp._ret Ctypesdefs.tint)
+               (Clight.Etempvar (generator_digest_slot second) Ctypesdefs.tint) Ctypesdefs.tint)) Events.E0
+         (generator_digest_temps second prior bytes le) m ClightBigstep.Out_normal
+### C.jet_secp_generator_digest_mapping.exec_generator_digest_mapping
+exec_generator_digest_mapping
+     : forall (second prior : bool) (bytes : list BinNums.Z) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bt bb bp : Values.block)
+         (_ : forall (mc : Memory.Mem.mem) (x : Integers.Int64.int)
+                (_ : not (@eq BinNums.Z (Integers.Int64.unsigned x) BinNums.Z0)),
+              ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mc
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ctz64_var)
+                (@cons Values.val (Values.Vlong x) (@nil Values.val)) Events.E0 mc
+                (Values.Vint (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned x)))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_set_b32 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._shallue_van_de_woestijne e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._t e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bt jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._add e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bp jet_secp_curve_statements.curve_ge_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._b32 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bb
+                      (Ctypesdefs.tarray Ctypesdefs.tuchar
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._ret le)
+                (@Some Values.val (Values.Vint (jet_secp_field_cmov.cmov_int prior))))
+         (_ : @eq nat (@length BinNums.Z bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @List.Forall BinNums.Z
+                (fun x : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 x)
+                   (BinInt.Z.le x
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes) (_ : not (@eq Values.block bt bb)) (_ : not (@eq Values.block bp bt))
+         (_ : not (@eq Values.block bp bb)) (_ : jet_secp_swu_startup.swu_startup m)
+         (_ : Memory.Mem.range_perm m bt BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bp BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : forall (i : nat)
+                (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))),
+              @eq (option Values.val) (Memory.Mem.load AST.Mint8unsigned m bb (BinInt.Z.of_nat i))
+                (@Some Values.val (Values.Vint (Integers.Int.repr (@List.nth BinNums.Z i bytes BinNums.Z0))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex (forall _ : nat, Integers.Int64.int)
+            (fun x : forall _ : nat, Integers.Int64.int =>
+             @ex (forall _ : nat, Integers.Int64.int)
+               (fun y : forall _ : nat, Integers.Int64.int =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (generator_digest_stage second)
+                     Events.E0 (generator_digest_temps second prior bytes le) mf ClightBigstep.Out_normal)
+                  (and (jet_secp_fe_nv.fe_at mf bp BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 x))
+                     (and
+                        (jet_secp_fe_nv.fe_at mf bp
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                           (jet_secp_multiply_normalize_bridge.words5 y))
+                        (and
+                           (@eq (option Values.val)
+                              (Memory.Mem.load AST.Mint32 mf bp
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                              (@Some Values.val (Values.Vint Integers.Int.zero)))
+                           (and (jet_secp_square_columns.square_input_bounds x)
+                              (and (jet_secp_square_columns.square_input_bounds y)
+                                 (and
+                                    (@eq
+                                       (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                          (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                                       (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                          (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                          (jet_secp_rescale_literal.rescale_field_output x)
+                                          (jet_secp_rescale_literal.rescale_field_output y))
+                                       (jet_secp_swu_word_parity.swu_words_literal_output
+                                          (jet_secp_swu_raw_input.swu_raw_words
+                                             (jet_secp_swu_raw_input.swu_digest_word bytes))
+                                          (jet_secp_swu_raw_input.swu_digest_word bytes)))
+                                    (and
+                                       (forall _ : @eq bool (generator_digest_accept bytes) true,
+                                        @eq
+                                          (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (...)))))))))
+                                             (Ty.tySem (Word.Word (S (S (S (S (S (S (...))))))))))
+                                          (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (...)))))))))
+                                             (Ty.tySem (Word.Word (S (S (S (S (S (S (...)))))))))
+                                             (jet_secp_rescale_literal.rescale_field_output x)
+                                             (jet_secp_rescale_literal.rescale_field_output y))
+                                          (@jet_secp_swu_literal.literal_swu Alg.CoreFunSem
+                                             (jet_secp_swu_raw_input.swu_digest_word bytes)))
+                                       (and
+                                          (Memory.Mem.range_perm mf bt BinNums.Z0
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                             Memtype.Cur Memtype.Freeable)
+                                          (and
+                                             (Memory.Mem.range_perm mf bb BinNums.Z0
+                                                (BinNums.Zpos
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                                Memtype.Cur Memtype.Freeable)
+                                             (and
+                                                (Memory.Mem.range_perm mf bp BinNums.Z0
+                                                   (BinNums.Zpos
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                                   Memtype.Cur Memtype.Freeable)
+                                                (and
+                                                   (forall (i : nat) (_ : lt i (S (S (S (S (...)))))),
+                                                    @eq (option Values.val)
+                                                      (Memory.Mem.load AST.Mint8unsigned mf bb (BinInt.Z.of_nat i))
+                                                      (@Some Values.val
+                                                         (Values.Vint
+                                                            (Integers.Int.repr (@List.nth BinNums.Z i bytes BinNums.Z0)))))
+                                                   (and (jet_secp_swu_startup.swu_startup mf)
+                                                      (and
+                                                         (jet_sx_mem.lframe
+                                                            (fun (b : Values.block) (_ : BinNums.Z) =>
+                                                             and (not (@eq Values.block b bt))
+                                                               (and (not (...)) (not (...)))) m mf)
+                                                         (jet_clight_internal_preserve.readonly_preserved m mf)))))))))))))))))
+### C.jet_secp_generator_digest_mapping.generator_digest_accept
+generator_digest_accept =
+fun bytes : list BinNums.Z => BinInt.Z.ltb (jet_secp_fe_math.be_val bytes) jet_secp_fe_math.feP
+     : forall _ : list BinNums.Z, bool
+
+Arguments generator_digest_accept bytes%list_scope
+### C.jet_secp_generator_digest_mapping.generator_digest_slot
+generator_digest_slot =
+fun second : bool => match second return AST.ident with
+                     | true => jets_secp._t'2
+                     | false => jets_secp._t'1
+                     end
+     : forall _ : bool, AST.ident
+
+Arguments generator_digest_slot second%bool_scope
+### C.jet_secp_generator_digest_mapping.generator_digest_set_call
+generator_digest_set_call =
+fun second : bool =>
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_set_b32 jets_secp.f_secp256k1_fe_set_b32
+  (@Some AST.ident (generator_digest_slot second))
+  (@cons Clight.expr (jet_secp_curve_statements.curve_local_address jets_secp._t)
+     (@cons Clight.expr
+        (Clight.Evar jets_secp._b32
+           (Ctypesdefs.tarray Ctypesdefs.tuchar
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (@nil Clight.expr)))
+     : forall _ : bool, Clight.statement
+
+Arguments generator_digest_set_call second%bool_scope
+### C.jet_secp_generator_digest_mapping.generator_digest_read
+generator_digest_read =
+fun second : bool =>
+Clight.Ssequence (generator_digest_set_call second)
+  (Clight.Sset jets_secp._ret
+     (Clight.Ebinop Cop.Oand (Clight.Etempvar jets_secp._ret Ctypesdefs.tint)
+        (Clight.Etempvar (generator_digest_slot second) Ctypesdefs.tint) Ctypesdefs.tint))
+     : forall _ : bool, Clight.statement
+
+Arguments generator_digest_read second%bool_scope
+### C.jet_secp_generator_digest_mapping.generator_digest_map
+generator_digest_map =
+jet_secp_rescale_public_body.rescale_local_call jets_secp._shallue_van_de_woestijne
+  jet_secp_curve_statements.curve_ge_type jet_secp_curve_statements.curve_fe_type jets_secp._add jets_secp._t
+     : Clight.statement
+### C.jet_secp_generator_digest_mapping.generator_digest_stage
+generator_digest_stage =
+fun second : bool =>
+jet_secp_statement_prefix.statement_sequence
+  (@cons Clight.statement (generator_digest_read second)
+     (@cons Clight.statement generator_digest_map (@nil Clight.statement))) Clight.Sskip
+     : forall _ : bool, Clight.statement
+
+Arguments generator_digest_stage second%bool_scope
+### C.jet_secp_generator_digest_mapping.generator_digest_index
+generator_digest_index =
+fun second : bool =>
+match second return nat with
+| true => S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+| false => S (S (S (S (S (S (S (S O)))))))
+end
+     : forall _ : bool, nat
+
+Arguments generator_digest_index second%bool_scope
+### C.jet_secp_generator_digest_mapping.generator_after_hash
+generator_after_hash =
+fun second : bool =>
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement (generator_digest_index second)
+     (@fst (list Clight.statement) Clight.statement
+        (jet_secp_statement_prefix.split_statement_last
+           (Clight.fn_body jets_secp.f_secp256k1_generator_generate_internal))))
+  (@snd (list Clight.statement) Clight.statement
+     (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_generator_generate_internal)))
+     : forall _ : bool, Clight.statement
+
+Arguments generator_after_hash second%bool_scope
+### C.jet_secp_generator_digest_mapping.generator_after_mapping
+generator_after_mapping =
+fun second : bool =>
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement (Nat.add (S (S O)) (generator_digest_index second))
+     (@fst (list Clight.statement) Clight.statement
+        (jet_secp_statement_prefix.split_statement_last
+           (Clight.fn_body jets_secp.f_secp256k1_generator_generate_internal))))
+  (@snd (list Clight.statement) Clight.statement
+     (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_generator_generate_internal)))
+     : forall _ : bool, Clight.statement
+
+Arguments generator_after_mapping second%bool_scope
+### C.jet_secp_generator_digest_mapping.generator_digest_temps
+generator_digest_temps =
+fun (second prior : bool) (bytes : list BinNums.Z) (le : Maps.PTree.tree Values.val) =>
+@Maps.PTree.set Values.val jets_secp._ret
+  (Values.Vint (jet_secp_field_cmov.cmov_int (andb prior (generator_digest_accept bytes))))
+  (@Maps.PTree.set Values.val (generator_digest_slot second)
+     (Values.Vint (jet_secp_field_cmov.cmov_int (generator_digest_accept bytes))) le)
+     : forall (_ : bool) (_ : bool) (_ : list BinNums.Z) (_ : Maps.PTree.tree Values.val), Maps.PTree.tree Values.val
+
+Arguments generator_digest_temps (second prior)%bool_scope bytes%list_scope le

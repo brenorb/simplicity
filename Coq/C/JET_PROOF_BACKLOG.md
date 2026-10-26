@@ -2614,8 +2614,27 @@ restriction is imposed on the execution theorem. `swu_digest_value` and
 input contract. Build both `C/jet_secp_swu_raw_input.vo` and
 `C/jet_secp_swu_local.vo`, recursively kernel-check the two roots, and compare
 the existing focused records for the new modules and SWU body/function/public
-chain. Next compose the actual set_b32 calls and generator statements using
-these contracts, preserving the rejection flags through every executed call.
+chain.
+
+`jet_secp_set_b32_owned.eval_set_b32_owned` now derives the actual set_b32
+call, exact comparison flag, raw output limbs, both owned allocations and
+unchanged digest bytes from the real 40/32-byte caller storage. It reuses
+the existing checked conversion arithmetic. No assumption of a successful
+comparison is made.
+`jet_secp_generator_digest_mapping.exec_generator_digest_mapping` composes
+this with raw SWU and the actual intervening `ret &= flag` statement for both
+digest positions. Closed source equalities identify the exact subtrees in the
+original generator body. Its final temporary map carries the conjunction of
+the prior success bit and the current comparison flag; a rejected digest
+leaves ret zero while still executing SWU. The result includes ownership,
+digest-byte retention, startup and readonly preservation, and a literal SWU
+output equality for accepted digests. The CTZ condition remains explicit.
+Build `C/jet_secp_generator_digest_mapping.vo`, recursively kernel-check
+`C.jet_secp_generator_digest_mapping`, and compare the two new modules with
+the existing focused assumption/contract tools. Next compose the real SHA
+blocks, accumulator initialization/addition, function entry and return/free
+statements around these stages; the stage alone is not a public hash_to_curve
+contract and adds no coverage.
 Do not assume both digests are below p to avoid the rejection execution.
 
 The sum-at-infinity branch also needs attention before a whole-public claim.
