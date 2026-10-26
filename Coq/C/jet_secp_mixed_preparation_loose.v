@@ -1,5 +1,6 @@
-(** Original mixed-addition preparation on a loose Y coordinate.
-    Retain the actual normalized S1 rather than assuming that Y is unchanged. *)
+(** Shared original mixed-addition preparation for positioned or loose X
+    and loose Y. Retain both actual normalized temporaries and raw point
+    coordinates. The original positioned-X interface is a specialization. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Values Events.
 Require Import C.jet_sx_mem C.jet_secp_linkage C.jets_secp C.jet_secp_fe_nv C.jet_secp_fe_math
@@ -36,14 +37,42 @@ Local Ltac keep_field HF Frame :=
 Local Ltac keep_free HF Frame :=
   eapply curve_keep_free;[lia|exact HF|exact Frame|intro pos;geometry ltac:(fail "same-block ownership needs a range proof")].
 
-Theorem exec_mixed_preparation_loose e le m bp ba bu bv bs bt bz x y z u v t :
+Definition mixed_x_words (loose:bool) (x:nat->int64) :=
+  if loose then weak_loose_words x else x.
+Definition mixed_x_bound (loose:bool) (x:nat->int64) : Prop :=
+  if loose then (forall i,(i<5)%nat ->Int64.unsigned (x i)<=2^60)
+  else fe_limbs_ok (Int64.unsigned (x 0%nat)) (Int64.unsigned (x 1%nat))
+    (Int64.unsigned (x 2%nat)) (Int64.unsigned (x 3%nat)) (Int64.unsigned (x 4%nat)).
+
+(** Both proof interfaces execute the same original copy/normalize calls. *)
+Lemma exec_mixed_copy_weak_x_mode loose e le m bp bu x :
+  le!_a=Some (Vptr bp Ptrofs.zero) ->e!_u1=Some (bu,curve_fe_type) ->
+  e!_secp256k1_fe_normalize_weak=None ->bp<>bu ->mixed_x_bound loose x ->
+  fe_at m bp 0 (words5 x) ->
+  Mem.range_perm m bp 0 128 Cur Freeable ->Mem.range_perm m bu 0 40 Cur Freeable ->
+  exists mc mf,
+  Clight2.exec_stmt secp_ge e le m (mixed_copy_coordinate false) E0 le mc Out_normal /\
+  Clight2.exec_stmt secp_ge e le mc (mixed_weak_coordinate false) E0 le mf Out_normal /\
+  fe_at mf bu 0 (words5 (mixed_x_words loose x)) /\Mem.range_perm mf bu 0 40 Cur Freeable /\
+  fe_at mf bp 0 (words5 x) /\Mem.range_perm mf bp 0 128 Cur Freeable /\
+  lframe (fun b _=>b<>bu) m mf.
+Proof.
+  destruct loose.
+  - intros A U W Sep Bound X PF UF.
+    destruct (exec_mixed_copy_weak_loose e le m bp bu false x A U W Sep Bound X PF UF)
+      as (mc & mf & Copy & Weak & Result & FreeU & Original & FreeP & Value & Tight & Frame).
+    exists mc,mf;split;[exact Copy|];split;[exact Weak|];split;[exact Result|];
+      split;[exact FreeU|];split;[exact Original|];split;assumption.
+  - exact (exec_mixed_copy_weak e le m bp bu false x).
+Qed.
+
+Theorem exec_mixed_preparation_mode (loose:bool) e le m bp ba bu bv bs bt bz x y z u v t :
   le!_a=Some (Vptr bp Ptrofs.zero) -> le!_b=Some (Vptr ba Ptrofs.zero) ->
   e!_u1=Some (bu,curve_fe_type) -> e!_u2=Some (bv,curve_fe_type) ->
   e!_s1=Some (bs,curve_fe_type) -> e!_s2=Some (bt,curve_fe_type) -> e!_z12=Some (bz,curve_fe_type) ->
   e!_secp256k1_fe_normalize_weak=None -> e!_secp256k1_fe_mul=None ->
   NoDup [bp;ba;bu;bv;bs;bt;bz] ->
-  fe_limbs_ok (Int64.unsigned (x 0%nat)) (Int64.unsigned (x 1%nat))
-    (Int64.unsigned (x 2%nat)) (Int64.unsigned (x 3%nat)) (Int64.unsigned (x 4%nat)) ->
+  mixed_x_bound loose x ->
   (forall i,(i<5)%nat -> Int64.unsigned (y i)<=2^60) ->
   square_input_bounds z -> square_input_bounds u -> square_input_bounds v -> square_input_bounds t ->
   fe_at m bp 0 (words5 x) -> fe_at m bp 40 (words5 y) -> fe_at m bp 80 (words5 z) ->
@@ -55,7 +84,7 @@ Theorem exec_mixed_preparation_loose e le m bp ba bu bv bs bt bz x y z u v t :
   Clight2.exec_stmt secp_ge e le m (statement_sequence mixed_preparation_statements Sskip) E0 le mf Out_normal /\
   fe_at mf bp 0 (words5 x) /\ fe_at mf bp 40 (words5 y) /\ fe_at mf bp 80 (words5 z) /\
   fe_at mf ba 0 (words5 u) /\ fe_at mf ba 40 (words5 v) /\
-  fe_at mf bu 0 (words5 x) /\ fe_at mf bv 0 (words5 (point_mul_words u t)) /\
+  fe_at mf bu 0 (words5 (mixed_x_words loose x)) /\ fe_at mf bv 0 (words5 (point_mul_words u t)) /\
   fe_at mf bs 0 (words5 (weak_loose_words y)) /\ fe_at mf bt 0 (words5 (point_mul_words (point_mul_words v t) z)) /\
   fe_at mf bz 0 (words5 t) /\
   Mem.range_perm mf bp 0 128 Cur Freeable /\ Mem.range_perm mf ba 0 88 Cur Freeable /\
@@ -66,7 +95,7 @@ Theorem exec_mixed_preparation_loose e le m bp ba bu bv bs bt bz x y z u v t :
 Proof.
   intros HA HB EU EV ES ET EZ EW EM Sep BX BY BZ BU BV BT X Y Z U V T PF AF UF VF SF TF ZF.
   separate_blocks Sep.
-  destruct (exec_mixed_copy_weak e le m bp bu false x HA EU EW ltac:(congruence) BX X PF UF)
+  destruct (exec_mixed_copy_weak_x_mode loose e le m bp bu x HA EU EW ltac:(congruence) BX X PF UF)
     as (mc1 & m1 & C1 & C2 & U1 & UF1 & X1 & PF1 & F1).
   assert (Y1 : fe_at m1 bp 40 (words5 y)) by (keep_field Y F1).
   assert (Z1 : fe_at m1 bp 80 (words5 z)) by (keep_field Z F1).
@@ -85,7 +114,7 @@ Proof.
   assert (Y2 : fe_at m2 bp 40 (words5 y)) by (keep_field Y1 F2).
   assert (Z2 : fe_at m2 bp 80 (words5 z)) by (keep_field Z1 F2).
   assert (B2 : fe_at m2 ba 40 (words5 v)) by (keep_field B1 F2).
-  assert (U2 : fe_at m2 bu 0 (words5 x)) by (keep_field U1 F2).
+  assert (U2 : fe_at m2 bu 0 (words5 (mixed_x_words loose x))) by (keep_field U1 F2).
   assert (PF2 : Mem.range_perm m2 bp 0 128 Cur Freeable) by (keep_free PF1 F2).
   assert (UF2 : Mem.range_perm m2 bu 0 40 Cur Freeable) by (keep_free UF1 F2).
   assert (SF2 : Mem.range_perm m2 bs 0 40 Cur Freeable) by (keep_free SF1 F2).
@@ -96,7 +125,7 @@ Proof.
   assert (Z3 : fe_at m3 bp 80 (words5 z)) by (keep_field Z2 F3).
   assert (A3 : fe_at m3 ba 0 (words5 u)) by (keep_field A2 F3).
   assert (B3 : fe_at m3 ba 40 (words5 v)) by (keep_field B2 F3).
-  assert (U3 : fe_at m3 bu 0 (words5 x)) by (keep_field U2 F3).
+  assert (U3 : fe_at m3 bu 0 (words5 (mixed_x_words loose x))) by (keep_field U2 F3).
   assert (V3 : fe_at m3 bv 0 (words5 (point_mul_words u t))) by (keep_field V2 F3).
   assert (T3 : fe_at m3 bz 0 (words5 t)) by (keep_field T2 F3).
   assert (AF3 : Mem.range_perm m3 ba 0 88 Cur Freeable) by (keep_free AF2 F3).
@@ -111,7 +140,7 @@ Proof.
   assert (X4 : fe_at mf bp 0 (words5 x)) by (keep_field X3 F4).
   assert (Y4 : fe_at mf bp 40 (words5 y)) by (keep_field Y3 F4).
   assert (A4 : fe_at mf ba 0 (words5 u)) by (keep_field A3 F4).
-  assert (U4 : fe_at mf bu 0 (words5 x)) by (keep_field U3 F4).
+  assert (U4 : fe_at mf bu 0 (words5 (mixed_x_words loose x))) by (keep_field U3 F4).
   assert (V4 : fe_at mf bv 0 (words5 (point_mul_words u t))) by (keep_field V3 F4).
   assert (S4 : fe_at mf bs 0 (words5 (weak_loose_words y))) by (keep_field S3 F4).
   assert (UF4 : Mem.range_perm mf bu 0 40 Cur Freeable) by (keep_free UF3 F4).
@@ -140,4 +169,36 @@ Proof.
         -- eapply lframe_implies;[exact F4|];intros bx pos (NU & NV & NS & NT & NZ & NP & NA) HV.
            unfold mixed_s2_frame;split;[exact NT|];split;[exact NZ|];split;[|exact NP].
            destruct NA as [HN|[HN|HN]];[left|right;left|right;right];try assumption;lia.
+Qed.
+
+(** Preserve the original positioned-X contract as an exact specialization. *)
+Theorem exec_mixed_preparation_loose e le m bp ba bu bv bs bt bz x y z u v t :
+  le!_a=Some (Vptr bp Ptrofs.zero) -> le!_b=Some (Vptr ba Ptrofs.zero) ->
+  e!_u1=Some (bu,curve_fe_type) -> e!_u2=Some (bv,curve_fe_type) ->
+  e!_s1=Some (bs,curve_fe_type) -> e!_s2=Some (bt,curve_fe_type) -> e!_z12=Some (bz,curve_fe_type) ->
+  e!_secp256k1_fe_normalize_weak=None -> e!_secp256k1_fe_mul=None ->
+  NoDup [bp;ba;bu;bv;bs;bt;bz] ->
+  fe_limbs_ok (Int64.unsigned (x 0%nat)) (Int64.unsigned (x 1%nat))
+    (Int64.unsigned (x 2%nat)) (Int64.unsigned (x 3%nat)) (Int64.unsigned (x 4%nat)) ->
+  (forall i,(i<5)%nat -> Int64.unsigned (y i)<=2^60) ->
+  square_input_bounds z -> square_input_bounds u -> square_input_bounds v -> square_input_bounds t ->
+  fe_at m bp 0 (words5 x) -> fe_at m bp 40 (words5 y) -> fe_at m bp 80 (words5 z) ->
+  fe_at m ba 0 (words5 u) -> fe_at m ba 40 (words5 v) -> fe_at m bz 0 (words5 t) ->
+  Mem.range_perm m bp 0 128 Cur Freeable -> Mem.range_perm m ba 0 88 Cur Freeable ->
+  Mem.range_perm m bu 0 40 Cur Freeable -> Mem.range_perm m bv 0 40 Cur Freeable ->
+  Mem.range_perm m bs 0 40 Cur Freeable -> Mem.range_perm m bt 0 40 Cur Freeable -> Mem.range_perm m bz 0 40 Cur Freeable ->
+  exists mf,
+  Clight2.exec_stmt secp_ge e le m (statement_sequence mixed_preparation_statements Sskip) E0 le mf Out_normal /\
+  fe_at mf bp 0 (words5 x) /\ fe_at mf bp 40 (words5 y) /\ fe_at mf bp 80 (words5 z) /\
+  fe_at mf ba 0 (words5 u) /\ fe_at mf ba 40 (words5 v) /\
+  fe_at mf bu 0 (words5 x) /\ fe_at mf bv 0 (words5 (point_mul_words u t)) /\
+  fe_at mf bs 0 (words5 (weak_loose_words y)) /\ fe_at mf bt 0 (words5 (point_mul_words (point_mul_words v t) z)) /\
+  fe_at mf bz 0 (words5 t) /\
+  Mem.range_perm mf bp 0 128 Cur Freeable /\ Mem.range_perm mf ba 0 88 Cur Freeable /\
+  Mem.range_perm mf bu 0 40 Cur Freeable /\ Mem.range_perm mf bv 0 40 Cur Freeable /\
+  Mem.range_perm mf bs 0 40 Cur Freeable /\ Mem.range_perm mf bt 0 40 Cur Freeable /\ Mem.range_perm mf bz 0 40 Cur Freeable /\
+  square_input_bounds (point_mul_words u t) /\ square_input_bounds (point_mul_words (point_mul_words v t) z) /\
+  lframe (mixed_prepare_frame bp ba bu bv bs bt bz) m mf.
+Proof.
+  exact (exec_mixed_preparation_mode false e le m bp ba bu bv bs bt bz x y z u v t).
 Qed.

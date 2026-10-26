@@ -2823,15 +2823,27 @@ The existing memcpy/ctz premises remain explicit. Build
 Still missing: the enclosing canonical Simplicity hash-to-curve program's
 branching/return connection; entry/allocation and final mixed addition,
 affine/save and public load/write/return/free composition with global preservation.
-For mixed addition, reuse its actual X normalization, not an assumed tighter
-SWU output bound. `eval_mixed_function_loose` currently permits a loose Y but
-still requires `fe_limbs_ok` for X; SWU's X can have magnitude 2 or 4
-(`generator_impl.h`, candidate add/negate sequence), and the current SWU
-contract correctly exposes only `square_input_bounds`. Generalize the
-mixed-addition proof to loose X while retaining the original accumulator X
-for its equal-point/doubling branch. The existing weak-normalization proof
-and loose-Y preparation/dispatch structure are available. This is a proof
-interface gap, not an observed implementation/specification mismatch.
+The mixed-addition proof-interface gap is now discharged:
+`jet_secp_mixed_function_loose.eval_mixed_function_xy` executes the entire
+original NULL-rzr helper on the loose X/Y bounds produced by SWU, with all
+ten allocations, original branches, result conversion and ten frees.
+The preparation/difference/return/body/function proofs now share an explicit
+X proof mode: the loose case retains the actual normalized U1, and the
+positioned case specializes to the original unchanged helper contracts.
+The equal-point/doubling branch uses the raw accumulator X/Y; the nonzero
+branch uses normalized U1/S1. No tighter SWU bound, intermediate execution
+or new external behavior is assumed. `mixed_function_readonly` is derived
+from the original function's checked closed call graph.
+`jet_secp_generator_add.exec_generator_add` executes the original generator's
+statement 14 using that helper and derives its machine output coordinates,
+flag, reusable bounds, ownership, framing, readonly and SHA/SWU/prefix startup
+preservation. This span does not by itself compose the first fourteen
+statements, prove the literal mixed-addition bridge for these loose inputs,
+or complete the generator/public lifecycle. Build
+`C/jet_secp_generator_add.vo` and the existing points-prefix target, recursively
+kernel-check the addition root, and audit the six affected modules plus
+rebuilt dependencies. Existing registered/legacy theorem and definition
+records must still match exactly; coverage remains 514/533.
 The serialization theorem alone does not identify registers with a computed
 SHA digest, and neither these results nor their checked helper count add jet
 coverage. Coverage remains 514/533.
