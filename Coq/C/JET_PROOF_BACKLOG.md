@@ -501,10 +501,26 @@ parameter binding, complete body, void result and all three frees. It returns
 all eight table/ratio entries and bounds, the exact Z product, the preserved
 input and all four caller owners, old permissions, unrelated memory and
 readonly globals. Initial destination contents need not be initialized.
-The canonical table bridge remains open: reuse the existing normalized-ratio
-literal proof for its loose-coordinate generalization, and then relate the
-checked odd-table/global-Z traversals to `scalarTable5`/`pass2_8`. Do not assume
-raw ratio equality or replace that fixed tree with group scalar arithmetic.
+`jet_secp_mixed_xy_ratio_literal` generalizes the existing ratio bridge to
+arbitrary matching bounded loose limbs, retaining every infinity/H/I branch.
+The ratio equals the **normalized** literal first projection; the point equals
+the literal second projection. It does not claim the refuted raw ratio
+equality. `jet_secp_mixed_xy_flag` proves that the actual output flag remains
+the zero test of the resulting Z field, using the existing checked field-prime
+and multiplication proofs for the nonzero-H case.
+`jet_secp_mixed_ratio_slice_literal.eval_mixed_ratio_slice_literal` composes
+those results with the original complete indexed-ratio C call, including its
+allocations/frees, storage, four output bounds, the resulting flag/Z invariant,
+preserved affine input, owners, old permissions, frame and readonly globals.
+The incoming flag/Z and residue relations are initial representation premises;
+no outgoing relation, helper execution or arithmetic result is assumed.
+The remaining canonical table bridge must relate the checked odd-table and
+global-Z traversals to the fixed `scalarTable5`/`pass1_8`/`pass2_8` tree. Do not
+assume raw ratio equality or replace it with group scalar arithmetic. The new
+projection bridge alone is not a public extended-addition equivalence or a
+whole multiplication-jet theorem. To check this dependency closure, use the
+same scoped build/kernel commands below with
+`C/jet_secp_mixed_ratio_slice_literal.vo` / `C.jet_secp_mixed_ratio_slice_literal`.
 These internal results do not add public coverage.
 Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
 Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
