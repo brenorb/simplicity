@@ -318,6 +318,24 @@ candidate endpoints and claim its scope before adding proofs; reuse the
 generator and shared point arithmetic where applicable. The external memset
 boundary remains deferred and must stay explicit.
 
+The non-generator table calls `gej_double_var(&d, a, NULL)` with distinct
+source and destination. Existing whole doubling execution proofs are in-place;
+they cannot justify this call by silently copying the source into the result.
+`jet_secp_double_separate_product` proves the actual first multiplication
+`d.z = a.z * a.y` with two source fields in one allocation and an initially
+uninitialized destination field. It reuses the verified u128 multiplication
+oracles and derives its event obligations internally.
+`jet_secp_double_separate_prefix.exec_double_separate_prefix` composes the
+first five original arithmetic calls, preserving all three source coordinates,
+both projective owners and the S/L temporaries, and deriving reusable result
+bounds. This is an arithmetic prefix, not whole doubling/table execution or
+additional jet coverage. Next: the remaining ten arithmetic calls with the
+same distinct source, then original entry/flag handling/frees and double_var's
+finite wrapper, before composing odd-multiple table construction. Do not add
+on-curve or nonzero-Y assumptions: the off-curve public target admits those
+inputs. Scoped verification uses the two new module names with the commands
+already documented here; no new public coverage is claimed.
+
 `jet_secp_wnaf_literal_values` proves every reachable literal `Some` digit
 is odd and nonzero in the signed range, zero C integers correspond exactly
 to `None`, and equal C integers uniquely determine the raw literal digit.
