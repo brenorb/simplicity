@@ -49,6 +49,21 @@ established. The verified loader/write theorem alone cannot establish it.
 
 ## Evidence and reproduction limits
 
+The later theorem
+`C.jet_secp_generator_affine_roundtrip.eval_generator_infinite_affine_roundtrip`
+formally composes the actual affine conversion, generator save, generator load
+and affine writer calls from an owned projective object with a nonzero infinity
+flag. It derives the encoded coordinate pair; the closed lemma
+`generator_infinite_output_zero` identifies both coordinates as zero.
+No CTZ or libc behavior is assumed for this branch. Build
+`JET_TARGETS=C/jet_secp_generator_affine_roundtrip.vo bash Coq/build-jets.sh -j1`
+and recursively kernel-check
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_generator_affine_roundtrip`.
+This closes the conversion/serialization call sequence, not the preceding
+hashes, point addition, actual generator/public return statements or common-key
+reachability. The whole-public conditional path and a public counterexample
+remain unproved; the status above is unchanged.
+
 Reproduce the source inspection, without modifying or mocking SHA:
 
 ```sh

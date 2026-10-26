@@ -2577,10 +2577,28 @@ Build `C/jet_secp_affine_infinite.vo`, kernel-check
 `C.jet_secp_affine_infinite`, and run the existing focused assumption/contract
 comparisons for both affine infinity modules.
 
+`jet_secp_generator_field_roundtrip.eval_generator_field_roundtrip` eliminates
+the private serialization representation and its ten-limb bound from the
+caller interface: both follow from actual coordinate fields and their existing
+square-input bounds. The exact save/load/write output is the original affine
+writer's coordinate pair, with equality proved through its existing residue
+lemmas, not a replacement specification.
+`jet_secp_generator_affine_roundtrip` then composes four original calls, from
+projective storage through affine conversion and generator save/load to the
+output frame. The finite theorem derives every intermediate field and bound,
+retaining the explicit CTZ condition and initialized modulus state. The infinity
+theorem needs neither and derives a zero-coordinate encoding from a nonzero
+source flag, without initialized source coordinates. Both establish ownership,
+framing and readonly preservation. These are call sequences, not the intervening
+generator/public-wrapper statements, SHA execution or a public counterexample.
+Build and recursively kernel-check `C.jet_secp_generator_affine_roundtrip` and
+compare both new modules' existing focused assumption/contract records.
+
 This is a complete serialization span, not execution of the intervening
 generator return/free and public wrapper statements, nor a whole-public
-hash_to_curve equivalence. Coverage stays 514/533. Next connect the real
-generator's affine-conversion output and lifecycle to this span. For the earlier
+hash_to_curve equivalence. Coverage stays 514/533. The affine-conversion outputs
+are now connected; next compose the actual generator/public-wrapper lifecycle
+and preceding hash/SWU calls. For the earlier
 generator caller, retain both SHA-derived set_b32 flags and every original
 operation before its return: C does **not** exit early for a rejected digest.
 The current literal SWU theorem requires the normalized reader form; an
