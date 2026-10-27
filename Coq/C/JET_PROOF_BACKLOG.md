@@ -5445,9 +5445,34 @@ Coq/build-jets.sh -j1`, scoped audits of this module and
 `C.jet_secp_strauss_table_call`, then recursive `--coqchk` on
 `C.jet_secp_strauss_first_loop`.
 
-Next compose the checked beta loop, cover the remaining preprocessing
-branches, and connect the caller's actual local allocations. Then compose
+`jet_secp_strauss_beta_prepare.exec_strauss_point_prepare` now composes the
+finite/nonzero preprocessing and global-Z statements with all eight actual
+beta-loop iterations. The three consecutive original body statements are
+identified by `strauss_point_prepare_source`. The result retains both signed
+literal wNAF vectors/counts, the original maximum count, literal scalar table
+and tight Y bounds, and adds the stored beta products with their exact
+`literal_fe_multiply_beta` values and bounds. It also retains source scalar
+and point storage, state pointers, all owned objects, split constants, beta
+initialization, readonly memory, combined framing and untouched temporaries.
+Separation from beta is derived from each caller object's first owned byte
+and the original constant's readonly permissions. No extra address premise,
+helper execution or desired product is assumed. The only library premise
+is the existing `memset_model`; `beta_initialized` is the same initialized
+program-state predicate already established from `Genv.init_mem` and is
+transported through the preprocessing proof's readonly preservation.
+This remains the internal finite/nonzero branch, not a public jet; coverage
+stays 520/533. Reproduce with
+`JET_TARGETS=C/jet_secp_strauss_beta_prepare.vo bash Coq/build-jets.sh -j1`,
+its scoped statement/assumption audits and recursive `--coqchk` on
+`C.jet_secp_strauss_beta_prepare`.
+
+Next cover the remaining preprocessing branches and connect the caller's
+actual local allocations. Then compose
 the signed ordinary/lambda lookups, descending loop and public wrapper.
+For the descending loop's doubles, reuse
+`jet_secp_double_loose_literal.eval_double_var_loose_literal`: it executes
+the original `gej_double_var`, which recomputes the infinity flag from Z,
+and retains that flag/Z relation for degenerate off-curve intermediates.
 Derive all helper preconditions there and retain the original zero/infinity
 branches. The wrapper passes a nonnull generator-scalar pointer containing
 zero, so its generator branch still executes; reuse the window-15 proofs.
