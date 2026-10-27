@@ -1,0 +1,50 @@
+diff --git a/Haskell/Tests/Simplicity/FFI/Tests.hs b/Haskell/Tests/Simplicity/FFI/Tests.hs
+index dfa24543..9a8f9dc3 100644
+--- a/Haskell/Tests/Simplicity/FFI/Tests.hs
++++ b/Haskell/Tests/Simplicity/FFI/Tests.hs
+@@ -525,7 +525,45 @@ tests = testGroup "C / SPEC"
+         [ testProperty "swu" prop_swu
+         , testProperty "hash_to_curve" prop_hash_to_curve
+         ]
++      , testGroup "counterexample regressions"
++        [ testProperty "left_pad_low_8_16" assert_left_pad_low_8_16
++        , testProperty "left_pad_low_8_32" assert_left_pad_low_8_32
++        , testProperty "left_pad_low_8_64" assert_left_pad_low_8_64
++        , testProperty "left_pad_low_16_32" assert_left_pad_low_16_32
++        , testProperty "left_pad_low_16_64" assert_left_pad_low_16_64
++        , testProperty "left_pad_low_32_64" assert_left_pad_low_32_64
++        , testProperty "left_pad_high_8_16" assert_left_pad_high_8_16
++        , testProperty "left_pad_high_8_32" assert_left_pad_high_8_32
++        , testProperty "left_pad_high_8_64" assert_left_pad_high_8_64
++        , testProperty "left_pad_high_16_32" assert_left_pad_high_16_32
++        , testProperty "left_pad_high_16_64" assert_left_pad_high_16_64
++        , testProperty "left_pad_high_32_64" assert_left_pad_high_32_64
++        , testProperty "left_pad_high_1_8" assert_left_pad_high_1_8
++        , testProperty "left_pad_high_1_16" assert_left_pad_high_1_16
++        , testProperty "left_pad_high_1_32" assert_left_pad_high_1_32
++        , testProperty "left_pad_high_1_64" assert_left_pad_high_1_64
++        , testProperty "gej_ge_add_ex_noncanonical_y" assert_gej_ge_add_ex_noncanonical_y
++        ]
+       ]
++
++assert_left_pad_low_8_16 = prop_left_pad_low_8_16 0xa5
++assert_left_pad_low_8_32 = prop_left_pad_low_8_32 0xa5
++assert_left_pad_low_8_64 = prop_left_pad_low_8_64 0xa5
++assert_left_pad_low_16_32 = prop_left_pad_low_16_32 0xa5a5
++assert_left_pad_low_16_64 = prop_left_pad_low_16_64 0xa5a5
++assert_left_pad_low_32_64 = prop_left_pad_low_32_64 0xa5a5a5a5
++assert_left_pad_high_8_16 = prop_left_pad_high_8_16 0xa5
++assert_left_pad_high_8_32 = prop_left_pad_high_8_32 0xa5
++assert_left_pad_high_8_64 = prop_left_pad_high_8_64 0xa5
++assert_left_pad_high_16_32 = prop_left_pad_high_16_32 0xa5a5
++assert_left_pad_high_16_64 = prop_left_pad_high_16_64 0xa5a5
++assert_left_pad_high_32_64 = prop_left_pad_high_32_64 0xa5a5a5a5
++assert_left_pad_high_1_8 = prop_left_pad_high_1_8 True
++assert_left_pad_high_1_16 = prop_left_pad_high_1_16 True
++assert_left_pad_high_1_32 = prop_left_pad_high_1_32 True
++assert_left_pad_high_1_64 = prop_left_pad_high_1_64 True
++assert_gej_ge_add_ex_noncanonical_y = prop_gej_ge_add_ex (GroupElementJacobian (FieldElement 0) (FieldElement 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f) (FieldElement 1)) (GroupElement (FieldElement 0) (FieldElement 0))
++
+ assert_verify :: Assertion
+ assert_verify =
+   (fastF (toBit False), fastF (toBit True))

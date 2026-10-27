@@ -34,3 +34,13 @@ The concrete results appear individually in
 [`JET_COUNTEREXAMPLES.md`](../../Coq/C/JET_COUNTEREXAMPLES.md). The additional
 cases were recovered from the user-supplied `simplicity-mismatches.md` report;
 its proposed fixes were not applied.
+
+## Native Haskell FFI regressions (not applied)
+
+`ffi-native-regressions.patch` adds fixed-input FFI tests for the sixteen
+`left_pad_*` jets (non-overlapping buffers) and for `gej_ge_add_ex` at the
+reported noncanonical-Y input. These are native observations, not formal results.
+They are kept as a patch because `Haskell/Tests/Simplicity/FFI/Tests.hs` lies
+inside the frozen Haskell tree pinned by `C/jet_source_target.tsv`. Applying
+it requires separate approval of a target change. The patch was not compiled
+or run here.
