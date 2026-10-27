@@ -5356,8 +5356,24 @@ not the enclosing caller statements or a new public jet. Reproduce with
 audits of the six affected wNAF modules, and recursive `--coqchk` of
 `C.jet_secp_wnaf_pair5`.
 
-Then compose the one-point Strauss caller: its actual local allocations,
-this split, both signed window-5 calls, the existing literal scalar table and
+`jet_secp_strauss_wnaf_calls.exec_strauss_wnaf_prepare` now executes the
+actual two wNAF blocks inside the one-point preprocessing iteration, including
+all four state->ps pointer loads, original calls/casts, temporary updates and
+the two length-field assignments. `strauss_wnaf_source` identifies those
+blocks in the frozen Strauss body. The composite layout checks give array
+offsets 0/516, count offsets 1032/1036 and object size 1040. Both literal arrays,
+both returned/stored lengths, scalar inputs, ownership, state pointer,
+permissions, readonly memory and outside-object loads are retained. Its final
+contract assumes only the initial representations, local bindings, index
+zero, ownership/separation and the existing `memset_model`; the internal
+call-wrapper premise is discharged by `exec_strauss_wnaf_half`.
+Reproduce with `JET_TARGETS=C/jet_secp_strauss_wnaf_calls.vo bash
+Coq/build-jets.sh -j1`, its scoped audits and recursive `--coqchk` on
+`C.jet_secp_strauss_wnaf_calls`. These are caller blocks, not a complete jet.
+
+Next join the original split Scall to this checked wNAF preparation and the
+maximum-length updates. Compose the one-point Strauss caller's actual local
+allocations and nonzero/finite guard, the existing literal scalar table and
 signed ordinary/lambda lookups, then the descending loop and public wrapper.
 Derive all helper preconditions there and retain the original zero/infinity
 branches. The wrapper passes a nonnull generator-scalar pointer containing
