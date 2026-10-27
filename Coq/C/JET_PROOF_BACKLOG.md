@@ -31,7 +31,11 @@ and its mismatch report; its mutation tests reject conditional negations and
 wrong implementation/specification targets. Kernel checking and reviewed
 statement/assumption records remain required by `check-jets.sh`.
 
-The current local-contract registry counts 513 of the 533 header declarations
+The following paragraphs retain the earlier acceptance history, before the
+six conditional CTZ/memset registrations above. Their 513/533 and 19-remaining
+counts are historical; the current proof inventory is 520/533 with 13 remaining.
+
+That earlier local-contract registry counted 513 of the 533 header declarations
 toward full-input contracts (138 still conditional on `memcpy_model`). A
 separate restricted `gej_ge_add_ex` entry describes a reported mismatch and
 does not count toward all-input completion.
@@ -40,8 +44,8 @@ Selected registrations, verification status and their conditions are listed in
 equivalence, of which one has the checked divergence above and 19 lack either
 outcome.
 The projective curve, doubling, mixed-addition, square-root, mixed-equivalence
-and decompression endpoints passed ordinary scoped acceptance; accepted
-local-contract coverage is 513/533. The every-jet
+and decompression endpoints passed ordinary scoped acceptance; that accepted
+local-contract coverage was 513/533. The every-jet
 goal remains incomplete, including shared obligations for conditional entries.
 Projective addition passed scoped acceptance on `ba6b19e8`; the exact scope
 and reproduction command are recorded in `JET_ACCEPTANCE.md`.
@@ -838,8 +842,9 @@ The numeric in-place interfaces reuse the existing multiplication, negation
 and addition executions and arithmetic. Reproduce the new closure with
 `JET_TARGETS='C/jet_secp_split_function.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_split_function`.
-This proves C execution and its exact modular values, not yet correspondence
-to the literal signed-half program. Public coverage remains 520/533.
+This theorem proves C execution and its exact modular values; its subsequent
+literal signed-half composition is recorded below. Public coverage remains
+520/533.
 `jet_secp_split_signed_bounds` now proves the actual rounded-coefficient error
 intervals, both strict signed 128-bit bounds, and the fixed lattice residue
 identities. For the two coefficients c1/c2, the signed values are
@@ -853,13 +858,13 @@ strict signed ranges and the complete input/ownership/frame postcondition.
 Reproduce with `JET_TARGETS='C/jet_secp_split_small.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_split_small`.
 This is still internal support and does not add public coverage (520/533).
-The remaining split bridge is the faithful full literal program and its exact
-signed bit/word encoding. Compose the existing complete call and small bounds
-with that bridge; do not rebuild the original calls or introduce output/phase
-premises. The final representation must be the exact `wnaf5_input_scalar` of
-each signed literal half, rather than only a group-order congruence. The
-remaining public scalar-multiplication path also needs the original
-Strauss-loop composition.
+The exact signed bit/word bridge is now complete in
+`jet_secp_split_literal_function.eval_scalar_split_lambda_literal`: it returns
+the exact `wnaf5_input_scalar` of each literal half, rather than only a
+group-order congruence. See the current scalar-multiplication milestone at the
+end of this file. Reuse it instead of rebuilding the original calls or adding
+output/phase premises. The remaining public path needs the original
+Strauss caller and loop composition.
 Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
 Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
 Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
@@ -5312,3 +5317,47 @@ Neither module adds a registered jet. The full canonical empty-digest
 converse above remains open.
 The actual C-side value uses the raw-script-empty flag and explicit prefixes;
 do not change that flag's representation to hash equality.
+
+## Current scalar-multiplication milestone: literal signed scalar split
+
+`C.jet_secp_split_literal` faithfully ports the full frozen
+`scalar_split_lambda` Core program, including rounding, signed extension and
+the final MSB/subtract/low-half selection. `jet_secp_split_half_numeric` and
+`jet_secp_split_pack_numeric` establish those encodings; their exported
+lemmas are closed. `jet_secp_split_numeric.literal_scalar_split_lambda_residues`
+relates both literal halves to the already proved C scalar values for every
+Word256 input, deriving the small bounds from the actual rounded coefficients.
+
+`C.jet_secp_split_literal_function.eval_scalar_split_lambda_literal` composes
+this with the complete original C helper call. It takes the canonical reader's
+storage for an arbitrary input, uninitialized distinct output objects and the
+original constant-state/ownership predicates; it returns the two literal
+halves encoded as the scalars consumed by the signed window-5 proof. Input
+storage, permissions, constants, readonly memory and framing are preserved.
+No signed-output bound, intermediate execution or extra library model is a
+caller premise. This remains an internal helper, adding no public coverage.
+
+Before the two window-5 calls, extend `eval_wnaf_literal5`'s output contract
+from offset zero to a valid aligned byte offset and retain loads outside that
+516-byte range. Both digit buffers are inside one Strauss point-state object;
+the current whole-block `lframe (fun old _ => old <> b)` cannot preserve the
+first buffer across the second call. The existing step contract
+`jet_secp_wnaf_control.exec_wnaf_loop_body_step` already exposes either an
+unchanged memory or the exact `Mem.store Mint32` at `base + 4*bit`, along with
+the advance bounds. Reuse those effects to carry a byte-range frame through
+the loop instead of assuming the missing preservation fact. The entry and
+post-memset helpers already support a general base offset.
+
+Then compose the one-point Strauss caller: its actual local allocations,
+this split, both signed window-5 calls, the existing literal scalar table and
+signed ordinary/lambda lookups, then the descending loop and public wrapper.
+Derive all helper preconditions there and retain the original zero/infinity
+branches. The wrapper passes a nonnull generator-scalar pointer containing
+zero, so its generator branch still executes; reuse the window-15 proofs.
+Preserve literal operation order for off-curve inputs instead of substituting
+an abstract elliptic-curve scalar identity.
+
+Reproduce the split bridge build with
+`JET_TARGETS=C/jet_secp_split_literal_function.vo bash Coq/build-jets.sh -j1`;
+use the existing scoped audits for `C.jet_secp_split_numeric` and
+`C.jet_secp_split_literal_function`, then recursive `--coqchk` on the latter.
