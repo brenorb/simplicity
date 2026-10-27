@@ -1,0 +1,57 @@
+### C.jet_secp_field_slice_borrowed.field_slice_borrowed_run_eq
+field_slice_borrowed_run_eq
+     : @eq (option jet_sx_exec.res) field_slice_borrowed_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone field_slice_borrowed_state jet_sx_exec.ONormal))
+### C.jet_secp_field_slice_borrowed.field_slice_borrowed_log
+field_slice_borrowed_log
+     : @eq (list jet_sx_eval.event) (jet_sx_eval.slog field_slice_borrowed_state)
+         jet_secp_field_mul_word_model.fe_mul_log
+### C.jet_secp_field_slice_borrowed.field_slice_borrowed_output
+field_slice_borrowed_output
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs field_slice_borrowed_state) field_slice_borrowed_out
+### C.jet_secp_field_slice_borrowed.field_slice_borrowed_return
+field_slice_borrowed_return
+     : @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps field_slice_borrowed_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_field_slice_borrowed.eval_field_slice_borrowed_symbolic
+eval_field_slice_borrowed_symbolic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta field_slice_borrowed_regs m)
+         (_ : @List.Forall jet_sx_eval.event (jet_secp_u128_word_oracle.u128_evok rho)
+                jet_secp_field_mul_word_model.fe_mul_log),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O))))) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_sx_state.rep rho beta field_slice_borrowed_out mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape field_slice_borrowed_regs) b pos)) m mf)))
+### C.jet_secp_field_slice_borrowed.field_slice_borrowed_regs
+field_slice_borrowed_regs =
+jet_borrowed_region.borrow_at (S (S O)) jet_secp_field_slice_product.field_slice_product_regs
+     : list jet_sx_state.region
+### C.jet_secp_field_slice_borrowed.field_slice_borrowed_args
+field_slice_borrowed_args =
+@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XP (S (S O)) BinNums.Z0) (@nil jet_sx_expr.sx)))
+     : list jet_sx_expr.sx
+### C.jet_secp_field_slice_borrowed.field_slice_borrowed_out
+field_slice_borrowed_out =
+jet_borrowed_region.borrow_at (S (S O)) jet_secp_field_slice_product.field_slice_product_out
+     : list jet_sx_state.region

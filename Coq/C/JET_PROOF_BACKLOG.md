@@ -675,11 +675,26 @@ changing the existing ordinary-lookup theorem. Normal compilation and focused
 checks use `C.jet_secp_table_get_lambda_literal` as the root.
 The lambda endpoint requires the incoming auxiliary X-array to represent
 beta times each original X. This is an internal representation invariant,
-not a discharged caller obligation or another public jet proof. Next execute
-the original eight beta-X products to establish it, retaining the actual
-readonly beta global; the existing writable-RHS three-slice product cannot
-be applied to that constant. Reuse its checked u128 event log with borrowed
-RHS metadata rather than substituting an implementation or assuming a call.
+not a discharged caller obligation or another public jet proof.
+`jet_secp_beta_slice.eval_beta_slice_product` now derives each original
+`fe_mul` call from a loose stored coordinate, a writable destination slice,
+slice separation and the actual initialized read-only beta global. It proves
+the exact stored output and its `fe_multiply_beta` decoding, retains the
+input coordinate, and preserves beta initialization, old permissions and
+readonly memory. Its frame excludes the three represented field slices;
+when preserving the source table, use the retained input-field theorem for
+the selected coordinate and the frame for the other entries. No complete
+helper execution, event solution or beta-product equality is assumed by this
+endpoint. `jet_secp_field_slice_borrowed` reuses the original three-slice
+executor and checked u128 log with borrowed RHS metadata; `fm_solves`
+discharges that log inside the beta caller. Reproduce this closure with
+`JET_TARGETS='C/jet_secp_beta_slice.vo' bash Coq/build-jets.sh -j1` and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_beta_slice`.
+Next execute the original nested auxiliary-array loop for the one-point
+caller (`no=1`), deriving all eight products and the lambda lookup's incoming
+array relation. The actual loop is `generator_auxiliary_statement` in
+`jet_secp_generator_globalz_call`; its current empty-case theorem does not
+cover this branch. These internal results add no public jet coverage.
 Next compose these calls into the actual Strauss caller, including its scalar
 split, signed digit buffers and table consumers. Do not assume raw ratio
 equality or replace the fixed program with group scalar arithmetic. The table

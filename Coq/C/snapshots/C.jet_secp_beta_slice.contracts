@@ -1,0 +1,124 @@
+### C.jet_secp_beta_slice.beta_slice_rho
+beta_slice_rho
+     : forall (a : forall _ : nat, Integers.Int64.int) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq Integers.Int64.int
+         (jet_secp_point_mul_storage.point_mul_valuation a jet_secp_beta_global.beta_digits
+            (Nat.add (S (S (S (S (S O))))) i)) (jet_secp_beta_global.beta_digits i)
+### C.jet_secp_beta_slice.beta_slice_region
+beta_slice_region
+     : forall (a : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat)
+         (_ : @eq (prod Values.block BinNums.Z) (jet_sx_state.lay layout r)
+                (@pair Values.block BinNums.Z jet_secp_beta_global.beta_block BinNums.Z0))
+         (_ : jet_secp_beta_global.beta_global_rep m),
+       jet_sx_state.region_ok (jet_secp_point_mul_storage.point_mul_valuation a jet_secp_beta_global.beta_digits)
+         layout m r
+         (jet_borrowed_region.borrowed_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 (S (S (S (S (S O))))))))
+### C.jet_secp_beta_slice.beta_slice_initial
+beta_slice_initial
+     : forall (a : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bo : Values.block)
+         (oo : BinNums.Z) (ba : Values.block) (oa : BinNums.Z)
+         (_ : jet_secp_field_slice_product.field_slice_separated bo oo ba oa)
+         (_ : jet_secp_field_slice_product.field_slice_separated bo oo jet_secp_beta_global.beta_block BinNums.Z0)
+         (_ : jet_secp_field_slice_product.field_slice_separated ba oa jet_secp_beta_global.beta_block BinNums.Z0)
+         (_ : BinInt.Z.le BinNums.Z0 oo)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) oo)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add oo
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bo oo
+                (BinInt.Z.add oo
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable)
+         (_ : jet_secp_fe_nv.fe_at m ba oa (jet_secp_multiply_normalize_bridge.words5 a))
+         (_ : jet_secp_beta_global.beta_global_rep m),
+       jet_sx_state.rep (jet_secp_point_mul_storage.point_mul_valuation a jet_secp_beta_global.beta_digits)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bo oo)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba oa)
+               (@cons (prod Values.block BinNums.Z)
+                  (@pair Values.block BinNums.Z jet_secp_beta_global.beta_block BinNums.Z0)
+                  (@nil (prod Values.block BinNums.Z))))) jet_secp_field_slice_borrowed.field_slice_borrowed_regs m
+### C.jet_secp_beta_slice.beta_slice_bounds
+beta_slice_bounds
+     : jet_secp_square_columns.square_input_bounds jet_secp_beta_global.beta_digits
+### C.jet_secp_beta_slice.beta_slice_literal
+beta_slice_literal
+     : forall (a : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds a),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_rescale_literal.rescale_field_output
+            (jet_secp_point_mul_storage.point_mul_words a jet_secp_beta_global.beta_digits))
+         (@jet_secp_beta_spec.literal_fe_multiply_beta Alg.CoreFunSem (jet_secp_rescale_literal.rescale_field_output a))
+### C.jet_secp_beta_slice.eval_beta_slice_product
+eval_beta_slice_product
+     : forall (a : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (bo : Values.block)
+         (oo : BinNums.Z) (ba : Values.block) (oa : BinNums.Z) (_ : jet_secp_square_columns.square_input_bounds a)
+         (_ : jet_secp_field_slice_product.field_slice_separated bo oo ba oa)
+         (_ : jet_secp_field_slice_product.field_slice_separated bo oo jet_secp_beta_global.beta_block BinNums.Z0)
+         (_ : jet_secp_field_slice_product.field_slice_separated ba oa jet_secp_beta_global.beta_block BinNums.Z0)
+         (_ : BinInt.Z.le BinNums.Z0 oo)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) oo)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add oo
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bo oo
+                (BinInt.Z.add oo
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable)
+         (_ : jet_secp_fe_nv.fe_at m ba oa (jet_secp_multiply_normalize_bridge.words5 a))
+         (_ : jet_secp_beta_global.beta_initialized m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+               (@cons Values.val (Values.Vptr bo (Integers.Ptrofs.repr oo))
+                  (@cons Values.val (Values.Vptr ba (Integers.Ptrofs.repr oa))
+                     (@cons Values.val (Values.Vptr jet_secp_beta_global.beta_block Integers.Ptrofs.zero)
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf bo oo
+                  (jet_secp_multiply_normalize_bridge.words5
+                     (jet_secp_point_mul_storage.point_mul_words a jet_secp_beta_global.beta_digits)))
+               (and (jet_secp_fe_nv.fe_at mf ba oa (jet_secp_multiply_normalize_bridge.words5 a))
+                  (and
+                     (@eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (jet_secp_rescale_literal.rescale_field_output
+                           (jet_secp_point_mul_storage.point_mul_words a jet_secp_beta_global.beta_digits))
+                        (@jet_secp_beta_spec.literal_fe_multiply_beta Alg.CoreFunSem
+                           (jet_secp_rescale_literal.rescale_field_output a)))
+                     (and
+                        (jet_secp_square_columns.square_input_bounds
+                           (jet_secp_point_mul_storage.point_mul_words a jet_secp_beta_global.beta_digits))
+                        (and (jet_secp_beta_global.beta_initialized mf)
+                           (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                              (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                                 (jet_sx_mem.lframe
+                                    (fun (bx : Values.block) (pos : BinNums.Z) =>
+                                     and
+                                       (or (not (@eq Values.block bx bo))
+                                          (or (BinInt.Z.lt pos oo)
+                                             (BinInt.Z.le
+                                                (BinInt.Z.add oo
+                                                   (BinNums.Zpos
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                                pos)))
+                                       (and
+                                          (or (not (@eq Values.block bx ba))
+                                             (or (BinInt.Z.lt pos oa)
+                                                (BinInt.Z.le
+                                                   (BinInt.Z.add oa
+                                                      (BinNums.Zpos
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                                   pos)))
+                                          (or (not (@eq Values.block bx jet_secp_beta_global.beta_block))
+                                             (or (BinInt.Z.lt pos BinNums.Z0)
+                                                (BinInt.Z.le
+                                                   (BinNums.Zpos
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                                   pos))))) m mf)))))))))
