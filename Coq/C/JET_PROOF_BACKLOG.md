@@ -821,9 +821,31 @@ initial destination contents or library-model premise. Reproduce with
 `JET_TARGETS='C/jet_secp_scalar_mul_separate.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_mul_separate`.
 These are internal call contracts; public coverage remains 520/533.
-The remaining split-lambda calls, full literal split, lattice identities and
-signed-half bounds are still open. The final representation must be the exact `wnaf5_input_scalar` of
-each signed literal half, rather than only a group-order congruence.
+`jet_secp_split_function.eval_scalar_split_lambda` now derives the complete
+original split-lambda call: entry, the two fresh coefficient objects, the three
+initial no-op assertions, both rounded products, both basis multiplications,
+the distinct-destination second-result addition and lambda multiplication,
+negation, final addition, return and both actual frees. The exact C outputs are
+`split_first_value k` and `split_second_value k`. Both caller output objects
+have unrestricted initial contents; neither private coefficient, intermediate
+execution, arithmetic output nor initial output load is a premise. The five
+original readonly globals (g1, g2, minus_b1, minus_b2 and lambda) are established
+at actual program initialization and preserved. The original input, all three
+caller-owned allocations, readonly state, permissions and outside-object frame
+are retained. The internal input scalar is canonical, as established by the
+existing public readers; this is not a restriction on public Word256 inputs.
+The numeric in-place interfaces reuse the existing multiplication, negation
+and addition executions and arithmetic. Reproduce the new closure with
+`JET_TARGETS='C/jet_secp_split_function.vo' bash Coq/build-jets.sh -j1`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_split_function`.
+This proves C execution and its exact modular values, not yet correspondence
+to the literal signed-half program. Public coverage remains 520/533.
+The full literal split, lattice identities and signed-half bounds are still
+open. Compose this complete call with that bridge; do not rebuild its original
+calls or introduce new output/phase premises. The final representation must be
+the exact `wnaf5_input_scalar` of each signed literal half, rather than only a
+group-order congruence. The remaining public scalar-multiplication path also
+needs the original Strauss-loop composition.
 Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
 Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
 Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o

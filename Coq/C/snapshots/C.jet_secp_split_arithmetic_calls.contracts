@@ -1,0 +1,187 @@
+### C.jet_secp_split_arithmetic_calls.split_product_source
+split_product_source
+     : forall first : bool,
+       @eq Clight.statement (split_product_statement first)
+         (jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_mul jets_secp.f_secp256k1_scalar_mul
+            (@None AST.ident)
+            (@cons Clight.expr (split_scalar_address (jet_secp_split_rounding_calls.split_local_id first))
+               (@cons Clight.expr (split_scalar_address (jet_secp_split_rounding_calls.split_local_id first))
+                  (@cons Clight.expr (split_scalar_address (jet_secp_split_constants.split_basis_id first))
+                     (@nil Clight.expr)))))
+### C.jet_secp_split_arithmetic_calls.split_second_source
+split_second_source
+     : @eq Clight.statement split_second_statement
+         (jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_add jets_secp.f_secp256k1_scalar_add
+            (@None AST.ident)
+            (@cons Clight.expr (split_scalar_parameter jets_secp._r2)
+               (@cons Clight.expr (split_scalar_address jets_secp._c1)
+                  (@cons Clight.expr (split_scalar_address jets_secp._c2) (@nil Clight.expr)))))
+### C.jet_secp_split_arithmetic_calls.split_lambda_source
+split_lambda_source
+     : @eq Clight.statement split_lambda_statement
+         (jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_mul jets_secp.f_secp256k1_scalar_mul
+            (@None AST.ident)
+            (@cons Clight.expr (split_scalar_parameter jets_secp._r1)
+               (@cons Clight.expr (split_scalar_parameter jets_secp._r2)
+                  (@cons Clight.expr (split_scalar_address jets_secp._secp256k1_const_lambda) (@nil Clight.expr)))))
+### C.jet_secp_split_arithmetic_calls.split_negate_source
+split_negate_source
+     : @eq Clight.statement split_negate_statement
+         (jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_negate jets_secp.f_secp256k1_scalar_negate
+            (@None AST.ident)
+            (@cons Clight.expr (split_scalar_parameter jets_secp._r1)
+               (@cons Clight.expr (split_scalar_parameter jets_secp._r1) (@nil Clight.expr))))
+### C.jet_secp_split_arithmetic_calls.split_last_source
+split_last_source
+     : @eq Clight.statement split_last_statement
+         (jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_add jets_secp.f_secp256k1_scalar_add
+            (@None AST.ident)
+            (@cons Clight.expr (split_scalar_parameter jets_secp._r1)
+               (@cons Clight.expr (split_scalar_parameter jets_secp._r1)
+                  (@cons Clight.expr (split_scalar_parameter jets_secp._k) (@nil Clight.expr)))))
+### C.jet_secp_split_arithmetic_calls.split_arithmetic_source
+split_arithmetic_source
+     : @eq Clight.statement split_arithmetic_suffix
+         (Clight.Ssequence (split_product_statement true)
+            (Clight.Ssequence (split_product_statement false)
+               (Clight.Ssequence split_second_statement
+                  (Clight.Ssequence split_lambda_statement
+                     (Clight.Ssequence split_negate_statement split_last_statement)))))
+### C.jet_secp_split_arithmetic_calls.split_whole_source
+split_whole_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_scalar_split_lambda)
+         (jet_secp_statement_prefix.statement_sequence
+            (@List.firstn Clight.statement (S (S (S (S (S O)))))
+               (@fst (list Clight.statement) Clight.statement jet_secp_split_rounding_calls.split_parts))
+            split_arithmetic_suffix)
+### C.jet_secp_split_arithmetic_calls.exec_split_product
+exec_split_product
+     : forall (first : bool) (bc1 bc2 : Values.block) (le : Clight.temp_env) (m mf : Memory.Mem.mem)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul)
+                (@cons Values.val
+                   (Values.Vptr match first return Values.block with
+                                | true => bc1
+                                | false => bc2
+                                end Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      (Values.Vptr match first return Values.block with
+                                   | true => bc1
+                                   | false => bc2
+                                   end Integers.Ptrofs.zero)
+                      (@cons Values.val
+                         (Values.Vptr (jet_secp_split_constants.split_basis_block first) Integers.Ptrofs.zero)
+                         (@nil Values.val)))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_split_rounding_calls.split_local_env bc1 bc2)
+         le m (split_product_statement first) Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_split_arithmetic_calls.exec_split_second
+exec_split_second
+     : forall (bc1 bc2 : Values.block) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (br : Values.block) (ret : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r2 le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_add)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bc1 Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bc2 Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                (Values.Vint ret)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_split_rounding_calls.split_local_env bc1 bc2)
+         le m split_second_statement Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_split_arithmetic_calls.exec_split_lambda
+exec_split_lambda
+     : forall (bc1 bc2 : Values.block) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (br1 br2 : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r1 le)
+                (@Some Values.val (Values.Vptr br1 Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r2 le)
+                (@Some Values.val (Values.Vptr br2 Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul)
+                (@cons Values.val (Values.Vptr br1 Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br2 Integers.Ptrofs.zero)
+                      (@cons Values.val
+                         (Values.Vptr jet_secp_scalar_lambda_global.scalar_lambda_block Integers.Ptrofs.zero)
+                         (@nil Values.val)))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_split_rounding_calls.split_local_env bc1 bc2)
+         le m split_lambda_statement Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_split_arithmetic_calls.exec_split_negate
+exec_split_negate
+     : forall (bc1 bc2 : Values.block) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (br : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r1 le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_negate)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_split_rounding_calls.split_local_env bc1 bc2)
+         le m split_negate_statement Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_split_arithmetic_calls.exec_split_last
+exec_split_last
+     : forall (bc1 bc2 : Values.block) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (br bk : Values.block) (ret : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r1 le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._k le)
+                (@Some Values.val (Values.Vptr bk Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_add)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                (Values.Vint ret)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_split_rounding_calls.split_local_env bc1 bc2)
+         le m split_last_statement Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_split_arithmetic_calls.split_scalar_address
+split_scalar_address =
+fun id : AST.ident =>
+Clight.Eaddrof (Clight.Evar id (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))
+  (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))
+     : forall _ : AST.ident, Clight.expr
+
+Arguments split_scalar_address id
+### C.jet_secp_split_arithmetic_calls.split_scalar_parameter
+split_scalar_parameter =
+fun id : AST.ident => Clight.Etempvar id (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))
+     : forall _ : AST.ident, Clight.expr
+
+Arguments split_scalar_parameter id
+### C.jet_secp_split_arithmetic_calls.split_product_statement
+split_product_statement =
+fun first : bool =>
+@List.nth Clight.statement
+  match first return nat with
+  | true => S (S (S (S (S O))))
+  | false => S (S (S (S (S (S O)))))
+  end (@fst (list Clight.statement) Clight.statement jet_secp_split_rounding_calls.split_parts) Clight.Sskip
+     : forall _ : bool, Clight.statement
+
+Arguments split_product_statement first%bool_scope
+### C.jet_secp_split_arithmetic_calls.split_second_statement
+split_second_statement =
+@List.nth Clight.statement (S (S (S (S (S (S (S O)))))))
+  (@fst (list Clight.statement) Clight.statement jet_secp_split_rounding_calls.split_parts) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_split_arithmetic_calls.split_lambda_statement
+split_lambda_statement =
+@List.nth Clight.statement (S (S (S (S (S (S (S (S O))))))))
+  (@fst (list Clight.statement) Clight.statement jet_secp_split_rounding_calls.split_parts) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_split_arithmetic_calls.split_negate_statement
+split_negate_statement =
+@List.nth Clight.statement (S (S (S (S (S (S (S (S (S O)))))))))
+  (@fst (list Clight.statement) Clight.statement jet_secp_split_rounding_calls.split_parts) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_split_arithmetic_calls.split_last_statement
+split_last_statement =
+@snd (list Clight.statement) Clight.statement jet_secp_split_rounding_calls.split_parts
+     : Clight.statement
+### C.jet_secp_split_arithmetic_calls.split_arithmetic_suffix
+split_arithmetic_suffix =
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement (S (S (S (S (S O)))))
+     (@fst (list Clight.statement) Clight.statement jet_secp_split_rounding_calls.split_parts))
+  (@snd (list Clight.statement) Clight.statement jet_secp_split_rounding_calls.split_parts)
+     : Clight.statement
