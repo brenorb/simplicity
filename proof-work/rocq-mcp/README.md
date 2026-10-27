@@ -48,6 +48,14 @@ empty external directory. The launcher refuses repository-local or nonempty
 destinations. Session directories are retained for inspection, not auto-deleted;
 they may be cleaned by the OS. Do not share mutable workspaces across agents.
 
+The launcher was restored on 2026-10-24 after its configured path was found
+missing. The project-local registration and installed runtime were still
+present. The seed workspace is the historical trial snapshot, not a live view
+of today's proofs. Copy current sources and rebuild their dependencies in the
+isolated workspace before debugging new proofs. This backend uses OCaml
+4.14.1: do not import objects built by the main proof toolchain's OCaml 4.14.4,
+or overwrite the main checkout's objects with this backend's output.
+
 Known upstream/backend limitation: preamble-only `rocq_start(preamble=...)`
 failed in the trial with `No node at point`. Use named theorems and query from a
 live state; retain persistent coqtop as a fallback. The launcher imports
@@ -62,5 +70,5 @@ after rebuilding dependencies.
 
 ## Installation check
 
-Only this launcher, harness and documentation are versioned. Runtime binaries,
+Only this launcher and documentation are intended for version control. Runtime binaries,
 machine-specific Codex configuration, copied proofs and build outputs are not.
