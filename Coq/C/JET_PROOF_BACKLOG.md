@@ -5386,7 +5386,24 @@ Reproduce with `JET_TARGETS=C/jet_secp_strauss_split_wnaf.vo bash
 Coq/build-jets.sh -j1`, its scoped statement/assumption audits and recursive
 `--coqchk` on `C.jet_secp_strauss_split_wnaf`.
 
-Next execute the original maximum-length updates. Compose the one-point Strauss caller's actual local
+`jet_secp_strauss_bits_max.exec_strauss_bits_max` executes both original
+length reads/comparisons and conditional pointer reloads, preceded by the two
+actual assertion no-ops. It proves the final bit count is the maximum of the
+two stored lengths, using the checked 0..129 bounds for signed C comparison;
+memory is unchanged. `exec_strauss_scalar_prepare` composes this with the
+split/wNAF prefix for every Word256 input and derives the maximum and its
+bound. It retains both literal digit arrays, scalar stores, lengths, state
+pointer, constant readiness, permissions, readonly memory, combined frame
+and every caller temporary outside the actual write set. The existing
+`memset_model` is its only library premise. The continuation lemma connects
+this complete prefix to the exact remaining frozen point-table statements.
+This is internal progress, adding no public jet (still 520/533).
+Reproduce with `JET_TARGETS=C/jet_secp_strauss_bits_max.vo bash
+Coq/build-jets.sh -j1`, its scoped statement/assumption audits and recursive
+`--coqchk` on `C.jet_secp_strauss_bits_max`.
+
+Next compose the point copy and original odd-table call, then the one-point
+preprocessing loop, global-Z call and beta loop. Compose the caller's actual local
 allocations and nonzero/finite guard, the existing literal scalar table and
 signed ordinary/lambda lookups, then the descending loop and public wrapper.
 Derive all helper preconditions there and retain the original zero/infinity
