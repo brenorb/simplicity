@@ -118,7 +118,7 @@ contract.
 
 | Remaining declarations (omit `simplicity_`) | Boundary |
 | --- | --- |
-| `hash_to_curve` | Variable-time inversion reaches abstract ctz; public composition with `ctz_model` still missing. (`fe_invert`, `scalar_invert`, `gej_normalize`, `gej_y_is_odd`, `swu` are now conditional on `ctz_model`.) |
+| `hash_to_curve` | `ctz_model` handles the inverse helper dependency. Also prove that two accepted digest maps have a finite sum, or exhibit an actual common-key counterexample: `hash_public_return_agreement_iff` exposes this separate return/assertion boundary. Its reachability is unresolved. (`fe_invert`, `scalar_invert`, `gej_normalize`, `gej_y_is_odd`, `swu` are conditional on `ctz_model`.) |
 | `off_curve_scale`, `scale`, `off_curve_linear_combination_1`, `linear_combination_1`, `linear_verify_1`, `point_verify_1` | General ecmult (point table, wNAF digits, Strauss loop); memset now has `memset_model`/`exec_wnaf_memset`. (`generate` is conditional on `memset_model`.) |
 | `check_sig_verify`, `bip_0340_verify`, `bitcoin_build_taptweak`, `build_taptweak` | Their accepted branches reach multiplication/normalization and the external memset/ctz boundaries; x-only tweaking also directly calls memset. |
 | `output_is_fee`, `total_fee` | Empty-script digest equality versus actual script emptiness; the converse remains unproved. The total-fee dependency is through cache construction. |
@@ -361,11 +361,20 @@ sign, deriving the next signed value `(q-digit)/2` and the odd digit
 `wnaf_digit (q mod 32) 5`. The subtraction range is derived from the initial
 state and nibble bounds, not added as a caller premise.
 `literal_wnaf5_digit_negates` proves that odd negative residuals emit the
-negation of the positive-magnitude C digit. These results do not yet execute
-the C negative-sign path or complete a public multiplication jet.
-Next: lift the signed steps through zero runs/full windows, then port
-`{skip, tail, loop, prepare}` for window 5, including C's `sign = -1` stores,
-and a 129/5 function wrapper using `exec_wnaf_memset`.
+negation of the positive-magnitude C digit.
+`jet_secp_wnaf5_signed_windows` lifts those transitions through arbitrary
+signed zero runs and complete five-bit windows, retaining exact digit order
+and the next signed residual. `jet_secp_wnaf5_signed_body` composes the
+original C dispatch with its actual digit/store/state-update execution for
+full windows and skips, including `sign = -1`. The full-window theorem retains
+the stored literal digit, updated fields/carry, scalar storage and memory
+effect; the skip theorem executes the actual `Out_continue` branch with
+unchanged memory. Their initial signed-residual relation describes the
+incoming state; no outgoing value or intermediate execution is assumed.
+Next: cover the final partial window, then compose the window-5 loop,
+actual sign preparation and 129/5 function wrapper using `exec_wnaf_memset`.
+The full-window/skip results do not yet prove that whole function or add a
+public multiplication-jet entry.
 
 The next independent multiplication work is the general non-generator path
 used by `off_curve_scale`/`off_curve_linear_combination_1`. Inspect existing
