@@ -840,12 +840,26 @@ and addition executions and arithmetic. Reproduce the new closure with
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_split_function`.
 This proves C execution and its exact modular values, not yet correspondence
 to the literal signed-half program. Public coverage remains 520/533.
-The full literal split, lattice identities and signed-half bounds are still
-open. Compose this complete call with that bridge; do not rebuild its original
-calls or introduce new output/phase premises. The final representation must be
-the exact `wnaf5_input_scalar` of each signed literal half, rather than only a
-group-order congruence. The remaining public scalar-multiplication path also
-needs the original Strauss-loop composition.
+`jet_secp_split_signed_bounds` now proves the actual rounded-coefficient error
+intervals, both strict signed 128-bit bounds, and the fixed lattice residue
+identities. For the two coefficients c1/c2, the signed values are
+`k-b2*c1-a2*c2` and `minus_b1*c1-b2*c2`; the modular values computed by C are
+proved to be exactly their residues modulo the group order. The bound proof
+uses linear arithmetic on the original fixed constants and rounding errors;
+every theorem in this arithmetic module is closed. No small-output or lattice
+fact is assumed. `jet_secp_split_small.eval_scalar_split_lambda_small` composes
+those facts with the entire original C call, producing both exact stores,
+strict signed ranges and the complete input/ownership/frame postcondition.
+Reproduce with `JET_TARGETS='C/jet_secp_split_small.vo' bash Coq/build-jets.sh -j1`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_split_small`.
+This is still internal support and does not add public coverage (520/533).
+The remaining split bridge is the faithful full literal program and its exact
+signed bit/word encoding. Compose the existing complete call and small bounds
+with that bridge; do not rebuild the original calls or introduce output/phase
+premises. The final representation must be the exact `wnaf5_input_scalar` of
+each signed literal half, rather than only a group-order congruence. The
+remaining public scalar-multiplication path also needs the original
+Strauss-loop composition.
 Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
 Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
 Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
