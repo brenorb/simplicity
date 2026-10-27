@@ -752,8 +752,9 @@ The coefficient-specific strict bounds are established by the following
 rounding-prefix result. Reproduce the generic call with
 `JET_TARGETS='C/jet_secp_scalar_shift384_function.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_shift384_function`.
-The composition also needs distinct-destination adapters for scalar add and
-borrowed-RHS scalar multiply; in-place contracts cannot establish those calls.
+The composition also needs a distinct-destination adapter for borrowed-RHS
+scalar multiply; in-place contracts cannot establish that call. The scalar-add
+adapter is now available as described below.
 Reuse the existing owned in-place add, borrowed in-place multiply, scalar
 negation and initialized-lambda region proofs where their pointers match.
 `jet_secp_scalar_constant` shares the actual-initializer and readonly transport
@@ -776,6 +777,27 @@ initial program memory establishing the multiplier state is also proved to
 exist. These remain internal results; public coverage stays 520/533. Reproduce
 with `JET_TARGETS='C/jet_secp_split_rounding_entry.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_split_rounding_entry`.
+`jet_secp_scalar_add_separate.eval_scalar_add_separate_values` now executes
+the original scalar add into a distinct destination with unrestricted initial
+contents, retaining both source scalars and all three owned allocations. Its
+symbolic run proves that the actual result uses exactly the existing in-place
+carry/reduction expressions, so it reuses the modular-sum and overflow proofs
+instead of duplicating them. For each pair of scalars below the group order,
+it returns the exact modular sum and overflow flag, permissions, readonly
+preservation and outside-object framing. This supplies the `r2=c1+c2` call
+shape of split-lambda; no helper execution, result or output initialization is
+assumed. Reproduce with
+`JET_TARGETS='C/jet_secp_scalar_add_separate.vo' bash Coq/build-jets.sh -j1`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_add_separate`.
+It is internal support and adds no public coverage (520/533).
+For the distinct-destination multiplication, do not apply
+`eval_reduce512_numeric_owned_loads` directly to the fresh `r1`: its entry
+representation still requires four initialized destination words. Prove the
+original reduction's early stages with those cells uninitialized, retaining
+the existing first/second checkpoint arithmetic, until the original third-fold
+stores establish the destination representation. Reuse the final suffix and
+numeric theorem after that boundary; do not assume initial loads or insert C
+initialization to satisfy the older in-place contract.
 The remaining split-lambda calls, full literal split, lattice identities and
 signed-half bounds are still open. The final representation must be the exact `wnaf5_input_scalar` of
 each signed literal half, rather than only a group-order congruence.
