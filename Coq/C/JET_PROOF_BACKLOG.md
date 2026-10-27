@@ -5413,19 +5413,41 @@ source point, state pointers, caller permissions, readonly memory, outside
 loads and untouched temporaries. The `eval_scalar_table5_calls` contract is
 strengthened only by exposing its already proved first-call frame; all
 previous premises and conclusions remain. This table component has no extra
-library premise. Its two chunks still need the original preprocessing loop's
-increment/termination controls inserted between them; the standalone
-`strauss_table_prepare` statement is not a whole Strauss body or a public jet.
+library premise. The standalone `strauss_table_prepare` statement combines
+two caller chunks; it is not a whole Strauss body or a public jet. The loop
+composition below inserts the actual intervening controls.
 Reproduce with `JET_TARGETS=C/jet_secp_strauss_table_call.vo bash
 Coq/build-jets.sh -j1`, scoped audits of this module and
 `C.jet_secp_scalar_table_execution`, then recursive `--coqchk` on
 `C.jet_secp_strauss_table_call`.
 
-Next join scalar preparation to the point-table component, derive the
-nonzero/finite guard and original preprocessing loop controls, then compose
-the checked beta loop. Compose the caller's actual local
-allocations and nonzero/finite guard, the existing literal scalar table and
-signed ordinary/lambda lookups, then the descending loop and public wrapper.
+`jet_secp_strauss_first_loop.exec_strauss_preprocess_finite` now joins the
+original scalar/wNAF/maximum prefix to the table component through the actual
+preprocessing loop and global-Z statement. It covers the branch with a
+nonzero canonical scalar and a finite input point, with no on-curve premise.
+The scalar-zero call is derived from stored limbs and its existing verified
+symbolic execution; the infinity accessor is reused. The proof executes the
+initial np=0 assignment, both helper guards, complete iteration, np increment,
+terminating comparison and final global-Z call. Both literal signed wNAF
+vectors/counts and the literal scalar table hold together in the final memory;
+the maximum bit count, source scalar/point, state pointers, all owned objects,
+constants, readonly memory, frame and untouched temporaries are retained.
+`strauss_preprocess_finite_source` identifies the two adjacent original body
+statements. Intermediate call/loop executions are derived, not caller
+premises; only the existing `memset_model` remains explicit. The table
+component additionally exposes its already proved intermediate caller and
+global-Z call so this proof can insert the original loop controls.
+This is an internal finite/nonzero branch result, not public coverage. Zero
+and infinity branches, actual Strauss entry/frees and the descending point
+loop remain to compose; coverage stays 520/533.
+Reproduce with `JET_TARGETS=C/jet_secp_strauss_first_loop.vo bash
+Coq/build-jets.sh -j1`, scoped audits of this module and
+`C.jet_secp_strauss_table_call`, then recursive `--coqchk` on
+`C.jet_secp_strauss_first_loop`.
+
+Next compose the checked beta loop, cover the remaining preprocessing
+branches, and connect the caller's actual local allocations. Then compose
+the signed ordinary/lambda lookups, descending loop and public wrapper.
 Derive all helper preconditions there and retain the original zero/infinity
 branches. The wrapper passes a nonnull generator-scalar pointer containing
 zero, so its generator branch still executes; reuse the window-15 proofs.

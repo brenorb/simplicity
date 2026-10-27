@@ -227,7 +227,12 @@ Theorem exec_strauss_table_prepare e le m ba bs bt bx bo bj x y z
  lframe (fun b _=>b<>bt /\ b<>bj /\ b<>bx /\ b<>bo) m mf /\
  (strauss_table_prepare_temps le bt bx)!_no=Some (Vlong Int64.one) /\
  (forall id,~In id [_no;_t'32;_t'33;_t'36;_t'37] ->
-  (strauss_table_prepare_temps le bt bx)!id=le!id).
+  (strauss_table_prepare_temps le bt bx)!id=le!id) /\
+ (exists m1,
+  Clight2.exec_stmt secp_ge e le m strauss_after_bits_max E0 (strauss_first_table_temps le bt bx) m1 Out_normal /\
+  Clight2.eval_funcall secp_ge m1 (Internal f_secp256k1_ge_table_set_globalz)
+   [Vlong (Int64.repr 8);Vptr bt Ptrofs.zero;Vptr bx Ptrofs.zero] E0 mf Vundef /\
+  Mem.load Mptr m1 bs 8=Some (Vptr bt Ptrofs.zero) /\ Mem.load Mptr m1 bs 0=Some (Vptr bx Ptrofs.zero)).
 Proof.
  intros LocalZ LocalTmp OddSymbol GlobalSymbol A NP State No Table Aux BX BY BZ X Y Z Flag
   Owned Separate HX HY HZ Finite;cbv zeta.
@@ -301,7 +306,9 @@ Proof.
      * split;[exact Frame|];split.
        -- unfold strauss_table_prepare_temps,generator_globalz_call_temps.
           rewrite !PTree.gso by discriminate;exact No1.
-       -- intros id Outside;unfold strauss_table_prepare_temps,generator_globalz_call_temps,
-           strauss_first_table_temps,strauss_table_call_temps;
-          rewrite !PTree.gso;cbn [In] in Outside;intuition congruence.
+       -- split.
+          ++ intros id Outside;unfold strauss_table_prepare_temps,generator_globalz_call_temps,
+              strauss_first_table_temps,strauss_table_call_temps;
+             rewrite !PTree.gso;cbn [In] in Outside;intuition congruence.
+          ++ exists m1;split;[exact Caller|];split;[exact Second|];split;[exact Table1|exact Aux1].
 Qed.
