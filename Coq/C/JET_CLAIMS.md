@@ -7,12 +7,7 @@ instead of starting a parallel proof.
 
 | Jet (`jet_coverage.tsv` name) | Owner (agent/session) | Branch | Since |
 | --- | --- | --- | --- |
-| `simplicity_fe_invert` | Codex (current goal session) | `feat/jet-equivalence` | 2026-10-22 |
-| `simplicity_scalar_invert` | Codex (current goal session; original scalar inverse caller) | `feat/jet-equivalence` | 2026-10-24 |
 | `simplicity_generate` | Codex (current goal session; shared scalar-splitting dependency) | `feat/jet-equivalence` | 2026-10-22 |
-| `simplicity_gej_normalize` | Codex (current goal session; shared post-inversion affine conversion) | `feat/jet-equivalence` | 2026-10-24 |
-| `simplicity_gej_y_is_odd` | Codex (current goal session; original affine conversion and Y parity caller) | `feat/jet-equivalence` | 2026-10-24 |
 | `simplicity_total_fee` | Codex (current goal session; original lookup execution) | `feat/jet-equivalence` | 2026-10-24 |
-| `simplicity_swu` | Codex (current goal session; exact root-candidate selection bridge) | `feat/jet-equivalence` | 2026-10-24 |
 | `simplicity_hash_to_curve` | Codex (current goal session; original generator load/save and caller composition) | `feat/jet-equivalence` | 2026-10-24 |
 | `simplicity_off_curve_scale` | Codex (current goal session; variable-point table and distinct-destination doubling) | `feat/jet-equivalence` | 2026-10-26 |

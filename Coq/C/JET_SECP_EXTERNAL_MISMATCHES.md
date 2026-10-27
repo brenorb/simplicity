@@ -2442,9 +2442,55 @@ contract; the divstep code adds a sentinel before counting.
 
 The worst established consequence is an unresolved acceptance boundary for
 the affected implementation-to-specification proofs, not a demonstrated
-runtime failure, consensus discrepancy or exploit. A complete result needs
-justified concrete external semantics/linkage; adding an unproved ctz or
-memset premise would not meet the goal. Switching the production AST to a
+runtime failure, consensus discrepancy or exploit. An unconditional result
+needs justified concrete external semantics/linkage. On 2026-10-27 the user
+approved explicit `ctz_model` and `memset_model` premises as **conditional**
+results, counted like `memcpy_model` (see the next section). Switching the production AST to a
 fallback, changing compiler/generation configuration, or changing the target
 would require separate explicit approval and is not done here.
+
+## Approved explicit CTZ model: five conditional public jets
+
+Policy change approved by the user on 2026-10-27: an explicit premise about
+the abstract `__builtin_ctzl` external call is accepted as a conditional
+result, reported like `memcpy_model`. No production C, AST, generation
+setting, specification or API is changed, and nothing is asserted as an axiom.
+
+`jet_ctz_model.ctz_model` states the GCC/Clang contract on 64-bit
+`unsigned long`, restricted to nonzero arguments: for every global
+environment, memory `m` and nonzero `x`,
+`external_functions_sem "__builtin_ctzl" ([Tlong] -> Tint)` relates
+`[Vlong x]`, `m` to `E0`, `Vint (Z_ctz x)`, `m`. `Z_ctz_pos_spec` and
+`Z_ctz_bound` check that `Z_ctz` is the trailing-zero count, below 64.
+`jet_ctz_model_consistent.ctz_model_consistent` is a closed
+relative-consistency theorem: some assignment of semantics to every external
+function satisfies CompCert's `extcall_properties` and this model. It does not
+identify CompCert's parameter with that assignment.
+
+`jet_secp_ctz_jets.ctz_model_count_calls` derives the previously deferred
+premise, the complete original `secp256k1_ctz64_var` execution, from the model
+and `eval_ctz64_from_external`. The following public theorems are each the
+existing full initialized local contract with that one premise:
+
+- `C.jet_secp_ctz_jets.fe_invert_initialized_local_spec`
+- `C.jet_secp_ctz_jets.scalar_invert_initialized_local_spec`
+- `C.jet_secp_ctz_jets.gej_normalize_initialized_local_spec`
+- `C.jet_secp_ctz_jets.gej_y_is_odd_initialized_local_spec`
+- `C.jet_secp_ctz_jets.swu_initialized_local_spec`
+
+Their startup states (`modinfo_fe_state`, `modinfo_scalar_initialized`,
+`swu_startup`) are established at the actual `Genv.init_mem` by the existing
+`*_runs_from_actual_init`, `modinfo_scalar_initial_state_exists` and
+`swu_startup_exists` theorems. All five retain only the six inherited
+assumptions besides the visible `ctz_model` premise. `jet-coverage.py`
+counts them as conditional (`ctz_model`), separately from direct proofs.
+
+```sh
+JET_TARGETS="C/jet_secp_ctz_jets.vo C/jet_ctz_model_consistent.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_ctz_jets C.jet_ctz_model_consistent
+```
+
+`hash_to_curve` and the inversions inside `scale`, `generate`,
+`linear_combination_1` and the signature checks still need their own public
+compositions (and, for ecmult, `memset_model`); they are not covered here.
 

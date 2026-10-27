@@ -275,6 +275,40 @@ for stem, offset in [("input_outpoints", 112), ("input_annexes", 272), ("inputs"
 # the UNCHANGED literal contract on every input outside an exactly defined,
 # decidable mismatch set; the report and the whole-domain theorems describing
 # that set are required, and the entry is counted and printed separately.
+# Explicit external-library models. Each is a named premise about CompCert's
+# abstract external_functions_sem for one libc/compiler call, approved for
+# conditional coverage and counted separately from direct proofs.
+LIBRARY_MODELS = ("memcpy_model", "ctz_model", "memset_model")
+
+
+def library_condition(body):
+    """The single leading library-model premise of a contract, if any."""
+    for model in LIBRARY_MODELS:
+        if re.match(rf"{model}\s*->", body):
+            return model
+    return ""
+
+
+# Original CTZ-dependent secp callers: full initialized contracts whose only
+# extra premise is the approved ctz_model.
+_CTZ_JETS = {
+    "simplicity_fe_invert": "modinfo_fe_state f_simplicity_fe_invert (Word 8) (Word 8) "
+                            "(@literal_fe_invert Alg.CoreFunSem).",
+    "simplicity_scalar_invert": "modinfo_scalar_initialized f_simplicity_scalar_invert (Word 8) (Word 8) "
+                                "(@literal_scalar_invert Alg.CoreFunSem).",
+    "simplicity_gej_normalize": "modinfo_fe_state f_simplicity_gej_normalize "
+                                "(Ty.Prod (Ty.Prod Word256 Word256) Word256) "
+                                "(Ty.Sum Ty.Unit (Ty.Prod Word256 Word256)) "
+                                "(@literal_gej_normalize Alg.CoreFunSem).",
+    "simplicity_gej_y_is_odd": "modinfo_fe_state f_simplicity_gej_y_is_odd "
+                               "(Ty.Prod (Ty.Prod Word256 Word256) Word256) Bit "
+                               "(@literal_gej_y_is_odd Alg.CoreFunSem).",
+    "simplicity_swu": "swu_startup f_simplicity_swu (Word 8) (Ty.Prod (Word 8) (Word 8)) "
+                      "(@literal_swu Alg.CoreFunSem).",
+}
+for _name, _tail in _CTZ_JETS.items():
+    RECOVERED_CONTRACTS[_name] = "ctz_model -> secp_jet_initialized_local_spec " + _tail
+
 REPORTED_MISMATCH_CONTRACTS = {
     "simplicity_gej_ge_add_ex": {
         "contract": "secp_jet_local_spec_on (fun a => ~gej_ge_add_ex_ratio_mismatch a) "
@@ -416,7 +450,7 @@ def inventory():
             if compact(body) != compact(RECOVERED_CONTRACTS[name]):
                 raise ValueError(f"coverage entry is not a direct canonical jet theorem: {module}.{theorem}")
             jets[name]["proof"] = f"{module}.{theorem}"
-            jets[name]["condition"] = "memcpy_model" if body.startswith("memcpy_model") else ""
+            jets[name]["condition"] = library_condition(body)
             continue
         # Application functions execute in their own linked global environment,
         # not the core ge0. Counting a core contract for them would lose the
@@ -548,7 +582,7 @@ def inventory():
                             r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Word32\b"
                             if name in {"simplicity_version", "simplicity_lock_time", "simplicity_current_index", "simplicity_num_inputs", "simplicity_num_outputs", "simplicity_current_sequence"} else r"(?!)")
         body = statement[1].strip() if statement else ""
-        conditional = body.startswith("memcpy_model")
+        conditional = body.startswith("memcpy_model")  # Generic families: memcpy only.
         arrows = top_level_connectives(body)
         # A direct contract must be the entire proposition. Searching anywhere
         # in a type accidentally accepts False -> contract and contract -> True.
@@ -620,7 +654,7 @@ def main():
         for family in HEADERS:
             rows = [row for row in jets if row["family"] == family]
             direct = sum(bool(row["proof"]) and not row["condition"] for row in rows)
-            conditional = sum(row["condition"] == "memcpy_model" for row in rows)
+            conditional = sum(row["condition"] in LIBRARY_MODELS for row in rows)
             reported = sum(row["condition"] == "reported_mismatch" for row in rows)
             divergent = sum(bool(row["divergence_proof"]) for row in rows)
             print(f"{family}: {direct} proof entries without an extra library premise; "
@@ -629,13 +663,16 @@ def main():
         missing = len(missing_proofs(jets))
         missing_equivalence = len(missing_equivalences(jets))
         divergent = sum(bool(row["divergence_proof"]) for row in jets)
-        conditional = sum(row["condition"] == "memcpy_model" for row in jets)
+        conditional = sum(row["condition"] in LIBRARY_MODELS for row in jets)
+        by_model = {model: sum(row["condition"] == model for row in jets) for model in LIBRARY_MODELS}
         reported = [row for row in jets if row["condition"] == "reported_mismatch"]
         unregistered = sum(not row["registrations"] for row in jets)
         print(f"total: {len(jets) - missing}/{len(jets)}; remaining: {missing}; unregistered declarations: {unregistered}")
         print(f"Equivalence entries: {len(jets) - missing_equivalence}; divergence proofs: {divergent}.")
         print(f"Of the equivalence entries: {len(jets) - missing_equivalence - conditional} without an extra library premise, "
-              f"{conditional} conditional on memcpy_model (libc implementation not proved).")
+              f"{conditional} conditional on an explicit library model ("
+              + ", ".join(f"{n} {m}" for m, n in by_model.items())
+              + "; library/compiler implementation not proved).")
         print(f"Separately: {len(reported)} proved only outside a reported specification mismatch; "
               "restricted equivalence alone does not count toward proof completion.")
         for row in jets:

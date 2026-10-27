@@ -1,0 +1,55 @@
+### C.jet_ctz_model.Z_ctz_pos_spec
+Z_ctz_pos_spec
+     : forall p : BinNums.positive,
+       @ex BinNums.Z
+         (fun q : BinNums.Z =>
+          and
+            (@eq BinNums.Z (BinNums.Zpos p)
+               (BinInt.Z.mul (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (extraMath.Z_ctz (BinNums.Zpos p)))
+                  (BinInt.Z.add (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) q) (BinNums.Zpos BinNums.xH))))
+            (BinInt.Z.le BinNums.Z0 q))
+### C.jet_ctz_model.Z_ctz_bound
+Z_ctz_bound
+     : forall (x : BinNums.Z)
+         (_ : and (BinInt.Z.lt BinNums.Z0 x)
+                (BinInt.Z.lt x
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       and (BinInt.Z.le BinNums.Z0 (extraMath.Z_ctz x))
+         (BinInt.Z.lt (extraMath.Z_ctz x)
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_ctz_model.ctz_sig
+ctz_sig =
+AST.mksignature (@cons AST.typ AST.Tlong (@nil AST.typ)) (AST.Tret AST.Tint) AST.cc_default
+     : AST.signature
+### C.jet_ctz_model.ctz_model_for
+ctz_model_for =
+fun sem : Events.extcall_sem =>
+forall (ge : Globalenvs.Senv.t) (m : Memory.Mem.mem) (x : Integers.Int64.int)
+  (_ : not (@eq BinNums.Z (Integers.Int64.unsigned x) BinNums.Z0)),
+sem ge (@cons Values.val (Values.Vlong x) (@nil Values.val)) m Events.E0
+  (Values.Vint (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned x)))) m
+     : forall _ : Events.extcall_sem, Prop
+
+Arguments ctz_model_for sem
+### C.jet_ctz_model.ctz_model
+ctz_model =
+ctz_model_for
+  (Events.external_functions_sem
+     (String.String (Ascii.Ascii true true true true true false true false)
+        (String.String (Ascii.Ascii true true true true true false true false)
+           (String.String (Ascii.Ascii false true false false false true true false)
+              (String.String (Ascii.Ascii true false true false true true true false)
+                 (String.String (Ascii.Ascii true false false true false true true false)
+                    (String.String (Ascii.Ascii false false true true false true true false)
+                       (String.String (Ascii.Ascii false false true false true true true false)
+                          (String.String (Ascii.Ascii true false false true false true true false)
+                             (String.String (Ascii.Ascii false true true true false true true false)
+                                (String.String (Ascii.Ascii true true true true true false true false)
+                                   (String.String (Ascii.Ascii true true false false false true true false)
+                                      (String.String (Ascii.Ascii false false true false true true true false)
+                                         (String.String (Ascii.Ascii false true false true true true true false)
+                                            (String.String (Ascii.Ascii false false true true false true true false)
+                                               String.EmptyString)))))))))))))) ctz_sig)
+     : Prop

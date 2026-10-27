@@ -9,10 +9,14 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-The inventory currently has 513 equivalence entries (138 with the existing
-explicit `memcpy_model` premise) and one checked whole-public refutation,
+The inventory currently has 518 equivalence entries (138 with the existing
+explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise) and
+one checked whole-public refutation,
 `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-514/533 proof entries, with 19 jets still lacking either result. Registration
+519/533 proof entries, with 14 jets still lacking either result. The
+user approved explicit `ctz_model`/`memset_model` premises as conditional
+coverage on 2026-10-27; a SHA empty-preimage premise for the fee jets was not
+approved (see `JET_SECP_EXTERNAL_MISMATCHES.md`). Registration
 is not fresh acceptance. The endpoint-generalization candidate passed full
 ordinary acceptance at `6a227e8b` and is integrated in `58f36fe9`; later-added
 modules are checked separately as described in `JET_ACCEPTANCE.md`.
@@ -114,7 +118,7 @@ contract.
 
 | Remaining declarations (omit `simplicity_`) | Boundary |
 | --- | --- |
-| `fe_invert`, `scalar_invert`, `gej_normalize`, `gej_y_is_odd`, `swu`, `hash_to_curve` | Variable-time inversion reaches abstract ctz. |
+| `hash_to_curve` | Variable-time inversion reaches abstract ctz; public composition with `ctz_model` still missing. (`fe_invert`, `scalar_invert`, `gej_normalize`, `gej_y_is_odd`, `swu` are now conditional on `ctz_model`.) |
 | `off_curve_scale`, `scale`, `generate`, `off_curve_linear_combination_1`, `linear_combination_1`, `linear_verify_1`, `point_verify_1` | ecmult reaches wNAF's abstract memset. A pointer to a zero generator scalar is still non-NULL and does not bypass the two calls. |
 | `check_sig_verify`, `bip_0340_verify`, `bitcoin_build_taptweak`, `build_taptweak` | Their accepted branches reach multiplication/normalization and the external memset/ctz boundaries; x-only tweaking also directly calls memset. |
 | `output_is_fee`, `total_fee` | Empty-script digest equality versus actual script emptiness; the converse remains unproved. The total-fee dependency is through cache construction. |

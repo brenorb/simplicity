@@ -1,0 +1,56 @@
+### C.jet_ctz_model_consistent.libc_ctz_sem_ok
+libc_ctz_sem_ok
+     : Events.extcall_properties libc_ctz_sem jet_ctz_model.ctz_sig
+### C.jet_ctz_model_consistent.libc_ctz_sem_models
+libc_ctz_sem_models
+     : jet_ctz_model.ctz_model_for libc_ctz_sem
+### C.jet_ctz_model_consistent.ctz_model_consistent
+ctz_model_consistent
+     : @ex (forall (_ : String.string) (_ : AST.signature), Events.extcall_sem)
+         (fun S : forall (_ : String.string) (_ : AST.signature), Events.extcall_sem =>
+          and (forall (id : String.string) (sg : AST.signature), Events.extcall_properties (S id sg) sg)
+            (jet_ctz_model.ctz_model_for
+               (S
+                  (String.String (Ascii.Ascii true true true true true false true false)
+                     (String.String (Ascii.Ascii true true true true true false true false)
+                        (String.String (Ascii.Ascii false true false false false true true false)
+                           (String.String (Ascii.Ascii true false true false true true true false)
+                              (String.String (Ascii.Ascii true false false true false true true false)
+                                 (String.String (Ascii.Ascii false false true true false true true false)
+                                    (String.String (Ascii.Ascii false false true false true true true false)
+                                       (String.String (Ascii.Ascii true false false true false true true false)
+                                          (String.String (Ascii.Ascii false true true true false true true false)
+                                             (String.String (Ascii.Ascii true true true true true false true false)
+                                                (String.String
+                                                   (Ascii.Ascii true true false false false true true false)
+                                                   (String.String
+                                                      (Ascii.Ascii false false true false true true true false)
+                                                      (String.String
+                                                         (Ascii.Ascii false true false true true true true false)
+                                                         (String.String
+                                                            (Ascii.Ascii false false true true false true true false)
+                                                            String.EmptyString)))))))))))))) jet_ctz_model.ctz_sig)))
+### C.jet_ctz_model_consistent.ctz_value
+ctz_value =
+fun x : Integers.Int64.int =>
+match Integers.Int64.eq x Integers.Int64.zero return (option Integers.Int.int) with
+| true => @None Integers.Int.int
+| false => @Some Integers.Int.int (Integers.Int.repr (extraMath.Z_ctz (Integers.Int64.unsigned x)))
+end
+     : forall _ : Integers.Int64.int, option Integers.Int.int
+
+Arguments ctz_value x
+### C.jet_ctz_model_consistent.ctz_builtin
+ctz_builtin =
+Builtins0.mkbuiltin_n1p AST.Tlong (AST.Tret AST.Tint) ctz_value
+     : Builtins0.builtin_sem (AST.Tret AST.Tint)
+### C.jet_ctz_model_consistent.libc_ctz_sem
+Inductive
+libc_ctz_sem (ge : Globalenvs.Senv.t)
+  : forall (_ : list Values.val) (_ : Memory.Mem.mem) (_ : Events.trace) (_ : Values.val) (_ : Memory.Mem.mem), Prop :=
+    libc_ctz_sem_intro : forall (vargs : list Values.val) (vres : Values.val) (m : Memory.Mem.mem)
+                           (_ : @eq (option Values.val) (Builtins0.bs_sem (AST.Tret AST.Tint) ctz_builtin vargs)
+                                  (@Some Values.val vres)), libc_ctz_sem ge vargs m Events.E0 vres m.
+
+Arguments libc_ctz_sem ge _%list_scope _ _ _ _
+Arguments libc_ctz_sem_intro ge vargs%list_scope vres m _
