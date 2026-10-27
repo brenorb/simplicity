@@ -514,13 +514,30 @@ allocations/frees, storage, four output bounds, the resulting flag/Z invariant,
 preserved affine input, owners, old permissions, frame and readonly globals.
 The incoming flag/Z and residue relations are initial representation premises;
 no outgoing relation, helper execution or arithmetic result is assumed.
-The remaining canonical table bridge must relate the checked odd-table and
-global-Z traversals to the fixed `scalarTable5`/`pass1_8`/`pass2_8` tree. Do not
-assume raw ratio equality or replace it with group scalar arithmetic. The new
-projection bridge alone is not a public extended-addition equivalence or a
-whole multiplication-jet theorem. To check this dependency closure, use the
+`jet_secp_scalar_table_literal` ports the fixed `scalarTable5`, `pass1_*` and
+`pass2_*` routing, preserving its balanced ratio tree and raw literal ratios.
+Its first-pass denotation exposes exactly seven extended additions, with
+parametricity proofs for all three first-pass programs.
+`jet_secp_odd_table_literal_walk.odd_table_walk_literal` couples the actual C
+limb recurrence to those literal additions. Each intermediate bound is derived
+from a checked C iteration on the current memory, not supplied as a trace-wide
+premise. Initial residue/flag and initialized-prefix relations are preserved.
+`jet_secp_odd_table_pass1_bridge.exec_odd_table_pass1_eight` combines that result
+with the complete original ascending loop: actual stored entries, their bounds,
+accumulator, final index, owners, old permissions, frame and readonly globals,
+plus equality of the decoded C array's balanced tree to the normalized field
+encoding of `pass1_8`, including its final Z value. Generic tree-map/congruence
+lemmas keep arithmetic opaque; point-pair reconstruction and the final Z
+projection are explicit, so proof checking need not evaluate the field program.
+Still establish the initial literal relations through the real odd-table
+initialization, prove normalization is invisible to the `pass2_*` consumers,
+relate the checked descending global-Z traversal to `pass2_8`, and finish the
+full `scalarTable5` and enclosing multiplication jet. Do not assume raw ratio
+equality or replace that fixed tree with group scalar arithmetic. The first-
+pass representation theorem is not a public extended-addition equivalence or
+a whole multiplication-jet theorem. To check this dependency closure, use the
 same scoped build/kernel commands below with
-`C/jet_secp_mixed_ratio_slice_literal.vo` / `C.jet_secp_mixed_ratio_slice_literal`.
+`C/jet_secp_odd_table_pass1_bridge.vo` / `C.jet_secp_odd_table_pass1_bridge`.
 These internal results do not add public coverage.
 Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
 Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
