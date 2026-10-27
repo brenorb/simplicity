@@ -56,14 +56,16 @@ The remaining work includes:
 - libc implementation proofs where a contract assumes `memcpy_model`;
 - raw transaction/taproot projections for cached Bitcoin environment fields.
 
-## Current inversion dependency (no additional jet coverage)
+## Current inversion results (conditional on the CTZ model)
 
 The original field/scalar inverse batches, terminating outer loops and complete
 inverse helper callers are now composed. Full initialized public contracts
 and actual-program-initialization execution witnesses are checked for
-`fe_invert`, `scalar_invert`, `gej_normalize` and `gej_y_is_odd`. They retain the
-original CTZ call behavior as an explicit, deferred theorem parameter; none is
-an accepted coverage row yet. Reuse these callers and the shared field/scalar
+`fe_invert`, `scalar_invert`, `gej_normalize` and `gej_y_is_odd`. Together with
+`swu`, these are registered through `jet_secp_ctz_jets`, which derives the
+original CTZ helper execution from the explicit `ctz_model` premise. They are
+conditional coverage entries, not proofs of the actual builtin implementation.
+Reuse these callers and the shared field/scalar
 lemmas rather than rebuilding the conversion, loop or return proofs.
 Current statements, remaining boundaries and reproducible commands are in
 [JET_SECP_EXTERNAL_MISMATCHES.md](JET_SECP_EXTERNAL_MISMATCHES.md).
@@ -80,9 +82,9 @@ implementation. The current frozen `jets_secp.v` wrapper instead selects
 `__builtin_ctzl`; `jet_secp_ctz_external_call` exhibits that exact boundary.
 The old theorem is useful proof structure and arithmetic evidence, but does
 not discharge that external call for the current program. Do not regenerate
-the AST or replace the helper to import the old result. The remaining task
-for these inverse callers is the deferred helper behavior, not a new proof
-of modular-inverse mathematics.
+the AST or replace the helper to import the old result. Concrete builtin
+semantics/linkage remains outside these conditional contracts; their
+modular-inverse mathematics and public caller compositions are already proved.
 
 ### Historical normalization-only milestone (superseded)
 
@@ -100,14 +102,12 @@ match the C helper's stated limb/value bounds; the public inverse loop must
 derive them, not assume them of arbitrary Word256 inputs. The numeric bridge
 lemmas are closed; the call retains six inherited assumptions and no libc model.
 
-The next missing implication remains execution and numeric invariants of the
-actual modular-inverse batch/loop, including derivation of those normalization
-bounds and connection to the existing literal inverse bridge. The ctz
-external-call boundary is still open; proving an internal normalizer does not
-discharge it or establish the complete `fe_invert` jet. See
+The historical batch/loop implication and its normalization bounds are now
+discharged by the complete conditional callers above. The actual builtin
+implementation remains unverified; the model does not discharge itself. See
 `JET_SECP_EXTERNAL_MISMATCHES.md` for precise results and reproduction commands.
 
-## Completion constraints on the remaining nineteen jets and one proved divergence
+## Completion constraints on the remaining thirteen jets and one proved divergence
 
 A read-only Astra Medium strategy review, followed by inspection of the
 existing refutation/report, confirms that changing the next jet alone does
@@ -353,11 +353,19 @@ literal state `(b, w)` denotes the signed 129-bit value `w - b*2^128`.
 `scalar_split_lambda` halves can be negative; C then takes wNAF's negation
 branch (`sign = -1` on the magnitude). Native evidence (14 magnitudes): the
 literal digits of `(1, 2^128 - v)` equal C's negated `wnaf(v)` and sum to
-`-v`. The window-15 chain only ever needed `b = 0`. Next: generalize the
-odd/even step lemmas to the signed state value (or prove literal digits of
-`-x` are the negation of those of `x`), then port `{skip, tail, loop,
-prepare}` for window 5, including C's `sign = -1` stores, and a 129/5
-function wrapper using `exec_wnaf_memset`.
+`-v`. The window-15 chain only ever needed `b = 0`.
+`jet_secp_wnaf_literal_signed` now integrates the general signed-subtraction
+proof. `jet_secp_wnaf5_signed.literal_wnaf5_odd_signed` and
+`literal_wnaf5_even_signed` prove the exact literal transitions for either
+sign, deriving the next signed value `(q-digit)/2` and the odd digit
+`wnaf_digit (q mod 32) 5`. The subtraction range is derived from the initial
+state and nibble bounds, not added as a caller premise.
+`literal_wnaf5_digit_negates` proves that odd negative residuals emit the
+negation of the positive-magnitude C digit. These results do not yet execute
+the C negative-sign path or complete a public multiplication jet.
+Next: lift the signed steps through zero runs/full windows, then port
+`{skip, tail, loop, prepare}` for window 5, including C's `sign = -1` stores,
+and a 129/5 function wrapper using `exec_wnaf_memset`.
 
 The next independent multiplication work is the general non-generator path
 used by `off_curve_scale`/`off_curve_linear_combination_1`. Inspect existing
