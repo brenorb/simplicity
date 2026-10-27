@@ -73,7 +73,8 @@ Theorem eval_scalar_table5_calls x y z m br bp bz bo (ax ay az:Ty.tySem (Word 8)
  Mem.load Mint32 mf bp 120=Some (Vint Int.zero) /\
  Mem.range_perm mf br 0 704 Cur Freeable /\ Mem.range_perm mf bp 0 128 Cur Freeable /\
  Mem.range_perm mf bz 0 320 Cur Freeable /\ Mem.range_perm mf bo 0 40 Cur Freeable /\
- keeps_permissions m mf /\ lframe (fun b _=>b<>br /\ b<>bp /\ b<>bz /\ b<>bo) m mf /\ readonly_preserved m mf.
+ keeps_permissions m mf /\ lframe (fun b _=>b<>br /\ b<>bp /\ b<>bz /\ b<>bo) m mf /\ readonly_preserved m mf /\
+ lframe (fun b _=>b<>br /\ b<>bp /\ b<>bz /\ b<>bo) m m1.
 Proof.
  intros Distinct BX BY BZ X Y Z Flag FreeT FreeP FreeR FreeO HX HY HZ Finite;cbv zeta.
  assert (Separate:br<>bp /\ br<>bz /\ br<>bo /\ bp<>bz /\ bp<>bo /\ bz<>bo).
@@ -130,5 +131,7 @@ Proof.
  - split.
    + eapply lframe_trans;[exact Frame1|].
      eapply lframe_implies;[exact Frame2|];intros old pos (NT & NP & NR & NO) _;split;assumption.
-   + eapply preserved_trans;eassumption.
+   + split.
+     * eapply preserved_trans;[exact Readonly1|exact Readonly2].
+     * exact Frame1.
 Qed.

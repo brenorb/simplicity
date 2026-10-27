@@ -5402,8 +5402,28 @@ Reproduce with `JET_TARGETS=C/jet_secp_strauss_bits_max.vo bash
 Coq/build-jets.sh -j1`, its scoped statement/assumption audits and recursive
 `--coqchk` on `C.jet_secp_strauss_bits_max`.
 
-Next compose the point copy and original odd-table call, then the one-point
-preprocessing loop, global-Z call and beta loop. Compose the caller's actual local
+`jet_secp_strauss_table_call.exec_strauss_table_prepare` now derives the
+original point copy, first-point odd-table caller and global-Z caller from
+initial represented finite-point storage and ownership. It executes both
+state pointer loads, the width/count/address expressions, both skipped
+first-point conditional bodies and the no=0-to-1 counter update. It reuses
+the checked actual helper calls and their literal `scalarTable5` bridge,
+returning that exact table/result, bounds (including tight Y), the unchanged
+source point, state pointers, caller permissions, readonly memory, outside
+loads and untouched temporaries. The `eval_scalar_table5_calls` contract is
+strengthened only by exposing its already proved first-call frame; all
+previous premises and conclusions remain. This table component has no extra
+library premise. Its two chunks still need the original preprocessing loop's
+increment/termination controls inserted between them; the standalone
+`strauss_table_prepare` statement is not a whole Strauss body or a public jet.
+Reproduce with `JET_TARGETS=C/jet_secp_strauss_table_call.vo bash
+Coq/build-jets.sh -j1`, scoped audits of this module and
+`C.jet_secp_scalar_table_execution`, then recursive `--coqchk` on
+`C.jet_secp_strauss_table_call`.
+
+Next join scalar preparation to the point-table component, derive the
+nonzero/finite guard and original preprocessing loop controls, then compose
+the checked beta loop. Compose the caller's actual local
 allocations and nonzero/finite guard, the existing literal scalar table and
 signed ordinary/lambda lookups, then the descending loop and public wrapper.
 Derive all helper preconditions there and retain the original zero/infinity
