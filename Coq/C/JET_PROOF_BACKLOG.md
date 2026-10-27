@@ -529,15 +529,22 @@ plus equality of the decoded C array's balanced tree to the normalized field
 encoding of `pass1_8`, including its final Z value. Generic tree-map/congruence
 lemmas keep arithmetic opaque; point-pair reconstruction and the final Z
 projection are explicit, so proof checking need not evaluate the field program.
+`jet_secp_table_field_equiv` proves exact multiplication, square, cube and
+coordinate-scaling congruence for residue-equivalent words, without canonical
+input, on-curve or nonzero-factor restrictions. `jet_secp_scalar_table_pass2`
+lifts these facts through the fixed balanced traversal: `literal_pass2_8_normalize`
+proves normalization of every ratio and coordinate leaves its complete output
+unchanged. `table_pass1_consumed` instantiates that result at the normalized
+tree established by the checked first-pass execution theorem. It is a pure
+consumer bridge, not yet an execution theorem for the descending C loop.
 Still establish the initial literal relations through the real odd-table
-initialization, prove normalization is invisible to the `pass2_*` consumers,
-relate the checked descending global-Z traversal to `pass2_8`, and finish the
+initialization, relate the checked descending global-Z traversal to `pass2_8`, and finish the
 full `scalarTable5` and enclosing multiplication jet. Do not assume raw ratio
 equality or replace that fixed tree with group scalar arithmetic. The first-
 pass representation theorem is not a public extended-addition equivalence or
 a whole multiplication-jet theorem. To check this dependency closure, use the
 same scoped build/kernel commands below with
-`C/jet_secp_odd_table_pass1_bridge.vo` / `C.jet_secp_odd_table_pass1_bridge`.
+`C/jet_secp_scalar_table_pass2.vo` / `C.jet_secp_scalar_table_pass2`.
 These internal results do not add public coverage.
 Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
 Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
