@@ -1,0 +1,87 @@
+### C.jet_secp_wnaf5_input.wnaf5_input_sign_cases
+wnaf5_input_sign_cases
+     : forall sb : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit),
+       or (@eq BinNums.Z (wnaf5_input_sign sb) (BinNums.Zpos BinNums.xH))
+         (@eq BinNums.Z (wnaf5_input_sign sb) (BinNums.Zneg BinNums.xH))
+### C.jet_secp_wnaf5_input.wnaf5_input_magnitude_range
+wnaf5_input_magnitude_range
+     : forall (sb : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))),
+       and (BinInt.Z.le BinNums.Z0 (wnaf5_input_magnitude sb word))
+         (BinInt.Z.lt (wnaf5_input_magnitude sb word)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_wnaf5_input.wnaf5_input_signed_value
+wnaf5_input_signed_value
+     : forall (sb : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z (jet_secp_wnaf_literal_signed.literal_wnaf_signed_value sb word)
+         (BinInt.Z.mul (wnaf5_input_sign sb) (wnaf5_input_magnitude sb word))
+### C.jet_secp_wnaf5_input.wnaf5_input_positive
+wnaf5_input_positive
+     : forall word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))),
+       and
+         (and (BinInt.Z.le BinNums.Z0 (wnaf5_input_scalar (@inl unit unit tt) word))
+            (BinInt.Z.lt (wnaf5_input_scalar (@inl unit unit tt) word)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xI
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+         (@eq BinNums.Z (wnaf5_input_scalar (@inl unit unit tt) word) (wnaf5_input_magnitude (@inl unit unit tt) word))
+### C.jet_secp_wnaf5_input.wnaf5_input_negative
+wnaf5_input_negative
+     : forall word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))),
+       and
+         (and
+            (BinInt.Z.le
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xI
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+               (wnaf5_input_scalar (@inr unit unit tt) word))
+            (BinInt.Z.lt (wnaf5_input_scalar (@inr unit unit tt) word) jet_secp_canonical_scalar.canonical_group_order))
+         (@eq BinNums.Z
+            (BinInt.Z.modulo (BinInt.Z.opp (wnaf5_input_scalar (@inr unit unit tt) word))
+               jet_secp_canonical_scalar.canonical_group_order) (wnaf5_input_magnitude (@inr unit unit tt) word))
+### C.jet_secp_wnaf5_input.wnaf5_input_sign
+wnaf5_input_sign =
+fun sb : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit) =>
+match sb return BinNums.Z with
+| inl _ => BinNums.Zpos BinNums.xH
+| inr _ => BinNums.Zneg BinNums.xH
+end
+     : forall _ : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit), BinNums.Z
+
+Arguments wnaf5_input_sign sb
+### C.jet_secp_wnaf5_input.wnaf5_input_magnitude
+wnaf5_input_magnitude =
+fun (sb : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))) =>
+match sb return BinNums.Z with
+| inl _ => @Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word
+| inr _ =>
+    BinInt.Z.sub
+      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+end
+     : forall (_ : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))),
+       BinNums.Z
+
+Arguments wnaf5_input_magnitude sb word
+### C.jet_secp_wnaf5_input.wnaf5_input_scalar
+wnaf5_input_scalar =
+fun (sb : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))) =>
+match sb return BinNums.Z with
+| inl _ => @Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word
+| inr _ =>
+    BinInt.Z.sub jet_secp_canonical_scalar.canonical_group_order
+      (BinInt.Z.sub
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word))
+end
+     : forall (_ : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))),
+       BinNums.Z
+
+Arguments wnaf5_input_scalar sb word

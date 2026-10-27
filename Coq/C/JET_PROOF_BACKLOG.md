@@ -385,26 +385,33 @@ nonzero index plus one. From initial zero buffer loads, it proves that all
 retaining the final carry, scalar storage, array, length bound, permissions
 and memory frame. Its loop induction derives every intermediate body and
 array relation rather than assuming a trace or final decoding relation.
-Next: derive those initial zero loads through `exec_wnaf_memset`, execute the
-real copy/sign preparation (especially the negative branch), and compose
-129/5 function entry/freeing. The loop-and-return theorem does not yet prove
-that whole function or add a public multiplication-jet entry. Reproduce this
-closure with `JET_TARGETS='C/jet_secp_wnaf5_signed_loop.vo' bash
-Coq/build-jets.sh -j1` and `bash Coq/build-jets.sh --coqchk
--bytecode-compiler yes -silent -o C.jet_secp_wnaf5_signed_loop`.
-For negative preparation, reuse
-`jet_secp_scalar_negate_storage.eval_scalar_negate_numeric_owned` for the
-actual `scalar_negate(&s, &s)` call; derive its owned-region premise from
-the freshly allocated 32-byte scalar and the real copy. That helper allocates
-and frees a uint128 local, so its call can advance `Mem.nextblock`. Do not
-carry the loop's no-allocation memory-effect equation unchanged across this
-preparation: preserve the existing caller blocks/permissions and frame instead.
+`jet_secp_wnaf_function5.eval_wnaf_literal5` now composes the whole original
+129/5 function: entry and allocation, actual `memset` under `memset_model`,
+scalar copy, bit-255 test, either sign branch, every loop iteration, return
+conversion and freeing the private scalar. Its signed input adapters in
+`jet_secp_wnaf5_input` cover every `(Bit, Word128)` state, including `-2^128`,
+and derive both the canonical scalar range and the sign/magnitude relation.
+No intermediate execution, output equality or initialized digit buffer is
+assumed at the whole-function boundary. The result retains the exact literal
+digit vector, output ownership, input scalar, old permissions, outside-output
+frame and readonly memory. It is helper progress, not new public coverage
+(still 520/533). Reproduce the closure with
+`JET_TARGETS='C/jet_secp_wnaf_function5.vo' bash Coq/build-jets.sh -j1` and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_wnaf_function5`.
+The negative preparation reuses the checked original in-place scalar-negation
+call with ownership derived from the real copy. That call allocates and frees
+a uint128 local, so the whole function deliberately makes no unchanged
+`Mem.nextblock` claim. Existing caller permissions and framing are preserved.
+Next: connect the actual split-lambda scalar outputs to these signed input
+adapters, then compose the point table and Strauss loop with the literal
+scalar-multiplication program.
 
 The next independent multiplication work is the general non-generator path
 used by `off_curve_scale`/`off_curve_linear_combination_1`. Inspect existing
 candidate endpoints and claim its scope before adding proofs; reuse the
 generator and shared point arithmetic where applicable. The external memset
-boundary remains deferred and must stay explicit.
+model remains explicit; its linked implementation has not been proved.
 
 The non-generator table calls `gej_double_var(&d, a, NULL)` with distinct
 source and destination. The earlier whole doubling proofs were in-place and

@@ -1,0 +1,100 @@
+### C.jet_secp_wnaf_negative_prepare.wnaf_scalar_negate_closed
+wnaf_scalar_negate_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_closed_helpers.secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_scalar_negate)) true
+### C.jet_secp_wnaf_negative_prepare.eval_wnaf_scalar_negate
+eval_wnaf_scalar_negate
+     : forall (n : BinNums.Z) (m : Memory.Mem.mem) (bs : Values.block)
+         (_ : and (BinInt.Z.le BinNums.Z0 n) (BinInt.Z.lt n jet_secp_canonical_scalar.canonical_group_order))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n)))
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_negate)
+               (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_secp_scalar_get_b32_storage.scalar_at mf bs BinNums.Z0
+                  (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                     (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                        (BinInt.Z.modulo (BinInt.Z.opp n) jet_secp_canonical_scalar.canonical_group_order))))
+               (and
+                  (Memory.Mem.range_perm mf bs BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and
+                     (jet_sx_mem.lframe (fun (old : Values.block) (_ : BinNums.Z) => not (@eq Values.block old bs)) m
+                        mf)
+                     (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                        (jet_clight_internal_preserve.readonly_preserved m mf))))))
+### C.jet_secp_wnaf_negative_prepare.wnaf_negative_source
+wnaf_negative_source
+     : @eq Clight.statement jet_secp_wnaf_prepare.wnaf_negative_branch
+         (Clight.Ssequence
+            (jet_secp_curve_statements.curve_call jets_secp._secp256k1_scalar_negate
+               jets_secp.f_secp256k1_scalar_negate (@None AST.ident)
+               (@cons Clight.expr wnaf_scalar_local (@cons Clight.expr wnaf_scalar_local (@nil Clight.expr))))
+            (Clight.Sset jets_secp._sign
+               (Clight.Eunop Cop.Oneg (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint)))
+### C.jet_secp_wnaf_negative_prepare.exec_wnaf_sign_large
+exec_wnaf_sign_large
+     : forall (le : Clight.temp_env) (m : Memory.Mem.mem) (n : BinNums.Z) (bs : Values.block)
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                   n) (BinInt.Z.lt n jet_secp_canonical_scalar.canonical_group_order))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n)))
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_wnaf_digit.wnaf_env bs) le m
+               jet_secp_wnaf_prepare.wnaf_sign_select Events.E0 (wnaf_negative_temps le) mf ClightBigstep.Out_normal)
+            (and
+               (jet_secp_scalar_get_b32_storage.scalar_at mf bs BinNums.Z0
+                  (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                     (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                        (BinInt.Z.modulo (BinInt.Z.opp n) jet_secp_canonical_scalar.canonical_group_order))))
+               (and
+                  (Memory.Mem.range_perm mf bs BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and
+                     (jet_sx_mem.lframe (fun (old : Values.block) (_ : BinNums.Z) => not (@eq Values.block old bs)) m
+                        mf)
+                     (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                        (jet_clight_internal_preserve.readonly_preserved m mf))))))
+### C.jet_secp_wnaf_negative_prepare.wnaf_negative_fields
+wnaf_negative_fields
+     : forall (le : Maps.PTree.tree Values.val) (bit len w carry sign : BinNums.Z) (b : Values.block)
+         (base last : BinNums.Z) (_ : jet_secp_wnaf_control.wnaf_loop_fields le bit len w carry sign b base last),
+       jet_secp_wnaf_control.wnaf_loop_fields (wnaf_negative_temps le) bit len w carry (BinNums.Zneg BinNums.xH) b base
+         last
+### C.jet_secp_wnaf_negative_prepare.wnaf_negative_temps
+wnaf_negative_temps =
+fun le : Maps.PTree.tree Values.val =>
+@Maps.PTree.set Values.val jets_secp._sign (Values.Vint (Integers.Int.repr (BinNums.Zneg BinNums.xH)))
+  (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint Integers.Int.one) le)
+     : forall _ : Maps.PTree.tree Values.val, Maps.PTree.tree Values.val
+
+Arguments wnaf_negative_temps le
+### C.jet_secp_wnaf_negative_prepare.wnaf_scalar_local
+wnaf_scalar_local =
+Clight.Eaddrof (Clight.Evar jets_secp._s (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))
+  (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))
+     : Clight.expr
