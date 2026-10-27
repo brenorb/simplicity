@@ -1,0 +1,311 @@
+### C.jet_secp_beta_loop_control.beta_aux_iteration_source
+beta_aux_iteration_source
+     : @eq Clight.statement beta_aux_iteration
+         (Clight.Ssequence
+            (Clight.Sset jets_secp._t'30
+               (jet_secp_generator_globalz_call.generator_state_pointer jets_secp._aux
+                  jet_secp_curve_statements.curve_fe_type))
+            (Clight.Ssequence
+               (Clight.Sset jets_secp._t'31
+                  (jet_secp_generator_globalz_call.generator_state_pointer jets_secp._pre_a
+                     jet_secp_curve_statements.curve_ge_type)) beta_aux_call))
+### C.jet_secp_beta_loop_control.beta_aux_inner_source
+beta_aux_inner_source
+     : @eq Clight.statement beta_aux_inner
+         (Clight.Sloop
+            (Clight.Ssequence (Clight.Sifthenelse beta_aux_guard Clight.Sskip Clight.Sbreak) beta_aux_iteration)
+            beta_aux_step)
+### C.jet_secp_beta_loop_control.beta_aux_body_source
+beta_aux_body_source
+     : @eq Clight.statement jet_secp_generator_globalz_call.generator_auxiliary_body
+         (Clight.Ssequence (Clight.Sset jets_secp._i (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint))
+            beta_aux_inner)
+### C.jet_secp_beta_loop_control.eval_beta_aux_width
+eval_beta_aux_width
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m beta_aux_width
+         (Values.Vlong (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_secp_beta_loop_control.eval_beta_aux_index
+eval_beta_aux_index
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m beta_aux_index (Values.Vlong (Integers.Int64.repr i))
+### C.jet_secp_beta_loop_control.eval_beta_aux_out
+eval_beta_aux_out
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bx : Values.block)
+         (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'30 le)
+                (@Some Values.val (Values.Vptr bx Integers.Ptrofs.zero))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m beta_aux_out
+         (Values.Vptr bx
+            (Integers.Ptrofs.repr
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  i)))
+### C.jet_secp_beta_loop_control.eval_beta_aux_table
+eval_beta_aux_table
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bt : Values.block)
+         (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'31 le)
+                (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m beta_aux_table
+         (Values.Vptr bt
+            (Integers.Ptrofs.repr
+               (BinInt.Z.mul
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))) i)))
+### C.jet_secp_beta_loop_control.eval_beta_aux_in
+eval_beta_aux_in
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bt : Values.block)
+         (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'31 le)
+                (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m beta_aux_in
+         (Values.Vptr bt
+            (Integers.Ptrofs.repr
+               (BinInt.Z.mul
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))) i)))
+### C.jet_secp_beta_loop_control.eval_beta_aux_constant
+eval_beta_aux_constant
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_const_beta e)
+                (@None (prod Values.block Ctypes.type))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m beta_aux_constant
+         (Values.Vptr jet_secp_beta_global.beta_block Integers.Ptrofs.zero)
+### C.jet_secp_beta_loop_control.eval_beta_aux_guard
+eval_beta_aux_guard
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m beta_aux_guard
+         (Values.Vint
+            match
+              BinInt.Z.ltb i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) return Integers.Int.int
+            with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+### C.jet_secp_beta_loop_control.exec_beta_aux_step
+exec_beta_aux_step
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m beta_aux_step Events.E0
+         (@Maps.PTree.set Values.val jets_secp._i
+            (Values.Vint (Integers.Int.repr (BinInt.Z.add i (BinNums.Zpos BinNums.xH)))) le) m ClightBigstep.Out_normal
+### C.jet_secp_beta_loop_control.beta_aux_temps_other
+beta_aux_temps_other
+     : forall (le : Clight.temp_env) (bx bt : Values.block) (id : AST.ident)
+         (_ : not (@eq AST.ident id jets_secp._t'30)) (_ : not (@eq AST.ident id jets_secp._t'31)),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (beta_aux_temps le bx bt))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_beta_loop_control.beta_aux_outer_source
+beta_aux_outer_source
+     : @eq Clight.statement beta_aux_outer
+         (Clight.Sloop
+            (Clight.Ssequence (Clight.Sifthenelse beta_aux_outer_guard Clight.Sskip Clight.Sbreak)
+               jet_secp_generator_globalz_call.generator_auxiliary_body) beta_aux_outer_step)
+### C.jet_secp_beta_loop_control.beta_aux_statement_source
+beta_aux_statement_source
+     : @eq Clight.statement jet_secp_generator_globalz_call.generator_auxiliary_statement
+         (Clight.Ssequence
+            (Clight.Sset jets_secp._np
+               (Clight.Ecast (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tulong)) beta_aux_outer)
+### C.jet_secp_beta_loop_control.eval_beta_aux_outer_guard
+eval_beta_aux_outer_guard
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (done : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val
+                   (Values.Vlong
+                      match done return Integers.Int64.int with
+                      | true => Integers.Int64.one
+                      | false => Integers.Int64.zero
+                      end)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._no le)
+                (@Some Values.val (Values.Vlong Integers.Int64.one))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m beta_aux_outer_guard
+         (Values.Vint
+            match done return Integers.Int.int with
+            | true => Integers.Int.zero
+            | false => Integers.Int.one
+            end)
+### C.jet_secp_beta_loop_control.exec_beta_aux_outer_step
+exec_beta_aux_outer_step
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m beta_aux_outer_step Events.E0
+         (@Maps.PTree.set Values.val jets_secp._np (Values.Vlong Integers.Int64.one) le) m ClightBigstep.Out_normal
+### C.jet_secp_beta_loop_control.beta_aux_width
+beta_aux_width =
+Clight.Ebinop Cop.Oshl (Clight.Econst_long Integers.Int64.one Ctypesdefs.tlong)
+  (Clight.Ebinop Cop.Osub
+     (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))) Ctypesdefs.tint)
+     (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))) Ctypesdefs.tint) Ctypesdefs.tint)
+  Ctypesdefs.tlong
+     : Clight.expr
+### C.jet_secp_beta_loop_control.beta_aux_index
+beta_aux_index =
+Clight.Ebinop Cop.Oadd
+  (Clight.Ebinop Cop.Omul (Clight.Etempvar jets_secp._np Ctypesdefs.tulong) beta_aux_width Ctypesdefs.tulong)
+  (Clight.Etempvar jets_secp._i Ctypesdefs.tint) Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_secp_beta_loop_control.beta_aux_out
+beta_aux_out =
+Clight.Ebinop Cop.Oadd (Clight.Etempvar jets_secp._t'30 (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type))
+  beta_aux_index (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type)
+     : Clight.expr
+### C.jet_secp_beta_loop_control.beta_aux_table
+beta_aux_table =
+Clight.Ebinop Cop.Oadd (Clight.Etempvar jets_secp._t'31 (Ctypesdefs.tptr jet_secp_curve_statements.curve_ge_type))
+  beta_aux_index (Ctypesdefs.tptr jet_secp_curve_statements.curve_ge_type)
+     : Clight.expr
+### C.jet_secp_beta_loop_control.beta_aux_in
+beta_aux_in =
+Clight.Eaddrof
+  (Clight.Efield (Clight.Ederef beta_aux_table jet_secp_curve_statements.curve_ge_type) jets_secp._x
+     jet_secp_curve_statements.curve_fe_type) (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type)
+     : Clight.expr
+### C.jet_secp_beta_loop_control.beta_aux_constant
+beta_aux_constant =
+Clight.Eaddrof (Clight.Evar jets_secp._secp256k1_const_beta jet_secp_curve_statements.curve_fe_type)
+  (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type)
+     : Clight.expr
+### C.jet_secp_beta_loop_control.beta_aux_call
+beta_aux_call =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_mul jets_secp.f_secp256k1_fe_mul
+  (@None AST.ident)
+  (@cons Clight.expr beta_aux_out
+     (@cons Clight.expr beta_aux_in (@cons Clight.expr beta_aux_constant (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_secp_beta_loop_control.beta_aux_inner
+beta_aux_inner =
+match jet_secp_generator_globalz_call.generator_auxiliary_body return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s => s
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_beta_loop_control.beta_aux_iteration
+beta_aux_iteration =
+match beta_aux_inner return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ _ => Clight.Sskip
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop s0 _ =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s => s
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_beta_loop_control.beta_aux_guard
+beta_aux_guard =
+Clight.Ebinop Cop.Olt (Clight.Etempvar jets_secp._i Ctypesdefs.tint) beta_aux_width Ctypesdefs.tint
+     : Clight.expr
+### C.jet_secp_beta_loop_control.beta_aux_step
+beta_aux_step =
+Clight.Sset jets_secp._i
+  (Clight.Ebinop Cop.Oadd (Clight.Etempvar jets_secp._i Ctypesdefs.tint)
+     (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint)
+     : Clight.statement
+### C.jet_secp_beta_loop_control.beta_aux_temps
+beta_aux_temps =
+fun (le : Clight.temp_env) (bx bt : Values.block) =>
+@Maps.PTree.set Values.val jets_secp._t'31 (Values.Vptr bt Integers.Ptrofs.zero)
+  (@Maps.PTree.set Values.val jets_secp._t'30 (Values.Vptr bx Integers.Ptrofs.zero) le)
+     : forall (_ : Clight.temp_env) (_ : Values.block) (_ : Values.block), Maps.PTree.tree Values.val
+
+Arguments beta_aux_temps le bx bt
+### C.jet_secp_beta_loop_control.beta_aux_outer
+beta_aux_outer =
+match jet_secp_generator_globalz_call.generator_auxiliary_statement return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s => s
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_beta_loop_control.beta_aux_outer_guard
+beta_aux_outer_guard =
+Clight.Ebinop Cop.Olt (Clight.Etempvar jets_secp._np Ctypesdefs.tulong)
+  (Clight.Etempvar jets_secp._no Ctypesdefs.tulong) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_secp_beta_loop_control.beta_aux_outer_step
+beta_aux_outer_step =
+Clight.Sset jets_secp._np
+  (Clight.Ebinop Cop.Oadd (Clight.Etempvar jets_secp._np Ctypesdefs.tulong)
+     (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tulong)
+     : Clight.statement

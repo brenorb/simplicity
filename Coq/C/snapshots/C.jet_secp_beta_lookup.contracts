@@ -1,0 +1,149 @@
+### C.jet_secp_beta_lookup.exec_beta_array_then_lookup
+exec_beta_array_then_lookup
+     : forall (nib : Ty.tySem (Word.Word (S (S O)))) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (xs ys : forall (_ : nat) (_ : nat), Integers.Int64.int)
+         (m : Memory.Mem.mem) (bs bt bx bd : Values.block) (_ : not (@eq Values.block bs bt))
+         (_ : not (@eq Values.block bs bx)) (_ : not (@eq Values.block bs jet_secp_beta_global.beta_block))
+         (_ : not (@eq Values.block bt bx)) (_ : not (@eq Values.block bt jet_secp_beta_global.beta_block))
+         (_ : not (@eq Values.block bx jet_secp_beta_global.beta_block)) (_ : not (@eq Values.block bd bs))
+         (_ : not (@eq Values.block bd bt)) (_ : not (@eq Values.block bd bx))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_mul e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_const_beta e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._state le)
+                (@Some Values.val (Values.Vptr bs Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._no le)
+                (@Some Values.val (Values.Vlong Integers.Int64.one)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m bs BinNums.Z0)
+                (@Some Values.val (Values.Vptr bx Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mptr m bs (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero)))
+         (_ : jet_secp_globalz_loop.globalz_table_rep m bt xs ys)
+         (_ : forall (k : nat) (_ : lt k (S (S (S (S (S (S (S (S O))))))))),
+              jet_secp_square_columns.square_input_bounds (xs k))
+         (_ : forall (k : nat) (_ : lt k (S (S (S (S (S (S (S (S O))))))))),
+              jet_secp_field_mul_small.mul_small_input_bounds (ys k))
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bt BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bx BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bd BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable) (_ : jet_secp_beta_global.beta_initialized m),
+       let j : nat := BinInt.Z.to_nat (jet_secp_lookup5_literal.lookup5_index nib) in
+       let outy : forall _ : nat, Integers.Int64.int :=
+         match jet_secp_lookup5_literal.lookup5_negative nib return (forall _ : nat, Integers.Int64.int) with
+         | true => jet_secp_field_negate_separate.negate_sep_words (ys j)
+         | false => ys j
+         end in
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun m1 : Memory.Mem.mem =>
+             @ex Memory.Mem.mem
+               (fun mf : Memory.Mem.mem =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                     jet_secp_generator_globalz_call.generator_auxiliary_statement Events.E0 lef m1
+                     ClightBigstep.Out_normal)
+                  (and
+                     (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m1
+                        (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ecmult_table_get_ge_lambda)
+                        (@cons Values.val (Values.Vptr bd Integers.Ptrofs.zero)
+                           (@cons Values.val (Values.Vptr bt Integers.Ptrofs.zero)
+                              (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                                 (@cons Values.val
+                                    (Values.Vint (Integers.Int.repr (jet_secp_lookup5_literal.lookup5_digit nib)))
+                                    (@cons Values.val
+                                       (Values.Vint
+                                          (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+                                       (@nil Values.val)))))) Events.E0 mf Values.Vundef)
+                     (and
+                        (jet_secp_fe_nv.fe_at mf bd BinNums.Z0
+                           (jet_secp_multiply_normalize_bridge.words5 (jet_secp_beta_loop.beta_aux_values xs j)))
+                        (and
+                           (jet_secp_fe_nv.fe_at mf bd
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                              (jet_secp_multiply_normalize_bridge.words5 outy))
+                           (and
+                              (@eq
+                                 (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                    (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                                 (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                    (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                    (jet_secp_rescale_literal.rescale_field_output
+                                       (jet_secp_beta_loop.beta_aux_values xs j))
+                                    (jet_secp_rescale_literal.rescale_field_output outy))
+                                 (@jet_secp_table_get_lambda_literal.literal_ge_scale_lambda Alg.CoreFunSem
+                                    (@jet_secp_lookup5_literal.literal_lookup5 Alg.CoreFunSem
+                                       (@pair (Ty.tySem (Word.Word (S (S O))))
+                                          (Ty.tySem (jet_secp_scalar_table_literal.literal_table_vector (S (S (S O)))))
+                                          nib
+                                          (jet_secp_globalz_pass2.globalz_word_vector
+                                             (jet_secp_globalz_word_walk.globalz_decoded_points xs ys))))))
+                              (and
+                                 (jet_secp_square_columns.square_input_bounds (jet_secp_beta_loop.beta_aux_values xs j))
+                                 (and (jet_secp_square_columns.square_input_bounds outy)
+                                    (and
+                                       (@eq (option Values.val)
+                                          (Memory.Mem.load AST.Mint32 mf bd
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                                          (@Some Values.val (Values.Vint Integers.Int.zero)))
+                                       (and (jet_secp_globalz_loop.globalz_table_rep mf bt xs ys)
+                                          (and
+                                             (jet_secp_beta_loop_step.beta_aux_prefix mf bx xs
+                                                (S (S (S (S (S (S (S ...))))))))
+                                             (and
+                                                (@eq (option Values.val) (Memory.Mem.load AST.Mptr mf bs BinNums.Z0)
+                                                   (@Some Values.val (Values.Vptr bx Integers.Ptrofs.zero)))
+                                                (and
+                                                   (@eq (option Values.val)
+                                                      (Memory.Mem.load AST.Mptr mf bs
+                                                         (BinNums.Zpos
+                                                            (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                                      (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero)))
+                                                   (and
+                                                      (Memory.Mem.range_perm mf bs BinNums.Z0
+                                                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...))))
+                                                         Memtype.Cur Memtype.Freeable)
+                                                      (and
+                                                         (Memory.Mem.range_perm mf bt BinNums.Z0
+                                                            (BinNums.Zpos (BinNums.xO (BinNums.xO ...))) Memtype.Cur
+                                                            Memtype.Freeable)
+                                                         (and
+                                                            (Memory.Mem.range_perm mf bx BinNums.Z0
+                                                               (BinNums.Zpos (BinNums.xO ...)) Memtype.Cur
+                                                               Memtype.Freeable)
+                                                            (and
+                                                               (Memory.Mem.range_perm mf bd BinNums.Z0
+                                                                  (BinNums.Zpos ...) Memtype.Cur Memtype.Freeable)
+                                                               (and (jet_secp_beta_global.beta_initialized mf)
+                                                                  (and ... ...))))))))))))))))))))
+### C.jet_secp_beta_lookup.beta_lookup_frame
+beta_lookup_frame =
+fun (bt bx bd b : Values.block) (_ : BinNums.Z) =>
+and (not (@eq Values.block b bx))
+  (and (not (@eq Values.block b bt))
+     (and (not (@eq Values.block b jet_secp_beta_global.beta_block)) (not (@eq Values.block b bd))))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments beta_lookup_frame bt bx bd b _%Z_scope

@@ -690,11 +690,26 @@ executor and checked u128 log with borrowed RHS metadata; `fm_solves`
 discharges that log inside the beta caller. Reproduce this closure with
 `JET_TARGETS='C/jet_secp_beta_slice.vo' bash Coq/build-jets.sh -j1` and
 `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_beta_slice`.
-Next execute the original nested auxiliary-array loop for the one-point
-caller (`no=1`), deriving all eight products and the lambda lookup's incoming
-array relation. The actual loop is `generator_auxiliary_statement` in
-`jet_secp_generator_globalz_call`; its current empty-case theorem does not
-cover this branch. These internal results add no public jet coverage.
+`jet_secp_beta_loop.exec_beta_auxiliary_one` now executes that original
+nested auxiliary-array loop for the one-point caller (`no=1`): counter
+initialization, eight actual multiplications, inner/outer increments and both exit
+tests. The input X coordinates need only the existing loose bounds. Every
+product's stored words, bounds and `fe_multiply_beta` relation are derived;
+the source table, state pointers, initialized beta global, owners, old
+permissions, readonly memory and unrelated loads are retained. Its suffix
+invariant is `beta_aux_prefix`; the selected input coordinate is preserved
+through each multiply, while the actual frame handles the other table cells.
+`jet_secp_beta_lookup.exec_beta_array_then_lookup` composes this complete
+array construction with the original signed lambda lookup and identifies
+the decoded returned point with `lookupTable5 >>> ge_scale_lambda` on the
+original table. It no longer assumes an initialized beta array, any helper
+execution or the products' desired values. All sixteen signed window-5
+digits are covered. Reproduce this closure using
+`JET_TARGETS='C/jet_secp_beta_lookup.vo' bash Coq/build-jets.sh -j1` and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_beta_lookup`.
+The actual loop is `generator_auxiliary_statement` in
+`jet_secp_generator_globalz_call`; the older empty-case theorem covers the
+separate `no=0` branch. These internal results add no public jet coverage.
 Next compose these calls into the actual Strauss caller, including its scalar
 split, signed digit buffers and table consumers. Do not assume raw ratio
 equality or replace the fixed program with group scalar arithmetic. The table
