@@ -649,6 +649,25 @@ as required by `ecmult_table_get_ge`'s actual `fe_negate(..., 1)` call.
 normalization and the other seven product outputs, rather than assuming them
 at the consumer boundary. Reuse `globalz_multiply_commutes` for the final Z
 product's reversed argument order.
+`jet_secp_table_get_literal.eval_table_get_lookup5` now executes the whole
+original `ecmult_table_get_ge` function for every signed window-5 digit and
+proves its decoded point equals the fixed `lookupTable5` combinator port in
+`jet_secp_lookup5_literal`. All sixteen nibble cases retain the exact source
+bit routing; the operational proof derives C's signed index, 88-byte struct
+copy and negative branch's actual magnitude-one `fe_negate` call. The affine
+executor is reused at arbitrary table limbs, including weak-normalized Y,
+rather than requiring reader-shaped limbs. The result retains exact stored
+fields, valid output bounds, flag, owners, old permissions, frame and readonly
+preservation. Its table Y premise is supplied by the preceding construction
+theorem above; no helper execution or desired output is assumed. Reproduce
+with `JET_TARGETS='C/jet_secp_table_get_literal.vo' bash Coq/build-jets.sh -j1`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_table_get_literal`. This internal lookup adds no public coverage.
+Next handle `ecmult_table_get_ge_lambda`: reuse the signed index/guard and
+affine-negation proofs, but establish `ge_set_xy` with distinct X-array and
+Y-table sources. Its existing same-source constructor contract is insufficient
+for that actual call. Then connect the original eight beta-X products to the
+literal `ge_scale_lambda` consumer; retain the actual readonly beta constant.
 Next compose these calls into the actual Strauss caller, including its scalar
 split, signed digit buffers and table consumers. Do not assume raw ratio
 equality or replace the fixed program with group scalar arithmetic. The table
@@ -658,6 +677,21 @@ Check this closure with
 `JET_TARGETS='C/jet_secp_scalar_table_execution.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
 C.jet_secp_scalar_table_execution` under the pinned toolchain and stack setting.
+
+For the remaining scalar split-lambda path, reuse
+`eval_scalar_mul512_borrowed_product`; the full 512-bit product is already
+proved. The next missing C executions are `scalar_cadd_bit(r, 0, flag)` and
+`scalar_mul_shift_var(..., 384)`, which must produce
+`floor(P/2^384)+bit383(P)` with actual storage, allocation/free and framing.
+The composition also needs distinct-destination adapters for scalar add and
+borrowed-RHS scalar multiply; in-place contracts cannot establish those calls.
+Reuse the existing owned in-place add, borrowed in-place multiply, scalar
+negation and initialized-lambda region proofs where their pointers match.
+Before connecting the literal split, formally prove both rounded coefficients
+fit Word128, the lattice identities and signed-half bounds. These obligations
+are still open: source inspection or integer calculations are not formal
+proofs. The final representation must be the exact `wnaf5_input_scalar` of
+each signed literal half, rather than only a group-order congruence.
 Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
 Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
 Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o

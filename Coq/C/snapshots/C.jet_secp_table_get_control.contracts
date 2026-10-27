@@ -1,0 +1,166 @@
+### C.jet_secp_table_get_control.table_get_magnitude_type
+table_get_magnitude_type
+     : forall negative : bool, @eq Ctypes.type (Clight.typeof (table_get_magnitude negative)) Ctypesdefs.tint
+### C.jet_secp_table_get_control.table_get_body_source
+table_get_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_ecmult_table_get_ge)
+         (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+            (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+               (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak) table_get_choice)))
+### C.jet_secp_table_get_control.table_get_entry
+table_get_entry
+     : forall (m : Memory.Mem.mem) (bd bt : Values.block) (negative : bool) (j : BinNums.Z),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_ecmult_table_get_ge
+         (@cons Values.val (Values.Vptr bd Integers.Ptrofs.zero)
+            (@cons Values.val (Values.Vptr bt Integers.Ptrofs.zero)
+               (@cons Values.val (Values.Vint (Integers.Int.repr (table_get_digit negative j)))
+                  (@cons Values.val
+                     (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+                     (@nil Values.val))))) m Clight.empty_env (table_get_temps bd bt negative j) m
+### C.jet_secp_table_get_control.eval_table_get_magnitude
+eval_table_get_magnitude
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (negative : bool)
+         (j : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (table_get_digit negative j))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (table_get_magnitude negative)
+         (Values.Vint
+            (Integers.Int.repr
+               (BinInt.Z.add (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) j) (BinNums.Zpos BinNums.xH))))
+### C.jet_secp_table_get_control.table_get_index_machine
+table_get_index_machine
+     : forall (j : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 j)
+                (BinInt.Z.lt j (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))),
+       and
+         (@eq Integers.Int.int
+            (Integers.Int.sub
+               (Integers.Int.repr
+                  (BinInt.Z.add (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) j) (BinNums.Zpos BinNums.xH)))
+               Integers.Int.one) (Integers.Int.repr (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) j)))
+         (@eq Integers.Int.int
+            (Integers.Int.divs (Integers.Int.repr (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) j))
+               (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH)))) (Integers.Int.repr j))
+### C.jet_secp_table_get_control.eval_table_get_index
+eval_table_get_index
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (negative : bool)
+         (j : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 j)
+                (BinInt.Z.lt j (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (table_get_digit negative j))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (table_get_index negative) (Values.Vint (Integers.Int.repr j))
+### C.jet_secp_table_get_control.eval_table_get_address
+eval_table_get_address
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bt : Values.block)
+         (negative : bool) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 j)
+                (BinInt.Z.lt j (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._pre le)
+                (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (table_get_digit negative j))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (table_get_address negative)
+         (Values.Vptr bt
+            (Integers.Ptrofs.repr
+               (BinInt.Z.mul
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))) j)))
+### C.jet_secp_table_get_control.eval_table_get_guard
+eval_table_get_guard
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (negative : bool)
+         (j : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 j)
+                (BinInt.Z.lt j (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._n le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (table_get_digit negative j))))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m table_get_guard
+         (Values.Vint
+            match negative return Integers.Int.int with
+            | true => Integers.Int.zero
+            | false => Integers.Int.one
+            end)
+### C.jet_secp_table_get_control.table_get_digit
+table_get_digit =
+fun (negative : bool) (j : BinNums.Z) =>
+match negative return BinNums.Z with
+| true => BinInt.Z.opp (BinInt.Z.add (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) j) (BinNums.Zpos BinNums.xH))
+| false => BinInt.Z.add (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) j) (BinNums.Zpos BinNums.xH)
+end
+     : forall (_ : bool) (_ : BinNums.Z), BinNums.Z
+
+Arguments table_get_digit negative%bool_scope j%Z_scope
+### C.jet_secp_table_get_control.table_get_magnitude
+table_get_magnitude =
+fun negative : bool =>
+match negative return Clight.expr with
+| true => Clight.Eunop Cop.Oneg (Clight.Etempvar jets_secp._n Ctypesdefs.tint) Ctypesdefs.tint
+| false => Clight.Etempvar jets_secp._n Ctypesdefs.tint
+end
+     : forall _ : bool, Clight.expr
+
+Arguments table_get_magnitude negative%bool_scope
+### C.jet_secp_table_get_control.table_get_index
+table_get_index =
+fun negative : bool =>
+Clight.Ebinop Cop.Odiv
+  (Clight.Ebinop Cop.Osub (table_get_magnitude negative) (Clight.Econst_int Integers.Int.one Ctypesdefs.tint)
+     Ctypesdefs.tint) (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))) Ctypesdefs.tint)
+  Ctypesdefs.tint
+     : forall _ : bool, Clight.expr
+
+Arguments table_get_index negative%bool_scope
+### C.jet_secp_table_get_control.table_get_address
+table_get_address =
+fun negative : bool =>
+Clight.Ebinop Cop.Oadd (Clight.Etempvar jets_secp._pre (Ctypesdefs.tptr jet_secp_curve_statements.curve_ge_type))
+  (table_get_index negative) (Ctypesdefs.tptr jet_secp_curve_statements.curve_ge_type)
+     : forall _ : bool, Clight.expr
+
+Arguments table_get_address negative%bool_scope
+### C.jet_secp_table_get_control.table_get_source
+table_get_source =
+fun negative : bool => Clight.Ederef (table_get_address negative) jet_secp_curve_statements.curve_ge_type
+     : forall _ : bool, Clight.expr
+
+Arguments table_get_source negative%bool_scope
+### C.jet_secp_table_get_control.table_get_destination
+table_get_destination =
+Clight.Ederef (Clight.Etempvar jets_secp._r (Ctypesdefs.tptr jet_secp_curve_statements.curve_ge_type))
+  jet_secp_curve_statements.curve_ge_type
+     : Clight.expr
+### C.jet_secp_table_get_control.table_get_y_address
+table_get_y_address =
+Clight.Eaddrof (Clight.Efield table_get_destination jets_secp._y jet_secp_curve_statements.curve_fe_type)
+  (Ctypesdefs.tptr jet_secp_curve_statements.curve_fe_type)
+     : Clight.expr
+### C.jet_secp_table_get_control.table_get_guard
+table_get_guard =
+Clight.Ebinop Cop.Ogt (Clight.Etempvar jets_secp._n Ctypesdefs.tint)
+  (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_secp_table_get_control.table_get_negate
+table_get_negate =
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_fe_negate jets_secp.f_secp256k1_fe_negate
+  (@None AST.ident)
+  (@cons Clight.expr table_get_y_address
+     (@cons Clight.expr table_get_y_address
+        (@cons Clight.expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_secp_table_get_control.table_get_choice
+table_get_choice =
+Clight.Sifthenelse table_get_guard (Clight.Sassign table_get_destination (table_get_source false))
+  (Clight.Ssequence (Clight.Sassign table_get_destination (table_get_source true)) table_get_negate)
+     : Clight.statement
+### C.jet_secp_table_get_control.table_get_temps
+table_get_temps =
+fun (bd bt : Values.block) (negative : bool) (j : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_secp._w
+  (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+  (@Maps.PTree.set Values.val jets_secp._n (Values.Vint (Integers.Int.repr (table_get_digit negative j)))
+     (@Maps.PTree.set Values.val jets_secp._pre (Values.Vptr bt Integers.Ptrofs.zero)
+        (@Maps.PTree.set Values.val jets_secp._r (Values.Vptr bd Integers.Ptrofs.zero)
+           (Clight.create_undef_temps (Clight.fn_temps jets_secp.f_secp256k1_ecmult_table_get_ge)))))
+     : forall (_ : Values.block) (_ : Values.block) (_ : bool) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments table_get_temps bd bt negative%bool_scope j%Z_scope
