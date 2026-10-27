@@ -1,0 +1,67 @@
+### C.jet_secp_scalar_mul_separate_support.fresh_product_reduce_rep
+fresh_product_reduce_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (br : Values.block)
+         (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta jet_secp_scalar_mul512_borrowed.scalar_mul512_borrowed_output_regs m)
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable) (_ : not (@eq Values.block br (jet_sx_state.blk beta O))),
+       jet_sx_state.rep (jet_secp_product_reduce_bridge.product_reduce_rho rho)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z br BinNums.Z0)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z (jet_sx_state.blk beta O) BinNums.Z0)
+               (@nil (prod Values.block BinNums.Z)))) jet_secp_reduce512_fresh_runs.reduce512_fresh_initial_regs m
+### C.jet_secp_scalar_mul_separate_support.scalar_mul_separate_entry
+scalar_mul_separate_entry
+     : forall (beta : jet_sx_state.layout) (br : Values.block) (m : Memory.Mem.mem) (ma : Memory.Mem.mem')
+         (bl : Values.block)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block ma bl)),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_scalar_mul
+         (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+            (@cons Values.val (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                  (@nil Values.val)))) m
+         (jet_secp_scalar_mul_caller_body.scalar_mul_caller_env
+            (jet_secp_scalar_mul_caller_alloc.scalar_mul_stack_layout beta bl)) (scalar_mul_separate_temps beta br) ma
+### C.jet_secp_scalar_mul_separate_support.exec_scalar_mul_separate_calls
+exec_scalar_mul_separate_calls
+     : forall (beta : jet_sx_state.layout) (br bl : Values.block) (m mp mf : Memory.Mem.mem)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul_512)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                      (@cons Values.val
+                         (Values.Vptr (jet_sx_state.blk beta (S O))
+                            (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O)))) (@nil Values.val)))) Events.E0 mp
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mp
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_reduce_512)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_scalar_mul_caller_body.scalar_mul_caller_env
+            (jet_secp_scalar_mul_caller_alloc.scalar_mul_stack_layout beta bl)) (scalar_mul_separate_temps beta br) m
+         (Clight.fn_body jets_secp.f_secp256k1_scalar_mul) Events.E0 (scalar_mul_separate_temps beta br) mf
+         ClightBigstep.Out_normal
+### C.jet_secp_scalar_mul_separate_support.scalar_mul_separate_closed
+scalar_mul_separate_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_closed_helpers.secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_scalar_mul)) true
+### C.jet_secp_scalar_mul_separate_support.scalar_mul_separate_temps
+scalar_mul_separate_temps =
+fun (beta : jet_sx_state.layout) (br : Values.block) =>
+@Maps.PTree.set Values.val jets_secp._b
+  (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+  (@Maps.PTree.set Values.val jets_secp._a
+     (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+     (@Maps.PTree.set Values.val jets_secp._r (Values.Vptr br Integers.Ptrofs.zero) (Maps.PTree.empty Values.val)))
+     : forall (_ : jet_sx_state.layout) (_ : Values.block), Maps.PTree.tree Values.val
+
+Arguments scalar_mul_separate_temps beta br

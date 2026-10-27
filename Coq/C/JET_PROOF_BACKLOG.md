@@ -752,9 +752,9 @@ The coefficient-specific strict bounds are established by the following
 rounding-prefix result. Reproduce the generic call with
 `JET_TARGETS='C/jet_secp_scalar_shift384_function.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_shift384_function`.
-The composition also needs a distinct-destination adapter for borrowed-RHS
-scalar multiply; in-place contracts cannot establish that call. The scalar-add
-adapter is now available as described below.
+The distinct-destination adapters for scalar add and borrowed-RHS scalar
+multiply are now available below. Use these for the two calls whose output
+pointers differ from both sources; the old in-place contracts do not match.
 Reuse the existing owned in-place add, borrowed in-place multiply, scalar
 negation and initialized-lambda region proofs where their pointers match.
 `jet_secp_scalar_constant` shares the actual-initializer and readonly transport
@@ -806,10 +806,21 @@ final-reduction arithmetic are reused unchanged. All stages, function entry,
 local allocations and frees are derived. Reproduce with
 `JET_TARGETS='C/jet_secp_reduce512_fresh_function.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_reduce512_fresh_function`.
-The distinct scalar-multiply caller still must compose its existing full
-borrowed-input 512-bit product call with this fresh reduction, then free its
-actual 64-byte product local and preserve the two input scalars. No production
-initialization should be inserted to satisfy the older in-place contract.
+`jet_secp_scalar_mul_separate.eval_scalar_mul_borrowed_separate` now composes
+the complete original scalar-multiply call with a distinct uninitialized
+destination and a readable non-owned second operand. It derives the actual
+64-byte product allocation, full borrowed-input 512-bit multiplication,
+product-to-fresh-reduction representation, original two Scalls, return and
+product free. Both input representations, destination ownership, permissions,
+readonly globals and outside-object framing are retained. Its result is the
+exact product modulo the group order, not a supplied arithmetic output.
+`eval_scalar_mul_separate_values` exposes that call from two actual scalar
+stores for every pair of 256-bit values; only the first operand and destination
+need caller ownership. This matches `r1=r2*lambda` in split-lambda and adds no
+initial destination contents or library-model premise. Reproduce with
+`JET_TARGETS='C/jet_secp_scalar_mul_separate.vo' bash Coq/build-jets.sh -j1`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_mul_separate`.
+These are internal call contracts; public coverage remains 520/533.
 The remaining split-lambda calls, full literal split, lattice identities and
 signed-half bounds are still open. The final representation must be the exact `wnaf5_input_scalar` of
 each signed literal half, rather than only a group-order congruence.
