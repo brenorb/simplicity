@@ -1,0 +1,348 @@
+### C.jet_secp_wnaf5_signed_nonzero.exec_wnaf5_signed_nonzero_body
+exec_wnaf5_signed_nonzero_body
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (n bit carry sign : BinNums.Z)
+         (b : Values.block) (base : BinNums.Z) (bs : Values.block) (last : BinNums.Z)
+         (sb : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.lt n
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 bit)
+                (BinInt.Z.lt bit
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : or (@eq BinNums.Z carry BinNums.Z0) (@eq BinNums.Z carry (BinNums.Zpos BinNums.xH)))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.modulo (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit))
+                      (BinNums.Zpos (BinNums.xO BinNums.xH))) carry))
+         (_ : or (@eq BinNums.Z sign (BinNums.Zpos BinNums.xH)) (@eq BinNums.Z sign (BinNums.Zneg BinNums.xH)))
+         (_ : @eq BinNums.Z (jet_secp_wnaf_literal_signed.literal_wnaf_signed_value sb word)
+                (BinInt.Z.mul sign
+                   (BinInt.Z.add (BinInt.Z.div n (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) bit)) carry)))
+         (_ : jet_secp_wnaf_control.wnaf_loop_fields le bit
+                (BinNums.Zpos
+                   (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))) carry sign b base last)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n))) (_ : not (@eq Values.block b bs))
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.valid_access m AST.Mint32 b
+                (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                Memtype.Writable),
+       let width : BinNums.Z :=
+         BinInt.Z.min (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))
+           (BinInt.Z.sub
+              (BinNums.Zpos
+                 (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+              bit) in
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             @ex (sum unit unit)
+               (fun sb' : sum unit unit =>
+                @ex
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))))
+                  (fun
+                     next : prod
+                              (prod
+                                 (prod
+                                    (prod
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))))
+                                    (prod
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))))
+                                 (prod
+                                    (prod
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))))
+                                    (prod
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))))))
+                              (prod
+                                 (prod
+                                    (prod
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))))
+                                    (prod
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))))
+                                 (prod
+                                    (prod
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))))
+                                    (prod
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))
+                                       (prod
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit)))
+                                          (prod (prod (sum unit unit) (sum unit unit))
+                                             (prod (sum unit unit) (sum unit unit))))))) =>
+                   @ex (Ty.tySem (Word.Word (S (S O))))
+                     (fun nib : Ty.tySem (Word.Word (S (S O))) =>
+                      and
+                        (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_wnaf_digit.wnaf_env bs) le
+                           m jet_secp_wnaf_digit.wnaf_loop_body Events.E0 lef mf ClightBigstep.Out_normal)
+                        (and
+                           (jet_secp_wnaf_control.wnaf_loop_fields lef (BinInt.Z.add bit width)
+                              (BinNums.Zpos
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                              (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))
+                              (jet_secp_wnaf_digit.wnaf_carry (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                 (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))) sign b base bit)
+                           (and
+                              (@eq (option Memory.Mem.mem)
+                                 (Memory.Mem.store AST.Mint32 m b
+                                    (BinInt.Z.add base
+                                       (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit))
+                                    (Values.Vint
+                                       (Integers.Int.repr (jet_secp_wnaf5_literal_next.literal_wnaf5_value nib))))
+                                 (@Some Memory.Mem.mem mf))
+                              (and
+                                 (jet_secp_scalar_get_b32_storage.scalar_at mf bs BinNums.Z0
+                                    (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                                       (jet_secp_scalar_get_b32_numeric.scalar_limbs_of n)))
+                                 (and (jet_secp_wnaf_loop.wnaf_memory_effect b m mf)
+                                    (and
+                                       (@eq
+                                          (prod (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_state)
+                                             (list (Ty.tySem jet_secp_wnaf5_literal.literal_wnaf5_digit)))
+                                          (jet_secp_wnaf5_literal.literal_wnaf5_run (BinInt.Z.to_nat width)
+                                             (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+                                                (Ty.tySem (Word.Word (S (S (S (S (...))))))) sb word))
+                                          (@pair
+                                             (prod (sum unit unit)
+                                                (prod
+                                                   (prod
+                                                      (prod
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...)))))
+                                                      (prod
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))))
+                                                   (prod
+                                                      (prod
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...)))))
+                                                      (prod
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))))))
+                                             (list (sum unit (Ty.tySem (Word.Word (S (S O))))))
+                                             (@pair (sum unit unit)
+                                                (prod
+                                                   (prod
+                                                      (prod
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...)))))
+                                                      (prod
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))))
+                                                   (prod
+                                                      (prod
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...)))))
+                                                      (prod
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))
+                                                         (prod (prod (prod (...) (...)) (prod (...) (...)))
+                                                            (prod (prod (...) (...)) (prod (...) (...))))))) sb' next)
+                                             (@app (sum unit (Ty.tySem (Word.Word (S (S O)))))
+                                                (@List.repeat (sum unit (Ty.tySem (Word.Word (S (S O)))))
+                                                   (@inl unit (Ty.tySem (Word.Word (S (S O)))) tt)
+                                                   (BinInt.Z.to_nat (BinInt.Z.sub width (BinNums.Zpos BinNums.xH))))
+                                                (@cons (sum unit (Ty.tySem (Word.Word (S (S O)))))
+                                                   (@inr unit (Ty.tySem (Word.Word (S (S O)))) nib)
+                                                   (@nil (sum unit (Ty.tySem (Word.Word (S (...))))))))))
+                                       (and
+                                          (@eq BinNums.Z (jet_secp_wnaf5_literal_next.literal_wnaf5_value nib)
+                                             (BinInt.Z.mul sign
+                                                (jet_secp_wnaf_digit.wnaf_digit
+                                                   (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                                   (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                          (and
+                                             (@eq BinNums.Z
+                                                (jet_secp_wnaf_literal_signed.literal_wnaf_signed_value sb' next)
+                                                (BinInt.Z.mul sign
+                                                   (BinInt.Z.add
+                                                      (BinInt.Z.div n
+                                                         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                                            (BinInt.Z.add bit width)))
+                                                      (jet_secp_wnaf_digit.wnaf_carry
+                                                         (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                                         (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                             (and
+                                                (or
+                                                   (@eq BinNums.Z
+                                                      (jet_secp_wnaf_digit.wnaf_carry
+                                                         (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                                         (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))))
+                                                      BinNums.Z0)
+                                                   (@eq BinNums.Z
+                                                      (jet_secp_wnaf_digit.wnaf_carry
+                                                         (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                                         (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))))
+                                                      (BinNums.Zpos BinNums.xH)))
+                                                (and
+                                                   (and
+                                                      (BinInt.Z.lt (BinNums.Zneg (BinNums.xO (BinNums.xO (...))))
+                                                         (jet_secp_wnaf_digit.wnaf_digit
+                                                            (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                                            (BinNums.Zpos (BinNums.xI (...)))))
+                                                      (BinInt.Z.lt
+                                                         (jet_secp_wnaf_digit.wnaf_digit
+                                                            (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                                            (BinNums.Zpos (BinNums.xI (...))))
+                                                         (BinNums.Zpos (BinNums.xO (BinNums.xO (...))))))
+                                                   (@eq BinNums.Z
+                                                      (BinInt.Z.modulo
+                                                         (jet_secp_wnaf_digit.wnaf_digit
+                                                            (jet_secp_wnaf_digit.wnaf_word n bit width carry)
+                                                            (BinNums.Zpos (BinNums.xI (...))))
+                                                         (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                                                      (BinNums.Zpos BinNums.xH))))))))))))))))

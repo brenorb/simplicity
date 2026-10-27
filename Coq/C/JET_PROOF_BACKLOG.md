@@ -371,10 +371,34 @@ the stored literal digit, updated fields/carry, scalar storage and memory
 effect; the skip theorem executes the actual `Out_continue` branch with
 unchanged memory. Their initial signed-residual relation describes the
 incoming state; no outgoing value or intermediate execution is assumed.
-Next: cover the final partial window, then compose the window-5 loop,
-actual sign preparation and 129/5 function wrapper using `exec_wnaf_memset`.
-The full-window/skip results do not yet prove that whole function or add a
-public multiplication-jet entry.
+`jet_secp_wnaf5_signed_tail` covers the final partial window for either sign;
+its quotient bound follows from the initial scalar/cursor bounds. It allows
+magnitudes below `2^129`, including `2^128` when negatively represented.
+`jet_secp_wnaf5_signed_nonzero` composes every actual nonzero C clamp (widths
+1..5), and `jet_secp_wnaf5_signed_array` proves the complete body step while
+preserving the array. C's magnitude digits retain their existing convention;
+their stored signed values equal the literal segment's values.
+`jet_secp_wnaf5_signed_loop.exec_wnaf5_loop_zero_signed` now executes all
+original loop guards/branches, terminates, and returns the actual highest
+nonzero index plus one. From initial zero buffer loads, it proves that all
+129 stored signed digits equal the exact fixed `literal_wnaf5_digits` vector,
+retaining the final carry, scalar storage, array, length bound, permissions
+and memory frame. Its loop induction derives every intermediate body and
+array relation rather than assuming a trace or final decoding relation.
+Next: derive those initial zero loads through `exec_wnaf_memset`, execute the
+real copy/sign preparation (especially the negative branch), and compose
+129/5 function entry/freeing. The loop-and-return theorem does not yet prove
+that whole function or add a public multiplication-jet entry. Reproduce this
+closure with `JET_TARGETS='C/jet_secp_wnaf5_signed_loop.vo' bash
+Coq/build-jets.sh -j1` and `bash Coq/build-jets.sh --coqchk
+-bytecode-compiler yes -silent -o C.jet_secp_wnaf5_signed_loop`.
+For negative preparation, reuse
+`jet_secp_scalar_negate_storage.eval_scalar_negate_numeric_owned` for the
+actual `scalar_negate(&s, &s)` call; derive its owned-region premise from
+the freshly allocated 32-byte scalar and the real copy. That helper allocates
+and frees a uint128 local, so its call can advance `Mem.nextblock`. Do not
+carry the loop's no-allocation memory-effect equation unchanged across this
+preparation: preserve the existing caller blocks/permissions and frame instead.
 
 The next independent multiplication work is the general non-generator path
 used by `off_curve_scale`/`off_curve_linear_combination_1`. Inspect existing
