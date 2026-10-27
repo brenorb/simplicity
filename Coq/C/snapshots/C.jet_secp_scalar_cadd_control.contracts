@@ -1,0 +1,150 @@
+### C.jet_secp_scalar_cadd_control.cadd_selector_source
+cadd_selector_source
+     : forall (j : nat) (_ : lt j (S (S (S (S O))))),
+       @eq Clight.statement (cadd_selector_statement j)
+         (jet_secp_curve_statements.curve_call jets_secp._secp256k1_u128_accum_u64 jets_secp.f_secp256k1_u128_accum_u64
+            (@None AST.ident)
+            (@cons Clight.expr cadd_t_address (@cons Clight.expr (cadd_selector_expr j) (@nil Clight.expr))))
+### C.jet_secp_scalar_cadd_control.cadd_body_source
+cadd_body_source
+     : @eq Clight.statement
+         (jet_secp_statement_prefix.statement_sequence cadd_prefix_spine
+            (Clight.Ssequence (cadd_selector_statement O)
+               (jet_secp_statement_prefix.statement_sequence (cadd_gap_spine O)
+                  (Clight.Ssequence (cadd_selector_statement (S O))
+                     (jet_secp_statement_prefix.statement_sequence (cadd_gap_spine (S O))
+                        (Clight.Ssequence (cadd_selector_statement (S (S O)))
+                           (jet_secp_statement_prefix.statement_sequence (cadd_gap_spine (S (S O)))
+                              (Clight.Ssequence (cadd_selector_statement (S (S (S O)))) cadd_tail))))))))
+         (Clight.fn_body jets_secp.f_secp256k1_scalar_cadd_bit)
+### C.jet_secp_scalar_cadd_control.eval_cadd_t_address
+eval_cadd_t_address
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (bt : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._t e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bt (Ctypes.Tstruct jets_secp._secp256k1_uint128 Ctypes.noattr)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m cadd_t_address (Values.Vptr bt Integers.Ptrofs.zero)
+### C.jet_secp_scalar_cadd_control.eval_cadd_bit_index
+eval_cadd_bit_index
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (flag : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+                (@Some Values.val (Values.Vint (cadd_bit_setting flag)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (Clight.Ebinop Cop.Oshr (Clight.Etempvar jets_secp._bit Ctypesdefs.tuint)
+            (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))) Ctypesdefs.tint)
+            Ctypesdefs.tuint)
+         (Values.Vint
+            (Integers.Int.repr
+               match flag return BinNums.Z with
+               | true => BinNums.Z0
+               | false => BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))
+               end))
+### C.jet_secp_scalar_cadd_control.eval_cadd_bit_offset
+eval_cadd_bit_offset
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (flag : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+                (@Some Values.val (Values.Vint (cadd_bit_setting flag)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m
+         (Clight.Ebinop Cop.Oand (Clight.Etempvar jets_secp._bit Ctypesdefs.tuint)
+            (Clight.Econst_int
+               (Integers.Int.repr
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               Ctypesdefs.tint) Ctypesdefs.tuint) (Values.Vint Integers.Int.zero)
+### C.jet_secp_scalar_cadd_control.eval_cadd_selector_expr
+eval_cadd_selector_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (flag : bool)
+         (j : nat) (_ : lt j (S (S (S (S O)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bit le)
+                (@Some Values.val (Values.Vint (cadd_bit_setting flag)))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (cadd_selector_expr j)
+         (Values.Vlong (cadd_selector_value flag j))
+### C.jet_secp_scalar_cadd_control.cadd_spine
+cadd_spine =
+@fst (list Clight.statement) Clight.statement
+  (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_scalar_cadd_bit))
+     : list Clight.statement
+### C.jet_secp_scalar_cadd_control.cadd_last
+cadd_last =
+@snd (list Clight.statement) Clight.statement
+  (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_scalar_cadd_bit))
+     : Clight.statement
+### C.jet_secp_scalar_cadd_control.cadd_prefix_spine
+cadd_prefix_spine = @List.firstn Clight.statement (S (S (S O))) cadd_spine
+     : list Clight.statement
+### C.jet_secp_scalar_cadd_control.cadd_prefix_statement
+cadd_prefix_statement =
+jet_secp_statement_prefix.statement_sequence cadd_prefix_spine Clight.Sskip
+     : Clight.statement
+### C.jet_secp_scalar_cadd_control.cadd_selector_statement
+cadd_selector_statement =
+fun j : nat => @List.nth Clight.statement (Nat.add (S (S (S O))) (Nat.mul (S (S (S (S O)))) j)) cadd_spine Clight.Sskip
+     : forall _ : nat, Clight.statement
+
+Arguments cadd_selector_statement j%nat_scope
+### C.jet_secp_scalar_cadd_control.cadd_gap_spine
+cadd_gap_spine =
+fun j : nat =>
+@List.firstn Clight.statement (S (S (S O)))
+  (@List.skipn Clight.statement (Nat.add (S (S (S (S O)))) (Nat.mul (S (S (S (S O)))) j)) cadd_spine)
+     : forall _ : nat, list Clight.statement
+
+Arguments cadd_gap_spine j%nat_scope
+### C.jet_secp_scalar_cadd_control.cadd_gap_statement
+cadd_gap_statement =
+fun j : nat => jet_secp_statement_prefix.statement_sequence (cadd_gap_spine j) Clight.Sskip
+     : forall _ : nat, Clight.statement
+
+Arguments cadd_gap_statement j%nat_scope
+### C.jet_secp_scalar_cadd_control.cadd_tail
+cadd_tail =
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))) cadd_spine) cadd_last
+     : Clight.statement
+### C.jet_secp_scalar_cadd_control.cadd_selector_expr
+cadd_selector_expr =
+fun j : nat =>
+Clight.Ebinop Cop.Oshl
+  (Clight.Ecast
+     (Clight.Ebinop Cop.Oeq
+        (Clight.Ebinop Cop.Oshr (Clight.Etempvar jets_secp._bit Ctypesdefs.tuint)
+           (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))) Ctypesdefs.tint)
+           Ctypesdefs.tuint) (Clight.Econst_int (Integers.Int.repr (BinInt.Z.of_nat j)) Ctypesdefs.tint)
+        Ctypesdefs.tint) Ctypesdefs.tulong)
+  (Clight.Ebinop Cop.Oand (Clight.Etempvar jets_secp._bit Ctypesdefs.tuint)
+     (Clight.Econst_int
+        (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+        Ctypesdefs.tint) Ctypesdefs.tuint) Ctypesdefs.tulong
+     : forall _ : nat, Clight.expr
+
+Arguments cadd_selector_expr j%nat_scope
+### C.jet_secp_scalar_cadd_control.cadd_t_address
+cadd_t_address =
+Clight.Eaddrof (Clight.Evar jets_secp._t (Ctypes.Tstruct jets_secp._secp256k1_uint128 Ctypes.noattr))
+  (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._secp256k1_uint128 Ctypes.noattr))
+     : Clight.expr
+### C.jet_secp_scalar_cadd_control.cadd_bit_setting
+cadd_bit_setting =
+fun flag : bool =>
+match flag return Integers.Int.int with
+| true => Integers.Int.zero
+| false =>
+    Integers.Int.repr
+      (BinNums.Zpos
+         (BinNums.xO
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+end
+     : forall _ : bool, Integers.Int.int
+
+Arguments cadd_bit_setting flag%bool_scope
+### C.jet_secp_scalar_cadd_control.cadd_selector_value
+cadd_selector_value =
+fun (flag : bool) (j : nat) =>
+match andb flag (PeanoNat.Nat.eqb j O) return Integers.Int64.int with
+| true => Integers.Int64.one
+| false => Integers.Int64.zero
+end
+     : forall (_ : bool) (_ : nat), Integers.Int64.int
+
+Arguments cadd_selector_value flag%bool_scope j%nat_scope

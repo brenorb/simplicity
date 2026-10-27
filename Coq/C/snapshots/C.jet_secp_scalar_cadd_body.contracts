@@ -1,0 +1,164 @@
+### C.jet_secp_scalar_cadd_body.cadd_stmt_normal
+cadd_stmt_normal
+     : forall (fuel : nat) (ve : jet_sx_eval.venv) (st : jet_sx_eval.sstate) (stmt : Clight.statement)
+         (st' : jet_sx_eval.sstate)
+         (_ : @eq (option jet_sx_exec.res)
+                (jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge)
+                   (@nil (prod AST.ident (prod nat Ctypes.type))) jet_secp_scalar_cadd_run.cadd_table fuel ve st stmt)
+                (@Some jet_sx_exec.res (jet_sx_exec.RDone st' jet_sx_exec.ONormal)))
+         (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs st) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st) le) (_ : jet_sx_eval.ematch beta ve e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m stmt Events.E0 le' mf
+                  ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs st') mf)
+                  (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st') le')
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (ofs : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot beta
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape (jet_sx_eval.sregs st)) b ofs)) m mf)))))
+### C.jet_secp_scalar_cadd_body.exec_cadd_selector
+exec_cadd_selector
+     : forall (flag : bool) (j : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : lt j (S (S (S (S O)))))
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs (jet_secp_scalar_cadd_run.cadd_checkpoint flag j)) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (jet_secp_scalar_cadd_run.cadd_checkpoint flag j)) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_scalar_cadd_run.cadd_allocated) e),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+               (jet_secp_scalar_cadd_control.cadd_selector_statement j) Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_sx_state.rep rho beta (jet_sx_eval.sregs (jet_secp_scalar_cadd_run.cadd_selected_state flag j)) mf)
+               (and
+                  (jet_sx_eval.tmatch rho beta
+                     (jet_sx_eval.stemps (jet_secp_scalar_cadd_run.cadd_selected_state flag j)) le)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot beta
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape
+                              (@app jet_sx_state.region jet_secp_scalar_cadd_run.cadd_initial_regs
+                                 (@fst (list jet_sx_state.region) jet_sx_eval.venv
+                                    jet_secp_scalar_cadd_run.cadd_allocated))) b ofs)) m mf))))
+### C.jet_secp_scalar_cadd_body.exec_cadd_gap
+exec_cadd_gap
+     : forall (flag : bool) (j : nat) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : lt j (S (S (S (S O)))))
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs (jet_secp_scalar_cadd_run.cadd_selected_state flag j)) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (jet_secp_scalar_cadd_run.cadd_selected_state flag j)) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_scalar_cadd_run.cadd_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  match PeanoNat.Nat.ltb j (S (S (S O))) return Clight.statement with
+                  | true => jet_secp_scalar_cadd_control.cadd_gap_statement j
+                  | false => jet_secp_scalar_cadd_control.cadd_tail
+                  end Events.E0 le' mf ClightBigstep.Out_normal)
+               (and
+                  (jet_sx_state.rep rho beta (jet_sx_eval.sregs (jet_secp_scalar_cadd_run.cadd_checkpoint flag (S j)))
+                     mf)
+                  (and
+                     (jet_sx_eval.tmatch rho beta
+                        (jet_sx_eval.stemps (jet_secp_scalar_cadd_run.cadd_checkpoint flag (S j))) le')
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (ofs : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot beta
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape
+                                 (@app jet_sx_state.region jet_secp_scalar_cadd_run.cadd_initial_regs
+                                    (@fst (list jet_sx_state.region) jet_sx_eval.venv
+                                       jet_secp_scalar_cadd_run.cadd_allocated))) b ofs)) m mf)))))
+### C.jet_secp_scalar_cadd_body.cadd_body_remaining_source
+cadd_body_remaining_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_scalar_cadd_bit)
+         (jet_secp_statement_prefix.statement_sequence jet_secp_scalar_cadd_control.cadd_prefix_spine
+            (cadd_remaining O (S (S (S O)))))
+### C.jet_secp_scalar_cadd_body.exec_cadd_remaining
+exec_cadd_remaining
+     : forall (count j : nat) (flag : bool) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : @eq nat (Nat.add j count) (S (S (S O))))
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs (jet_secp_scalar_cadd_run.cadd_checkpoint flag j)) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (jet_secp_scalar_cadd_run.cadd_checkpoint flag j)) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_scalar_cadd_run.cadd_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (cadd_remaining j count) Events.E0 le'
+                  mf ClightBigstep.Out_normal)
+               (and
+                  (jet_sx_state.rep rho beta
+                     (jet_sx_eval.sregs (jet_secp_scalar_cadd_run.cadd_checkpoint flag (S (S (S (S O)))))) mf)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot beta
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape
+                              (@app jet_sx_state.region jet_secp_scalar_cadd_run.cadd_initial_regs
+                                 (@fst (list jet_sx_state.region) jet_sx_eval.venv
+                                    jet_secp_scalar_cadd_run.cadd_allocated))) b ofs)) m mf))))
+### C.jet_secp_scalar_cadd_body.exec_cadd_body
+exec_cadd_body
+     : forall (flag : bool) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta
+                (@app jet_sx_state.region jet_secp_scalar_cadd_run.cadd_initial_regs
+                   (@fst (list jet_sx_state.region) jet_sx_eval.venv jet_secp_scalar_cadd_run.cadd_allocated)) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_scalar_cadd_run.cadd_initial_temps flag) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_scalar_cadd_run.cadd_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  (Clight.fn_body jets_secp.f_secp256k1_scalar_cadd_bit) Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs (jet_secp_scalar_cadd_run.cadd_final_state flag)) mf)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot beta
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape
+                              (@app jet_sx_state.region jet_secp_scalar_cadd_run.cadd_initial_regs
+                                 (@fst (list jet_sx_state.region) jet_sx_eval.venv
+                                    jet_secp_scalar_cadd_run.cadd_allocated))) b ofs)) m mf))))
+### C.jet_secp_scalar_cadd_body.cadd_remaining
+cadd_remaining =
+fix cadd_remaining (j count : nat) {struct count} : Clight.statement :=
+  match count return Clight.statement with
+  | O =>
+      Clight.Ssequence (jet_secp_scalar_cadd_control.cadd_selector_statement j) jet_secp_scalar_cadd_control.cadd_tail
+  | S n =>
+      Clight.Ssequence (jet_secp_scalar_cadd_control.cadd_selector_statement j)
+        (jet_secp_statement_prefix.statement_sequence (jet_secp_scalar_cadd_control.cadd_gap_spine j)
+           (cadd_remaining (S j) n))
+  end
+     : forall (_ : nat) (_ : nat), Clight.statement
+
+Arguments cadd_remaining (j count)%nat_scope

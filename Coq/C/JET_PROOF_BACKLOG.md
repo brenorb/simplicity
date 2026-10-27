@@ -722,8 +722,20 @@ C.jet_secp_scalar_table_execution` under the pinned toolchain and stack setting.
 
 For the remaining scalar split-lambda path, reuse
 `eval_scalar_mul512_borrowed_product`; the full 512-bit product is already
-proved. The next missing C executions are `scalar_cadd_bit(r, 0, flag)` and
-`scalar_mul_shift_var(..., 384)`, which must produce
+proved. `jet_secp_scalar_cadd_control`, `_run`, `_body`, `_function` and
+`_numeric` now execute the whole original `scalar_cadd_bit(r, 0, flag)` for
+both round-bit flags and every four-word input. `eval_scalar_cadd_value`
+returns exact scalar storage for `(value + flag) mod 2^256`, including carry
+through all four limbs, with actual local allocation/free, retained ownership,
+permissions, readonly globals and outside-scalar framing. `cadd_output_exact`
+identifies the unwrapped sum when it fits. The four selector arguments are
+derived from their actual C expressions; the intervening slices reuse the
+existing executor and proved shift-64 oracle. No library model, desired output
+or helper execution is a premise. This is an internal helper result; coverage
+stays 520/533. Reproduce with
+`JET_TARGETS='C/jet_secp_scalar_cadd_numeric.vo' bash Coq/build-jets.sh -j1`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_cadd_numeric`.
+The next missing C execution is `scalar_mul_shift_var(..., 384)`, which must produce
 `floor(P/2^384)+bit383(P)` with actual storage, allocation/free and framing.
 The composition also needs distinct-destination adapters for scalar add and
 borrowed-RHS scalar multiply; in-place contracts cannot establish those calls.

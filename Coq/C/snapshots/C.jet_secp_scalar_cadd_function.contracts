@@ -1,0 +1,521 @@
+### C.jet_secp_scalar_cadd_function.cadd_output_region
+cadd_output_region
+     : forall flag : bool,
+       @eq (list jet_sx_state.region)
+         (@List.firstn jet_sx_state.region (S O) (jet_sx_eval.sregs (jet_secp_scalar_cadd_run.cadd_final_state flag)))
+         (cadd_output_regs flag)
+### C.jet_secp_scalar_cadd_function.cadd_output_length
+cadd_output_length
+     : forall flag : bool, @eq nat (@length jet_sx_expr.sx (cadd_output_sx flag)) (S (S (S (S O))))
+### C.jet_secp_scalar_cadd_function.cadd_output_load
+cadd_output_load
+     : forall (flag : bool) (i : nat) (x : jet_sx_expr.sx)
+         (_ : @eq (option jet_sx_expr.sx) (@List.nth_error jet_sx_expr.sx (cadd_output_sx flag) i)
+                (@Some jet_sx_expr.sx x)),
+       and
+         (@eq (option jet_sx_expr.sx)
+            (jet_sx_state.xload (cadd_output_regs flag) O
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))
+               Ctypesdefs.tulong) (@Some jet_sx_expr.sx x)) (@eq bool (jet_sx_expr.isk jet_sx_expr.KL x) true)
+### C.jet_secp_scalar_cadd_function.eval_cadd_from_regions
+eval_cadd_from_regions
+     : forall (flag : bool) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta jet_secp_scalar_cadd_run.cadd_initial_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_cadd_bit)
+               (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta))
+                  (jet_secp_scalar_cadd_run.cadd_args flag)) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho beta (cadd_output_regs flag) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape jet_secp_scalar_cadd_run.cadd_initial_regs) b ofs)) m mf)))
+### C.jet_secp_scalar_cadd_function.cadd_result_storage
+cadd_result_storage
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (flag : bool)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta (cadd_output_regs flag) m),
+       and (@eq BinNums.Z (jet_sx_state.bas beta O) BinNums.Z0)
+         (and
+            (Memory.Mem.range_perm m (jet_sx_state.blk beta O) BinNums.Z0
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+               Memtype.Freeable)
+            (jet_secp_scalar_get_b32_storage.scalar_at m (jet_sx_state.blk beta O) BinNums.Z0
+               (cadd_output_words rho flag)))
+### C.jet_secp_scalar_cadd_function.cadd_closed
+cadd_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_closed_helpers.secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_scalar_cadd_bit)) true
+### C.jet_secp_scalar_cadd_function.eval_scalar_cadd_owned
+eval_scalar_cadd_owned
+     : forall (flag : bool) (rho : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem)
+         (b : Values.block)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m b BinNums.Z0
+                (jet_secp_scalar_add_initial.scalar_add_values rho O))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_cadd_bit)
+               (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vint Integers.Int.zero)
+                     (@cons Values.val
+                        (Values.Vint
+                           match flag return Integers.Int.int with
+                           | true => Integers.Int.one
+                           | false => Integers.Int.zero
+                           end) (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and (jet_secp_scalar_get_b32_storage.scalar_at mf b BinNums.Z0 (cadd_output_words rho flag))
+               (and
+                  (Memory.Mem.range_perm mf b BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                     (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                        (jet_sx_mem.lframe (fun (b' : Values.block) (_ : BinNums.Z) => not (@eq Values.block b' b)) m
+                           mf))))))
+### C.jet_secp_scalar_cadd_function.cadd_output_sx
+cadd_output_sx =
+fun flag : bool =>
+@cons jet_sx_expr.sx
+  (jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv O)
+     (jet_sx_expr.XLc
+        match match flag return bool with
+              | true => true
+              | false => false
+              end return Integers.Int64.int with
+        | true =>
+            Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+              (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+        | false => Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+        end))
+  (@cons jet_sx_expr.sx
+     (jet_sx_expr.XLb jet_sx_expr.Badd
+        (jet_sx_expr.XLb jet_sx_expr.Badd
+           (jet_sx_expr.XLb jet_sx_expr.Badd
+              (jet_sx_expr.XI2L Ctypes.Signed
+                 (jet_sx_expr.XIc (Integers.Int.mkint BinNums.Z0 (Integers.Int.Z_mod_modulus_range' BinNums.Z0))))
+              (jet_sx_expr.XI2L Ctypes.Signed
+                 (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                    (jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv O)
+                       (jet_sx_expr.XLc
+                          match
+                            match flag return bool with
+                            | true => true
+                            | false => false
+                            end return Integers.Int64.int
+                          with
+                          | true =>
+                              Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                          | false => Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                          end))
+                    (jet_sx_expr.XLc
+                       match
+                         match flag return bool with
+                         | true => true
+                         | false => false
+                         end return Integers.Int64.int
+                       with
+                       | true =>
+                           Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                             (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                       | false => Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                       end)))) (jet_sx_expr.XLv (S O)))
+        (jet_sx_expr.XLc
+           match match flag return bool with
+                 | true => false
+                 | false => false
+                 end return Integers.Int64.int with
+           | true =>
+               Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                 (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+           | false => Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+           end))
+     (@cons jet_sx_expr.sx
+        (jet_sx_expr.XLb jet_sx_expr.Badd
+           (jet_sx_expr.XLb jet_sx_expr.Badd
+              (jet_sx_expr.XLb jet_sx_expr.Badd
+                 (jet_sx_expr.XLb jet_sx_expr.Badd
+                    (jet_sx_expr.XLc (Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)))
+                    (jet_sx_expr.XI2L Ctypes.Signed
+                       (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                          (jet_sx_expr.XLb jet_sx_expr.Badd
+                             (jet_sx_expr.XLb jet_sx_expr.Badd
+                                (jet_sx_expr.XI2L Ctypes.Signed
+                                   (jet_sx_expr.XIc
+                                      (Integers.Int.mkint BinNums.Z0 (Integers.Int.Z_mod_modulus_range' BinNums.Z0))))
+                                (jet_sx_expr.XI2L Ctypes.Signed
+                                   (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                                      (jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv O)
+                                         (jet_sx_expr.XLc
+                                            match
+                                              match flag return bool with
+                                              | true => true
+                                              | false => false
+                                              end return Integers.Int64.int
+                                            with
+                                            | true =>
+                                                Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                                  (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                                            | false =>
+                                                Integers.Int64.mkint BinNums.Z0
+                                                  (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                            end))
+                                      (jet_sx_expr.XLc
+                                         match
+                                           match flag return bool with
+                                           | true => true
+                                           | false => false
+                                           end return Integers.Int64.int
+                                         with
+                                         | true =>
+                                             Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                               (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                                         | false =>
+                                             Integers.Int64.mkint BinNums.Z0
+                                               (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                         end)))) (jet_sx_expr.XLv (S O))) (jet_sx_expr.XLv (S O)))))
+                 (jet_sx_expr.XI2L Ctypes.Signed
+                    (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                       (jet_sx_expr.XLb jet_sx_expr.Badd
+                          (jet_sx_expr.XLb jet_sx_expr.Badd
+                             (jet_sx_expr.XLb jet_sx_expr.Badd
+                                (jet_sx_expr.XI2L Ctypes.Signed
+                                   (jet_sx_expr.XIc
+                                      (Integers.Int.mkint BinNums.Z0 (Integers.Int.Z_mod_modulus_range' BinNums.Z0))))
+                                (jet_sx_expr.XI2L Ctypes.Signed
+                                   (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                                      (jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv O)
+                                         (jet_sx_expr.XLc
+                                            match
+                                              match flag return bool with
+                                              | true => true
+                                              | false => false
+                                              end return Integers.Int64.int
+                                            with
+                                            | true =>
+                                                Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                                  (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                                            | false =>
+                                                Integers.Int64.mkint BinNums.Z0
+                                                  (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                            end))
+                                      (jet_sx_expr.XLc
+                                         match
+                                           match flag return bool with
+                                           | true => true
+                                           | false => false
+                                           end return Integers.Int64.int
+                                         with
+                                         | true =>
+                                             Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                               (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                                         | false =>
+                                             Integers.Int64.mkint BinNums.Z0
+                                               (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                         end)))) (jet_sx_expr.XLv (S O)))
+                          (jet_sx_expr.XLc
+                             match
+                               match flag return bool with
+                               | true => false
+                               | false => false
+                               end return Integers.Int64.int
+                             with
+                             | true =>
+                                 Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                   (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                             | false =>
+                                 Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                             end))
+                       (jet_sx_expr.XLc
+                          match
+                            match flag return bool with
+                            | true => false
+                            | false => false
+                            end return Integers.Int64.int
+                          with
+                          | true =>
+                              Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                          | false => Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                          end)))) (jet_sx_expr.XLv (S (S O))))
+           (jet_sx_expr.XLc
+              match match flag return bool with
+                    | true => false
+                    | false => false
+                    end return Integers.Int64.int with
+              | true =>
+                  Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                    (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+              | false => Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+              end))
+        (@cons jet_sx_expr.sx
+           (jet_sx_expr.XLb jet_sx_expr.Badd
+              (jet_sx_expr.XLb jet_sx_expr.Badd
+                 (jet_sx_expr.XLb jet_sx_expr.Badd
+                    (jet_sx_expr.XLb jet_sx_expr.Badd
+                       (jet_sx_expr.XLc
+                          (Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)))
+                       (jet_sx_expr.XI2L Ctypes.Signed
+                          (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                             (jet_sx_expr.XLb jet_sx_expr.Badd
+                                (jet_sx_expr.XLb jet_sx_expr.Badd
+                                   (jet_sx_expr.XLb jet_sx_expr.Badd
+                                      (jet_sx_expr.XLc
+                                         (Integers.Int64.mkint BinNums.Z0
+                                            (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)))
+                                      (jet_sx_expr.XI2L Ctypes.Signed
+                                         (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                                            (jet_sx_expr.XLb jet_sx_expr.Badd
+                                               (jet_sx_expr.XLb jet_sx_expr.Badd
+                                                  (jet_sx_expr.XI2L Ctypes.Signed
+                                                     (jet_sx_expr.XIc
+                                                        (Integers.Int.mkint BinNums.Z0
+                                                           (Integers.Int.Z_mod_modulus_range' BinNums.Z0))))
+                                                  (jet_sx_expr.XI2L Ctypes.Signed
+                                                     (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                                                        (jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv O)
+                                                           (jet_sx_expr.XLc
+                                                              match ... return Integers.Int64.int with
+                                                              | true => Integers.Int64.mkint (...) (...)
+                                                              | false => Integers.Int64.mkint BinNums.Z0 (...)
+                                                              end))
+                                                        (jet_sx_expr.XLc
+                                                           match
+                                                             match ... with
+                                                             | ... true
+                                                             | ... false
+                                                             end return Integers.Int64.int
+                                                           with
+                                                           | true =>
+                                                               Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                                                 (Integers.Int64.Z_mod_modulus_range' (...))
+                                                           | false =>
+                                                               Integers.Int64.mkint BinNums.Z0
+                                                                 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                                           end)))) (jet_sx_expr.XLv (S O)))
+                                            (jet_sx_expr.XLv (S O)))))
+                                   (jet_sx_expr.XI2L Ctypes.Signed
+                                      (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                                         (jet_sx_expr.XLb jet_sx_expr.Badd
+                                            (jet_sx_expr.XLb jet_sx_expr.Badd
+                                               (jet_sx_expr.XLb jet_sx_expr.Badd
+                                                  (jet_sx_expr.XI2L Ctypes.Signed
+                                                     (jet_sx_expr.XIc
+                                                        (Integers.Int.mkint BinNums.Z0
+                                                           (Integers.Int.Z_mod_modulus_range' BinNums.Z0))))
+                                                  (jet_sx_expr.XI2L Ctypes.Signed
+                                                     (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                                                        (jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv O)
+                                                           (jet_sx_expr.XLc
+                                                              match ... return Integers.Int64.int with
+                                                              | true => Integers.Int64.mkint (...) (...)
+                                                              | false => Integers.Int64.mkint BinNums.Z0 (...)
+                                                              end))
+                                                        (jet_sx_expr.XLc
+                                                           match
+                                                             match ... with
+                                                             | ... true
+                                                             | ... false
+                                                             end return Integers.Int64.int
+                                                           with
+                                                           | true =>
+                                                               Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                                                 (Integers.Int64.Z_mod_modulus_range' (...))
+                                                           | false =>
+                                                               Integers.Int64.mkint BinNums.Z0
+                                                                 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                                           end)))) (jet_sx_expr.XLv (S O)))
+                                            (jet_sx_expr.XLc
+                                               match
+                                                 match flag return bool with
+                                                 | true => false
+                                                 | false => false
+                                                 end return Integers.Int64.int
+                                               with
+                                               | true =>
+                                                   Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                                     (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                                               | false =>
+                                                   Integers.Int64.mkint BinNums.Z0
+                                                     (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                               end))
+                                         (jet_sx_expr.XLc
+                                            match
+                                              match flag return bool with
+                                              | true => false
+                                              | false => false
+                                              end return Integers.Int64.int
+                                            with
+                                            | true =>
+                                                Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                                  (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                                            | false =>
+                                                Integers.Int64.mkint BinNums.Z0
+                                                  (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                            end)))) (jet_sx_expr.XLv (S (S O)))) (jet_sx_expr.XLv (S (S O))))))
+                    (jet_sx_expr.XI2L Ctypes.Signed
+                       (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                          (jet_sx_expr.XLb jet_sx_expr.Badd
+                             (jet_sx_expr.XLb jet_sx_expr.Badd
+                                (jet_sx_expr.XLb jet_sx_expr.Badd
+                                   (jet_sx_expr.XLb jet_sx_expr.Badd
+                                      (jet_sx_expr.XLc
+                                         (Integers.Int64.mkint BinNums.Z0
+                                            (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)))
+                                      (jet_sx_expr.XI2L Ctypes.Signed
+                                         (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                                            (jet_sx_expr.XLb jet_sx_expr.Badd
+                                               (jet_sx_expr.XLb jet_sx_expr.Badd
+                                                  (jet_sx_expr.XI2L Ctypes.Signed
+                                                     (jet_sx_expr.XIc
+                                                        (Integers.Int.mkint BinNums.Z0
+                                                           (Integers.Int.Z_mod_modulus_range' BinNums.Z0))))
+                                                  (jet_sx_expr.XI2L Ctypes.Signed
+                                                     (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                                                        (jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv O)
+                                                           (jet_sx_expr.XLc
+                                                              match ... return Integers.Int64.int with
+                                                              | true => Integers.Int64.mkint (...) (...)
+                                                              | false => Integers.Int64.mkint BinNums.Z0 (...)
+                                                              end))
+                                                        (jet_sx_expr.XLc
+                                                           match
+                                                             match ... with
+                                                             | ... true
+                                                             | ... false
+                                                             end return Integers.Int64.int
+                                                           with
+                                                           | true =>
+                                                               Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                                                 (Integers.Int64.Z_mod_modulus_range' (...))
+                                                           | false =>
+                                                               Integers.Int64.mkint BinNums.Z0
+                                                                 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                                           end)))) (jet_sx_expr.XLv (S O)))
+                                            (jet_sx_expr.XLv (S O)))))
+                                   (jet_sx_expr.XI2L Ctypes.Signed
+                                      (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                                         (jet_sx_expr.XLb jet_sx_expr.Badd
+                                            (jet_sx_expr.XLb jet_sx_expr.Badd
+                                               (jet_sx_expr.XLb jet_sx_expr.Badd
+                                                  (jet_sx_expr.XI2L Ctypes.Signed
+                                                     (jet_sx_expr.XIc
+                                                        (Integers.Int.mkint BinNums.Z0
+                                                           (Integers.Int.Z_mod_modulus_range' BinNums.Z0))))
+                                                  (jet_sx_expr.XI2L Ctypes.Signed
+                                                     (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+                                                        (jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv O)
+                                                           (jet_sx_expr.XLc
+                                                              match ... return Integers.Int64.int with
+                                                              | true => Integers.Int64.mkint (...) (...)
+                                                              | false => Integers.Int64.mkint BinNums.Z0 (...)
+                                                              end))
+                                                        (jet_sx_expr.XLc
+                                                           match
+                                                             match ... with
+                                                             | ... true
+                                                             | ... false
+                                                             end return Integers.Int64.int
+                                                           with
+                                                           | true =>
+                                                               Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                                                 (Integers.Int64.Z_mod_modulus_range' (...))
+                                                           | false =>
+                                                               Integers.Int64.mkint BinNums.Z0
+                                                                 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                                           end)))) (jet_sx_expr.XLv (S O)))
+                                            (jet_sx_expr.XLc
+                                               match
+                                                 match flag return bool with
+                                                 | true => false
+                                                 | false => false
+                                                 end return Integers.Int64.int
+                                               with
+                                               | true =>
+                                                   Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                                     (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                                               | false =>
+                                                   Integers.Int64.mkint BinNums.Z0
+                                                     (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                               end))
+                                         (jet_sx_expr.XLc
+                                            match
+                                              match flag return bool with
+                                              | true => false
+                                              | false => false
+                                              end return Integers.Int64.int
+                                            with
+                                            | true =>
+                                                Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                                  (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                                            | false =>
+                                                Integers.Int64.mkint BinNums.Z0
+                                                  (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                            end)))) (jet_sx_expr.XLv (S (S O))))
+                             (jet_sx_expr.XLc
+                                match
+                                  match flag return bool with
+                                  | true => false
+                                  | false => false
+                                  end return Integers.Int64.int
+                                with
+                                | true =>
+                                    Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                      (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                                | false =>
+                                    Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                                end))
+                          (jet_sx_expr.XLc
+                             match
+                               match flag return bool with
+                               | true => false
+                               | false => false
+                               end return Integers.Int64.int
+                             with
+                             | true =>
+                                 Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                                   (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                             | false =>
+                                 Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                             end)))) (jet_sx_expr.XLv (S (S (S O)))))
+              (jet_sx_expr.XLc
+                 match match flag return bool with
+                       | true => false
+                       | false => false
+                       end return Integers.Int64.int with
+                 | true =>
+                     Integers.Int64.mkint (BinNums.Zpos BinNums.xH)
+                       (Integers.Int64.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH))
+                 | false => Integers.Int64.mkint BinNums.Z0 (Integers.Int64.Z_mod_modulus_range' BinNums.Z0)
+                 end)) (@nil jet_sx_expr.sx))))
+     : forall _ : bool, list jet_sx_expr.sx
+
+Arguments cadd_output_sx flag%bool_scope
+### C.jet_secp_scalar_cadd_function.cadd_output_regs
+cadd_output_regs =
+fun flag : bool =>
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (cadd_output_sx flag)) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+  (@nil jet_sx_state.region)
+     : forall _ : bool, list jet_sx_state.region
+
+Arguments cadd_output_regs flag%bool_scope
+### C.jet_secp_scalar_cadd_function.cadd_output_words
+cadd_output_words =
+fun (rho : forall _ : nat, Integers.Int64.int) (flag : bool) =>
+@List.map jet_sx_expr.sx Integers.Int64.int (jet_sx_exec.lv rho) (cadd_output_sx flag)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : bool), list Integers.Int64.int
+
+Arguments cadd_output_words rho%function_scope flag%bool_scope
