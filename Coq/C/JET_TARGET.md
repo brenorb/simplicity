@@ -3,11 +3,36 @@
 The target is `e3b670103101108faa238df012676ff5d8b77cf9` (Bitcoin Application
 merge #324). Its production C and canonical Haskell sources are byte-for-byte
 identical to the proof-branch base `ebf1749340f623be7e0e43a1a6b3a7cccf560e2e`.
-`jet_source_target.tsv` pins SHA-256 hashes of 231 files from that commit, plus nine reviewed generation
-inputs from the proof development.
-`check-jet-source-target.py` checks both their contents and their file set.
-`C/test.c` is excluded because it is a test harness absent from all four proof
-translation units; our cursor-alignment regression tests remain in that harness.
+`jet_source_target.tsv` retains the original 240 pinned source and generation
+inputs. Another 43 inputs are frozen at proof-branch commit
+`491852fb0099eb69eae901d19547125e8818c3cb`: every `.v` in `Coq/Simplicity`
+(including domains, semantics and primitive identities), committed `jets*.v`
+and `memcpy_*.v` ASTs, all regeneration scripts and translation units, memcpy
+C harnesses, clightgen configuration templates, and dependency/sysroot pins.
+
+Run the fast gate from the repository root:
+
+```sh
+python3 Coq/check-jet-source-target.py
+python3 Coq/test-jet-source-target.py
+```
+
+The gate rejects changed contents, added/deleted protected files and symlinked
+files. Its manifest is itself pinned by SHA-256 in the checker and independently
+in the `jet-target-freeze` CI job. The full `check-jets.sh` workflow already runs
+this gate. No Coq installation is needed for the fast gate. Proof scripts,
+auxiliary lemmas, tests, proof documentation and verification build tooling
+outside the protected generation inputs remain editable. `C/test.c` remains
+excluded because it is a test harness absent from the proof translation units.
+
+This is an acceptance gate: it detects drift, rather than preventing filesystem
+writes. Changing a verification target requires separate explicit approval;
+do not refresh hashes to resolve a failed proof. The checker, tests, manifest
+and CI workflow are policy files and must be reviewed as such. A local agent
+able to rewrite all policy files can bypass a repository-local gate; enforcing
+it against those edits requires a trusted external runner or protected CI policy.
+CI branch-protection settings must require `jet-target-freeze` to prevent merging
+when it fails; the repository workflow alone cannot configure that setting.
 
 ## Target configuration
 

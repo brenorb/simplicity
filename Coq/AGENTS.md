@@ -22,6 +22,14 @@ authorization to switch to fixing the implementation or specification.
 
 ## Verification workflow
 
+Before starting proof work and before committing, run
+`python3 Coq/check-jet-source-target.py` from the repository root. If it fails,
+preserve the frozen targets and report the drift; continue independent proof
+work where possible. Do not update the manifest, its hash pins, checker policy,
+or CI enforcement to make verification pass. Changing the frozen target or its
+acceptance policy requires separate explicit user approval. Proof acceptance
+also requires the existing full verification checks.
+
 Preserve the public theorem and canonical specification being proved. Do not
 replace a required execution, output or framing fact with an assumed premise.
 Explicit external-library models are conditional results and must remain

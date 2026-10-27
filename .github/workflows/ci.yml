@@ -3,6 +3,26 @@ name: CI
 on: [push, pull_request]
 
 jobs:
+  jet-target-freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the frozen verification-target manifest
+        # Keep this pin independent of the manifest and checker being tested.
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = "8ba2f4d48470b988eab2de57ec2cbc79604b3c368d517f368a036093f5d43896"
+          actual = hashlib.sha256(Path("Coq/C/jet_source_target.tsv").read_bytes()).hexdigest()
+          if actual != expected:
+              raise SystemExit("Frozen target manifest changed; separate target-change approval required")
+          PY
+      - name: Reject production, specification, AST and generation-setting drift
+        run: python3 Coq/check-jet-source-target.py
+      - name: Exercise target freeze against mutations
+        run: python3 Coq/test-jet-source-target.py
+
   codespell:
     runs-on: ubuntu-latest
     steps:
