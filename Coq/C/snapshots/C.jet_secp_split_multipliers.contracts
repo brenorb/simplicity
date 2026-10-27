@@ -1,0 +1,377 @@
+### C.jet_secp_split_multipliers.split_multiplier_symbol
+split_multiplier_symbol
+     : forall first : bool,
+       @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            (split_multiplier_id first)) (@Some Values.block (split_multiplier_block first))
+### C.jet_secp_split_multipliers.split_multiplier_info
+split_multiplier_info
+     : forall first : bool,
+       @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            (split_multiplier_block first)) (@Some (AST.globvar Ctypes.type) (split_multiplier_var first))
+### C.jet_secp_split_multipliers.split_multiplier_count
+split_multiplier_count
+     : forall first : bool, @eq nat (@length Integers.Int64.int (split_multiplier_words first)) (S (S (S (S O))))
+### C.jet_secp_split_multipliers.split_multiplier_value_checked
+split_multiplier_value_checked
+     : forall first : bool,
+       @eq BinNums.Z (jet_secp_scalar_mul512_accumulate.column_words_value (split_multiplier_words first))
+         (split_multiplier_value first)
+### C.jet_secp_split_multipliers.split_multiplier_bounds
+split_multiplier_bounds
+     : forall first : bool,
+       and (BinInt.Z.le BinNums.Z0 (split_multiplier_value first))
+         (BinInt.Z.le (split_multiplier_value first)
+            (BinInt.Z.sub
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+### C.jet_secp_split_multipliers.split_multipliers_initializes
+split_multipliers_initializes
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       split_multipliers_ready m
+### C.jet_secp_split_multipliers.split_multipliers_initial_memory
+split_multipliers_initial_memory
+     : @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                  (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m))
+            (split_multipliers_ready m))
+### C.jet_secp_split_multipliers.split_multipliers_readonly
+split_multipliers_readonly
+     : forall (m mf : Memory.Mem.mem) (_ : split_multipliers_ready m)
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf), split_multipliers_ready mf
+### C.jet_secp_split_multipliers.rounded_multiplier_small
+rounded_multiplier_small
+     : forall (k g : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 g)
+                (BinInt.Z.le g
+                   (BinInt.Z.sub
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       and
+         (BinInt.Z.le BinNums.Z0
+            (BinInt.Z.div
+               (BinInt.Z.add (BinInt.Z.mul k g)
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))))
+         (BinInt.Z.lt
+            (BinInt.Z.div
+               (BinInt.Z.add (BinInt.Z.mul k g)
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_split_multipliers.split_coefficient_bounds
+split_coefficient_bounds
+     : forall (first : bool) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       and (BinInt.Z.le BinNums.Z0 (split_coefficient first k))
+         (BinInt.Z.lt (split_coefficient first k)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_split_multipliers.split_multiplier_id
+split_multiplier_id =
+fun first : bool => match first return AST.ident with
+                    | true => jets_secp._g1
+                    | false => jets_secp._g2
+                    end
+     : forall _ : bool, AST.ident
+
+Arguments split_multiplier_id first%bool_scope
+### C.jet_secp_split_multipliers.split_multiplier_var
+split_multiplier_var =
+fun first : bool =>
+match first return (AST.globvar Ctypes.type) with
+| true => jets_secp.v_g1
+| false => jets_secp.v_g2
+end
+     : forall _ : bool, AST.globvar Ctypes.type
+
+Arguments split_multiplier_var first%bool_scope
+### C.jet_secp_split_multipliers.split_multiplier_block
+split_multiplier_block =
+fun first : bool => jet_secp_linkage.secp_symbol_block (split_multiplier_id first)
+     : forall _ : bool, Values.block
+
+Arguments split_multiplier_block first%bool_scope
+### C.jet_secp_split_multipliers.split_multiplier_words
+split_multiplier_words =
+fun first : bool =>
+match first return (list Integers.Int64.int) with
+| true =>
+    @cons Integers.Int64.int
+      (Integers.Int64.repr
+         (BinNums.Zneg
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))))))))))
+      (@cons Integers.Int64.int
+         (Integers.Int64.repr
+            (BinNums.Zpos
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO ...))))))))))))))))))))
+         (@cons Integers.Int64.int
+            (Integers.Int64.repr
+               (BinNums.Zneg
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xO
+                           (BinNums.xI
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))))))))
+            (@cons Integers.Int64.int
+               (Integers.Int64.repr
+                  (BinNums.Zpos
+                     (BinNums.xI
+                        (BinNums.xO
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))))))))))
+               (@nil Integers.Int64.int))))
+| false =>
+    @cons Integers.Int64.int
+      (Integers.Int64.repr
+         (BinNums.Zpos
+            (BinNums.xI
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))))))))))
+      (@cons Integers.Int64.int
+         (Integers.Int64.repr
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))))))))))))))
+         (@cons Integers.Int64.int
+            (Integers.Int64.repr
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))))
+            (@cons Integers.Int64.int
+               (Integers.Int64.repr
+                  (BinNums.Zneg
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))))))))))
+               (@nil Integers.Int64.int))))
+end
+     : forall _ : bool, list Integers.Int64.int
+
+Arguments split_multiplier_words first%bool_scope
+### C.jet_secp_split_multipliers.split_multiplier_value
+split_multiplier_value =
+fun first : bool =>
+match first return BinNums.Z with
+| true =>
+    BinNums.Zpos
+      (BinNums.xI
+         (BinNums.xO
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xO
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...)))))))))))))))))))))
+| false =>
+    BinNums.Zpos
+      (BinNums.xI
+         (BinNums.xO
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xO
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))))))))))))))
+end
+     : forall _ : bool, BinNums.Z
+
+Arguments split_multiplier_value first%bool_scope
+### C.jet_secp_split_multipliers.split_multiplier_state
+split_multiplier_state =
+fun first : bool =>
+jet_secp_scalar_constant.scalar_constant_state (split_multiplier_block first) (split_multiplier_words first)
+     : forall (_ : bool) (_ : Memory.Mem.mem), Prop
+
+Arguments split_multiplier_state first%bool_scope m
+### C.jet_secp_split_multipliers.split_multipliers_ready
+split_multipliers_ready =
+fun m : Memory.Mem.mem => forall first : bool, split_multiplier_state first m
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments split_multipliers_ready m
+### C.jet_secp_split_multipliers.split_coefficient
+split_coefficient =
+fun (first : bool) (k : BinNums.Z) =>
+BinInt.Z.div
+  (BinInt.Z.add (BinInt.Z.mul k (split_multiplier_value first))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+     : forall (_ : bool) (_ : BinNums.Z), BinNums.Z
+
+Arguments split_coefficient first%bool_scope k%Z_scope

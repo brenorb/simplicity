@@ -748,17 +748,36 @@ split-lambda locals, not a restriction on the public jet input. There is no
 assumed product/round value, helper execution, library model or new axiom.
 `shift384_output_bounds` proves the generic rounded value is at most `2^128`:
 equality is deliberately allowed, so this result never truncates to Word128.
-The coefficient-specific strict bounds below remain necessary. Reproduce with
+The coefficient-specific strict bounds are established by the following
+rounding-prefix result. Reproduce the generic call with
 `JET_TARGETS='C/jet_secp_scalar_shift384_function.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_shift384_function`.
 The composition also needs distinct-destination adapters for scalar add and
 borrowed-RHS scalar multiply; in-place contracts cannot establish those calls.
 Reuse the existing owned in-place add, borrowed in-place multiply, scalar
 negation and initialized-lambda region proofs where their pointers match.
-Before connecting the literal split, formally prove both rounded coefficients
-fit Word128, the lattice identities and signed-half bounds. These obligations
-are still open: source inspection or integer calculations are not formal
-proofs. The final representation must be the exact `wnaf5_input_scalar` of
+`jet_secp_scalar_constant` shares the actual-initializer and readonly transport
+proof for four-limb scalar constants. `jet_secp_split_multipliers` applies it
+to both original `g1`/`g2` globals, checks their Haskell values, establishes
+their state from actual `Genv.init_mem`, and proves strict Word128 bounds for
+both rounded coefficients on every 256-bit input. No group-order input
+restriction is needed for these bounds. `jet_secp_split_round_literal` ports
+the exact `roundDivTwo384` term and rounded-coefficient components, with
+parametricity and exact integer semantics; the carry is discarded only after
+the strict bounds are proved. `eval_split_coefficient_literal` instantiates
+the whole original C rounded-product call against each literal component.
+`jet_secp_split_rounding_entry.scalar_split_entry_rounding` then derives the
+actual `scalar_split_lambda` entry, both fresh coefficient allocations, all
+three initial no-op assertions and both original Scall statements. Both exact
+literal coefficient stores, retained source and global state, ownership,
+freshness, permissions and framing are produced by the prefix. The input and
+readonly multipliers are representations, not assumed executions or outputs;
+initial program memory establishing the multiplier state is also proved to
+exist. These remain internal results; public coverage stays 520/533. Reproduce
+with `JET_TARGETS='C/jet_secp_split_rounding_entry.vo' bash Coq/build-jets.sh -j1`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_split_rounding_entry`.
+The remaining split-lambda calls, full literal split, lattice identities and
+signed-half bounds are still open. The final representation must be the exact `wnaf5_input_scalar` of
 each signed literal half, rather than only a group-order congruence.
 Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
 Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
