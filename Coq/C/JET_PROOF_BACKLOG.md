@@ -537,14 +537,22 @@ proves normalization of every ratio and coordinate leaves its complete output
 unchanged. `table_pass1_consumed` instantiates that result at the normalized
 tree established by the checked first-pass execution theorem. It is a pure
 consumer bridge, not yet an execution theorem for the descending C loop.
+`jet_secp_globalz_word_walk.globalz_walk_decoded` decodes the checked C
+global-Z recurrence (indexed updates, first-iteration skip) into a word-level
+walk, deriving every next-state bound from existing arithmetic theorems.
+`jet_secp_globalz_pass2.eval_ge_table_set_globalz_pass2` combines it with the
+whole original eight-entry call: the decoded final C table equals the balanced
+`literal_pass2_8` tree of the decoded inputs. Canonicity of the last ratio and
+point follows from field decoding; the weak final Y is handled by
+`globalz_start_decoded`. No input words are restricted.
 Still establish the initial literal relations through the real odd-table
-initialization, relate the checked descending global-Z traversal to `pass2_8`, and finish the
-full `scalarTable5` and enclosing multiplication jet. Do not assume raw ratio
+initialization, and finish the full `scalarTable5` and enclosing
+multiplication jet. Do not assume raw ratio
 equality or replace that fixed tree with group scalar arithmetic. The first-
 pass representation theorem is not a public extended-addition equivalence or
 a whole multiplication-jet theorem. To check this dependency closure, use the
 same scoped build/kernel commands below with
-`C/jet_secp_scalar_table_pass2.vo` / `C.jet_secp_scalar_table_pass2`.
+`C/jet_secp_globalz_pass2.vo` / `C.jet_secp_globalz_pass2`.
 These internal results do not add public coverage.
 Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
 Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
