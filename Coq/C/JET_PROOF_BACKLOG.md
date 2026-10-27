@@ -5337,16 +5337,24 @@ storage, permissions, constants, readonly memory and framing are preserved.
 No signed-output bound, intermediate execution or extra library model is a
 caller premise. This remains an internal helper, adding no public coverage.
 
-Before the two window-5 calls, extend `eval_wnaf_literal5`'s output contract
-from offset zero to a valid aligned byte offset and retain loads outside that
-516-byte range. Both digit buffers are inside one Strauss point-state object;
-the current whole-block `lframe (fun old _ => old <> b)` cannot preserve the
-first buffer across the second call. The existing step contract
-`jet_secp_wnaf_control.exec_wnaf_loop_body_step` already exposes either an
-unchanged memory or the exact `Mem.store Mint32` at `base + 4*bit`, along with
-the advance bounds. Reuse those effects to carry a byte-range frame through
-the loop instead of assuming the missing preservation fact. The entry and
-post-memset helpers already support a general base offset.
+`jet_secp_wnaf_function5.eval_wnaf_literal5_slice` now proves the complete
+original 129/5 call at every valid aligned output offset, retaining loads
+outside its 516-byte slice. The signed array-step, bounded-loop, return and
+post-memset proofs carry this stronger frame from the actual store effects;
+their previous conclusions remain. The original offset-zero
+`eval_wnaf_literal5` contract remains available as a proved specialization.
+The only library premise is the already explicit `memset_model`.
+
+`jet_secp_wnaf_pair5.eval_wnaf_literal5_pair` composes both original function
+calls at offsets 0 and 516 of one 1040-byte Strauss point-state object. It
+returns both literal digit arrays and both lengths, preserves both source
+scalars and ownership, and retains every byte outside [0,1032), including
+the two following length fields. No buffer initialization, digit result or
+preservation fact is assumed. This closes the shared-object buffer boundary,
+not the enclosing caller statements or a new public jet. Reproduce with
+`JET_TARGETS=C/jet_secp_wnaf_pair5.vo bash Coq/build-jets.sh -j1`, scoped
+audits of the six affected wNAF modules, and recursive `--coqchk` of
+`C.jet_secp_wnaf_pair5`.
 
 Then compose the one-point Strauss caller: its actual local allocations,
 this split, both signed window-5 calls, the existing literal scalar table and

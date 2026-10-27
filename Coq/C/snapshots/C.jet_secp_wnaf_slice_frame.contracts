@@ -1,0 +1,25 @@
+### C.jet_secp_wnaf_slice_frame.wnaf_slice_store_frame
+wnaf_slice_store_frame
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (base len bit : BinNums.Z) (value : Values.val)
+         (_ : and (BinInt.Z.le BinNums.Z0 bit) (BinInt.Z.lt bit len))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint32 m b
+                   (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) bit)) value)
+                (@Some Memory.Mem.mem mf)), jet_sx_mem.lframe (wnaf_slice_outside b base len) m mf
+### C.jet_secp_wnaf_slice_frame.wnaf_slice_memset_frame
+wnaf_slice_memset_frame
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (base len : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 len)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.storebytes m b base
+                   (jet_memset_model.memset_bytes Integers.Int.zero
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) len)))
+                (@Some Memory.Mem.mem mf)), jet_sx_mem.lframe (wnaf_slice_outside b base len) m mf
+### C.jet_secp_wnaf_slice_frame.wnaf_slice_outside
+wnaf_slice_outside =
+fun (b : Values.block) (base len : BinNums.Z) (old : Values.block) (pos : BinNums.Z) =>
+or (not (@eq Values.block old b))
+  (or (BinInt.Z.lt pos base)
+     (BinInt.Z.le (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) len)) pos))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments wnaf_slice_outside b (base len)%Z_scope old pos%Z_scope

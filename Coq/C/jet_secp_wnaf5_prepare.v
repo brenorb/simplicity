@@ -5,6 +5,7 @@ From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Values Events.
 Require Import Simplicity.Ty Simplicity.Word Simplicity.Bit.
 Require Import C.jet_sx_mem C.jet_secp_linkage C.jets_secp
+ C.jet_secp_wnaf_slice_frame
  C.jet_clight_internal_permissions C.jet_clight_internal_frame C.jet_clight_internal_preserve
  C.jet_secp_closed_helpers C.jet_secp_scalar_get_b32_storage
  C.jet_secp_scalar_get_b32_numeric C.jet_secp_wnaf_digit C.jet_secp_wnaf_control
@@ -78,7 +79,8 @@ Theorem exec_wnaf5_post_memset le m sb word ba abase bs b base :
  0<=last+1<=129 /\ lframe (fun old _=>old<>bs /\ old<>b) m mf /\
  keeps_permissions m mf /\
  map wnaf5_literal_value (literal_wnaf5_digits (sb,word))=
-  rev (map (fun i=>wnaf5_input_sign sb*digits (Z.of_nat i)) (seq 0 129)).
+  rev (map (fun i=>wnaf5_input_sign sb*digits (Z.of_nat i)) (seq 0 129)) /\
+ lframe (fun old pos=>old<>bs /\ wnaf_slice_outside b base 129 old pos) m mf.
 Proof.
  intros HA Fields Input SourceSeparate OutputSeparate Free Base Max Access Zeros.
  destruct (exec_wnaf_scalar_copy le m (wnaf5_input_scalar sb word) ba abase bs HA SourceSeparate Input
@@ -106,7 +108,7 @@ Proof.
   (wnaf5_input_sign_cases sb) (wnaf5_input_signed_value sb word) FieldsS Prepared OutputSeparate
   Base Max AccessS ZerosS)
   as (lef & mf & carry & last & digits & Loop & Final & Carry & StorageF & ArrayF & Bound
-    & (BlocksF & PermF & FrameF) & Literal).
+    & (BlocksF & PermF & FrameF) & Literal & SliceFrame).
  exists lef,mf,carry,last,digits;split.
  - rewrite wnaf_post_memset_source;eapply exec_Sseq_1 with (t1:=E0) (t2:=E0);[exact Copy|].
    eapply exec_Sseq_1 with (t1:=E0) (t2:=E0);[exact Select|exact Loop].
@@ -116,6 +118,10 @@ Proof.
      * eapply lframe_trans.
        -- eapply lframe_implies;[exact FrameCS|intros old pos [NS NB] _;exact NS].
        -- eapply lframe_implies;[exact FrameF|intros old pos [NS NB] _;exact NB].
-     * split;[|exact Literal].
-       intros old pos k p Perm;apply (proj1 (PermF old pos k p));apply KeepCS;exact Perm.
+     * split.
+       -- intros old pos k p Perm;apply (proj1 (PermF old pos k p));apply KeepCS;exact Perm.
+       -- split;[exact Literal|].
+          eapply lframe_trans.
+          ++ eapply lframe_implies;[exact FrameCS|intros old pos [Private Outside] _;exact Private].
+          ++ eapply lframe_implies;[exact SliceFrame|intros old pos [Private Outside] _;exact Outside].
 Qed.

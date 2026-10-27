@@ -5,6 +5,7 @@ From Coq Require Import ZArith List Lia.
 Require Import Simplicity.Ty Simplicity.Word Simplicity.Bit Simplicity.Alg.
 From compcert Require Import Integers AST Maps Memory Values Events Clight ClightBigstep.
 Require Import C.jet_secp_wnaf_literal C.jet_secp_wnaf_literal_signed C.jet_secp_wnaf_literal_array
+ C.jet_sx_mem C.jet_secp_wnaf_slice_frame
  C.jet_secp_wnaf5_literal C.jet_secp_wnaf5_literal_next C.jet_secp_wnaf5_signed_body
  C.jet_secp_wnaf5_signed_nonzero C.jet_secp_wnaf_digit C.jet_secp_wnaf_control C.jet_secp_wnaf_loop
  C.jet_secp_scalar_get_b32_storage C.jet_secp_scalar_get_b32_numeric C.jet_secp_linkage C.jets_secp.
@@ -44,7 +45,8 @@ Theorem exec_wnaf5_signed_array_step le m n bit carry sign b base bs last digits
  literal_wnaf5_run (Z.to_nat (biti-bit)) (sb,word)=((sb',next),segment) /\
  literal_wnaf_signed_value sb' next=sign*(n/2^biti+carryi) /\
  map wnaf5_literal_value segment=rev (map (fun d=>sign*d) (wnaf_slice (Z.to_nat (biti-bit)) digitsi bit)) /\
- (forall i,0<=i<bit -> digitsi i=digits i).
+ (forall i,0<=i<bit -> digitsi i=digits i) /\
+ lframe (wnaf_slice_outside b base 129) m mi.
 Proof.
  intros N HBit Carry Sign Value Fields Storage Separate Base Max Array.
  destruct (Coqlib.zeq ((n/2^bit) mod 2) carry) as [Same|Different].
@@ -62,7 +64,7 @@ Proof.
      * split;[exact Last|];split.
        -- replace (bit+1-bit) with 1 by lia;change ([0]=[sign*digits bit]).
           rewrite (wnaf_array_suffix _ _ _ _ _ _ _ _ _ Array bit ltac:(lia)),Z.mul_0_r;reflexivity.
-       -- intros;reflexivity.
+       -- split;[intros;reflexivity|apply lframe_refl].
  - set (width:=Z.min 5 (129-bit)).
    destruct (wnaf_window_bounds bit 129 5 HBit ltac:(lia) ltac:(lia)) as (Width & End & Advance).
    fold width in Width,End,Advance.
@@ -89,5 +91,7 @@ Proof.
           ++ rewrite map_cons,map_repeat,Z.mul_0_r;cbn [rev];rewrite rev_repeat,Digit;reflexivity.
           ++ intros i Range;apply (wnaf_array_suffix _ _ _ _ _ _ _ _ _ Array i).
              rewrite <-Count,Z2Nat.id in Range by lia;lia.
-       -- intros i Range;unfold newdigits,wnaf_update;destruct Coqlib.zeq;[lia|reflexivity].
+       -- split.
+          ++ intros i Range;unfold newdigits,wnaf_update;destruct Coqlib.zeq;[lia|reflexivity].
+          ++ eapply wnaf_slice_store_frame;[exact HBit|exact Store].
 Qed.

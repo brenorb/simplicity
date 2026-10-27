@@ -84,3 +84,106 @@ eval_wnaf_literal5
                                                  BinInt.Z.mul (jet_secp_wnaf5_input.wnaf5_input_sign sb)
                                                    (digits (BinInt.Z.of_nat i)))
                                                 (List.seq O (S (S (S (S (S (S (S ...)))))))))))))))))))))
+### C.jet_secp_wnaf_function5.eval_wnaf_literal5_slice
+eval_wnaf_literal5_slice
+     : forall (_ : jet_memset_model.memset_model) (sb : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))) (m : Memory.Mem.mem) (ba : Values.block)
+         (abase : BinNums.Z) (b : Values.block) (base : BinNums.Z)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m ba abase
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of (jet_secp_wnaf5_input.wnaf5_input_scalar sb word))))
+         (_ : not (@eq Values.block ba b)) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xI
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m b base
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xI
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex BinNums.Z
+            (fun last : BinNums.Z =>
+             @ex (forall _ : BinNums.Z, BinNums.Z)
+               (fun digits : forall _ : BinNums.Z, BinNums.Z =>
+                and
+                  (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                     (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ecmult_wnaf)
+                     (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base))
+                        (@cons Values.val
+                           (Values.Vint
+                              (Integers.Int.repr
+                                 (BinNums.Zpos
+                                    (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                           (@cons Values.val (Values.Vptr ba (Integers.Ptrofs.repr abase))
+                              (@cons Values.val
+                                 (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+                                 (@nil Values.val))))) Events.E0 mf
+                     (Values.Vint (Integers.Int.repr (BinInt.Z.add last (BinNums.Zpos BinNums.xH)))))
+                  (and
+                     (jet_secp_wnaf_loop.wnaf_array_state mf b base
+                        (BinNums.Zpos
+                           (BinNums.xI
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                        (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))) (jet_secp_wnaf5_input.wnaf5_input_sign sb)
+                        (BinNums.Zpos
+                           (BinNums.xI
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                        last digits)
+                     (and
+                        (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.add last (BinNums.Zpos BinNums.xH)))
+                           (BinInt.Z.le (BinInt.Z.add last (BinNums.Zpos BinNums.xH))
+                              (BinNums.Zpos
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                        (and
+                           (Memory.Mem.range_perm mf b base
+                              (BinInt.Z.add base
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and
+                              (jet_sx_mem.lframe
+                                 (jet_secp_wnaf_slice_frame.wnaf_slice_outside b base
+                                    (BinNums.Zpos
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                 m mf)
+                              (and
+                                 (jet_secp_scalar_get_b32_storage.scalar_at mf ba abase
+                                    (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                                       (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                                          (jet_secp_wnaf5_input.wnaf5_input_scalar sb word))))
+                                 (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                                    (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                                       (@eq (list BinNums.Z)
+                                          (@List.map (Ty.tySem jet_secp_wnaf5_literal.literal_wnaf5_digit) BinNums.Z
+                                             jet_secp_wnaf5_signed_array.wnaf5_literal_value
+                                             (jet_secp_wnaf5_literal.literal_wnaf5_digits
+                                                (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+                                                   (Ty.tySem (Word.Word (S (S (S (S (S ...))))))) sb word)))
+                                          (@List.rev BinNums.Z
+                                             (@List.map nat BinNums.Z
+                                                (fun i : nat =>
+                                                 BinInt.Z.mul (jet_secp_wnaf5_input.wnaf5_input_sign sb)
+                                                   (digits (BinInt.Z.of_nat i)))
+                                                (List.seq O (S (S (S (S (S (S (S ...)))))))))))))))))))))

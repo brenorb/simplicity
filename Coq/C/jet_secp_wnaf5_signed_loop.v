@@ -5,6 +5,7 @@ From Coq Require Import ZArith List Lia.
 Require Import Simplicity.Ty Simplicity.Word Simplicity.Bit Simplicity.Alg.
 From compcert Require Import Integers AST Maps Memory Values Events Clight ClightBigstep.
 Require Import C.jet_secp_wnaf_literal C.jet_secp_wnaf_literal_signed C.jet_secp_wnaf_literal_array
+ C.jet_sx_mem C.jet_secp_wnaf_slice_frame
  C.jet_secp_wnaf5_literal C.jet_secp_wnaf5_signed_array
  C.jet_secp_wnaf_digit C.jet_secp_wnaf_control C.jet_secp_wnaf_loop
  C.jet_secp_scalar_get_b32_storage C.jet_secp_scalar_get_b32_numeric C.jet_secp_linkage C.jets_secp.
@@ -60,34 +61,38 @@ Theorem exec_wnaf5_signed_loop_bounded fuel : forall le m n bit carry sign b bas
  wnaf_array_state mf b base 129 5 sign 129 lastf digitsf /\ wnaf_memory_effect b m mf /\
  (forall i,0<=i<bit -> digitsf i=digits i) /\
  map wnaf5_literal_value (snd (literal_wnaf5_run (Z.to_nat (129-bit)) (sb,word)))=
-  rev (map (fun d=>sign*d) (wnaf_slice (Z.to_nat (129-bit)) digitsf bit)).
+  rev (map (fun d=>sign*d) (wnaf_slice (Z.to_nat (129-bit)) digitsf bit)) /\
+ lframe (wnaf_slice_outside b base 129) m mf.
 Proof.
  induction fuel as [|fuel IH];intros le m n bit carry sign b base bs last digits sb word
   Fuel N HBit Carry Sign Value Fields Storage Separate Base Max Array;
   destruct (Coqlib.zeq bit 129) as [Done|More].
  - subst bit;exists le,m,carry,last,digits;split;[eapply exec_wnaf5_signed_loop_done;exact Fields|];
    split;[exact Fields|];split;[exact Carry|];split;[exact Storage|];split;[exact Array|];
-   split;[apply wnaf_memory_refl|];split;[intros;reflexivity|change (([]:list Z)=[]);reflexivity].
+   split;[apply wnaf_memory_refl|];split;[intros;reflexivity|];
+   split;[change (([]:list Z)=[]);reflexivity|apply lframe_refl].
  - change (129-bit<=0) in Fuel;lia.
  - subst bit;exists le,m,carry,last,digits;split;[eapply exec_wnaf5_signed_loop_done;exact Fields|];
    split;[exact Fields|];split;[exact Carry|];split;[exact Storage|];split;[exact Array|];
-   split;[apply wnaf_memory_refl|];split;[intros;reflexivity|change (([]:list Z)=[]);reflexivity].
+   split;[apply wnaf_memory_refl|];split;[intros;reflexivity|];
+   split;[change (([]:list Z)=[]);reflexivity|apply lframe_refl].
  - destruct (exec_wnaf5_signed_array_step le m n bit carry sign b base bs last digits sb word
     N ltac:(lia) Carry Sign Value Fields Storage Separate Base Max Array)
     as (lei & mi & biti & carryi & lasti & digitsi & out & sbi & next & segment & Body & FieldsI
-      & Advance & CarryI & StorageI & ArrayI & EffectI & Normal & Run & ValueI & Segment & PrefixI).
+      & Advance & CarryI & StorageI & ArrayI & EffectI & Normal & Run & ValueI & Segment & PrefixI & SliceI).
    assert (FuelI:129-biti<=Z.of_nat fuel) by (rewrite Nat2Z.inj_succ in Fuel;lia).
    destruct (IH lei mi n biti carryi sign b base bs lasti digitsi sbi next FuelI N ltac:(lia)
     CarryI Sign ValueI FieldsI StorageI Separate Base Max ArrayI)
     as (lef & mf & carryf & lastf & digitsf & Rest & FieldsF & CarryF & StorageF & ArrayF
-      & EffectF & PrefixF & DecodeF).
+      & EffectF & PrefixF & DecodeF & SliceF).
    exists lef,mf,carryf,lastf,digitsf;split.
    + eapply exec_wnaf5_signed_loop_join with (bit:=bit) (carry:=carry) (sign:=sign)
       (b:=b) (base:=base) (last:=last);[lia|exact Fields|exact Body|exact Normal|exact Rest].
    + split;[exact FieldsF|];split;[exact CarryF|];split;[exact StorageF|];split;[exact ArrayF|];
       split;[eapply wnaf_memory_trans;eassumption|];split.
      * intros i Range;rewrite PrefixF by lia;apply PrefixI;exact Range.
-     * assert (Count:Z.to_nat (129-bit)=(Z.to_nat (biti-bit)+Z.to_nat (129-biti))%nat).
+     * split;[|eapply lframe_trans;[exact SliceI|exact SliceF]].
+       assert (Count:Z.to_nat (129-bit)=(Z.to_nat (biti-bit)+Z.to_nat (129-biti))%nat).
        { rewrite <-Z2Nat.inj_add by lia;f_equal;lia. }
        assert (Start:bit+Z.of_nat (Z.to_nat (biti-bit))=biti) by (rewrite Z2Nat.id by lia;lia).
        assert (Slice:wnaf_slice (Z.to_nat (biti-bit)) digitsf bit=
@@ -113,7 +118,8 @@ Theorem exec_wnaf5_loop_zero_signed le m n sign b base bs sb word :
  wnaf_array_state mf b base 129 5 sign 129 last digits /\
  0<=last+1<=129 /\ wnaf_memory_effect b m mf /\
  map wnaf5_literal_value (literal_wnaf5_digits (sb,word))=
-  rev (map (fun i=>sign*digits (Z.of_nat i)) (seq 0 129)).
+  rev (map (fun i=>sign*digits (Z.of_nat i)) (seq 0 129)) /\
+ lframe (wnaf_slice_outside b base 129) m mf.
 Proof.
  intros N Sign Value Fields Storage Separate Base Max Access Load.
  assert (Array:wnaf_array_state m b base 129 5 sign 0 (-1) (fun _=>0)).
@@ -123,7 +129,7 @@ Proof.
  destruct (exec_wnaf5_signed_loop_bounded 129 le m n 0 0 sign b base bs (-1) (fun _=>0) sb word
   ltac:(lia) N ltac:(lia) ltac:(left;reflexivity) Sign Initial Fields Storage Separate Base Max Array)
   as (lef & mf & carry & last & digits & Loop & Final & Carry & StorageF & ArrayF
-    & Effect & Prefix & Decode).
+    & Effect & Prefix & Decode & SliceFrame).
  destruct (wnaf_array_last _ _ _ _ _ _ _ _ _ ArrayF) as (Range & Highest & Present).
  assert (Return:Clight2.exec_stmt secp_ge (wnaf_env bs) lef mf
   (snd (C.jet_secp_statement_prefix.split_statement_last (fn_body f_secp256k1_ecmult_wnaf))) E0
@@ -134,6 +140,7 @@ Proof.
  - unfold wnaf_loop_return;eapply exec_Sseq_1 with (t1:=E0) (t2:=E0);[exact Loop|exact Return].
  - split;[exact Final|];split;[exact Carry|];split;[exact StorageF|];split;[exact ArrayF|];
     split;[lia|];split;[exact Effect|].
+   split;[|exact SliceFrame].
    rewrite <-literal_wnaf5_digits_order.
    pose proof (wnaf_slice_seq 129 digits 0) as Slice.
    change (wnaf_slice 129 digits 0=map (fun i=>digits (Z.of_nat i)) (seq 0 129)) in Slice.
