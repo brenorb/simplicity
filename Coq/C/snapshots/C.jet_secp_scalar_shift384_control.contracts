@@ -1,0 +1,137 @@
+### C.jet_secp_scalar_shift384_control.shift384_body_source
+shift384_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_scalar_mul_shift_var)
+         (Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+            (Clight.Ssequence shift384_product_statement
+               (jet_secp_statement_prefix.statement_sequence
+                  (@List.firstn Clight.statement (S (S (S O)))
+                     (@List.skipn Clight.statement (S (S O))
+                        (@fst (list Clight.statement) Clight.statement shift384_parts)))
+                  (Clight.Ssequence (shift384_copy_statement O)
+                     (Clight.Ssequence (shift384_copy_statement (S O))
+                        (Clight.Ssequence (shift384_copy_statement (S (S O)))
+                           (Clight.Ssequence (shift384_copy_statement (S (S (S O))))
+                              (Clight.Ssequence shift384_round_load shift384_round_call))))))))
+### C.jet_secp_scalar_shift384_control.exec_shift384_settings
+exec_shift384_settings
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._shift le)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.repr
+                         (BinNums.Zpos
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m shift384_settings Events.E0
+         (shift384_settings_temps le) m ClightBigstep.Out_normal
+### C.jet_secp_scalar_shift384_control.eval_shift384_array
+eval_shift384_array
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bl : Values.block) (i : nat) (word : Integers.Int64.int) (_ : lt i (S (S O)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._l e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl
+                      (Ctypesdefs.tarray Ctypesdefs.tulong
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._shiftlimbs le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bl
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))) (BinInt.Z.of_nat i))))
+                (@Some Values.val (Values.Vlong word))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (shift384_array_read i) (Values.Vlong word)
+### C.jet_secp_scalar_shift384_control.eval_shift384_dest
+eval_shift384_dest
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (br : Values.block)
+         (i : nat) (_ : lt i (S (S (S (S O)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero))),
+       Clight.eval_lvalue jet_secp_linkage.secp_ge e le m (shift384_dest i) br
+         (Integers.Ptrofs.repr
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+         Ctypes.Full
+### C.jet_secp_scalar_shift384_control.shift384_parts
+shift384_parts =
+jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_scalar_mul_shift_var)
+     : prod (list Clight.statement) Clight.statement
+### C.jet_secp_scalar_shift384_control.shift384_product_statement
+shift384_product_statement =
+@List.nth Clight.statement (S O) (@fst (list Clight.statement) Clight.statement shift384_parts) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_scalar_shift384_control.shift384_settings
+shift384_settings =
+jet_secp_statement_prefix.statement_sequence
+  (@List.firstn Clight.statement (S (S (S O)))
+     (@List.skipn Clight.statement (S (S O)) (@fst (list Clight.statement) Clight.statement shift384_parts)))
+  Clight.Sskip
+     : Clight.statement
+### C.jet_secp_scalar_shift384_control.shift384_copy_statement
+shift384_copy_statement =
+fun i : nat =>
+@List.nth Clight.statement (Nat.add (S (S (S (S (S O))))) i)
+  (@fst (list Clight.statement) Clight.statement shift384_parts) Clight.Sskip
+     : forall _ : nat, Clight.statement
+
+Arguments shift384_copy_statement i%nat_scope
+### C.jet_secp_scalar_shift384_control.shift384_round_load
+shift384_round_load =
+@List.nth Clight.statement (S (S (S (S (S (S (S (S (S O)))))))))
+  (@fst (list Clight.statement) Clight.statement shift384_parts) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_scalar_shift384_control.shift384_round_call
+shift384_round_call = @snd (list Clight.statement) Clight.statement shift384_parts
+     : Clight.statement
+### C.jet_secp_scalar_shift384_control.shift384_env
+shift384_env =
+fun bl : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._l
+  (@pair Values.block Ctypes.type bl
+     (Ctypesdefs.tarray Ctypesdefs.tulong (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+  Clight.empty_env
+     : forall _ : Values.block, Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments shift384_env bl
+### C.jet_secp_scalar_shift384_control.shift384_settings_temps
+shift384_settings_temps =
+fun le : Maps.PTree.tree Values.val =>
+@Maps.PTree.set Values.val jets_secp._shifthigh
+  (Values.Vint
+     (Integers.Int.repr
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (@Maps.PTree.set Values.val jets_secp._shiftlow (Values.Vint Integers.Int.zero)
+     (@Maps.PTree.set Values.val jets_secp._shiftlimbs
+        (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))))) le))
+     : forall _ : Maps.PTree.tree Values.val, Maps.PTree.tree Values.val
+
+Arguments shift384_settings_temps le
+### C.jet_secp_scalar_shift384_control.shift384_array_read
+shift384_array_read =
+fun i : nat =>
+Clight.Ederef
+  (Clight.Ebinop Cop.Oadd
+     (Clight.Evar jets_secp._l
+        (Ctypesdefs.tarray Ctypesdefs.tulong (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+     (Clight.Ebinop Cop.Oadd (Clight.Econst_int (Integers.Int.repr (BinInt.Z.of_nat i)) Ctypesdefs.tint)
+        (Clight.Etempvar jets_secp._shiftlimbs Ctypesdefs.tuint) Ctypesdefs.tuint) (Ctypesdefs.tptr Ctypesdefs.tulong))
+  Ctypesdefs.tulong
+     : forall _ : nat, Clight.expr
+
+Arguments shift384_array_read i%nat_scope
+### C.jet_secp_scalar_shift384_control.shift384_dest
+shift384_dest =
+fun i : nat =>
+Clight.Ederef
+  (Clight.Ebinop Cop.Oadd
+     (Clight.Efield
+        (Clight.Ederef (Clight.Etempvar jets_secp._r (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr)))
+           (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr)) jets_secp._d
+        (Ctypesdefs.tarray Ctypesdefs.tulong (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))))
+     (Clight.Econst_int (Integers.Int.repr (BinInt.Z.of_nat i)) Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tulong))
+  Ctypesdefs.tulong
+     : forall _ : nat, Clight.expr
+
+Arguments shift384_dest i%nat_scope

@@ -1,0 +1,104 @@
+### C.jet_secp_scalar_shift384_copy.shift384_copy_other
+shift384_copy_other
+     : forall (i : nat) (le : Maps.PTree.tree Values.val) (word : Integers.Int64.int) (id : AST.ident)
+         (_ : not (@List.In AST.ident id (shift384_copy_ids i))),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (shift384_copy_temps i le word))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_scalar_shift384_copy.exec_shift384_copy
+exec_shift384_copy
+     : forall (i : nat) (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (br bl : Values.block) (word : Integers.Int64.int) (_ : lt i (S (S (S (S O)))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._l e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl
+                      (Ctypesdefs.tarray Ctypesdefs.tulong
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._shift le)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.repr
+                         (BinNums.Zpos
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._shiftlow le)
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._shiftlimbs le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))))))
+         (_ : forall _ : lt i (S (S O)),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bl
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))) (BinInt.Z.of_nat i))))
+                (@Some Values.val (Values.Vlong word)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m br
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))
+                   (Values.Vlong (shift384_copy_value i word))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (jet_secp_scalar_shift384_control.shift384_copy_statement i) Events.E0 (shift384_copy_temps i le word) mf
+         ClightBigstep.Out_normal
+### C.jet_secp_scalar_shift384_copy.shift384_copy_value
+shift384_copy_value =
+fun (i : nat) (word : Integers.Int64.int) =>
+match PeanoNat.Nat.ltb i (S (S O)) return Integers.Int64.int with
+| true => word
+| false => Integers.Int64.zero
+end
+     : forall (_ : nat) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments shift384_copy_value i%nat_scope word
+### C.jet_secp_scalar_shift384_copy.shift384_copy_temps
+shift384_copy_temps =
+fun (i : nat) (le : Maps.PTree.tree Values.val) (word : Integers.Int64.int) =>
+match i return (Maps.PTree.tree Values.val) with
+| O =>
+    @Maps.PTree.set Values.val jets_secp._t'1 (Values.Vlong word)
+      (@Maps.PTree.set Values.val jets_secp._t'17 (Values.Vlong word)
+         (@Maps.PTree.set Values.val jets_secp._t'3 (Values.Vlong Integers.Int64.zero)
+            (@Maps.PTree.set Values.val jets_secp._t'2 (Values.Vint Integers.Int.zero) le)))
+| S n =>
+    match n return (Maps.PTree.tree Values.val) with
+    | O =>
+        @Maps.PTree.set Values.val jets_secp._t'4 (Values.Vlong word)
+          (@Maps.PTree.set Values.val jets_secp._t'15 (Values.Vlong word)
+             (@Maps.PTree.set Values.val jets_secp._t'6 (Values.Vlong Integers.Int64.zero)
+                (@Maps.PTree.set Values.val jets_secp._t'5 (Values.Vint Integers.Int.zero) le)))
+    | S n0 =>
+        match n0 return (Maps.PTree.tree Values.val) with
+        | O => @Maps.PTree.set Values.val jets_secp._t'7 (Values.Vlong Integers.Int64.zero) le
+        | S _ => @Maps.PTree.set Values.val jets_secp._t'10 (Values.Vlong Integers.Int64.zero) le
+        end
+    end
+end
+     : forall (_ : nat) (_ : Maps.PTree.tree Values.val) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments shift384_copy_temps i%nat_scope le word
+### C.jet_secp_scalar_shift384_copy.shift384_copy_ids
+shift384_copy_ids =
+fun i : nat =>
+match i return (list AST.ident) with
+| O =>
+    @cons AST.ident jets_secp._t'1
+      (@cons AST.ident jets_secp._t'17
+         (@cons AST.ident jets_secp._t'3 (@cons AST.ident jets_secp._t'2 (@nil AST.ident))))
+| S n =>
+    match n return (list AST.ident) with
+    | O =>
+        @cons AST.ident jets_secp._t'4
+          (@cons AST.ident jets_secp._t'15
+             (@cons AST.ident jets_secp._t'6 (@cons AST.ident jets_secp._t'5 (@nil AST.ident))))
+    | S n0 =>
+        match n0 return (list AST.ident) with
+        | O => @cons AST.ident jets_secp._t'7 (@nil AST.ident)
+        | S _ => @cons AST.ident jets_secp._t'10 (@nil AST.ident)
+        end
+    end
+end
+     : forall _ : nat, list AST.ident
+
+Arguments shift384_copy_ids i%nat_scope

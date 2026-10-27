@@ -1,0 +1,162 @@
+### C.jet_secp_scalar_shift384_stores.shift384_copy_fixed
+shift384_copy_fixed
+     : forall (i : nat) (le : Maps.PTree.tree Values.val) (word : Integers.Int64.int) (br : Values.block)
+         (_ : lt i (S (S (S (S O))))) (_ : shift384_fixed le br),
+       shift384_fixed (jet_secp_scalar_shift384_copy.shift384_copy_temps i le word) br
+### C.jet_secp_scalar_shift384_stores.shift384_store_exists
+shift384_store_exists
+     : forall (m : Memory.Mem.mem) (br : Values.block) (i : nat) (word : Integers.Int64.int)
+         (_ : lt i (S (S (S (S O)))))
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (Memory.Mem.store AST.Mint64 m br
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))
+                  (Values.Vlong word)) (@Some Memory.Mem.mem mf))
+            (and
+               (Memory.Mem.range_perm mf br BinNums.Z0
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                  Memtype.Cur Memtype.Freeable)
+               (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                  (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b br)) m mf))))
+### C.jet_secp_scalar_shift384_stores.exec_shift384_copy_range
+exec_shift384_copy_range
+     : forall (count start : nat) (w : forall _ : nat, Integers.Int64.int)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (br bl : Values.block) (_ : @eq nat (Nat.add start count) (S (S (S (S O)))))
+         (_ : not (@eq Values.block br bl))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._l e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl
+                      (Ctypesdefs.tarray Ctypesdefs.tulong
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : shift384_fixed le br) (_ : shift384_prefix w br start m) (_ : shift384_product w bl m)
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (shift384_copy_range start count)
+                  Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (shift384_fixed le' br)
+                  (and (shift384_prefix w br (S (S (S (S O)))) mf)
+                     (and (shift384_product w bl mf)
+                        (and
+                           (Memory.Mem.range_perm mf br BinNums.Z0
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                              (jet_sx_mem.lframe
+                                 (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b br)) m mf))))))))
+### C.jet_secp_scalar_shift384_stores.shift384_prefix_storage
+shift384_prefix_storage
+     : forall (w : forall _ : nat, Integers.Int64.int) (br : Values.block) (m : Memory.Mem.mem)
+         (_ : shift384_prefix w br (S (S (S (S O)))) m)
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable), jet_secp_scalar_get_b32_storage.scalar_at m br BinNums.Z0 (shift384_words w)
+### C.jet_secp_scalar_shift384_stores.exec_shift384_copies
+exec_shift384_copies
+     : forall (w : forall _ : nat, Integers.Int64.int) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (br bl : Values.block)
+         (_ : not (@eq Values.block br bl))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._l e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl
+                      (Ctypesdefs.tarray Ctypesdefs.tulong
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : shift384_fixed le br) (_ : shift384_product w bl m)
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  (shift384_copy_range O (S (S (S (S O))))) Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (shift384_fixed le' br)
+                  (and (jet_secp_scalar_get_b32_storage.scalar_at mf br BinNums.Z0 (shift384_words w))
+                     (and (shift384_product w bl mf)
+                        (and
+                           (Memory.Mem.range_perm mf br BinNums.Z0
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                              (jet_sx_mem.lframe
+                                 (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b br)) m mf))))))))
+### C.jet_secp_scalar_shift384_stores.shift384_fixed
+shift384_fixed =
+fun (le : Maps.PTree.tree Values.val) (br : Values.block) =>
+and
+  (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+     (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero)))
+  (and
+     (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._shift le)
+        (@Some Values.val
+           (Values.Vint
+              (Integers.Int.repr
+                 (BinNums.Zpos
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))))
+     (and
+        (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._shiftlow le)
+           (@Some Values.val (Values.Vint Integers.Int.zero)))
+        (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._shiftlimbs le)
+           (@Some Values.val (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Values.block), Prop
+
+Arguments shift384_fixed le br
+### C.jet_secp_scalar_shift384_stores.shift384_words
+shift384_words =
+fun w : forall _ : nat, Integers.Int64.int =>
+@cons Integers.Int64.int (w (S (S (S (S (S (S O)))))))
+  (@cons Integers.Int64.int (w (S (S (S (S (S (S (S O))))))))
+     (@cons Integers.Int64.int Integers.Int64.zero
+        (@cons Integers.Int64.int Integers.Int64.zero (@nil Integers.Int64.int))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list Integers.Int64.int
+
+Arguments shift384_words w%function_scope
+### C.jet_secp_scalar_shift384_stores.shift384_prefix
+shift384_prefix =
+fun (w : forall _ : nat, Integers.Int64.int) (br : Values.block) (count : nat) (m : Memory.Mem.mem) =>
+forall (j : nat) (_ : lt j count),
+@eq (option Values.val)
+  (Memory.Mem.load AST.Mint64 m br
+     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat j)))
+  (@Some Values.val
+     (Values.Vlong (jet_secp_scalar_shift384_copy.shift384_copy_value j (w (Nat.add (S (S (S (S (S (S O)))))) j)))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Values.block) (_ : nat) (_ : Memory.Mem.mem), Prop
+
+Arguments shift384_prefix w%function_scope br count%nat_scope m
+### C.jet_secp_scalar_shift384_stores.shift384_product
+shift384_product =
+fun (w : forall _ : nat, Integers.Int64.int) (bl : Values.block) (m : Memory.Mem.mem) =>
+forall (j : nat) (_ : lt j (S (S (S (S (S (S (S (S O))))))))),
+@eq (option Values.val)
+  (Memory.Mem.load AST.Mint64 m bl
+     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat j)))
+  (@Some Values.val (Values.Vlong (w j)))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Values.block) (_ : Memory.Mem.mem), Prop
+
+Arguments shift384_product w%function_scope bl m
+### C.jet_secp_scalar_shift384_stores.shift384_copy_range
+shift384_copy_range =
+fun start count : nat =>
+jet_secp_statement_prefix.statement_sequence
+  (@List.map nat Clight.statement jet_secp_scalar_shift384_control.shift384_copy_statement (List.seq start count))
+  Clight.Sskip
+     : forall (_ : nat) (_ : nat), Clight.statement
+
+Arguments shift384_copy_range (start count)%nat_scope

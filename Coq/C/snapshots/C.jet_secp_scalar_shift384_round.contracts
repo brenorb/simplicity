@@ -1,0 +1,109 @@
+### C.jet_secp_scalar_shift384_round.shift384_round_bounds
+shift384_round_bounds
+     : forall word : Integers.Int64.int,
+       and
+         (BinInt.Z.le BinNums.Z0
+            (BinInt.Z.div (Integers.Int64.unsigned word)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (BinInt.Z.lt
+            (BinInt.Z.div (Integers.Int64.unsigned word)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            (BinNums.Zpos (BinNums.xO BinNums.xH)))
+### C.jet_secp_scalar_shift384_round.shift384_round_value
+shift384_round_value
+     : forall word : Integers.Int64.int,
+       and
+         (@eq Integers.Int64.int (shift384_round_word word)
+            match shift384_round_flag word return Integers.Int64.int with
+            | true => Integers.Int64.one
+            | false => Integers.Int64.zero
+            end)
+         (@eq BinNums.Z
+            match shift384_round_flag word return BinNums.Z with
+            | true => BinNums.Zpos BinNums.xH
+            | false => BinNums.Z0
+            end
+            (BinInt.Z.div (Integers.Int64.unsigned word)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_secp_scalar_shift384_round.exec_shift384_round_load
+exec_shift384_round_load
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bl : Values.block) (word : Integers.Int64.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._l e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl
+                      (Ctypesdefs.tarray Ctypesdefs.tulong
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._shift le)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.repr
+                         (BinNums.Zpos
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bl
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (@Some Values.val (Values.Vlong word))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         jet_secp_scalar_shift384_control.shift384_round_load Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'11 (Values.Vlong word) le) m ClightBigstep.Out_normal
+### C.jet_secp_scalar_shift384_round.exec_shift384_round_call
+exec_shift384_round_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (br : Values.block) (word : Integers.Int64.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_scalar_cadd_bit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._shift le)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.repr
+                         (BinNums.Zpos
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'11 le)
+                (@Some Values.val (Values.Vlong word)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_cadd_bit)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vint Integers.Int.zero)
+                      (@cons Values.val
+                         (Values.Vint
+                            match shift384_round_flag word return Integers.Int.int with
+                            | true => Integers.Int.one
+                            | false => Integers.Int.zero
+                            end) (@nil Values.val)))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         jet_secp_scalar_shift384_control.shift384_round_call Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_scalar_shift384_round.shift384_round_word
+shift384_round_word =
+fun word : Integers.Int64.int =>
+Integers.Int64.and
+  (Integers.Int64.shru word
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+  Integers.Int64.one
+     : forall _ : Integers.Int64.int, Integers.Int64.int
+
+Arguments shift384_round_word word
+### C.jet_secp_scalar_shift384_round.shift384_round_flag
+shift384_round_flag =
+fun word : Integers.Int64.int =>
+BinInt.Z.eqb
+  (BinInt.Z.div (Integers.Int64.unsigned word)
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+  (BinNums.Zpos BinNums.xH)
+     : forall _ : Integers.Int64.int, bool
+
+Arguments shift384_round_flag word

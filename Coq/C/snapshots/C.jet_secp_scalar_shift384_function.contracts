@@ -1,0 +1,152 @@
+### C.jet_secp_scalar_shift384_function.shift384_entry
+shift384_entry
+     : forall (beta : jet_sx_state.layout) (br : Values.block) (m : Memory.Mem.mem) (ma : Memory.Mem.mem')
+         (bl : Values.block)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block ma bl)),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_scalar_mul_shift_var
+         (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+            (@cons Values.val (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                  (@cons Values.val
+                     (Values.Vint
+                        (Integers.Int.repr
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+                     (@nil Values.val))))) m (jet_secp_scalar_shift384_control.shift384_env bl)
+         (shift384_entry_temps beta br) ma
+### C.jet_secp_scalar_shift384_function.shift384_closed
+shift384_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_closed_helpers.secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_scalar_mul_shift_var)) true
+### C.jet_secp_scalar_shift384_function.shift384_product_closed
+shift384_product_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_closed_helpers.secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_scalar_mul_512)) true
+### C.jet_secp_scalar_shift384_function.shift384_inputs_after_product
+shift384_inputs_after_product
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (bl : Values.block)
+         (m mp : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta jet_secp_scalar_mul_borrowed_alloc.scalar_mul_borrowed_inputs m)
+         (_ : jet_sx_state.rep rho (jet_secp_scalar_mul_caller_alloc.scalar_mul_stack_layout beta bl)
+                jet_secp_scalar_mul512_borrowed.scalar_mul512_borrowed_output_regs mp),
+       jet_sx_state.rep rho beta jet_secp_scalar_mul_borrowed_alloc.scalar_mul_borrowed_inputs mp
+### C.jet_secp_scalar_shift384_function.shift384_inputs_lframe
+shift384_inputs_lframe
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (ma mb : Memory.Mem.mem)
+         (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : jet_sx_state.rep rho beta jet_secp_scalar_mul_borrowed_alloc.scalar_mul_borrowed_inputs ma)
+         (_ : jet_sx_mem.lframe P ma mb)
+         (_ : forall (r : nat) (pos : BinNums.Z) (_ : lt r (S (S O))), P (jet_sx_state.blk beta r) pos),
+       jet_sx_state.rep rho beta jet_secp_scalar_mul_borrowed_alloc.scalar_mul_borrowed_inputs mb
+### C.jet_secp_scalar_shift384_function.shift384_machine_value
+shift384_machine_value
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (jet_secp_scalar_shift384_numeric.shift384_product_value
+            (fun j : nat =>
+             @List.nth Integers.Int64.int j (jet_secp_scalar_mul512_machine.scalar_mul512_machine_outputs rho)
+               Integers.Int64.zero))
+         (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+            (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O))))))
+### C.jet_secp_scalar_shift384_function.shift384_output_bounds
+shift384_output_bounds
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (shift384_output_value rho))
+         (BinInt.Z.le (shift384_output_value rho)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_scalar_shift384_function.eval_scalar_mul_shift384_borrowed
+eval_scalar_mul_shift384_borrowed
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (br : Values.block)
+         (_ : jet_sx_state.rep rho beta jet_secp_scalar_mul_borrowed_alloc.scalar_mul_borrowed_inputs m)
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : forall (r : nat) (_ : lt r (S (S O))), not (@eq Values.block br (jet_sx_state.blk beta r))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul_shift_var)
+               (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                        (@cons Values.val
+                           (Values.Vint
+                              (Integers.Int.repr
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+                           (@nil Values.val))))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_scalar_get_b32_storage.scalar_at mf br BinNums.Z0
+                  (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                     (jet_secp_scalar_get_b32_numeric.scalar_limbs_of (shift384_output_value rho))))
+               (and (jet_sx_state.rep rho beta jet_secp_scalar_mul_borrowed_alloc.scalar_mul_borrowed_inputs mf)
+                  (and
+                     (Memory.Mem.range_perm mf br BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                        (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (ofs : BinNums.Z) =>
+                               and (not (@eq Values.block b br))
+                                 (not
+                                    (jet_sx_state.foot beta
+                                       (@List.map jet_sx_state.region
+                                          (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                          jet_sx_state.rshape
+                                          jet_secp_scalar_mul_borrowed_alloc.scalar_mul_borrowed_inputs) b ofs))) m mf)))))))
+### C.jet_secp_scalar_shift384_function.shift384_entry_temps
+shift384_entry_temps =
+fun (beta : jet_sx_state.layout) (br : Values.block) =>
+@Maps.PTree.set Values.val jets_secp._shift
+  (Values.Vint
+     (Integers.Int.repr
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+  (@Maps.PTree.set Values.val jets_secp._b
+     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+     (@Maps.PTree.set Values.val jets_secp._a
+        (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+        (@Maps.PTree.set Values.val jets_secp._r (Values.Vptr br Integers.Ptrofs.zero)
+           (Clight.create_undef_temps (Clight.fn_temps jets_secp.f_secp256k1_scalar_mul_shift_var)))))
+     : forall (_ : jet_sx_state.layout) (_ : Values.block), Maps.PTree.tree Values.val
+
+Arguments shift384_entry_temps beta br
+### C.jet_secp_scalar_shift384_function.shift384_output_value
+shift384_output_value =
+fun rho : forall _ : nat, Integers.Int64.int =>
+BinInt.Z.div
+  (BinInt.Z.add
+     (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+        (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O))))))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments shift384_output_value rho%function_scope

@@ -735,8 +735,22 @@ or helper execution is a premise. This is an internal helper result; coverage
 stays 520/533. Reproduce with
 `JET_TARGETS='C/jet_secp_scalar_cadd_numeric.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_cadd_numeric`.
-The next missing C execution is `scalar_mul_shift_var(..., 384)`, which must produce
-`floor(P/2^384)+bit383(P)` with actual storage, allocation/free and framing.
+`jet_secp_scalar_shift384_function.eval_scalar_mul_shift384_borrowed` now
+proves the whole original `scalar_mul_shift_var(..., 384)`: actual 64-byte
+product allocation, the existing full 512-bit multiplication call, original
+settings and short-circuit branches, four quotient stores, bit-383 load,
+conditional-add call, void return and actual product free. Its exact stored
+value is `floor((P+2^383)/2^384)` for the full product `P`; both operands,
+destination ownership, caller permissions and readonly globals are retained.
+The second operand is readable and non-owned, covering a static multiplier.
+The caller supplies a distinct owned destination; these are the actual
+split-lambda locals, not a restriction on the public jet input. There is no
+assumed product/round value, helper execution, library model or new axiom.
+`shift384_output_bounds` proves the generic rounded value is at most `2^128`:
+equality is deliberately allowed, so this result never truncates to Word128.
+The coefficient-specific strict bounds below remain necessary. Reproduce with
+`JET_TARGETS='C/jet_secp_scalar_shift384_function.vo' bash Coq/build-jets.sh -j1`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_shift384_function`.
 The composition also needs distinct-destination adapters for scalar add and
 borrowed-RHS scalar multiply; in-place contracts cannot establish those calls.
 Reuse the existing owned in-place add, borrowed in-place multiply, scalar
