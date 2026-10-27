@@ -631,15 +631,27 @@ invariant and the initial field relations; no on-curve or nonzero doubled-Z
 condition is needed. `literal_scalar_table5_route` exposes the unchanged
 program's doubling, first pass, final Z multiplication and second-pass routing.
 These are pure bridges, not a new C execution or public coverage entry.
-Next compose these relations with the checked head/seed and first-pass C
-execution, then finish the full `scalarTable5` and enclosing
-multiplication jet. Do not assume raw ratio
-equality or replace that fixed tree with group scalar arithmetic. The first-
-pass representation theorem is not a public extended-addition equivalence or
-a whole multiplication-jet theorem. To check this dependency closure, use the
-same scoped build/kernel commands below with
-`C/jet_secp_globalz_pass2.vo` / `C.jet_secp_globalz_pass2`.
-These internal results do not add public coverage.
+`jet_secp_odd_table_firstpass_literal` now composes those initial relations
+with the actual head, seed and seven C iterations. Its caller-level theorem
+constructs the private workspace and derives every intermediate bound from
+checked execution, rather than assuming a trace or final literal relation.
+`jet_secp_scalar_table_execution.eval_scalar_table5_calls` combines the two
+whole original C calls (odd-table construction and descending global-Z
+adjustment) with the literal first/second passes. It proves that the decoded
+final Z product and eight-entry table equal the fixed `literal_scalar_table5`
+result. The C allocations/frees, initial representation and ownership, source
+fields, final owners, old permissions, frame and readonly preservation are
+retained. The finite-input Z/flag condition is the existing caller branch
+invariant; no on-curve or nonzero doubled-Z condition is introduced.
+Next compose these calls into the actual Strauss caller, including its scalar
+split, signed digit buffers and table consumers. Do not assume raw ratio
+equality or replace the fixed program with group scalar arithmetic. The table
+call theorem is not a public extended-addition equivalence or a whole
+multiplication-jet theorem; coverage remains 520/533.
+Check this closure with
+`JET_TARGETS='C/jet_secp_scalar_table_execution.vo' bash Coq/build-jets.sh -j1`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_scalar_table_execution` under the pinned toolchain and stack setting.
 Build the helper with `JET_TARGETS='C/jet_secp_odd_table_function.vo' bash
 Coq/build-jets.sh -j1`, then recursively kernel-check it with `bash
 Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
