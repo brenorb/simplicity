@@ -790,14 +790,26 @@ assumed. Reproduce with
 `JET_TARGETS='C/jet_secp_scalar_add_separate.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_scalar_add_separate`.
 It is internal support and adds no public coverage (520/533).
-For the distinct-destination multiplication, do not apply
-`eval_reduce512_numeric_owned_loads` directly to the fresh `r1`: its entry
-representation still requires four initialized destination words. Prove the
-original reduction's early stages with those cells uninitialized, retaining
-the existing first/second checkpoint arithmetic, until the original third-fold
-stores establish the destination representation. Reuse the final suffix and
-numeric theorem after that boundary; do not assume initial loads or insert C
-initialization to satisfy the older in-place contract.
+For distinct-destination multiplication, use
+`jet_secp_reduce512_fresh_function.eval_reduce512_fresh_storage`, not
+`eval_reduce512_numeric_owned_loads`: the older entry representation requires
+four initialized destination words. The fresh contract now derives the
+complete original reduction call from uninitialized destination cells and the
+eight actual source limbs. Its first two stages establish the same arithmetic
+checkpoints without reading the destination; the third performs the original
+four writes and rejoins the existing initialized final suffix. It returns exact
+canonical storage of the 512-bit input modulo the group order, the retained
+source representation, ownership, permissions, readonly preservation and
+framing. There is no initial destination load, helper execution, arithmetic
+result or new library-model premise. Existing first/second/third-fold and
+final-reduction arithmetic are reused unchanged. All stages, function entry,
+local allocations and frees are derived. Reproduce with
+`JET_TARGETS='C/jet_secp_reduce512_fresh_function.vo' bash Coq/build-jets.sh -j1`
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_reduce512_fresh_function`.
+The distinct scalar-multiply caller still must compose its existing full
+borrowed-input 512-bit product call with this fresh reduction, then free its
+actual 64-byte product local and preserve the two input scalars. No production
+initialization should be inserted to satisfy the older in-place contract.
 The remaining split-lambda calls, full literal split, lattice identities and
 signed-half bounds are still open. The final representation must be the exact `wnaf5_input_scalar` of
 each signed literal half, rather than only a group-order congruence.

@@ -1,0 +1,197 @@
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_first_completes
+reduce512_fresh_first_completes
+     : @eq bool
+         match reduce512_fresh_first_computation return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_reduce512_fresh_runs.reduce512_forget_destination_shape
+reduce512_forget_destination_shape
+     : forall regs : list jet_sx_state.region,
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (reduce512_forget_destination regs))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape regs)
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_shape
+reduce512_fresh_shape
+     : forall st : jet_sx_eval.sstate,
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_sx_eval.sregs (reduce512_freshen st)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_sx_eval.sregs st))
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_entry_regs
+reduce512_fresh_entry_regs
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs reduce512_fresh_first)
+         (@app jet_sx_state.region reduce512_fresh_initial_regs
+            (@fst (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated))
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_first_run
+reduce512_fresh_first_run
+     : @eq (option jet_sx_exec.res)
+         (jet_sx_compact.compact_stmt (Clight.genv_cenv jet_secp_linkage.secp_ge)
+            (@nil (prod AST.ident (prod nat Ctypes.type))) jet_secp_shift64_executor.secp_shift64_table
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+            (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated)
+            reduce512_fresh_first jet_secp_reduce512_first_run.reduce512_first_prefix)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone reduce512_fresh_first_state jet_sx_exec.ONormal))
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_first_stack
+reduce512_fresh_first_stack
+     : @eq (list jet_sx_state.region)
+         (jet_sx_forget_cells.forget_after (S (S O)) (jet_sx_eval.sregs reduce512_fresh_first_state))
+         (@app jet_sx_state.region reduce512_fresh_initial_regs
+            (@fst (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated))
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_first_sources
+reduce512_fresh_first_sources
+     : and
+         (@eq (option jet_sx_expr.sx)
+            (@Maps.PTree.get jet_sx_expr.sx jets_secp._r (jet_sx_eval.stemps reduce512_fresh_first_state))
+            (@Some jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)))
+         (and
+            (@eq (option jet_sx_expr.sx)
+               (@Maps.PTree.get jet_sx_expr.sx jets_secp._l (jet_sx_eval.stemps reduce512_fresh_first_state))
+               (@Some jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0)))
+            (and
+               (@eq (option jet_sx_expr.sx)
+                  (@Maps.PTree.get jet_sx_expr.sx jets_secp._m0 (jet_sx_eval.stemps reduce512_fresh_first_state))
+                  (@Some jet_sx_expr.sx
+                     (jet_secp_scalar_mul512_symbolic.sc_lo jet_secp_reduce512_first_symbolic.first_sy0)))
+               (and
+                  (@eq (option jet_sx_expr.sx)
+                     (@Maps.PTree.get jet_sx_expr.sx jets_secp._m1 (jet_sx_eval.stemps reduce512_fresh_first_state))
+                     (@Some jet_sx_expr.sx
+                        (jet_secp_scalar_mul512_symbolic.sc_lo jet_secp_reduce512_first_symbolic.first_sy1)))
+                  (and
+                     (@eq (option jet_sx_expr.sx)
+                        (@Maps.PTree.get jet_sx_expr.sx jets_secp._m2 (jet_sx_eval.stemps reduce512_fresh_first_state))
+                        (@Some jet_sx_expr.sx
+                           (jet_secp_scalar_mul512_symbolic.sc_lo jet_secp_reduce512_first_symbolic.first_sy2)))
+                     (and
+                        (@eq (option jet_sx_expr.sx)
+                           (@Maps.PTree.get jet_sx_expr.sx jets_secp._m3
+                              (jet_sx_eval.stemps reduce512_fresh_first_state))
+                           (@Some jet_sx_expr.sx
+                              (jet_secp_scalar_mul512_symbolic.sc_lo jet_secp_reduce512_first_symbolic.first_sy3)))
+                        (and
+                           (@eq (option jet_sx_expr.sx)
+                              (@Maps.PTree.get jet_sx_expr.sx jets_secp._m4
+                                 (jet_sx_eval.stemps reduce512_fresh_first_state))
+                              (@Some jet_sx_expr.sx
+                                 (jet_secp_scalar_mul512_symbolic.sc_lo jet_secp_reduce512_first_symbolic.first_sy4)))
+                           (and
+                              (@eq (option jet_sx_expr.sx)
+                                 (@Maps.PTree.get jet_sx_expr.sx jets_secp._m5
+                                    (jet_sx_eval.stemps reduce512_fresh_first_state))
+                                 (@Some jet_sx_expr.sx
+                                    (jet_secp_scalar_mul512_symbolic.sc_lo jet_secp_reduce512_first_symbolic.first_sy5)))
+                              (@eq (option jet_sx_expr.sx)
+                                 (@Maps.PTree.get jet_sx_expr.sx jets_secp._m6
+                                    (jet_sx_eval.stemps reduce512_fresh_first_state))
+                                 (@Some jet_sx_expr.sx
+                                    (jet_sx_expr.XL2I
+                                       (jet_secp_scalar_mul512_symbolic.sc_hi
+                                          jet_secp_reduce512_first_symbolic.first_sy5)))))))))))
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_second_run
+reduce512_fresh_second_run
+     : forall (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int),
+       @eq (option jet_sx_exec.res)
+         (jet_sx_compact.compact_stmt (Clight.genv_cenv jet_secp_linkage.secp_ge)
+            (@nil (prod AST.ident (prod nat Ctypes.type))) jet_secp_shift64_executor.secp_shift64_table
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+            (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated)
+            (reduce512_fresh_second digits m6) jet_secp_reduce512_typed_stage.reduce512_typed_stage)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (reduce512_fresh_second_state digits m6) jet_sx_exec.ONormal))
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_second_stack
+reduce512_fresh_second_stack
+     : forall (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int),
+       @eq (list jet_sx_state.region)
+         (jet_sx_forget_cells.forget_after (S (S O)) (jet_sx_eval.sregs (reduce512_fresh_second_state digits m6)))
+         (@app jet_sx_state.region reduce512_fresh_initial_regs
+            (@fst (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated))
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_third_run
+reduce512_fresh_third_run
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int),
+       @eq (option jet_sx_exec.res)
+         (jet_sx_compact.compact_stmt (Clight.genv_cenv jet_secp_linkage.secp_ge)
+            (@nil (prod AST.ident (prod nat Ctypes.type))) jet_secp_shift64_executor.secp_shift64_table
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+            (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated)
+            (reduce512_fresh_third digits p4) jet_secp_reduce512_third_stage.reduce512_third_stage)
+         (@Some jet_sx_exec.res
+            (jet_sx_exec.RDone (jet_secp_reduce512_third_stage.reduce512_third_state digits p4) jet_sx_exec.ONormal))
+### C.jet_secp_reduce512_fresh_runs.reduce512_forget_destination
+reduce512_forget_destination =
+fun regs : list jet_sx_state.region =>
+match regs return (list jet_sx_state.region) with
+| nil => @nil jet_sx_state.region
+| cons h t => @cons jet_sx_state.region (jet_sx_forget_cells.forget_region h) t
+end
+     : forall _ : list jet_sx_state.region, list jet_sx_state.region
+
+Arguments reduce512_forget_destination regs%list_scope
+### C.jet_secp_reduce512_fresh_runs.reduce512_freshen
+reduce512_freshen =
+fun st : jet_sx_eval.sstate =>
+jet_sx_eval.mkst (jet_sx_eval.stemps st) (reduce512_forget_destination (jet_sx_eval.sregs st))
+  (jet_sx_eval.slog st) (jet_sx_eval.snv st)
+     : forall _ : jet_sx_eval.sstate, jet_sx_eval.sstate
+
+Arguments reduce512_freshen st
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_initial_regs
+reduce512_fresh_initial_regs =
+reduce512_forget_destination jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs
+     : list jet_sx_state.region
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_first
+reduce512_fresh_first =
+reduce512_freshen jet_secp_reduce512_two_stages.reduce512_first_initial
+     : jet_sx_eval.sstate
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_first_computation
+reduce512_fresh_first_computation =
+jet_sx_compact.compact_stmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_shift64_executor.secp_shift64_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated)
+  reduce512_fresh_first jet_secp_reduce512_first_run.reduce512_first_prefix
+     : option jet_sx_exec.res
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_first_state
+reduce512_fresh_first_state =
+match reduce512_fresh_first_computation return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ => reduce512_fresh_first
+    end
+| None => reduce512_fresh_first
+end
+     : jet_sx_eval.sstate
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_second
+reduce512_fresh_second =
+fun (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int) =>
+reduce512_freshen (jet_secp_reduce512_typed_stage.reduce512_typed_stage_initial digits m6)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), jet_sx_eval.sstate
+
+Arguments reduce512_fresh_second digits%function_scope m6
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_second_state
+reduce512_fresh_second_state =
+fun (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int) =>
+reduce512_freshen (jet_secp_reduce512_typed_stage.reduce512_typed_stage_state digits m6)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), jet_sx_eval.sstate
+
+Arguments reduce512_fresh_second_state digits%function_scope m6
+### C.jet_secp_reduce512_fresh_runs.reduce512_fresh_third
+reduce512_fresh_third =
+fun (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int) =>
+reduce512_freshen (jet_secp_reduce512_third_stage.reduce512_third_initial digits p4)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), jet_sx_eval.sstate
+
+Arguments reduce512_fresh_third digits%function_scope p4
