@@ -2490,7 +2490,48 @@ JET_TARGETS="C/jet_secp_ctz_jets.vo C/jet_ctz_model_consistent.vo" bash Coq/buil
 bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_ctz_jets C.jet_ctz_model_consistent
 ```
 
-`hash_to_curve` and the inversions inside `scale`, `generate`,
-`linear_combination_1` and the signature checks still need their own public
-compositions (and, for ecmult, `memset_model`); they are not covered here.
+`hash_to_curve` and the inversions inside `scale`, `linear_combination_1`
+and the signature checks still need their own public compositions; they are
+not covered here.
+
+## Approved explicit memset model: `generate`
+
+Under the same 2026-10-27 approval, `jet_memset_model.memset_model` states
+the C standard contract of `memset` at the frozen declaration
+`EF_external "memset" ([Tlong; Tint; Tlong] -> Tlong)`, for a valid writable
+range of 1 to 1024 bytes: the range becomes `n` copies of `(unsigned char) c`
+(`Mem.storebytes` of `memset_bytes c n`), the destination pointer is
+returned, and there is no event. 1024 bytes covers the largest call site, the
+256-entry `int` wNAF buffer. `jet_library_models_consistent.library_models_consistent`
+is a closed theorem exhibiting ONE assignment of semantics to all external
+functions that satisfies `extcall_properties` and makes `memcpy_model`,
+`ctz_model` and `memset_model` hold together, so no combination of the three
+premises is vacuous. It does not discharge them.
+
+`jet_secp_wnaf_memset.exec_wnaf_memset` executes the original
+`memset(wnaf, 0, len * sizeof(int))` statement of `secp256k1_ecmult_wnaf`
+for every buffer length 1..256, environment and caller temporaries, from the
+frozen callee lookup, argument evaluation and casts. `memset_zero_load` and
+`memset_memory_effect` derive the zeroed digits and the buffer-only memory
+effect. `generate_memset_steps` is exactly the deferred premise of
+`jet_secp_generate_local.generate_initialized_local_spec_from_memset_steps`.
+
+`C.jet_secp_memset_jets.generate_initialized_local_spec` is the full
+initialized local contract of original `simplicity_generate`, conditional only
+on `memset_model`; `generate_runs_from_actual_init_memset` constructs every
+input's execution from the actual `Genv.init_mem`. Besides the visible premise
+it retains eight inherited assumptions: the usual six plus CompCert's
+`external_functions_properties` and `inline_assembly_properties`, already
+used by the earlier generator lifecycle proofs. Coverage counts it as
+conditional (`memset_model`).
+
+```sh
+JET_TARGETS="C/jet_secp_memset_jets.vo C/jet_library_models_consistent.vo" bash Coq/build-jets.sh -j1
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_memset_jets C.jet_library_models_consistent
+```
+
+The general ecmult path (`scale`, `off_curve_scale`, the linear-combination
+and verification jets, signature checks and taptweak) also calls the wNAF
+helper for the point scalar (window 5); `exec_wnaf_memset` is stated for any
+length and environment so it can be reused there.
 

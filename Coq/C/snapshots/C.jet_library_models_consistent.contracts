@@ -1,0 +1,148 @@
+### C.jet_library_models_consistent.memset_bytes_lessdef
+memset_bytes_lessdef
+     : forall (c : Integers.Int.int) (n : BinNums.Z),
+       @Coqlib.list_forall2 Memdata.memval Memdata.memval Memdata.memval_lessdef (jet_memset_model.memset_bytes c n)
+         (jet_memset_model.memset_bytes c n)
+### C.jet_library_models_consistent.memset_bytes_inject
+memset_bytes_inject
+     : forall (f : Values.Val.meminj) (c : Integers.Int.int) (n : BinNums.Z),
+       @Coqlib.list_forall2 Memdata.memval Memdata.memval (Memdata.memval_inject f) (jet_memset_model.memset_bytes c n)
+         (jet_memset_model.memset_bytes c n)
+### C.jet_library_models_consistent.libc_memset_sem_ok
+libc_memset_sem_ok
+     : Events.extcall_properties libc_memset_sem jet_memset_model.memset_sig
+### C.jet_library_models_consistent.libc_memset_sem_models
+libc_memset_sem_models
+     : jet_memset_model.memset_model_for libc_memset_sem
+### C.jet_library_models_consistent.library_models_consistent
+library_models_consistent
+     : @ex (forall (_ : String.string) (_ : AST.signature), Events.extcall_sem)
+         (fun S : forall (_ : String.string) (_ : AST.signature), Events.extcall_sem =>
+          and (forall (id : String.string) (sg : AST.signature), Events.extcall_properties (S id sg) sg)
+            (and
+               (jet_memcpy_model_consistent.memcpy_model_for
+                  (S
+                     (String.String (Ascii.Ascii true false true true false true true false)
+                        (String.String (Ascii.Ascii true false true false false true true false)
+                           (String.String (Ascii.Ascii true false true true false true true false)
+                              (String.String (Ascii.Ascii true true false false false true true false)
+                                 (String.String (Ascii.Ascii false false false false true true true false)
+                                    (String.String (Ascii.Ascii true false false true true true true false)
+                                       String.EmptyString)))))) jet_memcpy_model.memcpy_sig))
+               (and
+                  (jet_ctz_model.ctz_model_for
+                     (S
+                        (String.String (Ascii.Ascii true true true true true false true false)
+                           (String.String (Ascii.Ascii true true true true true false true false)
+                              (String.String (Ascii.Ascii false true false false false true true false)
+                                 (String.String (Ascii.Ascii true false true false true true true false)
+                                    (String.String (Ascii.Ascii true false false true false true true false)
+                                       (String.String (Ascii.Ascii false false true true false true true false)
+                                          (String.String (Ascii.Ascii false false true false true true true false)
+                                             (String.String (Ascii.Ascii true false false true false true true false)
+                                                (String.String (Ascii.Ascii false true true true false true true false)
+                                                   (String.String
+                                                      (Ascii.Ascii true true true true true false true false)
+                                                      (String.String
+                                                         (Ascii.Ascii true true false false false true true false)
+                                                         (String.String
+                                                            (Ascii.Ascii false false true false true true true false)
+                                                            (String.String
+                                                               (Ascii.Ascii false true false true true true true false)
+                                                               (String.String
+                                                                  (Ascii.Ascii false false true true false true true
+                                                                     false) String.EmptyString))))))))))))))
+                        jet_ctz_model.ctz_sig))
+                  (jet_memset_model.memset_model_for
+                     (S
+                        (String.String (Ascii.Ascii true false true true false true true false)
+                           (String.String (Ascii.Ascii true false true false false true true false)
+                              (String.String (Ascii.Ascii true false true true false true true false)
+                                 (String.String (Ascii.Ascii true true false false true true true false)
+                                    (String.String (Ascii.Ascii true false true false false true true false)
+                                       (String.String (Ascii.Ascii false false true false true true true false)
+                                          String.EmptyString)))))) jet_memset_model.memset_sig)))))
+### C.jet_library_models_consistent.libc_memset_sem
+Inductive
+libc_memset_sem (ge : Globalenvs.Senv.t)
+  : forall (_ : list Values.val) (_ : Memory.Mem.mem) (_ : Events.trace) (_ : Values.val) (_ : Memory.Mem.mem), Prop :=
+    libc_memset_sem_intro : forall (bdst : Values.block) (odst : Integers.Ptrofs.int) (c : Integers.Int.int)
+                              (sz : Integers.Int64.int) (m m' : Memory.Mem.mem)
+                              (_ : BinInt.Z.gt (Integers.Int64.unsigned sz) BinNums.Z0)
+                              (_ : @eq (option Memory.Mem.mem)
+                                     (Memory.Mem.storebytes m bdst (Integers.Ptrofs.unsigned odst)
+                                        (jet_memset_model.memset_bytes c (Integers.Int64.unsigned sz)))
+                                     (@Some Memory.Mem.mem m')),
+                            libc_memset_sem ge
+                              (@cons Values.val (Values.Vptr bdst odst)
+                                 (@cons Values.val (Values.Vint c)
+                                    (@cons Values.val (Values.Vlong sz) (@nil Values.val)))) m Events.E0
+                              (Values.Vptr bdst odst) m'.
+
+Arguments libc_memset_sem ge _%list_scope _ _ _ _
+Arguments libc_memset_sem_intro ge bdst odst c sz m m' _ _
+### C.jet_library_models_consistent.library_semantics
+library_semantics =
+fun (id : String.string) (sg : AST.signature) =>
+match
+  String.string_dec id
+    (String.String (Ascii.Ascii true false true true false true true false)
+       (String.String (Ascii.Ascii true false true false false true true false)
+          (String.String (Ascii.Ascii true false true true false true true false)
+             (String.String (Ascii.Ascii true true false false false true true false)
+                (String.String (Ascii.Ascii false false false false true true true false)
+                   (String.String (Ascii.Ascii true false false true true true true false) String.EmptyString))))))
+  return Events.extcall_sem
+with
+| left _ =>
+    match AST.signature_eq sg jet_memcpy_model.memcpy_sig return Events.extcall_sem with
+    | left _ => jet_memcpy_model_consistent.libc_memcpy_sem
+    | right _ => jet_memcpy_model_consistent.no_behaviour
+    end
+| right _ =>
+    match
+      String.string_dec id
+        (String.String (Ascii.Ascii true true true true true false true false)
+           (String.String (Ascii.Ascii true true true true true false true false)
+              (String.String (Ascii.Ascii false true false false false true true false)
+                 (String.String (Ascii.Ascii true false true false true true true false)
+                    (String.String (Ascii.Ascii true false false true false true true false)
+                       (String.String (Ascii.Ascii false false true true false true true false)
+                          (String.String (Ascii.Ascii false false true false true true true false)
+                             (String.String (Ascii.Ascii true false false true false true true false)
+                                (String.String (Ascii.Ascii false true true true false true true false)
+                                   (String.String (Ascii.Ascii true true true true true false true false)
+                                      (String.String (Ascii.Ascii true true false false false true true false)
+                                         (String.String (Ascii.Ascii false false true false true true true false)
+                                            (String.String (Ascii.Ascii false true false true true true true false)
+                                               (String.String (Ascii.Ascii false false true true false true true false)
+                                                  String.EmptyString)))))))))))))) return Events.extcall_sem
+    with
+    | left _ =>
+        match AST.signature_eq sg jet_ctz_model.ctz_sig return Events.extcall_sem with
+        | left _ => jet_ctz_model_consistent.libc_ctz_sem
+        | right _ => jet_memcpy_model_consistent.no_behaviour
+        end
+    | right _ =>
+        match
+          String.string_dec id
+            (String.String (Ascii.Ascii true false true true false true true false)
+               (String.String (Ascii.Ascii true false true false false true true false)
+                  (String.String (Ascii.Ascii true false true true false true true false)
+                     (String.String (Ascii.Ascii true true false false true true true false)
+                        (String.String (Ascii.Ascii true false true false false true true false)
+                           (String.String (Ascii.Ascii false false true false true true true false) String.EmptyString))))))
+          return Events.extcall_sem
+        with
+        | left _ =>
+            match AST.signature_eq sg jet_memset_model.memset_sig return Events.extcall_sem with
+            | left _ => libc_memset_sem
+            | right _ => jet_memcpy_model_consistent.no_behaviour
+            end
+        | right _ => jet_memcpy_model_consistent.no_behaviour
+        end
+    end
+end
+     : forall (_ : String.string) (_ : AST.signature), Events.extcall_sem
+
+Arguments library_semantics id%string_scope sg _ _ _ _ _ _

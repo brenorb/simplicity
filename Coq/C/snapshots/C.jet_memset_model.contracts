@@ -1,0 +1,56 @@
+### C.jet_memset_model.memset_bytes_length
+memset_bytes_length
+     : forall (c : Integers.Int.int) (n : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 n),
+       @eq BinNums.Z (BinInt.Z.of_nat (@length Memdata.memval (memset_bytes c n))) n
+### C.jet_memset_model.memset_sig
+memset_sig =
+AST.mksignature (@cons AST.typ AST.Tlong (@cons AST.typ AST.Tint (@cons AST.typ AST.Tlong (@nil AST.typ))))
+  (AST.Tret AST.Tlong) AST.cc_default
+     : AST.signature
+### C.jet_memset_model.memset_bytes
+memset_bytes =
+fun (c : Integers.Int.int) (n : BinNums.Z) =>
+@List.repeat Memdata.memval (Memdata.Byte (Integers.Byte.repr (Integers.Int.unsigned c))) (BinInt.Z.to_nat n)
+     : forall (_ : Integers.Int.int) (_ : BinNums.Z), list Memdata.memval
+
+Arguments memset_bytes c n%Z_scope
+### C.jet_memset_model.memset_model_for
+memset_model_for =
+fun sem : Events.extcall_sem =>
+forall (ge : Globalenvs.Senv.t) (m : Memory.Mem.mem) (bd : Values.block) (od : Integers.Ptrofs.int)
+  (c : Integers.Int.int) (n : BinNums.Z) (_ : Memory.Mem.valid_block m bd)
+  (_ : Memory.Mem.range_perm m bd (Integers.Ptrofs.unsigned od) (BinInt.Z.add (Integers.Ptrofs.unsigned od) n)
+         Memtype.Cur Memtype.Writable)
+  (_ : and (BinInt.Z.lt BinNums.Z0 n)
+         (BinInt.Z.le n
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))),
+@ex Memory.Mem.mem
+  (fun m' : Memory.Mem.mem =>
+   and
+     (@eq (option Memory.Mem.mem) (Memory.Mem.storebytes m bd (Integers.Ptrofs.unsigned od) (memset_bytes c n))
+        (@Some Memory.Mem.mem m'))
+     (sem ge
+        (@cons Values.val (Values.Vptr bd od)
+           (@cons Values.val (Values.Vint c)
+              (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) m Events.E0
+        (Values.Vptr bd od) m'))
+     : forall _ : Events.extcall_sem, Prop
+
+Arguments memset_model_for sem
+### C.jet_memset_model.memset_model
+memset_model =
+memset_model_for
+  (Events.external_functions_sem
+     (String.String (Ascii.Ascii true false true true false true true false)
+        (String.String (Ascii.Ascii true false true false false true true false)
+           (String.String (Ascii.Ascii true false true true false true true false)
+              (String.String (Ascii.Ascii true true false false true true true false)
+                 (String.String (Ascii.Ascii true false true false false true true false)
+                    (String.String (Ascii.Ascii false false true false true true true false) String.EmptyString))))))
+     memset_sig)
+     : Prop

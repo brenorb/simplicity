@@ -41,8 +41,8 @@ def main():
     assert coverage.missing_proofs([complete, absent, divergent]) == [absent]
     assert coverage.missing_equivalences([complete, divergent]) == [divergent]
     assert sum(bool(row["divergence_proof"]) for row in rows) == 1
-    assert len(coverage.missing_equivalences(rows)) == 15
-    assert len(coverage.missing_proofs(rows)) == 14
+    assert len(coverage.missing_equivalences(rows)) == 14
+    assert len(coverage.missing_proofs(rows)) == 13
     assert coverage.proof_roots(rows, ["simplicity_gej_ge_add_ex"]) == {
         "C.jet_secp_mixed_ex_local", "C.jet_secp_mixed_ex_refutation"}
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_scale"]),
@@ -54,7 +54,7 @@ def main():
     assert sum(row["condition"] == "memcpy_model" for row in rows) == 138
     # CTZ-dependent secp callers retain the explicit approved ctz premise.
     assert {row["function"] for row in rows if row["condition"] == "ctz_model"} == set(coverage._CTZ_JETS)
-    assert not any(row["condition"] == "memset_model" for row in rows)
+    assert {row["function"] for row in rows if row["condition"] == "memset_model"} == set(coverage._MEMSET_JETS)
     expected = {name for header in coverage.HEADERS.values()
                 for name in coverage.declarations((coverage.REPO / header).read_text())}
     assert {row["function"] for row in rows} == expected
@@ -119,12 +119,16 @@ def main():
                 variants += [tail.replace("memcpy_model ->", "different_library_model ->", 1),
                              tail.replace("memcpy_model ->", "", 1)]
             if "ctz_model ->" in tail:
-                variants += [tail.replace("ctz_model ->", "memcpy_model ->", 1),
+                variants += [tail.replace("ctz_model ->", "memset_model ->", 1),
                              tail.replace("ctz_model ->", "", 1),
                              tail.replace("ctz_model ->", "ctz_model -> ctz_model ->", 1)]
-                for state in ("modinfo_fe_state", "modinfo_scalar_initialized", "swu_startup"):
+                for state in ("modinfo_fe_state", "modinfo_scalar_initialized", "swu_startup", "generator_startup"):
                     if state in tail:
                         variants.append(tail.replace(state, "(fun _ => True)", 1))
+            if "memset_model ->" in tail:
+                variants += [tail.replace("memset_model ->", "ctz_model ->", 1),
+                             tail.replace("memset_model ->", "", 1),
+                             tail.replace("generator_startup", "(fun _ => True)", 1)]
             if "beta_initialized" in tail:
                 variants.append(tail.replace("beta_initialized", "(fun _ => True)", 1))
             for changed in variants:

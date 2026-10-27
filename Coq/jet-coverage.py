@@ -309,6 +309,16 @@ _CTZ_JETS = {
 for _name, _tail in _CTZ_JETS.items():
     RECOVERED_CONTRACTS[_name] = "ctz_model -> secp_jet_initialized_local_spec " + _tail
 
+# wNAF memset-dependent secp callers: full initialized contracts whose only
+# extra premise is the approved memset_model.
+_MEMSET_JETS = {
+    "simplicity_generate": "generator_startup f_simplicity_generate Word256 "
+                           "(Ty.Prod (Ty.Prod Word256 Word256) Word256) "
+                           "(@literal_generate Alg.CoreFunSem).",
+}
+for _name, _tail in _MEMSET_JETS.items():
+    RECOVERED_CONTRACTS[_name] = "memset_model -> secp_jet_initialized_local_spec " + _tail
+
 REPORTED_MISMATCH_CONTRACTS = {
     "simplicity_gej_ge_add_ex": {
         "contract": "secp_jet_local_spec_on (fun a => ~gej_ge_add_ex_ratio_mismatch a) "

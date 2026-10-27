@@ -9,11 +9,11 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-The inventory currently has 518 equivalence entries (138 with the existing
-explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise) and
-one checked whole-public refutation,
-`C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-519/533 proof entries, with 14 jets still lacking either result. The
+The inventory currently has 519 equivalence entries (138 with the existing
+explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 1
+with the approved `memset_model` premise) and one checked whole-public
+refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
+520/533 proof entries, with 13 jets still lacking either result. The
 user approved explicit `ctz_model`/`memset_model` premises as conditional
 coverage on 2026-10-27; a SHA empty-preimage premise for the fee jets was not
 approved (see `JET_SECP_EXTERNAL_MISMATCHES.md`). Registration
@@ -119,7 +119,7 @@ contract.
 | Remaining declarations (omit `simplicity_`) | Boundary |
 | --- | --- |
 | `hash_to_curve` | Variable-time inversion reaches abstract ctz; public composition with `ctz_model` still missing. (`fe_invert`, `scalar_invert`, `gej_normalize`, `gej_y_is_odd`, `swu` are now conditional on `ctz_model`.) |
-| `off_curve_scale`, `scale`, `generate`, `off_curve_linear_combination_1`, `linear_combination_1`, `linear_verify_1`, `point_verify_1` | ecmult reaches wNAF's abstract memset. A pointer to a zero generator scalar is still non-NULL and does not bypass the two calls. |
+| `off_curve_scale`, `scale`, `off_curve_linear_combination_1`, `linear_combination_1`, `linear_verify_1`, `point_verify_1` | General ecmult (point table, wNAF digits, Strauss loop); memset now has `memset_model`/`exec_wnaf_memset`. (`generate` is conditional on `memset_model`.) |
 | `check_sig_verify`, `bip_0340_verify`, `bitcoin_build_taptweak`, `build_taptweak` | Their accepted branches reach multiplication/normalization and the external memset/ctz boundaries; x-only tweaking also directly calls memset. |
 | `output_is_fee`, `total_fee` | Empty-script digest equality versus actual script emptiness; the converse remains unproved. The total-fee dependency is through cache construction. |
 | `gej_ge_add_ex` | The existing whole-public literal contract is formally refuted, not merely missing a proof. |
@@ -321,6 +321,10 @@ must remain scoped to that exact commit and input set.
 
 ## Active `generate` frontier
 
+**Done (conditional):** `C.jet_secp_memset_jets.generate_initialized_local_spec`
+discharges the memset-step premise below from `memset_model`; see
+`JET_SECP_EXTERNAL_MISMATCHES.md`.
+
 The existing `jet_secp_generate_local` already contains the complete public
 `generate_initialized_local_spec_from_memset_steps` and
 `generate_runs_from_actual_init`, retaining the explicit deferred original
@@ -331,6 +335,29 @@ These are conditional results, not accepted whole-jet coverage. The earlier
 milestones below record their construction; their then-pending composition
 steps must not be mistaken for current missing proofs. Rebuild the actual
 public root before making a fresh acceptance claim.
+
+`jet_secp_wnaf5_literal` ports `wnaf5step1`, `wnafstepD` and `wnaf5`
+(LibSecp256k1.hs 413--438, 609) with closed parametricity, digit-order and
+length lemmas. Unlike window 15, `wnaf5step1` shifts before its parity
+branch and emits the shifted word's low nibble (Coq `Word 2`) as the index
+of the odd digit `2n+1`. Native evidence only (not a proof): on 15 scalars
+including 0, 1, 2^127 and 2^128-1 its decoded digits equal a direct model of
+C `secp256k1_ecmult_wnaf(w=5, len=129)` and sum back to the input.
+`jet_secp_wnaf5_literal_next.literal_wnaf5_odd_next` (odd state: digit
+`2n+1` equals C `wnaf_digit (q mod 32) 5`, next state `(q-digit)/2`) and
+`jet_secp_wnaf5_literal_window` (even steps, zero runs, full five-bit window
+`literal_wnaf_window5`) are closed, for sign bit 0.
+
+**Sign handling (needed for the point path, not for generate).** The
+literal state `(b, w)` denotes the signed 129-bit value `w - b*2^128`.
+`scalar_split_lambda` halves can be negative; C then takes wNAF's negation
+branch (`sign = -1` on the magnitude). Native evidence (14 magnitudes): the
+literal digits of `(1, 2^128 - v)` equal C's negated `wnaf(v)` and sum to
+`-v`. The window-15 chain only ever needed `b = 0`. Next: generalize the
+odd/even step lemmas to the signed state value (or prove literal digits of
+`-x` are the negation of those of `x`), then port `{skip, tail, loop,
+prepare}` for window 5, including C's `sign = -1` stores, and a 129/5
+function wrapper using `exec_wnaf_memset`.
 
 The next independent multiplication work is the general non-generator path
 used by `off_curve_scale`/`off_curve_linear_combination_1`. Inspect existing
