@@ -5466,8 +5466,28 @@ stays 520/533. Reproduce with
 its scoped statement/assumption audits and recursive `--coqchk` on
 `C.jet_secp_strauss_beta_prepare`.
 
-Next cover the remaining preprocessing branches and connect the caller's
-actual local allocations. Then compose
+`jet_secp_strauss_skip.exec_strauss_no_points` now covers the other
+preprocessing cases: the represented scalar is zero, or the input point's
+infinity flag is one. The zero-scalar path reuses the original checked
+preprocessing proof; the nonzero/infinity path executes both actual helper
+calls and the original `continue`. The result composes initialization,
+increment/termination, the zero-length global-Z call (including its private
+allocations/frees) and the skipped beta loop. All old memory, permissions and
+readonly state are preserved; the final no/np counters are zero and other
+temporaries outside the actual write set are retained. No table initialization,
+helper execution, desired output or external-library model is assumed. This
+complements the finite/nonzero result without asserting values for unused
+point tables or wNAF arrays. It is still an internal original-body phase,
+not a registered public jet; coverage stays 520/533.
+Reproduce with `JET_TARGETS=C/jet_secp_strauss_skip.vo bash
+Coq/build-jets.sh -j1`, its scoped statement/assumption audits and recursive
+`--coqchk` on `C.jet_secp_strauss_skip`.
+
+Next connect the caller's actual local allocations and initial counter/Z
+setup. The current `generator_entry_and_prepare` fixes na to its readonly
+zero global; factor its allocation structure for arbitrary scalar pointers
+rather than importing that zero-scalar restriction into the variable-point
+path. Then compose
 the signed ordinary/lambda lookups, descending loop and public wrapper.
 For the descending loop's doubles, reuse
 `jet_secp_double_loose_literal.eval_double_var_loose_literal`: it executes
