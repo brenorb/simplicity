@@ -1,0 +1,38 @@
+### C.jet_secp_globalz_tight_y.globalz_scaled_y_tight
+globalz_scaled_y_tight
+     : forall (y z : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds y)
+         (_ : jet_secp_square_columns.square_input_bounds z),
+       jet_secp_field_mul_small.mul_small_input_bounds (jet_secp_ge_zinv_arithmetic.ge_zinv_y_words y z)
+### C.jet_secp_globalz_tight_y.globalz_walk_tight_y
+globalz_walk_tight_y
+     : forall (n : nat) (_ : le n (S (S (S (S (S (S (S O))))))))
+         (xs ys ratios : forall (_ : nat) (_ : nat), Integers.Int64.int) (zs : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_globalz_loop.globalz_table_bounds xs ys)
+         (_ : jet_secp_globalz_loop.globalz_ratios_bounds ratios) (_ : jet_secp_square_columns.square_input_bounds zs)
+         (_ : forall (k : nat) (_ : and (le n k) (lt k (S (S (S (S (S (S (S (S O)))))))))),
+              jet_secp_field_mul_small.mul_small_input_bounds (ys k)),
+       match jet_secp_globalz_loop.globalz_walk n xs ys ratios zs return Prop with
+       | pair p _ =>
+           match p return Prop with
+           | pair _ yf =>
+               forall (k : nat) (_ : lt k (S (S (S (S (S (S (S (S O))))))))),
+               jet_secp_field_mul_small.mul_small_input_bounds (yf k)
+           end
+       end
+### C.jet_secp_globalz_tight_y.globalz_eight_tight_y
+globalz_eight_tight_y
+     : forall (xs ys ratios : forall (_ : nat) (_ : nat), Integers.Int64.int)
+         (_ : jet_secp_globalz_loop.globalz_table_bounds xs ys)
+         (_ : jet_secp_globalz_loop.globalz_ratios_bounds ratios),
+       match
+         jet_secp_globalz_loop.globalz_walk (S (S (S (S (S (S (S O))))))) xs
+           (jet_secp_globalz_function.globalz_start_ys ys) ratios (ratios (S (S (S (S (S (S (S O))))))))
+         return Prop
+       with
+       | pair p _ =>
+           match p return Prop with
+           | pair _ yf =>
+               forall (k : nat) (_ : lt k (S (S (S (S (S (S (S (S O))))))))),
+               jet_secp_field_mul_small.mul_small_input_bounds (yf k)
+           end
+       end

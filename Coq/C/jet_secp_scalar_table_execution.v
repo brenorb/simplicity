@@ -14,6 +14,7 @@ Require Import C.jet_toZ C.jet_sx_mem C.jet_secp_fe_nv C.jet_secp_linkage C.jets
  C.jet_secp_odd_table_literal_walk C.jet_secp_odd_table_pass1_bridge
  C.jet_secp_scalar_table_literal C.jet_secp_scalar_table_pass2 C.jet_secp_table_field_equiv
  C.jet_secp_globalz_loop C.jet_secp_globalz_function C.jet_secp_globalz_word_walk C.jet_secp_globalz_pass2
+ C.jet_secp_globalz_tight_y C.jet_secp_field_mul_small
  C.jet_secp_rescale_literal C.jet_secp_negate_literal_contract C.jet_secp_canonical_normalize
  C.jet_secp_multiply_literal_spec C.jet_secp_multiply_normalize_bridge C.jet_secp_multiply_finish_product.
 Import ListNotations Values Ctypes.
@@ -21,10 +22,6 @@ Local Open Scope Z_scope.
 Set Default Timeout 10.
 Local Opaque secp_ge odd_table_final_state globalz_walk point_mul_words rescale_field_output
  literal_fe_multiply literal_gej_double literal_gej_zinv literal_pass1_8 literal_pass2_8 literal_scalar_table5.
-
-Lemma table_multiply_commute x y :
- @literal_fe_multiply Alg.CoreFunSem (x,y)=@literal_fe_multiply Alg.CoreFunSem (y,x).
-Proof. apply (toZ_injective (WordToZ 8));rewrite !literal_multiply_numeric,Z.mul_comm;reflexivity. Qed.
 
 Lemma table_final_product_literal x y z ax ay az :
  square_input_bounds x -> square_input_bounds y -> square_input_bounds z ->
@@ -49,7 +46,7 @@ Proof.
  rewrite (rescale_mul_writer _ _ _ _ FinalBound DoubleBound
   ltac:(rewrite field_prime_matches_normalizer;exact FinalResidue)
   ltac:(rewrite field_prime_matches_normalizer;exact DoubleResidue)).
- apply table_multiply_commute.
+ apply globalz_multiply_commutes.
 Qed.
 
 Theorem eval_scalar_table5_calls x y z m br bp bz bo (ax ay az:Ty.tySem (Word 8)) :
@@ -66,6 +63,7 @@ Theorem eval_scalar_table5_calls x y z m br bp bz bo (ax ay az:Ty.tySem (Word 8)
  Clight2.eval_funcall secp_ge m1 (Internal f_secp256k1_ge_table_set_globalz)
   [Vlong (Int64.repr 8);Vptr br Ptrofs.zero;Vptr bz Ptrofs.zero] E0 mf Vundef /\
  globalz_table_rep mf br xf yf /\ globalz_table_bounds xf yf /\
+ (forall k,(k<8)%nat -> mul_small_input_bounds (yf k)) /\
  fe_at mf bo 0 (words5 (point_mul_words (odd_table_z sf) (double_output_z_words y z))) /\
  square_input_bounds (point_mul_words (odd_table_z sf) (double_output_z_words y z)) /\
  (rescale_field_output (point_mul_words (odd_table_z sf) (double_output_z_words y z)),
@@ -101,6 +99,8 @@ Proof.
  { intros j Range;exact (proj2 (proj2 (PrefixBounds j Range))). }
  pose proof (eval_ge_table_set_globalz_pass2 (odd_table_xs sf) (odd_table_ys sf) (odd_table_ratios sf)
   m1 br bz TR TableBounds RatioBounds Table1 Ratios1 FreeT1 FreeR1) as SecondCall.
+ pose proof (globalz_eight_tight_y (odd_table_xs sf) (odd_table_ys sf) (odd_table_ratios sf)
+  TableBounds RatioBounds) as TightY.
  destruct (globalz_walk 7 (odd_table_xs sf) (globalz_start_ys (odd_table_ys sf))
   (odd_table_ratios sf) (odd_table_ratios sf 7%nat)) as [[xf yf] zf].
  destruct SecondCall as (mf & Second & Decoded & TableF & RatiosF & BoundsF & FreeTF & FreeRF & Keep2 & Frame2 & Readonly2).
@@ -122,6 +122,7 @@ Proof.
  assert (FreeOF:Mem.range_perm mf bo 0 40 Cur Freeable) by
   (eapply keeps_range_permissions;[exact Keep2|exact FreeO1]).
  exists m1,mf,xf,yf;split;[exact First|];split;[exact Second|];split;[exact TableF|];split;[exact BoundsF|];
+  split;[exact TightY|];
   split;[exact ProductF|];split;[exact ProductBound|];split;[exact Literal|];
   split;[exact PXF|];split;[exact PYF|];split;[exact PZF|];split;[exact PFlagF|];
   split;[exact FreeTF|];split;[exact FreePF|];split;[exact FreeRF|];split;[exact FreeOF|];split.

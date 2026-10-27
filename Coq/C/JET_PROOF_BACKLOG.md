@@ -643,6 +643,12 @@ result. The C allocations/frees, initial representation and ownership, source
 fields, final owners, old permissions, frame and readonly preservation are
 retained. The finite-input Z/flag condition is the existing caller branch
 invariant; no on-curve or nonzero doubled-Z condition is introduced.
+The endpoint also retains magnitude-one bounds on every final Y coordinate,
+as required by `ecmult_table_get_ge`'s actual `fe_negate(..., 1)` call.
+`jet_secp_globalz_tight_y` derives them from the last Y's original weak
+normalization and the other seven product outputs, rather than assuming them
+at the consumer boundary. Reuse `globalz_multiply_commutes` for the final Z
+product's reversed argument order.
 Next compose these calls into the actual Strauss caller, including its scalar
 split, signed digit buffers and table consumers. Do not assume raw ratio
 equality or replace the fixed program with group scalar arithmetic. The table
