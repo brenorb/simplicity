@@ -35,6 +35,24 @@ Proof.
  rewrite Zminus_mod_idemp_r;reflexivity.
 Qed.
 
+Lemma lookup5_stored_point nib xs ys :
+ (forall k,(k<8)%nat -> mul_small_input_bounds (ys k)) ->
+ let j:=Z.to_nat (lookup5_index nib) in
+ (rescale_field_output (xs j),rescale_field_output (if lookup5_negative nib then negate_sep_words (ys j) else ys j))=
+ @literal_lookup5 Alg.CoreFunSem (nib,globalz_word_vector (globalz_decoded_points xs ys)).
+Proof.
+ intro Tight;cbv zeta;pose proof (lookup5_index_range nib) as Index.
+ assert (NatIndex:(Z.to_nat (lookup5_index nib)<8)%nat) by lia.
+ rewrite literal_lookup5_decoded;cbv zeta;unfold globalz_decoded_points.
+ destruct (lookup5_negative nib).
+ - change ((rescale_field_output (xs (Z.to_nat (lookup5_index nib))),
+    rescale_field_output (negate_sep_words (ys (Z.to_nat (lookup5_index nib)))))=
+   (@canonical_fe_normalize Alg.CoreFunSem (rescale_field_output (xs (Z.to_nat (lookup5_index nib)))),
+    @literal_fe_negate Alg.CoreFunSem (rescale_field_output (ys (Z.to_nat (lookup5_index nib)))))).
+   rewrite lookup5_decoded_normalized,lookup5_decoded_negative by (apply Tight;exact NatIndex);reflexivity.
+ - reflexivity.
+Qed.
+
 Theorem eval_table_get_lookup5 nib xs ys m bd bt : bd<>bt ->
  globalz_table_rep m bt xs ys -> globalz_table_bounds xs ys ->
  (forall k,(k<8)%nat -> mul_small_input_bounds (ys k)) ->
@@ -67,14 +85,7 @@ Proof.
   rescale_field_output (if lookup5_negative nib then negate_sep_words (ys (Z.to_nat (lookup5_index nib)))
    else ys (Z.to_nat (lookup5_index nib))))=
   @literal_lookup5 Alg.CoreFunSem (nib,globalz_word_vector (globalz_decoded_points xs ys))).
- { rewrite literal_lookup5_decoded;cbv zeta;unfold globalz_decoded_points.
-   destruct (lookup5_negative nib).
-   - change ((rescale_field_output (xs (Z.to_nat (lookup5_index nib))),
-      rescale_field_output (negate_sep_words (ys (Z.to_nat (lookup5_index nib)))))=
-     (@canonical_fe_normalize Alg.CoreFunSem (rescale_field_output (xs (Z.to_nat (lookup5_index nib)))),
-      @literal_fe_negate Alg.CoreFunSem (rescale_field_output (ys (Z.to_nat (lookup5_index nib)))))).
-     rewrite lookup5_decoded_normalized,lookup5_decoded_negative by (apply Tight;exact NatIndex);reflexivity.
-   - reflexivity. }
+ { apply lookup5_stored_point;exact Tight. }
  assert (BYF:square_input_bounds (if lookup5_negative nib then negate_sep_words (ys (Z.to_nat (lookup5_index nib)))
   else ys (Z.to_nat (lookup5_index nib)))).
  { destruct (lookup5_negative nib);[apply (proj2 (negate_sep_numeric _ (Tight _ NatIndex)))|exact BY]. }

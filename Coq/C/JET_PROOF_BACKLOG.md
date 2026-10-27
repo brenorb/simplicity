@@ -663,11 +663,23 @@ theorem above; no helper execution or desired output is assumed. Reproduce
 with `JET_TARGETS='C/jet_secp_table_get_literal.vo' bash Coq/build-jets.sh -j1`
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
 C.jet_secp_table_get_literal`. This internal lookup adds no public coverage.
-Next handle `ecmult_table_get_ge_lambda`: reuse the signed index/guard and
-affine-negation proofs, but establish `ge_set_xy` with distinct X-array and
-Y-table sources. Its existing same-source constructor contract is insufficient
-for that actual call. Then connect the original eight beta-X products to the
-literal `ge_scale_lambda` consumer; retain the actual readonly beta constant.
+`jet_secp_table_get_lambda_literal.eval_table_get_lambda_lookup5` now
+executes the whole original `ecmult_table_get_ge_lambda` call and identifies
+its decoded point with `lookupTable5 >>> ge_scale_lambda`. The shared signed
+index/guard and negative-Y execution are reused; `jet_secp_ge_set_xy_sources`
+establishes the actual constructor with independent X-array and Y-table
+pointers. It retains the exact field words, output bounds, zero infinity
+flag, all three owned regions, old permissions, frame and readonly preservation.
+`lookup5_stored_point` factors the common literal selector bridge without
+changing the existing ordinary-lookup theorem. Normal compilation and focused
+checks use `C.jet_secp_table_get_lambda_literal` as the root.
+The lambda endpoint requires the incoming auxiliary X-array to represent
+beta times each original X. This is an internal representation invariant,
+not a discharged caller obligation or another public jet proof. Next execute
+the original eight beta-X products to establish it, retaining the actual
+readonly beta global; the existing writable-RHS three-slice product cannot
+be applied to that constant. Reuse its checked u128 event log with borrowed
+RHS metadata rather than substituting an implementation or assuming a call.
 Next compose these calls into the actual Strauss caller, including its scalar
 split, signed digit buffers and table consumers. Do not assume raw ratio
 equality or replace the fixed program with group scalar arithmetic. The table

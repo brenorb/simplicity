@@ -94,3 +94,24 @@ eval_table_get_lookup5
                                           (jet_sx_mem.lframe
                                              (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bd)) m
                                              mf) (jet_clight_internal_preserve.readonly_preserved m mf))))))))))))
+### C.jet_secp_table_get_literal.lookup5_stored_point
+lookup5_stored_point
+     : forall (nib : Ty.tySem (Word.Word (S (S O)))) (xs ys : forall (_ : nat) (_ : nat), Integers.Int64.int)
+         (_ : forall (k : nat) (_ : lt k (S (S (S (S (S (S (S (S O))))))))),
+              jet_secp_field_mul_small.mul_small_input_bounds (ys k)),
+       let j : nat := BinInt.Z.to_nat (jet_secp_lookup5_literal.lookup5_index nib) in
+       @eq
+         (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (jet_secp_rescale_literal.rescale_field_output (xs j))
+            (jet_secp_rescale_literal.rescale_field_output
+               match jet_secp_lookup5_literal.lookup5_negative nib return (forall _ : nat, Integers.Int64.int) with
+               | true => jet_secp_field_negate_separate.negate_sep_words (ys j)
+               | false => ys j
+               end))
+         (@jet_secp_lookup5_literal.literal_lookup5 Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S O))))
+               (Ty.tySem (jet_secp_scalar_table_literal.literal_table_vector (S (S (S O))))) nib
+               (jet_secp_globalz_pass2.globalz_word_vector (jet_secp_globalz_word_walk.globalz_decoded_points xs ys))))
