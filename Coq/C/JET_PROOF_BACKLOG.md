@@ -624,8 +624,15 @@ whole original eight-entry call: the decoded final C table equals the balanced
 `literal_pass2_8` tree of the decoded inputs. Canonicity of the last ratio and
 point follows from field decoding; the weak final Y is handled by
 `globalz_start_decoded`. No input words are restricted.
-Still establish the initial literal relations through the real odd-table
-initialization, and finish the full `scalarTable5` and enclosing
+`jet_secp_odd_table_seed_literal.odd_table_initial_literal` now derives the
+initial accumulator/prefix and doubled-affine residue relations from the exact
+original head/seed word outputs. It uses the caller's finite-input Z/flag
+invariant and the initial field relations; no on-curve or nonzero doubled-Z
+condition is needed. `literal_scalar_table5_route` exposes the unchanged
+program's doubling, first pass, final Z multiplication and second-pass routing.
+These are pure bridges, not a new C execution or public coverage entry.
+Next compose these relations with the checked head/seed and first-pass C
+execution, then finish the full `scalarTable5` and enclosing
 multiplication jet. Do not assume raw ratio
 equality or replace that fixed tree with group scalar arithmetic. The first-
 pass representation theorem is not a public extended-addition equivalence or
