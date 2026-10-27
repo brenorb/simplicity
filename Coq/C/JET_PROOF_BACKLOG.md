@@ -5371,8 +5371,22 @@ Reproduce with `JET_TARGETS=C/jet_secp_strauss_wnaf_calls.vo bash
 Coq/build-jets.sh -j1`, its scoped audits and recursive `--coqchk` on
 `C.jet_secp_strauss_wnaf_calls`. These are caller blocks, not a complete jet.
 
-Next join the original split Scall to this checked wNAF preparation and the
-maximum-length updates. Compose the one-point Strauss caller's actual local
+`jet_secp_strauss_split_wnaf.exec_strauss_split_wnaf_prepare` now joins the
+original split Scall to both original wNAF blocks for an arbitrary Word256
+input stored by the canonical reader. Both literal signed halves, digit
+arrays, stored lengths and their bounds are derived from those executions.
+The proof retains the state pointer, all three scalar stores, ownership,
+constant readiness, readonly memory and loads outside the combined footprint.
+Separation from readonly constant objects follows from caller ownership; it
+is not an extra address premise. `exec_strauss_split_wnaf_then_rest` attaches
+this prefix to the exact remaining frozen caller statements. Only the
+existing explicit `memset_model` remains as a library premise. This is an
+internal prefix result; public coverage remains 520/533.
+Reproduce with `JET_TARGETS=C/jet_secp_strauss_split_wnaf.vo bash
+Coq/build-jets.sh -j1`, its scoped statement/assumption audits and recursive
+`--coqchk` on `C.jet_secp_strauss_split_wnaf`.
+
+Next execute the original maximum-length updates. Compose the one-point Strauss caller's actual local
 allocations and nonzero/finite guard, the existing literal scalar table and
 signed ordinary/lambda lookups, then the descending loop and public wrapper.
 Derive all helper preconditions there and retain the original zero/infinity
