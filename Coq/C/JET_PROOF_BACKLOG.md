@@ -143,7 +143,23 @@ The old XYZ-only theorem cannot
 justify it by itself, and the nonzero condition must still be discharged from
 the valid affine input at the public boundary.
 
-For the remaining algebra bridge, the unproved preparation identities are
+`jet_secp_table_affine_seed` now connects the curve guard to nonzero X/Y,
+field halving, the exact affine double and the original scaled seed. Its
+residue lemmas for the individual literal field operations avoid repeatedly
+normalizing large word expressions. `jet_secp_table_affine_first` proves
+`4*h = 3*x*(x^3+28)` modulo p for the first table addition, discharges its
+nonzero-H condition using the checked index-3 certificate, and proves that
+its actual literal output Z is nonzero. `literal_table_mixed_nonzero_z`
+is reusable for the later additions. Both modules compile in the ordinary
+build and have reviewed statement/assumption records; the word bridges use
+only the inherited functional-extensionality assumption, while the integer
+identity and nonvanishing lemmas are closed. Recursive kernel checking is
+pending. These helpers add no public jet coverage. The remaining work is
+to connect the coordinate witnesses and the other six H conditions to the
+literal table walk, then discharge the full shared-Z condition and compose
+the public verifier.
+
+For the remaining algebra bridge, the general preparation identities are
 over F_p, with division by 2 or 4 meaning the fixed field inverse. Let
 S=X^3+7 and D_n be the odd/even normalized division-polynomial witnesses.
 The chosen odd candidates have D_n=n*X^r*table_q_n(X^3), where r=1 for
@@ -156,8 +172,8 @@ BX=M^2-2*X*S, BY=M*(3*X*S-M^2)-S^2 for M=3*X^2/2.
 For H=BX*Z^2-Xpoint, the prepared identity is
 H=D_(m+2)*D_(m-2)/4; the next point is scaled from normalized m+2 by
 F=D_m*D_(m-2)/4, or by k^3*F for an incoming scale k. The literal finite
-step uses h=-H and i=-I. These coordinate identities are preparation, not
-formal results yet. Check them and their exact word-operation bridges;
+step uses h=-H and i=-I. The first H identity is now formal as described above; the general
+coordinate identities remain preparation, not formal results yet. Check them and their exact word-operation bridges;
 the coefficient nonvanishing theorems alone do not establish them.
 
 ### Development history for the accepted off-curve linear-combination proof
