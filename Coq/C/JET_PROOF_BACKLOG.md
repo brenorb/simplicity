@@ -52,6 +52,18 @@ library premise is `memset_model`. Eight-module statement/assumption checks
 pass. Canonical-source binding, registration and joint acceptance remain;
 this candidate does not yet increase accepted coverage.
 
+The checked-scale candidate is now registered through the exact initialized
+success/failure contract. The existing source checker binds its CoreJets
+constructor, Haskell assertion tree, FFI entry, startup and literal ports;
+21 targeted mutations reject source/contract drift. The proof inventory is
+522/533 (521 equivalences, including 146 conditional, and one divergence),
+but accepted coverage remains 521/533 until joint scoped acceptance passes:
+`bash Coq/check-jets.sh --accept
+--jets=simplicity_off_curve_scale,simplicity_scale,simplicity_gej_is_on_curve`.
+This run must cover both existing endpoints whose helper implementations
+changed. The next independent proof obligation is arbitrary-global-Z
+generator addition for `off_curve_linear_combination_1`.
+
 The following paragraphs retain the earlier acceptance history, before the
 six conditional CTZ/memset registrations above. Their 513/533 and 19-remaining
 counts are historical; the current proof inventory is 520/533 with 13 remaining.

@@ -322,6 +322,16 @@ _MEMSET_JETS = {
 for _name, _tail in _MEMSET_JETS.items():
     RECOVERED_CONTRACTS[_name] = "memset_model -> secp_jet_initialized_local_spec " + _tail
 
+# Assertion callers also prove the actual failure return on every rejected
+# input. A success-only contract is not an accepted boundary for these jets.
+_MEMSET_PARTIAL_JETS = {
+    "simplicity_scale": "checked_scale_startup f_simplicity_scale "
+                        "(Ty.Prod (Word 8) literal_table_gej) literal_table_gej "
+                        "(@literal_checked_scale (Alg.AssertionSem option_Monad_Zero)).",
+}
+for _name, _tail in _MEMSET_PARTIAL_JETS.items():
+    RECOVERED_CONTRACTS[_name] = "memset_model -> secp_jet_initialized_partial_local_spec " + _tail
+
 REPORTED_MISMATCH_CONTRACTS = {
     "simplicity_gej_ge_add_ex": {
         "contract": "secp_jet_local_spec_on (fun a => ~gej_ge_add_ex_ratio_mismatch a) "

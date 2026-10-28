@@ -9,4 +9,4 @@ instead of starting a parallel proof.
 | --- | --- | --- | --- |
 | `simplicity_total_fee` | Codex (current goal session; original lookup execution) | `feat/jet-equivalence` | 2026-10-24 |
 | `simplicity_hash_to_curve` | Codex (current goal session; original generator load/save and caller composition) | `feat/jet-equivalence` | 2026-10-24 |
-| `simplicity_scale` | Codex (current goal session; assertion wrapper and shared zero-scalar execution) | `feat/jet-equivalence` | 2026-10-28 |
+| `simplicity_off_curve_linear_combination_1` | Codex (current goal session; general-Z generator addition) | `feat/jet-equivalence` | 2026-10-28 |

@@ -23,6 +23,7 @@ def rejects(action, message):
 
 
 def main():
+    import re
     signature = "bool simplicity_example(frameItem * dst, frameItem src, const txEnv * env);"
     assert coverage.declarations(f"/* {signature} */\n// {signature}\n{signature}") == ["simplicity_example"]
     rejects(lambda: coverage.declarations("bool simplicity_bad(int x);"), "signature")
@@ -41,11 +42,12 @@ def main():
     assert coverage.missing_proofs([complete, absent, divergent]) == [absent]
     assert coverage.missing_equivalences([complete, divergent]) == [divergent]
     assert sum(bool(row["divergence_proof"]) for row in rows) == 1
-    assert len(coverage.missing_equivalences(rows)) == 13
-    assert len(coverage.missing_proofs(rows)) == 12
+    assert len(coverage.missing_equivalences(rows)) == 12
+    assert len(coverage.missing_proofs(rows)) == 11
     assert coverage.proof_roots(rows, ["simplicity_gej_ge_add_ex"]) == {
         "C.jet_secp_mixed_ex_local", "C.jet_secp_mixed_ex_refutation"}
-    rejects(lambda: coverage.proof_roots(rows, ["simplicity_scale"]),
+    assert coverage.proof_roots(rows, ["simplicity_scale"]) == {"C.jet_secp_checked_scale_local"}
+    rejects(lambda: coverage.proof_roots(rows, ["simplicity_off_curve_linear_combination_1"]),
             "jets without registered proof entries")
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_not_a_jet"]),
             "jets without registered proof entries")
@@ -54,7 +56,8 @@ def main():
     assert sum(row["condition"] == "memcpy_model" for row in rows) == 138
     # CTZ-dependent secp callers retain the explicit approved ctz premise.
     assert {row["function"] for row in rows if row["condition"] == "ctz_model"} == set(coverage._CTZ_JETS)
-    assert {row["function"] for row in rows if row["condition"] == "memset_model"} == set(coverage._MEMSET_JETS)
+    assert {row["function"] for row in rows if row["condition"] == "memset_model"} == (
+        set(coverage._MEMSET_JETS) | set(coverage._MEMSET_PARTIAL_JETS))
     expected = {name for header in coverage.HEADERS.values()
                 for name in coverage.declarations((coverage.REPO / header).read_text())}
     assert {row["function"] for row in rows} == expected
@@ -128,9 +131,12 @@ def main():
             if "memset_model ->" in tail:
                 variants += [tail.replace("memset_model ->", "ctz_model ->", 1),
                              tail.replace("memset_model ->", "", 1)]
-                for state in ("generator_startup", "scale_startup"):
-                    if state in tail:
-                        variants.append(tail.replace(state, "(fun _ => True)", 1))
+                for state in ("generator_startup", "scale_startup", "checked_scale_startup"):
+                    if re.search(r"\b" + state + r"\b", tail):
+                        variants.append(re.sub(r"\b" + state + r"\b", "(fun _ => True)", tail, count=1))
+            if "secp_jet_initialized_partial_local_spec" in tail:
+                variants.append(tail.replace("secp_jet_initialized_partial_local_spec",
+                                             "secp_jet_initialized_local_spec", 1))
             if "beta_initialized" in tail:
                 variants.append(tail.replace("beta_initialized", "(fun _ => True)", 1))
             for changed in variants:

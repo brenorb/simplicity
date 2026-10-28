@@ -915,12 +915,92 @@ strauss_zero_global_state m /\ split_constants_ready m /\ beta_initialized m
     return 75
 
 
+CHECKED_SCALE_PORT_FILES = {
+    'checked_literal': 'jet_secp_checked_scale_literal.v',
+    'checked_contract': 'jet_secp_initialized_partial_contract.v',
+    'checked_startup': 'jet_secp_checked_scale_startup.v',
+    'checked_ready': 'jet_secp_scale_startup.v',
+    'checked_zero': 'jet_secp_strauss_zero_generator.v',
+    'checked_jet': 'jet_secp_checked_scale_local.v',
+}
+
+
+def check_checked_scale(s):
+    """Reuse the off-curve ports and the shared assertion-root gate.
+
+    This checks the added on-curve assertion and all-input partial contract;
+    it does not turn a successful-only theorem into complete coverage.
+    """
+    for fragment in [
+        "Scale :: Secp256k1Jet (Secp256k1.Scalar,Secp256k1.GEJ) Secp256k1.GEJ",
+        "specificationSecp256k1 Scale = Secp256k1.scale",
+        "implementationSecp256k1 Scale = FFI.scale",
+    ]:
+        p.require(s["catalog"], fragment, "Scale catalog")
+    p.require(s["program"], "scale :: Assert term => Lib term -> term (Scalar, GEJ) GEJ", "Scale assertion type")
+    p.require(s["program"], "scale m = drop (gej_is_on_curve m) &&& (off_curve_scale m) >>> assertr cmrFail0 ih", "Scale assertion tree")
+    p.require(s["scale_ffi"], "scale :: (Scalar, GEJ) -> Maybe GEJ", "Scale FFI type")
+    p.require(s["scale_ffi"], "scale = unsafeLocalCoreJet c_scale", "Scale FFI binding")
+    ports = [
+        ('checked_literal', 'literal_checked_scale_core', r"""
+SC.pair (SC.drop (@literal_gej_is_on_curve term)) (@literal_off_curve_scale term)
+        """),
+        ('checked_literal', 'literal_checked_scale', r"""
+SC.comp (@literal_checked_scale_core (Alg.Assertion.toCore term))
+  (Alg.Assertion.Combinators.assertr assertion_cmr_fail0 (SC.drop SC.iden))
+        """),
+        ('checked_contract', 'secp_jet_initialized_partial_local_spec', r"""
+forall env m bd base bs sbase bi bw edge outedge cursor rc (a:Ty.tySem A),
+ Ready m -> frame_base_valid sbase -> (8|sbase) ->
+ frame_fields_at m bs sbase bi edge rc ->
+ 0<=rc -> rc+Z.of_nat (bitSize A)<=Int64.max_unsigned ->
+ frame_input_cells_at m bi edge rc (encode a) ->
+ write_frame_at m bd base bw outedge cursor (Z.of_nat (bitSize B)) ->
+ exists mf,
+ Clight2.eval_funcall secp_ge m (Internal f)
+  [Vptr bd (Ptrofs.repr base);Vptr bs (Ptrofs.repr sbase);env] E0 mf (jet_partial_return (spec a)) /\
+ (match spec a with
+  | Some value=>frame_output_cells_at mf bw outedge cursor (encode value) /\
+    write_prefix_at m mf bw outedge cursor /\
+    frame_fields_at mf bd base bw outedge (cursor-Z.of_nat (bitSize B))
+  | None=>True end) /\
+ (forall chunk b ofs,Mem.valid_block m b ->
+  (b<>bd \/ ofs+size_chunk chunk<=base+8 \/ base+16<=ofs) ->
+  (b<>bw \/ ofs+size_chunk chunk<=outedge+8*((cursor-Z.of_nat (bitSize B))/64) \/
+   write_word_address outedge cursor+8<=ofs) ->
+  Mem.load chunk mf b ofs=Mem.load chunk m b ofs) /\ Ready mf
+        """),
+        ('checked_startup', 'checked_zero_block', r"""
+secp_symbol_block _ng__1
+        """),
+        ('checked_startup', 'checked_scale_startup', r"""
+scale_startup_at checked_zero_block m
+        """),
+        ('checked_ready', 'scale_startup_at', r"""
+zero_scalar_state bng m /\ split_constants_ready m /\ beta_initialized m
+        """),
+        ('checked_zero', 'zero_scalar_state', r"""
+scalar_at m bng 0 [Int64.zero;Int64.zero;Int64.zero;Int64.zero] /\
+ readonly_region_bounds m bng 0 32
+        """),
+    ]
+    for key, name, expected in ports:
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError("checked Scale boundary differs: " + name)
+    statements = re.findall(r"Theorem checked_scale_initialized_local_spec\s*:(.*?)\bProof\.", s["checked_jet"], re.S)
+    expected = ("memset_model -> secp_jet_initialized_partial_local_spec checked_scale_startup "
+                "f_simplicity_scale (Ty.Prod (Word 8) literal_table_gej) literal_table_gej "
+                "(@literal_checked_scale (Alg.AssertionSem option_Monad_Zero)).")
+    if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
+        raise ValueError("Scale complete success/failure contract differs")
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
         "types": REPO / "Haskell/Core/Simplicity/Ty/LibSecp256k1.hs",
         "program": REPO / "Haskell/Core/Simplicity/Programs/LibSecp256k1.hs",
         **{key: COQ / "C" / file for key, file in SCALE_PORT_FILES.items()},
+        **{key: COQ / "C" / file for key, file in CHECKED_SCALE_PORT_FILES.items()},
         "scale_ffi": REPO / "Haskell/Core/Simplicity/FFI/Jets.hs",
         "scale_ffi_test": REPO / "Haskell/Tests/Simplicity/FFI/Tests.hs",
         "scale_arith": REPO / "Haskell/Core/Simplicity/Programs/Arith.hs",
@@ -1295,6 +1375,49 @@ def test():
         raise ValueError("accepted off-curve scale source mutation: " + old)
     print(f"off_curve_scale library/FFI/{port_count} literal ports/full contract match; "
           f"{len(mutations)} targeted mutations rejected")
+
+
+
+    check_checked_scale(s)
+    mutations = [
+        ("catalog", "specificationSecp256k1 Scale = Secp256k1.scale",
+                    "specificationSecp256k1 Scale = Secp256k1.gej_double"),
+        ("catalog", "implementationSecp256k1 Scale = FFI.scale",
+                    "implementationSecp256k1 Scale = FFI.off_curve_scale"),
+        ("catalog", "Scale :: Secp256k1Jet (Secp256k1.Scalar,Secp256k1.GEJ) Secp256k1.GEJ",
+                    "Scale :: Secp256k1Jet (Secp256k1.Scalar,Secp256k1.GE) Secp256k1.GEJ"),
+        ("program", "scale m = drop (gej_is_on_curve m)", "scale m = take (gej_is_on_curve m)"),
+        ("program", "scale m = drop (gej_is_on_curve m) &&& (off_curve_scale m) >>> assertr cmrFail0 ih",
+                    "scale m = drop (gej_is_on_curve m) &&& (off_curve_scale m) >>> assertl ih cmrFail0"),
+        ("scale_ffi", "scale = unsafeLocalCoreJet c_scale", "scale = unsafeLocalCoreJet c_generate"),
+        ("checked_literal", "SC.drop (@literal_gej_is_on_curve term)", "SC.take (@literal_gej_is_on_curve term)"),
+        ("checked_literal", "SC.pair (SC.drop", "SC.pair (SC.take"),
+        ("checked_literal", "assertr assertion_cmr_fail0", "assertr assertion_hash0"),
+        ("checked_literal", "(SC.drop SC.iden)", "(SC.take SC.iden)"),
+        ("checked_startup", "secp_symbol_block _ng__1", "secp_symbol_block _ng"),
+        ("checked_startup", "scale_startup_at checked_zero_block m", "False /\\ scale_startup_at checked_zero_block m"),
+        ("checked_ready", "zero_scalar_state bng m /\\", "False /\\ zero_scalar_state bng m /\\"),
+        ("checked_zero", "readonly_region_bounds m bng 0 32", "True"),
+        ("checked_contract", "jet_partial_return (spec a)", "Vint Int.one"),
+        ("checked_contract", "| None=>True end", "| None=>False end"),
+        ("checked_contract", "Mem.load chunk mf b ofs=Mem.load chunk m b ofs", "True"),
+        ("checked_contract", "Ready m -> frame_base_valid", "Ready m -> False -> frame_base_valid"),
+        ("checked_jet", "memset_model -> secp_jet_initialized_partial_local_spec",
+                        "memset_model -> False -> secp_jet_initialized_partial_local_spec"),
+        ("checked_jet", "f_simplicity_scale", "f_simplicity_off_curve_scale"),
+        ("checked_jet", "Alg.AssertionSem option_Monad_Zero", "Alg.CoreFunSem"),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError("inactive checked Scale mutation fixture: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_checked_scale(changed)
+        except ValueError:
+            continue
+        raise ValueError("accepted checked Scale source mutation: " + old)
+    print(f"Scale catalog/assertion/initialized partial contract match; {len(mutations)} targeted mutations rejected")
 
 
 if __name__ == "__main__":
