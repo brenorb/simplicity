@@ -208,8 +208,14 @@ caller is unchanged. `jet_secp_affine_validity_readback` exposes the literal
 curve result, coordinate/flag readback, ownership, frame and readonly
 preservation. The seven-module build and scoped reviewed comparisons pass;
 independent kernel checking of these wrapper/flag additions is pending.
-The scalar-plus-affine read-pair composition is being developed separately;
-its input cursor advances 768 bits and it reserves zero output bits.
+`jet_secp_linear_verify_read_pair` derives a scalar-plus-affine read pair.
+`jet_secp_linear_verify_public_reads` composes all four original calls, advances
+the input cursor by 1536 bits, and retains both scalars, both affine points
+and their zero infinity flags. It needs zero output capacity. Both modules
+compile and their scoped theorem/assumption records pass; no public jet is
+registered by these reader helpers. Reproduce with
+`JET_TARGETS=C/jet_secp_linear_verify_public_reads.vo bash Coq/build-jets.sh -j4`
+and the scoped assumption/contract audits for these two modules.
 
 ### Development history for the accepted off-curve linear-combination proof
 
