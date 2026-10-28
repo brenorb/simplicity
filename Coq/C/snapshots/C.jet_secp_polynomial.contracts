@@ -1,0 +1,173 @@
+### C.jet_secp_polynomial.polynomial_trim_value
+polynomial_trim_value
+     : forall (p : list BinNums.Z) (x : BinNums.Z),
+       @eq BinNums.Z (polynomial_value (polynomial_trim p) x) (polynomial_value p x)
+### C.jet_secp_polynomial.polynomial_add_value
+polynomial_add_value
+     : forall (modulus : BinNums.Z) (p q : list BinNums.Z) (x : BinNums.Z) (_ : not (@eq BinNums.Z modulus BinNums.Z0)),
+       @eq BinNums.Z (BinInt.Z.modulo (polynomial_value (polynomial_add modulus p q) x) modulus)
+         (BinInt.Z.modulo (BinInt.Z.add (polynomial_value p x) (polynomial_value q x)) modulus)
+### C.jet_secp_polynomial.polynomial_scale_value
+polynomial_scale_value
+     : forall (modulus k : BinNums.Z) (p : list BinNums.Z) (x : BinNums.Z) (_ : not (@eq BinNums.Z modulus BinNums.Z0)),
+       @eq BinNums.Z (BinInt.Z.modulo (polynomial_value (polynomial_scale modulus k p) x) modulus)
+         (BinInt.Z.modulo (BinInt.Z.mul k (polynomial_value p x)) modulus)
+### C.jet_secp_polynomial.polynomial_sub_value
+polynomial_sub_value
+     : forall (modulus : BinNums.Z) (p q : list BinNums.Z) (x : BinNums.Z) (_ : not (@eq BinNums.Z modulus BinNums.Z0)),
+       @eq BinNums.Z (BinInt.Z.modulo (polynomial_value (polynomial_sub modulus p q) x) modulus)
+         (BinInt.Z.modulo (BinInt.Z.sub (polynomial_value p x) (polynomial_value q x)) modulus)
+### C.jet_secp_polynomial.polynomial_shift_value
+polynomial_shift_value
+     : forall (n : nat) (p : list BinNums.Z) (x : BinNums.Z),
+       @eq BinNums.Z (polynomial_value (polynomial_shift n p) x)
+         (BinInt.Z.mul (BinInt.Z.pow x (BinInt.Z.of_nat n)) (polynomial_value p x))
+### C.jet_secp_polynomial.polynomial_mul_value
+polynomial_mul_value
+     : forall (modulus : BinNums.Z) (p q : list BinNums.Z) (x : BinNums.Z) (_ : not (@eq BinNums.Z modulus BinNums.Z0)),
+       @eq BinNums.Z (BinInt.Z.modulo (polynomial_value (polynomial_mul modulus p q) x) modulus)
+         (BinInt.Z.modulo (BinInt.Z.mul (polynomial_value p x) (polynomial_value q x)) modulus)
+### C.jet_secp_polynomial.polynomial_mul_value_congruent
+polynomial_mul_value_congruent
+     : forall (modulus : BinNums.Z) (p q : list BinNums.Z) (x a b : BinNums.Z)
+         (_ : not (@eq BinNums.Z modulus BinNums.Z0))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (polynomial_value p x) modulus) (BinInt.Z.modulo a modulus))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (polynomial_value q x) modulus) (BinInt.Z.modulo b modulus)),
+       @eq BinNums.Z (BinInt.Z.modulo (polynomial_value (polynomial_mul modulus p q) x) modulus)
+         (BinInt.Z.modulo (BinInt.Z.mul a b) modulus)
+### C.jet_secp_polynomial.polynomial_reduce_value
+polynomial_reduce_value
+     : forall (modulus : BinNums.Z) (p q : list BinNums.Z) (x : BinNums.Z) (_ : not (@eq BinNums.Z modulus BinNums.Z0))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (polynomial_value q x) modulus) BinNums.Z0),
+       @eq BinNums.Z (BinInt.Z.modulo (polynomial_value (polynomial_reduce modulus p q) x) modulus)
+         (BinInt.Z.modulo (polynomial_value p x) modulus)
+### C.jet_secp_polynomial.polynomial_remainder_value
+polynomial_remainder_value
+     : forall (modulus : BinNums.Z) (p q : list BinNums.Z) (x : BinNums.Z) (_ : not (@eq BinNums.Z modulus BinNums.Z0))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (polynomial_value q x) modulus) BinNums.Z0),
+       @eq BinNums.Z (BinInt.Z.modulo (polynomial_value (polynomial_remainder modulus p q) x) modulus)
+         (BinInt.Z.modulo (polynomial_value p x) modulus)
+### C.jet_secp_polynomial.polynomial_power_value
+polynomial_power_value
+     : forall (modulus : BinNums.Z) (base : list BinNums.Z) (exponent : BinNums.positive) (q : list BinNums.Z)
+         (x : BinNums.Z) (_ : not (@eq BinNums.Z modulus BinNums.Z0))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (polynomial_value q x) modulus) BinNums.Z0),
+       @eq BinNums.Z (BinInt.Z.modulo (polynomial_value (polynomial_power modulus base exponent q) x) modulus)
+         (BinInt.Z.modulo (BinInt.Z.pow (polynomial_value base x) (BinNums.Zpos exponent)) modulus)
+### C.jet_secp_polynomial.polynomial_value
+polynomial_value =
+fix polynomial_value (p : list BinNums.Z) (x : BinNums.Z) {struct p} : BinNums.Z :=
+  match p return BinNums.Z with
+  | nil => BinNums.Z0
+  | cons a tail => BinInt.Z.add a (BinInt.Z.mul x (polynomial_value tail x))
+  end
+     : forall (_ : list BinNums.Z) (_ : BinNums.Z), BinNums.Z
+
+Arguments polynomial_value p%list_scope x%Z_scope
+### C.jet_secp_polynomial.polynomial_trim
+polynomial_trim =
+fix polynomial_trim (p : list BinNums.Z) : list BinNums.Z :=
+  match p return (list BinNums.Z) with
+  | nil => @nil BinNums.Z
+  | cons a tail =>
+      let rest : list BinNums.Z := polynomial_trim tail in
+      match rest return (list BinNums.Z) with
+      | nil =>
+          match BinInt.Z.eqb a BinNums.Z0 return (list BinNums.Z) with
+          | true => @nil BinNums.Z
+          | false => @cons BinNums.Z a (@nil BinNums.Z)
+          end
+      | cons _ _ => @cons BinNums.Z a rest
+      end
+  end
+     : forall _ : list BinNums.Z, list BinNums.Z
+
+Arguments polynomial_trim p%list_scope
+### C.jet_secp_polynomial.polynomial_add
+polynomial_add =
+fix polynomial_add (modulus : BinNums.Z) (p q : list BinNums.Z) {struct p} : list BinNums.Z :=
+  polynomial_trim
+    match p return (list BinNums.Z) with
+    | nil => q
+    | cons a tail =>
+        match q return (list BinNums.Z) with
+        | nil => p
+        | cons b rest =>
+            @cons BinNums.Z (BinInt.Z.modulo (BinInt.Z.add a b) modulus) (polynomial_add modulus tail rest)
+        end
+    end
+     : forall (_ : BinNums.Z) (_ : list BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments polynomial_add modulus%Z_scope (p q)%list_scope
+### C.jet_secp_polynomial.polynomial_scale
+polynomial_scale =
+fun (modulus k : BinNums.Z) (p : list BinNums.Z) =>
+polynomial_trim (@List.map BinNums.Z BinNums.Z (fun a : BinNums.Z => BinInt.Z.modulo (BinInt.Z.mul k a) modulus) p)
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments polynomial_scale (modulus k)%Z_scope p%list_scope
+### C.jet_secp_polynomial.polynomial_sub
+polynomial_sub =
+fun (modulus : BinNums.Z) (p q : list BinNums.Z) =>
+polynomial_add modulus p (polynomial_scale modulus (BinNums.Zneg BinNums.xH) q)
+     : forall (_ : BinNums.Z) (_ : list BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments polynomial_sub modulus%Z_scope (p q)%list_scope
+### C.jet_secp_polynomial.polynomial_shift
+polynomial_shift =
+fun (n : nat) (p : list BinNums.Z) => @app BinNums.Z (@List.repeat BinNums.Z BinNums.Z0 n) p
+     : forall (_ : nat) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments polynomial_shift n%nat_scope p%list_scope
+### C.jet_secp_polynomial.polynomial_mul
+polynomial_mul =
+fix polynomial_mul (modulus : BinNums.Z) (p q : list BinNums.Z) {struct p} : list BinNums.Z :=
+  match p return (list BinNums.Z) with
+  | nil => @nil BinNums.Z
+  | cons a tail =>
+      polynomial_add modulus (polynomial_scale modulus a q)
+        (@cons BinNums.Z BinNums.Z0 (polynomial_mul modulus tail q))
+  end
+     : forall (_ : BinNums.Z) (_ : list BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments polynomial_mul modulus%Z_scope (p q)%list_scope
+### C.jet_secp_polynomial.polynomial_reduce
+polynomial_reduce =
+fun (modulus : BinNums.Z) (p q : list BinNums.Z) =>
+match PeanoNat.Nat.ltb (@length BinNums.Z p) (@length BinNums.Z q) return (list BinNums.Z) with
+| true => polynomial_trim p
+| false =>
+    polynomial_sub modulus p
+      (polynomial_scale modulus (@List.last BinNums.Z p BinNums.Z0)
+         (polynomial_shift (Nat.sub (@length BinNums.Z p) (@length BinNums.Z q)) q))
+end
+     : forall (_ : BinNums.Z) (_ : list BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments polynomial_reduce modulus%Z_scope (p q)%list_scope
+### C.jet_secp_polynomial.polynomial_remainder
+polynomial_remainder =
+fix polynomial_remainder (modulus : BinNums.Z) (p q : list BinNums.Z) {struct p} : list BinNums.Z :=
+  match p return (list BinNums.Z) with
+  | nil => @nil BinNums.Z
+  | cons a tail => polynomial_reduce modulus (@cons BinNums.Z a (polynomial_remainder modulus tail q)) q
+  end
+     : forall (_ : BinNums.Z) (_ : list BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments polynomial_remainder modulus%Z_scope (p q)%list_scope
+### C.jet_secp_polynomial.polynomial_power
+polynomial_power =
+fix polynomial_power
+  (modulus : BinNums.Z) (base : list BinNums.Z) (exponent : BinNums.positive) (q : list BinNums.Z) {struct exponent} :
+    list BinNums.Z :=
+  match exponent return (list BinNums.Z) with
+  | BinNums.xI n =>
+      let r : list BinNums.Z := polynomial_power modulus base n q in
+      polynomial_remainder modulus (polynomial_mul modulus (polynomial_mul modulus r r) base) q
+  | BinNums.xO n =>
+      let r : list BinNums.Z := polynomial_power modulus base n q in
+      polynomial_remainder modulus (polynomial_mul modulus r r) q
+  | BinNums.xH => polynomial_remainder modulus base q
+  end
+     : forall (_ : BinNums.Z) (_ : list BinNums.Z) (_ : BinNums.positive) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments polynomial_power modulus%Z_scope base%list_scope exponent%positive_scope q%list_scope

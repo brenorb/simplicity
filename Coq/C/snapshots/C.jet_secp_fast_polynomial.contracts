@@ -1,0 +1,113 @@
+### C.jet_secp_fast_polynomial.fast_polynomial_add_correct
+fast_polynomial_add_correct
+     : forall p q : list BinNums.Z,
+       @eq (list BinNums.Z) (fast_polynomial_add p q) (jet_secp_polynomial.polynomial_add jet_secp_fe_math.feP p q)
+### C.jet_secp_fast_polynomial.fast_polynomial_scale_correct
+fast_polynomial_scale_correct
+     : forall (k : BinNums.Z) (p : list BinNums.Z),
+       @eq (list BinNums.Z) (fast_polynomial_scale k p) (jet_secp_polynomial.polynomial_scale jet_secp_fe_math.feP k p)
+### C.jet_secp_fast_polynomial.fast_polynomial_sub_correct
+fast_polynomial_sub_correct
+     : forall p q : list BinNums.Z,
+       @eq (list BinNums.Z) (fast_polynomial_sub p q) (jet_secp_polynomial.polynomial_sub jet_secp_fe_math.feP p q)
+### C.jet_secp_fast_polynomial.fast_polynomial_mul_correct
+fast_polynomial_mul_correct
+     : forall p q : list BinNums.Z,
+       @eq (list BinNums.Z) (fast_polynomial_mul p q) (jet_secp_polynomial.polynomial_mul jet_secp_fe_math.feP p q)
+### C.jet_secp_fast_polynomial.fast_polynomial_reduce_correct
+fast_polynomial_reduce_correct
+     : forall p q : list BinNums.Z,
+       @eq (list BinNums.Z) (fast_polynomial_reduce p q)
+         (jet_secp_polynomial.polynomial_reduce jet_secp_fe_math.feP p q)
+### C.jet_secp_fast_polynomial.fast_polynomial_remainder_correct
+fast_polynomial_remainder_correct
+     : forall p q : list BinNums.Z,
+       @eq (list BinNums.Z) (fast_polynomial_remainder p q)
+         (jet_secp_polynomial.polynomial_remainder jet_secp_fe_math.feP p q)
+### C.jet_secp_fast_polynomial.fast_polynomial_power_correct
+fast_polynomial_power_correct
+     : forall (base : list BinNums.Z) (exponent : BinNums.positive) (q : list BinNums.Z),
+       @eq (list BinNums.Z) (fast_polynomial_power base exponent q)
+         (jet_secp_polynomial.polynomial_power jet_secp_fe_math.feP base exponent q)
+### C.jet_secp_fast_polynomial.fast_polynomial_add
+fast_polynomial_add =
+fix fast_polynomial_add (p q : list BinNums.Z) {struct p} : list BinNums.Z :=
+  jet_secp_polynomial.polynomial_trim
+    match p return (list BinNums.Z) with
+    | nil => q
+    | cons a tail =>
+        match q return (list BinNums.Z) with
+        | nil => p
+        | cons b rest =>
+            @cons BinNums.Z (jet_secp_fast_remainder.secp_coefficient_remainder (BinInt.Z.add a b))
+              (fast_polynomial_add tail rest)
+        end
+    end
+     : forall (_ : list BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments fast_polynomial_add (p q)%list_scope
+### C.jet_secp_fast_polynomial.fast_polynomial_scale
+fast_polynomial_scale =
+fun (k : BinNums.Z) (p : list BinNums.Z) =>
+jet_secp_polynomial.polynomial_trim
+  (@List.map BinNums.Z BinNums.Z
+     (fun a : BinNums.Z => jet_secp_fast_remainder.secp_coefficient_remainder (BinInt.Z.mul k a)) p)
+     : forall (_ : BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments fast_polynomial_scale k%Z_scope p%list_scope
+### C.jet_secp_fast_polynomial.fast_polynomial_sub
+fast_polynomial_sub =
+fun p q : list BinNums.Z => fast_polynomial_add p (fast_polynomial_scale (BinNums.Zneg BinNums.xH) q)
+     : forall (_ : list BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments fast_polynomial_sub (p q)%list_scope
+### C.jet_secp_fast_polynomial.fast_polynomial_mul
+fast_polynomial_mul =
+fix fast_polynomial_mul (p q : list BinNums.Z) {struct p} : list BinNums.Z :=
+  match p return (list BinNums.Z) with
+  | nil => @nil BinNums.Z
+  | cons a tail =>
+      fast_polynomial_add (fast_polynomial_scale a q) (@cons BinNums.Z BinNums.Z0 (fast_polynomial_mul tail q))
+  end
+     : forall (_ : list BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments fast_polynomial_mul (p q)%list_scope
+### C.jet_secp_fast_polynomial.fast_polynomial_reduce
+fast_polynomial_reduce =
+fun p q : list BinNums.Z =>
+match PeanoNat.Nat.ltb (@length BinNums.Z p) (@length BinNums.Z q) return (list BinNums.Z) with
+| true => jet_secp_polynomial.polynomial_trim p
+| false =>
+    fast_polynomial_sub p
+      (fast_polynomial_scale (@List.last BinNums.Z p BinNums.Z0)
+         (jet_secp_polynomial.polynomial_shift (Nat.sub (@length BinNums.Z p) (@length BinNums.Z q)) q))
+end
+     : forall (_ : list BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments fast_polynomial_reduce (p q)%list_scope
+### C.jet_secp_fast_polynomial.fast_polynomial_remainder
+fast_polynomial_remainder =
+fix fast_polynomial_remainder (p q : list BinNums.Z) {struct p} : list BinNums.Z :=
+  match p return (list BinNums.Z) with
+  | nil => @nil BinNums.Z
+  | cons a tail => fast_polynomial_reduce (@cons BinNums.Z a (fast_polynomial_remainder tail q)) q
+  end
+     : forall (_ : list BinNums.Z) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments fast_polynomial_remainder (p q)%list_scope
+### C.jet_secp_fast_polynomial.fast_polynomial_power
+fast_polynomial_power =
+fix fast_polynomial_power
+  (base : list BinNums.Z) (exponent : BinNums.positive) (q : list BinNums.Z) {struct exponent} :
+list BinNums.Z :=
+  match exponent return (list BinNums.Z) with
+  | BinNums.xI n =>
+      let r : list BinNums.Z := fast_polynomial_power base n q in
+      fast_polynomial_remainder (fast_polynomial_mul (fast_polynomial_mul r r) base) q
+  | BinNums.xO n =>
+      let r : list BinNums.Z := fast_polynomial_power base n q in fast_polynomial_remainder (fast_polynomial_mul r r) q
+  | BinNums.xH => fast_polynomial_remainder base q
+  end
+     : forall (_ : list BinNums.Z) (_ : BinNums.positive) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments fast_polynomial_power base%list_scope exponent%positive_scope q%list_scope
