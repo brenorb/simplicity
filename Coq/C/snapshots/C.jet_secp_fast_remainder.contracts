@@ -1,0 +1,111 @@
+### C.jet_secp_fast_remainder.secp_fold_coefficient_mod
+secp_fold_coefficient_mod
+     : forall a : BinNums.Z,
+       @eq BinNums.Z (BinInt.Z.modulo (secp_fold_coefficient a) jet_secp_fe_math.feP)
+         (BinInt.Z.modulo a jet_secp_fe_math.feP)
+### C.jet_secp_fast_remainder.secp_fold_coefficient_bound
+secp_fold_coefficient_bound
+     : forall (a b : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 a)
+                (BinInt.Z.lt a
+                   (BinInt.Z.mul
+                      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinNums.Zpos
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) b))),
+       and (BinInt.Z.le BinNums.Z0 (secp_fold_coefficient a))
+         (BinInt.Z.lt (secp_fold_coefficient a)
+            (BinInt.Z.add
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+               (BinInt.Z.mul jet_secp_fe_math.feR b)))
+### C.jet_secp_fast_remainder.secp_positive_remainder_correct
+secp_positive_remainder_correct
+     : forall (a : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 a)
+                (BinInt.Z.lt a
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))),
+       @eq BinNums.Z (secp_positive_remainder a) (BinInt.Z.modulo a jet_secp_fe_math.feP)
+### C.jet_secp_fast_remainder.secp_coefficient_remainder_correct
+secp_coefficient_remainder_correct
+     : forall a : BinNums.Z, @eq BinNums.Z (secp_coefficient_remainder a) (BinInt.Z.modulo a jet_secp_fe_math.feP)
+### C.jet_secp_fast_remainder.polynomial_coefficient_remainder_correct
+polynomial_coefficient_remainder_correct
+     : forall modulus a : BinNums.Z,
+       @eq BinNums.Z (polynomial_coefficient_remainder modulus a) (BinInt.Z.modulo a modulus)
+### C.jet_secp_fast_remainder.secp_fold_coefficient
+secp_fold_coefficient =
+fun a : BinNums.Z =>
+BinInt.Z.add
+  (BinInt.Z.land a
+     (BinInt.Z.ones
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+  (BinInt.Z.mul jet_secp_fe_math.feR
+     (BinInt.Z.shiftr a
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+     : forall _ : BinNums.Z, BinNums.Z
+
+Arguments secp_fold_coefficient a%Z_scope
+### C.jet_secp_fast_remainder.secp_positive_remainder
+secp_positive_remainder =
+fun a : BinNums.Z =>
+let r : BinNums.Z := secp_fold_coefficient (secp_fold_coefficient (secp_fold_coefficient a)) in
+match BinInt.Z.ltb r jet_secp_fe_math.feP return BinNums.Z with
+| true => r
+| false => BinInt.Z.sub r jet_secp_fe_math.feP
+end
+     : forall _ : BinNums.Z, BinNums.Z
+
+Arguments secp_positive_remainder a%Z_scope
+### C.jet_secp_fast_remainder.secp_coefficient_remainder
+secp_coefficient_remainder =
+fun a : BinNums.Z =>
+match BinInt.Z.ltb a BinNums.Z0 return BinNums.Z with
+| true =>
+    match BinInt.Z.ltb (BinInt.Z.opp jet_secp_fe_math.feP) a return BinNums.Z with
+    | true => BinInt.Z.add a jet_secp_fe_math.feP
+    | false => BinInt.Z.modulo a jet_secp_fe_math.feP
+    end
+| false =>
+    match
+      BinInt.Z.ltb a
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+      return BinNums.Z
+    with
+    | true => secp_positive_remainder a
+    | false => BinInt.Z.modulo a jet_secp_fe_math.feP
+    end
+end
+     : forall _ : BinNums.Z, BinNums.Z
+
+Arguments secp_coefficient_remainder a%Z_scope
+### C.jet_secp_fast_remainder.polynomial_coefficient_remainder
+polynomial_coefficient_remainder =
+fun modulus a : BinNums.Z =>
+match BinInt.Z.eqb modulus jet_secp_fe_math.feP return BinNums.Z with
+| true => secp_coefficient_remainder a
+| false => BinInt.Z.modulo a modulus
+end
+     : forall (_ : BinNums.Z) (_ : BinNums.Z), BinNums.Z
+
+Arguments polynomial_coefficient_remainder (modulus a)%Z_scope
