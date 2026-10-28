@@ -5511,16 +5511,46 @@ body/guard and whole-jet composition are still pending. Reproduce with
 `JET_TARGETS=C/jet_secp_strauss_program.vo bash Coq/build-jets.sh -j1`, its
 scoped statement/assumption audits and recursive `--coqchk`.
 
-Next compose the general entry with the point preprocessing branches, using
-freshness to discharge their private-object separation premises. Then compose
-the signed ordinary/lambda lookups, descending loop and public wrapper.
+`jet_secp_strauss_digit_guard.exec_strauss_digit_dispatch` now executes either
+complete original window-5 dispatch in the descending loop. Its guard derives
+the actual PS pointer/count loads, the second PS reload and positioned digit
+read, signed n assignment and bool conversion. Indices past the stored count
+take the short-circuit branch without requiring a digit load. An absent digit
+skips the calls; a nonzero nibble derives the original ordinary/lambda lookup
+and mixed-addition calls through `jet_secp_strauss_digit_add`, retaining
+precise literal coordinates, bounds, the flag/Z invariant, ownership,
+readonly preservation, old permissions and caller framing. Both statement
+adapters are definitionally the corresponding original AST subtrees.
+`jet_secp_mixed_xy_framed` composes the existing loose-coordinate execution,
+literal-output and flag proofs; no helper execution or desired output is an
+assumption of the dispatch result. Its only representation inputs are the
+table, beta array, counts/digits, accumulator and ownership already supplied
+by the caller/preprocessing contracts. `strauss_digit_actions_literal` ties
+the ordinary/lambda actions after doubling to the literal four-window step
+when the two generator digits are absent, as needed by `off_curve_scale`.
+These are internal original-body results; coverage remains 520/533.
+Reproduce with `JET_TARGETS=C/jet_secp_strauss_digit_guard.vo bash
+Coq/build-jets.sh -j1`, scoped statement/assumption audits of the three new
+modules and recursive `--coqchk` on `C.jet_secp_strauss_digit_guard`.
+
+Next compose both dispatches into the original one-point inner loop, including
+np initialization, increment and termination. Transport the PS/state loads,
+table/beta representations and digit arrays through the proved frames, then
+compose doubling and the generator dispatches and induct over the descending
+loop against the literal fold. Connect the general entry and initialization
+to the preprocessing branches, deriving separation from the fresh allocations,
+and finish generator setup, output rescaling and the public wrapper.
 For the descending loop's doubles, reuse
 `jet_secp_double_loose_literal.eval_double_var_loose_literal`: it executes
 the original `gej_double_var`, which recomputes the infinity flag from Z,
 and retains that flag/Z relation for degenerate off-curve intermediates.
 Derive all helper preconditions there and retain the original zero/infinity
 branches. The wrapper passes a nonnull generator-scalar pointer containing
-zero, so its generator branch still executes; reuse the window-15 proofs.
+zero, so its generator branch still executes; reuse the window-15 proofs to
+derive zero counts/digits. The existing generator-addition literal contract
+assumes Z=1; do not impose that restriction on the finite point table's Z.
+`off_curve_scale` skips both generator additions because their digits are
+absent; the broader linear-combination jets need an arbitrary-Z bridge.
 Preserve literal operation order for off-curve inputs instead of substituting
 an abstract elliptic-curve scalar identity.
 
