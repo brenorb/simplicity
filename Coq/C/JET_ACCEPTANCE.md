@@ -1,5 +1,25 @@
 # Integration and pending-jet reconciliation
 
+## Pending checked linear-combination acceptance
+
+`C.jet_secp_checked_linear_local.checked_linear_initialized_local_spec` is
+registered as a candidate. It derives the original `linear_combination_1`
+wrapper for all scalar/coordinate words and general valid frames/cursors,
+including both assertion success and failure. It reuses the accepted general
+ecmult, initialized constants, frame readers, writer and local frees; the sole
+extra library premise is the approved `memset_model`. Ordinary compilation
+and scoped reviewed statement/assumption comparisons pass. The existing
+source gate binds the CoreJets constructor, Haskell assertion tree, FFI entry
+and complete initialized partial contract, rejecting 17 new mutations.
+
+```sh
+JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_linear_combination_1
+```
+
+The registry is 524/533; this new entry still requires the full run. The
+latest accepted milestone remains 523/533, recorded below. Registration and
+ordinary compilation do not establish acceptance.
+
 ## Scoped off-curve linear-combination acceptance
 
 `C.jet_secp_linear_local.off_curve_linear_initialized_local_spec` passed full

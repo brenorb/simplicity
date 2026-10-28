@@ -9,11 +9,14 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-The inventory currently has 522 equivalence entries (138 with the existing
-explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 4
+The inventory currently has 523 equivalence entries (138 with the existing
+explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 5
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-523/533 accepted proof entries, with 10 jets still lacking either result.
+524/533 registered proof entries, with 9 jets still lacking either result.
+The newly registered `linear_combination_1` candidate has compiled and passed
+scoped statement/assumption comparisons; full scoped acceptance is pending.
+The latest accepted milestone remains 523/533.
 `off_curve_linear_combination_1` passed full scoped acceptance on the exact
 inputs of `938cf401`: kernel checking on 989 modules, matching assumption
 records on 919 modules and contract records on 938 modules, negative tests
@@ -55,23 +58,33 @@ The source checker binds Scale's CoreJets
 constructor, Haskell assertion tree, FFI entry, startup and literal ports;
 21 targeted mutations reject source/contract drift. Reproduce with
 `bash Coq/check-jets.sh --accept --jets=simplicity_off_curve_scale,simplicity_scale,simplicity_gej_is_on_curve`.
-The next reserved jet is `linear_combination_1`. Reuse `linear_startup`,
-`linear_public_env`/storage/free, `eval_linear_public_reads`,
-`eval_ecmult_general`, `eval_checked_validity_literal` and
-`scale_off_curve_combination_parametric`. The frozen C caller reads both
-scalars and the point before its validity call, using `_a__1` and `_t'1`.
-Derive its checked entry/statement spine and both return branches; preserve
-the point readback and both scalar objects across the validity call. Use the
-existing assertion-root binding and full initialized partial contract for
-the literal on-curve assertion. No new multiplication or zero-scalar global
-proof is needed. Register only after deriving the full public boundary.
+`linear_combination_1` is now composed through the complete public boundary.
+`jet_secp_checked_linear_lifecycle.eval_checked_linear_initialized` derives
+the actual three readers, validity call, both return branches, multiplication,
+writer, startup preservation and every private free. It preserves both
+scalars and the exact point readback through the validity call.
+`jet_secp_checked_linear_local.checked_linear_initialized_local_spec` proves
+the full initialized partial contract for the literal on-curve assertion on
+all input words, under the approved `memset_model` only. Ordinary compilation
+and scoped reviewed statement/assumption comparisons pass. The existing
+source gate checks its catalog, assertion tree, FFI entry and complete public
+boundary, rejecting 17 added targeted mutations. The candidate is registered;
+run `JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_linear_combination_1`
+before claiming 524 accepted proofs. Next after acceptance: `linear_verify_1`,
+reusing the general ecmult and existing curve/field comparison proofs.
+For that consumer, do not infer a stored infinity-flag relation from the
+general ecmult XYZ result. `exec_strauss_final_any` preserves the earlier flag
+while correcting Z; arbitrary off-curve shared Z can be zero. Derive the flag
+fact needed by the actual mixed-addition/infinity calls in the valid-point
+branch, or compose those calls directly. Do not add it as a public premise.
 `jet_secp_checked_linear_literal` now ports the exact on-curve assertion,
 proves parametricity and derives its complete option semantics.
 `jet_secp_checked_linear_public_support` reuses the accepted off-curve entry
 and copy via proved temporary-environment transport, then derives the actual
 three readers, validity call and both return branches. The ordinary two-root
 build and reviewed scoped record comparisons pass. These helpers add no jet
-to coverage; lifecycle/public composition and acceptance remain required.
+to coverage independently; the lifecycle/public composition is now complete
+as described above, with full acceptance still pending.
 
 ### Development history for the accepted off-curve linear-combination proof
 

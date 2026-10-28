@@ -1100,6 +1100,38 @@ scalar_at m bng 0 [Int64.zero;Int64.zero;Int64.zero;Int64.zero] /\
     if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
         raise ValueError("Scale complete success/failure contract differs")
 
+def check_checked_linear(s):
+    """Bind the assertion caller while reusing the accepted shared boundaries."""
+    check_off_curve_linear(s)
+    check_checked_scale(s)  # Includes the complete shared partial contract.
+    for key, fragment in [
+        ('catalog', 'LinearCombination1 :: Secp256k1Jet ((Secp256k1.Scalar,Secp256k1.GEJ),Secp256k1.Scalar) Secp256k1.GEJ'),
+        ('catalog', 'specificationSecp256k1 LinearCombination1 = Secp256k1.linear_combination_1'),
+        ('catalog', 'implementationSecp256k1 LinearCombination1 = FFI.linear_combination_1'),
+        ('program', 'linear_combination_1 :: Assert term => Lib term -> term ((Scalar, GEJ), Scalar) GEJ'),
+        ('program', 'linear_combination_1 m = take (drop (gej_is_on_curve m)) &&& (off_curve_linear_combination_1 m) >>> assertr cmrFail0 ih'),
+        ('scale_ffi', 'linear_combination_1 :: ((Scalar, GEJ), Scalar) -> Maybe GEJ'),
+        ('scale_ffi', 'linear_combination_1 = unsafeLocalCoreJet c_linear_combination_1'),
+        ('scale_ffi', 'foreign import ccall unsafe "" c_linear_combination_1 :: Ptr FrameItem -> Ptr FrameItem -> IO CBool'),
+    ]:
+        p.require(s[key], fragment, 'LinearCombination1 binding')
+    for name, expected in [
+        ('literal_checked_linear_core', 'SC.pair (SC.take (SC.drop (@literal_gej_is_on_curve term))) (@literal_off_curve_linear_combination_1 term)'),
+        ('literal_checked_linear', '''
+SC.comp (@literal_checked_linear_core (Alg.Assertion.toCore term))
+ (Alg.Assertion.Combinators.assertr assertion_cmr_fail0 (SC.drop SC.iden))
+        '''),
+    ]:
+        if p.compact(p.definition(s['checked_linear_literal'], name)) != p.compact(expected):
+            raise ValueError('checked linear assertion tree differs: ' + name)
+    statements = re.findall(r'Theorem checked_linear_initialized_local_spec\s*:(.*?)\bProof\.', s['checked_linear_jet'], re.S)
+    expected = ('memset_model -> secp_jet_initialized_partial_local_spec linear_startup '
+                'f_simplicity_linear_combination_1 literal_strauss_args literal_table_gej '
+                '(@literal_checked_linear (Alg.AssertionSem option_Monad_Zero)).')
+    if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
+        raise ValueError('LinearCombination1 complete success/failure contract differs')
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1108,6 +1140,8 @@ def test():
         **{key: COQ / "C" / file for key, file in SCALE_PORT_FILES.items()},
         **{key: COQ / "C" / file for key, file in CHECKED_SCALE_PORT_FILES.items()},
         **{key: COQ / "C" / file for key, file in LINEAR_PORT_FILES.items()},
+        "checked_linear_literal": COQ / "C/jet_secp_checked_linear_literal.v",
+        "checked_linear_jet": COQ / "C/jet_secp_checked_linear_local.v",
         "scale_ffi": REPO / "Haskell/Core/Simplicity/FFI/Jets.hs",
         "scale_ffi_test": REPO / "Haskell/Tests/Simplicity/FFI/Tests.hs",
         "scale_arith": REPO / "Haskell/Core/Simplicity/Programs/Arith.hs",
@@ -1562,6 +1596,48 @@ def test():
             continue
         raise ValueError("accepted checked Scale source mutation: " + old)
     print(f"Scale catalog/assertion/initialized partial contract match; {len(mutations)} targeted mutations rejected")
+    check_checked_linear(s)
+    mutations = [
+        ('catalog', 'specificationSecp256k1 LinearCombination1 = Secp256k1.linear_combination_1',
+                    'specificationSecp256k1 LinearCombination1 = Secp256k1.scale'),
+        ('catalog', 'implementationSecp256k1 LinearCombination1 = FFI.linear_combination_1',
+                    'implementationSecp256k1 LinearCombination1 = FFI.off_curve_linear_combination_1'),
+        ('catalog', 'LinearCombination1 :: Secp256k1Jet ((Secp256k1.Scalar,Secp256k1.GEJ),Secp256k1.Scalar)',
+                    'LinearCombination1 :: Secp256k1Jet ((Secp256k1.Scalar,Secp256k1.GE),Secp256k1.Scalar)'),
+        ('program', 'linear_combination_1 m = take (drop (gej_is_on_curve m))',
+                    'linear_combination_1 m = drop (drop (gej_is_on_curve m))'),
+        ('program', '(off_curve_linear_combination_1 m) >>> assertr cmrFail0 ih',
+                    '(off_curve_linear_combination_1 m) >>> assertl ih cmrFail0'),
+        ('scale_ffi', 'linear_combination_1 = unsafeLocalCoreJet c_linear_combination_1',
+                      'linear_combination_1 = unsafeLocalCoreJet c_off_curve_linear_combination_1'),
+        ('scale_ffi', 'foreign import ccall unsafe "" c_linear_combination_1',
+                      'foreign import ccall unsafe "" c_linear_combination_2'),
+        ('checked_linear_literal', 'SC.take (SC.drop (@literal_gej_is_on_curve term))',
+                                  'SC.drop (SC.drop (@literal_gej_is_on_curve term))'),
+        ('checked_linear_literal', 'assertr assertion_cmr_fail0', 'assertr assertion_hash0'),
+        ('checked_linear_literal', '(@literal_off_curve_linear_combination_1 term)', '(@literal_strauss_body term)'),
+        ('linear_startup', '(forall h,generator_table_state h m)', '(forall h,generator_table_state h m) /\\ False'),
+        ('checked_contract', '| None=>True end', '| None=>False end'),
+        ('checked_linear_jet', 'memset_model -> secp_jet_initialized_partial_local_spec',
+                              'memset_model -> secp_jet_initialized_local_spec'),
+        ('checked_linear_jet', 'memset_model -> secp_jet_initialized_partial_local_spec',
+                              'memset_model -> False -> secp_jet_initialized_partial_local_spec'),
+        ('checked_linear_jet', 'f_simplicity_linear_combination_1', 'f_simplicity_off_curve_linear_combination_1'),
+        ('checked_linear_jet', 'literal_strauss_args literal_table_gej', '(Word 8) literal_table_gej'),
+        ('checked_linear_jet', '@literal_checked_linear (Alg.AssertionSem option_Monad_Zero)',
+                              '@literal_checked_linear Alg.CoreFunSem'),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive checked linear mutation fixture: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_checked_linear(changed)
+        except ValueError:
+            continue
+        raise ValueError('accepted checked linear source mutation: ' + old)
+    print(f'LinearCombination1 catalog/assertion/initialized partial contract match; {len(mutations)} targeted mutations rejected')
 
 
 if __name__ == "__main__":
