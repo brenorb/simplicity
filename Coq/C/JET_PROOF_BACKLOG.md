@@ -70,9 +70,10 @@ the full initialized partial contract for the literal on-curve assertion on
 all input words, under the approved `memset_model` only. Ordinary compilation
 and scoped reviewed statement/assumption comparisons pass. The existing
 source gate checks its catalog, assertion tree, FFI entry and complete public
-boundary, rejecting 17 added targeted mutations. The candidate is registered;
-run `JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_linear_combination_1`
-before claiming 524 accepted proofs. Next after acceptance: `linear_verify_1`,
+boundary, rejecting 17 added targeted mutations. Full scoped acceptance passed
+on `6491c8b6`, as recorded above. Reproduce with
+`JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_linear_combination_1`.
+The next target is `linear_verify_1`,
 reusing the general ecmult and existing curve/field comparison proofs.
 For that consumer, do not infer a stored infinity-flag relation from the
 general ecmult XYZ result. `exec_strauss_final_any` preserves the earlier flag
@@ -85,8 +86,30 @@ proves parametricity and derives its complete option semantics.
 and copy via proved temporary-environment transport, then derives the actual
 three readers, validity call and both return branches. The ordinary two-root
 build and reviewed scoped record comparisons pass. These helpers add no jet
-to coverage independently; the lifecycle/public composition is now complete
-as described above, with full acceptance still pending.
+to coverage independently; the lifecycle/public composition and full scoped
+acceptance are complete as described above.
+
+The next scalar-independent obligation is nonvanishing of the shared table Z
+for the valid affine input at Z=1. `jet_secp_polynomial` proves evaluation of
+the coefficient operations, remainder and binary powers.
+`jet_secp_curve_polynomial` checks root-exclusion certificates in t=x^3 using
+the curve equation and field characters; `jet_secp_curve_nonzero` excludes
+y=0. `jet_secp_fast_remainder` and `jet_secp_fast_polynomial` prove an exact
+computational refinement, including unrestricted equality to the original
+checker. `jet_secp_table_denominators` checks the compressed candidate
+polynomials for odd indices 3, 5 and 7. These six modules compile, have closed
+assumption records and passed recursive kernel checking and reviewed contract
+comparisons in their development checkout.
+
+The remaining indices 9, 11, 13 and 15 are being checked separately on
+`codex/linear-table-polynomials`. Then connect all coefficient identities to
+the exact literal double/seed/mixed-addition route and `scalarTable5`; the
+current polynomial certificates alone establish no C execution or extra jet
+coverage. Carry the stored flag through the general loop, final correction,
+Strauss, ecmult and frees, using nonvanishing proved for the valid-point
+branch. Finally compose both validity tests, negation, mixed addition,
+infinity return and seven frees in `linear_verify_1` without extra public
+premises.
 
 ### Development history for the accepted off-curve linear-combination proof
 
