@@ -254,6 +254,22 @@ caller; existing literal-port theorem types and axiom sets are unchanged.
 Registration is complete; full scoped acceptance remains pending. Reproduce the build with
 `JET_TARGETS=C/jet_secp_linear_verify_local.vo bash Coq/build-jets.sh -j4`.
 
+The next reserved jet is `point_verify_1`. Its arithmetic call sequence is
+shared with the affine verifier, but its C decompressor can leave Y in loose
+limbs. `jet_secp_affine_negate_loose.eval_affine_negate_loose_point` derives
+the original self-copy, weak normalization, negation and full affine helper
+call for those limbs. It retains X, the flag, ownership and framing and proves
+the negated residue/bounds. Its complete `Qed` and assumption query pass in
+pinned interactive Coq, with only the inherited assumptions; ordinary `coqc`
+compilation and public theorem records are pending because new compiler
+processes were externally suspended. It is not jet coverage. Reproduce the
+interactive check from the repository root with
+`bash Coq/build-jets.sh --coqtop -quiet -batch -l "$PWD/Coq/C/jet_secp_affine_negate_loose.v"`.
+Reuse `eval_decompress_function` and this helper to generalize the shared
+arithmetic representation, discharge the curve guard from successful
+decompression, and compose the nine-local wrapper. Do not impose canonical
+Y limbs on actual decompressor output or add a public table condition.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier
