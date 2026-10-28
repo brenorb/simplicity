@@ -96,6 +96,19 @@ premises. These three ordinary modules pass both explicit build roots
 The next step is the finite/nonzero-point main caller, followed by the skipped
 point branch, whole Strauss/ecmult calls and public wrapper. These internal
 results add no accepted jet and await recursive checking with that endpoint.
+`jet_secp_strauss_general_main.exec_strauss_general_main` now composes that
+nonnull generator preprocessing with the point stage for a prepared ordinary
+point table. It covers an arbitrary generator scalar, preserves the previous
+point bit count, proves the exact full literal Strauss body, and retains
+ownership, generator tables and external framing. The ordinary root build
+and scoped statement/assumption comparison pass; the sole extra library
+premise is the existing `memset_model`.
+Next, extend the actual whole Strauss caller using the existing finite-point
+entry/preparation/free proof. Add the generator scalar as an owned outer
+object and prove it survives preprocessing (including the readonly-global
+exceptions); reuse this new main result. In the skipped-point case, reuse the
+existing generator main stage at `no=0`, whose denominator is initialized to
+one. Then compose ecmult and the public wrapper before registering a new jet.
 
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and
