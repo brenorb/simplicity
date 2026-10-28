@@ -5572,15 +5572,46 @@ preceding split_128 call. Reproduce the three modules with normal targets
 their scoped statement/assumption audits and recursive `--coqchk` on both
 roots. Coverage remains 520/533.
 
+`jet_secp_strauss_zero_generator` describes the actual `_ng` static const
+scalar of `off_curve_scale`. Its zero words and readonly permission bounds
+are established from `Genv.init_mem jets_secp.prog`, using symbol lookup rather
+than a numeric block identifier. `exec_strauss_zero_generator_branch` composes
+the real nonnull-pointer test, borrowed-input split_128, both window-15 calls
+and both maximum-count tests. It derives zero generator counts while retaining
+any current point bit count in 0..129, the zero halves, all four private owners,
+the readonly global, all old permissions and external framing. Only the existing
+`memset_model` is assumed for the external clear; no ownership of the global
+or assumed intermediate call is required.
+
+`jet_secp_strauss_digit_index` recovers typed window-5 digits, exact signed
+integer loads and absence above the returned count from the preprocessing
+array/list relation. The pair-vector theorem supplies the literal 129-digit
+routing needed by the descending-loop bridge, including negative signed
+halves. `jet_secp_strauss_final_literal.exec_strauss_final_literal` executes
+the original final Z correction for any represented table denominator. In
+the infinity branch, skipping the multiply agrees with literal multiplication
+because the normalized input Z is zero. It requires neither Z=1 nor a nonzero
+denominator. The original flag is retained; no new flag/output-Z invariant
+is claimed after this correction.
+
+`jet_secp_strauss_empty_stage.exec_strauss_empty_point_stage` composes the
+actual infinity initializer, i=-1 assignment, zero-length descending-loop exit
+and skipped final correction. It derives all zero coordinates, the flag,
+ownership, framing and unchanged permissions without reading or representing
+inactive tables, digit buffers or the denominator. These four modules close
+caller obligations, not new public jets. Normal build targets are their four
+`.vo` files; use their scoped statement/assumption comparisons and recursive
+`--coqchk` on all four modules. Coverage remains 520/533.
+
 Next connect the general entry and initialization to the preprocessing
-branches, deriving separation from fresh allocations. The wrapper passes a
-static const zero scalar: reuse the borrowed-input split_128 contract to
-establish zero halves, then the new setup above, rather than requiring
-Freeable storage for that global. Establish its readable-zero predicate from
-the actual program initialization. Initialize the accumulator/countdown,
-compose the proved descending loop, and finish output rescaling, local frees,
-ecmult caller and public wrapper. The no=0 branch has no point table and may
-use the original zero-length loop exit after the same zero-generator setup.
+branches, deriving separation from fresh allocations. Transport the initialized
+readonly zero-generator state through the entry/preprocessing, then use the
+complete zero-generator branch above. For the admitted-point branch initialize
+the accumulator/countdown, compose the proved descending loop and arbitrary-Z
+final correction. For the skipped preprocessing branch use the empty point
+stage. Finish local frees, the ecmult caller and public wrapper. The complete
+literal body/guard wrapper routing and its public source-fidelity connection
+still need completion; the step and 129-digit loop ports alone are insufficient.
 For the descending loop's doubles, reuse
 `jet_secp_double_loose_literal.eval_double_var_loose_literal`: it executes
 the original `gej_double_var`, which recomputes the infinity flag from Z,
