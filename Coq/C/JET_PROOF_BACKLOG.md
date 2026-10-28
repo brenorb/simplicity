@@ -5680,12 +5680,40 @@ Neither desired reader execution is assumed.
 Reproduce by building `C/jet_secp_strauss_scale_function.vo`,
 `C/jet_secp_ecmult_scale.vo` and `C/jet_secp_scale_public_reads.vo` with
 `JET_TARGETS`, their scoped assumption/contract audits, and recursive
-`--coqchk` on the three roots. Next supply the public wrapper's four local
-allocations and private source-frame copy, compose these reads, the ecmult
-call and the existing general point writer, and free all four wrapper locals.
-Establish/preserve the combined readonly startup state and the public
-source-fidelity binding to the fixed literal wrapper. These internal results
-do not register the public jet; accepted coverage remains 520/533.
+`--coqchk` on the three roots. Those three roots passed the ordinary build,
+scoped assumption/contract comparisons and recursive kernel check, with the
+expected inherited axiom set and no unsafe proof features.
+
+The next public candidate is now in ordinary modules:
+
+- `jet_secp_scale_startup` establishes the zero auxiliary scalar, split
+  constants and beta state from the original `Genv.init_mem`, proves a real
+  initialized memory exists, and transports readiness through the actual calls.
+- `jet_secp_scale_public_support` supplies all four wrapper allocations,
+  the private source-frame copy, the exact scalar/point/ecmult/writer call
+  spine, readonly point-reader preservation, and all four local frees.
+- `jet_secp_scale_lifecycle.eval_off_curve_scale_initialized` derives that
+  entire original public C execution from arbitrary valid frames/cursors and
+  four unrestricted input words. Every helper execution and representation
+  premise is discharged. It proves the literal output, external framing,
+  output-frame invariant and final startup state.
+- `jet_secp_scale_local.off_curve_scale_initialized_local_spec` packages the
+  exact standard initialized local contract, conditional only on the existing
+  `memset_model`. No curve-membership or extra input-domain restriction is added.
+
+All four modules compile with the pinned toolchain. Reproduce with
+`JET_TARGETS=C/jet_secp_scale_local.vo bash Coq/build-jets.sh -j1` and their
+scoped assumption/contract audits. The public candidate is **not registered or
+accepted yet**: its independent kernel/scoped acceptance check and complete
+canonical-source binding remain. A read-only Astra Medium review found no
+discrepancy in the five outer ports (complete program, Strauss step/traversal,
+scalar table, lambda split, wNAF5), but did not certify the full dependency
+closure. Extend the existing `secp-field-integration/check-rescale.py` gate
+with exact Haskell/Coq port comparisons and targeted mutations, covering or
+reusing checks for the remaining lookup, scalar/wNAF and generator dependencies
+actually used by this zero-generator specialization. A structural port review
+does not itself establish C execution or acceptance. Keep coverage at 520/533
+until the public proof passes acceptance; the all-jets goal remains active.
 For the descending loop's doubles, reuse
 `jet_secp_double_loose_literal.eval_double_var_loose_literal`: it executes
 the original `gej_double_var`, which recomputes the infinity flag from Z,
