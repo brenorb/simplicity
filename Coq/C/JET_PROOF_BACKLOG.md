@@ -126,6 +126,12 @@ external framing. The ordinary build and scoped statement/assumption
 comparisons pass; only the existing `memset_model` is extra. Combine the two
 whole-function cases next, then compose ecmult and the public wrapper. This
 helper result does not change accepted coverage.
+`jet_secp_strauss_general_function.eval_strauss_general` now combines both
+whole-function branches for every scalar/coordinate word. Its output is the
+complete `literal_off_curve_linear_combination_1`, with no on-curve or
+nonzero-Z premise. Eight-object ownership, generator tables and external
+framing are retained. Ordinary compilation and scoped reviewed record
+comparisons pass. The enclosing ecmult and public frame wrapper remain.
 
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and
