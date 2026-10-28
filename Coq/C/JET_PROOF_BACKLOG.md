@@ -5533,10 +5533,19 @@ Reproduce with `JET_TARGETS=C/jet_secp_strauss_digit_guard.vo bash
 Coq/build-jets.sh -j1`, scoped statement/assumption audits of the three new
 modules and recursive `--coqchk` on `C.jet_secp_strauss_digit_guard`.
 
-Next compose both dispatches into the original one-point inner loop, including
-np initialization, increment and termination. Transport the PS/state loads,
-table/beta representations and digit arrays through the proved frames, then
-compose doubling and the generator dispatches and induct over the descending
+`jet_secp_strauss_point_loop.exec_strauss_single_point_loop` composes both
+dispatches into the complete original one-point inner loop, including np
+initialization, increment and termination. The real state/PS loads, high
+count/digit read and table/beta representations are transported through the
+first dispatch's frame before executing the second. Both dispatch executions
+are derived, and the result retains their exact nested literal actions,
+canonical flag/Z invariant, coordinate bounds, owned ranges, permissions,
+readonly state, memory framing and unaffected temporaries. It assumes neither
+an intermediate execution nor a desired result. The normal build target is
+`C/jet_secp_strauss_point_loop.vo`; use its scoped statement/assumption audits
+and recursive `--coqchk`. This remains an internal loop, not a public jet.
+
+Next compose doubling and the generator dispatches and induct over the descending
 loop against the literal fold. Connect the general entry and initialization
 to the preprocessing branches, deriving separation from the fresh allocations,
 and finish generator setup, output rescaling and the public wrapper.
