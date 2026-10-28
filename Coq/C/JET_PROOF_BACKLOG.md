@@ -132,6 +132,12 @@ complete `literal_off_curve_linear_combination_1`, with no on-curve or
 nonzero-Z premise. Eight-object ownership, generator tables and external
 framing are retained. Ordinary compilation and scoped reviewed record
 comparisons pass. The enclosing ecmult and public frame wrapper remain.
+`jet_secp_ecmult_general.eval_ecmult_general` now derives the actual ecmult
+entry, state setup, Strauss call and four local frees. It retains the complete
+literal output, four outer objects, generator tables and external framing;
+the ordinary build and scoped record comparisons pass. Public input reading,
+output writing, startup preservation and source binding remain before new
+registration or coverage.
 
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and
