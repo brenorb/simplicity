@@ -9,16 +9,19 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-The inventory currently has 523 equivalence entries (138 with the existing
-explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 5
+The inventory currently has 524 equivalence entries (138 with the existing
+explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 6
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-524/533 registered proof entries, with 9 jets still lacking either result.
+525/533 registered proof entries, with 8 jets still lacking either result.
+The new `linear_verify_1` candidate is compiled and registered, but its full
+scoped acceptance check is pending; the latest accepted milestone remains
+524/533.
 `linear_combination_1` passed full scoped acceptance on the exact inputs of
 `6491c8b6`: kernel checking on 1,013 modules, matching assumption records on
 943 modules and contract records on 962 modules, negative tests and all five
 AST comparisons. The fingerprint stayed fixed and matched the committed inputs
-afterwards. The latest accepted milestone is 524/533; nine jets remain.
+afterwards. At that accepted milestone nine jets remained.
 `off_curve_linear_combination_1` passed full scoped acceptance on the exact
 inputs of `938cf401`: kernel checking on 989 modules, matching assumption
 records on 919 modules and contract records on 938 modules, negative tests
@@ -248,7 +251,7 @@ the source-binding check and its fourteen targeted mutations pass. Scoped
 assumption/contract comparisons match the reviewed records. The public
 axiom set is the same inherited set as the accepted checked linear-combination
 caller; existing literal-port theorem types and axiom sets are unchanged.
-Registration and full scoped acceptance remain pending. Reproduce the build with
+Registration is complete; full scoped acceptance remains pending. Reproduce the build with
 `JET_TARGETS=C/jet_secp_linear_verify_local.vo bash Coq/build-jets.sh -j4`.
 
 ### Development history for the accepted off-curve linear-combination proof

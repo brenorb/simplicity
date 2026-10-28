@@ -328,6 +328,9 @@ for _name, _tail in _MEMSET_JETS.items():
 # Assertion callers also prove the actual failure return on every rejected
 # input. A success-only contract is not an accepted boundary for these jets.
 _MEMSET_PARTIAL_JETS = {
+    "simplicity_linear_verify_1": "linear_startup f_simplicity_linear_verify_1 "
+                                  "literal_linear_verify_args Ty.Unit "
+                                  "(@literal_linear_verify (Alg.AssertionSem option_Monad_Zero)).",
     "simplicity_linear_combination_1": "linear_startup f_simplicity_linear_combination_1 "
                                      "literal_strauss_args literal_table_gej "
                                      "(@literal_checked_linear (Alg.AssertionSem option_Monad_Zero)).",
