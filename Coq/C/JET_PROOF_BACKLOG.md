@@ -55,6 +55,15 @@ arbitrary-global-Z generator bridge with the four-stream descending loop and
 actual preprocessing/outer caller. No inverse, nonzero-Z or on-curve premise
 may be imposed on this off-curve caller.
 
+`jet_secp_zinv_general_{numeric,literal,outputs,call}` now supplies the
+arbitrary-Z bridge in the ordinary build. `eval_zinv_scaled_literal` reuses
+the original finite/infinite C executions and proves their exact output is
+`literal_gej_ge_add (acc, literal_gej_zinv (affine, s))`. Zero scale and all
+H/I branches are included. Bounds, stored flag, ownership and framing are
+retained. The four-module build and reviewed statement/assumption comparisons
+pass with no new axioms; recursive acceptance is pending composition into the
+reserved public caller. This helper batch adds no jet to coverage.
+
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and
 19-remaining counts are historical; the current proof inventory is 522/533
