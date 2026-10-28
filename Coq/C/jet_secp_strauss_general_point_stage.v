@@ -23,13 +23,13 @@ Set Default Timeout 10.
 Require Import C.jet_secp_strauss_general_iteration C.jet_secp_strauss_general_loop C.jet_secp_generator_pair_general C.jet_secp_generator_globals C.jet_secp_wnaf_literal C.jet_secp_wnaf_literal_values C.jet_secp_wnaf_literal_array.
 
 
-Require Import C.jet_secp_strauss_scale_loop C.jet_secp_negate_literal_contract C.jet_secp_globalz_word_walk C.jet_secp_generator_point_stage C.jet_secp_generator_entry C.jet_secp_generator_final C.jet_secp_strauss_final_literal
+Require Import C.jet_secp_strauss_scale_loop C.jet_secp_negate_literal_contract C.jet_secp_globalz_word_walk C.jet_secp_generator_point_stage C.jet_secp_generator_entry C.jet_secp_generator_final C.jet_secp_strauss_final_literal C.jet_secp_strauss_final_flag
  C.jet_secp_double_var_owned C.jet_secp_gej_infinity_owned C.jet_secp_literal_infinity C.jet_secp_curve_literal C.jet_secp_generator_loop_literal.
 Local Opaque literal_fe_multiply literal_gej_infinity.
 Lemma strauss_point_stage_closed : closed_stmtb secp_closed_helpers generator_point_stage=true.
 Proof. vm_compute;reflexivity. Qed.
 
-Theorem exec_strauss_general_point_stage count e le m br bs bp bd bt bx bz xs ys aux inv bits1 bitslam digits1 digitslam bg1 bg128 bitsg1 bitsg128 digitsg1 digitsg128 :
+Theorem exec_strauss_general_point_stage_flag count e le m br bs bp bd bt bx bz xs ys aux inv bits1 bitslam digits1 digitslam bg1 bg128 bitsg1 bitsg128 digitsg1 digitsg128 :
  (count<=129)%nat -> plain_env e -> NoDup [br;bd;bs;bp;bt;bx;bz;bg1;bg128] ->
  (forall h,generator_table_state h m) ->
  e!_wnaf_ng_1=Some (bg1,tarray tint 129) -> e!_wnaf_ng_128=Some (bg128,tarray tint 129) ->
@@ -82,7 +82,10 @@ Theorem exec_strauss_general_point_stage count e le m br bs bp bd bt bx bz xs ys
  Mem.range_perm mf bt 0 704 Cur Freeable /\ Mem.range_perm mf bx 0 320 Cur Freeable /\
  Mem.range_perm mf bz 0 40 Cur Freeable /\
  keeps_permissions m mf /\ readonly_preserved m mf /\
- lframe (fun b _=>b<>br /\ b<>bd /\ b<>bz) m mf.
+ lframe (fun b _=>b<>br /\ b<>bd /\ b<>bz) m mf /\
+ (Bit.toBool (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output inv))=false ->
+  Mem.load Mint32 mf br 120=Some (Vint (bit_int (Bit.toBool
+   (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz)))))).
 Proof.
  intros Count Plain Separate Tables ArrayG1 ArrayG128 GetStorage AddZinv TableG1 TableG128
   LenG1 LenG128 ValidG1 ValidG128 LoadG1 LoadG128 AbsentG1 AbsentG128 Local ZLocal Get GetLam Add DoubleSymbol InfinitySymbol MulSymbol
@@ -224,6 +227,73 @@ Proof.
    split;[exact BXL|];split;[exact BYL|];split;[exact BZF|];split;[exact Literal|];
    split;[exact FreeRF|];split;[intros pos P;apply Keep,FreeD;exact P|];
    split;[intros pos P;apply Keep,FreeT;exact P|];split;[intros pos P;apply Keep,FreeX;exact P|];
-   split;[exact FreeZF|];split;[exact Keep|];split;assumption.
+   split;[exact FreeZF|];split;[exact Keep|];split;[exact Read|];split;[exact Frame|].
+   intro Nonzero;rewrite Product,literal_zero_product_nonzero_factor by exact Nonzero;exact FlagF.
 Qed.
 
+
+Theorem exec_strauss_general_point_stage count e le m br bs bp bd bt bx bz xs ys aux inv bits1 bitslam digits1 digitslam bg1 bg128 bitsg1 bitsg128 digitsg1 digitsg128 :
+ (count<=129)%nat -> plain_env e -> NoDup [br;bd;bs;bp;bt;bx;bz;bg1;bg128] ->
+ (forall h,generator_table_state h m) ->
+ e!_wnaf_ng_1=Some (bg1,tarray tint 129) -> e!_wnaf_ng_128=Some (bg128,tarray tint 129) ->
+ e!_secp256k1_ecmult_table_get_ge_storage=None -> e!_secp256k1_gej_add_zinv_var=None ->
+ e!(generator_table_id false)=None -> e!(generator_table_id true)=None ->
+ 0<=bitsg1<=129 -> 0<=bitsg128<=129 ->
+ (forall j,0<=j<129 -> wnaf_literal_valid (digitsg1 j)) ->
+ (forall j,0<=j<129 -> wnaf_literal_valid (digitsg128 j)) ->
+ (forall j,0<=j<bitsg1 -> Mem.load Mint32 m bg1 (4*j)=Some (Vint (Int.repr (wnaf_literal_value (digitsg1 j))))) ->
+ (forall j,0<=j<bitsg128 -> Mem.load Mint32 m bg128 (4*j)=Some (Vint (Int.repr (wnaf_literal_value (digitsg128 j))))) ->
+ (forall j,0<=j<129 -> bitsg1<=j -> digitsg1 j=inl tt) ->
+ (forall j,0<=j<129 -> bitsg128<=j -> digitsg128 j=inl tt) ->
+ e!_tmpa=Some (bd,Tstruct __6121 noattr) -> e!_Z=Some (bz,curve_fe_type) ->
+ e!_secp256k1_ecmult_table_get_ge=None -> e!_secp256k1_ecmult_table_get_ge_lambda=None ->
+ e!_secp256k1_gej_add_ge_var=None -> e!_secp256k1_gej_double_var=None ->
+ e!_secp256k1_gej_set_infinity=None -> e!_secp256k1_fe_mul=None ->
+ le!_r=Some (Vptr br Ptrofs.zero) -> le!_state=Some (Vptr bs Ptrofs.zero) ->
+ le!_no=Some (Vlong Int64.one) -> le!_bits=Some (Vint (Int.repr (Z.of_nat count))) ->
+ le!_bits_ng_1=Some (Vint (Int.repr bitsg1)) -> le!_bits_ng_128=Some (Vint (Int.repr bitsg128)) ->
+ Mem.load Mptr m bs 16=Some (Vptr bp Ptrofs.zero) ->
+ Mem.load Mptr m bs 8=Some (Vptr bt Ptrofs.zero) -> Mem.load Mptr m bs 0=Some (Vptr bx Ptrofs.zero) ->
+ 0<=bits1<=129 -> 0<=bitslam<=129 ->
+ Mem.load Mint32 m bp 1032=Some (Vint (Int.repr bits1)) ->
+ Mem.load Mint32 m bp 1036=Some (Vint (Int.repr bitslam)) ->
+ (forall j,0<=j<bits1 -> Mem.load Mint32 m bp (4*j)=Some (Vint (Int.repr (C.jet_secp_wnaf5_signed_array.wnaf5_literal_value (digits1 j))))) ->
+ (forall j,0<=j<bitslam -> Mem.load Mint32 m bp (516+4*j)=Some (Vint (Int.repr (C.jet_secp_wnaf5_signed_array.wnaf5_literal_value (digitslam j))))) ->
+ (forall j,0<=j<129 -> bits1<=j -> digits1 j=inl tt) ->
+ (forall j,0<=j<129 -> bitslam<=j -> digitslam j=inl tt) ->
+ globalz_table_rep m bt xs ys -> globalz_table_bounds xs ys ->
+ (forall k,(k<8)%nat -> mul_small_input_bounds (ys k)) ->
+ (forall k,(k<8)%nat -> fe_at m bx (40*Z.of_nat k) (words5 (aux k))) ->
+ (forall k,(k<8)%nat -> square_input_bounds (aux k)) ->
+ (forall k,(k<8)%nat -> rescale_field_output (aux k)=
+  @C.jet_secp_beta_spec.literal_fe_multiply_beta Alg.CoreFunSem (rescale_field_output (xs k))) ->
+ square_input_bounds inv -> fe_at m bz 0 (words5 inv) ->
+ Mem.range_perm m br 0 128 Cur Freeable -> Mem.range_perm m bd 0 88 Cur Freeable ->
+ Mem.range_perm m bt 0 704 Cur Freeable -> Mem.range_perm m bx 0 320 Cur Freeable ->
+ Mem.range_perm m bz 0 40 Cur Freeable ->
+ exists lef mf ox oy oz,
+ Clight2.exec_stmt secp_ge e le m generator_point_stage E0 lef mf Out_normal /\
+ lef!_r=Some (Vptr br Ptrofs.zero) /\
+ fe_at mf br 0 (words5 ox) /\ fe_at mf br 40 (words5 oy) /\ fe_at mf br 80 (words5 oz) /\
+ square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
+ ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
+  (let result:=strauss_general_loop_result count digits1 digitslam digitsg1 digitsg128
+    (rescale_field_output inv,globalz_word_vector (globalz_decoded_points xs ys))
+    (@literal_gej_infinity Alg.CoreFunSem tt) in
+   (fst result,@literal_fe_multiply Alg.CoreFunSem (rescale_field_output inv,snd result))) /\
+ Mem.range_perm mf br 0 128 Cur Freeable /\ Mem.range_perm mf bd 0 88 Cur Freeable /\
+ Mem.range_perm mf bt 0 704 Cur Freeable /\ Mem.range_perm mf bx 0 320 Cur Freeable /\
+ Mem.range_perm mf bz 0 40 Cur Freeable /\
+ keeps_permissions m mf /\ readonly_preserved m mf /\
+ lframe (fun b _=>b<>br /\ b<>bd /\ b<>bz) m mf.
+Proof.
+ intros Count Plain Separate Tables ArrayG1 ArrayG128 GetStorage AddZinv TableG1 TableG128
+  LenG1 LenG128 ValidG1 ValidG128 LoadG1 LoadG128 AbsentG1 AbsentG128 Local ZLocal Get GetLam Add DoubleSymbol InfinitySymbol MulSymbol
+  R State No Bits G1 G128 PS PT PX Len1 LenLam Count1 CountLam Load1 LoadLam Absent1 AbsentLam
+  Table Bounds Tight Aux AuxBounds AuxLiteral InvBounds Inv FreeR FreeD FreeT FreeX FreeZ.
+ destruct (exec_strauss_general_point_stage_flag count e le m br bs bp bd bt bx bz xs ys aux inv bits1 bitslam digits1 digitslam bg1 bg128 bitsg1 bitsg128 digitsg1 digitsg128
+  Count Plain Separate Tables ArrayG1 ArrayG128 GetStorage AddZinv TableG1 TableG128 LenG1 LenG128 ValidG1 ValidG128 LoadG1 LoadG128 AbsentG1 AbsentG128 Local ZLocal Get GetLam Add DoubleSymbol InfinitySymbol MulSymbol R State No Bits G1 G128 PS PT PX Len1 LenLam Count1 CountLam Load1 LoadLam Absent1 AbsentLam Table Bounds Tight Aux AuxBounds AuxLiteral InvBounds Inv FreeR FreeD FreeT FreeX FreeZ)
+  as (lef & mf & ox & oy & oz & Exec & ROut & X & Y & Z & BX & BY & BZ & Literal &
+   FR & FD & FT & FX & FZ & Keep & Read & Frame & Conditional).
+ exists lef,mf,ox,oy,oz;repeat first [assumption|split].
+Qed.

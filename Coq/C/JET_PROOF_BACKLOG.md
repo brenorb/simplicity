@@ -121,15 +121,15 @@ records, reviewed contracts and recursive kernel check pass.
 actual final-correction execution with its stored flag expressed against the
 output Z, under the internal nonzero-denominator condition. It preserves the
 existing coordinates, permissions and frame result; no earlier contract was
-weakened. Its focused records are reviewed; its recursive kernel check is
-running.
+weakened. Its ordinary build, reviewed record comparisons and recursive kernel
+check pass, with the same inherited semantics assumptions.
 
-Next expose a conditional flag fact in stronger companions of the general
-point-stage/main/Strauss/ecmult helpers, retaining the existing interfaces as
-projections. In `exec_strauss_general_point_stage`, the existing `FlagF` and
-`Product` already give the implication from a nonzero represented denominator
-to the required output flag, using `literal_zero_product_nonzero_factor`.
-Carry that implication through actual frees. The old XYZ-only theorem cannot
+`exec_strauss_general_point_stage_flag` now retains that conditional flag fact
+for the complete four-stream point stage. The old point-stage theorem is an
+exact projection; its recorded type and assumption set are unchanged. Both
+existing public linear-combination callers rebuild successfully.
+Next retain the implication through main/Strauss/ecmult companions and actual
+frees, preserving the existing interfaces as projections. The old XYZ-only theorem cannot
 justify it by itself, and the nonzero condition must still be discharged from
 the valid affine input at the public boundary.
 
