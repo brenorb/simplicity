@@ -1,0 +1,108 @@
+### C.jet_secp_curve_polynomial.secp_field_power_one
+secp_field_power_one
+     : forall (a : BinNums.Z) (_ : not (@eq BinNums.Z (BinInt.Z.modulo a jet_secp_fe_math.feP) BinNums.Z0)),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (BinInt.Z.pow a (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH)))
+            jet_secp_fe_math.feP) (BinNums.Zpos BinNums.xH)
+### C.jet_secp_curve_polynomial.secp_euler_exponent_value
+secp_euler_exponent_value
+     : and
+         (@eq BinNums.Z (BinNums.Zpos secp_euler_exponent)
+            (BinInt.Z.div (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH))
+               (BinNums.Zpos (BinNums.xO BinNums.xH))))
+         (@eq BinNums.Z (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinNums.Zpos secp_euler_exponent))
+            (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH)))
+### C.jet_secp_curve_polynomial.secp_square_character
+secp_square_character
+     : forall y : BinNums.Z,
+       or
+         (@eq BinNums.Z
+            (BinInt.Z.modulo (BinInt.Z.pow (BinInt.Z.mul y y) (BinNums.Zpos secp_euler_exponent)) jet_secp_fe_math.feP)
+            BinNums.Z0)
+         (@eq BinNums.Z
+            (BinInt.Z.modulo (BinInt.Z.pow (BinInt.Z.mul y y) (BinNums.Zpos secp_euler_exponent)) jet_secp_fe_math.feP)
+            (BinNums.Zpos BinNums.xH))
+### C.jet_secp_curve_polynomial.secp_cubic_exponent_value
+secp_cubic_exponent_value
+     : @eq BinNums.Z (BinInt.Z.mul (BinNums.Zpos (BinNums.xI BinNums.xH)) (BinNums.Zpos secp_cubic_exponent))
+         (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH))
+### C.jet_secp_curve_polynomial.secp_cubic_character
+secp_cubic_character
+     : forall (x : BinNums.Z) (_ : not (@eq BinNums.Z (BinInt.Z.modulo x jet_secp_fe_math.feP) BinNums.Z0)),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (BinInt.Z.pow (BinInt.Z.mul (BinInt.Z.mul x x) x) (BinNums.Zpos secp_cubic_exponent))
+            jet_secp_fe_math.feP) (BinNums.Zpos BinNums.xH)
+### C.jet_secp_curve_polynomial.secp_seven_character
+secp_seven_character
+     : @eq BinNums.Z
+         (Zpow_facts.Zpow_mod (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH))) (BinNums.Zpos secp_euler_exponent)
+            jet_secp_fe_math.feP) (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH))
+### C.jet_secp_curve_polynomial.secp_curve_x_nonzero
+secp_curve_x_nonzero
+     : forall (x y : BinNums.Z)
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo
+                   (BinInt.Z.add (BinInt.Z.mul (BinInt.Z.mul x x) x)
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo (BinInt.Z.mul y y) jet_secp_fe_math.feP)),
+       not (@eq BinNums.Z (BinInt.Z.modulo x jet_secp_fe_math.feP) BinNums.Z0)
+### C.jet_secp_curve_polynomial.secp_polynomial_cubic_factor
+secp_polynomial_cubic_factor
+     : forall (q power d u v : list BinNums.Z) (t : BinNums.Z)
+         (_ : @eq (list BinNums.Z)
+                (jet_secp_polynomial.polynomial_power jet_secp_fe_math.feP
+                   (@cons BinNums.Z BinNums.Z0 (@cons BinNums.Z (BinNums.Zpos BinNums.xH) (@nil BinNums.Z)))
+                   secp_cubic_exponent q) power)
+         (_ : @eq (list BinNums.Z)
+                (jet_secp_polynomial.polynomial_add jet_secp_fe_math.feP
+                   (jet_secp_polynomial.polynomial_mul jet_secp_fe_math.feP u q)
+                   (jet_secp_polynomial.polynomial_mul jet_secp_fe_math.feP v
+                      (jet_secp_polynomial.polynomial_sub jet_secp_fe_math.feP power
+                         (@cons BinNums.Z (BinNums.Zpos BinNums.xH) (@nil BinNums.Z))))) d)
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (BinInt.Z.pow t (BinNums.Zpos secp_cubic_exponent)) jet_secp_fe_math.feP)
+                (BinNums.Zpos BinNums.xH))
+         (_ : @eq BinNums.Z (BinInt.Z.modulo (jet_secp_polynomial.polynomial_value q t) jet_secp_fe_math.feP)
+                BinNums.Z0),
+       @eq BinNums.Z (BinInt.Z.modulo (jet_secp_polynomial.polynomial_value d t) jet_secp_fe_math.feP) BinNums.Z0
+### C.jet_secp_curve_polynomial.secp_cubic_polynomial_excludes_root
+secp_cubic_polynomial_excludes_root
+     : forall (q power d u v : list BinNums.Z) (x y : BinNums.Z)
+         (_ : @eq (list BinNums.Z)
+                (jet_secp_polynomial.polynomial_power jet_secp_fe_math.feP
+                   (@cons BinNums.Z BinNums.Z0 (@cons BinNums.Z (BinNums.Zpos BinNums.xH) (@nil BinNums.Z)))
+                   secp_cubic_exponent q) power)
+         (_ : @eq (list BinNums.Z)
+                (jet_secp_polynomial.polynomial_add jet_secp_fe_math.feP
+                   (jet_secp_polynomial.polynomial_mul jet_secp_fe_math.feP u q)
+                   (jet_secp_polynomial.polynomial_mul jet_secp_fe_math.feP v
+                      (jet_secp_polynomial.polynomial_sub jet_secp_fe_math.feP power
+                         (@cons BinNums.Z (BinNums.Zpos BinNums.xH) (@nil BinNums.Z))))) d)
+         (_ : or (@eq (list BinNums.Z) d (@cons BinNums.Z (BinNums.Zpos BinNums.xH) (@nil BinNums.Z)))
+                (@eq (list BinNums.Z)
+                   (jet_secp_polynomial.polynomial_power jet_secp_fe_math.feP secp_cubic_curve_polynomial
+                      secp_euler_exponent d)
+                   (@cons BinNums.Z (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH)) (@nil BinNums.Z))))
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo
+                   (BinInt.Z.add (BinInt.Z.mul (BinInt.Z.mul x x) x)
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo (BinInt.Z.mul y y) jet_secp_fe_math.feP)),
+       not
+         (@eq BinNums.Z
+            (BinInt.Z.modulo (jet_secp_polynomial.polynomial_value q (BinInt.Z.mul (BinInt.Z.mul x x) x))
+               jet_secp_fe_math.feP) BinNums.Z0)
+### C.jet_secp_curve_polynomial.secp_euler_exponent
+secp_euler_exponent =
+BinInt.Z.to_pos
+  (BinInt.Z.div (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH)) (BinNums.Zpos (BinNums.xO BinNums.xH)))
+     : BinNums.positive
+### C.jet_secp_curve_polynomial.secp_cubic_exponent
+secp_cubic_exponent =
+BinInt.Z.to_pos
+  (BinInt.Z.div (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH)) (BinNums.Zpos (BinNums.xI BinNums.xH)))
+     : BinNums.positive
+### C.jet_secp_curve_polynomial.secp_cubic_curve_polynomial
+secp_cubic_curve_polynomial =
+@cons BinNums.Z (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))
+  (@cons BinNums.Z (BinNums.Zpos BinNums.xH) (@nil BinNums.Z))
+     : list BinNums.Z

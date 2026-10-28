@@ -128,7 +128,7 @@ Qed.
     needs no degree or monicity invariant. The concrete monic certificates
     make the structural Horner computation produce bounded remainders. *)
 Definition polynomial_reduce modulus (p q:list Z) :=
- if Nat.ltb (length p) (length q) then p else
+ if Nat.ltb (length p) (length q) then polynomial_trim p else
  polynomial_sub modulus p
   (polynomial_scale modulus (last p 0)
    (polynomial_shift (length p-length q) q)).
@@ -145,7 +145,7 @@ Lemma polynomial_reduce_value modulus p q x : modulus<>0 ->
  polynomial_value p x mod modulus.
 Proof.
  intros Nonzero Root;unfold polynomial_reduce.
- destruct (Nat.ltb (length p) (length q));[reflexivity|].
+ destruct (Nat.ltb (length p) (length q));[rewrite polynomial_trim_value;reflexivity|].
  assert (Zero:polynomial_value
    (polynomial_scale modulus (last p 0) (polynomial_shift (length p-length q) q)) x mod modulus=0).
  { rewrite polynomial_scale_value,polynomial_shift_value by exact Nonzero.
