@@ -43,6 +43,14 @@ prove coordinate/flag readback. Their previous interfaces remain projections
 of these stronger results. The existing `gej_is_on_curve` endpoint rebuilds,
 and the three changed modules pass scoped statement/assumption comparisons;
 joint kernel acceptance remains pending with the new public caller.
+`jet_secp_checked_scale_local.checked_scale_initialized_local_spec` now
+compiles as an ordinary public candidate. It covers both success and assertion
+failure for all scalar/coordinate words, derives the original wrapper's
+allocations, readers, validity test, multiplication, writer and frees, and
+establishes/preserves startup for the distinct `_ng__1` global. Its only extra
+library premise is `memset_model`. Eight-module statement/assumption checks
+pass. Canonical-source binding, registration and joint acceptance remain;
+this candidate does not yet increase accepted coverage.
 
 The following paragraphs retain the earlier acceptance history, before the
 six conditional CTZ/memset registrations above. Their 513/533 and 19-remaining
