@@ -138,6 +138,14 @@ literal output, four outer objects, generator tables and external framing;
 the ordinary build and scoped record comparisons pass. Public input reading,
 output writing, startup preservation and source binding remain before new
 registration or coverage.
+`jet_secp_linear_startup`, `jet_secp_linear_public_support` and
+`jet_secp_linear_public_reads` now derive the public wrapper's five allocations,
+private input-frame copy, scalar/point/scalar readers, actual call spine and
+five frees. The startup relation contains only the split constants, beta and
+generator tables; it is established by the original program's initialization
+and transported through framed calls. All five input words are covered on
+general valid frames/cursors. The ordinary build and scoped reviewed record
+comparisons pass. Lifecycle composition and the public contract are next.
 
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and
