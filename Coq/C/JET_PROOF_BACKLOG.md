@@ -5483,11 +5483,23 @@ Reproduce with `JET_TARGETS=C/jet_secp_strauss_skip.vo bash
 Coq/build-jets.sh -j1`, its scoped statement/assumption audits and recursive
 `--coqchk` on `C.jet_secp_strauss_skip`.
 
-Next connect the caller's actual local allocations and initial counter/Z
-setup. The current `generator_entry_and_prepare` fixes na to its readonly
-zero global; factor its allocation structure for arbitrary scalar pointers
-rather than importing that zero-scalar restriction into the variable-point
-path. Then compose
+`jet_secp_generator_entry.strauss_entry_owned` now factors the actual nine
+local allocations for arbitrary scalar arguments. It derives the original
+function entry, mutual separation, freshness from old memory, all nine local
+ownership ranges, and preservation of old loads, permissions and readonly
+state without any input-value or initialized-global premise.
+`strauss_entry_and_initialize` composes that entry with the original initial
+counter assignments and Z=1 helper call, retaining all local ownership and
+preserving all old memory. The existing `generator_entry_and_prepare` reuses
+the shared allocation proof with its original statement unchanged; its
+zero-scalar restriction is not imposed on the new general entry result.
+These are internal entry/prefix results, not another whole-public jet.
+Reproduce with `JET_TARGETS=C/jet_secp_generate_local.vo bash
+Coq/build-jets.sh -j1`, scoped audits and recursive `--coqchk` on
+`C.jet_secp_generator_entry`.
+
+Next compose the general entry with the point preprocessing branches, using
+freshness to discharge their private-object separation premises. Then compose
 the signed ordinary/lambda lookups, descending loop and public wrapper.
 For the descending loop's doubles, reuse
 `jet_secp_double_loose_literal.eval_double_var_loose_literal`: it executes
