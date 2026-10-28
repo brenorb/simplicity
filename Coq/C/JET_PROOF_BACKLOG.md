@@ -9,13 +9,15 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-The inventory currently has 520 equivalence entries (138 with the existing
-explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 2
+The inventory currently has 521 equivalence entries (138 with the existing
+explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 3
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-521/533 proof entries, with 12 jets still lacking either result. The new
-`off_curve_scale` registration passed scoped acceptance at `5e87dacb`;
-accepted coverage is now 521/533. The
+522/533 proof entries, with 11 jets still lacking either result. The
+`scale`, `off_curve_scale` and `gej_is_on_curve` endpoints passed joint scoped
+acceptance on the exact inputs of `18d941d3`; accepted coverage is now
+522/533. The earlier `off_curve_scale` acceptance at `5e87dacb` remains
+historical evidence for those earlier inputs. The
 user approved explicit `ctz_model`/`memset_model` premises as conditional
 coverage on 2026-10-27; a SHA empty-preimage premise for the fee jets was not
 approved (see `JET_SECP_EXTERNAL_MISMATCHES.md`). Registration
@@ -33,40 +35,30 @@ and its mismatch report; its mutation tests reject conditional negations and
 wrong implementation/specification targets. Kernel checking and reviewed
 statement/assumption records remain required by `check-jets.sh`.
 
-The scale multiplication helpers now parameterize their readonly zero-scalar
-block. Their old interfaces remain exact specializations, so the accepted
-`off_curve_scale` statement is unchanged. The ordinary endpoint build and
-five-module statement/assumption comparisons pass; the new helper sources
-still require joint scoped acceptance with the checked `scale` candidate.
-The curve-validation prefix, arithmetic caller and full function additionally
-prove coordinate/flag readback. Their previous interfaces remain projections
-of these stronger results. The existing `gej_is_on_curve` endpoint rebuilds,
-and the three changed modules pass scoped statement/assumption comparisons;
-joint kernel acceptance remains pending with the new public caller.
-`jet_secp_checked_scale_local.checked_scale_initialized_local_spec` now
-compiles as an ordinary public candidate. It covers both success and assertion
+`jet_secp_checked_scale_local.checked_scale_initialized_local_spec` covers success and assertion
 failure for all scalar/coordinate words, derives the original wrapper's
 allocations, readers, validity test, multiplication, writer and frees, and
 establishes/preserves startup for the distinct `_ng__1` global. Its only extra
-library premise is `memset_model`. Eight-module statement/assumption checks
-pass. Canonical-source binding, registration and joint acceptance remain;
-this candidate does not yet increase accepted coverage.
-
-The checked-scale candidate is now registered through the exact initialized
-success/failure contract. The existing source checker binds its CoreJets
+library premise is `memset_model`. Shared multiplication helpers now
+parameterize their readonly zero-scalar block, retaining the old interfaces
+as exact specializations. The strengthened curve-check helpers prove
+coordinate/flag readback and retain their previous interfaces as projections.
+All three affected public endpoints passed joint acceptance: kernel checking
+on 999 modules, matching assumption records on 929 modules and contract
+records on 948 modules, negative tests, and five AST regeneration comparisons.
+The source checker binds Scale's CoreJets
 constructor, Haskell assertion tree, FFI entry, startup and literal ports;
-21 targeted mutations reject source/contract drift. The proof inventory is
-522/533 (521 equivalences, including 146 conditional, and one divergence),
-but accepted coverage remains 521/533 until joint scoped acceptance passes:
-`bash Coq/check-jets.sh --accept
---jets=simplicity_off_curve_scale,simplicity_scale,simplicity_gej_is_on_curve`.
-This run must cover both existing endpoints whose helper implementations
-changed. The next independent proof obligation is arbitrary-global-Z
-generator addition for `off_curve_linear_combination_1`.
+21 targeted mutations reject source/contract drift. Reproduce with
+`bash Coq/check-jets.sh --accept --jets=simplicity_off_curve_scale,simplicity_scale,simplicity_gej_is_on_curve`.
+The next reserved jet is `off_curve_linear_combination_1`: compose the
+arbitrary-global-Z generator bridge with the four-stream descending loop and
+actual preprocessing/outer caller. No inverse, nonzero-Z or on-curve premise
+may be imposed on this off-curve caller.
 
 The following paragraphs retain the earlier acceptance history, before the
-six conditional CTZ/memset registrations above. Their 513/533 and 19-remaining
-counts are historical; the current proof inventory is 520/533 with 13 remaining.
+later conditional CTZ/memset registrations above. Their 513/533 and
+19-remaining counts are historical; the current proof inventory is 522/533
+with 11 remaining.
 
 That earlier local-contract registry counted 513 of the 533 header declarations
 toward full-input contracts (138 still conditional on `memcpy_model`). A

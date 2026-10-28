@@ -1,6 +1,34 @@
 # Integration and pending-jet reconciliation
 
-## Scoped off-curve scale acceptance
+## Scoped checked scale and shared helper acceptance
+
+`C.jet_secp_checked_scale_local.checked_scale_initialized_local_spec` passed
+joint scoped acceptance on the exact inputs of `18d941d3`, together with
+`off_curve_scale` and `gej_is_on_curve`, whose shared helpers were strengthened.
+It proves the original C scale wrapper against the literal assertion-bearing
+Simplicity term for every scalar/coordinate input word and general valid
+frames/cursors. Both successful output and assertion failure are covered.
+Startup for the original `_ng__1` global is established from real program
+initialization and preserved by execution. The only extra library premise
+is the approved `memset_model`.
+
+```sh
+JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_off_curve_scale,simplicity_scale,simplicity_gej_is_on_curve
+```
+
+The run passed recursive kernel checking on 999 modules, assumption comparisons
+on 929 modules, contract comparisons on 948 modules, negative tests and all
+five AST regeneration comparisons. The audit fingerprint remained unchanged
+and matched the committed inputs afterwards. The source binding reuses the
+75 off-curve ports and checks Scale's catalog, assertion, FFI entry and complete
+initialized success/failure contract, rejecting 21 added targeted mutations.
+
+Accepted coverage is 522/533: 375 equivalences without an extra library
+premise, 146 conditional equivalences (138 memcpy, 5 CTZ, 3 memset), and one
+whole-public divergence. Eleven jets remain unresolved; the goal is active.
+This receipt applies to its exact inputs, not future proof changes.
+
+## Earlier scoped off-curve scale acceptance
 
 `C.jet_secp_scale_local.off_curve_scale_initialized_local_spec` passed
 scoped acceptance on the exact proof inputs of `5e87dacb`. It derives the
@@ -26,10 +54,10 @@ and all five AST regeneration comparisons. Its audit-input fingerprint was
 unchanged throughout and matched the registration commit's inputs afterwards.
 The kernel reported no unsafe features or new library axioms.
 
-Accepted proof coverage is 521/533: 375 equivalences without an extra library
+That earlier acceptance brought proof coverage to 521/533: 375 equivalences without an extra library
 premise, 145 conditional equivalences (138 memcpy, 5 CTZ, 2 memset), and one
-whole-public divergence. Twelve declarations still lack an accepted outcome;
-the goal is unfinished. Later source changes require their own verification.
+whole-public divergence. Twelve declarations lacked an accepted outcome at
+that point. Later source changes require their own verification.
 
 ## Current whole-project acceptance and writable-word integration
 
