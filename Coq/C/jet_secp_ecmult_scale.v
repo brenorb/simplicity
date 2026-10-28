@@ -45,9 +45,11 @@ Require Import C.jet_secp_ecmult_generator C.jet_secp_ecmult_entry C.jet_secp_ec
  C.jet_clight_forward C.jet_clight_readonly.
 Local Opaque literal_off_curve_scale.
 
-Theorem eval_ecmult_scale (Model:memset_model)
+Section Generic_eval_ecmult_scale.
+Context (bng:block).
+Theorem eval_ecmult_scale_at (Model:memset_model)
  (raw ax ay az:Ty.tySem (Word 8)) x y z m br bk ba :
- strauss_zero_global_state m -> split_constants_ready m -> beta_initialized m ->
+ (zero_scalar_state bng) m -> split_constants_ready m -> beta_initialized m ->
  NoDup [br;bk;ba] ->
  (forall b hi,In (b,hi) [(br,128);(bk,32);(ba,128)] ->
   Mem.range_perm m b 0 hi Cur Freeable) ->
@@ -60,7 +62,7 @@ Theorem eval_ecmult_scale (Model:memset_model)
  table_word_literal x ax -> table_word_literal y ay -> table_word_literal z az ->
  exists mf ox oy oz,
  Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ecmult)
-  [Vptr br Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr bk Ptrofs.zero;Vptr strauss_zero_block Ptrofs.zero]
+  [Vptr br Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr bk Ptrofs.zero;Vptr bng Ptrofs.zero]
   E0 mf Vundef /\
  fe_at mf br 0 (words5 ox) /\ fe_at mf br 40 (words5 oy) /\ fe_at mf br 80 (words5 oz) /\
  square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
@@ -68,7 +70,7 @@ Theorem eval_ecmult_scale (Model:memset_model)
   @literal_off_curve_scale Alg.CoreFunSem (raw,((ax,ay),az)) /\
  (forall b hi,In (b,hi) [(br,128);(bk,32);(ba,128)] ->
   Mem.range_perm mf b 0 hi Cur Freeable) /\
- strauss_zero_global_state mf /\ lframe (fun b _=>~In b [br;bk;ba]) m mf.
+ (zero_scalar_state bng) mf /\ lframe (fun b _=>~In b [br;bk;ba]) m mf.
 Proof.
  intros Global Ready Beta Separate Owned Input BX BY BZ X Y Z Flag HX HY HZ.
  assert (Valid:forall b,In b [br;bk;ba] -> Mem.valid_block m b).
@@ -77,19 +79,19 @@ Proof.
     exact (Owned bk 32 ltac:(clear;cbn [In];tauto) 0 ltac:(clear;lia))|
     exact (Owned ba 128 ltac:(clear;cbn [In];tauto) 0 ltac:(clear;lia))]. }
  destruct (ecmult_entry_and_state m (Vptr br Ptrofs.zero) (Vptr ba Ptrofs.zero)
-  (Vptr bk Ptrofs.zero) (Vptr strauss_zero_block Ptrofs.zero))
+  (Vptr bk Ptrofs.zero) (Vptr bng Ptrofs.zero))
   as (mi & ms & bx & bt & bp & bs & Entry & Setup & PX & PT & PS &
    PrivateSeparate & Fresh & PrivateOwned & UnchangedS).
  pose (e:=ecmult_env bx bt bp bs).
  pose (le:=ecmult_temps (Vptr br Ptrofs.zero) (Vptr ba Ptrofs.zero)
-  (Vptr bk Ptrofs.zero) (Vptr strauss_zero_block Ptrofs.zero)).
+  (Vptr bk Ptrofs.zero) (Vptr bng Ptrofs.zero)).
  assert (FrameS:lframe (fun _ _=>True) m ms) by (apply lframe_unchanged;exact UnchangedS).
  assert (ReadS:readonly_preserved m ms).
  { split.
    - eapply mem_forward_trans;[eapply clight_entry2_forward;exact Entry|].
      exact (proj1 (clight_exec_forward secp_ge) _ _ _ _ _ _ _ _ Setup).
    - eapply Mem.unchanged_on_implies;[exact UnchangedS|intros;exact I]. }
- assert (GlobalS:strauss_zero_global_state ms) by (eapply strauss_zero_global_preserved;[exact Global|exact ReadS]).
+ assert (GlobalS:(zero_scalar_state bng) ms) by (eapply (strauss_zero_global_preserved_at bng);[exact Global|exact ReadS]).
  assert (ReadyS:split_constants_ready ms) by (eapply split_constants_readonly;[exact Ready|exact ReadS]).
  assert (BetaS:beta_initialized ms) by (eapply beta_initialized_preserved;[exact Beta|exact ReadS]).
  assert (Different:forall b,In b [br;bk;ba] -> ~In b [bx;bt;bp;bs]).
@@ -115,13 +117,13 @@ Proof.
  assert (FlagS:Mem.load Mint32 ms ba 120=Some (Vint (bit_int (Bit.toBool
   (@literal_gej_is_infinity Alg.CoreFunSem ((ax,ay),az)))))).
  { rewrite (proj1 FrameS Mint32 ba 120);[exact Flag|apply Valid;clear;cbn [In];tauto|intros;exact I]. }
- destruct (eval_strauss_scale Model raw ax ay az x y z ms br bk ba bs bp bt bx
+ destruct ((eval_strauss_scale_at bng) Model raw ax ay az x y z ms br bk ba bs bp bt bx
   GlobalS ReadyS BetaS AllSeparate AllOwned InputS BX BY BZ XS YS ZS FlagS HX HY HZ PS PT PX)
   as (mc & ox & oy & oz & Strauss & XO & YO & ZO & BXO & BYO & BZO & Literal & OwnedC & GlobalC & FrameC).
  assert (Call:Clight2.exec_stmt secp_ge e le ms ecmult_strauss_call E0 le mc Out_normal).
  { rewrite ecmult_strauss_call_source;eapply exec_curve_call with
    (vargs:=[Vptr bs Ptrofs.zero;Vptr br Ptrofs.zero;Vlong Int64.one;Vptr ba Ptrofs.zero;
-    Vptr bk Ptrofs.zero;Vptr strauss_zero_block Ptrofs.zero]) (v:=Vundef).
+    Vptr bk Ptrofs.zero;Vptr bng Ptrofs.zero]) (v:=Vundef).
    - unfold secp_pure;repeat first [left;reflexivity|right].
    - reflexivity.
    - eapply eval_Econs with (v1:=Vptr bs Ptrofs.zero).
@@ -131,7 +133,7 @@ Proof.
        eapply eval_Econs with (v1:=Vint Int.one);[constructor|reflexivity|].
        eapply eval_Econs with (v1:=Vptr ba Ptrofs.zero);[apply eval_Etempvar;reflexivity|reflexivity|].
        eapply eval_Econs with (v1:=Vptr bk Ptrofs.zero);[apply eval_Etempvar;reflexivity|reflexivity|].
-       eapply eval_Econs with (v1:=Vptr strauss_zero_block Ptrofs.zero);[apply eval_Etempvar;reflexivity|reflexivity|constructor].
+       eapply eval_Econs with (v1:=Vptr bng Ptrofs.zero);[apply eval_Etempvar;reflexivity|reflexivity|constructor].
    - exact Strauss. }
  destruct (free_list_exists [(bs,0,24);(bx,0,320);(bp,0,1040);(bt,0,704)] mc)
   as (mf & Released & UnchangedF).
@@ -154,8 +156,8 @@ Proof.
      - apply OwnedC;unfold strauss_outer_storage;cbn [In] in Slot|-*;tauto.
      - exact FrameF.
      - intros pos;apply Different;clear -Slot;cbn [In] in Slot|-*;intuition congruence. }
-   assert (GlobalF:strauss_zero_global_state mf).
-   { eapply strauss_zero_global_preserved;[exact GlobalC|eapply freelist_preserved;exact Released]. }
+   assert (GlobalF:(zero_scalar_state bng) mf).
+   { eapply (strauss_zero_global_preserved_at bng);[exact GlobalC|eapply freelist_preserved;exact Released]. }
    assert (Frame:lframe (fun b _=>~In b [br;bk;ba]) m mf).
    { eapply lframe_implies with (P:=fun b _=>Mem.valid_block m b /\ ~In b [br;bk;ba]).
      - eapply lframe_trans;[eapply lframe_implies;[exact FrameS|intros;exact I]|].
@@ -175,3 +177,30 @@ Proof.
      split;[exact BXO|];split;[exact BYO|];split;[exact BZO|];
      split;[exact Literal|];split;[exact OwnedF|];split;assumption.
 Qed.
+End Generic_eval_ecmult_scale.
+
+Theorem eval_ecmult_scale (Model:memset_model)
+ (raw ax ay az:Ty.tySem (Word 8)) x y z m br bk ba :
+ strauss_zero_global_state m -> split_constants_ready m -> beta_initialized m ->
+ NoDup [br;bk;ba] ->
+ (forall b hi,In (b,hi) [(br,128);(bk,32);(ba,128)] ->
+  Mem.range_perm m b 0 hi Cur Freeable) ->
+ scalar_at m bk 0 (map Int64.repr (scalar_limbs_of
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem raw)))) ->
+ square_input_bounds x -> square_input_bounds y -> square_input_bounds z ->
+ fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) -> fe_at m ba 80 (words5 z) ->
+ Mem.load Mint32 m ba 120=Some (Vint (bit_int (Bit.toBool
+  (@literal_gej_is_infinity Alg.CoreFunSem ((ax,ay),az))))) ->
+ table_word_literal x ax -> table_word_literal y ay -> table_word_literal z az ->
+ exists mf ox oy oz,
+ Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ecmult)
+  [Vptr br Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr bk Ptrofs.zero;Vptr strauss_zero_block Ptrofs.zero]
+  E0 mf Vundef /\
+ fe_at mf br 0 (words5 ox) /\ fe_at mf br 40 (words5 oy) /\ fe_at mf br 80 (words5 oz) /\
+ square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
+ ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
+  @literal_off_curve_scale Alg.CoreFunSem (raw,((ax,ay),az)) /\
+ (forall b hi,In (b,hi) [(br,128);(bk,32);(ba,128)] ->
+  Mem.range_perm mf b 0 hi Cur Freeable) /\
+ strauss_zero_global_state mf /\ lframe (fun b _=>~In b [br;bk;ba]) m mf.
+Proof. exact (@eval_ecmult_scale_at strauss_zero_block Model raw ax ay az x y z m br bk ba). Qed.

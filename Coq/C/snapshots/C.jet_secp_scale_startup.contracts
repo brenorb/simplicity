@@ -78,6 +78,57 @@ scale_startup_ecmult_call
                    (@List.In Values.block b
                       (@cons Values.block br (@cons Values.block bk (@cons Values.block ba (@nil Values.block)))))) m
                 mf), scale_startup mf
+### C.jet_secp_scale_startup.scale_startup_readonly_at
+scale_startup_readonly_at
+     : forall (bng : Values.block) (m mf : Memory.Mem.mem) (_ : scale_startup_at bng m)
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf), scale_startup_at bng mf
+### C.jet_secp_scale_startup.scale_startup_not_writable_at
+scale_startup_not_writable_at
+     : forall (bng : Values.block) (m : Memory.Mem.mem) (_ : scale_startup_at bng m) (b : Values.block)
+         (_ : @List.In Values.block b (scale_startup_blocks_at bng)) (pos : BinNums.Z),
+       not (Memory.Mem.perm m b pos Memtype.Max Memtype.Writable)
+### C.jet_secp_scale_startup.scale_startup_lframe_at
+scale_startup_lframe_at
+     : forall (bng : Values.block) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop) (m mf : Memory.Mem.mem)
+         (_ : scale_startup_at bng m) (_ : jet_clight_forward.mem_forward m mf) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall (b : Values.block) (_ : @List.In Values.block b (scale_startup_blocks_at bng)) (pos : BinNums.Z),
+              P b pos), scale_startup_at bng mf
+### C.jet_secp_scale_startup.scale_startup_owned_separate_at
+scale_startup_owned_separate_at
+     : forall (bng : Values.block) (m : Memory.Mem.mem) (b : Values.block) (_ : scale_startup_at bng m)
+         (_ : Memory.Mem.perm m b BinNums.Z0 Memtype.Cur Memtype.Freeable) (bg : Values.block)
+         (_ : @List.In Values.block bg (scale_startup_blocks_at bng)), not (@eq Values.block b bg)
+### C.jet_secp_scale_startup.scale_startup_ecmult_call_at
+scale_startup_ecmult_call_at
+     : forall (bng : Values.block) (m mf : Memory.Mem.mem) (f : Clight.fundef) (args : list Values.val)
+         (trace : Events.trace) (result : Values.val) (br bk ba : Values.block) (_ : scale_startup_at bng m)
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                       (@cons (prod Values.block BinNums.Z)
+                          (@pair Values.block BinNums.Z br
+                             (BinNums.Zpos
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                          (@cons (prod Values.block BinNums.Z)
+                             (@pair Values.block BinNums.Z bk
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                             (@cons (prod Values.block BinNums.Z)
+                                (@pair Values.block BinNums.Z ba
+                                   (BinNums.Zpos
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                (@nil (prod Values.block BinNums.Z)))))),
+              Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m f args trace mf result)
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 not
+                   (@List.In Values.block b
+                      (@cons Values.block br (@cons Values.block bk (@cons Values.block ba (@nil Values.block)))))) m
+                mf), scale_startup_at bng mf
 ### C.jet_secp_scale_startup.scale_startup
 scale_startup =
 fun m : Memory.Mem.mem =>
@@ -91,3 +142,17 @@ scale_startup_blocks =
 @cons Values.block jet_secp_strauss_zero_generator.strauss_zero_block
   jet_secp_strauss_scale_function.strauss_readonly_blocks
      : list Values.block
+### C.jet_secp_scale_startup.scale_startup_at
+scale_startup_at =
+fun (bng : Values.block) (m : Memory.Mem.mem) =>
+and (jet_secp_strauss_zero_generator.zero_scalar_state bng m)
+  (and (jet_secp_split_constants.split_constants_ready m) (jet_secp_beta_global.beta_initialized m))
+     : forall (_ : Values.block) (_ : Memory.Mem.mem), Prop
+
+Arguments scale_startup_at bng m
+### C.jet_secp_scale_startup.scale_startup_blocks_at
+scale_startup_blocks_at =
+fun bng : Values.block => @cons Values.block bng jet_secp_strauss_scale_function.strauss_readonly_blocks
+     : forall _ : Values.block, list Values.block
+
+Arguments scale_startup_blocks_at bng

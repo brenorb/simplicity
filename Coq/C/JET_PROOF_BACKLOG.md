@@ -33,6 +33,12 @@ and its mismatch report; its mutation tests reject conditional negations and
 wrong implementation/specification targets. Kernel checking and reviewed
 statement/assumption records remain required by `check-jets.sh`.
 
+The scale multiplication helpers now parameterize their readonly zero-scalar
+block. Their old interfaces remain exact specializations, so the accepted
+`off_curve_scale` statement is unchanged. The ordinary endpoint build and
+five-module statement/assumption comparisons pass; the new helper sources
+still require joint scoped acceptance with the checked `scale` candidate.
+
 The following paragraphs retain the earlier acceptance history, before the
 six conditional CTZ/memset registrations above. Their 513/533 and 19-remaining
 counts are historical; the current proof inventory is 520/533 with 13 remaining.

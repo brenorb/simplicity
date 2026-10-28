@@ -17,6 +17,10 @@ Definition scale_startup m :=
  strauss_zero_global_state m /\ split_constants_ready m /\ beta_initialized m.
 Definition scale_startup_blocks := strauss_zero_block::strauss_readonly_blocks.
 
+Definition scale_startup_at (bng:block) m :=
+ zero_scalar_state bng m /\ split_constants_ready m /\ beta_initialized m.
+Definition scale_startup_blocks_at (bng:block) := bng::strauss_readonly_blocks.
+
 Lemma scale_startup_initializes m :
  Genv.init_mem jets_secp.prog=Some m -> scale_startup m.
 Proof.
@@ -28,21 +32,36 @@ Proof.
  destruct strauss_zero_initialized_memory_exists as (m & Init & Zero);
  exists m;split;[exact Init|apply scale_startup_initializes;exact Init].
 Qed.
-Lemma scale_startup_readonly m mf :
- scale_startup m -> readonly_preserved m mf -> scale_startup mf.
+Section Generic_scale_startup_readonly.
+Context (bng:block).
+Lemma scale_startup_readonly_at m mf :
+ (scale_startup_at bng) m -> readonly_preserved m mf -> (scale_startup_at bng) mf.
 Proof.
  intros (Zero & Split & Beta) Read;split.
- - eapply strauss_zero_global_preserved;[exact Zero|exact Read].
+ - eapply (strauss_zero_global_preserved_at bng);[exact Zero|exact Read].
  - split;[eapply split_constants_readonly|eapply beta_initialized_preserved];eassumption.
 Qed.
-Lemma scale_startup_not_writable m :
- scale_startup m -> forall b,In b scale_startup_blocks ->
+End Generic_scale_startup_readonly.
+
+Lemma scale_startup_readonly m mf :
+ scale_startup m -> readonly_preserved m mf -> scale_startup mf.
+Proof. exact (@scale_startup_readonly_at strauss_zero_block m mf). Qed.
+Section Generic_scale_startup_not_writable.
+Context (bng:block).
+Lemma scale_startup_not_writable_at m :
+ (scale_startup_at bng) m -> forall b,In b (scale_startup_blocks_at bng) ->
  forall pos,~Mem.perm m b pos Max Writable.
 Proof.
  intros (Zero & Split & Beta) b [Same|Other] pos.
  - subst b;apply (readonly_bounds_not_writable _ _ _ _ (proj2 Zero)).
  - exact (strauss_readonly_blocks_not_writable m Split Beta b Other pos).
 Qed.
+End Generic_scale_startup_not_writable.
+
+Lemma scale_startup_not_writable m :
+ scale_startup m -> forall b,In b scale_startup_blocks ->
+ forall pos,~Mem.perm m b pos Max Writable.
+Proof. exact (@scale_startup_not_writable_at strauss_zero_block m). Qed.
 
 Lemma scale_scalar_constant_lframe P m mf b words :
  scalar_constant_state b words m -> mem_forward m mf ->
@@ -67,18 +86,20 @@ Proof.
  - eapply readonly_bounds_transport;[exact Valid|exact Bounds|exact Forward|exact ReadableF].
 Qed.
 
-Lemma scale_startup_lframe P m mf :
- scale_startup m -> mem_forward m mf -> lframe P m mf ->
- (forall b,In b scale_startup_blocks -> forall pos,P b pos) -> scale_startup mf.
+Section Generic_scale_startup_lframe.
+Context (bng:block).
+Lemma scale_startup_lframe_at P m mf :
+ (scale_startup_at bng) m -> mem_forward m mf -> lframe P m mf ->
+ (forall b,In b (scale_startup_blocks_at bng) -> forall pos,P b pos) -> (scale_startup_at bng) mf.
 Proof.
  intros (Zero & [Multipliers [Basis Lambda]] & Beta) Forward Frame Cover.
- assert (CoverZ:forall pos,P strauss_zero_block pos) by
+ assert (CoverZ:forall pos,P bng pos) by
   (apply Cover;left;reflexivity).
  assert (CoverRO:forall b,In b strauss_readonly_blocks -> forall pos,P b pos) by
   (intros b Slot;apply Cover;right;exact Slot).
  split.
- - pose proof (strauss_zero_global_valid m Zero) as Valid;destruct Zero as [Stored Bounds].
-   assert (StoredF:scalar_at mf strauss_zero_block 0 [Int64.zero;Int64.zero;Int64.zero;Int64.zero]).
+ - pose proof ((strauss_zero_global_valid_at bng) m Zero) as Valid;destruct Zero as [Stored Bounds].
+   assert (StoredF:scalar_at mf bng 0 [Int64.zero;Int64.zero;Int64.zero;Int64.zero]).
    { eapply scalar_at_lframe;[exact Stored|exact Frame|exact CoverZ]. }
    split;[exact StoredF|];eapply readonly_bounds_transport;[exact Valid|exact Bounds|exact Forward|].
    exact (proj1 (proj2 (proj2 (proj2 (proj2 StoredF))))).
@@ -94,28 +115,52 @@ Proof.
    + eapply scale_beta_lframe;[exact Beta|exact Forward|exact Frame|].
      apply CoverRO;cbn [strauss_readonly_blocks In];tauto.
 Qed.
+End Generic_scale_startup_lframe.
+
+Lemma scale_startup_lframe P m mf :
+ scale_startup m -> mem_forward m mf -> lframe P m mf ->
+ (forall b,In b scale_startup_blocks -> forall pos,P b pos) -> scale_startup mf.
+Proof. exact (@scale_startup_lframe_at strauss_zero_block P m mf). Qed.
+
+Section Generic_scale_startup_owned_separate.
+Context (bng:block).
+Lemma scale_startup_owned_separate_at m b :
+ (scale_startup_at bng) m -> Mem.perm m b 0 Cur Freeable ->
+ forall bg,In bg (scale_startup_blocks_at bng) -> b<>bg.
+Proof.
+ intros Ready Owned bg Global Same;subst b;apply ((scale_startup_not_writable_at bng) m Ready bg Global 0).
+ apply Mem.perm_cur_max;eapply Mem.perm_implies;[exact Owned|constructor].
+Qed.
+End Generic_scale_startup_owned_separate.
 
 Lemma scale_startup_owned_separate m b :
  scale_startup m -> Mem.perm m b 0 Cur Freeable ->
  forall bg,In bg scale_startup_blocks -> b<>bg.
+Proof. exact (@scale_startup_owned_separate_at strauss_zero_block m b). Qed.
+
+Section Generic_scale_startup_ecmult_call.
+Context (bng:block).
+Theorem scale_startup_ecmult_call_at m mf f args trace result br bk ba :
+ (scale_startup_at bng) m ->
+ (forall b hi,In (b,hi) [(br,128);(bk,32);(ba,128)] -> Mem.range_perm m b 0 hi Cur Freeable) ->
+ Clight2.eval_funcall secp_ge m f args trace mf result ->
+ lframe (fun b _=>~In b [br;bk;ba]) m mf -> (scale_startup_at bng) mf.
 Proof.
- intros Ready Owned bg Global Same;subst b;apply (scale_startup_not_writable m Ready bg Global 0).
- apply Mem.perm_cur_max;eapply Mem.perm_implies;[exact Owned|constructor].
+ intros Ready Owned Call Frame;eapply (scale_startup_lframe_at bng);[exact Ready| |exact Frame|].
+ - exact (proj2 (clight_exec_forward secp_ge) _ _ _ _ _ _ Call).
+ - intros bg Global pos [Same|[Same|[Same|[]]]].
+   + apply ((scale_startup_owned_separate_at bng) m br Ready
+      (Owned br 128 ltac:(cbn [In];tauto) 0 ltac:(lia)) bg Global);exact Same.
+   + apply ((scale_startup_owned_separate_at bng) m bk Ready
+      (Owned bk 32 ltac:(cbn [In];tauto) 0 ltac:(lia)) bg Global);exact Same.
+   + apply ((scale_startup_owned_separate_at bng) m ba Ready
+      (Owned ba 128 ltac:(cbn [In];tauto) 0 ltac:(lia)) bg Global);exact Same.
 Qed.
+End Generic_scale_startup_ecmult_call.
 
 Theorem scale_startup_ecmult_call m mf f args trace result br bk ba :
  scale_startup m ->
  (forall b hi,In (b,hi) [(br,128);(bk,32);(ba,128)] -> Mem.range_perm m b 0 hi Cur Freeable) ->
  Clight2.eval_funcall secp_ge m f args trace mf result ->
  lframe (fun b _=>~In b [br;bk;ba]) m mf -> scale_startup mf.
-Proof.
- intros Ready Owned Call Frame;eapply scale_startup_lframe;[exact Ready| |exact Frame|].
- - exact (proj2 (clight_exec_forward secp_ge) _ _ _ _ _ _ Call).
- - intros bg Global pos [Same|[Same|[Same|[]]]].
-   + apply (scale_startup_owned_separate m br Ready
-      (Owned br 128 ltac:(cbn [In];tauto) 0 ltac:(lia)) bg Global);exact Same.
-   + apply (scale_startup_owned_separate m bk Ready
-      (Owned bk 32 ltac:(cbn [In];tauto) 0 ltac:(lia)) bg Global);exact Same.
-   + apply (scale_startup_owned_separate m ba Ready
-      (Owned ba 128 ltac:(cbn [In];tauto) 0 ltac:(lia)) bg Global);exact Same.
-Qed.
+Proof. exact (@scale_startup_ecmult_call_at strauss_zero_block m mf f args trace result br bk ba). Qed.

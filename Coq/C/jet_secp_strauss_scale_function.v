@@ -140,9 +140,11 @@ Proof.
  change (In hi [128;32;128;24;1040;704;320]) in Sizes;cbn [In] in Sizes;intuition lia.
 Qed.
 
-Theorem eval_strauss_scale_finite (Model:memset_model)
+Section Generic_eval_strauss_scale_finite.
+Context (bng:block).
+Theorem eval_strauss_scale_finite_at (Model:memset_model)
  (raw ax ay az:Ty.tySem (Word 8)) x y z m br bk ba bs bp bt bx :
- strauss_zero_global_state m -> split_constants_ready m -> beta_initialized m ->
+ (zero_scalar_state bng) m -> split_constants_ready m -> beta_initialized m ->
  NoDup [br;bk;ba;bs;bp;bt;bx] ->
  (forall b hi,In (b,hi) (strauss_outer_storage br bk ba bs bp bt bx) ->
   Mem.range_perm m b 0 hi Cur Freeable) ->
@@ -158,14 +160,14 @@ Theorem eval_strauss_scale_finite (Model:memset_model)
  exists mf ox oy oz,
  Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ecmult_strauss_wnaf)
   [Vptr bs Ptrofs.zero;Vptr br Ptrofs.zero;Vlong Int64.one;Vptr ba Ptrofs.zero;
-   Vptr bk Ptrofs.zero;Vptr strauss_zero_block Ptrofs.zero] E0 mf Vundef /\
+   Vptr bk Ptrofs.zero;Vptr bng Ptrofs.zero] E0 mf Vundef /\
  fe_at mf br 0 (words5 ox) /\ fe_at mf br 40 (words5 oy) /\ fe_at mf br 80 (words5 oz) /\
  square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
  ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
   @literal_strauss_body Alg.CoreFunSem ((raw,((ax,ay),az)),@Word.zero 8 Alg.CoreFunSem tt) /\
  (forall b hi,In (b,hi) (strauss_outer_storage br bk ba bs bp bt bx) ->
   Mem.range_perm mf b 0 hi Cur Freeable) /\
- strauss_zero_global_state mf /\
+ (zero_scalar_state bng) mf /\
  lframe (fun b _=>~In b [br;bk;ba;bs;bp;bt;bx]) m mf.
 Proof.
  intros Global Ready Beta OuterSeparate Outer Input Nonzero BX BY BZ X Y Z Flag HX HY HZ Finite PS PT PX.
@@ -174,14 +176,14 @@ Proof.
    apply in_map_iff in Member;destruct Member as [[b' hi] [Eq Slot]];cbn [fst] in Eq;subst b'.
    eapply Mem.perm_valid_block;apply (Outer b hi Slot 0);split;[reflexivity|].
    eapply strauss_outer_size_positive;exact Slot. }
- pose proof (strauss_zero_global_valid m Global) as VG.
+ pose proof ((strauss_zero_global_valid_at bng) m Global) as VG.
  destruct (strauss_entry_and_initialize m bs (Vptr br Ptrofs.zero) (Vptr ba Ptrofs.zero)
-  (Vptr bk Ptrofs.zero) (Vptr strauss_zero_block Ptrofs.zero))
+  (Vptr bk Ptrofs.zero) (Vptr bng Ptrofs.zero))
   as (mi & mp & bd & bz & b0 & b128 & bw0 & bw128 & bj & bn & bl &
    Entry & Init & Denominator & Separate & Old & Owned & FrameI & KeepI & ReadI).
  pose (e:=generator_local_env bd bz b0 b128 bw0 bw128 bj bn bl).
  pose (le:=strauss_entry_temps bs (Vptr br Ptrofs.zero) (Vptr ba Ptrofs.zero)
-  (Vptr bk Ptrofs.zero) (Vptr strauss_zero_block Ptrofs.zero)).
+  (Vptr bk Ptrofs.zero) (Vptr bng Ptrofs.zero)).
  pose (li:=generator_initial_temps le).
  assert (Different:forall b,In b [br;bk;ba;bs;bp;bt;bx] ->
   ~In b [bd;bz;b0;b128;bw0;bw128;bj;bn;bl]).
@@ -250,19 +252,19 @@ Proof.
  { rewrite OtherP by (clear;cbn [In];intuition discriminate).
    unfold li;rewrite generator_initial_preserves by discriminate;reflexivity. }
  assert (SP:lp!_state=Some (Vptr bs Ptrofs.zero)) by (rewrite OtherP by (clear;cbn [In];intuition discriminate);exact SI).
- assert (NGP:lp!_ng=Some (Vptr strauss_zero_block Ptrofs.zero)).
+ assert (NGP:lp!_ng=Some (Vptr bng Ptrofs.zero)).
  { rewrite OtherP by (clear;cbn [In];intuition discriminate).
    unfold li;rewrite generator_initial_preserves by discriminate;reflexivity. }
- assert (GlobalP:strauss_zero_global_state ms).
- { eapply strauss_zero_global_preserved;[|exact ReadP].
-   eapply strauss_zero_global_preserved;[exact Global|exact ReadI]. }
+ assert (GlobalP:(zero_scalar_state bng) ms).
+ { eapply (strauss_zero_global_preserved_at bng);[|exact ReadP].
+   eapply (strauss_zero_global_preserved_at bng);[exact Global|exact ReadI]. }
  assert (LocalP:forall b hi,In (b,hi) (generator_local_storage bd bz b0 b128 bw0 bw128 bj bn bl) ->
   Mem.range_perm ms b 0 hi Cur Freeable).
  { intros b hi Slot pos P;apply KeepP;apply (Owned b hi Slot);exact P. }
  assert (OuterP:forall b hi,In (b,hi) (strauss_outer_storage br bk ba bs bp bt bx) ->
   Mem.range_perm ms b 0 hi Cur Freeable).
  { intros b hi Slot pos P;apply KeepP,KeepI;apply (Outer b hi Slot);exact P. }
- destruct (exec_strauss_scale_main Model lp ms br bs bp bt bx bd bz b0 b128 bw0 bw128 bj bn bl
+ destruct ((exec_strauss_scale_main_at bng) Model lp ms br bs bp bt bx bd bz b0 b128 bw0 bw128 bj bn bl
   raw ((ax,ay),az) xf yf (beta_aux_values xf)
   (point_mul_words (odd_table_z (odd_table_final_state x y z)) (double_output_z_words y z))
   last1 lastlam digits1 digitslam MainSeparate RP SP NoP BitsP NGP GlobalP PSP PTP PXP C1 CL A1 AL L1 LL
@@ -295,7 +297,7 @@ Proof.
    { eapply lframe_implies;[apply lframe_unchanged;exact UnchangedF|].
      intros b pos Outside Valid;clear -Outside;cbn [map fst In] in *;intuition congruence. }
    assert (OutsideR:~In br [bd;bz;b0;b128;bw0;bw128;bj;bn;bl]) by (apply Different;clear;cbn [In];tauto).
-   assert (OutsideG:~In strauss_zero_block [bd;bz;b0;b128;bw0;bw128;bj;bn;bl]) by (apply Old;exact VG).
+   assert (OutsideG:~In bng [bd;bz;b0;b128;bw0;bw128;bj;bn;bl]) by (apply Old;exact VG).
    assert (XF:fe_at mf br 0 (words5 ox)) by (eapply field_at_lframe;[exact XO|exact FrameF|intros;exact OutsideR]).
    assert (YF:fe_at mf br 40 (words5 oy)) by (eapply field_at_lframe;[exact YO|exact FrameF|intros;exact OutsideR]).
    assert (ZF:fe_at mf br 80 (words5 oz)) by (eapply field_at_lframe;[exact ZO|exact FrameF|intros;exact OutsideR]).
@@ -307,8 +309,8 @@ Proof.
      - exact FrameF.
      - intros pos;apply Old.
        eapply Mem.perm_valid_block;apply (Outer b hi Slot 0);split;[reflexivity|eapply strauss_outer_size_positive;exact Slot]. }
-   assert (GlobalF:strauss_zero_global_state mf).
-   { eapply strauss_zero_global_unchanged;[exact GlobalU|].
+   assert (GlobalF:(zero_scalar_state bng) mf).
+   { eapply (strauss_zero_global_unchanged_at bng);[exact GlobalU|].
      eapply Mem.unchanged_on_implies;[exact UnchangedF|].
      intros b pos At Valid;subst b;clear -OutsideG;cbn [map fst In] in *;intuition congruence. }
    assert (Frame:lframe (fun b _=>~In b [br;bk;ba;bs;bp;bt;bx]) m mf).
@@ -334,6 +336,36 @@ Proof.
      split;[exact BXO|];split;[exact BYO|];split;[exact BZO|];
      split;[exact Literal|];split;[exact OuterF|];split;assumption.
 Qed.
+End Generic_eval_strauss_scale_finite.
+
+Theorem eval_strauss_scale_finite (Model:memset_model)
+ (raw ax ay az:Ty.tySem (Word 8)) x y z m br bk ba bs bp bt bx :
+ strauss_zero_global_state m -> split_constants_ready m -> beta_initialized m ->
+ NoDup [br;bk;ba;bs;bp;bt;bx] ->
+ (forall b hi,In (b,hi) (strauss_outer_storage br bk ba bs bp bt bx) ->
+  Mem.range_perm m b 0 hi Cur Freeable) ->
+ scalar_at m bk 0 (map Int64.repr (scalar_limbs_of
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem raw)))) ->
+ @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem raw)<>0 ->
+ square_input_bounds x -> square_input_bounds y -> square_input_bounds z ->
+ fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) -> fe_at m ba 80 (words5 z) ->
+ Mem.load Mint32 m ba 120=Some (Vint Int.zero) ->
+ table_word_literal x ax -> table_word_literal y ay -> table_word_literal z az -> field_zero_result z=Int.zero ->
+ Mem.load Mptr m bs 16=Some (Vptr bp Ptrofs.zero) ->
+ Mem.load Mptr m bs 8=Some (Vptr bt Ptrofs.zero) -> Mem.load Mptr m bs 0=Some (Vptr bx Ptrofs.zero) ->
+ exists mf ox oy oz,
+ Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ecmult_strauss_wnaf)
+  [Vptr bs Ptrofs.zero;Vptr br Ptrofs.zero;Vlong Int64.one;Vptr ba Ptrofs.zero;
+   Vptr bk Ptrofs.zero;Vptr strauss_zero_block Ptrofs.zero] E0 mf Vundef /\
+ fe_at mf br 0 (words5 ox) /\ fe_at mf br 40 (words5 oy) /\ fe_at mf br 80 (words5 oz) /\
+ square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
+ ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
+  @literal_strauss_body Alg.CoreFunSem ((raw,((ax,ay),az)),@Word.zero 8 Alg.CoreFunSem tt) /\
+ (forall b hi,In (b,hi) (strauss_outer_storage br bk ba bs bp bt bx) ->
+  Mem.range_perm mf b 0 hi Cur Freeable) /\
+ strauss_zero_global_state mf /\
+ lframe (fun b _=>~In b [br;bk;ba;bs;bp;bt;bx]) m mf.
+Proof. exact (@eval_strauss_scale_finite_at strauss_zero_block Model raw ax ay az x y z m br bk ba bs bp bt bx). Qed.
 
 
 Require Import C.jet_toZ C.jet_predicate_spec C.jet_secp_canonical_scalar_zero C.jet_secp_literal_gej_predicate C.jet_secp_mixed_xy_flag
@@ -373,9 +405,11 @@ Proof.
  eapply eq_trans;[exact Choice|];destruct branch;[exact strauss_generate_zero|reflexivity].
 Qed.
 
-Theorem eval_strauss_scale (Model:memset_model)
+Section Generic_eval_strauss_scale.
+Context (bng:block).
+Theorem eval_strauss_scale_at (Model:memset_model)
  (raw ax ay az:Ty.tySem (Word 8)) x y z m br bk ba bs bp bt bx :
- strauss_zero_global_state m -> split_constants_ready m -> beta_initialized m ->
+ (zero_scalar_state bng) m -> split_constants_ready m -> beta_initialized m ->
  NoDup [br;bk;ba;bs;bp;bt;bx] ->
  (forall b hi,In (b,hi) (strauss_outer_storage br bk ba bs bp bt bx) ->
   Mem.range_perm m b 0 hi Cur Freeable) ->
@@ -391,14 +425,14 @@ Theorem eval_strauss_scale (Model:memset_model)
  exists mf ox oy oz,
  Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ecmult_strauss_wnaf)
   [Vptr bs Ptrofs.zero;Vptr br Ptrofs.zero;Vlong Int64.one;Vptr ba Ptrofs.zero;
-   Vptr bk Ptrofs.zero;Vptr strauss_zero_block Ptrofs.zero] E0 mf Vundef /\
+   Vptr bk Ptrofs.zero;Vptr bng Ptrofs.zero] E0 mf Vundef /\
  fe_at mf br 0 (words5 ox) /\ fe_at mf br 40 (words5 oy) /\ fe_at mf br 80 (words5 oz) /\
  square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
  ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
   @literal_off_curve_scale Alg.CoreFunSem (raw,((ax,ay),az)) /\
  (forall b hi,In (b,hi) (strauss_outer_storage br bk ba bs bp bt bx) ->
   Mem.range_perm mf b 0 hi Cur Freeable) /\
- strauss_zero_global_state mf /\
+ (zero_scalar_state bng) mf /\
  lframe (fun b _=>~In b [br;bk;ba;bs;bp;bt;bx]) m mf.
 Proof.
  intros Global Ready Beta Separate Owned Input BX BY BZ X Y Z Flag HX HY HZ PS PT PX.
@@ -411,7 +445,7 @@ Proof.
      destruct Guard as [Infinity|Zero].
      - right;unfold bit_int in Flag;rewrite Infinity in Flag;exact Flag.
      - left;apply Z.eqb_eq;rewrite canonical_scalar_zero_after_normalize;exact Zero. }
-   destruct (eval_strauss_scale_skipped Model
+   destruct ((eval_strauss_scale_skipped_at bng) Model
     (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem raw))
     m br bk ba bs bt bx Global ltac:(change (0<=@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem raw)<word_modulus 8);apply word_value_bounds) Input Skip PT PX
     (Owned br 128 ltac:(clear;cbn [strauss_outer_storage In];tauto)))
@@ -447,7 +481,7 @@ Proof.
    { rewrite (mixed_flag_of_residue z az HZ).
      rewrite <-literal_gej_is_infinity_value with (x:=ax) (y:=ay).
      exact (f_equal bit_int Infinity). }
-   destruct (eval_strauss_scale_finite Model raw ax ay az x y z m br bk ba bs bp bt bx
+   destruct ((eval_strauss_scale_finite_at bng) Model raw ax ay az x y z m br bk ba bs bp bt bx
     Global Ready Beta Separate Owned Input Nonzero BX BY BZ X Y Z Flag0 HX HY HZ Finite PS PT PX)
     as (mf & ox & oy & oz & Call & XO & YO & ZO & BXO & BYO & BZO & Literal & OwnedF & GlobalF & Frame).
    exists mf,ox,oy,oz;split;[exact Call|];split;[exact XO|];split;[exact YO|];split;[exact ZO|];
@@ -456,3 +490,33 @@ Proof.
      symmetry;exact (strauss_scale_guarded_value raw ((ax,ay),az) false Guard).
    + split;[exact OwnedF|];split;assumption.
 Qed.
+End Generic_eval_strauss_scale.
+
+Theorem eval_strauss_scale (Model:memset_model)
+ (raw ax ay az:Ty.tySem (Word 8)) x y z m br bk ba bs bp bt bx :
+ strauss_zero_global_state m -> split_constants_ready m -> beta_initialized m ->
+ NoDup [br;bk;ba;bs;bp;bt;bx] ->
+ (forall b hi,In (b,hi) (strauss_outer_storage br bk ba bs bp bt bx) ->
+  Mem.range_perm m b 0 hi Cur Freeable) ->
+ scalar_at m bk 0 (map Int64.repr (scalar_limbs_of
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem raw)))) ->
+ square_input_bounds x -> square_input_bounds y -> square_input_bounds z ->
+ fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) -> fe_at m ba 80 (words5 z) ->
+ Mem.load Mint32 m ba 120=Some (Vint (bit_int (Bit.toBool
+  (@literal_gej_is_infinity Alg.CoreFunSem ((ax,ay),az))))) ->
+ table_word_literal x ax -> table_word_literal y ay -> table_word_literal z az ->
+ Mem.load Mptr m bs 16=Some (Vptr bp Ptrofs.zero) ->
+ Mem.load Mptr m bs 8=Some (Vptr bt Ptrofs.zero) -> Mem.load Mptr m bs 0=Some (Vptr bx Ptrofs.zero) ->
+ exists mf ox oy oz,
+ Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ecmult_strauss_wnaf)
+  [Vptr bs Ptrofs.zero;Vptr br Ptrofs.zero;Vlong Int64.one;Vptr ba Ptrofs.zero;
+   Vptr bk Ptrofs.zero;Vptr strauss_zero_block Ptrofs.zero] E0 mf Vundef /\
+ fe_at mf br 0 (words5 ox) /\ fe_at mf br 40 (words5 oy) /\ fe_at mf br 80 (words5 oz) /\
+ square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
+ ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
+  @literal_off_curve_scale Alg.CoreFunSem (raw,((ax,ay),az)) /\
+ (forall b hi,In (b,hi) (strauss_outer_storage br bk ba bs bp bt bx) ->
+  Mem.range_perm mf b 0 hi Cur Freeable) /\
+ strauss_zero_global_state mf /\
+ lframe (fun b _=>~In b [br;bk;ba;bs;bp;bt;bx]) m mf.
+Proof. exact (@eval_strauss_scale_at strauss_zero_block Model raw ax ay az x y z m br bk ba bs bp bt bx). Qed.
