@@ -136,8 +136,9 @@ the complete multiplication backend and all nine Strauss/four ecmult frees;
 the skipped contribution branch retains the flag unconditionally. Each old
 interface remains an exact projection, with unchanged recorded type and
 assumption set. Both public callers rebuild and all seven reviewed helper/caller
-type/assumption comparisons pass. Recheck the complete backend with
-`ulimit -S -s 65520` followed by the pinned
+type/assumption comparisons pass. The complete backend passed recursive
+kernel checking on the exact inputs of `8693340e`, with an unchanged input
+fingerprint. Reproduce with `ulimit -S -s 65520` followed by the pinned
 `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent C.jet_secp_ecmult_general`.
 The old XYZ-only theorem cannot
 justify it by itself, and the nonzero condition must still be discharged from
@@ -153,8 +154,11 @@ its actual literal output Z is nonzero. `literal_table_mixed_nonzero_z`
 is reusable for the later additions. Both modules compile in the ordinary
 build and have reviewed statement/assumption records; the word bridges use
 only the inherited functional-extensionality assumption, while the integer
-identity and nonvanishing lemmas are closed. Recursive kernel checking is
-pending. These helpers add no public jet coverage. The remaining work is
+identity and nonvanishing lemmas are closed. Both passed recursive kernel
+checking on the exact inputs of `c4f5b161`, with an unchanged input fingerprint.
+Reproduce with `ulimit -S -s 65520` followed by the pinned
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent C.jet_secp_table_affine_first`.
+These helpers add no public jet coverage. The remaining work is
 to connect the coordinate witnesses and the other six H conditions to the
 literal table walk, then discharge the full shared-Z condition and compose
 the public verifier.
