@@ -5633,15 +5633,31 @@ and recursive `--coqchk` on the three roots. The updated header of
 `jet_secp_strauss_final_literal` only corrects its earlier Z=1 description;
 include that module in the scoped comparison. Coverage remains 520/533.
 
-Next connect the general entry and initialization to the preprocessing
-branches, deriving separation from fresh allocations. Transport the initialized
-readonly zero-generator state through the entry/preprocessing, then use the
-complete zero-generator branch above. For the admitted-point branch initialize
-the accumulator/countdown, compose the proved descending loop and arbitrary-Z
-final correction. For the skipped preprocessing branch use the empty point
-stage. Finish local frees, the ecmult caller and public wrapper, and establish
-the public source-fidelity connection to the complete literal wrapper. The
-checked point-stage result is not yet a theorem for the entire public jet.
+`jet_secp_strauss_scale_main.exec_strauss_scale_main` composes the actual
+zero-generator scalar branch with the admitted-point stage. It transports the
+preprocessing arrays, counts, state pointers, table, beta products and denominator
+through the branch's proved frame. The resulting coordinates equal the complete
+literal body, not just the short recurrence. All local owners, old permissions,
+the readonly zero scalar and external framing are retained. Its empty main-stage
+theorem requires neither a point table nor point digits.
+
+`eval_strauss_scale_skipped` executes the entire original Strauss function when
+the non-generator scalar is zero or the input point has its infinity flag set.
+It derives the real entry, initialization, skipped preprocessing, zero-generator
+branch, empty point stage and all nine local frees. The result has zero coordinates,
+infinity flag one, the original output ownership, readonly-global state and
+framing outside the result block. The only extra library premise is the existing
+`memset_model`; scalar input storage is readable, with no ownership requirement.
+This whole helper-call theorem covers the skipped branch, not every input of the
+public jet. Reproduce with `JET_TARGETS=C/jet_secp_strauss_scale_main.vo bash
+Coq/build-jets.sh -j1`, its scoped audits and recursive `--coqchk`.
+
+Next compose entry, initialization and finite/nonzero preprocessing with the
+admitted-point main-stage result, deriving all separation from fresh allocations.
+Release all nine locals on that branch too. Combine the two original call paths,
+then finish the ecmult caller and public frame reads/writes. Establish the public
+source-fidelity connection to the complete literal wrapper. The current results
+are not yet a theorem for the entire public jet; coverage remains 520/533.
 For the descending loop's doubles, reuse
 `jet_secp_double_loose_literal.eval_double_var_loose_literal`: it executes
 the original `gej_double_var`, which recomputes the infinity flag from Z,
