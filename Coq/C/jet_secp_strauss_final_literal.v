@@ -1,6 +1,6 @@
-(** Execute the actual final Z correction of the Strauss helper at inverse
-    denominator one. It preserves the literal normalized point, not merely
-    its projective equivalence class. *)
+(** Execute the actual final Z correction for any represented denominator.
+    The zero-flag case multiplies Z; the infinity case preserves zero Z.
+    Results describe exact literal coordinates, including off-curve inputs. *)
 From Coq Require Import ZArith Lia List.
 From compcert Require Import Integers AST Ctypes Cop Clight Clightdefs ClightBigstep Maps Memory Values Events.
 Require Import Simplicity.Ty Simplicity.Word Simplicity.Alg.

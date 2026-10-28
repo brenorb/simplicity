@@ -5603,15 +5603,45 @@ caller obligations, not new public jets. Normal build targets are their four
 `.vo` files; use their scoped statement/assumption comparisons and recursive
 `--coqchk` on all four modules. Coverage remains 520/533.
 
+`jet_secp_strauss_complete_program` ports the complete literal body, guard
+and `off_curve_scale` wrapper from LibSecp256k1.hs:628--672. Small abstract
+routing lemmas keep the scalar split, digit programs, table builder and
+129-step fold opaque during value proofs; they do not replace those operations.
+The body retains the final multiplication in its original argument order.
+Its guard selects `generate` for a zero scalar or an infinite point.
+
+`jet_secp_strauss_scale_literal` derives the fixed literal 129-step result
+from the two signed C preprocessing arrays and their already-proved literal
+value relation. The omitted leading digits are derived absent from the
+returned-count invariant. Both generator streams are derived from the literal
+split of the zero scalar. `strauss_scale_body_from_arrays` then identifies
+the loop and final correction with the complete literal body. The skipped
+preprocessing branch uses the separately proved `strauss_generate_zero`.
+These are representation/specification bridges; they assume no C execution
+or desired output equality.
+
+`jet_secp_strauss_scale_point_stage.exec_strauss_scale_point_stage` composes
+the original infinity initializer, countdown assignment, entire descending
+loop and arbitrary-denominator final correction. Its output is the exact
+short-loop result with the original final Z multiplication. It retains
+coordinate bounds, all five owned ranges, old permissions, readonly memory
+and external framing. No on-curve, Z=1 or nonzero-denominator premise is
+added. The ordinary-local-environment condition is discharged separately for
+the actual nine-local `generator_local_env` by `strauss_local_env_plain`.
+Normal targets are these three modules' `.vo` files; use their scoped audits
+and recursive `--coqchk` on the three roots. The updated header of
+`jet_secp_strauss_final_literal` only corrects its earlier Z=1 description;
+include that module in the scoped comparison. Coverage remains 520/533.
+
 Next connect the general entry and initialization to the preprocessing
 branches, deriving separation from fresh allocations. Transport the initialized
 readonly zero-generator state through the entry/preprocessing, then use the
 complete zero-generator branch above. For the admitted-point branch initialize
 the accumulator/countdown, compose the proved descending loop and arbitrary-Z
 final correction. For the skipped preprocessing branch use the empty point
-stage. Finish local frees, the ecmult caller and public wrapper. The complete
-literal body/guard wrapper routing and its public source-fidelity connection
-still need completion; the step and 129-digit loop ports alone are insufficient.
+stage. Finish local frees, the ecmult caller and public wrapper, and establish
+the public source-fidelity connection to the complete literal wrapper. The
+checked point-stage result is not yet a theorem for the entire public jet.
 For the descending loop's doubles, reuse
 `jet_secp_double_loose_literal.eval_double_var_loose_literal`: it executes
 the original `gej_double_var`, which recomputes the infinity flag from Z,
