@@ -1,0 +1,203 @@
+### C.jet_secp_linear_verify_literal.literal_linear_check_parametric
+literal_linear_check_parametric
+     : @Alg.Core.Parametric literal_linear_verify_args (Ty.Sum Ty.Unit Ty.Unit) (@literal_linear_check)
+### C.jet_secp_linear_verify_literal.literal_linear_verify_parametric
+literal_linear_verify_parametric
+     : @Alg.Assertion.Parametric literal_linear_verify_args Ty.Unit (@literal_linear_verify)
+### C.jet_secp_linear_verify_literal.literal_linear_check_value
+literal_linear_check_value
+     : forall (na ng : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (a b : Ty.tySem jet_secp_scalar_table_literal.literal_table_ge),
+       @eq bool
+         (Bit.toBool
+            (@literal_linear_check Alg.CoreFunSem
+               (@pair
+                  (prod
+                     (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.tySem jet_secp_scalar_table_literal.literal_table_ge))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                  (Ty.tySem jet_secp_scalar_table_literal.literal_table_ge)
+                  (@pair
+                     (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.tySem jet_secp_scalar_table_literal.literal_table_ge))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.tySem jet_secp_scalar_table_literal.literal_table_ge) na a) ng) b)))
+         (andb (Bit.toBool (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem b))
+            (andb (Bit.toBool (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem a))
+               (Bit.toBool
+                  (@jet_secp_literal_gej_predicate.literal_gej_is_infinity Alg.CoreFunSem
+                     (@jet_secp_add_literal.literal_gej_ge_add Alg.CoreFunSem
+                        (@pair (Ty.tySem jet_secp_scalar_table_literal.literal_table_gej)
+                           (Ty.tySem
+                              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                                 (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                           (@jet_secp_strauss_complete_program.literal_off_curve_linear_combination_1 Alg.CoreFunSem
+                              (@pair
+                                 (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                    (prod (Ty.tySem jet_secp_scalar_table_literal.literal_table_ge)
+                                       (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                    (prod (Ty.tySem jet_secp_scalar_table_literal.literal_table_ge)
+                                       (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) na
+                                    (@pair (Ty.tySem jet_secp_scalar_table_literal.literal_table_ge)
+                                       (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) a
+                                       (@jet_secp_literal_add_program.literal_fe_one256 Alg.CoreFunSem tt))) ng))
+                           (@jet_secp_gej_negate_literal.literal_ge_negate Alg.CoreFunSem b)))))))
+### C.jet_secp_linear_verify_literal.literal_linear_verify_option
+literal_linear_verify_option
+     : forall input : Ty.tySem literal_linear_verify_args,
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem Ty.Unit))
+         (@literal_linear_verify (Alg.AssertionSem Option.option_Monad_Zero) input)
+         match
+           Bit.toBool (@literal_linear_check Alg.CoreFunSem input)
+           return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem Ty.Unit))
+         with
+         | true => @Some unit tt
+         | false => @None (Ty.tySem Ty.Unit)
+         end
+### C.jet_secp_linear_verify_literal.literal_linear_verify_args
+literal_linear_verify_args =
+Ty.Prod
+  (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+     (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_secp_scalar_table_literal.literal_table_ge
+     : Ty.Ty
+### C.jet_secp_linear_verify_literal.literal_affine_linear_routing
+literal_affine_linear_routing =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.pair
+  (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Ty.Prod jet_secp_scalar_table_literal.literal_table_ge (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  (@Alg.Core.Combinators.take
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+     (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+        (Ty.Prod jet_secp_scalar_table_literal.literal_table_ge (Word.Word (S (S (S (S (S (S (S (S O))))))))))) term
+     (@Alg.Core.Combinators.pair
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+        (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+        (Ty.Prod jet_secp_scalar_table_literal.literal_table_ge (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+        (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           jet_secp_scalar_table_literal.literal_table_ge (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+           (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term))
+        (@Alg.Core.Combinators.pair
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+           jet_secp_scalar_table_literal.literal_table_ge (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+           (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              jet_secp_scalar_table_literal.literal_table_ge jet_secp_scalar_table_literal.literal_table_ge term
+              (@Alg.Core.Combinators.iden jet_secp_scalar_table_literal.literal_table_ge term))
+           (@Alg.Core.Combinators.comp
+              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+              Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+              (@Alg.Core.Combinators.unit
+                 (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+                 term) (@jet_secp_literal_add_program.literal_fe_one256 term)))))
+  (@Alg.Core.Combinators.drop
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term
+         (Ty.Prod
+            (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+            (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_secp_strauss_complete_program.literal_strauss_args
+
+Arguments literal_affine_linear_routing {term}
+### C.jet_secp_linear_verify_literal.literal_linear_check_body
+literal_linear_check_body =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp
+  (Ty.Prod
+     (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+  (Ty.Prod jet_secp_scalar_table_literal.literal_table_gej
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+  (Ty.Sum Ty.Unit Ty.Unit) term
+  (@Alg.Core.Combinators.pair
+     (Ty.Prod
+        (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     jet_secp_scalar_table_literal.literal_table_gej
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+     (@Alg.Core.Combinators.take
+        (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        jet_secp_scalar_table_literal.literal_table_gej term
+        (@Alg.Core.Combinators.comp
+           (Ty.Prod
+              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+              (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_secp_strauss_complete_program.literal_strauss_args
+           jet_secp_scalar_table_literal.literal_table_gej term (@literal_affine_linear_routing term)
+           (@jet_secp_strauss_complete_program.literal_off_curve_linear_combination_1 term)))
+     (@Alg.Core.Combinators.drop
+        (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_secp_scalar_table_literal.literal_table_ge)
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+        (@jet_secp_gej_negate_literal.literal_ge_negate term)))
+  (@Alg.Core.Combinators.comp
+     (Ty.Prod
+        (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit) term
+     (@jet_secp_add_literal.literal_gej_ge_add term) (@jet_secp_literal_gej_predicate.literal_gej_is_infinity term))
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term literal_linear_verify_args (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments literal_linear_check_body {term}
+### C.jet_secp_linear_verify_literal.literal_linear_check
+literal_linear_check =
+fun term : Alg.Core.Algebra =>
+@Bit.and
+  (Ty.Prod
+     (Ty.Prod
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) term
+  (@Alg.Core.Combinators.drop
+     (Ty.Prod
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.Sum Ty.Unit Ty.Unit) term (@jet_secp_curve_literal.literal_ge_is_on_curve term))
+  (@Bit.and
+     (Ty.Prod
+        (Ty.Prod
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_secp_scalar_table_literal.literal_table_ge) term
+     (@Alg.Core.Combinators.take
+        (Ty.Prod
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_secp_scalar_table_literal.literal_table_ge
+        (Ty.Sum Ty.Unit Ty.Unit) term
+        (@Alg.Core.Combinators.take
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit) term
+           (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Ty.Sum Ty.Unit Ty.Unit) term (@jet_secp_curve_literal.literal_ge_is_on_curve term))))
+     (@literal_linear_check_body term))
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term literal_linear_verify_args (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments literal_linear_check {term}
+### C.jet_secp_linear_verify_literal.literal_linear_verify
+literal_linear_verify =
+fun term : Alg.Assertion.Algebra =>
+@SC.comp literal_linear_verify_args (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit (Alg.Assertion.toCore term)
+  (@literal_linear_check (Alg.Assertion.toCore term)) (@jet_assertion_spec.verify_spec term)
+     : forall term : Alg.Assertion.Algebra, Alg.Assertion.domain term literal_linear_verify_args Ty.Unit
+
+Arguments literal_linear_verify {term}
