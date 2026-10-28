@@ -118,6 +118,14 @@ build and scoped statement/assumption comparison pass. Reuse
 `strauss_linear_outer_storage` for its eight outer objects. The skipped-point
 whole-function case, branch combination, ecmult and public wrapper remain;
 this internal milestone does not increase accepted coverage.
+`jet_secp_strauss_general_skipped.eval_strauss_general_skipped` now proves the
+other whole-function case for arbitrary generator scalars. It derives the
+skipped preprocessing, generator main stage and all nine local frees, with
+the exact `literal_generate` output, bounds, ownership, table preservation and
+external framing. The ordinary build and scoped statement/assumption
+comparisons pass; only the existing `memset_model` is extra. Combine the two
+whole-function cases next, then compose ecmult and the public wrapper. This
+helper result does not change accepted coverage.
 
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and
