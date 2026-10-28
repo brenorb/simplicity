@@ -158,27 +158,41 @@ identity and nonvanishing lemmas are closed. Both passed recursive kernel
 checking on the exact inputs of `c4f5b161`, with an unchanged input fingerprint.
 Reproduce with `ulimit -S -s 65520` followed by the pinned
 `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent C.jet_secp_table_affine_first`.
-These helpers add no public jet coverage. The remaining work is
-to connect the coordinate witnesses and the other six H conditions to the
-literal table walk, then discharge the full shared-Z condition and compose
-the public verifier.
+These helpers add no public jet coverage.
 
-For the remaining algebra bridge, the general preparation identities are
-over F_p, with division by 2 or 4 meaning the fixed field inverse. Let
-S=X^3+7 and D_n be the odd/even normalized division-polynomial witnesses.
-The chosen odd candidates have D_n=n*X^r*table_q_n(X^3), where r=1 for
-n divisible by 3 and r=0 otherwise. Normalize a table point as
-(S*Phi_m,S^2*Omega_m,D_m), with
-Phi_m=X*D_m^2-4*S*D_(m-1)*D_(m+1) and
-Omega_m=D_(m+2)*D_(m-1)^2-D_(m-2)*D_(m+1)^2; use D_1=1,
-D_(-1)=-1, Phi_1=X and Omega_1=1. The doubled affine increment is
-BX=M^2-2*X*S, BY=M*(3*X*S-M^2)-S^2 for M=3*X^2/2.
-For H=BX*Z^2-Xpoint, the prepared identity is
-H=D_(m+2)*D_(m-2)/4; the next point is scaled from normalized m+2 by
-F=D_m*D_(m-2)/4, or by k^3*F for an incoming scale k. The literal finite
-step uses h=-H and i=-I. The first H identity is now formal as described above; the general
-coordinate identities remain preparation, not formal results yet. Check them and their exact word-operation bridges;
-the coefficient nonvanishing theorems alone do not establish them.
+The complete affine-table denominator implication now compiles:
+`jet_secp_table_affine_nonzero.literal_affine_scalar_table_nonzero` takes
+only the existing `literal_ge_is_on_curve (ax,ay) = true` Boolean guard and
+proves the zero test of `fst (literal_scalar_table5 ((ax,ay),fe_one))` is false.
+It follows the original seed and all seven literal extended additions. The
+word-level residue/scaling bridge derives the finite and nonzero-H branch
+conditions from the curve equation and checked coefficient identities.
+`jet_secp_table_witnesses` / `jet_secp_table_coordinates` connect the compressed
+root certificates to every chosen odd denominator. The seven
+`jet_secp_table_step{1,3,5,7,9,11,13}` modules check the H and XYZ coefficient
+identities with ordinary VM conversion; all seven compiler processes finished
+with exit 0. `jet_secp_table_step_certificates` dispatches these closed checks,
+and `jet_secp_table_normalized_step` composes them with the literal operations.
+The integer/polynomial bridges and certificates are closed. Word bridges use
+only inherited functional extensionality. The final theorem adds no public
+input restriction or external-library premise. Ordinary compilation and scoped
+reviewed theorem/assumption records pass; independent recursive kernel checking
+of this new complete chain is pending. Reproduce that check with
+`ulimit -S -s 65520` followed by the pinned
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent C.jet_secp_table_affine_nonzero`.
+The untrusted coefficient generator is
+`python3 Coq/secp-field-integration/generate-table-coordinates.py`; regeneration
+is byte-identical. It rewrites a file only when its contents differ.
+It is not trusted: the closed Coq equations and evaluation lemmas justify the
+witnesses. No interpretation as abstract group multiplication is required.
+
+The next public obligation is the actual `linear_verify_1` wrapper: compose
+both curve guards, the scalar/point readers, affine negation, the existing
+`eval_ecmult_general_flag` with the now-derived denominator fact, mixed
+addition, the stored infinity return and all seven frees. Retain the actual C
+A-then-B short circuit and the literal B-then-A Boolean assertion. Use only the
+already-approved `memset_model` premise at the public boundary. No additional
+jet coverage is claimed for these denominator helpers.
 
 ### Development history for the accepted off-curve linear-combination proof
 
