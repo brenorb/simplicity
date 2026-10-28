@@ -101,8 +101,10 @@ polynomials for odd indices 3, 5 and 7. These six modules compile, have closed
 assumption records and passed recursive kernel checking and reviewed contract
 comparisons in their development checkout.
 
-The remaining indices 9, 11, 13 and 15 are being checked separately on
-`codex/linear-table-polynomials`. Then connect all coefficient identities to
+All seven polynomial certificates now compile. The higher indices 9, 11, 13
+and 15 are committed on `codex/linear-table-polynomials`; their matching
+closed assumption/contract comparisons pass, and recursive kernel checks
+are running separately before integration. Then connect all coefficient identities to
 the exact literal double/seed/mixed-addition route and `scalarTable5`; the
 current polynomial certificates alone establish no C execution or extra jet
 coverage. Carry the stored flag through the general loop, final correction,
@@ -110,6 +112,43 @@ Strauss, ecmult and frees, using nonvanishing proved for the valid-point
 branch. Finally compose both validity tests, negation, mixed addition,
 infinity return and seven frees in `linear_verify_1` without extra public
 premises.
+
+`jet_secp_linear_verify_literal` ports the exact two curve guards and affine
+Z=1 routing, proves algebra parametricity, and derives assertion option
+semantics by reusing `verify_spec`. Its ordinary build, closed assumption
+records, reviewed contracts and recursive kernel check pass.
+`jet_secp_strauss_final_flag.exec_strauss_final_flag` compiles and derives the
+actual final-correction execution with its stored flag expressed against the
+output Z, under the internal nonzero-denominator condition. It preserves the
+existing coordinates, permissions and frame result; no earlier contract was
+weakened. Its focused records are reviewed; its recursive kernel check is
+running.
+
+Next expose a conditional flag fact in stronger companions of the general
+point-stage/main/Strauss/ecmult helpers, retaining the existing interfaces as
+projections. In `exec_strauss_general_point_stage`, the existing `FlagF` and
+`Product` already give the implication from a nonzero represented denominator
+to the required output flag, using `literal_zero_product_nonzero_factor`.
+Carry that implication through actual frees. The old XYZ-only theorem cannot
+justify it by itself, and the nonzero condition must still be discharged from
+the valid affine input at the public boundary.
+
+For the remaining algebra bridge, the unproved preparation identities are
+over F_p, with division by 2 or 4 meaning the fixed field inverse. Let
+S=X^3+7 and D_n be the odd/even normalized division-polynomial witnesses.
+The chosen odd candidates have D_n=n*X^r*table_q_n(X^3), where r=1 for
+n divisible by 3 and r=0 otherwise. Normalize a table point as
+(S*Phi_m,S^2*Omega_m,D_m), with
+Phi_m=X*D_m^2-4*S*D_(m-1)*D_(m+1) and
+Omega_m=D_(m+2)*D_(m-1)^2-D_(m-2)*D_(m+1)^2; use D_1=1,
+D_(-1)=-1, Phi_1=X and Omega_1=1. The doubled affine increment is
+BX=M^2-2*X*S, BY=M*(3*X*S-M^2)-S^2 for M=3*X^2/2.
+For H=BX*Z^2-Xpoint, the prepared identity is
+H=D_(m+2)*D_(m-2)/4; the next point is scaled from normalized m+2 by
+F=D_m*D_(m-2)/4, or by k^3*F for an incoming scale k. The literal finite
+step uses h=-H and i=-I. These coordinate identities are preparation, not
+formal results yet. Check them and their exact word-operation bridges;
+the coefficient nonvanishing theorems alone do not establish them.
 
 ### Development history for the accepted off-curve linear-combination proof
 
