@@ -1,0 +1,63 @@
+### C.jet_secp_table_witnesses.table_cubic_coefficients_value
+table_cubic_coefficients_value
+     : forall (q : list BinNums.Z) (x : BinNums.Z),
+       @eq BinNums.Z (jet_secp_polynomial.polynomial_value (table_cubic_coefficients q) x)
+         (jet_secp_polynomial.polynomial_value q (BinInt.Z.mul (BinInt.Z.mul x x) x))
+### C.jet_secp_table_witnesses.table_cubic_expand_value
+table_cubic_expand_value
+     : forall (q : list BinNums.Z) (x : BinNums.Z),
+       @eq BinNums.Z (jet_secp_polynomial.polynomial_value (table_cubic_expand q) x)
+         (jet_secp_polynomial.polynomial_value q (BinInt.Z.mul (BinInt.Z.mul x x) x))
+### C.jet_secp_table_witnesses.table_odd_witness_value
+table_odd_witness_value
+     : forall (n : BinNums.Z) (needs_x : bool) (q : list BinNums.Z) (x : BinNums.Z),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (jet_secp_polynomial.polynomial_value (table_odd_witness n needs_x q) x) jet_secp_fe_math.feP)
+         (BinInt.Z.modulo
+            (BinInt.Z.mul
+               (BinInt.Z.mul n match needs_x return BinNums.Z with
+                               | true => x
+                               | false => BinNums.Zpos BinNums.xH
+                               end) (jet_secp_polynomial.polynomial_value q (BinInt.Z.mul (BinInt.Z.mul x x) x)))
+            jet_secp_fe_math.feP)
+### C.jet_secp_table_witnesses.table_odd_witness_nonzero
+table_odd_witness_nonzero
+     : forall (n : BinNums.Z) (needs_x : bool) (q : list BinNums.Z) (x : BinNums.Z)
+         (_ : not (@eq BinNums.Z (BinInt.Z.modulo n jet_secp_fe_math.feP) BinNums.Z0))
+         (_ : not (@eq BinNums.Z (BinInt.Z.modulo x jet_secp_fe_math.feP) BinNums.Z0))
+         (_ : not
+                (@eq BinNums.Z
+                   (BinInt.Z.modulo (jet_secp_polynomial.polynomial_value q (BinInt.Z.mul (BinInt.Z.mul x x) x))
+                      jet_secp_fe_math.feP) BinNums.Z0)),
+       not
+         (@eq BinNums.Z
+            (BinInt.Z.modulo (jet_secp_polynomial.polynomial_value (table_odd_witness n needs_x q) x)
+               jet_secp_fe_math.feP) BinNums.Z0)
+### C.jet_secp_table_witnesses.table_cubic_coefficients
+table_cubic_coefficients =
+fix table_cubic_coefficients (q : list BinNums.Z) : list BinNums.Z :=
+  match q return (list BinNums.Z) with
+  | nil => @nil BinNums.Z
+  | cons a tail =>
+      @cons BinNums.Z a (@cons BinNums.Z BinNums.Z0 (@cons BinNums.Z BinNums.Z0 (table_cubic_coefficients tail)))
+  end
+     : forall _ : list BinNums.Z, list BinNums.Z
+
+Arguments table_cubic_coefficients q%list_scope
+### C.jet_secp_table_witnesses.table_cubic_expand
+table_cubic_expand =
+fun q : list BinNums.Z => jet_secp_polynomial.polynomial_trim (table_cubic_coefficients q)
+     : forall _ : list BinNums.Z, list BinNums.Z
+
+Arguments table_cubic_expand q%list_scope
+### C.jet_secp_table_witnesses.table_odd_witness
+table_odd_witness =
+fun (n : BinNums.Z) (needs_x : bool) (q : list BinNums.Z) =>
+jet_secp_fast_polynomial.fast_polynomial_scale n
+  match needs_x return (list BinNums.Z) with
+  | true => jet_secp_polynomial.polynomial_shift (S O) (table_cubic_expand q)
+  | false => table_cubic_expand q
+  end
+     : forall (_ : BinNums.Z) (_ : bool) (_ : list BinNums.Z), list BinNums.Z
+
+Arguments table_odd_witness n%Z_scope needs_x%bool_scope q%list_scope

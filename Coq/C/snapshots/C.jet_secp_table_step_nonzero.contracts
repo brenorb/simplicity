@@ -1,0 +1,109 @@
+### C.jet_secp_table_step_nonzero.table_step_index_members
+table_step_index_members
+     : forall (n : nat) (_ : @List.In nat n table_step_indices),
+       and (@List.In nat n table_odd_indices)
+         (and (@List.In nat (Nat.add n (S (S O))) table_odd_indices)
+            (or (@eq nat n (S O)) (@List.In nat (Nat.sub n (S (S O))) table_odd_indices)))
+### C.jet_secp_table_step_nonzero.table_previous_value_polynomial
+table_previous_value_polynomial
+     : forall (n : nat) (x : BinNums.Z),
+       Zdiv.eqm jet_secp_fe_math.feP
+         (jet_secp_polynomial.polynomial_value
+            match PeanoNat.Nat.eqb n (S O) return (list BinNums.Z) with
+            | true => @cons BinNums.Z (BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH)) (@nil BinNums.Z)
+            | false => jet_secp_table_coordinates.table_witness_d (Nat.sub n (S (S O)))
+            end x) (table_previous_value n x)
+### C.jet_secp_table_step_nonzero.table_witness_f_value
+table_witness_f_value
+     : forall (n : nat) (x : BinNums.Z),
+       Zdiv.eqm jet_secp_fe_math.feP
+         (jet_secp_polynomial.polynomial_value (jet_secp_table_coordinates.table_witness_f n) x)
+         (BinInt.Z.mul
+            (BinInt.Z.mul (BinInt.Z.mul jet_secp_table_affine_seed.table_half jet_secp_table_affine_seed.table_half)
+               (jet_secp_polynomial.polynomial_value (jet_secp_table_coordinates.table_witness_d n) x))
+            (table_previous_value n x))
+### C.jet_secp_table_step_nonzero.table_witness_h_factor
+table_witness_h_factor
+     : forall (n : nat) (x : BinNums.Z)
+         (_ : @eq (prod (prod (prod (list BinNums.Z) (list BinNums.Z)) (list BinNums.Z)) (list BinNums.Z))
+                (jet_secp_table_coordinates.table_witness_step n)
+                (jet_secp_table_coordinates.table_witness_scaled_next n)),
+       Zdiv.eqm jet_secp_fe_math.feP
+         (jet_secp_polynomial.polynomial_value (jet_secp_table_coordinates.table_witness_h n) x)
+         (BinInt.Z.mul
+            (BinInt.Z.mul (BinInt.Z.mul jet_secp_table_affine_seed.table_half jet_secp_table_affine_seed.table_half)
+               (jet_secp_polynomial.polynomial_value (jet_secp_table_coordinates.table_witness_d (Nat.add n (S (S O))))
+                  x)) (table_previous_value n x))
+### C.jet_secp_table_step_nonzero.table_previous_nonzero
+table_previous_nonzero
+     : forall (n : nat) (x y : BinNums.Z) (_ : @List.In nat n table_step_indices)
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo
+                   (BinInt.Z.add (BinInt.Z.mul (BinInt.Z.mul x x) x)
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo (BinInt.Z.mul y y) jet_secp_fe_math.feP)),
+       not (@eq BinNums.Z (BinInt.Z.modulo (table_previous_value n x) jet_secp_fe_math.feP) BinNums.Z0)
+### C.jet_secp_table_step_nonzero.table_half_square_nonzero
+table_half_square_nonzero
+     : not
+         (@eq BinNums.Z
+            (BinInt.Z.modulo (BinInt.Z.mul jet_secp_table_affine_seed.table_half jet_secp_table_affine_seed.table_half)
+               jet_secp_fe_math.feP) BinNums.Z0)
+### C.jet_secp_table_step_nonzero.table_witness_f_nonzero
+table_witness_f_nonzero
+     : forall (n : nat) (x y : BinNums.Z) (_ : @List.In nat n table_step_indices)
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo
+                   (BinInt.Z.add (BinInt.Z.mul (BinInt.Z.mul x x) x)
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo (BinInt.Z.mul y y) jet_secp_fe_math.feP)),
+       not
+         (@eq BinNums.Z
+            (BinInt.Z.modulo (jet_secp_polynomial.polynomial_value (jet_secp_table_coordinates.table_witness_f n) x)
+               jet_secp_fe_math.feP) BinNums.Z0)
+### C.jet_secp_table_step_nonzero.table_witness_h_nonzero
+table_witness_h_nonzero
+     : forall (n : nat) (x y : BinNums.Z) (_ : @List.In nat n table_step_indices)
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo
+                   (BinInt.Z.add (BinInt.Z.mul (BinInt.Z.mul x x) x)
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))) jet_secp_fe_math.feP)
+                (BinInt.Z.modulo (BinInt.Z.mul y y) jet_secp_fe_math.feP))
+         (_ : @eq (prod (prod (prod (list BinNums.Z) (list BinNums.Z)) (list BinNums.Z)) (list BinNums.Z))
+                (jet_secp_table_coordinates.table_witness_step n)
+                (jet_secp_table_coordinates.table_witness_scaled_next n)),
+       not
+         (@eq BinNums.Z
+            (BinInt.Z.modulo (jet_secp_polynomial.polynomial_value (jet_secp_table_coordinates.table_witness_h n) x)
+               jet_secp_fe_math.feP) BinNums.Z0)
+### C.jet_secp_table_step_nonzero.table_step_indices
+table_step_indices =
+@cons nat (S O)
+  (@cons nat (S (S (S O)))
+     (@cons nat (S (S (S (S (S O)))))
+        (@cons nat (S (S (S (S (S (S (S O)))))))
+           (@cons nat (S (S (S (S (S (S (S (S (S O)))))))))
+              (@cons nat (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                 (@cons nat (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))) (@nil nat)))))))
+     : list nat
+### C.jet_secp_table_step_nonzero.table_odd_indices
+table_odd_indices =
+@cons nat (S O)
+  (@cons nat (S (S (S O)))
+     (@cons nat (S (S (S (S (S O)))))
+        (@cons nat (S (S (S (S (S (S (S O)))))))
+           (@cons nat (S (S (S (S (S (S (S (S (S O)))))))))
+              (@cons nat (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                 (@cons nat (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+                    (@cons nat (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))) (@nil nat))))))))
+     : list nat
+### C.jet_secp_table_step_nonzero.table_previous_value
+table_previous_value =
+fun (n : nat) (x : BinNums.Z) =>
+match PeanoNat.Nat.eqb n (S O) return BinNums.Z with
+| true => BinInt.Z.sub jet_secp_fe_math.feP (BinNums.Zpos BinNums.xH)
+| false => jet_secp_polynomial.polynomial_value (jet_secp_table_coordinates.table_witness_d (Nat.sub n (S (S O)))) x
+end
+     : forall (_ : nat) (_ : BinNums.Z), BinNums.Z
+
+Arguments table_previous_value n%nat_scope x%Z_scope
