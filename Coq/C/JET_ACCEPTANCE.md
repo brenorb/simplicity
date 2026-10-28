@@ -1,9 +1,9 @@
 # Integration and pending-jet reconciliation
 
-## Pending checked linear-combination acceptance
+## Scoped checked linear-combination acceptance
 
 `C.jet_secp_checked_linear_local.checked_linear_initialized_local_spec` is
-registered as a candidate. It derives the original `linear_combination_1`
+passed full scoped acceptance on the exact inputs of `6491c8b6`. It derives the original `linear_combination_1`
 wrapper for all scalar/coordinate words and general valid frames/cursors,
 including both assertion success and failure. It reuses the accepted general
 ecmult, initialized constants, frame readers, writer and local frees; the sole
@@ -16,9 +16,15 @@ and complete initialized partial contract, rejecting 17 new mutations.
 JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_linear_combination_1
 ```
 
-The registry is 524/533; this new entry still requires the full run. The
-latest accepted milestone remains 523/533, recorded below. Registration and
-ordinary compilation do not establish acceptance.
+The run exited successfully after recursive kernel checking on 1,013 modules,
+matching assumption records on 943 modules and contract records on 962 modules,
+negative tests and all five AST regeneration comparisons. Its input fingerprint
+stayed fixed and matched the committed inputs afterwards.
+
+Accepted proof coverage is now 524/533: 375 equivalences without an extra
+library premise, 148 conditional equivalences (138 memcpy, 5 CTZ, 5 memset),
+and one whole-public divergence. Nine jets remain unresolved; the goal stays
+active. This scoped result applies to its exact inputs, not later proof changes.
 
 ## Scoped off-curve linear-combination acceptance
 
@@ -41,10 +47,10 @@ comparisons on 919 modules, contract comparisons on 938 modules, gate negative
 tests and all five AST regeneration comparisons. The audit input fingerprint
 was unchanged throughout and matched the committed inputs afterwards.
 
-Accepted proof coverage is now 523/533: 375 equivalences without an extra
+That accepted milestone covered 523/533: 375 equivalences without an extra
 library premise, 147 conditional equivalences (138 memcpy, 5 CTZ, 4 memset),
-and one whole-public divergence. Ten jets remain unresolved; the goal is
-active. This receipt applies to its exact inputs, not later proof changes.
+and one whole-public divergence. Ten jets remained unresolved. This result
+applies to its exact inputs, not later proof changes.
 
 ## Scoped checked scale and shared helper acceptance
 

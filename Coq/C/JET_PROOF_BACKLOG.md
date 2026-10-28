@@ -14,9 +14,11 @@ explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 5
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
 524/533 registered proof entries, with 9 jets still lacking either result.
-The newly registered `linear_combination_1` candidate has compiled and passed
-scoped statement/assumption comparisons; full scoped acceptance is pending.
-The latest accepted milestone remains 523/533.
+`linear_combination_1` passed full scoped acceptance on the exact inputs of
+`6491c8b6`: kernel checking on 1,013 modules, matching assumption records on
+943 modules and contract records on 962 modules, negative tests and all five
+AST comparisons. The fingerprint stayed fixed and matched the committed inputs
+afterwards. The latest accepted milestone is 524/533; nine jets remain.
 `off_curve_linear_combination_1` passed full scoped acceptance on the exact
 inputs of `938cf401`: kernel checking on 989 modules, matching assumption
 records on 919 modules and contract records on 938 modules, negative tests
