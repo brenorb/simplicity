@@ -17,6 +17,34 @@ Definition gej_curve_result (x y z : nat -> int64) :=
       7*(radix_value z*radix_value z*radix_value z*radix_value z*radix_value z*radix_value z)) mod feP)
     then Int.one else Int.zero.
 
+Theorem exec_gej_curve_body_owned_readback le x y z m ba b_y bx bz :
+  le!_a=Some (Vptr ba Ptrofs.zero) ->
+  square_input_bounds x -> square_input_bounds y -> square_input_bounds z ->
+  ba<>b_y -> ba<>bx -> ba<>bz -> b_y<>bx -> b_y<>bz -> bx<>bz ->
+  fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) -> fe_at m ba 80 (words5 z) ->
+  Mem.range_perm m ba 0 128 Cur Freeable -> Mem.range_perm m b_y 0 40 Cur Freeable ->
+  Mem.range_perm m bx 0 40 Cur Freeable -> Mem.range_perm m bz 0 40 Cur Freeable ->
+  exists mf,
+  Clight2.exec_stmt secp_ge (gej_curve_helper_env b_y bx bz) le m (fn_body f_simplicity_gej_is_valid_var) E0
+    (PTree.set _t'1 (Vint (gej_curve_result x y z)) le) mf
+    (Out_return (Some (Vint (gej_curve_result x y z),tint))) /\
+  Mem.range_perm mf ba 0 128 Cur Freeable /\ Mem.range_perm mf b_y 0 40 Cur Freeable /\
+  Mem.range_perm mf bx 0 40 Cur Freeable /\ Mem.range_perm mf bz 0 40 Cur Freeable /\
+  lframe (gej_curve_frame ba b_y bx bz) m mf /\ gej_curve_input_readback m mf ba x y z.
+Proof.
+  intros HA BX BY BZ HAY HAX HAZ HYX HYZ HXZ HX HY HZ HFA HFY HFX HFZ.
+  destruct (gej_curve_arithmetic_calls_readback x y z m ba b_y bx bz BX BY BZ HAY HAX HAZ HYX HYZ HXZ
+    HX HY HZ HFA HFY HFX HFZ)
+    as (m1 & m2 & m3 & m4 & m5 & m6 & m7 & m8 & mf & C1 & C2 & C3 & C4 & C5 & C6 & C7 & C8 & C9 &
+      AF & YF & XF & ZF & HF & Readback).
+  exists mf;split.
+  - rewrite gej_curve_helper_source.
+    exact (exec_gej_curve_from_calls le m m1 m2 m3 m4 m5 m6 m7 m8 mf ba b_y bx bz
+      (gej_curve_result x y z) HA C1 C2 C3 C4 C5 C6 C7 C8 C9).
+  - split;[exact AF|]. split;[exact YF|]. split;[exact XF|].
+    split;[exact ZF|]. split;[exact HF|exact Readback].
+Qed.
+
 Theorem exec_gej_curve_body_owned le x y z m ba b_y bx bz :
   le!_a=Some (Vptr ba Ptrofs.zero) ->
   square_input_bounds x -> square_input_bounds y -> square_input_bounds z ->
@@ -32,16 +60,9 @@ Theorem exec_gej_curve_body_owned le x y z m ba b_y bx bz :
   Mem.range_perm mf bx 0 40 Cur Freeable /\ Mem.range_perm mf bz 0 40 Cur Freeable /\
   lframe (gej_curve_frame ba b_y bx bz) m mf.
 Proof.
-  intros HA BX BY BZ HAY HAX HAZ HYX HYZ HXZ HX HY HZ HFA HFY HFX HFZ.
-  destruct (gej_curve_arithmetic_calls x y z m ba b_y bx bz BX BY BZ HAY HAX HAZ HYX HYZ HXZ
-    HX HY HZ HFA HFY HFX HFZ)
-    as (m1 & m2 & m3 & m4 & m5 & m6 & m7 & m8 & mf & C1 & C2 & C3 & C4 & C5 & C6 & C7 & C8 & C9 &
-      AF & YF & XF & ZF & HF).
-  exists mf;split.
-  - rewrite gej_curve_helper_source.
-    exact (exec_gej_curve_from_calls le m m1 m2 m3 m4 m5 m6 m7 m8 mf ba b_y bx bz
-      (gej_curve_result x y z) HA C1 C2 C3 C4 C5 C6 C7 C8 C9).
-  - split;[exact AF|]. split;[exact YF|]. split;[exact XF|]. split;assumption.
+ intros HA BX BY BZ HAY HAX HAZ HYX HYZ HXZ HX HY HZ HFA HFY HFX HFZ.
+ destruct (exec_gej_curve_body_owned_readback le x y z m ba b_y bx bz HA BX BY BZ HAY HAX HAZ HYX HYZ HXZ HX HY HZ HFA HFY HFX HFZ) as (mf & Rest).
+ exists mf;tauto.
 Qed.
 
 Definition gej_curve_entry_temps ba :=
@@ -63,14 +84,15 @@ Lemma gej_curve_function_blocks b_y bx bz : blocks_of_env secp_ge (gej_curve_hel
   [(b_y,0,40);(bx,0,40);(bz,0,40)].
 Proof. reflexivity. Qed.
 
-Theorem eval_gej_curve_function x y z m ba :
+Theorem eval_gej_curve_function_readback x y z m ba :
   square_input_bounds x -> square_input_bounds y -> square_input_bounds z ->
   fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) -> fe_at m ba 80 (words5 z) ->
   Mem.range_perm m ba 0 128 Cur Freeable ->
   exists mf,
   Clight2.eval_funcall secp_ge m (Internal f_simplicity_gej_is_valid_var)
     [Vptr ba Ptrofs.zero] E0 mf (Vint (gej_curve_result x y z)) /\
-  Mem.range_perm mf ba 0 128 Cur Freeable /\ lframe (fun b _ => b<>ba) m mf.
+  Mem.range_perm mf ba 0 128 Cur Freeable /\ lframe (fun b _ => b<>ba) m mf /\
+  gej_curve_input_readback m mf ba x y z.
 Proof.
   intros BX BY BZ HX HY HZ HFA.
   destruct (Mem.alloc m 0 40) as [mx bx] eqn:AX.
@@ -106,9 +128,9 @@ Proof.
   { intros pos HP;eapply Mem.perm_alloc_1;[exact AZ|]. eapply Mem.perm_alloc_2;[exact AY|exact HP]. }
   assert (HFZi : Mem.range_perm mi bz 0 40 Cur Freeable).
   { intros pos HP;eapply Mem.perm_alloc_2;[exact AZ|exact HP]. }
-  destruct (exec_gej_curve_body_owned (gej_curve_entry_temps ba) x y z mi ba b_y bx bz
+  destruct (exec_gej_curve_body_owned_readback (gej_curve_entry_temps ba) x y z mi ba b_y bx bz
     ltac:(apply PTree.gss) BX BY BZ HAY HAX HAZ HYX HYZ HXZ HXi HYi HZi HFAi HFYi HFXi HFZi)
-    as (mo & HBody & HFAo & HFYo & HFXo & HFZo & FBody).
+    as (mo & HBody & HFAo & HFYo & HFXo & HFZo & FBody & Readback).
   destruct (free_list_exists [(b_y,0,40);(bx,0,40);(bz,0,40)] mo) as (mf & HFree & HUnchanged).
   - cbn;repeat constructor;cbn;intuition congruence.
   - intros b lo hi [H|[H|[H|H]]];
@@ -134,5 +156,32 @@ Proof.
           + eapply lframe_implies;[exact FBody|]. intros b pos [HV0 HNotA] HV1.
             split;[exact HNotA|exact (HOld b HV0)].
           + eapply lframe_implies;[exact FFree|]. intros b pos [HV0 HNotA] HV1;exact (HOld b HV0). }
-      eapply lframe_implies;[exact HFrame|]. intros b pos HOther HV0;split;assumption.
+
+      split;[eapply lframe_implies;[exact HFrame|intros b pos HOther HV0;split;assumption]|].
+      destruct Readback as (AXo & AYo & AZo & Flago).
+      unfold gej_curve_input_readback;split.
+      * eapply field_at_lframe;[exact AXo|exact FFree|intros;repeat split;assumption].
+      * split.
+        -- eapply field_at_lframe;[exact AYo|exact FFree|intros;repeat split;assumption].
+        -- split.
+           ++ eapply field_at_lframe;[exact AZo|exact FFree|intros;repeat split;assumption].
+           ++ rewrite (proj1 FFree Mint32 ba 120).
+              ** rewrite Flago;apply (proj1 FAlloc);[exact HV|intros;exact I].
+              ** eapply Mem.perm_valid_block;apply (HFAo 0);lia.
+              ** intros;repeat split;assumption.
+
+Qed.
+
+Theorem eval_gej_curve_function x y z m ba :
+  square_input_bounds x -> square_input_bounds y -> square_input_bounds z ->
+  fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) -> fe_at m ba 80 (words5 z) ->
+  Mem.range_perm m ba 0 128 Cur Freeable ->
+  exists mf,
+  Clight2.eval_funcall secp_ge m (Internal f_simplicity_gej_is_valid_var)
+    [Vptr ba Ptrofs.zero] E0 mf (Vint (gej_curve_result x y z)) /\
+  Mem.range_perm mf ba 0 128 Cur Freeable /\ lframe (fun b _ => b<>ba) m mf.
+Proof.
+ intros BX BY BZ HX HY HZ HFA.
+ destruct (eval_gej_curve_function_readback x y z m ba BX BY BZ HX HY HZ HFA) as (mf & Rest).
+ exists mf;tauto.
 Qed.

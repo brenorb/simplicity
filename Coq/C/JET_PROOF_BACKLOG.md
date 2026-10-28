@@ -38,6 +38,11 @@ block. Their old interfaces remain exact specializations, so the accepted
 `off_curve_scale` statement is unchanged. The ordinary endpoint build and
 five-module statement/assumption comparisons pass; the new helper sources
 still require joint scoped acceptance with the checked `scale` candidate.
+The curve-validation prefix, arithmetic caller and full function additionally
+prove coordinate/flag readback. Their previous interfaces remain projections
+of these stronger results. The existing `gej_is_on_curve` endpoint rebuilds,
+and the three changed modules pass scoped statement/assumption comparisons;
+joint kernel acceptance remains pending with the new public caller.
 
 The following paragraphs retain the earlier acceptance history, before the
 six conditional CTZ/memset registrations above. Their 513/533 and 19-remaining
