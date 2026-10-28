@@ -102,9 +102,10 @@ assumption records and passed recursive kernel checking and reviewed contract
 comparisons in their development checkout.
 
 All seven polynomial certificates now compile. The higher indices 9, 11, 13
-and 15 are committed on `codex/linear-table-polynomials`; their matching
-closed assumption/contract comparisons pass, and recursive kernel checks
-are running separately before integration. Then connect all coefficient identities to
+and 15 passed recursive kernel checks on the exact inputs of `8000ec59`,
+with an unchanged input fingerprint and matching closed assumption/contract
+records. They are integrated in `3d28401a`; the ordinary build and reviewed
+record comparisons also pass in the primary checkout. Then connect all coefficient identities to
 the exact literal double/seed/mixed-addition route and `scalarTable5`; the
 current polynomial certificates alone establish no C execution or extra jet
 coverage. Carry the stored flag through the general loop, final correction,
@@ -134,8 +135,11 @@ existing public linear-combination callers rebuild successfully.
 the complete multiplication backend and all nine Strauss/four ecmult frees;
 the skipped contribution branch retains the flag unconditionally. Each old
 interface remains an exact projection, with unchanged recorded type and
-assumption set. The ordinary public-caller rebuild passes; the new helper
-records are reviewed before the next broader kernel check. The old XYZ-only theorem cannot
+assumption set. Both public callers rebuild and all seven reviewed helper/caller
+type/assumption comparisons pass. Recheck the complete backend with
+`ulimit -S -s 65520` followed by the pinned
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent C.jet_secp_ecmult_general`.
+The old XYZ-only theorem cannot
 justify it by itself, and the nonzero condition must still be discharged from
 the valid affine input at the public boundary.
 
