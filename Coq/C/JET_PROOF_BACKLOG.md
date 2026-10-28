@@ -207,7 +207,10 @@ axiom record for the affected helpers and the accepted `ge_is_on_curve`
 caller is unchanged. `jet_secp_affine_validity_readback` exposes the literal
 curve result, coordinate/flag readback, ownership, frame and readonly
 preservation. The seven-module build and scoped reviewed comparisons pass;
-independent kernel checking of these wrapper/flag additions is pending.
+these entry/flag/reader additions passed recursive kernel checking on the
+exact inputs of `65e1b9e8`, with an unchanged input fingerprint. Reproduce
+with `ulimit -S -s 65520` and the pinned
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent C.jet_secp_linear_verify_public_support C.jet_secp_affine_validity_readback C.jet_secp_linear_verify_public_reads`.
 `jet_secp_linear_verify_read_pair` derives a scalar-plus-affine read pair.
 `jet_secp_linear_verify_public_reads` composes all four original calls, advances
 the input cursor by 1536 bits, and retains both scalars, both affine points
@@ -223,6 +226,30 @@ result is true. The final temporary contains their Boolean conjunction;
 both affine coordinates, zero flags and ownership are retained, with external
 framing and readonly preservation. The ordinary build and scoped reviewed
 records pass. This is a checked execution phase, not a complete public jet.
+
+`jet_secp_linear_verify_public_body` binds the exact generated function body,
+reader/call sequences, both branches and the actual infinity accessor/return.
+`jet_secp_linear_verify_arithmetic` composes affine-to-projective initialization,
+in-place B negation, general multiplication and mixed addition. Its output
+flag equals the literal mixed result's infinity predicate. The internal table
+condition is discharged from A's curve guard using
+`literal_affine_scalar_table_nonzero`; no table premise is exported. Both
+sources compile in the ordinary project build. The new
+`jet_secp_linear_verify_lifecycle.eval_linear_verify_initialized` composes
+entry/copy, all four readers, both guard paths, the arithmetic call chain,
+return conversion and all seven frees. It preserves external memory and
+startup state. `jet_secp_linear_verify_local.linear_verify_initialized_local_spec`
+packages the complete all-input initialized partial contract, conditional only
+on the approved `memset_model`, with zero output bits. The proof adapter's
+assertion tree now directly follows canonical `assert t` (pair with unit,
+then `assertr cmrFail0 oh`); its checked option result is unchanged. Original
+C, specifications and API contracts remain fixed. The ordinary build passes;
+the source-binding check and its fourteen targeted mutations pass. Scoped
+assumption/contract comparisons match the reviewed records. The public
+axiom set is the same inherited set as the accepted checked linear-combination
+caller; existing literal-port theorem types and axiom sets are unchanged.
+Registration and full scoped acceptance remain pending. Reproduce the build with
+`JET_TARGETS=C/jet_secp_linear_verify_local.vo bash Coq/build-jets.sh -j4`.
 
 ### Development history for the accepted off-curve linear-combination proof
 

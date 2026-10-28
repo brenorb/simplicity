@@ -196,8 +196,12 @@ Arguments literal_linear_check {term}
 ### C.jet_secp_linear_verify_literal.literal_linear_verify
 literal_linear_verify =
 fun term : Alg.Assertion.Algebra =>
-@SC.comp literal_linear_verify_args (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit (Alg.Assertion.toCore term)
-  (@literal_linear_check (Alg.Assertion.toCore term)) (@jet_assertion_spec.verify_spec term)
+@SC.comp literal_linear_verify_args (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit) Ty.Unit (Alg.Assertion.toCore term)
+  (@SC.pair literal_linear_verify_args (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit (Alg.Assertion.toCore term)
+     (@literal_linear_check (Alg.Assertion.toCore term))
+     (@SC.unit literal_linear_verify_args (Alg.Assertion.toCore term)))
+  (@Alg.Assertion.Combinators.assertr Ty.Unit Ty.Unit Ty.Unit Ty.Unit term jet_assertion_spec.assertion_cmr_fail0
+     (@SC.take Ty.Unit Ty.Unit Ty.Unit (Alg.Assertion.toCore term) (@SC.iden Ty.Unit (Alg.Assertion.toCore term))))
      : forall term : Alg.Assertion.Algebra, Alg.Assertion.domain term literal_linear_verify_args Ty.Unit
 
 Arguments literal_linear_verify {term}

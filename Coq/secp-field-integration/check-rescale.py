@@ -1132,6 +1132,55 @@ SC.comp (@literal_checked_linear_core (Alg.Assertion.toCore term))
         raise ValueError('LinearCombination1 complete success/failure contract differs')
 
 
+
+def check_linear_verify(s):
+    """Bind the affine verifier and its complete success/failure contract."""
+    check_checked_linear(s)
+    for key, fragment in [
+        ('catalog', 'LinearVerify1 :: Secp256k1Jet (((Secp256k1.Scalar,Secp256k1.GE),Secp256k1.Scalar),Secp256k1.GE) ()'),
+        ('catalog', 'specificationSecp256k1 LinearVerify1 = Secp256k1.linear_verify_1'),
+        ('catalog', 'implementationSecp256k1 LinearVerify1 = FFI.linear_verify_1'),
+        ('program', 'linear_verify_1 :: Assert term => Lib term -> term (((Scalar, GE), Scalar), GE) ()'),
+        ('program', 'linear_verify_1 m = assert (linear_check_1 m)'),
+        ('bit_program', 'assert t = t &&& unit >>> assertr cmrFail0 oh'),
+        ('scale_ffi', 'linear_verify_1 :: (((Scalar, GE), Scalar), GE) -> Maybe ()'),
+        ('scale_ffi', 'linear_verify_1 = unsafeLocalCoreJet c_linear_verify_1'),
+        ('scale_ffi', 'foreign import ccall unsafe "" c_linear_verify_1 :: Ptr FrameItem -> Ptr FrameItem -> IO CBool'),
+    ]:
+        p.require(s[key], fragment, 'LinearVerify1 binding')
+    impl = s['program'].split('lib@Lib{..} = Lib {', 1)[1]
+    p.exact_program(impl, 'linear_check_1', 'off_curve_scale', r"""
+and (drop ge_is_on_curve)
+ (and (take (take (drop ge_is_on_curve)))
+  ((take (take (oh &&& (ih &&& (unit >>> fe_one))) &&& ih >>> off_curve_linear_combination_1))
+    &&& drop ge_negate >>> gej_ge_add >>> gej_is_infinity))
+    """)
+    for name, expected in [
+        ('literal_linear_verify_args', 'Ty.Prod (Ty.Prod (Ty.Prod (Word 8) literal_table_ge) (Word 8)) literal_table_ge'),
+        ('literal_affine_linear_routing', 'O (O H &&& (I H &&& (unit >>> @literal_fe_one256 term))) &&& I H'),
+        ('literal_linear_check_body', r"""
+((O (@literal_affine_linear_routing term >>> @literal_off_curve_linear_combination_1 term))
+ &&& I (@literal_ge_negate term)) >>> @literal_gej_ge_add term >>> @literal_gej_is_infinity term
+        """),
+        ('literal_linear_check', r"""
+Bit.and (I (@literal_ge_is_on_curve term))
+ (Bit.and (O (O (I (@literal_ge_is_on_curve term)))) (@literal_linear_check_body term))
+        """),
+        ('literal_linear_verify', r"""
+SC.comp (SC.pair (@literal_linear_check (Alg.Assertion.toCore term)) SC.unit)
+ (Alg.Assertion.Combinators.assertr assertion_cmr_fail0 (SC.take SC.iden))
+        """),
+    ]:
+        if p.compact(p.definition(s['linear_verify_literal'], name)) != p.compact(expected):
+            raise ValueError('affine verifier literal tree differs: ' + name)
+    statements = re.findall(r'Theorem linear_verify_initialized_local_spec\s*:(.*?)\bProof\.', s['linear_verify_jet'], re.S)
+    expected = ('memset_model -> secp_jet_initialized_partial_local_spec linear_startup '
+                'f_simplicity_linear_verify_1 literal_linear_verify_args Ty.Unit '
+                '(@literal_linear_verify (Alg.AssertionSem option_Monad_Zero)).')
+    if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
+        raise ValueError('LinearVerify1 complete success/failure contract differs')
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1142,6 +1191,8 @@ def test():
         **{key: COQ / "C" / file for key, file in LINEAR_PORT_FILES.items()},
         "checked_linear_literal": COQ / "C/jet_secp_checked_linear_literal.v",
         "checked_linear_jet": COQ / "C/jet_secp_checked_linear_local.v",
+        "linear_verify_literal": COQ / "C/jet_secp_linear_verify_literal.v",
+        "linear_verify_jet": COQ / "C/jet_secp_linear_verify_local.v",
         "scale_ffi": REPO / "Haskell/Core/Simplicity/FFI/Jets.hs",
         "scale_ffi_test": REPO / "Haskell/Tests/Simplicity/FFI/Tests.hs",
         "scale_arith": REPO / "Haskell/Core/Simplicity/Programs/Arith.hs",
@@ -1638,6 +1689,35 @@ def test():
             continue
         raise ValueError('accepted checked linear source mutation: ' + old)
     print(f'LinearCombination1 catalog/assertion/initialized partial contract match; {len(mutations)} targeted mutations rejected')
+
+    check_linear_verify(s)
+    mutations = [
+        ('catalog', 'specificationSecp256k1 LinearVerify1 = Secp256k1.linear_verify_1', 'specificationSecp256k1 LinearVerify1 = Secp256k1.point_verify_1'),
+        ('catalog', 'implementationSecp256k1 LinearVerify1 = FFI.linear_verify_1', 'implementationSecp256k1 LinearVerify1 = FFI.point_verify_1'),
+        ('program', 'linear_verify_1 m = assert (linear_check_1 m)', 'linear_verify_1 m = assert (point_check_1 m)'),
+        ('program', 'linear_check_1 = and (drop ge_is_on_curve)', 'linear_check_1 = and (take ge_is_on_curve)'),
+        ('program', 'take (take (drop ge_is_on_curve))', 'take (drop (drop ge_is_on_curve))'),
+        ('scale_ffi', 'linear_verify_1 = unsafeLocalCoreJet c_linear_verify_1', 'linear_verify_1 = unsafeLocalCoreJet c_point_verify_1'),
+        ('linear_verify_literal', 'I (@literal_ge_is_on_curve term)', 'O (@literal_ge_is_on_curve term)'),
+        ('linear_verify_literal', '@literal_fe_one256 term', '@literal_fe_zero256 term'),
+        ('linear_verify_literal', '@literal_ge_negate term', '@literal_ge_scale_lambda term'),
+        ('linear_verify_literal', '@literal_gej_ge_add term', '@literal_gej_add term'),
+        ('linear_verify_literal', 'assertr assertion_cmr_fail0', 'assertr assertion_hash0'),
+        ('linear_verify_jet', 'memset_model -> secp_jet_initialized_partial_local_spec', 'memset_model -> False -> secp_jet_initialized_partial_local_spec'),
+        ('linear_verify_jet', 'f_simplicity_linear_verify_1', 'f_simplicity_point_verify_1'),
+        ('linear_verify_jet', 'literal_linear_verify_args Ty.Unit', 'literal_strauss_args Ty.Unit'),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive linear verifier mutation fixture: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_linear_verify(changed)
+        except ValueError:
+            continue
+        raise ValueError('accepted linear verifier source mutation: ' + old)
+    print(f'LinearVerify1 catalog/assertion/initialized partial contract match; {len(mutations)} targeted mutations rejected')
 
 
 if __name__ == "__main__":

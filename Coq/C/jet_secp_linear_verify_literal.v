@@ -38,14 +38,18 @@ Proof.
 Qed.
 
 Definition literal_linear_verify {term:Alg.Assertion.Algebra} : term literal_linear_verify_args Ty.Unit :=
- SC.comp (@literal_linear_check (Alg.Assertion.toCore term)) (@verify_spec term).
+ SC.comp (SC.pair (@literal_linear_check (Alg.Assertion.toCore term)) SC.unit)
+  (Alg.Assertion.Combinators.assertr assertion_cmr_fail0 (SC.take SC.iden)).
 
 Lemma literal_linear_verify_parametric : Alg.Assertion.Parametric (@literal_linear_verify).
 Proof.
  intros a b [R [HC HA]];unfold literal_linear_verify.
  apply (Alg.comp_Parametric (Alg.Core.Parametric.Pack HC)).
- - apply (literal_linear_check_parametric _ _ (Alg.Core.Parametric.Pack HC)).
- - exact (verify_spec_parametric _ _ (Alg.Assertion.Parametric.Pack (Alg.Assertion.Parametric.Build_class HC HA))).
+ - apply (Alg.pair_Parametric (Alg.Core.Parametric.Pack HC)).
+   + apply (literal_linear_check_parametric _ _ (Alg.Core.Parametric.Pack HC)).
+   + apply (Alg.unit_Parametric (Alg.Core.Parametric.Pack HC)).
+ - apply (Alg.assertr_Parametric (Alg.Assertion.Parametric.Pack (Alg.Assertion.Parametric.Build_class HC HA))).
+   apply (Alg.take_Parametric (Alg.Core.Parametric.Pack HC));apply (Alg.iden_Parametric (Alg.Core.Parametric.Pack HC)).
 Qed.
 
 Local Opaque literal_ge_is_on_curve literal_ge_negate literal_gej_ge_add
@@ -77,8 +81,8 @@ Proof.
  pose proof (Alg.CoreSem_initial (M:=option_CIMonad) literal_linear_check_parametric input) as Core.
  change (@literal_linear_check (Alg.AssertionSem option_Monad_Zero) input=
   Some (@literal_linear_check Alg.CoreFunSem input)) in Core.
- unfold literal_linear_verify,SC.comp.
- cbn [Alg.Core.comp Alg.Core.class_of Alg.Assertion.toCore
+ unfold literal_linear_verify,SC.comp,SC.pair,SC.unit.
+ cbn [Alg.Core.comp Alg.Core.pair Alg.Core.unit Alg.Core.class_of Alg.Assertion.toCore
    Alg.Assertion.base Alg.Assertion.class_of Alg.Assertion.packager
    Alg.AssertionSem Alg.AssertionSem_mixin Alg.CoreSem Alg.CoreSem_mixin
    Monad.CIMonad.Theory.kleisliComp].
@@ -86,10 +90,11 @@ Proof.
  cbv [Monad.CIMonad.kleisliComp Monad.CIMonad.class_of Monad.MonadZero.to_Monad
    Monad.MonadZero.class_of Monad.MonadZero.base Monad.MonadZero.packager
    option_Monad_Zero option_MonadZero_mixin option_CIMonad option_CIMonad_class].
- lazymatch goal with |- ?f (@literal_linear_check ?alg input)=_ =>
+ lazymatch goal with |- context[@literal_linear_check ?alg input] =>
   assert (Lift:@literal_linear_check alg input=
    Some (@literal_linear_check Alg.CoreFunSem input)) by exact Core;
-  eapply eq_trans;[exact (f_equal f Lift)|]
+  rewrite Lift
  end.
- cbn [Monad.CIMonad.bind option_bind];apply verify_spec_option.
+ cbn [Monad.CIMonad.bind option_bind].
+ destruct (@literal_linear_check Alg.CoreFunSem input) as [u|u];destruct u;reflexivity.
 Qed.
