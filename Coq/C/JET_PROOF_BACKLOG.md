@@ -176,8 +176,9 @@ and `jet_secp_table_normalized_step` composes them with the literal operations.
 The integer/polynomial bridges and certificates are closed. Word bridges use
 only inherited functional extensionality. The final theorem adds no public
 input restriction or external-library premise. Ordinary compilation and scoped
-reviewed theorem/assumption records pass; independent recursive kernel checking
-of this new complete chain is pending. Reproduce that check with
+reviewed theorem/assumption records pass. The complete chain passed recursive
+kernel checking on the exact inputs of `642ca728`, with an unchanged input
+fingerprint. Reproduce that check with
 `ulimit -S -s 65520` followed by the pinned
 `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent C.jet_secp_table_affine_nonzero`.
 The untrusted coefficient generator is
@@ -193,6 +194,22 @@ addition, the stored infinity return and all seven frees. Retain the actual C
 A-then-B short circuit and the literal B-then-A Boolean assertion. Use only the
 already-approved `memset_model` premise at the public boundary. No additional
 jet coverage is claimed for these denominator helpers.
+
+`jet_secp_linear_verify_public_support` now derives the actual seven-local
+entry, private source-frame copy, ownership/separation and all seven frees.
+Its ordinary build and scoped reviewed records pass. The readers can use
+capacity zero; no 768-bit output-space restriction is appropriate for this
+unit-output verifier. The affine validity helper chain now has stronger
+readback companions retaining its point flag through all six arithmetic
+calls, function entry/body/return and private frees. The original helper
+interfaces remain exact projections; every pre-existing type/definition and
+axiom record for the affected helpers and the accepted `ge_is_on_curve`
+caller is unchanged. `jet_secp_affine_validity_readback` exposes the literal
+curve result, coordinate/flag readback, ownership, frame and readonly
+preservation. The seven-module build and scoped reviewed comparisons pass;
+independent kernel checking of these wrapper/flag additions is pending.
+The scalar-plus-affine read-pair composition is being developed separately;
+its input cursor advances 768 bits and it reserves zero output bits.
 
 ### Development history for the accepted off-curve linear-combination proof
 

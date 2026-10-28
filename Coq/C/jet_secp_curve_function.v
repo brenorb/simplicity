@@ -30,7 +30,7 @@ Lemma curve_function_blocks b_y2 bx : blocks_of_env secp_ge (curve_helper_env b_
   [(b_y2,0,40);(bx,0,40)].
 Proof. reflexivity. Qed.
 
-Theorem eval_curve_finite_function x y m ba :
+Theorem eval_curve_finite_function_readback x y m ba :
   square_input_bounds x -> square_input_bounds y ->
   fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) ->
   Mem.range_perm m ba 0 88 Cur Freeable -> Mem.load Mint32 m ba 80 = Some (Vint Int.zero) ->
@@ -38,7 +38,8 @@ Theorem eval_curve_finite_function x y m ba :
   Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ge_is_valid_var)
     [Vptr ba Ptrofs.zero] E0 mf (Vint (curve_result x y)) /\
   fe_at mf ba 0 (words5 x) /\ fe_at mf ba 40 (words5 y) /\
-  Mem.range_perm mf ba 0 88 Cur Freeable /\ lframe (fun b _ => b<>ba) m mf.
+  Mem.range_perm mf ba 0 88 Cur Freeable /\ lframe (fun b _ => b<>ba) m mf /\
+  Mem.load Mint32 mf ba 80=Mem.load Mint32 m ba 80.
 Proof.
   intros BX BY HX HY HFA HFlag.
   destruct (Mem.alloc m 0 40) as [ma b_y2] eqn:AY.
@@ -64,9 +65,9 @@ Proof.
   assert (HFXi : Mem.range_perm mi bx 0 40 Cur Freeable).
   { intros pos HPos. eapply Mem.perm_alloc_2; eassumption. }
   assert (HA : (curve_entry_temps ba)!_a = Some (Vptr ba Ptrofs.zero)) by (apply PTree.gss).
-  destruct (exec_curve_finite_body (curve_entry_temps ba) x y mi ba b_y2 bx
+  destruct (exec_curve_finite_body_readback (curve_entry_temps ba) x y mi ba b_y2 bx
     HA HFlagi BX BY HAY HAX HYX HXi HYi HFAi HFYi HFXi)
-    as (mo & HBody & HXo & HYo & HFAo & HFYo & HFXo & FBody).
+    as (mo & HBody & HXo & HYo & HFAo & HFYo & HFXo & FBody & FlagReadback).
   destruct (free_list_exists [(b_y2,0,40);(bx,0,40)] mo) as (mf & HFree & HUnchanged).
   - cbn; repeat constructor; cbn; intuition congruence.
   - intros b lo hi [H|[H|H]]; [inversion H; subst; exact HFYo|inversion H; subst; exact HFXo|contradiction].
@@ -76,6 +77,10 @@ Proof.
     pose proof (field_at_lframe mo mf ba 0 (words5 x) _ HXo FFree ltac:(intro pos; split; assumption)) as HXf.
     pose proof (field_at_lframe mo mf ba 40 (words5 y) _ HYo FFree ltac:(intro pos; split; assumption)) as HYf.
     pose proof (curve_keep_free _ mo mf ba 88 ltac:(lia) HFAo FFree ltac:(intro pos; split; assumption)) as HFAf.
+    assert (ValidO:Mem.valid_block mo ba) by (eapply Mem.perm_valid_block;apply (HFAo 0);lia).
+    assert (FlagFinal:Mem.load Mint32 mf ba 80=Mem.load Mint32 m ba 80).
+    { rewrite (proj1 FFree Mint32 ba 80 ValidO ltac:(intros;split;assumption)),FlagReadback.
+      apply (proj1 FAlloc);[exact HV|intros;exact I]. }
     exists mf. split.
     + eapply eval_funcall_internal with (e:=curve_helper_env b_y2 bx) (le1:=curve_entry_temps ba)
         (le2:=curve_body_temps (curve_entry_temps ba) x y) (m1:=mi) (m2:=mo)
@@ -85,6 +90,7 @@ Proof.
       * split; [discriminate|reflexivity].
       * rewrite curve_function_blocks; exact HFree.
     + split; [exact HXf|]. split; [exact HYf|]. split; [exact HFAf|].
+      split;[|exact FlagFinal].
       assert (HFrame : lframe (fun b _ => Mem.valid_block m b /\ b<>ba) m mf).
       { eapply lframe_trans.
         - eapply lframe_implies; [exact FAlloc|]. intros; exact I.
@@ -100,4 +106,19 @@ Proof.
             * apply (Mem.fresh_block_alloc _ _ _ _ _ AX).
               eapply Mem.valid_block_alloc; eassumption. }
       eapply lframe_implies; [exact HFrame|]. intros b pos HOther HV0; split; assumption.
+Qed.
+
+Theorem eval_curve_finite_function x y m ba :
+  square_input_bounds x -> square_input_bounds y ->
+  fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) ->
+  Mem.range_perm m ba 0 88 Cur Freeable -> Mem.load Mint32 m ba 80 = Some (Vint Int.zero) ->
+  exists mf,
+  Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ge_is_valid_var)
+    [Vptr ba Ptrofs.zero] E0 mf (Vint (curve_result x y)) /\
+  fe_at mf ba 0 (words5 x) /\ fe_at mf ba 40 (words5 y) /\
+  Mem.range_perm mf ba 0 88 Cur Freeable /\ lframe (fun b _ => b<>ba) m mf.
+Proof.
+ intros BX BY HX HY HFA HFlag.
+ destruct (eval_curve_finite_function_readback x y m ba BX BY HX HY HFA HFlag) as (mf & Rest).
+ exists mf;tauto.
 Qed.

@@ -1,0 +1,59 @@
+### C.jet_secp_affine_validity_readback.affine_validity_helper_closed
+affine_validity_helper_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_closed_helpers.secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_ge_is_valid_var)) true
+### C.jet_secp_affine_validity_readback.affine_validity_helper_preserved
+affine_validity_helper_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_is_valid_var) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_affine_validity_readback.eval_affine_validity_literal_readback
+eval_affine_validity_literal_readback
+     : forall (x y : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (m : Memory.Mem.mem)
+         (ba : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_point_three_reads.point_canonical_limbs x))
+         (_ : jet_secp_fe_nv.fe_at m ba
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_point_three_reads.point_canonical_limbs y))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m ba
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_is_valid_var)
+               (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf
+               (Values.Vint
+                  (jet_readBit_layout.bit_int
+                     (Bit.toBool
+                        (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+                           (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                              (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) x y))))))
+            (and (jet_secp_fe_nv.fe_at mf ba BinNums.Z0 (jet_secp_point_three_reads.point_canonical_limbs x))
+               (and
+                  (jet_secp_fe_nv.fe_at mf ba
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     (jet_secp_point_three_reads.point_canonical_limbs y))
+                  (and
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint32 mf ba
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (@Some Values.val (Values.Vint Integers.Int.zero)))
+                     (and
+                        (Memory.Mem.range_perm mf ba BinNums.Z0
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b ba)) m
+                              mf) (jet_clight_internal_preserve.readonly_preserved m mf)))))))
