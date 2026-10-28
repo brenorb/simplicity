@@ -109,6 +109,15 @@ object and prove it survives preprocessing (including the readonly-global
 exceptions); reuse this new main result. In the skipped-point case, reuse the
 existing generator main stage at `no=0`, whose denominator is initialized to
 one. Then compose ecmult and the public wrapper before registering a new jet.
+`jet_secp_strauss_general_finite.eval_strauss_general_finite` now completes
+that finite/nonzero-point whole-function case, including actual entry,
+preprocessing, main execution and all nine local frees. The generator scalar
+is an owned outer object; a proved readback through the preprocessing frame
+and its readonly exceptions preserves it until the main call. The ordinary
+build and scoped statement/assumption comparison pass. Reuse
+`strauss_linear_outer_storage` for its eight outer objects. The skipped-point
+whole-function case, branch combination, ecmult and public wrapper remain;
+this internal milestone does not increase accepted coverage.
 
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and
