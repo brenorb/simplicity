@@ -1,10 +1,9 @@
 # Integration and pending-jet reconciliation
 
-## Pending full linear-combination acceptance
+## Scoped off-curve linear-combination acceptance
 
-`C.jet_secp_linear_local.off_curve_linear_initialized_local_spec` is now
-registered as a candidate. Ordinary compilation and scoped reviewed contract
-and assumption comparisons pass. It proves the entire original public C
+`C.jet_secp_linear_local.off_curve_linear_initialized_local_spec` passed full
+scoped acceptance on the exact inputs of `938cf401`. It proves the entire original public C
 wrapper against `literal_off_curve_linear_combination_1` for all five input
 words and general valid frames/cursors, with only the approved `memset_model`
 extra library premise. Actual program initialization establishes its split
@@ -17,9 +16,15 @@ rejects 20 added targeted mutations. This helper has no CoreJets constructor.
 JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_off_curve_linear_combination_1
 ```
 
-The registry is 523/533, but the new entry still requires that full run.
-The latest accepted milestone remains 522/533, documented below. Registration,
-compilation and record comparisons do not themselves establish acceptance.
+The run passed recursive kernel checking on 989 modules, assumption
+comparisons on 919 modules, contract comparisons on 938 modules, gate negative
+tests and all five AST regeneration comparisons. The audit input fingerprint
+was unchanged throughout and matched the committed inputs afterwards.
+
+Accepted proof coverage is now 523/533: 375 equivalences without an extra
+library premise, 147 conditional equivalences (138 memcpy, 5 CTZ, 4 memset),
+and one whole-public divergence. Ten jets remain unresolved; the goal is
+active. This receipt applies to its exact inputs, not later proof changes.
 
 ## Scoped checked scale and shared helper acceptance
 

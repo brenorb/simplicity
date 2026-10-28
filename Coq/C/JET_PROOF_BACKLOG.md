@@ -13,13 +13,15 @@ The inventory currently has 522 equivalence entries (138 with the existing
 explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 4
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-523/533 proof entries, with 10 jets still lacking either result. The newly
-registered `off_curve_linear_combination_1` candidate has compiled and passed
-scoped statement/assumption comparisons; full scoped acceptance is pending.
-The latest accepted milestone remains 522/533. The
+523/533 accepted proof entries, with 10 jets still lacking either result.
+`off_curve_linear_combination_1` passed full scoped acceptance on the exact
+inputs of `938cf401`: kernel checking on 989 modules, matching assumption
+records on 919 modules and contract records on 938 modules, negative tests
+and all five AST comparisons. The fingerprint stayed fixed and matched the
+committed inputs afterwards. The
 `scale`, `off_curve_scale` and `gej_is_on_curve` endpoints passed joint scoped
-acceptance on the exact inputs of `18d941d3`; accepted coverage is now
-522/533. The earlier `off_curve_scale` acceptance at `5e87dacb` remains
+acceptance on the exact inputs of `18d941d3`, reaching the earlier
+522/533 milestone. The earlier `off_curve_scale` acceptance at `5e87dacb` remains
 historical evidence for those earlier inputs. The
 user approved explicit `ctz_model`/`memset_model` premises as conditional
 coverage on 2026-10-27; a SHA empty-preimage premise for the fee jets was not
@@ -53,10 +55,22 @@ The source checker binds Scale's CoreJets
 constructor, Haskell assertion tree, FFI entry, startup and literal ports;
 21 targeted mutations reject source/contract drift. Reproduce with
 `bash Coq/check-jets.sh --accept --jets=simplicity_off_curve_scale,simplicity_scale,simplicity_gej_is_on_curve`.
-The next reserved jet is `off_curve_linear_combination_1`: compose the
-arbitrary-global-Z generator bridge with the four-stream descending loop and
-actual preprocessing/outer caller. No inverse, nonzero-Z or on-curve premise
-may be imposed on this off-curve caller.
+The next reserved jet is `linear_combination_1`. Reuse `linear_startup`,
+`linear_public_env`/storage/free, `eval_linear_public_reads`,
+`eval_ecmult_general`, `eval_checked_validity_literal` and
+`scale_off_curve_combination_parametric`. The frozen C caller reads both
+scalars and the point before its validity call, using `_a__1` and `_t'1`.
+Derive its checked entry/statement spine and both return branches; preserve
+the point readback and both scalar objects across the validity call. Use the
+existing assertion-root binding and full initialized partial contract for
+the literal on-curve assertion. No new multiplication or zero-scalar global
+proof is needed. Register only after deriving the full public boundary.
+
+### Development history for the accepted off-curve linear-combination proof
+
+The helper milestones below record the route to `938cf401`. Their earlier
+pending-recursive and next-composition notes are historical: the completed
+public chain has now passed the full scoped run described above.
 
 `jet_secp_zinv_general_{numeric,literal,outputs,call}` now supplies the
 arbitrary-Z bridge in the ordinary build. `eval_zinv_scaled_literal` reuses
@@ -158,8 +172,8 @@ The ordinary root build and reviewed scoped statement/assumption comparisons
 pass. The existing source gate reuses the 75 Strauss ports, binds this named
 library term and FFI comparison, checks the generator constants/recursive
 leaves and full public contract, and rejects 20 added targeted mutations.
-The candidate is registered; full scoped acceptance remains required before
-claiming 523 accepted proofs. Reproduce with
+The registered endpoint passed full scoped acceptance at `938cf401`, reaching
+523 accepted proofs. Reproduce with
 `JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_off_curve_linear_combination_1`.
 
 The following paragraphs retain the earlier acceptance history, before the
