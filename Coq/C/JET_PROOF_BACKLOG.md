@@ -5652,12 +5652,40 @@ This whole helper-call theorem covers the skipped branch, not every input of the
 public jet. Reproduce with `JET_TARGETS=C/jet_secp_strauss_scale_main.vo bash
 Coq/build-jets.sh -j1`, its scoped audits and recursive `--coqchk`.
 
-Next compose entry, initialization and finite/nonzero preprocessing with the
-admitted-point main-stage result, deriving all separation from fresh allocations.
-Release all nine locals on that branch too. Combine the two original call paths,
-then finish the ecmult caller and public frame reads/writes. Establish the public
-source-fidelity connection to the complete literal wrapper. The current results
-are not yet a theorem for the entire public jet; coverage remains 520/533.
+`jet_secp_strauss_scale_function.eval_strauss_scale_finite` now executes the
+entire finite/nonzero Strauss call: actual entry and initialization, scalar split,
+both signed windows, table/global-Z/beta preprocessing, main stages and all nine
+frees. Separation comes from the actual fresh allocations. Readonly constants
+omitted by the conservative preprocessing frame are restored using the proved
+readonly preservation. The result is the complete literal body.
+
+Its `eval_strauss_scale` combines this with the skipped call and derives which
+branch applies from the canonical scalar zero test and the actual input point
+flag. The coordinates equal `literal_off_curve_scale` for either branch. Its
+seven caller-owned objects are result/scalar/point/state/digits/table/auxiliary
+storage; this internal contract does not pretend the latter four are unchanged.
+
+`jet_secp_ecmult_scale.eval_ecmult_scale` supplies those four auxiliary objects
+through the original outer function's actual allocations and state stores,
+calls Strauss, and releases all four. It preserves the three public-wrapper
+local owners and frames all other old blocks. The original external memset
+contract remains the only additional library premise in these call theorems.
+
+`jet_secp_scale_public_reads.eval_scale_public_reads` derives both original
+scalar/point reader calls from general valid input/output frames and cursors.
+It preserves the scalar through the point reader and supplies all three point
+fields, the actual infinity flag, local owners and the output-frame invariant.
+Neither desired reader execution is assumed.
+
+Reproduce by building `C/jet_secp_strauss_scale_function.vo`,
+`C/jet_secp_ecmult_scale.vo` and `C/jet_secp_scale_public_reads.vo` with
+`JET_TARGETS`, their scoped assumption/contract audits, and recursive
+`--coqchk` on the three roots. Next supply the public wrapper's four local
+allocations and private source-frame copy, compose these reads, the ecmult
+call and the existing general point writer, and free all four wrapper locals.
+Establish/preserve the combined readonly startup state and the public
+source-fidelity binding to the fixed literal wrapper. These internal results
+do not register the public jet; accepted coverage remains 520/533.
 For the descending loop's doubles, reuse
 `jet_secp_double_loose_literal.eval_double_var_loose_literal`: it executes
 the original `gej_double_var`, which recomputes the infinity flag from Z,
