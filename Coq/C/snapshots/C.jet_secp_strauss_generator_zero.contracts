@@ -1,0 +1,242 @@
+### C.jet_secp_strauss_generator_zero.strauss_wnaf15_zero_digits
+strauss_wnaf15_zero_digits
+     : forall (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word) BinNums.Z0),
+       @eq
+         (list
+            (sum unit
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) (Word.Word (S (S (S (S O))))))))
+         (jet_secp_wnaf_literal.literal_wnaf15_digits
+            (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))) (@inl unit unit tt) word))
+         (@List.repeat
+            (sum unit
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+            (@inl unit
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))) tt)
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+### C.jet_secp_strauss_generator_zero.strauss_wnaf_last_zero
+strauss_wnaf_last_zero
+     : forall (digits : forall _ : BinNums.Z, BinNums.Z) (last : BinNums.Z)
+         (_ : jet_secp_wnaf_loop.wnaf_last digits
+                (BinNums.Zpos
+                   (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                last)
+         (_ : @eq (list BinNums.Z)
+                (@List.rev BinNums.Z
+                   (@List.map nat BinNums.Z (fun i : nat => digits (BinInt.Z.of_nat i))
+                      (List.seq O (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+                (@List.repeat BinNums.Z BinNums.Z0
+                   (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq BinNums.Z last (BinNums.Zneg BinNums.xH)
+### C.jet_secp_strauss_generator_zero.exec_strauss_generator_wnaf_zero
+exec_strauss_generator_wnaf_zero
+     : forall (_ : jet_memset_model.memset_model) (high : bool) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (ba b : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type)
+                   match high return BinNums.positive with
+                   | true => jets_secp._wnaf_ng_128
+                   | false => jets_secp._wnaf_ng_1
+                   end e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b
+                      (Ctypesdefs.tarray Ctypesdefs.tint
+                         (BinNums.Zpos
+                            (BinNums.xI
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type)
+                   match high return BinNums.positive with
+                   | true => jets_secp._ng_128
+                   | false => jets_secp._ng_1
+                   end e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type ba (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ecmult_wnaf e)
+                (@None (prod Values.block Ctypes.type))) (_ : not (@eq Values.block ba b))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m ba BinNums.Z0
+                (@cons Integers.Int64.int Integers.Int64.zero
+                   (@cons Integers.Int64.int Integers.Int64.zero
+                      (@cons Integers.Int64.int Integers.Int64.zero
+                         (@cons Integers.Int64.int Integers.Int64.zero (@nil Integers.Int64.int))))))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+               (jet_secp_generator_wnaf_setup.generator_wnaf_half high) Events.E0
+               (jet_secp_generator_wnaf_setup.generator_wnaf_half_temps high le BinNums.Z0) mf ClightBigstep.Out_normal)
+            (and
+               (Memory.Mem.range_perm mf b BinNums.Z0
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xI
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                  Memtype.Cur Memtype.Freeable)
+               (and (jet_sx_mem.lframe (fun (old : Values.block) (_ : BinNums.Z) => not (@eq Values.block old b)) m mf)
+                  (forall (old : Values.block) (pos : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                     (_ : Memory.Mem.valid_block m old),
+                   iff (Memory.Mem.perm mf old pos k p) (Memory.Mem.perm m old pos k p)))))
+### C.jet_secp_strauss_generator_zero.exec_strauss_generator_max_zero
+exec_strauss_generator_max_zero
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bits : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 bits)
+                (BinInt.Z.le bits
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr bits))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits_ng_1 le)
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits_ng_128 le)
+                (@Some Values.val (Values.Vint Integers.Int.zero))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_generator_bits_max.generator_bits_max
+         Events.E0 le m ClightBigstep.Out_normal
+### C.jet_secp_strauss_generator_zero.exec_strauss_zero_wnaf_setup
+exec_strauss_zero_wnaf_setup
+     : forall (_ : jet_memset_model.memset_model) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b0 b128 bw0 bw128 : Values.block)
+         (bits : BinNums.Z)
+         (_ : @List.NoDup Values.block
+                (@cons Values.block b0
+                   (@cons Values.block b128 (@cons Values.block bw0 (@cons Values.block bw128 (@nil Values.block))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._ng_1 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b0 (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._ng_128 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b128 (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._wnaf_ng_1 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bw0
+                      (Ctypesdefs.tarray Ctypesdefs.tint
+                         (BinNums.Zpos
+                            (BinNums.xI
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._wnaf_ng_128 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bw128
+                      (Ctypesdefs.tarray Ctypesdefs.tint
+                         (BinNums.Zpos
+                            (BinNums.xI
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ecmult_wnaf e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : and (BinInt.Z.le BinNums.Z0 bits)
+                (BinInt.Z.le bits
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr bits))))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m b0 BinNums.Z0
+                (@cons Integers.Int64.int Integers.Int64.zero
+                   (@cons Integers.Int64.int Integers.Int64.zero
+                      (@cons Integers.Int64.int Integers.Int64.zero
+                         (@cons Integers.Int64.int Integers.Int64.zero (@nil Integers.Int64.int))))))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m b128 BinNums.Z0
+                (@cons Integers.Int64.int Integers.Int64.zero
+                   (@cons Integers.Int64.int Integers.Int64.zero
+                      (@cons Integers.Int64.int Integers.Int64.zero
+                         (@cons Integers.Int64.int Integers.Int64.zero (@nil Integers.Int64.int))))))
+         (_ : Memory.Mem.range_perm m bw0 BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bw128 BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+               jet_secp_generator_split_call.generator_wnaf_setup Events.E0 (strauss_zero_wnaf_temps le) mf
+               ClightBigstep.Out_normal)
+            (and
+               (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._bits (strauss_zero_wnaf_temps le))
+                  (@Some Values.val (Values.Vint (Integers.Int.repr bits))))
+               (and
+                  (@eq (option Values.val)
+                     (@Maps.PTree.get Values.val jets_secp._bits_ng_1 (strauss_zero_wnaf_temps le))
+                     (@Some Values.val (Values.Vint Integers.Int.zero)))
+                  (and
+                     (@eq (option Values.val)
+                        (@Maps.PTree.get Values.val jets_secp._bits_ng_128 (strauss_zero_wnaf_temps le))
+                        (@Some Values.val (Values.Vint Integers.Int.zero)))
+                     (and
+                        (Memory.Mem.range_perm mf bw0 BinNums.Z0
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (Memory.Mem.range_perm mf bw128 BinNums.Z0
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and
+                              (jet_sx_mem.lframe
+                                 (fun (b : Values.block) (_ : BinNums.Z) =>
+                                  and (not (@eq Values.block b bw0)) (not (@eq Values.block b bw128))) m mf)
+                              (forall (old : Values.block) (pos : BinNums.Z) (k : Memtype.perm_kind)
+                                 (p : Memtype.permission) (_ : Memory.Mem.valid_block m old),
+                               iff (Memory.Mem.perm mf old pos k p) (Memory.Mem.perm m old pos k p)))))))))
+### C.jet_secp_strauss_generator_zero.strauss_zero_wnaf_other
+strauss_zero_wnaf_other
+     : forall (le : Maps.PTree.tree Values.val) (id : AST.ident)
+         (_ : not
+                (@List.In AST.ident id
+                   (@cons AST.ident jets_secp._bits_ng_1
+                      (@cons AST.ident jets_secp._bits_ng_128
+                         (@cons AST.ident jets_secp._t'6 (@cons AST.ident jets_secp._t'7 (@nil AST.ident))))))),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (strauss_zero_wnaf_temps le))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_secp_strauss_generator_zero.strauss_zero_wnaf_temps
+strauss_zero_wnaf_temps =
+fun le : Maps.PTree.tree Values.val =>
+jet_secp_generator_wnaf_setup.generator_wnaf_half_temps true
+  (jet_secp_generator_wnaf_setup.generator_wnaf_half_temps false le BinNums.Z0) BinNums.Z0
+     : forall _ : Maps.PTree.tree Values.val, Maps.PTree.tree Values.val
+
+Arguments strauss_zero_wnaf_temps le

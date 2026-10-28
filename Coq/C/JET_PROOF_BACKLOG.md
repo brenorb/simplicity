@@ -5545,18 +5545,49 @@ an intermediate execution nor a desired result. The normal build target is
 `C/jet_secp_strauss_point_loop.vo`; use its scoped statement/assumption audits
 and recursive `--coqchk`. This remains an internal loop, not a public jet.
 
-Next compose doubling and the generator dispatches and induct over the descending
-loop against the literal fold. Connect the general entry and initialization
-to the preprocessing branches, deriving separation from the fresh allocations,
-and finish generator setup, output rescaling and the public wrapper.
+`jet_secp_strauss_scale_iteration.exec_strauss_scale_iteration` composes the
+original doubling call, one-point loop and both skipped generator dispatches.
+For a state with no=1 and zero generator counts it returns exactly one literal
+four-window Strauss step, including degenerate off-curve intermediates.
+It assumes no Z=1 property or inactive generator-array initialization.
+`jet_secp_strauss_scale_loop.exec_strauss_scale_loop` inducts over all counts
+0..129 and executes the original descending loop through i=-1. It derives
+every iteration and transports the state/PS loads, counts, arrays and
+table/beta representations through their proved frames. It retains exact
+literal-step results, bounds, flag/Z consistency, ownership, permissions,
+readonly state, framing and unaffected temporaries. Its pure fold and
+leading-zero lemmas connect the variable C loop length to the fixed literal
+129-step construction without changing operation order. These are internal
+finite-point/zero-generator-count results, not whole public jets.
+
+`jet_secp_strauss_generator_zero.exec_strauss_zero_wnaf_setup` executes both
+original window-15 calls on zero scalar halves and both maximum-count tests.
+The zero lengths are derived from the literal digit vectors and C's last-
+nonzero-digit invariant; they are not assumed results. The existing point
+bit count is retained, including when it is nonzero. Scalar inputs need only
+the existing readable representation; the digit buffers are owned. This
+setup retains the approved `memset_model` premise and does not include the
+preceding split_128 call. Reproduce the three modules with normal targets
+`C/jet_secp_strauss_scale_loop.vo C/jet_secp_strauss_generator_zero.vo`,
+their scoped statement/assumption audits and recursive `--coqchk` on both
+roots. Coverage remains 520/533.
+
+Next connect the general entry and initialization to the preprocessing
+branches, deriving separation from fresh allocations. The wrapper passes a
+static const zero scalar: reuse the borrowed-input split_128 contract to
+establish zero halves, then the new setup above, rather than requiring
+Freeable storage for that global. Establish its readable-zero predicate from
+the actual program initialization. Initialize the accumulator/countdown,
+compose the proved descending loop, and finish output rescaling, local frees,
+ecmult caller and public wrapper. The no=0 branch has no point table and may
+use the original zero-length loop exit after the same zero-generator setup.
 For the descending loop's doubles, reuse
 `jet_secp_double_loose_literal.eval_double_var_loose_literal`: it executes
 the original `gej_double_var`, which recomputes the infinity flag from Z,
 and retains that flag/Z relation for degenerate off-curve intermediates.
 Derive all helper preconditions there and retain the original zero/infinity
 branches. The wrapper passes a nonnull generator-scalar pointer containing
-zero, so its generator branch still executes; reuse the window-15 proofs to
-derive zero counts/digits. The existing generator-addition literal contract
+zero, so its generator branch still executes. The existing generator-addition literal contract
 assumes Z=1; do not impose that restriction on the finite point table's Z.
 `off_curve_scale` skips both generator additions because their digits are
 absent; the broader linear-combination jets need an arbitrary-Z bridge.
