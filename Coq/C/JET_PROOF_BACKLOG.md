@@ -63,6 +63,13 @@ H/I branches are included. Bounds, stored flag, ownership and framing are
 retained. The four-module build and reviewed statement/assumption comparisons
 pass with no new axioms; recursive acceptance is pending composition into the
 reserved public caller. This helper batch adds no jet to coverage.
+`jet_secp_generator_{digit,dispatch,pair}_general` lifts that result through
+the original lookup, guarded digit reads and both generator dispatches.
+Absent digits retain exact decoded accumulator equality. The pair result
+preserves the factor, generator tables, ownership and external framing;
+closed-call effects prove permission/readonly preservation. These three
+ordinary modules pass their build and reviewed record comparisons. Whole-jet
+composition and recursive acceptance remain pending.
 
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and
