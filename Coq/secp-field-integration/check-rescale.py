@@ -1,7 +1,7 @@
-"""Point and field square-root literal ports/public contracts; not C execution.
+"""Point, field square-root and off-curve-scale literal ports/public contracts.
 
 Reuse the existing source parser.  Field multiply/square dependencies retain
-their own gates; this checks the new projections, cube and zinv composition.
+their own gates. This source correspondence check does not prove C execution.
 """
 import importlib.util
 import os
@@ -377,11 +377,553 @@ def check_decompress(s):
         raise ValueError("Decompress full public contract differs")
 
 
+# OffCurveScale is an exported helper, not a CoreJets constructor. Bind its
+# named library term through the existing FFI comparison, without inventing
+# a commitment identity. These are source-correspondence checks, not proofs
+# of C execution. The registered kernel theorem supplies that evidence.
+SCALE_PORT_FILES = {
+    'scale_complete': 'jet_secp_strauss_complete_program.v',
+    'scale_steps': 'jet_secp_strauss_program.v',
+    'scale_table': 'jet_secp_scalar_table_literal.v',
+    'scale_split': 'jet_secp_split_literal.v',
+    'scale_round': 'jet_secp_split_round_literal.v',
+    'scale_multipliers': 'jet_secp_split_multipliers.v',
+    'scale_basis': 'jet_secp_split_constants.v',
+    'scale_lattice': 'jet_secp_split_signed_bounds.v',
+    'scale_wnaf': 'jet_secp_wnaf_literal.v',
+    'scale_wnaf5': 'jet_secp_wnaf5_literal.v',
+    'scale_split128': 'jet_secp_scalar_split128_literal.v',
+    'scale_lookup': 'jet_secp_lookup5_literal.v',
+    'scale_ge_lambda': 'jet_secp_table_get_lambda_literal.v',
+    'scale_generate': 'jet_secp_generate_program.v',
+    'scale_generator_loop': 'jet_secp_generator_program.v',
+    'scale_startup': 'jet_secp_scale_startup.v',
+    'scale_increment': 'jet_increment_spec.v',
+    'scale_jet': 'jet_secp_scale_local.v',
+}
+
+
+def check_off_curve_scale(s):
+    """Literal off_curve_scale only: its generator scalar is identically zero.
+
+    The checked zero-digit lemmas make generator table/inversion leaves
+    unreachable. This does not certify nonzero-generator combinations or
+    the separate on-curve assertion in Scale. Existing field/scalar/word
+    dependency gates retain responsibility for their primitive ports.
+    """
+    for declaration in ["type FE = Word256", "type GE = (FE, FE)",
+                        "type GEJ = (GE, FE)", "type Scalar = Word256"]:
+        p.require(s["types"], declaration, "off-curve scale representation")
+    p.require(s["program"], "off_curve_scale :: term (Scalar, GEJ) GEJ", "scale library type")
+    p.require(s["scale_ffi"], "off_curve_scale :: (Scalar, GEJ) -> Maybe GEJ", "scale FFI type")
+    p.require(s["scale_ffi"], "off_curve_scale = unsafeLocalCoreJet c_off_curve_scale", "scale FFI binding")
+    p.require(s["scale_ffi"], 'foreign import ccall unsafe "" c_off_curve_scale :: Ptr FrameItem -> Ptr FrameItem -> IO CBool', "scale foreign declaration")
+    p.require(s["scale_ffi_test"], "fast_off_curve_scale = testCoreEval Prog.off_curve_scale", "scale comparison term")
+    p.require(s["scale_ffi_test"], "fast_off_curve_scale (scalarAsTy na, gejAsTy a) == C.off_curve_scale (scalarAsTy na, gejAsTy a)", "scale comparison binding")
+    impl = s["program"].split("lib@Lib{..} = Lib {", 1)[1]
+    p.exact_program(impl, 'scalar_split_lambda', 'scalar_split_128', r"""
+let
+        g1 = scribe256 0x3086d221a7d46bcde86c90e49284eb153daa8a1471e8ca7fe893209a45dbb031
+        g2 = scribe256 0xe4437ed6010e88286f547fa90abfe4c4221208ac9df506c61571b4ae8ac47f71
+        negB1 = scribe128 0xe4437ed6010e88286f547fa90abfe4c3
+        b2 = scribe128 0x3086d221a7d46bcde86c90e49284eb15
+        roundDivTwo384 = take (drop (Arith.msb word128) &&& oh >>> Arith.full_increment word128) >>> ih
+        c1 = ((iden &&& (unit >>> g1) >>> mul256) >>> roundDivTwo384) &&& (unit >>> negB1) >>> mul128
+        c2 = ((iden &&& (unit >>> g2) >>> mul256) >>> roundDivTwo384) &&& (unit >>> b2) >>> mul128
+        k1 = oh &&& drop (cond (((unit >>> high word128) &&& iden) &&& (unit >>> scribeGroupOrder) >>> add256 >>> ih)
+                               ((unit >>> zero128) &&& iden)
+                          &&& (unit >>> scalar_lambda) >>> scalar_multiply >>> scalar_negate) >>> scalar_add
+         >>> msb256 &&& iden >>> cond (iden &&& (unit >>> scribeGroupOrder) >>> sub256 >>> injr unit &&& iih) (injl unit &&& ih)
+      in
+        scalar_normalize >>> iden &&& (c1 &&& c2 >>> sub256 >>> oh &&& iih) >>> k1 &&& ih
+    """)
+    p.exact_program(impl, 'scalar_split_128', 'wnaf5', r"""
+scalar_normalize >>> (false &&& ih) &&& (false &&& oh)
+    """)
+    p.exact_program(impl, 'wnaf5', 'wnaf15', r"""
+wnaf5step128 >>> (take wnaf5step1 >>> ih) &&& ih
+    """)
+    p.exact_program(impl, 'wnaf15', 'generate', r"""
+wnaf15step128 >>> (take wnaf15step1 >>> ih) &&& ih
+    """)
+    p.exact_program(impl, 'generate', 'off_curve_linear_combination_1', r"""
+let
+      step = iih &&& (ioh &&& take gej_double >>> match ih (ih &&& take generateSmall >>> gej_ge_add))
+         >>> match ih (ih &&& take generate128Small >>> gej_ge_add)
+      step2 = (oh &&& (iooh &&& iioh) >>> step) &&& (ioih &&& iiih) >>> step
+      step4 = (oh &&& (iooh &&& iioh) >>> step2) &&& (ioih &&& iiih) >>> step2
+      step8 = (oh &&& (iooh &&& iioh) >>> step4) &&& (ioih &&& iiih) >>> step4
+      step16 = (oh &&& (iooh &&& iioh) >>> step8) &&& (ioih &&& iiih) >>> step8
+      step32 = (oh &&& (iooh &&& iioh) >>> step16) &&& (ioih &&& iiih) >>> step16
+      step64 = (oh &&& (iooh &&& iioh) >>> step32) &&& (ioih &&& iiih) >>> step32
+      step128 = (oh &&& (iooh &&& iioh) >>> step64) &&& (ioih &&& iiih) >>> step64
+      step129 = (oh &&& (iooh &&& iioh) >>> step) &&& (ioih &&& iiih) >>> step128
+     in
+      (unit >>> gej_infinity) &&& split128 >>> step129
+    """)
+    p.exact_program(impl, 'off_curve_linear_combination_1', 'linear_check_1', r"""
+let
+      splitLambda = scalar_split_lambda >>> take wnaf5 &&& drop wnaf5
+      body = (unit >>> gej_infinity) &&& (oih >>> scalarTable5) &&& (ooh >>> splitLambda) &&& (ih >>> split128)
+         >>> iooh &&& step129
+         >>> ioh &&& (oh &&& iih >>> fe_multiply)
+      step = drop iiih
+        &&& (drop iioh
+         &&& (drop ioih
+          &&& (drop iooh &&& take gej_double &&& ioih
+                     >>> match ioh (ioh &&& (oh &&& iih >>> lookupTable5) >>> gej_ge_add))
+          &&& ioih
+          >>> match ioh (ioh &&& (oh &&& iih >>> lookupTable5 >>> ge_scale_lambda) >>> gej_ge_add))
+         &&& iooh
+         >>> match ioh (ioh &&& (take generateSmall &&& iih >>> zinv) >>> gej_ge_add))
+        &&& iooh
+        >>> match ioh (ioh &&& (take generate128Small &&& iih >>> zinv) >>> gej_ge_add)
+      step2 = (oh &&& drop (oh &&& drop ((oooh &&& oioh) &&& (iooh &&& iioh))) >>> step)
+                  &&& drop (oh &&& drop ((ooih &&& oiih) &&& (ioih &&& iiih))) >>> step
+      step4 = (oh &&& drop (oh &&& drop ((oooh &&& oioh) &&& (iooh &&& iioh))) >>> step2)
+                  &&& drop (oh &&& drop ((ooih &&& oiih) &&& (ioih &&& iiih))) >>> step2
+      step8 = (oh &&& drop (oh &&& drop ((oooh &&& oioh) &&& (iooh &&& iioh))) >>> step4)
+                  &&& drop (oh &&& drop ((ooih &&& oiih) &&& (ioih &&& iiih))) >>> step4
+      step16 = (oh &&& drop (oh &&& drop ((oooh &&& oioh) &&& (iooh &&& iioh))) >>> step8)
+                   &&& drop (oh &&& drop ((ooih &&& oiih) &&& (ioih &&& iiih))) >>> step8
+      step32 = (oh &&& drop (oh &&& drop ((oooh &&& oioh) &&& (iooh &&& iioh))) >>> step16)
+                   &&& drop (oh &&& drop ((ooih &&& oiih) &&& (ioih &&& iiih))) >>> step16
+      step64 = (oh &&& drop (oh &&& drop ((oooh &&& oioh) &&& (iooh &&& iioh))) >>> step32)
+                   &&& drop (oh &&& drop ((ooih &&& oiih) &&& (ioih &&& iiih))) >>> step32
+      step128 = (oh &&& drop (oh &&& drop ((oooh &&& oioh) &&& (iooh &&& iioh))) >>> step64)
+                    &&& drop (oh &&& drop ((ooih &&& oiih) &&& (ioih &&& iiih))) >>> step64
+      step129 = (oh &&& drop (oh &&& drop ((oooh &&& oioh) &&& (iooh &&& iioh))) >>> step)
+                    &&& drop (oh &&& drop ((ooih &&& oiih) &&& (ioih &&& iiih))) >>> step128
+     in
+
+
+      or (take (drop gej_is_infinity)) (take (take scalar_is_zero)) &&& iden
+  >>> cond (drop generate) body
+    """)
+    p.exact_program(impl, 'off_curve_scale', 'decompress', r"""
+iden &&& (unit >>> zero256) >>> off_curve_linear_combination_1
+    """)
+    p.exact_program(impl, 'ge_scale_lambda', 'gej_rescale', r"""
+take fe_multiply_beta &&& drop fe_normalize
+    """)
+    helpers = [
+        ('signResize4', '\\bsignResize4\\s*=(.*?)\\n\\s*wnafpre\\s*::', r"""
+left_extend word4 (DoubleV . DoubleV . DoubleV . DoubleV . DoubleV $ SingleV)
+  signResize16 = left_extend word16 (DoubleV . DoubleV . DoubleV $ SingleV)
+  fullShift128 = full_shift word1 word128 >>> oh
+  wnafsub128 :: term ((Bit, Word128), Word128) (Bit, Word128)
+  wnafsub128 = xor ooh (drop msb128) &&& (oih &&& ih >>> sub128) >>> xor oh ioh &&& iih
+
+  wnaf5step1 :: term (Bit, Word128) ((Bit, Word128), (Either () Word4))
+  wnaf5step1 = drop lsb128 &&& (oh &&& fullShift128)
+           >>> cond body (iden &&& injl unit)
+   where
+    body = iden &&& (drop . drop . drop $ iiih) >>> (oh &&& drop signResize4 >>> wnafsub128) &&& injr ih
+
+  wnaf15step1 :: term (Bit,Word128) ((Bit,Word128), (Either () Word16))
+  wnaf15step1 = drop lsb128 &&& iden
+            >>> cond body ((oh &&& fullShift128) &&& injl unit)
+   where
+    mask = take (take (take (ih &&& ih) &&& ih) &&& ih) &&& ih
+    body = iden &&& (drop iiih >>> mask)
+       >>> ((ooh &&& take fullShift128) &&& drop (signResize16 >>> msb128 &&& iden >>> fullShift128) >>> wnafsub128)
+       &&& injr ih
+
+  wnafstepD :: (TyC s, TyC v) => term s (s, v) -> term s (s, (v, v))
+  wnafstepD rec = rec >>> take rec &&& ih >>> ooh &&& (oih &&& ih)
+
+  wnaf5step16 = wnafstepD . wnafstepD . wnafstepD . wnafstepD $ wnaf5step1
+  wnaf5step128 = wnafstepD . wnafstepD . wnafstepD $ wnaf5step16
+  wnaf15step16 = wnafstepD . wnafstepD . wnafstepD . wnafstepD $ wnaf15step1
+  wnaf15step128 = wnafstepD . wnafstepD . wnafstepD $ wnaf15step16
+        """),
+        ('scalarTable5', '\\bscalarTable5\\s*=(.*?)\\n\\s*lookupTable5\\s*::', r"""
+iden &&& gej_double
+               >>> iih &&& (((ooh &&& iih >>> zinv) &&& oih) &&& ioh
+                        >>> pass1_8)
+               >>> (oh &&& iih >>> fe_multiply) &&& drop (take pass2_8)
+     where
+      pass1_2 = iden &&& gej_ge_add_ex >>> (ioh &&& (oooh &&& iioh)) &&& (iih &&& oih)
+      pass1_4 = pass1_2 >>> oh &&& drop (gej_ge_add_ex &&& ih >>> ooh &&& (oih &&& ih >>> pass1_2)) >>> (ioh &&& (oh &&& iioh)) &&& iiih
+      pass1_8 = pass1_4 >>> oh &&& drop (gej_ge_add_ex &&& ih >>> ooh &&& (oih &&& ih >>> pass1_4)) >>> (ioh &&& (oh &&& iioh)) &&& drop (drop ioih)
+      pass2_1 = oh &&& ih >>> zinv
+      pass2_2 = (oioh &&& (ooh &&& ih >>> fe_multiply)) &&& (oiih &&& ih >>> pass2_1) >>> (take pass2_1 &&& ih) &&& oih
+      pass2_4 = (ooh &&& oioh) &&& (oiih &&& ih >>> pass2_2) >>> (oih &&& (ooh &&& iih >>> fe_multiply) >>> pass2_2) &&& ioh >>> (ooh &&& ih) &&& oih
+      pass2_8 = ( oh &&&  ioh) &&& ( iih &&& (unit >>> fe_one) >>> pass2_4) >>> (oih &&& (ooh &&& iih >>> fe_multiply) >>> pass2_4) &&& ioh >>> ooh &&& ih
+        """),
+        ('lookupTable5', '\\blookupTable5\\s*=(.*?)\\n\\s*split128\\s*=', r"""
+oooh &&& ooih &&& oih &&& ih
+               >>> cond neg pos
+     where
+      pos = ioih &&& (iooh &&& (oh &&& iih >>> cond ih oh) >>> cond ih oh) >>> cond ih oh
+      neg = ioih &&& (iooh &&& (oh &&& iih >>> cond oh ih) >>> cond oh ih) >>> cond (take ge_negate) (drop ge_negate)
+        """),
+    ]
+    for name, pattern, expected in helpers:
+        bodies = re.findall(pattern, s["program"], re.S)
+        if len(bodies) != 1 or p.compact(bodies[0]) != p.compact(expected):
+            raise ValueError("canonical scale helper differs: " + name)
+    p.require(s["program"], "split128 = scalar_split_128 >>> take wnaf15 &&& drop wnaf15", "generator split")
+    p.require(s["scale_arith"], "full_increment w = oh &&& (ih &&& (unit >>> zero w)) >>> full_add w", "rounding carry")
+    ports = [
+        ('scale_complete', 'literal_strauss_args', r"""
+Ty.Prod (Ty.Prod (Word 8) literal_table_gej) (Word 8)
+        """),
+        ('scale_complete', 'strauss_split_windows', r"""
+split >>> (O wnaf &&& I wnaf)
+        """),
+        ('scale_complete', 'literal_strauss_split_lambda', r"""
+@strauss_split_windows term literal_wnaf5_digit (@literal_scalar_split_lambda term) (@literal_wnaf5 term)
+        """),
+        ('scale_complete', 'literal_strauss_split128', r"""
+@strauss_split_windows term literal_wnaf_digit (@literal_scalar_split128 term) (@literal_wnaf15 term)
+        """),
+        ('scale_complete', 'strauss_body_routing', r"""
+((unit >>> infinity) &&& (O I H >>> table)
+  &&& (O O H >>> splitlam) &&& (I H >>> splitgen))
+ >>> (I O O H &&& digits) >>> (I O H &&& ((O H &&& I I H) >>> multiply))
+        """),
+        ('scale_complete', 'literal_strauss_body', r"""
+@strauss_body_routing term (@literal_gej_infinity term) (@literal_scalar_table5 term)
+  (@literal_strauss_split_lambda term) (@literal_strauss_split128 term)
+  (@literal_strauss_digits129 term) (@literal_fe_multiply term)
+        """),
+        ('scale_complete', 'literal_strauss_guard', r"""
+Bit.or (O (I (@literal_gej_is_infinity term))) (O (O (@canonical_scalar_is_zero term)))
+        """),
+        ('scale_complete', 'literal_off_curve_linear_combination_1', r"""
+(@literal_strauss_guard term &&& iden) >>>
+ Bit.cond (I (@literal_generate term)) (@literal_strauss_body term)
+        """),
+        ('scale_complete', 'literal_off_curve_scale', r"""
+(iden &&& (unit >>> @Word.zero 8 term)) >>> @literal_off_curve_linear_combination_1 term
+        """),
+        ('scale_steps', 'literal_strauss_context', r"""
+Ty.Prod (Word 8) (literal_table_vector 3)
+        """),
+        ('scale_steps', 'literal_strauss_windows', r"""
+Ty.Prod (Ty.Prod a a) (Ty.Prod b b)
+        """),
+        ('scale_steps', 'literal_strauss_input', r"""
+Ty.Prod literal_generator_jacobian
+ (Ty.Prod literal_strauss_context (literal_strauss_windows a b))
+        """),
+        ('scale_steps', 'literal_strauss_step', r"""
+I (I I I H)
+ &&& (I (I I O H)
+  &&& (I (I O I H)
+   &&& (I (I O O H) &&& O (@literal_gej_double term) &&& I O I H
+      >>> Alg.Core.Combinators.case (I O H)
+       ((I O H &&& (O H &&& I I H >>> @literal_lookup5 term)) >>> @literal_gej_ge_add term))
+   &&& I O I H
+   >>> Alg.Core.Combinators.case (I O H)
+    ((I O H &&& (O H &&& I I H >>> @literal_lookup5 term >>> @literal_ge_scale_lambda term))
+     >>> @literal_gej_ge_add term))
+  &&& I O O H
+  >>> Alg.Core.Combinators.case (I O H)
+   ((I O H &&& (O (@literal_generate_small false term) &&& I I H >>> @literal_gej_zinv term))
+    >>> @literal_gej_ge_add term))
+ &&& I O O H
+ >>> Alg.Core.Combinators.case (I O H)
+  ((I O H &&& (O (@literal_generate_small true term) &&& I I H >>> @literal_gej_zinv term))
+   >>> @literal_gej_ge_add term)
+        """),
+        ('scale_steps', 'literal_strauss_block', r"""
+match depth as d return
+  term (literal_strauss_input (Vector literal_wnaf5_digit d) (Vector literal_wnaf_digit d))
+   literal_generator_jacobian with
+ | Datatypes.O=>@literal_strauss_step term
+ | Datatypes.S d=>
+   let rec:=@literal_strauss_block d term in
+   ((O H &&& I (O H &&& I ((O O O H &&& O I O H) &&& (I O O H &&& I I O H)))) >>> rec)
+   &&& I (O H &&& I ((O O I H &&& O I I H) &&& (I O I H &&& I I I H))) >>> rec
+ end
+        """),
+        ('scale_steps', 'literal_strauss_digits129', r"""
+((O H &&& I (O H &&& I ((O O O H &&& O I O H) &&& (I O O H &&& I I O H))))
+  >>> @literal_strauss_step term)
+ &&& I (O H &&& I ((O O I H &&& O I I H) &&& (I O I H &&& I I I H)))
+ >>> @literal_strauss_block 7 term
+        """),
+        ('scale_table', 'literal_table_ge', r"""
+Ty.Prod (Word 8) (Word 8)
+        """),
+        ('scale_table', 'literal_table_gej', r"""
+Ty.Prod literal_table_ge (Word 8)
+        """),
+        ('scale_table', 'literal_table_tree', r"""
+match n with
+ | Datatypes.O=>literal_table_ge
+ | Datatypes.S k=>Ty.Prod (Word 8) (Ty.Prod (literal_table_tree k) (literal_table_tree k)) end
+        """),
+        ('scale_table', 'literal_table_vector', r"""
+match n with
+ | Datatypes.O=>literal_table_ge
+ | Datatypes.S k=>Ty.Prod (literal_table_vector k) (literal_table_vector k) end
+        """),
+        ('scale_table', 'literal_pass1_2', r"""
+iden &&& @literal_gej_ge_add_ex term >>>
+ (I O H &&& (O O O H &&& I I O H)) &&& (I I H &&& O I H)
+        """),
+        ('scale_table', 'literal_pass1_4', r"""
+@literal_pass1_2 term >>> O H &&& I
+ (@literal_gej_ge_add_ex term &&& I H >>> O O H &&& (O I H &&& I H >>> @literal_pass1_2 term)) >>>
+ (I O H &&& (O H &&& I I O H)) &&& I I I H
+        """),
+        ('scale_table', 'literal_pass1_8', r"""
+@literal_pass1_4 term >>> O H &&& I
+ (@literal_gej_ge_add_ex term &&& I H >>> O O H &&& (O I H &&& I H >>> @literal_pass1_4 term)) >>>
+ (I O H &&& (O H &&& I I O H)) &&& I (I (I O I H))
+        """),
+        ('scale_table', 'literal_pass2_1', r"""
+O H &&& I H >>> @literal_gej_zinv term
+        """),
+        ('scale_table', 'literal_pass2_2', r"""
+(O I O H &&& (O O H &&& I H >>> @literal_fe_multiply term)) &&&
+ (O I I H &&& I H >>> @literal_pass2_1 term) >>> (O (@literal_pass2_1 term) &&& I H) &&& O I H
+        """),
+        ('scale_table', 'literal_pass2_4', r"""
+(O O H &&& O I O H) &&& (O I I H &&& I H >>> @literal_pass2_2 term) >>>
+ (O I H &&& (O O H &&& I I H >>> @literal_fe_multiply term) >>> @literal_pass2_2 term) &&& I O H >>>
+ (O O H &&& I H) &&& O I H
+        """),
+        ('scale_table', 'literal_pass2_8', r"""
+(O H &&& I O H) &&& (I I H &&& (unit >>> @literal_fe_one256 term) >>> @literal_pass2_4 term) >>>
+ (O I H &&& (O O H &&& I I H >>> @literal_fe_multiply term) >>> @literal_pass2_4 term) &&& I O H >>>
+ O O H &&& I H
+        """),
+        ('scale_table', 'literal_scalar_table5', r"""
+iden &&& @literal_gej_double term >>>
+ I I H &&& (((O O H &&& I I H >>> @literal_gej_zinv term) &&& O I H) &&& I O H >>> @literal_pass1_8 term) >>>
+ (O H &&& I I H >>> @literal_fe_multiply term) &&& I (O (@literal_pass2_8 term))
+        """),
+        ('scale_split', 'literal_split_half', r"""
+Ty.Prod Bit (Word 7)
+        """),
+        ('scale_split', 'literal_split_basis_value', r"""
+if first then split_basis_value Datatypes.true else split_lattice_b2
+        """),
+        ('scale_split', 'literal_split_basis_word', r"""
+@fromZ (WordToZ 7) (literal_split_basis_value first)
+        """),
+        ('scale_split', 'literal_split_high', r"""
+@Word.fill Ty.Unit Bit 7 term (@Bit.true Ty.Unit term)
+        """),
+        ('scale_split', 'literal_split_product', r"""
+(@literal_split_coefficient first term &&& (unit >>> Alg.scribe (literal_split_basis_word first))) >>>
+ @multiply_word_spec 7 term
+        """),
+        ('scale_split', 'literal_split_second', r"""
+(@literal_split_product Datatypes.true term &&& @literal_split_product Datatypes.false term) >>>
+ @subtract_word_spec term 8 >>> O H &&& I I H
+        """),
+        ('scale_split', 'literal_split_signed_scalar', r"""
+Bit.cond
+  ((((unit >>> @literal_split_high term) &&& iden) &&& (unit >>> Alg.scribe canonical_group_word)) >>>
+   @canonical_add_word 8 term >>> I H)
+  ((unit >>> @Word.zero 7 term) &&& iden)
+        """),
+        ('scale_split', 'literal_split_pack_half', r"""
+(@Word.leftmost Bit 8 term &&& iden) >>> Bit.cond
+  ((iden &&& (unit >>> Alg.scribe canonical_group_word)) >>> @subtract_word_spec term 8 >>> injr unit &&& I I H)
+  (injl unit &&& I H)
+        """),
+        ('scale_split', 'literal_split_first', r"""
+(O H &&& I (((@literal_split_signed_scalar term &&& (unit >>> @canonical_scalar_lambda term)) >>>
+  @canonical_scalar_multiply term) >>> @canonical_scalar_negate term)) >>>
+ @canonical_scalar_add term >>> @literal_split_pack_half term
+        """),
+        ('scale_split', 'literal_scalar_split_lambda', r"""
+@canonical_scalar_normalize term >>> (iden &&& @literal_split_second term) >>>
+ @literal_split_first term &&& I H
+        """),
+        ('scale_round', 'literal_round384', r"""
+O ((I (@Word.leftmost Bit 7 term) &&& O H) >>> @full_increment_word_spec term 7) >>> I H
+        """),
+        ('scale_round', 'literal_split_coefficient', r"""
+(iden &&& (unit >>> Alg.scribe (@fromZ (WordToZ 8) (split_multiplier_value first)))) >>>
+ @multiply_word_spec 8 term >>> @literal_round384 term
+        """),
+        ('scale_multipliers', 'split_multiplier_value', r"""
+if first then
+ 0x3086d221a7d46bcde86c90e49284eb153daa8a1471e8ca7fe893209a45dbb031 else
+ 0xe4437ed6010e88286f547fa90abfe4c4221208ac9df506c61571b4ae8ac47f71
+        """),
+        ('scale_basis', 'split_basis_value', r"""
+if first then 0xe4437ed6010e88286f547fa90abfe4c3 else
+ canonical_group_order-0x3086d221a7d46bcde86c90e49284eb15
+        """),
+        ('scale_lattice', 'split_lattice_b2', r"""
+0x3086d221a7d46bcde86c90e49284eb15
+        """),
+        ('scale_wnaf', 'literal_wnaf_state', r"""
+Ty.Prod Bit (Word 7)
+        """),
+        ('scale_wnaf', 'literal_wnaf_digit', r"""
+Ty.Sum Ty.Unit (Word 4)
+        """),
+        ('scale_wnaf', 'literal_wnaf_shift128', r"""
+@Word.full_right_shift1 Bit 7 term >>> O H
+        """),
+        ('scale_wnaf', 'literal_wnaf_extend16', r"""
+@left_extend_word_spec 4 3 term
+        """),
+        ('scale_wnaf', 'literal_wnaf_sub128', r"""
+(((O O H &&& I (@Word.leftmost Bit 7 term)) >>> @binary_bit_spec BXor term) &&&
+    ((O I H &&& I H) >>> @subtract_word_spec term 7)) >>>
+  ((O H &&& I O H) >>> @binary_bit_spec BXor term) &&& I I H
+        """),
+        ('scale_wnaf', 'literal_wnaf_mask15', r"""
+O (O (O (I H &&& I H) &&& I H) &&& I H) &&& I H
+        """),
+        ('scale_wnaf', 'literal_wnaf15_body', r"""
+(iden &&& (I (I I I H) >>> @literal_wnaf_mask15 term)) >>>
+  (((O O H &&& O (@literal_wnaf_shift128 term)) &&&
+    I (@literal_wnaf_extend16 term >>> (@Word.leftmost Bit 7 term &&& iden)
+      >>> @literal_wnaf_shift128 term) >>> @literal_wnaf_sub128 term) &&& injr (I H))
+        """),
+        ('scale_wnaf', 'literal_wnaf15_step', r"""
+(I (@Word.rightmost Bit 7 term) &&& iden) >>>
+    Bit.cond (@literal_wnaf15_body term)
+      ((O H &&& @literal_wnaf_shift128 term) &&& injl unit)
+        """),
+        ('scale_wnaf', 'literal_wnaf_double', r"""
+rec >>> (O rec &&& I H) >>> O O H &&& (O I H &&& I H)
+        """),
+        ('scale_wnaf', 'literal_wnaf_block', r"""
+match depth as d return term literal_wnaf_state
+    (Ty.Prod literal_wnaf_state (Vector literal_wnaf_digit d)) with
+  | Datatypes.O => @literal_wnaf15_step term
+  | Datatypes.S d => literal_wnaf_double (literal_wnaf_block d)
+  end
+        """),
+        ('scale_wnaf', 'literal_wnaf15_step16', r"""
+@literal_wnaf_block 4 term
+        """),
+        ('scale_wnaf', 'literal_wnaf15_step128', r"""
+literal_wnaf_double (literal_wnaf_double (literal_wnaf_double (@literal_wnaf15_step16 term)))
+        """),
+        ('scale_wnaf', 'literal_wnaf15', r"""
+@literal_wnaf15_step128 term >>> (O (@literal_wnaf15_step term) >>> I H) &&& I H
+        """),
+        ('scale_wnaf5', 'literal_wnaf5_digit', r"""
+Ty.Sum Ty.Unit (Word 2)
+        """),
+        ('scale_wnaf5', 'literal_wnaf_extend4', r"""
+@left_extend_word_spec 2 5 term
+        """),
+        ('scale_wnaf5', 'literal_wnaf5_body', r"""
+(iden &&& (I (I (I (I I I H))))) >>>
+  (((O H &&& I (@literal_wnaf_extend4 term)) >>> @literal_wnaf_sub128 term) &&& injr (I H))
+        """),
+        ('scale_wnaf5', 'literal_wnaf5_step', r"""
+(I (@Word.rightmost Bit 7 term) &&& (O H &&& @literal_wnaf_shift128 term)) >>>
+    Bit.cond (@literal_wnaf5_body term) (iden &&& injl unit)
+        """),
+        ('scale_wnaf5', 'literal_wnaf5_block', r"""
+match depth as d return term literal_wnaf_state
+    (Ty.Prod literal_wnaf_state (Vector literal_wnaf5_digit d)) with
+  | Datatypes.O => @literal_wnaf5_step term
+  | Datatypes.S d => literal_wnaf_double (literal_wnaf5_block d)
+  end
+        """),
+        ('scale_wnaf5', 'literal_wnaf5_step16', r"""
+literal_wnaf_double (literal_wnaf_double
+    (literal_wnaf_double (literal_wnaf_double (@literal_wnaf5_step term))))
+        """),
+        ('scale_wnaf5', 'literal_wnaf5_step128', r"""
+literal_wnaf_double (literal_wnaf_double (literal_wnaf_double (@literal_wnaf5_step16 term)))
+        """),
+        ('scale_wnaf5', 'literal_wnaf5', r"""
+@literal_wnaf5_step128 term >>> (O (@literal_wnaf5_step term) >>> I H) &&& I H
+        """),
+        ('scale_split128', 'literal_scalar_split128', r"""
+@canonical_scalar_normalize term >>>
+  ((@Bit.false (Word 8) term &&& I H) &&& (@Bit.false (Word 8) term &&& O H))
+        """),
+        ('scale_lookup', 'literal_lookup5_branch_type', r"""
+Ty.Prod Bit (Ty.Prod (Word 1) (literal_table_vector 3))
+        """),
+        ('scale_lookup', 'literal_lookup5_pos', r"""
+(I O I H &&& (I O O H &&& ((O H &&& I I H) >>> Bit.cond (I H) (O H))
+  >>> Bit.cond (I H) (O H))) >>> Bit.cond (I H) (O H)
+        """),
+        ('scale_lookup', 'literal_lookup5_neg', r"""
+(I O I H &&& (I O O H &&& ((O H &&& I I H) >>> Bit.cond (O H) (I H))
+  >>> Bit.cond (O H) (I H))) >>> Bit.cond (O (@literal_ge_negate term)) (I (@literal_ge_negate term))
+        """),
+        ('scale_lookup', 'literal_lookup5', r"""
+(O O O H &&& O O I H &&& O I H &&& I H) >>>
+ Bit.cond (@literal_lookup5_neg term) (@literal_lookup5_pos term)
+        """),
+        ('scale_ge_lambda', 'literal_ge_scale_lambda', r"""
+O (@literal_fe_multiply_beta term) &&& I (@canonical_fe_normalize term)
+        """),
+        ('scale_generate', 'literal_generate', r"""
+((unit >>> @literal_gej_infinity term) &&&
+   (@literal_scalar_split128 term >>> (O (@literal_wnaf15 term) &&& I (@literal_wnaf15 term)))) >>>
+  @literal_generator_digits129 term
+        """),
+        ('scale_generator_loop', 'literal_generator_step', r"""
+(I I H &&& ((I O H &&& O (@literal_gej_double term)) >>>
+   Alg.Core.Combinators.case (I H)
+     ((I H &&& O (@literal_generate_small false term)) >>> @literal_gej_ge_add term))) >>>
+   Alg.Core.Combinators.case (I H)
+     ((I H &&& O (@literal_generate_small true term)) >>> @literal_gej_ge_add term)
+        """),
+        ('scale_generator_loop', 'literal_generator_block', r"""
+match depth as d return term (Ty.Prod literal_generator_jacobian
+   (Ty.Prod (Vector literal_wnaf_digit d) (Vector literal_wnaf_digit d))) literal_generator_jacobian with
+ | Datatypes.O=>@literal_generator_step term
+ | Datatypes.S d=>
+   let rec:=@literal_generator_block d term in
+   ((O H &&& (I O O H &&& I I O H)) >>> rec) &&& (I O I H &&& I I I H) >>> rec
+ end
+        """),
+        ('scale_generator_loop', 'literal_generator_digits129', r"""
+((O H &&& (I O O H &&& I I O H)) >>> @literal_generator_step term) &&&
+   (I O I H &&& I I I H) >>> @literal_generator_block 7 term
+        """),
+        ('scale_startup', 'scale_startup', r"""
+strauss_zero_global_state m /\ split_constants_ready m /\ beta_initialized m
+        """),
+        ('scale_increment', 'full_increment_word_spec', r"""
+@Alg.Core.Combinators.comp (Ty.Prod Bit (Word n))
+    (Ty.Prod Bit (Ty.Prod (Word n) (Word n))) (Ty.Prod Bit (Word n)) term
+    (@Alg.Core.Combinators.pair (Ty.Prod Bit (Word n)) Bit
+      (Ty.Prod (Word n) (Word n)) term
+      (@Alg.Core.Combinators.take Bit (Word n) Bit term
+        (@Alg.Core.Combinators.iden Bit term))
+      (@Alg.Core.Combinators.pair (Ty.Prod Bit (Word n)) (Word n) (Word n) term
+        (@Alg.Core.Combinators.drop Bit (Word n) (Word n) term
+          (@Alg.Core.Combinators.iden (Word n) term))
+        (@Alg.Core.Combinators.comp (Ty.Prod Bit (Word n)) Ty.Unit (Word n) term
+          (@Alg.Core.Combinators.unit (Ty.Prod Bit (Word n)) term)
+          (@Word.zero n term))))
+    (@Word.fullAdder n term)
+        """),
+    ]
+    for key, name, expected in ports:
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError("literal off-curve scale tree differs: " + name)
+    statements = re.findall(r"Theorem off_curve_scale_initialized_local_spec\s*:(.*?)\bProof\.", s["scale_jet"], re.S)
+    expected = ("memset_model -> secp_jet_initialized_local_spec scale_startup "
+                "f_simplicity_off_curve_scale (Ty.Prod (Word 8) literal_table_gej) "
+                "literal_table_gej (@literal_off_curve_scale Alg.CoreFunSem).")
+    if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
+        raise ValueError("off_curve_scale full public contract differs")
+    return 75
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
         "types": REPO / "Haskell/Core/Simplicity/Ty/LibSecp256k1.hs",
         "program": REPO / "Haskell/Core/Simplicity/Programs/LibSecp256k1.hs",
+        **{key: COQ / "C" / file for key, file in SCALE_PORT_FILES.items()},
+        "scale_ffi": REPO / "Haskell/Core/Simplicity/FFI/Jets.hs",
+        "scale_ffi_test": REPO / "Haskell/Tests/Simplicity/FFI/Tests.hs",
+        "scale_arith": REPO / "Haskell/Core/Simplicity/Programs/Arith.hs",
         "port": COQ / "C/jet_secp_rescale_literal.v",
         "jet": COQ / "C/jet_secp_rescale_local.v",
         "double_port": COQ / "C/jet_secp_double_literal.v",
@@ -687,6 +1229,72 @@ def test():
             continue
         raise ValueError("accepted projective-equivalence source mutation: " + old)
     print(f"GejEquiv catalog/literal/full contract match; {len(mutations)} targeted mutations rejected")
+
+
+    port_count = check_off_curve_scale(s)
+    mutations = [
+        ("types", "type Scalar = Word256", "type Scalar = Word128"),
+        ("program", "off_curve_scale :: term (Scalar, GEJ) GEJ", "off_curve_scale :: term (Scalar, GE) GEJ"),
+        ("scale_ffi", "off_curve_scale = unsafeLocalCoreJet c_off_curve_scale",
+                      "off_curve_scale = unsafeLocalCoreJet c_scale"),
+        ("scale_ffi", 'foreign import ccall unsafe "" c_off_curve_scale',
+                      'foreign import ccall unsafe "" c_scale_wrong'),
+        ("scale_ffi_test", "testCoreEval Prog.off_curve_scale", "testCoreEval Prog.scale"),
+        ("program", "off_curve_scale = iden &&& (unit >>> zero256)",
+                    "off_curve_scale = iden &&& (unit >>> fe_one)"),
+        ("program", ">>> cond (drop generate) body", ">>> cond body (drop generate)"),
+        ("program", ">>> ioh &&& (oh &&& iih >>> fe_multiply)",
+                    ">>> ioh &&& (iih &&& oh >>> fe_multiply)"),
+        ("program", ">>> lookupTable5 >>> ge_scale_lambda", ">>> lookupTable5 >>> ge_negate"),
+        ("program", "scalarTable5 = iden &&& gej_double", "scalarTable5 = iden &&& gej_negate"),
+        ("program", "g1 = scribe256 0x3086", "g1 = scribe256 0x3087"),
+        ("program", "negB1 = scribe128 0xe443", "negB1 = scribe128 0xe444"),
+        ("program", "c1 &&& c2 >>> sub256", "c2 &&& c1 >>> sub256"),
+        ("program", "wnaf5step1 = drop lsb128", "wnaf5step1 = drop msb128"),
+        ("program", "wnaf5step1 = drop lsb128 &&& (oh &&& fullShift128)",
+                    "wnaf5step1 = drop lsb128 &&& iden"),
+        ("program", "lookupTable5 = oooh &&& ooih", "lookupTable5 = ooih &&& oooh"),
+        ("program", "ge_scale_lambda = take fe_multiply_beta &&& drop fe_normalize",
+                    "ge_scale_lambda = take fe_multiply_beta &&& ih"),
+        ("scale_complete", "Bit.cond (I (@literal_generate term)) (@literal_strauss_body term)",
+                           "Bit.cond (@literal_strauss_body term) (I (@literal_generate term))"),
+        ("scale_complete", "unit >>> @Word.zero 8 term", "unit >>> @Word.zero 7 term"),
+        ("scale_complete", "O H &&& I I H", "I I H &&& O H"),
+        ("scale_steps", ">>> @literal_strauss_block 7 term", ">>> @literal_strauss_block 6 term"),
+        ("scale_steps", ">>> @literal_strauss_step term", ">>> @literal_strauss_block 0 term"),
+        ("scale_steps", ">>> @literal_lookup5 term >>> @literal_ge_scale_lambda term",
+                        ">>> @literal_lookup5 term"),
+        ("scale_table", "I O H &&& (O O O H &&& I I O H)", "I O H &&& (I I O H &&& O O O H)"),
+        ("scale_table", "O H &&& I I H >>> @literal_fe_multiply term",
+                        "I I H &&& O H >>> @literal_fe_multiply term"),
+        ("scale_split", "literal_split_product Datatypes.true term &&& @literal_split_product Datatypes.false",
+                        "literal_split_product Datatypes.false term &&& @literal_split_product Datatypes.true"),
+        ("scale_round", "@full_increment_word_spec term 7", "@full_increment_word_spec term 6"),
+        ("scale_wnaf5", "@left_extend_word_spec 2 5 term", "@left_extend_word_spec 2 4 term"),
+        ("scale_wnaf5", "I (I (I (I I I H)))", "I (I (I (I I O H)))"),
+        ("scale_wnaf", "rec >>> (O rec &&& I H)", "rec >>> (I H &&& O rec)"),
+        ("scale_wnaf", "@literal_wnaf_block 4 term", "@literal_wnaf_block 3 term"),
+        ("scale_lookup", "Bit.cond", "Bit.or"),
+        ("scale_ge_lambda", "I (@canonical_fe_normalize term)", "I H"),
+        ("scale_startup", "strauss_zero_global_state m", "False /\\ strauss_zero_global_state m"),
+        ("scale_jet", "memset_model -> secp_jet_initialized_local_spec",
+                      "memset_model -> False -> secp_jet_initialized_local_spec"),
+        ("scale_jet", "f_simplicity_off_curve_scale", "f_simplicity_scale"),
+        ("scale_jet", "(Word 8)", "(Word 7)"),
+        ("scale_jet", "@literal_off_curve_scale Alg.CoreFunSem", "@literal_generate Alg.CoreFunSem"),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError("inactive off-curve scale mutation fixture: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_off_curve_scale(changed)
+        except ValueError:
+            continue
+        raise ValueError("accepted off-curve scale source mutation: " + old)
+    print(f"off_curve_scale library/FFI/{port_count} literal ports/full contract match; "
+          f"{len(mutations)} targeted mutations rejected")
 
 
 if __name__ == "__main__":

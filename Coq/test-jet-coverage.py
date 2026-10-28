@@ -41,8 +41,8 @@ def main():
     assert coverage.missing_proofs([complete, absent, divergent]) == [absent]
     assert coverage.missing_equivalences([complete, divergent]) == [divergent]
     assert sum(bool(row["divergence_proof"]) for row in rows) == 1
-    assert len(coverage.missing_equivalences(rows)) == 14
-    assert len(coverage.missing_proofs(rows)) == 13
+    assert len(coverage.missing_equivalences(rows)) == 13
+    assert len(coverage.missing_proofs(rows)) == 12
     assert coverage.proof_roots(rows, ["simplicity_gej_ge_add_ex"]) == {
         "C.jet_secp_mixed_ex_local", "C.jet_secp_mixed_ex_refutation"}
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_scale"]),
@@ -127,8 +127,10 @@ def main():
                         variants.append(tail.replace(state, "(fun _ => True)", 1))
             if "memset_model ->" in tail:
                 variants += [tail.replace("memset_model ->", "ctz_model ->", 1),
-                             tail.replace("memset_model ->", "", 1),
-                             tail.replace("generator_startup", "(fun _ => True)", 1)]
+                             tail.replace("memset_model ->", "", 1)]
+                for state in ("generator_startup", "scale_startup"):
+                    if state in tail:
+                        variants.append(tail.replace(state, "(fun _ => True)", 1))
             if "beta_initialized" in tail:
                 variants.append(tail.replace("beta_initialized", "(fun _ => True)", 1))
             for changed in variants:
