@@ -44,7 +44,7 @@ Require Import C.jet_secp_scalar_get_b32_storage C.jet_secp_strauss_skip
 Require Import C.jet_secp_generate_program C.jet_secp_generator_main C.jet_secp_point_set_bit C.jet_secp_strauss_scale_function.
 Local Opaque literal_generate.
 
-Theorem eval_strauss_general_skipped (Model:memset_model) value (ng:Ty.tySem (Word 8)) m br bk ba bs bt bx bng :
+Theorem eval_strauss_general_skipped_flag (Model:memset_model) value (ng:Ty.tySem (Word 8)) m br bk ba bs bt bx bng :
  (forall h,generator_table_state h m) -> 0<=value<2^256 ->
  scalar_at m bk 0 (map Int64.repr (C.jet_secp_scalar_get_b32_numeric.scalar_limbs_of value)) ->
  (value=0 \/ Mem.load Mint32 m ba 120=Some (Vint Int.one)) ->
@@ -64,7 +64,9 @@ Theorem eval_strauss_general_skipped (Model:memset_model) value (ng:Ty.tySem (Wo
   @literal_generate Alg.CoreFunSem ng /\
  Mem.range_perm mf br 0 128 Cur Freeable /\ Mem.range_perm mf bng 0 32 Cur Freeable /\
  (forall h,generator_table_state h mf) /\
- lframe (fun b _=>b<>br /\ b<>bng) m mf.
+ lframe (fun b _=>b<>br /\ b<>bng) m mf /\
+ Mem.load Mint32 mf br 120=Some (Vint (bit_int (Bit.toBool
+  (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz))))).
 Proof.
  intros Tables Range Input Skip PT PX InputNG Different FreeR FreeNG.
  assert (VR:Mem.valid_block m br) by (eapply Mem.perm_valid_block;apply (FreeR 0);clear;lia).
@@ -191,6 +193,12 @@ Proof.
    { eapply field_at_lframe;[exact Y|exact FrameF|intros;exact OutsideR]. }
    assert (ZF:fe_at mf br 80 (words5 oz)).
    { eapply field_at_lframe;[exact Z|exact FrameF|intros;exact OutsideR]. }
+   assert (FlagF:Mem.load Mint32 mf br 120=Some (Vint (bit_int (Bit.toBool
+    (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz)))))).
+   { rewrite (proj1 FrameF Mint32 br 120).
+     - exact Flag.
+     - eapply Mem.perm_valid_block;apply (FreeRU 0);lia.
+     - intros pos RangeHere;exact OutsideR. }
    assert (FreeRF:Mem.range_perm mf br 0 128 Cur Freeable).
    { eapply curve_keep_free;[clear;lia|exact FreeRU|exact FrameF|intros;exact OutsideR]. }
    assert (FreeNGF:Mem.range_perm mf bng 0 32 Cur Freeable).
@@ -219,5 +227,35 @@ Proof.
      * unfold e;rewrite generator_local_blocks;exact Released.
    + split;[exact XF|];split;[exact YF|];split;[exact ZF|];
      split;[exact BX|];split;[exact BY|];split;[exact BZ|];split;[exact Literal|];
-     split;[exact FreeRF|];split;[exact FreeNGF|];split;assumption.
+     split;[exact FreeRF|];split;[exact FreeNGF|];split;[exact TablesF|];split;[exact Frame|exact FlagF].
+Qed.
+
+Theorem eval_strauss_general_skipped (Model:memset_model) value (ng:Ty.tySem (Word 8)) m br bk ba bs bt bx bng :
+ (forall h,generator_table_state h m) -> 0<=value<2^256 ->
+ scalar_at m bk 0 (map Int64.repr (C.jet_secp_scalar_get_b32_numeric.scalar_limbs_of value)) ->
+ (value=0 \/ Mem.load Mint32 m ba 120=Some (Vint Int.one)) ->
+ Mem.load Mptr m bs 8=Some (Vptr bt Ptrofs.zero) -> Mem.load Mptr m bs 0=Some (Vptr bx Ptrofs.zero) ->
+ scalar_at m bng 0 (map Int64.repr (C.jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem ng)))) ->
+ br<>bng -> Mem.range_perm m br 0 128 Cur Freeable -> Mem.range_perm m bng 0 32 Cur Freeable ->
+ exists mf ox oy oz,
+ Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ecmult_strauss_wnaf)
+  [Vptr bs Ptrofs.zero;Vptr br Ptrofs.zero;Vlong Int64.one;Vptr ba Ptrofs.zero;
+   Vptr bk Ptrofs.zero;Vptr bng Ptrofs.zero] E0 mf Vundef /\
+ fe_at mf br 0 (words5 ox) /\
+ fe_at mf br 40 (words5 oy) /\
+ fe_at mf br 80 (words5 oz) /\
+ square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
+ ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
+  @literal_generate Alg.CoreFunSem ng /\
+ Mem.range_perm mf br 0 128 Cur Freeable /\ Mem.range_perm mf bng 0 32 Cur Freeable /\
+ (forall h,generator_table_state h mf) /\
+ lframe (fun b _=>b<>br /\ b<>bng) m mf.
+Proof.
+ intros Tables Range Input Skip PT PX InputNG Different FreeR FreeNG.
+ destruct (eval_strauss_general_skipped_flag Model value ng m br bk ba bs bt bx bng
+  Tables Range Input Skip PT PX InputNG Different FreeR FreeNG)
+  as (mf & ox & oy & oz & Exec & XO & YO & ZO & BX & BY & BZ & Literal &
+   FR & FG & TablesOut & Frame & OutputFlag).
+ exists mf,ox,oy,oz;repeat first [assumption|split].
 Qed.

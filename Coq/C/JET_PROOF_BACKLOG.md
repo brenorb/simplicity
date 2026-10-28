@@ -128,8 +128,14 @@ check pass, with the same inherited semantics assumptions.
 for the complete four-stream point stage. The old point-stage theorem is an
 exact projection; its recorded type and assumption set are unchanged. Both
 existing public linear-combination callers rebuild successfully.
-Next retain the implication through main/Strauss/ecmult companions and actual
-frees, preserving the existing interfaces as projections. The old XYZ-only theorem cannot
+`exec_strauss_general_main_flag`, `eval_strauss_general_finite_flag`,
+`eval_strauss_general_skipped_flag`, `eval_strauss_general_flag` and
+`eval_ecmult_general_flag` now compile. They retain the implication through
+the complete multiplication backend and all nine Strauss/four ecmult frees;
+the skipped contribution branch retains the flag unconditionally. Each old
+interface remains an exact projection, with unchanged recorded type and
+assumption set. The ordinary public-caller rebuild passes; the new helper
+records are reviewed before the next broader kernel check. The old XYZ-only theorem cannot
 justify it by itself, and the nonzero condition must still be discharged from
 the valid affine input at the public boundary.
 

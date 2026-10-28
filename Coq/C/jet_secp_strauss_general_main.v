@@ -42,7 +42,7 @@ Require Import C.jet_secp_strauss_general_iteration C.jet_secp_strauss_general_l
  C.jet_secp_scalar_split128_literal C.jet_secp_canonical_scalar.
 Require Import C.jet_secp_scalar_get_b32_storage C.jet_secp_scalar_get_b32_numeric C.jet_toZ.
 
-Theorem exec_strauss_general_main (Model:memset_model) le m bng br bs bp bt bx bd bz b0 b128 bw0 bw128 bj bn bl
+Theorem exec_strauss_general_main_flag (Model:memset_model) le m bng br bs bp bt bx bd bz b0 b128 bw0 bw128 bj bn bl
  (raw ng:Ty.tySem (Word 8)) (point:Ty.tySem literal_table_gej) xs ys aux inv last1 lastlam digits1 digitslam :
  let e:=generator_local_env bd bz b0 b128 bw0 bw128 bj bn bl in
  let halves:=@literal_scalar_split_lambda Alg.CoreFunSem raw in
@@ -91,7 +91,10 @@ Theorem exec_strauss_general_main (Model:memset_model) le m bng br bs bp bt bx b
  (forall b hi,In (b,hi) (generator_local_storage bd bz b0 b128 bw0 bw128 bj bn bl) ->
   Mem.range_perm mf b 0 hi Cur Freeable) /\
  keeps_permissions m mf /\ (forall h,generator_table_state h mf) /\
- lframe (fun b _=>b<>br /\ ~In b [bd;bz;b0;b128;bw0;bw128;bj;bn;bl] /\ b<>bng) m mf.
+ lframe (fun b _=>b<>br /\ ~In b [bd;bz;b0;b128;bw0;bw128;bj;bn;bl] /\ b<>bng) m mf /\
+ (Bit.toBool (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output inv))=false ->
+  Mem.load Mint32 mf br 120=Some (Vint (bit_int (Bit.toBool
+   (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz)))))).
 Proof.
  cbn zeta;intros Separate R State No Bits NG InputNG FreeNG Tables PS PT PX C1 CL A1 AL L1 LL Table Bounds Tight Aux AuxBounds AuxLiteral
   InvBounds Inv Context FreeR FreeT FreeX Owned.
@@ -178,7 +181,7 @@ Proof.
  assert (CountZ:lz!_bits=Some (Vint (Int.repr (Z.of_nat count)))).
  { unfold count;rewrite Z2Nat.id by lia;exact BitsZ. }
 
- destruct (exec_strauss_general_point_stage count e lz mz br bs bp bd bt bx bz xs ys aux inv
+ destruct (exec_strauss_general_point_stage_flag count e lz mz br bs bp bd bt bx bz xs ys aux inv
   (last1+1) (lastlam+1) (strauss_wnaf5_digit_at (fst halves)) (strauss_wnaf5_digit_at (snd halves))
   bw0 bw128 (lastg1+1) (lastg128+1)
   (wnaf_literal_digit_at (literal_split128_low ng)) (wnaf_literal_digit_at (literal_split128_high ng))
@@ -203,7 +206,7 @@ Proof.
   ltac:(intros pos P;apply KeepZ,FreeX;exact P)
   ltac:(intros pos P;apply KeepZ;apply (Owned bz 40 ltac:(clear;cbn [generator_local_storage In];tauto));exact P))
   as (lef & mf & ox & oy & oz & Stage & RF & X & Y & Z & BX & BY & BZ & LiteralStage &
-   FreeRF & FreeDF & FreeTF & FreeXF & FreeZF & KeepStage & ReadStage & FrameStage).
+   FreeRF & FreeDF & FreeTF & FreeXF & FreeZF & KeepStage & ReadStage & FrameStage & ConditionalFlag).
  assert (Keep:keeps_permissions m mf) by (eapply keeps_permissions_trans;[exact KeepZ|exact KeepStage]).
  assert (TablesF:forall h,generator_table_state h mf) by
   (eapply generator_tables_readonly;[exact TablesZ|exact ReadStage]).
@@ -230,6 +233,66 @@ Proof.
    split;[exact BX|];split;[exact BY|];split;[exact BZ|];split;[exact Literal|];
    split;[exact FreeRF|];split;[exact FreeTF|];split;[exact FreeXF|];split.
    + intros b hi Slot pos Range;apply Keep;apply (Owned b hi Slot);exact Range.
-   + split;[exact Keep|];split;[exact TablesF|exact Frame].
+   + split;[exact Keep|];split;[exact TablesF|];split;[exact Frame|exact ConditionalFlag].
 Qed.
 
+
+Theorem exec_strauss_general_main (Model:memset_model) le m bng br bs bp bt bx bd bz b0 b128 bw0 bw128 bj bn bl
+ (raw ng:Ty.tySem (Word 8)) (point:Ty.tySem literal_table_gej) xs ys aux inv last1 lastlam digits1 digitslam :
+ let e:=generator_local_env bd bz b0 b128 bw0 bw128 bj bn bl in
+ let halves:=@literal_scalar_split_lambda Alg.CoreFunSem raw in
+ let sign1:=wnaf5_input_sign (fst (fst halves)) in
+ let signlam:=wnaf5_input_sign (fst (snd halves)) in
+ NoDup [br;bs;bp;bt;bx;bd;bz;b0;b128;bw0;bw128;bj;bn;bl;bng] ->
+ le!_r=Some (Vptr br Ptrofs.zero) -> le!_state=Some (Vptr bs Ptrofs.zero) ->
+ le!_no=Some (Vlong Int64.one) ->
+ le!_bits=Some (Vint (Int.repr (Z.max (last1+1) (lastlam+1)))) ->
+ le!_ng=Some (Vptr bng Ptrofs.zero) ->
+ scalar_at m bng 0 (map Int64.repr (scalar_limbs_of
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem ng)))) ->
+ Mem.range_perm m bng 0 32 Cur Freeable -> (forall h,generator_table_state h m) ->
+ Mem.load Mptr m bs 16=Some (Vptr bp Ptrofs.zero) ->
+ Mem.load Mptr m bs 8=Some (Vptr bt Ptrofs.zero) -> Mem.load Mptr m bs 0=Some (Vptr bx Ptrofs.zero) ->
+ Mem.load Mint32 m bp 1032=Some (Vint (Int.repr (last1+1))) ->
+ Mem.load Mint32 m bp 1036=Some (Vint (Int.repr (lastlam+1))) ->
+ wnaf_array_state m bp 0 129 5 sign1 129 last1 digits1 ->
+ wnaf_array_state m bp 516 129 5 signlam 129 lastlam digitslam ->
+ map wnaf5_literal_value (literal_wnaf5_digits (fst halves))=
+  rev (map (fun j=>sign1*digits1 (Z.of_nat j)) (seq 0 129)) ->
+ map wnaf5_literal_value (literal_wnaf5_digits (snd halves))=
+  rev (map (fun j=>signlam*digitslam (Z.of_nat j)) (seq 0 129)) ->
+ globalz_table_rep m bt xs ys -> globalz_table_bounds xs ys ->
+ (forall k,(k<8)%nat -> mul_small_input_bounds (ys k)) ->
+ (forall k,(k<8)%nat -> fe_at m bx (40*Z.of_nat k) (words5 (aux k))) ->
+ (forall k,(k<8)%nat -> square_input_bounds (aux k)) ->
+ (forall k,(k<8)%nat -> rescale_field_output (aux k)=
+  @C.jet_secp_beta_spec.literal_fe_multiply_beta Alg.CoreFunSem (rescale_field_output (xs k))) ->
+ square_input_bounds inv -> fe_at m bz 0 (words5 inv) ->
+ (rescale_field_output inv,globalz_word_vector (globalz_decoded_points xs ys))=
+  @literal_scalar_table5 Alg.CoreFunSem point ->
+ Mem.range_perm m br 0 128 Cur Freeable -> Mem.range_perm m bt 0 704 Cur Freeable ->
+ Mem.range_perm m bx 0 320 Cur Freeable ->
+ (forall b hi,In (b,hi) (generator_local_storage bd bz b0 b128 bw0 bw128 bj bn bl) ->
+  Mem.range_perm m b 0 hi Cur Freeable) ->
+ exists lef mf ox oy oz,
+ Clight2.exec_stmt secp_ge e le m generator_main_stage E0 lef mf Out_normal /\
+ lef!_r=Some (Vptr br Ptrofs.zero) /\
+ fe_at mf br 0 (words5 ox) /\ fe_at mf br 40 (words5 oy) /\ fe_at mf br 80 (words5 oz) /\
+ square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
+ ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
+  @literal_strauss_body Alg.CoreFunSem ((raw,point),ng) /\
+ Mem.range_perm mf br 0 128 Cur Freeable /\ Mem.range_perm mf bt 0 704 Cur Freeable /\
+ Mem.range_perm mf bx 0 320 Cur Freeable /\
+ (forall b hi,In (b,hi) (generator_local_storage bd bz b0 b128 bw0 bw128 bj bn bl) ->
+  Mem.range_perm mf b 0 hi Cur Freeable) /\
+ keeps_permissions m mf /\ (forall h,generator_table_state h mf) /\
+ lframe (fun b _=>b<>br /\ ~In b [bd;bz;b0;b128;bw0;bw128;bj;bn;bl] /\ b<>bng) m mf.
+Proof.
+ cbn zeta;intros Separate R State No Bits NG InputNG FreeNG Tables PS PT PX C1 CL A1 AL L1 LL Table Bounds Tight Aux AuxBounds AuxLiteral
+  InvBounds Inv Context FreeR FreeT FreeX Owned.
+ destruct (exec_strauss_general_main_flag Model le m bng br bs bp bt bx bd bz b0 b128 bw0 bw128 bj bn bl raw ng point xs ys aux inv last1 lastlam digits1 digitslam
+  Separate R State No Bits NG InputNG FreeNG Tables PS PT PX C1 CL A1 AL L1 LL Table Bounds Tight Aux AuxBounds AuxLiteral InvBounds Inv Context FreeR FreeT FreeX Owned)
+  as (lef & mf & ox & oy & oz & Exec & ROut & X & Y & Z & BX & BY & BZ & Literal &
+   FR & FT & FX & OwnedOut & Keep & TablesOut & Frame & Conditional).
+ exists lef,mf,ox,oy,oz;repeat first [assumption|split].
+Qed.
