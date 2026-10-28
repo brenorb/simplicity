@@ -9,11 +9,14 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-The inventory currently has 521 equivalence entries (138 with the existing
-explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 3
+The inventory currently has 522 equivalence entries (138 with the existing
+explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 4
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-522/533 proof entries, with 11 jets still lacking either result. The
+523/533 proof entries, with 10 jets still lacking either result. The newly
+registered `off_curve_linear_combination_1` candidate has compiled and passed
+scoped statement/assumption comparisons; full scoped acceptance is pending.
+The latest accepted milestone remains 522/533. The
 `scale`, `off_curve_scale` and `gej_is_on_curve` endpoints passed joint scoped
 acceptance on the exact inputs of `18d941d3`; accepted coverage is now
 522/533. The earlier `off_curve_scale` acceptance at `5e87dacb` remains
@@ -146,6 +149,18 @@ generator tables; it is established by the original program's initialization
 and transported through framed calls. All five input words are covered on
 general valid frames/cursors. The ordinary build and scoped reviewed record
 comparisons pass. Lifecycle composition and the public contract are next.
+`jet_secp_linear_lifecycle.eval_off_curve_linear_initialized` and
+`jet_secp_linear_local.off_curve_linear_initialized_local_spec` now compose
+the entire original public wrapper, including its readers, multiplication,
+writer, startup and all private frees. They cover every scalar/coordinate
+word on general valid frames/cursors under the approved `memset_model` only.
+The ordinary root build and reviewed scoped statement/assumption comparisons
+pass. The existing source gate reuses the 75 Strauss ports, binds this named
+library term and FFI comparison, checks the generator constants/recursive
+leaves and full public contract, and rejects 20 added targeted mutations.
+The candidate is registered; full scoped acceptance remains required before
+claiming 523 accepted proofs. Reproduce with
+`JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_off_curve_linear_combination_1`.
 
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and

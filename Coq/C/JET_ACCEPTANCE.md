@@ -1,5 +1,26 @@
 # Integration and pending-jet reconciliation
 
+## Pending full linear-combination acceptance
+
+`C.jet_secp_linear_local.off_curve_linear_initialized_local_spec` is now
+registered as a candidate. Ordinary compilation and scoped reviewed contract
+and assumption comparisons pass. It proves the entire original public C
+wrapper against `literal_off_curve_linear_combination_1` for all five input
+words and general valid frames/cursors, with only the approved `memset_model`
+extra library premise. Actual program initialization establishes its split
+constants, beta and generator tables; actual calls preserve startup state.
+The existing source gate binds the named Haskell library term and FFI
+comparison, reuses the 75 Strauss ports, checks the generator leaves and
+rejects 20 added targeted mutations. This helper has no CoreJets constructor.
+
+```sh
+JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_off_curve_linear_combination_1
+```
+
+The registry is 523/533, but the new entry still requires that full run.
+The latest accepted milestone remains 522/533, documented below. Registration,
+compilation and record comparisons do not themselves establish acceptance.
+
 ## Scoped checked scale and shared helper acceptance
 
 `C.jet_secp_checked_scale_local.checked_scale_initialized_local_spec` passed

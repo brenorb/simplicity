@@ -312,6 +312,9 @@ for _name, _tail in _CTZ_JETS.items():
 # wNAF memset-dependent secp callers: full initialized contracts whose only
 # extra premise is the approved memset_model.
 _MEMSET_JETS = {
+    "simplicity_off_curve_linear_combination_1": "linear_startup f_simplicity_off_curve_linear_combination_1 "
+                                               "literal_strauss_args literal_table_gej "
+                                               "(@literal_off_curve_linear_combination_1 Alg.CoreFunSem).",
     "simplicity_off_curve_scale": "scale_startup f_simplicity_off_curve_scale "
                                   "(Ty.Prod (Word 8) literal_table_gej) literal_table_gej "
                                   "(@literal_off_curve_scale Alg.CoreFunSem).",

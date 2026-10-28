@@ -924,6 +924,112 @@ CHECKED_SCALE_PORT_FILES = {
     'checked_jet': 'jet_secp_checked_scale_local.v',
 }
 
+LINEAR_PORT_FILES = {
+    'linear_jet': 'jet_secp_linear_local.v',
+    'linear_startup': 'jet_secp_linear_startup.v',
+    'linear_generator': 'jet_secp_generate_literal.v',
+    'linear_norm': 'jet_secp_gej_norm_literal.v',
+}
+
+
+def check_off_curve_linear(s):
+    """Bind the whole arbitrary-generator caller to the exported library term.
+
+    Reuse all 75 Strauss ports, then check the generator leaves that were
+    unreachable for off_curve_scale. There is no CoreJets identity for this
+    exported helper; the library type and FFI comparison identify the target.
+    """
+    check_off_curve_scale(s)
+    name = 'off_curve_linear_combination_1'
+    for key, fragment in [
+        ('program', f'{name} :: term ((Scalar, GEJ), Scalar) GEJ'),
+        ('scale_ffi', f'{name} :: ((Scalar, GEJ), Scalar) -> Maybe GEJ'),
+        ('scale_ffi', f'{name} = unsafeLocalCoreJet c_{name}'),
+        ('scale_ffi', f'foreign import ccall unsafe "" c_{name} :: Ptr FrameItem -> Ptr FrameItem -> IO CBool'),
+        ('scale_ffi_test', f'fast_{name} = testCoreEval Prog.{name}'),
+        ('scale_ffi_test', f'fast_{name} ((scalarAsTy na, gejAsTy a), scalarAsTy ng) == C.{name} ((scalarAsTy na, gejAsTy a), scalarAsTy ng)'),
+        ('program', 'generateSmall = generateSigned word16 >>> gej_norm'),
+        ('program', 'generate128Small = generate128Signed word16 >>> gej_norm'),
+        ('program', 'gej_norm = oh &&& drop fe_invert >>> zinv'),
+    ]:
+        p.require(s[key], fragment, 'linear-combination binding')
+    for name, pattern, expected in [
+        ('scaleConstant', r'\bscaleConstant base\s*=(.*?)\n\s*lib@Lib', '''
+go
+ where
+  go :: Word a -> term (a, GEJ) GEJ
+  go SingleV = cond (gej_double &&& (unit >>> base) >>> gej_ge_add) gej_double
+  go (DoubleV w) = oih &&& (ooh &&& ih >>> rec) >>> rec
+   where
+    rec = go w
+        '''),
+        ('generateSigned', r'\bgenerateSigned SingleV\s*=(.*?)\n\s*generateSmall\s*::', '''
+copair gej_infinity ((generate0 >>> ge_negate) &&& fe_one)
+ generateSigned (DoubleV w) = ih &&& take rec >>> scaleConstant generate0 w
+  where
+   rec = generateSigned w
+        '''),
+        ('generate128Signed', r'\bgenerate128Signed SingleV\s*=(.*?)\n\s*generate128Small\s*::', '''
+copair gej_infinity ((generate128 >>> ge_negate) &&& fe_one)
+ generate128Signed (DoubleV w) = ih &&& take rec >>> scaleConstant generate128 w
+  where
+   rec = generate128Signed w
+        '''),
+    ]:
+        bodies = re.findall(pattern, s['program'], re.S)
+        if len(bodies) != 1 or p.compact(bodies[0]) != p.compact(expected):
+            raise ValueError('canonical generator leaf differs: ' + name)
+    for name, point, end in [
+        ('generate0', '(toWord256 0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798, toWord256 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8)', 'generate128'),
+        ('generate128', '(toWord256 0x8f68b9d2f63b5f339239c1ad981f162ee88c5678723ea3351b7b444c9ec4c0da, toWord256 0x662a9f2dba063986de1d90c2b6be215dbbea2cfe95510bfdf23cbf79501fff82)', 'scaleConstant'),
+    ]:
+        local = 'g' if name == 'generate0' else 'g128'
+        body = re.findall(r'\b' + name + r'\s*=(.*?)\n\s*' + end + r'\s*::', s['program'], re.S)
+        if len(body) != 1 or p.compact(body[0]) != p.compact(f'scribe {local} where {local} = {point}'):
+            raise ValueError('canonical generator constant differs: ' + name)
+    for key, name, expected in [
+        ('linear_startup', 'linear_startup', 'split_constants_ready m /\\ beta_initialized m /\\ (forall h,generator_table_state h m)'),
+        ('linear_norm', 'literal_gej_norm', '(O H &&& I (@literal_fe_invert term)) >>> @literal_gej_zinv term'),
+        ('linear_generator', 'literal_generator_point', 'Ty.Prod (Word 8) (Word 8)'),
+        ('linear_generator', 'literal_generator_jacobian', 'Ty.Prod literal_generator_point (Word 8)'),
+        ('linear_generator', 'literal_generator_base_word', '''
+if second then
+ (@fromZ (WordToZ 8) 0x8f68b9d2f63b5f339239c1ad981f162ee88c5678723ea3351b7b444c9ec4c0da,
+  @fromZ (WordToZ 8) 0x662a9f2dba063986de1d90c2b6be215dbbea2cfe95510bfdf23cbf79501fff82)
+else
+ (@fromZ (WordToZ 8) 0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798,
+  @fromZ (WordToZ 8) 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8)
+        '''),
+        ('linear_generator', 'literal_generator_base', 'Alg.scribe (literal_generator_base_word second)'),
+        ('linear_generator', 'literal_scale_constant', '''
+match n as k return term (Ty.Prod (Word k) literal_generator_jacobian) literal_generator_jacobian with
+ | Datatypes.O => Bit.cond
+     ((@literal_gej_double term &&& (unit >>> base)) >>> @literal_gej_ge_add term)
+     (@literal_gej_double term)
+ | Datatypes.S k =>
+     let rec := @literal_scale_constant k term base in
+     (O (I H) &&& ((O (O H) &&& I H) >>> rec)) >>> rec
+end
+        '''),
+        ('linear_generator', 'literal_generate_signed', '''
+match n as k return term (Word k) literal_generator_jacobian with
+ | Datatypes.O => Alg.Core.Combinators.copair (@literal_gej_infinity term)
+     ((base >>> @literal_ge_negate term) &&& @literal_fe_one256 term)
+ | Datatypes.S k =>
+     (I H &&& O (@literal_generate_signed k term base)) >>> @literal_scale_constant k term base
+end
+        '''),
+        ('linear_generator', 'literal_generate_small', '@literal_generate_signed 4 term (@literal_generator_base second term) >>> @literal_gej_norm term'),
+    ]:
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('linear-combination literal boundary differs: ' + name)
+    statements = re.findall(r'Theorem off_curve_linear_initialized_local_spec\s*:(.*?)\bProof\.', s['linear_jet'], re.S)
+    expected = ('memset_model -> secp_jet_initialized_local_spec linear_startup '
+                'f_simplicity_off_curve_linear_combination_1 literal_strauss_args '
+                'literal_table_gej (@literal_off_curve_linear_combination_1 Alg.CoreFunSem).')
+    if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
+        raise ValueError('off_curve_linear_combination_1 full public contract differs')
+
 
 def check_checked_scale(s):
     """Reuse the off-curve ports and the shared assertion-root gate.
@@ -1001,6 +1107,7 @@ def test():
         "program": REPO / "Haskell/Core/Simplicity/Programs/LibSecp256k1.hs",
         **{key: COQ / "C" / file for key, file in SCALE_PORT_FILES.items()},
         **{key: COQ / "C" / file for key, file in CHECKED_SCALE_PORT_FILES.items()},
+        **{key: COQ / "C" / file for key, file in LINEAR_PORT_FILES.items()},
         "scale_ffi": REPO / "Haskell/Core/Simplicity/FFI/Jets.hs",
         "scale_ffi_test": REPO / "Haskell/Tests/Simplicity/FFI/Tests.hs",
         "scale_arith": REPO / "Haskell/Core/Simplicity/Programs/Arith.hs",
@@ -1375,6 +1482,43 @@ def test():
         raise ValueError("accepted off-curve scale source mutation: " + old)
     print(f"off_curve_scale library/FFI/{port_count} literal ports/full contract match; "
           f"{len(mutations)} targeted mutations rejected")
+
+    check_off_curve_linear(s)
+    mutations = [
+        ('program', 'term ((Scalar, GEJ), Scalar) GEJ', 'term ((Scalar, GE), Scalar) GEJ'),
+        ('scale_ffi', 'off_curve_linear_combination_1 = unsafeLocalCoreJet c_off_curve_linear_combination_1',
+                      'off_curve_linear_combination_1 = unsafeLocalCoreJet c_off_curve_scale'),
+        ('scale_ffi', 'foreign import ccall unsafe "" c_off_curve_linear_combination_1',
+                      'foreign import ccall unsafe "" c_off_curve_linear_combination_2'),
+        ('scale_ffi_test', 'testCoreEval Prog.off_curve_linear_combination_1', 'testCoreEval Prog.off_curve_scale'),
+        ('program', '>>> cond (drop generate) body', '>>> cond body (drop generate)'),
+        ('program', 'go SingleV = cond (gej_double', 'go SingleV = cond (gej_negate'),
+        ('program', 'scaleConstant generate128 w', 'scaleConstant generate0 w'),
+        ('program', 'generateSigned word16 >>> gej_norm', 'generateSigned word8 >>> gej_norm'),
+        ('program', '0x8f68b9d2f63b5f339239c1ad981f162ee88c5678723ea3351b7b444c9ec4c0da', '0x8f68b9d2f63b5f339239c1ad981f162ee88c5678723ea3351b7b444c9ec4c0db'),
+        ('linear_generator', '0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', '0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81799'),
+        ('linear_generator', '(O (I H) &&& ((O (O H) &&& I H) >>> rec))', '(I H &&& ((O (O H) &&& I H) >>> rec))'),
+        ('linear_generator', '@literal_generate_signed 4 term', '@literal_generate_signed 3 term'),
+        ('linear_generator', 'Alg.Core.Combinators.copair (@literal_gej_infinity term)', 'Alg.Core.Combinators.copair (@literal_gej_double term)'),
+        ('linear_norm', 'I (@literal_fe_invert term)', 'I (@literal_fe_normalize term)'),
+        ('linear_startup', 'split_constants_ready m /\\ beta_initialized m', 'False /\\ split_constants_ready m /\\ beta_initialized m'),
+        ('linear_startup', '(forall h,generator_table_state h m)', '(forall h,generator_table_state h m) /\\ False'),
+        ('linear_jet', 'memset_model -> secp_jet_initialized_local_spec', 'memset_model -> False -> secp_jet_initialized_local_spec'),
+        ('linear_jet', 'f_simplicity_off_curve_linear_combination_1', 'f_simplicity_off_curve_scale'),
+        ('linear_jet', 'literal_strauss_args literal_table_gej', '(Word 8) literal_table_gej'),
+        ('linear_jet', '@literal_off_curve_linear_combination_1 Alg.CoreFunSem', '@literal_strauss_body Alg.CoreFunSem'),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive linear-combination mutation fixture: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_off_curve_linear(changed)
+        except ValueError:
+            continue
+        raise ValueError('accepted linear-combination source mutation: ' + old)
+    print(f'off_curve_linear_combination_1 library/FFI/generator ports/full contract match; {len(mutations)} targeted mutations rejected')
 
 
 
