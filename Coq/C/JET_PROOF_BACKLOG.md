@@ -82,6 +82,20 @@ comparisons with the inherited axiom set. Build both
 `C/jet_secp_strauss_general_loop_literal.vo` through `JET_TARGETS`; neither
 root alone builds both branches of this batch. The preprocessing/main caller
 and public contract still need composition; accepted coverage stays 522/533.
+`jet_secp_generator_wnaf_general` keeps an arbitrary incoming point-bit count
+when both generator wNAF lengths raise the loop bound. Reuse it instead of
+the older generator-only setup, whose incoming count is zero.
+`jet_secp_strauss_general_arrays.strauss_body_from_four_arrays` identifies all
+four actual arrays with the literal full Strauss body.
+`jet_secp_strauss_generator_branch.exec_strauss_generator_branch` derives the
+original nonnull branch's scalar split, wNAF calls and maximum updates from
+the approved `memset_model`; it does not leave desired clear executions as
+premises. These three ordinary modules pass both explicit build roots
+(`C/jet_secp_strauss_general_arrays.vo` and
+`C/jet_secp_strauss_generator_branch.vo`) and scoped record comparisons.
+The next step is the finite/nonzero-point main caller, followed by the skipped
+point branch, whole Strauss/ecmult calls and public wrapper. These internal
+results add no accepted jet and await recursive checking with that endpoint.
 
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and
