@@ -14,8 +14,8 @@ explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 2
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
 521/533 proof entries, with 12 jets still lacking either result. The new
-`off_curve_scale` registration is pending fresh scoped acceptance; accepted
-coverage remains 520/533 until that completes. The
+`off_curve_scale` registration passed scoped acceptance at `5e87dacb`;
+accepted coverage is now 521/533. The
 user approved explicit `ctz_model`/`memset_model` premises as conditional
 coverage on 2026-10-27; a SHA empty-preimage premise for the fee jets was not
 approved (see `JET_SECP_EXTERNAL_MISMATCHES.md`). Registration

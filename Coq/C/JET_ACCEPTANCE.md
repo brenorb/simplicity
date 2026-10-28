@@ -1,5 +1,36 @@
 # Integration and pending-jet reconciliation
 
+## Scoped off-curve scale acceptance
+
+`C.jet_secp_scale_local.off_curve_scale_initialized_local_spec` passed
+scoped acceptance on the exact proof inputs of `5e87dacb`. It derives the
+entire original C wrapper against the literal `off_curve_scale` Simplicity
+term, for unrestricted scalar and coordinate words and general valid frames
+and cursors. Startup is established from the original program's initialized
+memory. The only extra library premise is the approved `memset_model`.
+
+The source binding checks the named Haskell library term, its FFI comparison,
+75 literal ports, the complete initialized contract and 38 targeted mutations.
+This exported C helper has no `CoreJets` constructor; no commitment identity is
+invented. Existing field, scalar and word source gates remain in use.
+
+Reproduce with the pinned toolchain and dependencies from `Coq/JET_BUILD.md`:
+
+```sh
+JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_off_curve_scale
+```
+
+The run passed recursive kernel checking on 968 modules, matching assumption
+records for 898 modules and contract records for 917 modules, negative tests,
+and all five AST regeneration comparisons. Its audit-input fingerprint was
+unchanged throughout and matched the registration commit's inputs afterwards.
+The kernel reported no unsafe features or new library axioms.
+
+Accepted proof coverage is 521/533: 375 equivalences without an extra library
+premise, 145 conditional equivalences (138 memcpy, 5 CTZ, 2 memset), and one
+whole-public divergence. Twelve declarations still lack an accepted outcome;
+the goal is unfinished. Later source changes require their own verification.
+
 ## Current whole-project acceptance and writable-word integration
 
 The exact proof inputs at `6a227e8b` passed ordinary whole-project acceptance
