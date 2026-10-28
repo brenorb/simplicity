@@ -5498,6 +5498,19 @@ Reproduce with `JET_TARGETS=C/jet_secp_generate_local.vo bash
 Coq/build-jets.sh -j1`, scoped audits and recursive `--coqchk` on
 `C.jet_secp_generator_entry`.
 
+`jet_secp_strauss_program` supplies the literal descending-step target from
+LibSecp256k1.hs:634--660: doubling, optional ordinary and lambda window-5
+additions, then both optional generator additions through the current Z.
+Its `step2` through `step128` and `step129` retain the original four-digit
+routing and unchanged Z/table context. The step-value, block and 129-digit
+list-fold theorems expose the precise operation order for the C loop proof;
+all ports are algebra-parametric. It reuses the checked window-5/window-15
+flattenings and the existing list-combination lemma. This is literal
+specification support, not a C loop or public-jet theorem. The enclosing
+body/guard and whole-jet composition are still pending. Reproduce with
+`JET_TARGETS=C/jet_secp_strauss_program.vo bash Coq/build-jets.sh -j1`, its
+scoped statement/assumption audits and recursive `--coqchk`.
+
 Next compose the general entry with the point preprocessing branches, using
 freshness to discharge their private-object separation premises. Then compose
 the signed ordinary/lambda lookups, descending loop and public wrapper.
