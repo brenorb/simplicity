@@ -65,6 +65,13 @@ the point readback and both scalar objects across the validity call. Use the
 existing assertion-root binding and full initialized partial contract for
 the literal on-curve assertion. No new multiplication or zero-scalar global
 proof is needed. Register only after deriving the full public boundary.
+`jet_secp_checked_linear_literal` now ports the exact on-curve assertion,
+proves parametricity and derives its complete option semantics.
+`jet_secp_checked_linear_public_support` reuses the accepted off-curve entry
+and copy via proved temporary-environment transport, then derives the actual
+three readers, validity call and both return branches. The ordinary two-root
+build and reviewed scoped record comparisons pass. These helpers add no jet
+to coverage; lifecycle/public composition and acceptance remain required.
 
 ### Development history for the accepted off-curve linear-combination proof
 

@@ -1,0 +1,233 @@
+### C.jet_secp_checked_linear_public_support.checked_linear_entry_ok
+checked_linear_entry_ok
+     : @eq bool (jet_sx_exec.fn_okb jets_secp.f_simplicity_linear_combination_1) true
+### C.jet_secp_checked_linear_public_support.checked_linear_entry_transport
+checked_linear_entry_transport
+     : forall (v_env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (mi : Memory.Mem.mem) (bl br ba bk bg : Values.block)
+         (_ : Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_simplicity_off_curve_linear_combination_1
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                   (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                      (@cons Values.val v_env (@nil Values.val)))) m
+                (jet_secp_linear_public_support.linear_public_env bl br ba bk bg)
+                (jet_secp_linear_public_support.linear_public_temps v_env bd base bs sbase) mi),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_simplicity_linear_combination_1
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val v_env (@nil Values.val))))
+         m (jet_secp_linear_public_support.linear_public_env bl br ba bk bg)
+         (checked_linear_temps v_env bd base bs sbase) mi
+### C.jet_secp_checked_linear_public_support.checked_variable_temps
+checked_variable_temps
+     : forall (e : Clight.env) (le le' : Clight.temp_env) (m : Memory.Mem.mem) (id : AST.ident)
+         (ty : Ctypes.type) (loc : Values.block) (ofs : Integers.Ptrofs.int) (bf : Ctypes.bitfield)
+         (_ : Clight.eval_lvalue jet_secp_linkage.secp_ge e le m (Clight.Evar id ty) loc ofs bf),
+       Clight.eval_lvalue jet_secp_linkage.secp_ge e le' m (Clight.Evar id ty) loc ofs bf
+### C.jet_secp_checked_linear_public_support.checked_temp_value
+checked_temp_value
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (id : AST.ident)
+         (ty : Ctypes.type) (v : Values.val)
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m (Clight.Etempvar id ty) v),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id le) (@Some Values.val v)
+### C.jet_secp_checked_linear_public_support.checked_linear_copy_transport
+checked_linear_copy_transport
+     : forall (le le' : Maps.PTree.tree Values.val) (mi md : Memory.Mem.mem) (bl br ba bk bg : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._src le')
+                (@Maps.PTree.get Values.val jets_secp._src le))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                (jet_secp_linear_public_support.linear_public_env bl br ba bk bg) le mi
+                jet_secp_linear_public_support.linear_public_copy Events.E0 le md ClightBigstep.Out_normal),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_linear_public_support.linear_public_env bl br ba bk bg) le' mi
+         jet_secp_linear_public_support.linear_public_copy Events.E0 le' md ClightBigstep.Out_normal
+### C.jet_secp_checked_linear_public_support.checked_linear_public_prepare
+checked_linear_public_prepare
+     : forall (v_env : Values.val) (m0 : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bw : Values.block) (edge cursor N : BinNums.Z)
+         (bi : Values.block) (inedge rc : BinNums.Z) (_ : jet_secp_linear_startup.linear_startup m0)
+         (_ : jet_output_layout.write_frame_at m0 bd base bw edge cursor N)
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m0 bs sbase bi inedge rc),
+       @ex Memory.Mem.mem
+         (fun mi : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun md : Memory.Mem.mem =>
+             @ex Values.block
+               (fun bl : Values.block =>
+                @ex Values.block
+                  (fun br : Values.block =>
+                   @ex Values.block
+                     (fun ba : Values.block =>
+                      @ex Values.block
+                        (fun bk : Values.block =>
+                         @ex Values.block
+                           (fun bg : Values.block =>
+                            and
+                              (Clight.function_entry2 jet_secp_linkage.secp_ge
+                                 jets_secp.f_simplicity_linear_combination_1
+                                 (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                                    (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                                       (@cons Values.val v_env (@nil Values.val)))) m0
+                                 (jet_secp_linear_public_support.linear_public_env bl br ba bk bg)
+                                 (checked_linear_temps v_env bd base bs sbase) mi)
+                              (and
+                                 (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                                    (jet_secp_linear_public_support.linear_public_env bl br ba bk bg)
+                                    (checked_linear_temps v_env bd base bs sbase) mi
+                                    jet_secp_linear_public_support.linear_public_copy Events.E0
+                                    (checked_linear_temps v_env bd base bs sbase) md ClightBigstep.Out_normal)
+                                 (and
+                                    (forall (b : Values.block) (hi : BinNums.Z)
+                                       (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                                              (jet_secp_linear_public_support.linear_public_storage bl br ba bk bg)),
+                                     Memory.Mem.range_perm md b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+                                    (and (jet_frame_layout.frame_fields_at md bl BinNums.Z0 bi inedge rc)
+                                       (and
+                                          (@List.NoDup Values.block
+                                             (jet_secp_linear_public_support.linear_public_locals bl br ba bk bg))
+                                          (and
+                                             (forall (b : Values.block) (_ : Memory.Mem.valid_block m0 b),
+                                              not
+                                                (@List.In Values.block b
+                                                   (jet_secp_linear_public_support.linear_public_locals bl br ba bk bg)))
+                                             (and
+                                                (jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi)
+                                                   (@cons (prod Values.block BinNums.Z)
+                                                      (@pair Values.block BinNums.Z br BinNums.Z0)
+                                                      (@cons (prod Values.block BinNums.Z)
+                                                         (@pair Values.block BinNums.Z ba BinNums.Z0)
+                                                         (@cons (prod Values.block BinNums.Z)
+                                                            (@pair Values.block BinNums.Z bk BinNums.Z0)
+                                                            (@cons (prod Values.block BinNums.Z)
+                                                               (@pair Values.block BinNums.Z bl BinNums.Z0)
+                                                               (@cons ... ... ...))))))
+                                                (and
+                                                   (jet_frame_inv.finv m0 bd base bw edge cursor N bi md false
+                                                      (@nil BitMachine.Cell))
+                                                   (and (jet_secp_linear_startup.linear_startup md)
+                                                      (jet_sx_mem.lframe
+                                                         (fun (b : Values.block) (_ : BinNums.Z) =>
+                                                          not (@List.In Values.block b (...))) m0 md))))))))))))))))
+### C.jet_secp_checked_linear_public_support.exec_checked_linear_curve
+exec_checked_linear_curve
+     : forall (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bl br ba bk bg : Values.block)
+         (bit : bool)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_simplicity_gej_is_valid_var)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf
+                (Values.Vint (jet_readBit_layout.bit_int bit))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_linear_public_support.linear_public_env bl br ba bk bg) le m checked_linear_curve_stmt Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint (jet_readBit_layout.bit_int bit)) le) mf
+         ClightBigstep.Out_normal
+### C.jet_secp_checked_linear_public_support.checked_linear_body_source
+checked_linear_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_simplicity_linear_combination_1)
+         (Clight.Ssequence jet_secp_linear_public_support.linear_public_copy checked_linear_rest)
+### C.jet_secp_checked_linear_public_support.exec_checked_linear_rest_true
+exec_checked_linear_rest_true
+     : forall (le : Maps.PTree.tree Values.val) (md mr mq mp mv mn mw : Memory.Mem.mem) (bd : Values.block)
+         (base : BinNums.Z) (bl br ba bk bg : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge md
+                (@Ctypes.Internal Clight.function jets_secp.f_read_scalar)
+                (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mr
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mr
+                (@Ctypes.Internal Clight.function jets_secp.f_read_gej)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mq
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mq
+                (@Ctypes.Internal Clight.function jets_secp.f_read_scalar)
+                (@cons Values.val (Values.Vptr bg Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mp
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mp
+                (@Ctypes.Internal Clight.function jets_secp.f_simplicity_gej_is_valid_var)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mv
+                (Values.Vint Integers.Int.one))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mv
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ecmult)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero)
+                         (@cons Values.val (Values.Vptr bg Integers.Ptrofs.zero) (@nil Values.val))))) Events.E0 mn
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mn
+                (@Ctypes.Internal Clight.function jets_secp.f_write_gej)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mw
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_linear_public_support.linear_public_env bl br ba bk bg) le md checked_linear_rest Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint Integers.Int.one) le) mw
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.one) Ctypesdefs.tint)))
+### C.jet_secp_checked_linear_public_support.exec_checked_linear_rest_false
+exec_checked_linear_rest_false
+     : forall (le : Clight.temp_env) (md mr mq mp mv : Memory.Mem.mem) (bl br ba bk bg : Values.block)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge md
+                (@Ctypes.Internal Clight.function jets_secp.f_read_scalar)
+                (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mr
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mr
+                (@Ctypes.Internal Clight.function jets_secp.f_read_gej)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mq
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mq
+                (@Ctypes.Internal Clight.function jets_secp.f_read_scalar)
+                (@cons Values.val (Values.Vptr bg Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mp
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mp
+                (@Ctypes.Internal Clight.function jets_secp.f_simplicity_gej_is_valid_var)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mv
+                (Values.Vint Integers.Int.zero)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_linear_public_support.linear_public_env bl br ba bk bg) le md checked_linear_rest Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint Integers.Int.zero) le) mv
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.zero) Ctypesdefs.tint)))
+### C.jet_secp_checked_linear_public_support.checked_linear_temps
+checked_linear_temps =
+fun (v_env : Values.val) (bd : Values.block) (base : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_secp._env v_env
+  (@Maps.PTree.set Values.val jets_secp._src (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+     (@Maps.PTree.set Values.val jets_secp._dst (Values.Vptr bd (Integers.Ptrofs.repr base))
+        (Clight.create_undef_temps (Clight.fn_temps jets_secp.f_simplicity_linear_combination_1))))
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z),
+       Maps.PTree.tree Values.val
+
+Arguments checked_linear_temps v_env bd base%Z_scope bs sbase%Z_scope
+### C.jet_secp_checked_linear_public_support.checked_linear_curve_stmt
+checked_linear_curve_stmt =
+Clight.Scall (@Some AST.ident jets_secp._t'1)
+  (Clight.Evar jets_secp._simplicity_gej_is_valid_var
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)) Ctypes.Tnil)
+        Ctypesdefs.tbool AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets_secp._a__1 (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))) (@nil Clight.expr))
+     : Clight.statement
+### C.jet_secp_checked_linear_public_support.checked_linear_branch
+checked_linear_branch =
+Clight.Sifthenelse (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tbool)
+  (Clight.Ssequence jet_secp_linear_public_support.linear_multiply
+     (Clight.Ssequence jet_secp_linear_public_support.linear_write
+        (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint)))))
+  (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)))
+     : Clight.statement
+### C.jet_secp_checked_linear_public_support.checked_linear_rest
+checked_linear_rest =
+Clight.Ssequence (jet_secp_scalar_add_body.scalar_add_read_stmt jets_secp._na__1)
+  (Clight.Ssequence jet_secp_linear_public_support.linear_point_read
+     (Clight.Ssequence (jet_secp_scalar_add_body.scalar_add_read_stmt jets_secp._ng__2)
+        (Clight.Ssequence checked_linear_curve_stmt checked_linear_branch)))
+     : Clight.statement
