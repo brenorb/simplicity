@@ -70,6 +70,18 @@ preserves the factor, generator tables, ownership and external framing;
 closed-call effects prove permission/readonly preservation. These three
 ordinary modules pass their build and reviewed record comparisons. Whole-jet
 composition and recursive acceptance remain pending.
+`jet_secp_strauss_point_prefix` and `jet_secp_strauss_general_{iteration,loop,
+loop_literal,point_stage}` now compose the original double, ordinary/lambda
+point digits and both generator digits in their exact order. The terminating
+loop carries four streams, relates its shortened run to all 129 literal steps,
+and the full point stage derives infinity initialization and final Z correction.
+The final correction deliberately does not assert flag/Z agreement when the
+shared Z is zero. These five ordinary modules compile and pass scoped record
+comparisons with the inherited axiom set. Build both
+`C/jet_secp_strauss_general_point_stage.vo` and
+`C/jet_secp_strauss_general_loop_literal.vo` through `JET_TARGETS`; neither
+root alone builds both branches of this batch. The preprocessing/main caller
+and public contract still need composition; accepted coverage stays 522/533.
 
 The following paragraphs retain the earlier acceptance history, before the
 later conditional CTZ/memset registrations above. Their 513/533 and
