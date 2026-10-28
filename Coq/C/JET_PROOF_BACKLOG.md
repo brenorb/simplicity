@@ -217,6 +217,13 @@ registered by these reader helpers. Reproduce with
 `JET_TARGETS=C/jet_secp_linear_verify_public_reads.vo bash Coq/build-jets.sh -j4`
 and the scoped assumption/contract audits for these two modules.
 
+`jet_secp_linear_verify_guards.eval_linear_verify_guards` now derives the
+actual A-then-B short circuit: it executes B's validity call only when A's
+result is true. The final temporary contains their Boolean conjunction;
+both affine coordinates, zero flags and ownership are retained, with external
+framing and readonly preservation. The ordinary build and scoped reviewed
+records pass. This is a checked execution phase, not a complete public jet.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier

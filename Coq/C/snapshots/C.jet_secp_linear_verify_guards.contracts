@@ -1,0 +1,176 @@
+### C.jet_secp_linear_verify_guards.linear_verify_guard_symbol
+linear_verify_guard_symbol
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._secp256k1_ge_is_valid_var)
+            (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_ge_is_valid_var)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_ge_is_valid_var)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_is_valid_var)))
+### C.jet_secp_linear_verify_guards.exec_linear_verify_guard_call
+exec_linear_verify_guard_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (var : BinNums.positive) (dest : AST.ident) (b : Values.block)
+         (bit : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) var e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ge_is_valid_var e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_is_valid_var)
+                (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf
+                (Values.Vint (jet_readBit_layout.bit_int bit))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (linear_verify_guard_call var dest) Events.E0
+         (@Maps.PTree.set Values.val dest (Values.Vint (jet_readBit_layout.bit_int bit)) le) mf
+         ClightBigstep.Out_normal
+### C.jet_secp_linear_verify_guards.linear_verify_guard_result
+linear_verify_guard_result
+     : forall (le : Maps.PTree.tree Values.val) (a b : bool),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'3 (linear_verify_guard_temps le a b))
+         (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int (andb a b))))
+### C.jet_secp_linear_verify_guards.exec_linear_verify_guards
+exec_linear_verify_guards
+     : forall (le : Clight.temp_env) (m ma mf : Memory.Mem.mem) (bl ba bb bk bg br bz : Values.block)
+         (a b : bool)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_is_valid_var)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 ma
+                (Values.Vint (jet_readBit_layout.bit_int a)))
+         (_ : match a return Prop with
+              | true =>
+                  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge ma
+                    (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_is_valid_var)
+                    (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf
+                    (Values.Vint (jet_readBit_layout.bit_int b))
+              | false => @eq Memory.Mem.mem mf ma
+              end),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_linear_verify_public_support.linear_verify_public_env bl ba bb bk bg br bz) le m
+         linear_verify_guards Events.E0 (linear_verify_guard_temps le a b) mf ClightBigstep.Out_normal
+### C.jet_secp_linear_verify_guards.eval_linear_verify_guards
+eval_linear_verify_guards
+     : forall (le : Clight.temp_env) (m : Memory.Mem.mem) (bl ba bb bk bg br bz : Values.block)
+         (ax ay bxword byword : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : not (@eq Values.block ba bb))
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_point_three_reads.point_canonical_limbs ax))
+         (_ : jet_secp_fe_nv.fe_at m ba
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_point_three_reads.point_canonical_limbs ay))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m ba
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bb BinNums.Z0 (jet_secp_point_three_reads.point_canonical_limbs bxword))
+         (_ : jet_secp_fe_nv.fe_at m bb
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_point_three_reads.point_canonical_limbs byword))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m bb
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+               (jet_secp_linear_verify_public_support.linear_verify_public_env bl ba bb bk bg br bz) le m
+               linear_verify_guards Events.E0
+               (linear_verify_guard_temps le
+                  (Bit.toBool
+                     (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+                        (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) ax ay)))
+                  (Bit.toBool
+                     (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+                        (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) bxword byword)))) mf
+               ClightBigstep.Out_normal)
+            (and (jet_secp_fe_nv.fe_at mf ba BinNums.Z0 (jet_secp_point_three_reads.point_canonical_limbs ax))
+               (and
+                  (jet_secp_fe_nv.fe_at mf ba
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     (jet_secp_point_three_reads.point_canonical_limbs ay))
+                  (and
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint32 mf ba
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (@Some Values.val (Values.Vint Integers.Int.zero)))
+                     (and
+                        (Memory.Mem.range_perm mf ba BinNums.Z0
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (jet_secp_fe_nv.fe_at mf bb BinNums.Z0
+                              (jet_secp_point_three_reads.point_canonical_limbs bxword))
+                           (and
+                              (jet_secp_fe_nv.fe_at mf bb
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                 (jet_secp_point_three_reads.point_canonical_limbs byword))
+                              (and
+                                 (@eq (option Values.val)
+                                    (Memory.Mem.load AST.Mint32 mf bb
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                                    (@Some Values.val (Values.Vint Integers.Int.zero)))
+                                 (and
+                                    (Memory.Mem.range_perm mf bb BinNums.Z0
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                       Memtype.Cur Memtype.Freeable)
+                                    (and
+                                       (jet_sx_mem.lframe
+                                          (fun (b : Values.block) (_ : BinNums.Z) =>
+                                           and (not (@eq Values.block b ba)) (not (@eq Values.block b bb))) m mf)
+                                       (jet_clight_internal_preserve.readonly_preserved m mf)))))))))))
+### C.jet_secp_linear_verify_guards.linear_verify_guard_call
+linear_verify_guard_call =
+fun var dest : AST.ident =>
+jet_secp_curve_statements.curve_call jets_secp._secp256k1_ge_is_valid_var jets_secp.f_secp256k1_ge_is_valid_var
+  (@Some AST.ident dest)
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar var (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr))) (@nil Clight.expr))
+     : forall (_ : AST.ident) (_ : AST.ident), Clight.statement
+
+Arguments linear_verify_guard_call var dest
+### C.jet_secp_linear_verify_guards.linear_verify_guards
+linear_verify_guards =
+Clight.Ssequence (linear_verify_guard_call jets_secp._a__1 jets_secp._t'2)
+  (Clight.Sifthenelse (Clight.Etempvar jets_secp._t'2 Ctypesdefs.tint)
+     (Clight.Ssequence (linear_verify_guard_call jets_secp._b jets_secp._t'4)
+        (Clight.Sset jets_secp._t'3 (Clight.Ecast (Clight.Etempvar jets_secp._t'4 Ctypesdefs.tint) Ctypesdefs.tbool)))
+     (Clight.Sset jets_secp._t'3 (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)))
+     : Clight.statement
+### C.jet_secp_linear_verify_guards.linear_verify_guard_temps
+linear_verify_guard_temps =
+fun (le : Maps.PTree.tree Values.val) (a b : bool) =>
+match a return (Maps.PTree.tree Values.val) with
+| true =>
+    @Maps.PTree.set Values.val jets_secp._t'3 (Values.Vint (jet_readBit_layout.bit_int b))
+      (@Maps.PTree.set Values.val jets_secp._t'4 (Values.Vint (jet_readBit_layout.bit_int b))
+         (@Maps.PTree.set Values.val jets_secp._t'2 (Values.Vint Integers.Int.one) le))
+| false =>
+    @Maps.PTree.set Values.val jets_secp._t'3 (Values.Vint Integers.Int.zero)
+      (@Maps.PTree.set Values.val jets_secp._t'2 (Values.Vint Integers.Int.zero) le)
+end
+     : forall (_ : Maps.PTree.tree Values.val) (_ : bool) (_ : bool), Maps.PTree.tree Values.val
+
+Arguments linear_verify_guard_temps le (a b)%bool_scope
