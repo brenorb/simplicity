@@ -1,0 +1,88 @@
+### C.jet_secp_schnorr_challenge_owned.schnorr_owner_framed
+schnorr_owner_framed
+     : forall (m mf : Memory.Mem.mem) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (b : Values.block) (hi : BinNums.Z) (_ : BinInt.Z.lt BinNums.Z0 hi) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall ofs : BinNums.Z, P b ofs)
+         (_ : Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable),
+       Memory.Mem.range_perm mf b BinNums.Z0 hi Memtype.Cur Memtype.Freeable
+### C.jet_secp_schnorr_challenge_owned.exec_schnorr_challenge_owned
+exec_schnorr_challenge_owned
+     : forall (_ : jet_memcpy_model.memcpy_model) (r pk msg : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (m : Memory.Mem.mem) (bb bs bc br be ba : Values.block) (oa : Integers.Ptrofs.int)
+         (bm : Values.block) (om : Integers.Ptrofs.int) (bp : Values.block) (op : Integers.Ptrofs.int)
+         (_ : @List.NoDup Values.block
+                (@cons Values.block bb
+                   (@cons Values.block bs
+                      (@cons Values.block bc (@cons Values.block br (@cons Values.block be (@nil Values.block)))))))
+         (_ : forall (b : Values.block)
+                (_ : @List.In Values.block b
+                       (@cons Values.block ba (@cons Values.block bp (@cons Values.block bm (@nil Values.block))))),
+              not
+                (@List.In Values.block b
+                   (@cons Values.block bb
+                      (@cons Values.block bs (@cons Values.block bc (@cons Values.block br (@nil Values.block)))))))
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                       (schnorr_challenge_storage bb bs bc br be)),
+              Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+         (_ : jet_secp_sha_startup.secp_sha_startup m)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oa)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned op)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned om)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : jet_secp_schnorr_challenge_absorb.schnorr_bytes_at m ba oa
+                (jet_secp_schnorr_challenge_hash.schnorr_word_bytes r))
+         (_ : jet_secp_schnorr_challenge_absorb.schnorr_bytes_at m bp op
+                (jet_secp_schnorr_challenge_hash.schnorr_word_bytes pk))
+         (_ : jet_secp_schnorr_challenge_absorb.schnorr_bytes_at m bm om
+                (jet_secp_schnorr_challenge_hash.schnorr_word_bytes msg)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+               (jet_secp_schnorr_challenge_entry.schnorr_challenge_env bb bs bc br)
+               (jet_secp_schnorr_challenge_entry.schnorr_challenge_temps be ba oa bm om bp op) m
+               (Clight.fn_body jets_secp.f_secp256k1_schnorrsig_challenge) Events.E0
+               (jet_secp_schnorr_challenge_entry.schnorr_challenge_temps be ba oa bm om bp op) mf
+               ClightBigstep.Out_normal)
+            (and
+               (forall (i : nat) (_ : lt i (S (S (S (S O))))),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf be
+                     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+                  (@Some Values.val
+                     (Values.Vlong
+                        (jet_secp_schnorr_challenge_finish.schnorr_digest_scalar_limbs
+                           (jet_secp_schnorr_challenge_hash.schnorr_challenge_hash_word r pk msg) be bb i))))
+               (and
+                  (@eq BinNums.Z
+                     (jet_secp_scalar_overflow_numeric.scalar_limb_value
+                        (jet_secp_schnorr_challenge_finish.schnorr_digest_scalar_limbs
+                           (jet_secp_schnorr_challenge_hash.schnorr_challenge_hash_word r pk msg) be bb))
+                     (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                        (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem
+                           (jet_secp_schnorr_challenge_hash.schnorr_challenge_hash_word r pk msg))))
+                  (and
+                     (forall (b : Values.block) (hi : BinNums.Z)
+                        (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                               (schnorr_challenge_storage bb bs bc br be)),
+                      Memory.Mem.range_perm mf b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+                     (and
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (_ : BinNums.Z) =>
+                            not
+                              (@List.In Values.block b
+                                 (@cons Values.block bb
+                                    (@cons Values.block bs
+                                       (@cons Values.block bc
+                                          (@cons Values.block br (@cons Values.block be (@nil Values.block)))))))) m mf)
+                        (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                           (jet_secp_sha_startup.secp_sha_startup mf)))))))

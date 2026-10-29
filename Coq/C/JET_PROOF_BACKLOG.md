@@ -469,6 +469,16 @@ no-update records match. The body lemma is a composition rule, not a complete
 caller theorem: its call premises must be discharged by the storage contracts,
 and the four actual local allocations and frees remain to be composed.
 
+`jet_secp_schnorr_challenge_owned.exec_schnorr_challenge_owned` discharges
+those statement-level call premises from five owned objects (four private
+locals and the output scalar) and three concrete input byte arrays. It
+composes the actual tagged constructor, return-slot copy, streaming hash,
+serialization and scalar conversion, retains all owners, frames other old
+memory and preserves SHA startup. Its only extra library premise is the
+existing `memcpy_model`. Ordinary compilation and reviewed no-update records
+pass. The whole internal function must still provide the private objects by
+its actual allocations and free them before returning.
+
 Two legacy proof performance repairs are checked: root selection retains a
 named check expression instead of expensive inferred transitivity, and the
 SWU pre-root storage proof derives separation by direct list projection and
