@@ -392,6 +392,20 @@ on all four affected/reused modules. Previous public types/definitions and
 axiom sets remain unchanged. The new execution theorems retain the explicit
 bounded `memcpy_model` premise. The pure byte/register adapters are closed.
 
+`jet_secp_schnorr_challenge_sha.eval_schnorr_challenge_sha_calls` now composes
+all three original absorption calls and the original finalizer from the
+canonical initialized tag context. It produces the register state of the
+challenge's two-block formula for every r/pubkey/message word, preserves
+ownership/framing/startup, and derives counter 192 with overflow false.
+Ordinary compilation and reviewed no-update records pass; its only extra
+library premise is bounded `memcpy_model`. This is a call-sequence helper,
+not the complete `secp256k1_schnorrsig_challenge` function: the generated
+caller has four locals, including a distinct tag-constructor return slot
+copied into the SHA context. Establish that entry/copy, fromMidstate, scalar
+conversion and four frees before claiming the complete challenge helper.
+The signature parser, curve/arithmetic comparison and public wrapper are
+also still open; accepted jet coverage does not increase from this result.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier
