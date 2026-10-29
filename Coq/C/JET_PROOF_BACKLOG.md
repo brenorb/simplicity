@@ -365,8 +365,21 @@ the consumed 64-byte challenge-tag prefix. The old one-block interfaces are
 proved specializations, with unchanged statement/definition/axiom records.
 All four generalized modules and the existing u64/finalize48 consumers compile;
 reviewed no-update records match on all six. The bounded `memcpy_model`
-condition remains explicit. The three challenge-input calls and signature
-caller still need composition; this extension adds no jet coverage.
+condition remains explicit. This extension adds no jet coverage.
+
+`jet_secp_schnorr_challenge_absorb.eval_schnorr_challenge_absorb` now composes
+the three actual SHA input calls (r32, pubkey32, message32), starting at counter
+64 and deriving the partial/fill/partial paths through counter 160. It retains
+the first compression result, exact message buffer, ownership, framing,
+readonly memory and SHA startup. Source arrays may alias each other; only the
+separations needed from mutable private storage are assumed at this helper
+boundary and must be established by the eventual caller. The bounded
+`memcpy_model` remains explicit. `jet_secp_schnorr_challenge_hash` links the
+canonical two-block formula to the streaming register formula and proves the
+160-byte padding constant, both closed. These two modules compile and their
+reviewed no-update assumption/statement records match. Finalization, scalar
+conversion and the full signature wrapper remain open; no jet is registered
+from these helper results.
 
 ### Development history for the accepted off-curve linear-combination proof
 

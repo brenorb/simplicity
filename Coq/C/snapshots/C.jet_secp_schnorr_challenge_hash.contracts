@@ -1,0 +1,21 @@
+### C.jet_secp_schnorr_challenge_hash.schnorr_challenge_pad_bytes
+schnorr_challenge_pad_bytes
+     : @eq (list Integers.Int.int) (schnorr_word_bytes schnorr_challenge_pad_word)
+         (jet_sha_finalize_exec.sha_pad
+            (Integers.Int64.repr
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_schnorr_challenge_hash.schnorr_challenge_hash_registers
+schnorr_challenge_hash_registers
+     : forall r pk msg : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (list Integers.Int.int) (jet_sha_ctx8_model.state_regs (schnorr_challenge_hash_word r pk msg))
+         (SHA256.hash_block
+            (SHA256.hash_block (jet_sha_ctx8_model.state_regs jet_secp_schnorr_tagged_spec.schnorr_challenge_iv_word)
+               (jet_sha_ctx8_model.be_words (@app Integers.Int.int (schnorr_word_bytes r) (schnorr_word_bytes pk))))
+            (jet_sha_ctx8_model.be_words
+               (@app Integers.Int.int (schnorr_word_bytes msg)
+                  (jet_sha_finalize_exec.sha_pad
+                     (Integers.Int64.repr
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))))
