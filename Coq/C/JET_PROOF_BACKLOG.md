@@ -406,6 +406,31 @@ conversion and four frees before claiming the complete challenge helper.
 The signature parser, curve/arithmetic comparison and public wrapper are
 also still open; accepted jet coverage does not increase from this result.
 
+The shared SHA helper kernel check passed on the exact inputs of `d0cfe291`,
+with identical before/after input fingerprints and no unsafe fixpoints,
+type-in-type, or assumed positivity. Reproduce with the pinned toolchain:
+
+```sh
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o \
+  C.jet_uint32_array_prefix C.jet_sha256_tagged_fields \
+  C.jet_secp_schnorr_tagged_spec C.jet_secp_sha_absorb_full \
+  C.jet_secp_schnorr_challenge_sha
+```
+
+`jet_secp_scalar_set_storage.eval_scalar_set_b32_storage` now derives the
+original NULL-overflow scalar setter from concrete byte-array and writable
+scalar storage, retaining the four output limbs, their value modulo the group
+order, all old permissions, framing and readonly memory. It reuses the checked
+parser/reduction proofs and adds no libc premise. The input is any 32-byte
+array of unsigned bytes, rather than a special frame-reader result.
+`jet_secp_schnorr_challenge_entry` derives the original four allocations and
+parameter binding, and the actual four-local cleanup order. These two newer
+modules compile and their reviewed no-update assumption/statement records
+match; they were added after the SHA-only kernel check above. The actual
+constructor-slot copy and complete challenge/signature caller composition
+remain open. A non-null overflow-output parser variant is in development for
+the signature's scalar-range rejection branch.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier
