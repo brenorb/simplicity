@@ -1,5 +1,5 @@
 (** Original square-root helper environment and function entry. *)
-From Coq Require Import ZArith List Lia.
+From Coq Require Import ZArith List Lia Sorting.Permutation.
 From compcert Require Import Coqlib Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Values Events.
 Require Import C.jet_sx_exec C.jet_sx_mem C.jet_secp_linkage C.jets_secp
  C.jet_secp_curve_statements C.jet_secp_fe_nv C.jet_secp_square_columns
@@ -213,7 +213,17 @@ Proof.
    as (mo & lef & Body & OwnedO & RO & FAO & FRO & FrameB).
  pose proof Sep as Sep0;root_separate_blocks Sep0.
  destruct (free_list_exists [(b88,0,40);(b44,0,40);(b220,0,40);(b22,0,40);(b223,0,40);(b2,0,40);(b6,0,40);(b11,0,40);(b176,0,40);(b9,0,40);(b3,0,40);(bt,0,40)] mo) as (mf & Free & Unchanged).
- - cbn;repeat constructor;cbn;intuition congruence.
+ - clear -Sep;cbn.
+   assert (NDFree : NoDup [b88;b44;b220;b22;b223;b2;b6;b11;b176;b9;b3;bt]).
+   { eapply (@Permutation_NoDup block
+       [b2;b3;b6;b9;b11;b22;b44;b88;b176;b220;b223;bt]
+       [b88;b44;b220;b22;b223;b2;b6;b11;b176;b9;b3;bt]).
+     - apply NoDup_Permutation_bis;[exact Sep|cbn;lia|].
+       intros value Member;cbn [In] in Member |- *;tauto.
+     - exact Sep. }
+   assert (Convert : forall xs : list block, NoDup xs -> list_norepet xs).
+   { intros xs ND;induction ND;constructor;assumption. }
+   exact (Convert _ NDFree).
  - intros b lo hi Hin;cbn [In] in Hin;repeat destruct Hin as [Hin|Hin];try contradiction;
      inversion Hin;subst b lo hi;apply (root_helper_free b2 b3 b6 b9 b11 b22 b44 b88 b176 b220 b223 bt mo OwnedO);
      repeat (first [left;reflexivity|right]).
