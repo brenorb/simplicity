@@ -697,9 +697,21 @@ literal mixed-add input, retaining all dispatch branches. Its exact routing
 lemma preserves the actual literal returned word, including the unreduced Y
 word in the doubling branch. It does not replace the existing public theorem
 or erase the separately recorded raw-word divergence. The field identity is
-for table/pass2 composition. Table semantics and the Strauss fold remain.
-The final C verifier call and its acceptance predicate also remain; this helper
-is not a registered public Schnorr proof. Coverage stays 526/533.
+for table/pass2 composition. All five reviewed no-update records pass; the
+routing and zero/infinity facts are closed, while the arithmetic projections
+use existing functional extensionality. Fresh recursive checking is pending.
+
+`jet_secp_jacobian_word_transforms` interprets the actual literal lambda
+transform as `[lambda]P`, using the checked beta action and its exact original
+word model. It also interprets literal Jacobian negation and rescaling, and
+`zinv` as affine coordinates under the resulting shared context
+`c * field(old_Z) * field(scale)`. Rescale/zinv require a nonzero internal
+scale, to be discharged from the table invariant. These adapters compile and
+all nine reviewed no-update records pass with only existing functional
+extensionality where used by the word arithmetic; fresh recursive checking
+remains pending. Table semantics,
+signed-digit reconstruction and the Strauss fold remain before the final C
+verifier composition. Public coverage remains 526/533.
 
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
@@ -723,8 +735,12 @@ public key at Z=1. Keep the mixed-add **ratio** as well as its point result:
 pass2 telescopes those ratios. Reuse the existing literal routing/fold lemmas
 and signed-wNAF arithmetic. The high generator base still needs its group
 identity `[2^128]G`; table-byte agreement does not establish that identity.
-The review proposed these interfaces; it did not prove the operation/fold
-bridge. Public coverage stays 526/533.
+The review proposed the interfaces; the operation bridges above are now
+compiled proofs, while the table/fold bridge remains. For the pass1 ratio
+identity's finite-input guard, reuse `literal_table_walk_residue` together with
+`table_point_residue_finite` for each j<=7, plus `literal_table_seed_residue`.
+Do not infer every intermediate point finite merely from the final context
+being nonzero: adding to infinity can reset Z. Public coverage stays 526/533.
 
 The new proof-only `jet-elliptic-deps.sh` wrapper and Nix build targets enable
 `SMain`/`GZnZ` from the existing pin. The frozen `jet-deps.sh` is byte-identical
