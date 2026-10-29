@@ -324,9 +324,20 @@ which is exactly when C calls B. All four operand-local permissions, external
 framing and readonly memory are preserved. The expanded public-body module
 derives the six reader statements, parity temporary updates and both branch
 controls. These modules compile and their reviewed no-update records match.
-The remaining public implication is the full initialized lifecycle: compose
-these phases with the loose arithmetic theorem, return conversion and nine
-frees, then bind and accept the original public jet.
+These phases feed the initialized lifecycle below.
+
+`jet_secp_point_verify_lifecycle.eval_point_verify_initialized` now derives
+the entire original wrapper, including all reads, both failed-decompression
+routes, successful arithmetic, return conversion and nine frees.
+`jet_secp_point_verify_local.point_verify_initialized_local_spec` packages
+the all-input initialized partial contract for the exact canonical assertion
+term. Its only extra library premise is `memset_model`; no curve or table
+condition is exported. Both modules compile in the ordinary build and their
+reviewed assumption/type records pass no-update checks. The public axiom set
+matches the accepted affine verifier. The source gate binds the canonical
+compressed-point routing, assertion, CoreJets dispatch and FFI entry and
+rejects sixteen targeted mutations. Registration and full scoped acceptance
+remain pending; these checks alone do not raise accepted coverage.
 
 ### Development history for the accepted off-curve linear-combination proof
 

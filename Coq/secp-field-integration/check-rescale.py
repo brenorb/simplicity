@@ -1181,6 +1181,55 @@ SC.comp (SC.pair (@literal_linear_check (Alg.Assertion.toCore term)) SC.unit)
         raise ValueError('LinearVerify1 complete success/failure contract differs')
 
 
+def check_point_verify(s):
+    """Bind compressed-point decoding and the full C assertion contract."""
+    check_linear_verify(s)
+    check_decompress(s)
+    for key, fragment in [
+        ('catalog', 'PointVerify1 :: Secp256k1Jet (((Secp256k1.Scalar,Secp256k1.Point),Secp256k1.Scalar),Secp256k1.Point) ()'),
+        ('catalog', 'specificationSecp256k1 PointVerify1 = Secp256k1.point_verify_1'),
+        ('catalog', 'implementationSecp256k1 PointVerify1 = FFI.point_verify_1'),
+        ('types', 'type Point = (Bit, FE)'),
+        ('program', 'point_verify_1 :: Assert term => Lib term -> term (((Scalar, Point), Scalar), Point) ()'),
+        ('program', 'point_verify_1 m = assert (point_check_1 m)'),
+        ('scale_ffi', 'point_verify_1 :: (((Scalar, Point), Scalar), Point) -> Maybe ()'),
+        ('scale_ffi', 'point_verify_1 = unsafeLocalCoreJet c_point_verify_1'),
+        ('scale_ffi', 'foreign import ccall unsafe "" c_point_verify_1 :: Ptr FrameItem -> Ptr FrameItem -> IO CBool'),
+    ]:
+        p.require(s[key], fragment, 'PointVerify1 binding')
+    impl = s['program'].split('lib@Lib{..} = Lib {', 1)[1]
+    p.exact_program(impl, 'point_check_1', 'pubkey_unpack', r"""
+let
+  k1 = drop (take (drop decompress)) &&& (drop (ooh &&& ih) &&& oh)
+   >>> match false k2
+  k2 = ((iooh &&& oh) &&& ioih) &&& iih >>> linear_check_1
+in
+  drop decompress &&& oh >>> match false k1
+    """)
+    for name, expected in [
+        ('literal_compressed_point', 'Ty.Prod Bit (Word 8)'),
+        ('literal_point_verify_args', 'Ty.Prod (Ty.Prod (Ty.Prod (Word 8) literal_compressed_point) (Word 8)) literal_compressed_point'),
+        ('literal_point_check_k2', '((I (O (O H)) &&& O H) &&& I (O (I H))) &&& I (I H) >>> @literal_linear_check term'),
+        ('literal_point_check_k1', r"""
+(I (O (I (@literal_decompress term))) &&& (I (O (O H) &&& I H) &&& O H))
+ >>> case Bit.false (@literal_point_check_k2 term)
+        """),
+        ('literal_point_check', 'I (@literal_decompress term) &&& O H >>> case Bit.false (@literal_point_check_k1 term)'),
+        ('literal_point_verify', r"""
+SC.comp (SC.pair (@literal_point_check (Alg.Assertion.toCore term)) SC.unit)
+ (Alg.Assertion.Combinators.assertr assertion_cmr_fail0 (SC.take SC.iden))
+        """),
+    ]:
+        if p.compact(p.definition(s['point_verify_literal'], name)) != p.compact(expected):
+            raise ValueError('compressed verifier literal tree differs: ' + name)
+    statements = re.findall(r'Theorem point_verify_initialized_local_spec\s*:(.*?)\bProof\.', s['point_verify_jet'], re.S)
+    expected = ('memset_model -> secp_jet_initialized_partial_local_spec linear_startup '
+                'f_simplicity_point_verify_1 literal_point_verify_args Ty.Unit '
+                '(@literal_point_verify (Alg.AssertionSem option_Monad_Zero)).')
+    if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
+        raise ValueError('PointVerify1 complete success/failure contract differs')
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1193,6 +1242,8 @@ def test():
         "checked_linear_jet": COQ / "C/jet_secp_checked_linear_local.v",
         "linear_verify_literal": COQ / "C/jet_secp_linear_verify_literal.v",
         "linear_verify_jet": COQ / "C/jet_secp_linear_verify_local.v",
+        "point_verify_literal": COQ / "C/jet_secp_point_verify_literal.v",
+        "point_verify_jet": COQ / "C/jet_secp_point_verify_local.v",
         "scale_ffi": REPO / "Haskell/Core/Simplicity/FFI/Jets.hs",
         "scale_ffi_test": REPO / "Haskell/Tests/Simplicity/FFI/Tests.hs",
         "scale_arith": REPO / "Haskell/Core/Simplicity/Programs/Arith.hs",
@@ -1718,6 +1769,39 @@ def test():
             continue
         raise ValueError('accepted linear verifier source mutation: ' + old)
     print(f'LinearVerify1 catalog/assertion/initialized partial contract match; {len(mutations)} targeted mutations rejected')
+
+
+    check_point_verify(s)
+    mutations = [
+        ('catalog', 'PointVerify1 :: Secp256k1Jet (((Secp256k1.Scalar,Secp256k1.Point),Secp256k1.Scalar),Secp256k1.Point) ()',
+                    'PointVerify1 :: Secp256k1Jet (((Secp256k1.Scalar,Secp256k1.GE),Secp256k1.Scalar),Secp256k1.GE) ()'),
+        ('catalog', 'specificationSecp256k1 PointVerify1 = Secp256k1.point_verify_1', 'specificationSecp256k1 PointVerify1 = Secp256k1.linear_verify_1'),
+        ('catalog', 'implementationSecp256k1 PointVerify1 = FFI.point_verify_1', 'implementationSecp256k1 PointVerify1 = FFI.linear_verify_1'),
+        ('program', 'point_verify_1 m = assert (point_check_1 m)', 'point_verify_1 m = assert (linear_check_1 m)'),
+        ('program', 'drop (take (drop decompress))', 'drop (drop (take decompress))'),
+        ('program', 'drop decompress &&& oh >>> match false k1', 'drop decompress &&& oh >>> match true k1'),
+        ('program', '((iooh &&& oh) &&& ioih) &&& iih >>> linear_check_1', '((ioih &&& oh) &&& iooh) &&& iih >>> linear_check_1'),
+        ('scale_ffi', 'point_verify_1 = unsafeLocalCoreJet c_point_verify_1', 'point_verify_1 = unsafeLocalCoreJet c_linear_verify_1'),
+        ('point_verify_literal', 'Ty.Prod Bit (Word 8)', 'Ty.Prod (Word 8) Bit'),
+        ('point_verify_literal', 'I (O (O H)) &&& O H', 'I (O (I H)) &&& O H'),
+        ('point_verify_literal', 'case Bit.false (@literal_point_check_k2 term)', 'case Bit.true (@literal_point_check_k2 term)'),
+        ('point_verify_literal', 'I (@literal_decompress term) &&& O H', 'O (@literal_decompress term) &&& O H'),
+        ('point_verify_literal', 'assertr assertion_cmr_fail0', 'assertr assertion_hash0'),
+        ('point_verify_jet', 'memset_model -> secp_jet_initialized_partial_local_spec', 'memset_model -> False -> secp_jet_initialized_partial_local_spec'),
+        ('point_verify_jet', 'f_simplicity_point_verify_1', 'f_simplicity_linear_verify_1'),
+        ('point_verify_jet', 'literal_point_verify_args Ty.Unit', 'literal_linear_verify_args Ty.Unit'),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive point verifier mutation fixture: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_point_verify(changed)
+        except ValueError:
+            continue
+        raise ValueError('accepted point verifier source mutation: ' + old)
+    print(f'PointVerify1 catalog/assertion/initialized partial contract match; {len(mutations)} targeted mutations rejected')
 
 
 if __name__ == "__main__":
