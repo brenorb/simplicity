@@ -648,8 +648,27 @@ negation semantics. `secp_projective_group_equal` gives a reusable cross-product
 criterion, explicitly preserving the zero-Z cases.
 `jet_secp_jacobian_double_group` proves curve preservation and group doubling
 for the exact halved-slope formulas used by the literal/C implementation,
-including zero Y or Z. The literal word-to-field operation bridge is still
-required; this mathematical formula theorem alone is not a new jet proof.
+including zero Y or Z. All eleven reviewed no-update records are closed;
+recursive checking passed on the exact inputs of `bdcbae8e`, with matching
+fingerprints and no unsafe features. Reproduce with the same stack bound and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_jacobian_double_group`.
+
+`jet_secp_field_word_group` now bridges the existing literal normalize/add/
+multiply/square/negate/halve/multiply-by-integer/zero-test operations into the
+proved prime field. The halve bridge reuses `literal_fe_halve_double` and the
+proved nonzero two; no new inverse or operation behavior is assumed.
+`jet_secp_jacobian_word_group.secp_literal_double_group` interprets the actual
+literal `gej_double`, including its infinity branch, under an arbitrary shared-Z
+context. Its input and output relation uses denominator `c*Z`, and the context
+is retained unchanged. This is an internal operation bridge; it does not by
+itself prove a public Schnorr jet or increase accepted coverage.
+
+Keep word argument binders explicitly typed `Ty.tySem (Word 8)`. Implicitly
+inferred, expanded tuple types can prevent rewrite/destruct from matching the
+same-looking condition in the literal step equation. Similarly unfold the
+`secp_group_field` type alias in a field equation before `field [Curve]` when
+the ring tactic rejects the otherwise matching equation type. These fixes
+change elaboration, not the theorem or verification target.
 
 A read-only Astra Medium source review identified the key Strauss boundary:
 shared-Z table entries are **not ordinary affine secp256k1 points**. Carry the
