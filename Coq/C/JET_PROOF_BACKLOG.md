@@ -336,8 +336,9 @@ condition is exported. Both modules compile in the ordinary build and their
 reviewed assumption/type records pass no-update checks. The public axiom set
 matches the accepted affine verifier. The source gate binds the canonical
 compressed-point routing, assertion, CoreJets dispatch and FFI entry and
-rejects sixteen targeted mutations. Registration and full scoped acceptance
-remain pending; these checks alone do not raise accepted coverage.
+rejects sixteen targeted mutations. The public proof is registered and the
+coverage negative tests pass; full scoped acceptance remains pending. These
+checks alone do not raise accepted coverage above the 525/533 milestone.
 
 ### Development history for the accepted off-curve linear-combination proof
 

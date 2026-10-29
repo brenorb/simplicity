@@ -42,15 +42,16 @@ def main():
     assert coverage.missing_proofs([complete, absent, divergent]) == [absent]
     assert coverage.missing_equivalences([complete, divergent]) == [divergent]
     assert sum(bool(row["divergence_proof"]) for row in rows) == 1
-    assert len(coverage.missing_equivalences(rows)) == 9
-    assert len(coverage.missing_proofs(rows)) == 8
+    assert len(coverage.missing_equivalences(rows)) == 8
+    assert len(coverage.missing_proofs(rows)) == 7
     assert coverage.proof_roots(rows, ["simplicity_gej_ge_add_ex"]) == {
         "C.jet_secp_mixed_ex_local", "C.jet_secp_mixed_ex_refutation"}
     assert coverage.proof_roots(rows, ["simplicity_scale"]) == {"C.jet_secp_checked_scale_local"}
     assert coverage.proof_roots(rows, ["simplicity_linear_combination_1"]) == {"C.jet_secp_checked_linear_local"}
     assert coverage.proof_roots(rows, ["simplicity_off_curve_linear_combination_1"]) == {"C.jet_secp_linear_local"}
     assert coverage.proof_roots(rows, ["simplicity_linear_verify_1"]) == {"C.jet_secp_linear_verify_local"}
-    rejects(lambda: coverage.proof_roots(rows, ["simplicity_point_verify_1"]),
+    assert coverage.proof_roots(rows, ["simplicity_point_verify_1"]) == {"C.jet_secp_point_verify_local"}
+    rejects(lambda: coverage.proof_roots(rows, ["simplicity_hash_to_curve"]),
             "jets without registered proof entries")
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_not_a_jet"]),
             "jets without registered proof entries")
