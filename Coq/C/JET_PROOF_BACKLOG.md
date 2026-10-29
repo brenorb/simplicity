@@ -771,6 +771,15 @@ negative digits; CoqPrime's `gpow` itself is only a nonnegative action. The
 ordinary build and all four reviewed no-update records pass. Recursive
 checking of this new root remains pending.
 
+`jet_secp_signed_group_action.secp_literal_split_group` connects the actual
+split_lambda signed halves and the beta endomorphism to the normalized scalar's
+group action. The residue, signed addition and signed multiplication facts use
+the checked curve order, rather than digit-stream symmetry or a new arithmetic
+premise. Its ordinary build and all twelve reviewed no-update records pass,
+with existing functional extensionality only in the literal split composition.
+Recursive kernel checking of this root remains pending. This closes the GLV residue implication for the later Strauss fold, not
+the remaining digit reconstruction or full Schnorr/public execution boundary.
+
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
 term arguments. When the context contains both `ValueA : value=point` and
