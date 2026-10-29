@@ -431,6 +431,32 @@ constructor-slot copy and complete challenge/signature caller composition
 remain open. A non-null overflow-output parser variant is in development for
 the signature's scalar-range rejection branch.
 
+`jet_secp_scalar_set_flag.eval_scalar_set_b32_flag_storage` now covers the
+same original parser with a non-null overflow destination. From arbitrary
+32-byte input storage it derives the reduced scalar, the exact flag
+`canonical_group_order <= be_val bytes`, all old permissions, framing and
+readonly memory. Validity of the flag pointer is derived from its writable
+four-byte storage, not added as a separate assumption. Its initial symbolic
+state extends the verified parser prefix with that owned flag region; the
+existing arithmetic bridge is reused. Ordinary Coq compilation and reviewed
+no-update records pass. The two setter variants support the challenge scalar
+and the signature's scalar-range rejection, respectively; neither is a new
+public-jet registration.
+
+Two legacy proof performance repairs are checked: root selection retains a
+named check expression instead of expensive inferred transitivity, and the
+SWU pre-root storage proof derives separation by direct list projection and
+permutation rather than exponential propositional search. Their old types,
+definitions and axiom records remain unchanged. The root-chain proof-closing
+command measured about 28 seconds and has an explicit 60-second bound;
+other commands retain their 10-second development bound. A broader attempt to
+rebuild `jet_secp_generator_hash_literal` has **not passed**: its old
+`jet_sha_finalize_bridge.v` dependency times out at the final `Qed` of
+`ctx8_finalize_closed` (line 301, 300-second limit). This is a proof-compilation
+performance limit, not a demonstrated C/specification mismatch. The already
+checked Schnorr SHA call-sequence proof does not depend on that generic
+context-finalization bridge.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier
