@@ -488,9 +488,28 @@ challenge hash word. Other old memory, output ownership, readonly state and
 SHA startup are preserved. Input arrays may alias each other or the output;
 their separation from the private locals follows from allocation freshness.
 The only extra library premise is `memcpy_model`. Ordinary compilation and
-reviewed no-update assumption/contract records pass. A fresh recursive kernel
-check of this new function and its dependencies is the next verification step;
-the older SHA-only kernel result does not cover this extension.
+reviewed no-update assumption/contract records pass. The fresh recursive kernel
+check of this complete function and its dependencies passed on the exact inputs
+of `32748bf1`, with an unchanged fingerprint and no unsafe proof features.
+Its import closure has the usual inherited axiom set; the execution theorem
+itself has six inherited assumptions plus its explicit `memcpy_model` premise.
+Reproduce with a 64 MB process stack and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_schnorr_challenge_function`.
+The first attempt with the host's default 8 MB stack exited 139 and is not
+counted as a passed check. The subsequent pinned-toolchain run with
+`ulimit -S -s 65520` exited zero. Ordinary integration compilation also passed
+after the proof branch was fast-forwarded into `feat/jet-equivalence`.
+
+`jet_secp_schnorr_challenge_literal` ports the exact challenge subprogram
+`m`/`iv`/`e` of `bip_0340_check` and proves its value and parametricity.
+`eval_schnorr_challenge_literal` identifies the complete original C helper's
+scalar result with that actual Simplicity term, retaining its existing memory,
+startup and conditional-library contract. `jet_secp_decompress_sign` proves
+that odd-Y decompression is exactly affine negation of even-Y decompression,
+including matching failure routes. The returned-root range and double-negation
+facts are derived; no nonzero-Y or extra public-input premise is added.
+These two newer modules compile and their reviewed no-update records match;
+they postdate the recursive kernel check on `32748bf1` and add no jet coverage.
 
 The signature-verifier bridge still needs more than this challenge result.
 C uses the negated challenge scalar with an even-Y public key, whereas the
