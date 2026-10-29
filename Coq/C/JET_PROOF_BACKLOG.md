@@ -740,8 +740,17 @@ proofs; it adds no input restriction or new finiteness premise. The balanced
 pass1 tree relation still needs construction and composition with pass2.
 Its ordinary build and all seven reviewed no-update records pass, with only
 existing functional extensionality where used. Fresh recursive checking
-remains pending. Public coverage
-remains 526/533.
+remains pending.
+
+`jet_secp_table_pass1_group.secp_literal_pass1_tree_group` constructs the actual
+balanced pass1 tree relation from the original walk's represented points and
+consecutive ratio identities. Its internal finite-walk guard is supplied by
+`secp_literal_affine_table_walk_finite` for the real valid-affine seed. It keeps
+the exact raw ratio tree; no normalized replacement is substituted. Composition
+with pass2 for the actual scalarTable5 seed/doubled increment remains next.
+The ordinary build and all four reviewed no-update records pass. Recursive
+kernel checking remains pending for the walk and pass1 roots.
+Public coverage remains 526/533.
 
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
