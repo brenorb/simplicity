@@ -637,8 +637,31 @@ The scalar sign and endomorphism group identities are now discharged. Next:
 interpret the literal Jacobian operations and Strauss traversal in this group,
 then relate the C affine/even-Y/X test to the canonical point-check predicate.
 These are still required for the public Schnorr jets. The two lambda modules
-compile and all nine reviewed no-update records are closed; fresh recursive
-checking remains pending. Public coverage stays 526/533.
+compile and all nine reviewed no-update records are closed. Recursive checking
+passed on the exact inputs of `3ac4c052`, with matching fingerprints and no unsafe
+features. Reproduce with the same stack bound and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_curve_group_lambda`.
+
+`jet_secp_jacobian_group` constructs the genuine Jacobian-to-projective map
+`(X,Y,Z) -> (XZ,Y,Z^3)` and proves its infinity criterion, rescaling and
+negation semantics. `secp_projective_group_equal` gives a reusable cross-product
+criterion, explicitly preserving the zero-Z cases.
+`jet_secp_jacobian_double_group` proves curve preservation and group doubling
+for the exact halved-slope formulas used by the literal/C implementation,
+including zero Y or Z. The literal word-to-field operation bridge is still
+required; this mathematical formula theorem alone is not a new jet proof.
+
+A read-only Astra Medium source review identified the key Strauss boundary:
+shared-Z table entries are **not ordinary affine secp256k1 points**. Carry the
+existing `context_Z=c` explicitly, interpreting an accumulator with denominator
+`c*Z` and a table entry with denominator c. Derive c nonzero from the existing
+`literal_affine_scalar_table_nonzero`, starting with the decompressed affine
+public key at Z=1. Keep the mixed-add **ratio** as well as its point result:
+pass2 telescopes those ratios. Reuse the existing literal routing/fold lemmas
+and signed-wNAF arithmetic. The high generator base still needs its group
+identity `[2^128]G`; table-byte agreement does not establish that identity.
+The review proposed these interfaces; it did not prove the operation/fold
+bridge. Public coverage stays 526/533.
 
 The new proof-only `jet-elliptic-deps.sh` wrapper and Nix build targets enable
 `SMain`/`GZnZ` from the existing pin. The frozen `jet-deps.sh` is byte-identical
