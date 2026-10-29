@@ -799,6 +799,15 @@ recursive checking remains pending; affine normalization,
 nonzero generator-digit use and the generator window stream still need
 composition before the full Strauss fold.
 
+`jet_secp_norm_group.secp_literal_gej_norm_group` derives affine normalization
+from the actual literal EEA inversion. It reuses the existing proved
+`literal_invert_numeric_inverse` bridge, proves the nonzero inverse and the
+unit denominator, and composes the original zinv operation. Its internal
+nonzero-Z premise must still be derived at each caller; no inverse operation
+or successful caller execution is assumed. The ordinary build and all three
+reviewed no-update records pass, with existing functional extensionality only.
+Fresh recursive kernel checking remains pending.
+
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
 term arguments. When the context contains both `ValueA : value=point` and
