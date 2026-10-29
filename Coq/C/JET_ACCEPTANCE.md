@@ -1,5 +1,31 @@
 # Integration and pending-jet reconciliation
 
+## Scoped compressed-point verification acceptance
+
+`C.jet_secp_point_verify_local.point_verify_initialized_local_spec` passed
+full scoped acceptance on the exact inputs of `0180f32b`. It proves the
+complete original `point_verify_1` wrapper against the canonical Simplicity
+assertion for all scalar and compressed-point inputs and general valid
+frames/cursors. It derives all six reads, both decompression failure routes,
+arithmetic, return conversion and nine frees. Its only extra library premise
+is the approved `memset_model`; no curve or table premise is exported.
+
+```sh
+JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_point_verify_1
+```
+
+The run exited zero after kernel checking on 1,084 modules, matching
+assumption records on 1,015 modules and contract records on 1,033 modules,
+negative tests and all five AST comparisons. The input fingerprint remained
+unchanged. The canonical-source gate rejects sixteen targeted mutations of
+the point-verification routing, assertion, dispatch and FFI bindings.
+
+Accepted proof coverage at this milestone is **526/533**: 375 equivalences
+without an extra library premise, 150 conditional equivalences (138 memcpy,
+5 CTZ, 7 memset), and one whole-public divergence. Seven jets remain
+unresolved. This receipt applies to the exact checked inputs; newer Schnorr
+helper modules are checked separately and add no public-jet coverage.
+
 ## Scoped linear-verification acceptance
 
 `C.jet_secp_linear_verify_local.linear_verify_initialized_local_spec` passed

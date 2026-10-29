@@ -13,10 +13,13 @@ The inventory currently has 525 equivalence entries (138 with the existing
 explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 7
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-526/533 registered proof entries, with 7 jets still lacking either result.
-`linear_verify_1` passed full scoped acceptance on `f3658dbf`, reaching the
-latest accepted milestone of 525/533. `point_verify_1` is compiled and
-registered at `0180f32b`; its full scoped acceptance check remains in progress.
+526/533 accepted proof entries, with 7 jets still lacking either result.
+`point_verify_1` passed full scoped acceptance on the exact inputs of
+`0180f32b`: kernel checking on 1,084 modules, matching assumption records on
+1,015 modules and contract records on 1,033 modules, negative tests and all
+five AST comparisons. Its input fingerprint remained unchanged. This reaches
+526/533; `linear_verify_1` passed at the preceding 525/533 milestone on
+`f3658dbf`. Later helper changes require their own checks.
 `linear_combination_1` passed full scoped acceptance on the exact inputs of
 `6491c8b6`: kernel checking on 1,013 modules, matching assumption records on
 943 modules and contract records on 962 modules, negative tests and all five
@@ -337,8 +340,9 @@ reviewed assumption/type records pass no-update checks. The public axiom set
 matches the accepted affine verifier. The source gate binds the canonical
 compressed-point routing, assertion, CoreJets dispatch and FFI entry and
 rejects sixteen targeted mutations. The public proof is registered and the
-coverage negative tests pass; full scoped acceptance remains pending. These
-checks alone do not raise accepted coverage above the 525/533 milestone.
+coverage negative tests pass. Full scoped acceptance passed on `0180f32b`,
+reaching 526/533 as described above. Reproduce with
+`JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_point_verify_1`.
 
 ### Schnorr signature callers
 
