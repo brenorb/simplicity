@@ -455,6 +455,16 @@ match. They postdate the SHA-only kernel check above. The constructor return-slo
 copy, full challenge statement sequence and four local frees still need to be
 composed before claiming the complete internal helper or any signature jet.
 
+`jet_secp_schnorr_challenge_copy` now derives the actual 88-byte Clight
+struct assignment from the constructor return slot to the working context,
+preserving the state pointer, counter, overflow flag, ownership and external
+memory. This language-level assignment is not an external `memcpy` call.
+`jet_secp_schnorr_challenge_body` binds the seven actual calls and this copy
+to the exact original function body. Both modules compile and their reviewed
+no-update records match. The body lemma is a composition rule, not a complete
+caller theorem: its call premises must be discharged by the storage contracts,
+and the four actual local allocations and frees remain to be composed.
+
 Two legacy proof performance repairs are checked: root selection retains a
 named check expression instead of expensive inferred transitivity, and the
 SWU pre-root storage proof derives separation by direct list projection and

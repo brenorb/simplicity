@@ -1,0 +1,113 @@
+### C.jet_secp_schnorr_challenge_body.schnorr_challenge_body_source
+schnorr_challenge_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_schnorrsig_challenge)
+         (Clight.Ssequence
+            (Clight.Ssequence schnorr_challenge_tag_call jet_secp_schnorr_challenge_copy.schnorr_challenge_copy)
+            (Clight.Ssequence (schnorr_challenge_absorb_call jets_secp._r32)
+               (Clight.Ssequence (schnorr_challenge_absorb_call jets_secp._pubkey32)
+                  (Clight.Ssequence (schnorr_challenge_absorb_call jets_secp._msg)
+                     (Clight.Ssequence schnorr_challenge_finalize_call
+                        (Clight.Ssequence schnorr_challenge_digest_call schnorr_challenge_scalar_call))))))
+### C.jet_secp_schnorr_challenge_body.schnorr_challenge_symbols
+schnorr_challenge_symbols
+     : forall (id : AST.ident) (fd : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id fd)
+                schnorr_challenge_functions),
+       and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge) id)
+            (@Some Values.block (jet_secp_linkage.secp_symbol_block id)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block id) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function fd)))
+### C.jet_secp_schnorr_challenge_body.eval_schnorr_challenge_state
+eval_schnorr_challenge_state
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (bs : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._sha_buf e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bs jet_secp_schnorr_challenge_entry.schnorr_challenge_state_type))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m schnorr_challenge_state (Values.Vptr bs Integers.Ptrofs.zero)
+### C.jet_secp_schnorr_challenge_body.exec_schnorr_challenge_call
+exec_schnorr_challenge_call
+     : forall (id : AST.ident) (fd : Clight.function) (args : list Clight.expr) (vargs : list Values.val)
+         (v : Values.val) (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id fd)
+                schnorr_challenge_functions)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : Clight.eval_exprlist jet_secp_linkage.secp_ge e le m args (Ctypes.type_of_params (Clight.fn_params fd))
+                vargs)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m (@Ctypes.Internal Clight.function fd) vargs
+                Events.E0 mf v),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (jet_secp_curve_statements.curve_call id fd (@None AST.ident) args) Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_schnorr_challenge_body.exec_schnorr_challenge_body
+exec_schnorr_challenge_body
+     : forall (m mt mc m1 m2 m3 mh md mf : Memory.Mem.mem) (bb bs bc br be ba : Values.block)
+         (oa : Integers.Ptrofs.int) (bm : Values.block) (om : Integers.Ptrofs.int) (bp : Values.block)
+         (op : Integers.Ptrofs.int)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_schnorrsig_sha256_tagged)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mt
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                (jet_secp_schnorr_challenge_entry.schnorr_challenge_env bb bs bc br)
+                (jet_secp_schnorr_challenge_entry.schnorr_challenge_temps be ba oa bm om bp op) mt
+                jet_secp_schnorr_challenge_copy.schnorr_challenge_copy Events.E0
+                (jet_secp_schnorr_challenge_entry.schnorr_challenge_temps be ba oa bm om bp op) mc
+                ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mc
+                (@Ctypes.Internal Clight.function jets_secp.f_sha256_uchars)
+                (@cons Values.val (Values.Vptr bc Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr ba oa)
+                      (@cons Values.val
+                         (Values.Vlong
+                            (Integers.Int64.repr
+                               (BinNums.Zpos
+                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                         (@nil Values.val)))) Events.E0 m1 (Values.Vint Integers.Int.one))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m1
+                (@Ctypes.Internal Clight.function jets_secp.f_sha256_uchars)
+                (@cons Values.val (Values.Vptr bc Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bp op)
+                      (@cons Values.val
+                         (Values.Vlong
+                            (Integers.Int64.repr
+                               (BinNums.Zpos
+                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                         (@nil Values.val)))) Events.E0 m2 (Values.Vint Integers.Int.one))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m2
+                (@Ctypes.Internal Clight.function jets_secp.f_sha256_uchars)
+                (@cons Values.val (Values.Vptr bc Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bm om)
+                      (@cons Values.val
+                         (Values.Vlong
+                            (Integers.Int64.repr
+                               (BinNums.Zpos
+                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                         (@nil Values.val)))) Events.E0 m3 (Values.Vint Integers.Int.one))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m3
+                (@Ctypes.Internal Clight.function jets_secp.f_sha256_finalize)
+                (@cons Values.val (Values.Vptr bc Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mh
+                (Values.Vint Integers.Int.one))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mh
+                (@Ctypes.Internal Clight.function jets_secp.f_sha256_fromMidstate)
+                (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 md
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge md
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_set_b32)
+                (@cons Values.val (Values.Vptr be Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vlong Integers.Int64.zero) (@nil Values.val)))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_schnorr_challenge_entry.schnorr_challenge_env bb bs bc br)
+         (jet_secp_schnorr_challenge_entry.schnorr_challenge_temps be ba oa bm om bp op) m
+         (Clight.fn_body jets_secp.f_secp256k1_schnorrsig_challenge) Events.E0
+         (jet_secp_schnorr_challenge_entry.schnorr_challenge_temps be ba oa bm om bp op) mf ClightBigstep.Out_normal
