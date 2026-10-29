@@ -729,8 +729,19 @@ predicate; the four/eight-entry proof closings measured about 0.20/0.10 seconds.
 Earlier direct conversion hit a 60-second closing limit, preserved only as a
 failed temporary experiment. Do not reintroduce that expansion. Reviewed
 records now pass with only existing functional extensionality where used;
-independent kernel checking of this new module remains pending.
-Public coverage remains 526/533.
+recursive checking passed on the exact inputs of `b8796710`, with matching
+fingerprints and no unsafe features. Reproduce with the same stack bound and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_table_pass2_group`.
+`jet_secp_table_walk_group` now interprets the actual pass1 walk as repeated
+addition in the group, derives its consecutive shared-context/ratio identities,
+and establishes the finite-input guard for every j<=7 in the actual valid-affine
+seeded walk. That last result reuses the existing seed, residue and denominator
+proofs; it adds no input restriction or new finiteness premise. The balanced
+pass1 tree relation still needs construction and composition with pass2.
+Its ordinary build and all seven reviewed no-update records pass, with only
+existing functional extensionality where used. Fresh recursive checking
+remains pending. Public coverage
+remains 526/533.
 
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
