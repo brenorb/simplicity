@@ -285,6 +285,15 @@ reviewed assumption/contract records pass no-update checks. They are helper
 and specification bridges; `point_verify_1` remains unregistered until the
 actual readers, short-circuit control flow and nine-local lifecycle compose.
 
+`jet_secp_decompress_readback.eval_decompress_retained` composes the actual
+decompression call with its retained X/Y limb arrays, tight arithmetic bounds,
+flag, both return cases, ownership and framing. Successful calls establish
+the literal curve guard for those retained points; a separate closed-call
+proof preserves readonly memory for startup transport. Ordinary compilation
+and reviewed assumption/contract comparisons pass. Reuse this result for the
+A-then-B C guards; the literal adapter decodes B then A, so the final routing
+proof must handle both failed-decompression paths as well as success.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier
