@@ -562,9 +562,20 @@ A=0, B=7, proves positive order and `#E <= 2p+1`, with all four recorded
 results closed. `jet_secp_curve_group_sign` identifies its curve equation
 with the existing numeric model and proves that negation fixes only infinity,
 reusing `secp_curve_y_nonzero`; all three recorded results are closed.
-Ordinary builds and reviewed no-update records pass. A fresh recursive kernel
-check of these new group roots remains to be run. Next derive odd cardinality
-by finite-list negation pairing, then supply the actual generator/order
+Ordinary builds and reviewed no-update records pass. Recursive kernel checking
+of both group roots passed on the exact inputs of `4ec5c2e6`, with an unchanged
+fingerprint and no unsafe proof features. Their seven recorded results are
+closed. Reproduce with `ulimit -S -s 65520` and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_curve_group C.jet_secp_curve_group_sign`.
+
+`jet_finite_involution` proves constructively that a finite set closed under a
+fixed-point-free involution has even cardinality. `jet_secp_curve_group_odd`
+applies it to the non-infinity points and derives **odd group order**, using
+the actual finite enumeration and its unique negation fixed point. It does
+not evaluate the astronomical field enumeration. Named list constants and an
+explicit order/length equality keep conversion bounded. Both ordinary modules
+compile and their six reviewed no-update records match; all results are closed.
+They postdate the kernel check above. Next supply the actual generator/order
 certificate; neither `#E=n` nor the Strauss/group bridge is proved yet.
 
 The new proof-only `jet-elliptic-deps.sh` wrapper and Nix build targets enable
