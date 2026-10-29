@@ -789,6 +789,16 @@ and all twelve reviewed no-update records pass; every result is closed.
 Recursive kernel checking of this new root is still pending. The full Strauss
 fold and the generator streams remain separate obligations.
 
+`jet_secp_generator_base_group` checks the actual two literal bases, including
+their relation to G and 2^128*G. `jet_secp_generate_group` interprets the
+original signed recursion at every word width under those bases, deriving the
+actual double/add branches and the negative initial point. Both ordinary modules
+compile and all sixteen reviewed no-update records pass (closed arithmetic,
+existing functional extensionality for word-operation interpretation). Fresh
+recursive checking remains pending; affine normalization,
+nonzero generator-digit use and the generator window stream still need
+composition before the full Strauss fold.
+
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
 term arguments. When the context contains both `ValueA : value=point` and

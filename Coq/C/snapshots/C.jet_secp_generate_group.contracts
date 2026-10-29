@@ -1,0 +1,100 @@
+### C.jet_secp_generate_group.secp_generator_modulus_succ
+secp_generator_modulus_succ
+     : forall n : nat,
+       @eq BinNums.Z (secp_generator_modulus (S n))
+         (BinInt.Z.mul (secp_generator_modulus n) (secp_generator_modulus n))
+### C.jet_secp_generate_group.secp_generator_word_pair
+secp_generator_word_pair
+     : forall (n : nat) (hi lo : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) hi lo))
+         (BinInt.Z.add (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ n) hi) (secp_generator_modulus n))
+            (@Word.ToZ.Theory.toZ (Word.WordToZ n) lo))
+### C.jet_secp_generate_group.secp_generator_signed_one
+secp_generator_signed_one
+     : forall p : jet_secp_curve_group_sign.secp_group_point,
+       @eq
+         (@SMain.elt (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP) (GZnZ.add jet_secp_fe_math.feP)
+            (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven)
+         (jet_secp_lookup5_group.secp_group_signed_power p (BinNums.Zpos BinNums.xH)) p
+### C.jet_secp_generate_group.secp_literal_generator_bit_group
+secp_literal_generator_bit_group
+     : forall (base : Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (point : jet_secp_curve_group_sign.secp_group_point) (bit : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (a : Ty.tySem jet_secp_generate_literal.literal_generator_jacobian) (m : BinNums.Z)
+         (_ : jet_secp_table_pass2_group.secp_affine_word_rep (GZnZ.one jet_secp_fe_math.feP) base point)
+         (_ : jet_secp_jacobian_word_group.secp_jacobian_word_rep (GZnZ.one jet_secp_fe_math.feP) a
+                (jet_secp_lookup5_group.secp_group_signed_power point m)),
+       jet_secp_jacobian_word_group.secp_jacobian_word_rep (GZnZ.one jet_secp_fe_math.feP)
+         (jet_secp_generate_literal.literal_scale_run O base bit a)
+         (jet_secp_lookup5_group.secp_group_signed_power point
+            (BinInt.Z.add (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) m)
+               (@Word.ToZ.Theory.toZ Word.BitToZ bit)))
+### C.jet_secp_generate_group.secp_literal_scale_run_group
+secp_literal_scale_run_group
+     : forall (n : nat) (base : Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (point : jet_secp_curve_group_sign.secp_group_point) (word : Ty.tySem (Word.Word n))
+         (a : Ty.tySem jet_secp_generate_literal.literal_generator_jacobian) (m : BinNums.Z)
+         (_ : jet_secp_table_pass2_group.secp_affine_word_rep (GZnZ.one jet_secp_fe_math.feP) base point)
+         (_ : jet_secp_jacobian_word_group.secp_jacobian_word_rep (GZnZ.one jet_secp_fe_math.feP) a
+                (jet_secp_lookup5_group.secp_group_signed_power point m)),
+       jet_secp_jacobian_word_group.secp_jacobian_word_rep (GZnZ.one jet_secp_fe_math.feP)
+         (jet_secp_generate_literal.literal_scale_run n base word a)
+         (jet_secp_lookup5_group.secp_group_signed_power point
+            (BinInt.Z.add (BinInt.Z.mul m (secp_generator_modulus n)) (@Word.ToZ.Theory.toZ (Word.WordToZ n) word)))
+### C.jet_secp_generate_group.secp_generator_signed_pair
+secp_generator_signed_pair
+     : forall (n : nat) (hi lo : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z (secp_generator_signed_word (S n) (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) hi lo))
+         (BinInt.Z.add (BinInt.Z.mul (secp_generator_signed_word n hi) (secp_generator_modulus n))
+            (@Word.ToZ.Theory.toZ (Word.WordToZ n) lo))
+### C.jet_secp_generate_group.secp_generator_signed_zero
+secp_generator_signed_zero
+     : forall p : jet_secp_curve_group_sign.secp_group_point,
+       @eq
+         (@SMain.elt (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP) (GZnZ.add jet_secp_fe_math.feP)
+            (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven)
+         (jet_secp_lookup5_group.secp_group_signed_power p BinNums.Z0) jet_secp_curve_group_sign.secp_group_infinity
+### C.jet_secp_generate_group.secp_generator_signed_minus_one
+secp_generator_signed_minus_one
+     : forall p : jet_secp_curve_group_sign.secp_group_point,
+       @eq
+         (@SMain.elt (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP) (GZnZ.add jet_secp_fe_math.feP)
+            (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven)
+         (jet_secp_lookup5_group.secp_group_signed_power p (BinNums.Zneg BinNums.xH))
+         (@SMain.opp (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP)
+            (GZnZ.add jet_secp_fe_math.feP) (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.sub jet_secp_fe_math.feP)
+            (GZnZ.opp jet_secp_fe_math.feP) (GZnZ.inv jet_secp_fe_math.feP) (GZnZ.div jet_secp_fe_math.feP)
+            (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven
+            jet_secp_curve_group.secp_group_zero_test jet_secp_curve_group.secp_group_theory p)
+### C.jet_secp_generate_group.secp_literal_generate_run_group
+secp_literal_generate_run_group
+     : forall (n : nat) (base : Ty.tySem jet_secp_generate_literal.literal_generator_point)
+         (point : jet_secp_curve_group_sign.secp_group_point) (word : Ty.tySem (Word.Word n))
+         (_ : jet_secp_table_pass2_group.secp_affine_word_rep (GZnZ.one jet_secp_fe_math.feP) base point),
+       jet_secp_jacobian_word_group.secp_jacobian_word_rep (GZnZ.one jet_secp_fe_math.feP)
+         (jet_secp_generate_literal.literal_generate_signed_run n base word)
+         (jet_secp_lookup5_group.secp_group_signed_power point (secp_generator_signed_word n word))
+### C.jet_secp_generate_group.secp_literal_generate_signed_group
+secp_literal_generate_signed_group
+     : forall (n : nat) (second : bool) (word : Ty.tySem (Word.Word n)),
+       jet_secp_jacobian_word_group.secp_jacobian_word_rep (GZnZ.one jet_secp_fe_math.feP)
+         (@jet_secp_generate_literal.literal_generate_signed n Alg.CoreFunSem
+            (@jet_secp_generate_literal.literal_generator_base second Alg.CoreFunSem) word)
+         (jet_secp_lookup5_group.secp_group_signed_power
+            (@EGroup.gpow jet_secp_curve_group_sign.secp_group_point
+               (@SMain.add (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP)
+                  (GZnZ.one jet_secp_fe_math.feP) (GZnZ.add jet_secp_fe_math.feP) (GZnZ.mul jet_secp_fe_math.feP)
+                  (GZnZ.sub jet_secp_fe_math.feP) (GZnZ.opp jet_secp_fe_math.feP) (GZnZ.inv jet_secp_fe_math.feP)
+                  (GZnZ.div jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP)
+                  jet_secp_curve_group.secp_group_seven jet_secp_curve_group.secp_group_zero_test
+                  jet_secp_curve_group.secp_group_theory) jet_secp_curve_group_power.secp_group_generator
+               jet_secp_curve_group.secp_curve_group
+               match second return BinNums.Z with
+               | true =>
+                   BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+               | false => BinNums.Zpos BinNums.xH
+               end) (secp_generator_signed_word n word))
