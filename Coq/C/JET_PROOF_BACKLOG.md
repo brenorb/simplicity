@@ -763,6 +763,14 @@ checking is still pending for this new root.
 The remaining Schnorr path needs signed lookup and digit reconstruction,
 generator action, the actual Strauss fold, and the final verification predicate.
 
+`jet_secp_lookup5_group` interprets all sixteen signed nibble cases of the
+original lookup, including the actual affine negation. It composes directly
+with scalarTable5 and the original lambda transform, retaining their shared
+context. Its signed-power definition uses negation of positive powers for
+negative digits; CoqPrime's `gpow` itself is only a nonnegative action. The
+ordinary build and all four reviewed no-update records pass. Recursive
+checking of this new root remains pending.
+
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
 term arguments. When the context contains both `ValueA : value=point` and
