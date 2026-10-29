@@ -685,8 +685,19 @@ bound and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.j
 inverse-point and generic branches, with the shared-Z context unchanged.
 It derives each field branch condition from the literal zero test. Its nonzero
 context premise is internal: discharge it from the existing affine scalar-table
-invariant before any public use. The literal extended returned-ratio identity
-still needs composition; table/pass2 and the Strauss fold remain after that.
+invariant before any public use. Its twelve reviewed no-update records pass with only existing functional
+extensionality where used by the word arithmetic. Recursive checking passed
+on the exact inputs of `9e5bb567`, with matching fingerprints and no unsafe
+features. Reproduce with the same stack bound and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_jacobian_mixed_word_group`.
+
+`jet_secp_jacobian_mixed_ratio.literal_mixed_finite_ratio_field` now proves the
+extended returned **field** ratio identity `Z_out = rho * Z_in` for every finite
+literal mixed-add input, retaining all dispatch branches. Its exact routing
+lemma preserves the actual literal returned word, including the unreduced Y
+word in the doubling branch. It does not replace the existing public theorem
+or erase the separately recorded raw-word divergence. The field identity is
+for table/pass2 composition. Table semantics and the Strauss fold remain.
 The final C verifier call and its acceptance predicate also remain; this helper
 is not a registered public Schnorr proof. Coverage stays 526/533.
 
