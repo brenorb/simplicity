@@ -91,7 +91,11 @@ Proof.
   unfold literal_root_candidate;rewrite literal_fe_tower_step;cbn [fst snd].
   lazymatch goal with |-swu_power_match ?word ?base _=>
     swu_derive_power word base ltac:(fun hp=>exact hp) end.
+(* Checking the shared symbolic addition-chain proof measured about 28 seconds.
+   Bound only this proof-closing command; ordinary tactics retain 10 seconds. *)
+Set Default Timeout 60.
 Qed.
+Set Default Timeout 10.
 
 Lemma swu_field_fermat_square a : a^(feP+1) mod feP=(a*a) mod feP.
 Proof.
@@ -141,10 +145,10 @@ Lemma swu_literal_root_success_on_square x a : @toZ (WordToZ 8) x mod feP=(a*a) 
   @literal_fe_square_root Alg.CoreFunSem x=inr (literal_root_candidate x).
 Proof.
   intro Square;pose proof (swu_literal_root_check_square x a Square) as Good.
-  unfold literal_root_check in Good.
-  pose proof (literal_root_result_step x) as RootEquation.
-  pose proof (swu_root_select_true _ (literal_root_candidate x) Good) as Selection.
-  exact (eq_trans RootEquation Selection).
+  rewrite literal_root_result_step.
+  change (match literal_root_check x with inl _=>inl tt | inr _=>inr (literal_root_candidate x) end=
+    inr (literal_root_candidate x)).
+  exact (swu_root_select_true (literal_root_check x) (literal_root_candidate x) Good).
 Qed.
 Lemma swu_c_root_check_square w x a : root_words_match w x ->
   @toZ (WordToZ 8) x mod feP=(a*a) mod feP -> root_check_flag w=true.
