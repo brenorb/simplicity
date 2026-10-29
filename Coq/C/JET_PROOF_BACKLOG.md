@@ -381,6 +381,17 @@ reviewed no-update assumption/statement records match. Finalization, scalar
 conversion and the full signature wrapper remain open; no jet is registered
 from these helper results.
 
+The u64 block-fill proof now supports a general total counter while retaining
+its old exact interface. `jet_secp_sha_finalize_short` composes the original
+finalizer for any buffered length below 56 with an available total counter,
+including the Schnorr counter 160/message buffer 32. It reuses finalize48's
+array-fill, function entry, symbol linkage and cleanup lemmas and derives the
+actual padding-count expression. Both generalized executions compile, the
+old finalize48 consumer recompiles, and the reviewed no-update records match
+on all four affected/reused modules. Previous public types/definitions and
+axiom sets remain unchanged. The new execution theorems retain the explicit
+bounded `memcpy_model` premise. The pure byte/register adapters are closed.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier

@@ -18,6 +18,19 @@ Definition schnorr_challenge_hash_word (r pk msg:Ty.tySem (Word 8)) :=
    (msg,schnorr_challenge_pad_word)).
 Definition schnorr_word_bytes (w:Ty.tySem (Word 8)) :=
  map word8_array_value (vector_values (Word 3) 5 w).
+Lemma schnorr_word_bytes_length w : length (schnorr_word_bytes w)=32%nat.
+Proof. unfold schnorr_word_bytes;rewrite map_length,vector_values_length;reflexivity. Qed.
+Lemma schnorr_state_regs_length w : length (state_regs w)=8%nat.
+Proof. unfold state_regs;rewrite <-hash256_reg_chunks;apply Digest.hash256_len. Qed.
+Lemma schnorr_hash_pair_registers h a b :
+ state_regs (@Simplicity.SHA256.hashBlock Alg.CoreFunSem (h,(a,b)))=
+ SHA256.hash_block (state_regs h) (be_words (schnorr_word_bytes a++schnorr_word_bytes b)).
+Proof.
+ rewrite hashBlock_regs.
+ change (map word8_array_value (vector_values (Word 3) 6 (a,b))) with
+  (map word8_array_value (vector_values (Word 3) 5 a++vector_values (Word 3) 5 b)).
+ rewrite map_app;reflexivity.
+Qed.
 Lemma schnorr_challenge_pad_bytes :
  schnorr_word_bytes schnorr_challenge_pad_word=sha_pad (Int64.repr 160).
 Proof. vm_compute;reflexivity. Qed.

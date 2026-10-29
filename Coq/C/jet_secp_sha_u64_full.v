@@ -45,23 +45,24 @@ Qed.
 Lemma secp_sha_u64_blocks bb : blocks_of_env secp_ge (u64_env bb)=[(bb,0,8)].
 Proof. reflexivity. Qed.
 
-Theorem eval_secp_sha_u64_full (Hmodel:memcpy_model) l regs x m bc bs :
-  length l=56%nat ->length regs=8%nat ->bc<>bs ->secp_sha_startup m ->
+Theorem eval_secp_sha_u64_full_counter (Hmodel:memcpy_model) l regs x total m bc bs :
+  length l=56%nat ->length regs=8%nat ->
+  0<=total -> total+8<2305843009213693952 -> total mod 64=56 ->bc<>bs ->secp_sha_startup m ->
   Mem.range_perm m bc 0 88 Cur Freeable ->Mem.range_perm m bs 0 32 Cur Freeable ->
   Mem.load Mptr m bc 0=Some (Vptr bs Ptrofs.zero) ->uint32_array_at m bs 0 regs ->
-  Mem.load Mint64 m bc 8=Some (Vlong (Int64.repr 56)) ->
+  Mem.load Mint64 m bc 8=Some (Vlong (Int64.repr total)) ->
   Mem.load Mint8unsigned m bc 80=Some (Vint Int.zero) ->
   (forall i,(i<56)%nat ->Mem.load Mint8unsigned m bc (16+Z.of_nat i)=Some (Vint (nth i l Int.zero))) ->
   exists mf,Clight2.eval_funcall secp_ge m (Internal jets_secp.f_sha256_u64be)
     [Vptr bc Ptrofs.zero;Vlong x] E0 mf (Vint Int.one) /\
   uint32_array_at mf bs 0 (SHA256.hash_block regs (be_words (l++c_be64_bytes x))) /\
   Mem.load Mptr mf bc 0=Some (Vptr bs Ptrofs.zero) /\
-  Mem.load Mint64 mf bc 8=Some (Vlong (Int64.repr 64)) /\
+  Mem.load Mint64 mf bc 8=Some (Vlong (Int64.repr (total+8))) /\
   Mem.load Mint8unsigned mf bc 80=Some (Vint Int.zero) /\
   Mem.range_perm mf bc 0 88 Cur Freeable /\Mem.range_perm mf bs 0 32 Cur Freeable /\
   lframe (fun b _=>b<>bc /\b<>bs) m mf /\readonly_preserved m mf /\secp_sha_startup mf.
 Proof.
-  intros LL LR CS Startup FC FS Pointer State Counter Overflow Buffer.
+  intros LL LR Nonnegative Total Remainder CS Startup FC FS Pointer State Counter Overflow Buffer.
   assert (VC:Mem.valid_block m bc) by (eapply Mem.perm_valid_block;apply (FC 0);lia).
   assert (VS:Mem.valid_block m bs) by (eapply Mem.perm_valid_block;apply (FS 0);lia).
   destruct (Mem.alloc m 0 8) as (m1,bb) eqn:Alloc.
@@ -85,15 +86,16 @@ Proof.
   { split;[intros;apply K2;assumption|];split;[intros;apply PermW,PA;assumption|exact V2]. }
   assert (Ready2:secp_sha_startup m2).
   { eapply secp_sha_startup_preserved;[exact Startup|exact R2|exact Frame2|intros;exact I]. }
-  destruct (eval_secp_sha_absorb_full Hmodel l (c_be64_bytes x) regs m2 bc bs bb Ptrofs.zero
-    ltac:(rewrite LL;lia) ltac:(rewrite LL;reflexivity) LR (Fresh bc VC) CS Ready2
+  destruct (eval_secp_sha_absorb_full_counter Hmodel l (c_be64_bytes x) regs total m2 bc bs bb Ptrofs.zero
+    ltac:(rewrite LL;lia) ltac:(rewrite LL;reflexivity) LR Nonnegative ltac:(exact Total)
+    ltac:(rewrite LL;exact Remainder) (Fresh bc VC) CS Ready2
     ltac:(intros pos Range;apply PermW,PA,FC;exact Range)
     ltac:(intros pos Range;apply PermW,PA,FS;exact Range)
     ltac:(change (8<=18446744073709551615);lia)) as
     (m3 & Absorb & Output & Pointer3 & Counter3 & Overflow3 & FC3 & FS3 & Frame3 & R3 & Ready3).
   { rewrite K2 by exact VC;exact Pointer. }
   { intros i v Nth;rewrite K2 by exact VS;apply State;exact Nth. }
-  { rewrite K2 by exact VC;rewrite LL;exact Counter. }
+  { rewrite K2 by exact VC;exact Counter. }
   { rewrite K2 by exact VC;exact Overflow. }
   { intros i Index;rewrite K2 by exact VC;apply Buffer;rewrite LL in Index;exact Index. }
   { intros i Index;apply Bytes;exact Index. }
@@ -175,4 +177,24 @@ Proof.
                          unfold C.jet_secp_sha_dispatch.secp_sha_dispatch_ok in Dispatch.
                          apply Mem.load_valid_access in Dispatch;apply Fresh.
                          eapply Mem.valid_access_valid_block;eapply Mem.valid_access_implies;[exact Dispatch|constructor].
+Qed.
+
+Theorem eval_secp_sha_u64_full (Hmodel:memcpy_model) l regs x m bc bs :
+  length l=56%nat ->length regs=8%nat ->bc<>bs ->secp_sha_startup m ->
+  Mem.range_perm m bc 0 88 Cur Freeable ->Mem.range_perm m bs 0 32 Cur Freeable ->
+  Mem.load Mptr m bc 0=Some (Vptr bs Ptrofs.zero) ->uint32_array_at m bs 0 regs ->
+  Mem.load Mint64 m bc 8=Some (Vlong (Int64.repr 56)) ->
+  Mem.load Mint8unsigned m bc 80=Some (Vint Int.zero) ->
+  (forall i,(i<56)%nat ->Mem.load Mint8unsigned m bc (16+Z.of_nat i)=Some (Vint (nth i l Int.zero))) ->
+  exists mf,Clight2.eval_funcall secp_ge m (Internal jets_secp.f_sha256_u64be)
+    [Vptr bc Ptrofs.zero;Vlong x] E0 mf (Vint Int.one) /\
+  uint32_array_at mf bs 0 (SHA256.hash_block regs (be_words (l++c_be64_bytes x))) /\
+  Mem.load Mptr mf bc 0=Some (Vptr bs Ptrofs.zero) /\
+  Mem.load Mint64 mf bc 8=Some (Vlong (Int64.repr 64)) /\
+  Mem.load Mint8unsigned mf bc 80=Some (Vint Int.zero) /\
+  Mem.range_perm mf bc 0 88 Cur Freeable /\Mem.range_perm mf bs 0 32 Cur Freeable /\
+  lframe (fun b _=>b<>bc /\b<>bs) m mf /\readonly_preserved m mf /\secp_sha_startup mf.
+Proof.
+ intros LL LR CS Startup FC FS Pointer State Counter Overflow Buffer.
+ eapply eval_secp_sha_u64_full_counter with (total:=56);try eassumption;try lia;reflexivity.
 Qed.
