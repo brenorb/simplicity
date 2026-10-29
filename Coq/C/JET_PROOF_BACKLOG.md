@@ -9,14 +9,14 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-The inventory currently has 524 equivalence entries (138 with the existing
-explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 6
+The inventory currently has 525 equivalence entries (138 with the existing
+explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 7
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-525/533 registered proof entries, with 8 jets still lacking either result.
-The new `linear_verify_1` candidate is compiled and registered, but its full
-scoped acceptance check is pending; the latest accepted milestone remains
-524/533.
+526/533 registered proof entries, with 7 jets still lacking either result.
+`linear_verify_1` passed full scoped acceptance on `f3658dbf`, reaching the
+latest accepted milestone of 525/533. `point_verify_1` is compiled and
+registered at `0180f32b`; its full scoped acceptance check remains in progress.
 `linear_combination_1` passed full scoped acceptance on the exact inputs of
 `6491c8b6`: kernel checking on 1,013 modules, matching assumption records on
 943 modules and contract records on 962 modules, negative tests and all five
@@ -339,6 +339,20 @@ compressed-point routing, assertion, CoreJets dispatch and FFI entry and
 rejects sixteen targeted mutations. The public proof is registered and the
 coverage negative tests pass; full scoped acceptance remains pending. These
 checks alone do not raise accepted coverage above the 525/533 milestone.
+
+### Schnorr signature callers
+
+The next reserved callers are `bip_0340_verify` and `check_sig_verify` on
+`codex/schnorr-verifier`. `jet_secp_schnorr_tagged_init` proves the original
+challenge-tag initializer from writable storage through all eight state-word
+stores, counter 64, 64 block-byte initializers, struct return and local free.
+The ownership interface preserves freeability, framing and readonly memory;
+it adds no libc premise. `jet_uint32_array_prefix` and
+`jet_sha256_tagged_fields` reuse the existing array/context execution proofs.
+All three modules compile with matching reviewed assumption and statement
+records. These helper results add no jet coverage. The canonical challenge-tag
+bridge, parsing/challenge callers and complete verification result remain
+open; no additional public precondition is justified by these helpers.
 
 ### Development history for the accepted off-curve linear-combination proof
 
