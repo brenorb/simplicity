@@ -307,6 +307,16 @@ five modules compile in the ordinary project, with reviewed type/assumption
 records matching on a no-update run. The call premises still need discharge
 in the full reader/guard/lifecycle composition; they do not add jet coverage.
 
+`jet_secp_point_verify_public_reads.eval_point_verify_public_reads` now
+derives all six original reader calls, consumes exactly 1,026 input bits,
+and retains both normalized scalars, both X-coordinate limb arrays, all seven
+reader-local permissions, the final source cursor, output invariant and
+framing. It requires no output capacity beyond the given valid frame.
+The parity-reader readonly proof reuses the existing checked internal helper
+table. Ordinary compilation and reviewed no-update records pass. The next
+composition is actual decompression followed by the arithmetic branch and
+the outer lifecycle, not another reader model.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier
