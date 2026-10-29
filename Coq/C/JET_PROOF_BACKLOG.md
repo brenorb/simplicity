@@ -575,8 +575,32 @@ the actual finite enumeration and its unique negation fixed point. It does
 not evaluate the astronomical field enumeration. Named list constants and an
 explicit order/length equality keep conversion bounded. Both ordinary modules
 compile and their six reviewed no-update records match; all results are closed.
-They postdate the kernel check above. Next supply the actual generator/order
-certificate; neither `#E=n` nor the Strauss/group bridge is proved yet.
+Recursive checking of both pairing/odd-order roots passed on the exact inputs
+of `90324930`, with an unchanged fingerprint and no unsafe proof features.
+Reproduce with `ulimit -S -s 65520` and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_finite_involution C.jet_secp_curve_group_odd`.
+
+`jet_secp_curve_group_power` proves binary positive powers equal CoqPrime's
+group power and supplies a nonidentity, checked-on-curve generator using the
+coordinates in the original `group_impl.h`. `jet_secp_curve_group_certificate`
+checks `nG=O` with the library's already verified ordinary-projective operations.
+Those coordinates are used only for this mathematical certificate; they do
+not replace the C implementation or its Jacobian-to-group obligation.
+The actual VM check proves the integer Z coordinate zero, then a proved
+projection rule gives infinity. Normalizing a whole curve-point equality
+needlessly unfolds symbolic field-operation parameters and timed out; the
+coordinate check and its closing command each measured about 19 seconds, with
+a scoped 60-second bound. No unchecked cast or native observation is used.
+
+`jet_secp_curve_group_order.secp_curve_group_order_checked` combines that
+certificate, checked scalar primality, Lagrange, the strict `#E < 3n` bound
+and odd cardinality to prove **`#E=n`**.
+`secp_curve_group_annihilator_checked` derives `nP=O` for every curve point.
+The intermediate implication lemmas expose the certificate premise; these
+two final results discharge it and have no such premise. All three ordinary
+modules compile and their fifteen reviewed no-update records match; all
+recorded results are closed. Their fresh recursive check remains pending.
+The Strauss/group semantics and endomorphism-action bridges remain open.
 
 The new proof-only `jet-elliptic-deps.sh` wrapper and Nix build targets enable
 `SMain`/`GZnZ` from the existing pin. The frozen `jet-deps.sh` is byte-identical
