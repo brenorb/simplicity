@@ -634,8 +634,9 @@ ordinary-projective operations for C's Jacobian computation.
 the generator identity and the power/homomorphism transfer, and concludes
 **`phi(P)=[lambda]P` for every curve point**, using the proved generator span.
 The scalar sign and endomorphism group identities are now discharged. Next:
-interpret the literal Jacobian operations and Strauss traversal in this group,
-then relate the C affine/even-Y/X test to the canonical point-check predicate.
+complete the shared-Z table and Strauss traversal interpretation using the
+literal operation bridges below, then compose the original C verifier and
+relate its affine/even-Y/X test to the canonical point-check predicate.
 These are still required for the public Schnorr jets. The two lambda modules
 compile and all nine reviewed no-update records are closed. Recursive checking
 passed on the exact inputs of `3ac4c052`, with matching fingerprints and no unsafe
@@ -674,9 +675,26 @@ no unsafe features. Reproduce with the same stack bound and
 semantics for the exact generic mixed-addition formulas in shared-Z context c.
 It also derives point equality when h=i=0, and point negation when h=0 but
 i is nonzero, from the two original curve equations. These branch hypotheses
-are internal dispatch conditions. The literal mixed-add word bridge and its
-returned-ratio identity still need composition; table/pass2 and the Strauss
-fold remain after that.
+are internal dispatch conditions. All fourteen reviewed no-update records are
+closed. Recursive checking passed on the exact inputs of `361fc140`, with
+matching fingerprints and no unsafe features. Reproduce with the same stack
+bound and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_jacobian_mixed_group`.
+
+`jet_secp_jacobian_mixed_word_group.secp_literal_mixed_group` now interprets the
+**actual literal mixed-add program**, retaining infinity, equal-point,
+inverse-point and generic branches, with the shared-Z context unchanged.
+It derives each field branch condition from the literal zero test. Its nonzero
+context premise is internal: discharge it from the existing affine scalar-table
+invariant before any public use. The literal extended returned-ratio identity
+still needs composition; table/pass2 and the Strauss fold remain after that.
+The final C verifier call and its acceptance predicate also remain; this helper
+is not a registered public Schnorr proof. Coverage stays 526/533.
+
+For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
+importing the Simplicity combinator notations; they can parse as notations in
+term arguments. When the context contains both `ValueA : value=point` and
+`Infinity : point=infinity`, rewrite `Infinity` explicitly: `subst point` can
+choose the other equality and leave the wrong group expression.
 
 Keep word argument binders explicitly typed `Ty.tySem (Word 8)`. Implicitly
 inferred, expanded tuple types can prevent rewrite/destruct from matching the
