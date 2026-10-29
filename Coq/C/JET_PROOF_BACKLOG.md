@@ -611,7 +611,18 @@ curve point equals `[k]G` for some `0 <= k < n`. It compares the proved order of
 G's finite support with the full group cardinality, using finite inclusion and
 uniqueness; no enumeration is computed and no cyclicity premise is assumed.
 This reduces the endomorphism-action bridge to a homomorphism proof and a
-checked generator calculation. Public coverage stays 526/533.
+checked generator calculation. All five records are closed; the ordinary build
+and reviewed no-update audits pass. Recursive checking passed on the exact
+inputs of `28b89c21`, with matching fingerprints and no unsafe features.
+Reproduce with the same stack bound and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_curve_group_cyclic`.
+
+`jet_secp_curve_group_endomorphism` takes beta from the existing actual-global
+model and proves it is nonzero, has cube one, preserves the curve, and commutes
+with affine addition. The addition proof retains infinity, inverse, tangent and
+secant branches and derives the denominator conditions from the original curve
+facts. It neither assumes the lambda action nor interprets C Jacobians.
+Public coverage stays 526/533.
 
 The new proof-only `jet-elliptic-deps.sh` wrapper and Nix build targets enable
 `SMain`/`GZnZ` from the existing pin. The frozen `jet-deps.sh` is byte-identical
