@@ -537,25 +537,14 @@ subprogram above. Ordinary compilation and reviewed no-update records pass;
 this is the specification endpoint for the pending C caller, not a new jet
 equivalence or registration.
 
-For the remaining sign-transfer bridge, reuse the **existing pinned CoqPrime
-elliptic library**, rather than writing new group laws. Its `SMain.ell_theory`,
-`add_assoc` and `EFGroup`, `GZnZ.FZpZ` and field enumeration, and the existing
-`EGroup`/`Lagrange` order results provide a possible route. An isolated copy of
-the pinned dependency compiled `elliptic/SMain.vo` and `elliptic/GZnZ.vo` with
-the baseline Coq 8.17.1 toolchain. This trial is not a kernel or assumption audit,
-and the ordinary dependency bootstrap still builds only the Pocklington closure.
-
-Instantiate the field/curve with the already proved prime p and A=0, B=7.
-The missing group-order argument needs actual certificates/proofs: a nonzero
-generator with nG=O, scalar primality, the finite bound `#E <= 2p+1 < 3n`,
-and odd cardinality from negation pairing and the proved absence of Y=0
-curve points. These would give `#E=n` and an annihilator for every curve point;
-they are not currently assumptions or completed results. The literal Strauss
-adapter still needs Jacobian operation/fold semantics and the endomorphism
-action `phi(P)=[lambda]P`. Two important library boundaries: `SMain.pelt` uses
-ordinary projective `(X/Z,Y/Z)`, not our Jacobian `(X/Z^2,Y/Z^3)`, and
-`EGroup.gpow` sends negative integers to the identity rather than implementing
-signed multiplication. Supply explicit adapters and retain scalar reduction.
+The sign-transfer proof uses the **existing pinned CoqPrime elliptic
+library**, with its field and group laws. The checked group-order certificate
+below discharges the scalar-order premise. The remaining literal Strauss
+adapter needs Jacobian operation/fold semantics and the endomorphism action
+`phi(P)=[lambda]P`. Two library boundaries matter: `SMain.pelt` uses ordinary
+projective `(X/Z,Y/Z)`, not C's Jacobian `(X/Z^2,Y/Z^3)`, and `EGroup.gpow`
+sends negative integers to the identity rather than implementing signed
+multiplication. Supply explicit adapters and retain scalar reduction.
 
 `jet_secp_curve_group` now instantiates that existing affine group at p,
 A=0, B=7, proves positive order and `#E <= 2p+1`, with all four recorded
@@ -599,8 +588,18 @@ and odd cardinality to prove **`#E=n`**.
 The intermediate implication lemmas expose the certificate premise; these
 two final results discharge it and have no such premise. All three ordinary
 modules compile and their fifteen reviewed no-update records match; all
-recorded results are closed. Their fresh recursive check remains pending.
-The Strauss/group semantics and endomorphism-action bridges remain open.
+recorded results are closed. Recursive kernel checking of the order root
+passed on the exact inputs of `e2b9476e`, with matching before/after fingerprints
+and no unsafe proof features. Reproduce with `ulimit -S -s 65520` and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_curve_group_order`.
+
+`jet_secp_curve_group_scalar_sign` transfers scalar negation to point negation
+for every curve point and every normalized challenge word. It proves
+`[-e mod n]P=[e](-P)` from the checked `nP=O`, including e=0, and instantiates
+this with the actual canonical scalar-normalize/negate terms. It introduces
+no new order, certificate or nonzero-scalar premise. The literal Strauss/group
+semantics and endomorphism-action bridges remain open; these group identities
+do not themselves prove the public Schnorr jets. Public coverage stays 526/533.
 
 The new proof-only `jet-elliptic-deps.sh` wrapper and Nix build targets enable
 `SMain`/`GZnZ` from the existing pin. The frozen `jet-deps.sh` is byte-identical
