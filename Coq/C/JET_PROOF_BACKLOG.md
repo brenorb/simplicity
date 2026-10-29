@@ -317,6 +317,17 @@ table. Ordinary compilation and reviewed no-update records pass. The next
 composition is actual decompression followed by the arithmetic branch and
 the outer lifecycle, not another reader model.
 
+`jet_secp_point_verify_decompress.eval_point_verify_decompress` now discharges
+the short-circuit call premises using the real decompressor. A's limb arrays
+and flag are retained on both outcomes; B's are retained when A succeeds,
+which is exactly when C calls B. All four operand-local permissions, external
+framing and readonly memory are preserved. The expanded public-body module
+derives the six reader statements, parity temporary updates and both branch
+controls. These modules compile and their reviewed no-update records match.
+The remaining public implication is the full initialized lifecycle: compose
+these phases with the loose arithmetic theorem, return conversion and nine
+frees, then bind and accept the original public jet.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier

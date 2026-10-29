@@ -42,3 +42,112 @@ exec_point_verify_arithmetic_spine
          (ClightBigstep.Out_return
             (@Some (prod Values.val Ctypes.type)
                (@pair Values.val Ctypes.type (Values.Vint (jet_readBit_layout.bit_int bit)) Ctypesdefs.tint)))
+### C.jet_secp_point_verify_public_body.point_verify_read_parities
+point_verify_read_parities
+     : forall (le : Maps.PTree.tree Values.val) (a b : bool),
+       and
+         (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._ay (point_verify_read_temps le a b))
+            (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int a))))
+         (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._by (point_verify_read_temps le a b))
+            (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int b))))
+### C.jet_secp_point_verify_public_body.exec_point_verify_bit_read
+exec_point_verify_bit_read
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (parity dest : AST.ident) (bl : Values.block) (bit : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._readBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_readBit)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf
+                (Values.Vint (jet_readBit_layout.bit_int bit))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (point_verify_bit_read parity dest) Events.E0
+         (point_verify_parity_temps le parity dest bit) mf ClightBigstep.Out_normal
+### C.jet_secp_point_verify_public_body.exec_point_verify_fe_read
+exec_point_verify_fe_read
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (var : BinNums.positive) (bx bl : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) var e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._read_fe e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+                (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (point_verify_fe_read var) Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_secp_point_verify_public_body.exec_point_verify_read_spine
+exec_point_verify_read_spine
+     : forall (le : Maps.PTree.tree Values.val) (lef : Clight.temp_env) (m m1 m2 m3 m4 m5 mr mf : Memory.Mem.mem)
+         (bl bax bbx ba bb bk bg br bz : Values.block) (a b : bool) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_read_scalar)
+                (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 m1
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m1
+                (@Ctypes.Internal Clight.function jets_secp.f_readBit)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 m2
+                (Values.Vint (jet_readBit_layout.bit_int a)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m2
+                (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+                (@cons Values.val (Values.Vptr bax Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 m3
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m3
+                (@Ctypes.Internal Clight.function jets_secp.f_read_scalar)
+                (@cons Values.val (Values.Vptr bg Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 m4
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m4
+                (@Ctypes.Internal Clight.function jets_secp.f_readBit)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 m5
+                (Values.Vint (jet_readBit_layout.bit_int b)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m5
+                (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+                (@cons Values.val (Values.Vptr bbx Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mr
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                (jet_secp_point_verify_public_support.point_verify_public_env bl bax bbx ba bb bk bg br bz)
+                (point_verify_read_temps le a b) mr
+                (Clight.Ssequence jet_secp_point_verify_guards.point_verify_guards point_verify_branch) Events.E0 lef
+                mf out),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_point_verify_public_support.point_verify_public_env bl bax bbx ba bb bk bg br bz) le m
+         point_verify_rest Events.E0 lef mf out
+### C.jet_secp_point_verify_public_body.exec_point_verify_branch_true
+exec_point_verify_branch_true
+     : forall (le : Maps.PTree.tree Values.val) (lef : Clight.temp_env) (m mf : Memory.Mem.mem)
+         (bl bax bbx ba bb bk bg br bz : Values.block) (out : ClightBigstep.outcome)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'5 le)
+                (@Some Values.val (Values.Vint Integers.Int.one)))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                (jet_secp_point_verify_public_support.point_verify_public_env bl bax bbx ba bb bk bg br bz) le m
+                point_verify_arithmetic_spine Events.E0 lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_point_verify_public_support.point_verify_public_env bl bax bbx ba bb bk bg br bz) le m
+         point_verify_branch Events.E0 lef mf out
+### C.jet_secp_point_verify_public_body.exec_point_verify_branch_false
+exec_point_verify_branch_false
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bl bax bbx ba bb bk bg br bz : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'5 le)
+                (@Some Values.val (Values.Vint Integers.Int.zero))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_point_verify_public_support.point_verify_public_env bl bax bbx ba bb bk bg br bz) le m
+         point_verify_branch Events.E0 le m
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.zero) Ctypesdefs.tint)))
