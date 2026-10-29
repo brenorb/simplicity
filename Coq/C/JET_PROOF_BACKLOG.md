@@ -540,8 +540,8 @@ equivalence or registration.
 The sign-transfer proof uses the **existing pinned CoqPrime elliptic
 library**, with its field and group laws. The checked group-order certificate
 below discharges the scalar-order premise. The remaining literal Strauss
-adapter needs Jacobian operation/fold semantics and the endomorphism action
-`phi(P)=[lambda]P`. Two library boundaries matter: `SMain.pelt` uses ordinary
+adapter needs Jacobian operation/fold semantics; the endomorphism action
+`phi(P)=[lambda]P` is now proved below. Two library boundaries matter: `SMain.pelt` uses ordinary
 projective `(X/Z,Y/Z)`, not C's Jacobian `(X/Z^2,Y/Z^3)`, and `EGroup.gpow`
 sends negative integers to the identity rather than implementing signed
 multiplication. Supply explicit adapters and retain scalar reduction.
@@ -597,9 +597,8 @@ and no unsafe proof features. Reproduce with `ulimit -S -s 65520` and
 for every curve point and every normalized challenge word. It proves
 `[-e mod n]P=[e](-P)` from the checked `nP=O`, including e=0, and instantiates
 this with the actual canonical scalar-normalize/negate terms. It introduces
-no new order, certificate or nonzero-scalar premise. The literal Strauss/group
-semantics and endomorphism-action bridges remain open; these group identities
-do not themselves prove the public Schnorr jets. Their ordinary build and six
+no new order, certificate or nonzero-scalar premise. These group identities do not themselves supply the literal Strauss/group
+semantics or prove the public Schnorr jets. Their ordinary build and six
 reviewed no-update records pass; the final word-level bridge uses the existing
 functional-extensionality assumption, while the five group identities are closed.
 Recursive checking passed on the exact inputs of `8cd28139`, with matching
@@ -621,8 +620,25 @@ Reproduce with the same stack bound and
 model and proves it is nonzero, has cube one, preserves the curve, and commutes
 with affine addition. The addition proof retains infinity, inverse, tangent and
 secant branches and derives the denominator conditions from the original curve
-facts. It neither assumes the lambda action nor interprets C Jacobians.
-Public coverage stays 526/533.
+facts. It neither assumes the lambda action nor interprets C Jacobians. The thirteen
+reviewed no-update records are closed. Recursive checking passed at the exact
+inputs of `183bde0d`, with matching fingerprints and no unsafe proof features.
+Reproduce with the same stack bound and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_curve_group_endomorphism`.
+
+`jet_secp_curve_group_lambda_certificate` checks that `[lambda]G` has nonzero
+projective Z and the cross-multiplied coordinates of beta applied to G, using
+the original lambda constant and checked VM conversion. It does not substitute
+ordinary-projective operations for C's Jacobian computation.
+`jet_secp_curve_group_lambda` proves the generic coordinate-to-affine rule,
+the generator identity and the power/homomorphism transfer, and concludes
+**`phi(P)=[lambda]P` for every curve point**, using the proved generator span.
+The scalar sign and endomorphism group identities are now discharged. Next:
+interpret the literal Jacobian operations and Strauss traversal in this group,
+then relate the C affine/even-Y/X test to the canonical point-check predicate.
+These are still required for the public Schnorr jets. The two lambda modules
+compile and all nine reviewed no-update records are closed; fresh recursive
+checking remains pending. Public coverage stays 526/533.
 
 The new proof-only `jet-elliptic-deps.sh` wrapper and Nix build targets enable
 `SMain`/`GZnZ` from the existing pin. The frozen `jet-deps.sh` is byte-identical
