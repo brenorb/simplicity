@@ -261,8 +261,8 @@ the original self-copy, weak normalization, negation and full affine helper
 call for those limbs. It retains X, the flag, ownership and framing and proves
 the negated residue/bounds. Its complete `Qed` and assumption query pass in
 pinned interactive Coq, with only the inherited assumptions. Native `coqc`
-compilation also passes with `ulimit -S -s 65520`; public theorem records
-remain pending. This helper does not add jet coverage. Reproduce the
+compilation also passes with `ulimit -S -s 65520`; reviewed public theorem
+and assumption records pass their no-update checks. This helper does not add jet coverage. Reproduce the
 interactive check from the repository root with
 `bash Coq/build-jets.sh --coqtop -quiet -batch -l "$PWD/Coq/C/jet_secp_affine_negate_loose.v"`.
 Reuse `eval_decompress_function` and this helper to generalize the shared
