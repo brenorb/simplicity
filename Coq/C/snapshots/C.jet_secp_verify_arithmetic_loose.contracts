@@ -1,0 +1,138 @@
+### C.jet_secp_verify_arithmetic_loose.verify_square_loose_bound
+verify_square_loose_bound
+     : forall (w : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds w)
+         (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       BinInt.Z.le (Integers.Int64.unsigned (w i))
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+### C.jet_secp_verify_arithmetic_loose.eval_verify_arithmetic_loose
+eval_verify_arithmetic_loose
+     : forall (_ : jet_memset_model.memset_model)
+         (raw ng ax ay bxword byword : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (axr ayr bxr byr : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (ba bb bk bg br bz : Values.block)
+         (_ : jet_secp_linear_startup.linear_startup m)
+         (_ : @List.NoDup Values.block
+                (@cons Values.block ba
+                   (@cons Values.block bb
+                      (@cons Values.block bk
+                         (@cons Values.block bg (@cons Values.block br (@cons Values.block bz (@nil Values.block))))))))
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                       (jet_secp_linear_verify_arithmetic.linear_verify_arithmetic_storage ba bb bk bg br bz)),
+              Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bk BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                         (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem raw)))))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bg BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                         (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem ng)))))
+         (_ : jet_secp_square_columns.square_input_bounds axr) (_ : jet_secp_square_columns.square_input_bounds ayr)
+         (_ : jet_secp_square_columns.square_input_bounds bxr) (_ : jet_secp_square_columns.square_input_bounds byr)
+         (_ : jet_secp_odd_table_literal_walk.table_word_literal axr ax)
+         (_ : jet_secp_odd_table_literal_walk.table_word_literal ayr ay)
+         (_ : jet_secp_odd_table_literal_walk.table_word_literal bxr bxword)
+         (_ : jet_secp_odd_table_literal_walk.table_word_literal byr byword)
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 axr))
+         (_ : jet_secp_fe_nv.fe_at m ba
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_multiply_normalize_bridge.words5 ayr))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m ba
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : jet_secp_fe_nv.fe_at m bb BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 bxr))
+         (_ : jet_secp_fe_nv.fe_at m bb
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_multiply_normalize_bridge.words5 byr))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m bb
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : @eq bool
+                (Bit.toBool
+                   (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+                      (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) ax ay))) true),
+       @ex Memory.Mem.mem
+         (fun ms : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mn : Memory.Mem.mem =>
+             @ex Memory.Mem.mem
+               (fun mm : Memory.Mem.mem =>
+                @ex Memory.Mem.mem
+                  (fun mf : Memory.Mem.mem =>
+                   and
+                     (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                        (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_gej_set_ge)
+                        (@cons Values.val (Values.Vptr bz Integers.Ptrofs.zero)
+                           (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 ms
+                        Values.Vundef)
+                     (and
+                        (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge ms
+                           (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_neg)
+                           (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero)
+                              (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mn
+                           Values.Vundef)
+                        (and
+                           (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mn
+                              (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ecmult)
+                              (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                                 (@cons Values.val (Values.Vptr bz Integers.Ptrofs.zero)
+                                    (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero)
+                                       (@cons Values.val (Values.Vptr bg Integers.Ptrofs.zero) (@nil Values.val)))))
+                              Events.E0 mm Values.Vundef)
+                           (and
+                              (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mm
+                                 (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_gej_add_ge_var)
+                                 (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                                    (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                                       (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero)
+                                          (@cons Values.val (Values.Vlong Integers.Int64.zero) (@nil Values.val)))))
+                                 Events.E0 mf Values.Vundef)
+                              (and
+                                 (@eq (option Values.val)
+                                    (Memory.Mem.load AST.Mint32 mf br
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                                    (@Some Values.val
+                                       (Values.Vint
+                                          (jet_readBit_layout.bit_int
+                                             (Bit.toBool
+                                                (@jet_secp_literal_gej_predicate.literal_gej_is_infinity Alg.CoreFunSem
+                                                   (@jet_secp_add_literal.literal_gej_ge_add Alg.CoreFunSem
+                                                      (@pair (Ty.tySem jet_secp_scalar_table_literal.literal_table_gej)
+                                                         (Ty.tySem
+                                                            (Ty.Prod (Word.Word (S (...))) (Word.Word (S (...)))))
+                                                         (@jet_secp_strauss_complete_program.literal_off_curve_linear_combination_1
+                                                            Alg.CoreFunSem
+                                                            (@pair (prod (Ty.tySem (...)) (prod (...) (...)))
+                                                               (Ty.tySem (Word.Word (...)))
+                                                               (@pair (Ty.tySem (...)) (prod (...) (...)) raw
+                                                                  (@pair (...) (...) (...) (...))) ng))
+                                                         (@jet_secp_gej_negate_literal.literal_ge_negate Alg.CoreFunSem
+                                                            (@pair (Ty.tySem (Word.Word (...)))
+                                                               (Ty.tySem (Word.Word (...))) bxword byword))))))))))
+                                 (and
+                                    (forall (b : Values.block) (hi : BinNums.Z)
+                                       (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                                              (jet_secp_linear_verify_arithmetic.linear_verify_arithmetic_storage ba bb
+                                                 bk bg br bz)),
+                                     Memory.Mem.range_perm mf b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+                                    (and (jet_secp_linear_startup.linear_startup mf)
+                                       (jet_sx_mem.lframe
+                                          (fun (b : Values.block) (_ : BinNums.Z) =>
+                                           not
+                                             (@List.In Values.block b
+                                                (@cons Values.block ba
+                                                   (@cons Values.block bb
+                                                      (@cons Values.block bk
+                                                         (@cons Values.block bg
+                                                            (@cons Values.block br
+                                                               (@cons Values.block bz (@nil Values.block))))))))) m mf)))))))))))

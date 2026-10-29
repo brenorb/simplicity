@@ -271,6 +271,20 @@ arithmetic representation, discharge the curve guard from successful
 decompression, and compose the nine-local wrapper. Do not impose canonical
 Y limbs on actual decompressor output or add a public table condition.
 
+`jet_secp_verify_arithmetic_loose.eval_verify_arithmetic_loose` now composes
+the four original arithmetic calls for arbitrary matching bounded limb
+representations of both affine points. It executes weak normalization before
+negation and derives the same literal infinity result, ownership, startup and
+framing as the affine-reader specialization. Its only library premise is
+`memset_model`; its table condition still follows from A's curve guard.
+`jet_secp_decompress_curve` derives that guard from the actual successful
+square test, including normalized X and either parity branch.
+`jet_secp_point_verify_literal` ports the exact canonical B-then-A decode
+and direct assertion tree. These modules compile in the ordinary build, and
+reviewed assumption/contract records pass no-update checks. They are helper
+and specification bridges; `point_verify_1` remains unregistered until the
+actual readers, short-circuit control flow and nine-local lifecycle compose.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier
