@@ -1,0 +1,62 @@
+### C.jet_sha_word_bytes.sha_word32_be_bytes
+sha_word32_be_bytes
+     : forall w : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+       @eq (list Integers.Int.int)
+         (jet_sha_be32_write.c_be32_bytes
+            (Integers.Int64.repr (Integers.Int.unsigned (jet_read32s_layout.word32_array_value w))))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (jet_sha_ctx8_model.word_bytes w))
+### C.jet_sha_word_bytes.sha_words_be_bytes
+sha_words_be_bytes
+     : forall ws : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq (list Integers.Int.int)
+         (jet_sha_be32_write.be_bytes
+            (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+               jet_read32s_layout.word32_array_value ws))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (@List.flat_map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (Ty.tySem (Word.Word (S (S (S O)))))
+               jet_sha_ctx8_model.word_bytes ws))
+### C.jet_sha_word_bytes.sha_state_be_bytes
+sha_state_be_bytes
+     : forall h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (list Integers.Int.int) (jet_sha_be32_write.be_bytes (jet_sha_ctx8_model.state_regs h))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) h))
+### C.jet_sha_word_bytes.word_bytes_integer_app
+word_bytes_integer_app
+     : forall left right : list BinNums.Z,
+       @eq BinNums.Z (jet_secp_fe_math.be_val (@app BinNums.Z left right))
+         (BinInt.Z.add
+            (BinInt.Z.mul (jet_secp_fe_math.be_val left)
+               (BinInt.Z.pow
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                  (BinInt.Z.of_nat (@length BinNums.Z right)))) (jet_secp_fe_math.be_val right))
+### C.jet_sha_word_bytes.vector_bytes_integer
+vector_bytes_integer
+     : forall (n : nat) (w : Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) n)),
+       @eq BinNums.Z
+         (jet_secp_fe_math.be_val
+            (@List.map Integers.Int.int BinNums.Z Integers.Int.unsigned
+               (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+                  (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) n w))))
+         (jet_vector_shift_word.vector_value (Word.WordToZ (S (S (S O)))) n w)
+### C.jet_sha_word_bytes.word256_bytes_integer
+word256_bytes_integer
+     : forall w : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z
+         (jet_secp_fe_math.be_val
+            (@List.map Integers.Int.int BinNums.Z Integers.Int.unsigned
+               (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+                  (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) w))))
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) w)
+### C.jet_sha_word_bytes.sha_state_bytes_integer
+sha_state_bytes_integer
+     : forall h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z
+         (jet_secp_fe_math.be_val
+            (@List.map Integers.Int.int BinNums.Z Integers.Int.unsigned
+               (jet_sha_be32_write.be_bytes (jet_sha_ctx8_model.state_regs h))))
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) h)

@@ -443,6 +443,18 @@ no-update records pass. The two setter variants support the challenge scalar
 and the signature's scalar-range rejection, respectively; neither is a new
 public-jet registration.
 
+`jet_sha_word_bytes` supplies shared closed register/byte/word-value bridges
+without importing the complete SHA-context or SWU execution consumers.
+`jet_secp_schnorr_challenge_finish.eval_schnorr_challenge_finish` composes
+the actual `sha256_fromMidstate` and NULL-overflow scalar-parser calls for
+every digest word. The four resulting limbs have precisely the value of
+Simplicity's scalar normalization. Storage ownership, external framing and
+readonly memory are preserved; no additional library premise is introduced.
+Both modules compile and their reviewed no-update assumption/contract records
+match. They postdate the SHA-only kernel check above. The constructor return-slot
+copy, full challenge statement sequence and four local frees still need to be
+composed before claiming the complete internal helper or any signature jet.
+
 Two legacy proof performance repairs are checked: root selection retains a
 named check expression instead of expensive inferred transitivity, and the
 SWU pre-root storage proof derives separation by direct list projection and
