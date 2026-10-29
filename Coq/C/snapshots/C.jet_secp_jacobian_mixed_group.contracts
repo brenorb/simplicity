@@ -1,0 +1,195 @@
+### C.jet_secp_jacobian_mixed_group.secp_jacobian_mixed_curve
+secp_jacobian_mixed_curve
+     : forall (c x y z bx byword : jet_secp_curve_group.secp_group_field)
+         (_ : jet_secp_jacobian_group.secp_jacobian_curve x y (GZnZ.mul jet_secp_fe_math.feP c z))
+         (_ : jet_secp_jacobian_group.secp_jacobian_curve bx byword c),
+       let h : GZnZ.znz jet_secp_fe_math.feP := secp_jmixed_h x z bx in
+       let i : GZnZ.znz jet_secp_fe_math.feP := secp_jmixed_i y z byword in
+       jet_secp_jacobian_group.secp_jacobian_curve (secp_jmixed_x h i x) (secp_jmixed_y h i x y)
+         (GZnZ.mul jet_secp_fe_math.feP c (GZnZ.mul jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP h) z))
+### C.jet_secp_jacobian_mixed_group.secp_jmixed_x_difference
+secp_jmixed_x_difference
+     : forall (c x z bx : jet_secp_curve_group.secp_group_field)
+         (_ : not (@eq jet_secp_curve_group.secp_group_field c (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : not (@eq jet_secp_curve_group.secp_group_field z (GZnZ.zero jet_secp_fe_math.feP))),
+       @eq (GZnZ.znz jet_secp_fe_math.feP)
+         (GZnZ.sub jet_secp_fe_math.feP (GZnZ.div jet_secp_fe_math.feP bx (GZnZ.mul jet_secp_fe_math.feP c c))
+            (GZnZ.div jet_secp_fe_math.feP x
+               (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z) (GZnZ.mul jet_secp_fe_math.feP c z))))
+         (GZnZ.div jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP (secp_jmixed_h x z bx))
+            (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c c) z) z))
+### C.jet_secp_jacobian_mixed_group.secp_jmixed_y_difference
+secp_jmixed_y_difference
+     : forall (c y z byword : jet_secp_curve_group.secp_group_field)
+         (_ : not (@eq jet_secp_curve_group.secp_group_field c (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : not (@eq jet_secp_curve_group.secp_group_field z (GZnZ.zero jet_secp_fe_math.feP))),
+       @eq (GZnZ.znz jet_secp_fe_math.feP)
+         (GZnZ.sub jet_secp_fe_math.feP
+            (GZnZ.div jet_secp_fe_math.feP byword (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c c) c))
+            (GZnZ.div jet_secp_fe_math.feP y
+               (GZnZ.mul jet_secp_fe_math.feP
+                  (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z)
+                     (GZnZ.mul jet_secp_fe_math.feP c z)) (GZnZ.mul jet_secp_fe_math.feP c z))))
+         (GZnZ.div jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP (secp_jmixed_i y z byword))
+            (GZnZ.mul jet_secp_fe_math.feP
+               (GZnZ.mul jet_secp_fe_math.feP
+                  (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c c) c)
+                     z) z) z))
+### C.jet_secp_jacobian_mixed_group.secp_jmixed_slope
+secp_jmixed_slope
+     : forall (c x y z bx byword : jet_secp_curve_group.secp_group_field)
+         (_ : not (@eq jet_secp_curve_group.secp_group_field c (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : not (@eq jet_secp_curve_group.secp_group_field z (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : not (@eq (GZnZ.znz jet_secp_fe_math.feP) (secp_jmixed_h x z bx) (GZnZ.zero jet_secp_fe_math.feP))),
+       @eq (GZnZ.znz jet_secp_fe_math.feP)
+         (GZnZ.div jet_secp_fe_math.feP
+            (GZnZ.sub jet_secp_fe_math.feP
+               (GZnZ.div jet_secp_fe_math.feP byword
+                  (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c c) c))
+               (GZnZ.div jet_secp_fe_math.feP y
+                  (GZnZ.mul jet_secp_fe_math.feP
+                     (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z)
+                        (GZnZ.mul jet_secp_fe_math.feP c z)) (GZnZ.mul jet_secp_fe_math.feP c z))))
+            (GZnZ.sub jet_secp_fe_math.feP (GZnZ.div jet_secp_fe_math.feP bx (GZnZ.mul jet_secp_fe_math.feP c c))
+               (GZnZ.div jet_secp_fe_math.feP x
+                  (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z)
+                     (GZnZ.mul jet_secp_fe_math.feP c z)))))
+         (GZnZ.div jet_secp_fe_math.feP (secp_jmixed_i y z byword)
+            (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z) (secp_jmixed_h x z bx)))
+### C.jet_secp_jacobian_mixed_group.secp_jmixed_affine_x
+secp_jmixed_affine_x
+     : forall (c x y z bx byword : jet_secp_curve_group.secp_group_field)
+         (_ : not (@eq jet_secp_curve_group.secp_group_field c (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : not (@eq jet_secp_curve_group.secp_group_field z (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : not (@eq (GZnZ.znz jet_secp_fe_math.feP) (secp_jmixed_h x z bx) (GZnZ.zero jet_secp_fe_math.feP))),
+       let h : GZnZ.znz jet_secp_fe_math.feP := secp_jmixed_h x z bx in
+       let i : GZnZ.znz jet_secp_fe_math.feP := secp_jmixed_i y z byword in
+       @eq (GZnZ.znz jet_secp_fe_math.feP)
+         (GZnZ.div jet_secp_fe_math.feP (secp_jmixed_x h i x)
+            (GZnZ.mul jet_secp_fe_math.feP
+               (GZnZ.mul jet_secp_fe_math.feP c (GZnZ.mul jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP h) z))
+               (GZnZ.mul jet_secp_fe_math.feP c (GZnZ.mul jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP h) z))))
+         (GZnZ.sub jet_secp_fe_math.feP
+            (GZnZ.sub jet_secp_fe_math.feP
+               (GZnZ.mul jet_secp_fe_math.feP
+                  (GZnZ.div jet_secp_fe_math.feP i
+                     (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z) h))
+                  (GZnZ.div jet_secp_fe_math.feP i
+                     (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z) h)))
+               (GZnZ.div jet_secp_fe_math.feP x
+                  (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z)
+                     (GZnZ.mul jet_secp_fe_math.feP c z))))
+            (GZnZ.div jet_secp_fe_math.feP bx (GZnZ.mul jet_secp_fe_math.feP c c)))
+### C.jet_secp_jacobian_mixed_group.secp_jmixed_affine_y
+secp_jmixed_affine_y
+     : forall (c x y z bx byword : jet_secp_curve_group.secp_group_field)
+         (_ : not (@eq jet_secp_curve_group.secp_group_field c (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : not (@eq jet_secp_curve_group.secp_group_field z (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : not (@eq (GZnZ.znz jet_secp_fe_math.feP) (secp_jmixed_h x z bx) (GZnZ.zero jet_secp_fe_math.feP))),
+       let h : GZnZ.znz jet_secp_fe_math.feP := secp_jmixed_h x z bx in
+       let i : GZnZ.znz jet_secp_fe_math.feP := secp_jmixed_i y z byword in
+       @eq (GZnZ.znz jet_secp_fe_math.feP)
+         (GZnZ.div jet_secp_fe_math.feP (secp_jmixed_y h i x y)
+            (GZnZ.mul jet_secp_fe_math.feP
+               (GZnZ.mul jet_secp_fe_math.feP
+                  (GZnZ.mul jet_secp_fe_math.feP c (GZnZ.mul jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP h) z))
+                  (GZnZ.mul jet_secp_fe_math.feP c (GZnZ.mul jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP h) z)))
+               (GZnZ.mul jet_secp_fe_math.feP c (GZnZ.mul jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP h) z))))
+         (GZnZ.sub jet_secp_fe_math.feP
+            (GZnZ.opp jet_secp_fe_math.feP
+               (GZnZ.div jet_secp_fe_math.feP y
+                  (GZnZ.mul jet_secp_fe_math.feP
+                     (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z)
+                        (GZnZ.mul jet_secp_fe_math.feP c z)) (GZnZ.mul jet_secp_fe_math.feP c z))))
+            (GZnZ.mul jet_secp_fe_math.feP
+               (GZnZ.div jet_secp_fe_math.feP i (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z) h))
+               (GZnZ.sub jet_secp_fe_math.feP
+                  (GZnZ.div jet_secp_fe_math.feP (secp_jmixed_x h i x)
+                     (GZnZ.mul jet_secp_fe_math.feP
+                        (GZnZ.mul jet_secp_fe_math.feP c
+                           (GZnZ.mul jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP h) z))
+                        (GZnZ.mul jet_secp_fe_math.feP c
+                           (GZnZ.mul jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP h) z))))
+                  (GZnZ.div jet_secp_fe_math.feP x
+                     (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP c z)
+                        (GZnZ.mul jet_secp_fe_math.feP c z))))))
+### C.jet_secp_jacobian_mixed_group.secp_jacobian_mixed_finite_group
+secp_jacobian_mixed_finite_group
+     : forall (c x y z bx byword : jet_secp_curve_group.secp_group_field)
+         (A : jet_secp_jacobian_group.secp_jacobian_curve x y (GZnZ.mul jet_secp_fe_math.feP c z))
+         (B : jet_secp_jacobian_group.secp_jacobian_curve bx byword c)
+         (_ : not (@eq jet_secp_curve_group.secp_group_field c (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : not (@eq jet_secp_curve_group.secp_group_field z (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : not (@eq (GZnZ.znz jet_secp_fe_math.feP) (secp_jmixed_h x z bx) (GZnZ.zero jet_secp_fe_math.feP))),
+       let h : GZnZ.znz jet_secp_fe_math.feP := secp_jmixed_h x z bx in
+       let i : GZnZ.znz jet_secp_fe_math.feP := secp_jmixed_i y z byword in
+       @eq
+         (@SMain.elt (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP) (GZnZ.add jet_secp_fe_math.feP)
+            (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven)
+         (jet_secp_jacobian_group.secp_jacobian_group_value (secp_jmixed_x h i x) (secp_jmixed_y h i x y)
+            (GZnZ.mul jet_secp_fe_math.feP c (GZnZ.mul jet_secp_fe_math.feP (GZnZ.opp jet_secp_fe_math.feP h) z))
+            (secp_jacobian_mixed_curve c x y z bx byword A B))
+         (@SMain.add (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP)
+            (GZnZ.add jet_secp_fe_math.feP) (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.sub jet_secp_fe_math.feP)
+            (GZnZ.opp jet_secp_fe_math.feP) (GZnZ.inv jet_secp_fe_math.feP) (GZnZ.div jet_secp_fe_math.feP)
+            (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven
+            jet_secp_curve_group.secp_group_zero_test jet_secp_curve_group.secp_group_theory
+            (jet_secp_jacobian_group.secp_jacobian_group_value x y (GZnZ.mul jet_secp_fe_math.feP c z) A)
+            (jet_secp_jacobian_group.secp_jacobian_group_value bx byword c B))
+### C.jet_secp_jacobian_mixed_group.secp_jacobian_context_scaled
+secp_jacobian_context_scaled
+     : forall (c x y z bx byword : jet_secp_curve_group.secp_group_field)
+         (A : jet_secp_jacobian_group.secp_jacobian_curve x y (GZnZ.mul jet_secp_fe_math.feP c z))
+         (B : jet_secp_jacobian_group.secp_jacobian_curve bx byword c)
+         (_ : not (@eq jet_secp_curve_group.secp_group_field z (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : @eq jet_secp_curve_group.secp_group_field x
+                (GZnZ.mul jet_secp_fe_math.feP bx (GZnZ.mul jet_secp_fe_math.feP z z)))
+         (_ : @eq jet_secp_curve_group.secp_group_field y
+                (GZnZ.mul jet_secp_fe_math.feP byword
+                   (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP z z) z))),
+       @eq
+         (@SMain.elt (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP) (GZnZ.add jet_secp_fe_math.feP)
+            (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven)
+         (jet_secp_jacobian_group.secp_jacobian_group_value x y (GZnZ.mul jet_secp_fe_math.feP c z) A)
+         (jet_secp_jacobian_group.secp_jacobian_group_value bx byword c B)
+### C.jet_secp_jacobian_mixed_group.secp_jacobian_mixed_equal_group
+secp_jacobian_mixed_equal_group
+     : forall (c x y z bx byword : jet_secp_curve_group.secp_group_field)
+         (A : jet_secp_jacobian_group.secp_jacobian_curve x y (GZnZ.mul jet_secp_fe_math.feP c z))
+         (B : jet_secp_jacobian_group.secp_jacobian_curve bx byword c)
+         (_ : not (@eq jet_secp_curve_group.secp_group_field z (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : @eq (GZnZ.znz jet_secp_fe_math.feP) (secp_jmixed_h x z bx) (GZnZ.zero jet_secp_fe_math.feP))
+         (_ : @eq (GZnZ.znz jet_secp_fe_math.feP) (secp_jmixed_i y z byword) (GZnZ.zero jet_secp_fe_math.feP)),
+       @eq
+         (@SMain.elt (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP) (GZnZ.add jet_secp_fe_math.feP)
+            (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven)
+         (jet_secp_jacobian_group.secp_jacobian_group_value x y (GZnZ.mul jet_secp_fe_math.feP c z) A)
+         (jet_secp_jacobian_group.secp_jacobian_group_value bx byword c B)
+### C.jet_secp_jacobian_mixed_group.secp_jacobian_mixed_opposite_y
+secp_jacobian_mixed_opposite_y
+     : forall (c x y z bx byword : jet_secp_curve_group.secp_group_field)
+         (_ : jet_secp_jacobian_group.secp_jacobian_curve x y (GZnZ.mul jet_secp_fe_math.feP c z))
+         (_ : jet_secp_jacobian_group.secp_jacobian_curve bx byword c)
+         (_ : @eq (GZnZ.znz jet_secp_fe_math.feP) (secp_jmixed_h x z bx) (GZnZ.zero jet_secp_fe_math.feP))
+         (_ : not (@eq (GZnZ.znz jet_secp_fe_math.feP) (secp_jmixed_i y z byword) (GZnZ.zero jet_secp_fe_math.feP))),
+       @eq jet_secp_curve_group.secp_group_field y
+         (GZnZ.opp jet_secp_fe_math.feP
+            (GZnZ.mul jet_secp_fe_math.feP byword (GZnZ.mul jet_secp_fe_math.feP (GZnZ.mul jet_secp_fe_math.feP z z) z)))
+### C.jet_secp_jacobian_mixed_group.secp_jacobian_mixed_inverse_group
+secp_jacobian_mixed_inverse_group
+     : forall (c x y z bx byword : jet_secp_curve_group.secp_group_field)
+         (A : jet_secp_jacobian_group.secp_jacobian_curve x y (GZnZ.mul jet_secp_fe_math.feP c z))
+         (B : jet_secp_jacobian_group.secp_jacobian_curve bx byword c)
+         (_ : not (@eq jet_secp_curve_group.secp_group_field z (GZnZ.zero jet_secp_fe_math.feP)))
+         (_ : @eq (GZnZ.znz jet_secp_fe_math.feP) (secp_jmixed_h x z bx) (GZnZ.zero jet_secp_fe_math.feP))
+         (_ : not (@eq (GZnZ.znz jet_secp_fe_math.feP) (secp_jmixed_i y z byword) (GZnZ.zero jet_secp_fe_math.feP))),
+       @eq
+         (@SMain.elt (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP) (GZnZ.add jet_secp_fe_math.feP)
+            (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven)
+         (jet_secp_jacobian_group.secp_jacobian_group_value x y (GZnZ.mul jet_secp_fe_math.feP c z) A)
+         (@SMain.opp (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP)
+            (GZnZ.add jet_secp_fe_math.feP) (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.sub jet_secp_fe_math.feP)
+            (GZnZ.opp jet_secp_fe_math.feP) (GZnZ.inv jet_secp_fe_math.feP) (GZnZ.div jet_secp_fe_math.feP)
+            (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven
+            jet_secp_curve_group.secp_group_zero_test jet_secp_curve_group.secp_group_theory
+            (jet_secp_jacobian_group.secp_jacobian_group_value bx byword c B))

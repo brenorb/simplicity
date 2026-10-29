@@ -661,7 +661,22 @@ proved nonzero two; no new inverse or operation behavior is assumed.
 literal `gej_double`, including its infinity branch, under an arbitrary shared-Z
 context. Its input and output relation uses denominator `c*Z`, and the context
 is retained unchanged. This is an internal operation bridge; it does not by
-itself prove a public Schnorr jet or increase accepted coverage.
+itself prove a public Schnorr jet or increase accepted coverage. All twenty-two
+reviewed no-update records pass, with only the existing functional-extensionality
+assumption on the arithmetic word bridges and their consumers. Recursive
+checking passed on the exact inputs of `0034b7df`, with matching fingerprints and
+no unsafe features. Reproduce with the same stack bound and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_jacobian_word_group`.
+
+`jet_secp_jacobian_affine_group` proves the actual affine interpretation
+`(X/Z^2,Y/Z^3)` at nonzero Z and coordinate-extensionality without a new axiom.
+`jet_secp_jacobian_mixed_group` proves preservation of the curve and group
+semantics for the exact generic mixed-addition formulas in shared-Z context c.
+It also derives point equality when h=i=0, and point negation when h=0 but
+i is nonzero, from the two original curve equations. These branch hypotheses
+are internal dispatch conditions. The literal mixed-add word bridge and its
+returned-ratio identity still need composition; table/pass2 and the Strauss
+fold remain after that.
 
 Keep word argument binders explicitly typed `Ty.tySem (Word 8)`. Implicitly
 inferred, expanded tuple types can prevent rewrite/destruct from matching the
