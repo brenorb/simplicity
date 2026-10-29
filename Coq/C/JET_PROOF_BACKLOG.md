@@ -599,7 +599,19 @@ for every curve point and every normalized challenge word. It proves
 this with the actual canonical scalar-normalize/negate terms. It introduces
 no new order, certificate or nonzero-scalar premise. The literal Strauss/group
 semantics and endomorphism-action bridges remain open; these group identities
-do not themselves prove the public Schnorr jets. Public coverage stays 526/533.
+do not themselves prove the public Schnorr jets. Their ordinary build and six
+reviewed no-update records pass; the final word-level bridge uses the existing
+functional-extensionality assumption, while the five group identities are closed.
+Recursive checking passed on the exact inputs of `8cd28139`, with matching
+fingerprints and no unsafe proof features. Reproduce with the same stack bound
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_curve_group_scalar_sign`.
+
+`jet_secp_curve_group_cyclic.secp_group_generator_spans` proves that every
+curve point equals `[k]G` for some `0 <= k < n`. It compares the proved order of
+G's finite support with the full group cardinality, using finite inclusion and
+uniqueness; no enumeration is computed and no cyclicity premise is assumed.
+This reduces the endomorphism-action bridge to a homomorphism proof and a
+checked generator calculation. Public coverage stays 526/533.
 
 The new proof-only `jet-elliptic-deps.sh` wrapper and Nix build targets enable
 `SMain`/`GZnZ` from the existing pin. The frozen `jet-deps.sh` is byte-identical
