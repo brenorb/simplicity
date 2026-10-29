@@ -350,9 +350,13 @@ The ownership interface preserves freeability, framing and readonly memory;
 it adds no libc premise. `jet_uint32_array_prefix` and
 `jet_sha256_tagged_fields` reuse the existing array/context execution proofs.
 All three modules compile with matching reviewed assumption and statement
-records. These helper results add no jet coverage. The canonical challenge-tag
-bridge, parsing/challenge callers and complete verification result remain
-open; no additional public precondition is justified by these helpers.
+records. `jet_secp_schnorr_tagged_spec` proves, by closed canonical SHA
+computation, that these C words are exactly the tagged midstate for
+`BIP0340/challenge`, and packages the constructor with canonical state registers.
+The two pure bridges are closed; the execution result has the inherited
+assumptions only. These helper results add no jet coverage. Parsing/challenge
+callers and the complete verification result remain open; no additional
+public precondition is justified by these helpers.
 
 ### Development history for the accepted off-curve linear-combination proof
 
