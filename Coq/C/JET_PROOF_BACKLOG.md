@@ -294,6 +294,19 @@ and reviewed assumption/contract comparisons pass. Reuse this result for the
 A-then-B C guards; the literal adapter decodes B then A, so the final routing
 proof must handle both failed-decompression paths as well as success.
 
+`jet_secp_point_verify_public_support` derives the exact nine-local entry,
+source-frame copy, separation/ownership and local frees. The paired readers
+in `jet_secp_point_verify_read_pair` consume a scalar and compressed point
+with zero output capacity, expose the advanced input cursor, and retain the
+scalar across the parity/field reads. `jet_secp_point_verify_guards` derives
+the exact A-then-B short circuit from its call executions;
+`jet_secp_point_verify_route` reconciles it with the canonical B-then-A
+decode. `jet_secp_point_verify_public_body` binds the complete original AST
+and derives its four arithmetic calls, infinity accessor and return. These
+five modules compile in the ordinary project, with reviewed type/assumption
+records matching on a no-update run. The call premises still need discharge
+in the full reader/guard/lifecycle composition; they do not add jet coverage.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier

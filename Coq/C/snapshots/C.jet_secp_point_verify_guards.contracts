@@ -1,0 +1,75 @@
+### C.jet_secp_point_verify_guards.exec_point_verify_guard_call
+exec_point_verify_guard_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (pv xv parity : BinNums.positive) (dest : AST.ident) (bp bx : Values.block)
+         (odd good : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) pv e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bp (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) xv e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ge_set_xo_var e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val parity le)
+                (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int odd))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_set_xo_var)
+                (@cons Values.val (Values.Vptr bp Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vint (jet_readBit_layout.bit_int odd)) (@nil Values.val)))) Events.E0
+                mf (Values.Vint (jet_readBit_layout.bit_int good))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (point_verify_guard_call pv xv parity dest)
+         Events.E0 (@Maps.PTree.set Values.val dest (Values.Vint (jet_readBit_layout.bit_int good)) le) mf
+         ClightBigstep.Out_normal
+### C.jet_secp_point_verify_guards.point_verify_guard_result
+point_verify_guard_result
+     : forall (le : Maps.PTree.tree Values.val) (a b : bool),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'5 (point_verify_guard_temps le a b))
+         (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int (andb a b))))
+### C.jet_secp_point_verify_guards.exec_point_verify_guards
+exec_point_verify_guards
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m ma mf : Memory.Mem.mem) (ba bb bax bbx : Values.block) (ay bybit a b : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._a__1 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type ba (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._b e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bb (Ctypes.Tstruct jets_secp.__6121 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._ax e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bax (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._bx e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bbx (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ge_set_xo_var e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._ay le)
+                (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int ay))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._by le)
+                (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int bybit))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_set_xo_var)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bax Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vint (jet_readBit_layout.bit_int ay)) (@nil Values.val)))) Events.E0 ma
+                (Values.Vint (jet_readBit_layout.bit_int a)))
+         (_ : match a return Prop with
+              | true =>
+                  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge ma
+                    (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_set_xo_var)
+                    (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero)
+                       (@cons Values.val (Values.Vptr bbx Integers.Ptrofs.zero)
+                          (@cons Values.val (Values.Vint (jet_readBit_layout.bit_int bybit)) (@nil Values.val))))
+                    Events.E0 mf (Values.Vint (jet_readBit_layout.bit_int b))
+              | false => @eq Memory.Mem.mem mf ma
+              end),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m point_verify_guards Events.E0
+         (point_verify_guard_temps le a b) mf ClightBigstep.Out_normal
