@@ -523,6 +523,34 @@ decompression, scalar negation and general ecmult proofs provide components;
 these two remaining implications are not yet proved. No signature mismatch
 has been established by this proof gap.
 
+`jet_secp_schnorr_verify_literal` now ports the complete canonical
+`pubkey_unpack_neg`, `signature_unpack`, `bip_0340_check` and assertion.
+Closed proofs derive parametricity, the exact range guards, the point-check
+routing and `Some tt`/`None` assertion semantics. It reuses the challenge
+subprogram above. Ordinary compilation and reviewed no-update records pass;
+this is the specification endpoint for the pending C caller, not a new jet
+equivalence or registration.
+
+For the remaining sign-transfer bridge, reuse the **existing pinned CoqPrime
+elliptic library**, rather than writing new group laws. Its `SMain.ell_theory`,
+`add_assoc` and `EFGroup`, `GZnZ.FZpZ` and field enumeration, and the existing
+`EGroup`/`Lagrange` order results provide a possible route. An isolated copy of
+the pinned dependency compiled `elliptic/SMain.vo` and `elliptic/GZnZ.vo` with
+the baseline Coq 8.17.1 toolchain. This trial is not a kernel or assumption audit,
+and the ordinary dependency bootstrap still builds only the Pocklington closure.
+
+Instantiate the field/curve with the already proved prime p and A=0, B=7.
+The missing group-order argument needs actual certificates/proofs: a nonzero
+generator with nG=O, scalar primality, the finite bound `#E <= 2p+1 < 3n`,
+and odd cardinality from negation pairing and the proved absence of Y=0
+curve points. These would give `#E=n` and an annihilator for every curve point;
+they are not currently assumptions or completed results. The literal Strauss
+adapter still needs Jacobian operation/fold semantics and the endomorphism
+action `phi(P)=[lambda]P`. Two important library boundaries: `SMain.pelt` uses
+ordinary projective `(X/Z,Y/Z)`, not our Jacobian `(X/Z^2,Y/Z^3)`, and
+`EGroup.gpow` sends negative integers to the identity rather than implementing
+signed multiplication. Supply explicit adapters and retain scalar reduction.
+
 Two legacy proof performance repairs are checked: root selection retains a
 named check expression instead of expensive inferred transitivity, and the
 SWU pre-root storage proof derives separation by direct list projection and
