@@ -780,6 +780,15 @@ with existing functional extensionality only in the literal split composition.
 Recursive kernel checking of this root remains pending. This closes the GLV residue implication for the later Strauss fold, not
 the remaining digit reconstruction or full Schnorr/public execution boundary.
 
+`jet_secp_wnaf5_reconstruction.secp_wnaf5_digits_reconstruct` proves that
+all 129 actual signed window-5 digits reconstruct the input signed state.
+The proof derives each original step's balance, bounds the actual residual,
+and proves that the 129th residual is zero for every signed Word128 input.
+It assumes neither digit correctness nor termination. The ordinary build
+and all twelve reviewed no-update records pass; every result is closed.
+Recursive kernel checking of this new root is still pending. The full Strauss
+fold and the generator streams remain separate obligations.
+
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
 term arguments. When the context contains both `ValueA : value=point` and
