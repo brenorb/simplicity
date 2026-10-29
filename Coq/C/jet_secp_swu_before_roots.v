@@ -2,7 +2,7 @@
     The three candidate and radicand representations are derived from the
     input and uninitialized owned locals, with the original CTZ contract
     still explicit. This is a prefix, not a public-jet registration. *)
-From Coq Require Import ZArith Znumtheory List Lia.
+From Coq Require Import ZArith Znumtheory List Lia Sorting.Permutation.
 From compcert Require Import AST Ctypes Clight ClightBigstep Integers Memory Values Events Maps.
 Require Import C.extraMath C.modinv C.jet_sx_mem C.jet_secp_linkage C.jets_secp
   C.jet_secp_fe_nv C.jet_secp_fe_math C.jet_secp_swu_startup C.jet_secp_swu_candidates
@@ -15,6 +15,16 @@ Import ListNotations Ctypes Values.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 Local Opaque secp_ge.
+
+Local Lemma swu_nodup_app_disjoint {A} (left right:list A) :
+ NoDup (left++right) ->forall x,In x right ->~In x left.
+Proof.
+ induction left as [|head tail IH];intros Unique x Member Old;[contradiction|].
+ apply NoDup_cons_iff in Unique;destruct Unique as [Fresh Rest].
+ destruct Old as [Equal|Old].
+ - subst x;apply Fresh;apply in_or_app;right;exact Member.
+ - exact (IH Rest x Member Old).
+Qed.
 
 Definition swu_through_cubics_statements := swu_through_third_statements++swu_cubics_statements.
 Definition swu_through_cubics := statement_sequence swu_through_cubics_statements Sskip.
@@ -74,8 +84,7 @@ Proof.
   intros Count Plain ES EM EN EC EG EA EI EAdd ED EW EX EXD EJ EX2 EX3 EAlpha EBeta EGamma
     T Sep Ready Bounds Input Free.
   assert (SepS:NoDup [bt;bw;ba;bx;bj;bb;bc]) by
-    (repeat rewrite NoDup_cons_iff in Sep;repeat rewrite NoDup_cons_iff;
-     cbn [In] in *;intuition (try constructor;congruence)).
+    (exact (@NoDup_app_remove_r block [bt;bw;ba;bx;bj;bb;bc] [bA;bB;bC] Sep)).
   assert (FreeS0:Forall (fun bi=>Mem.range_perm m bi 0 40 Cur Freeable) [bt;bw;ba;bx;bj;bb;bc]).
   { rewrite Forall_forall in *;intros bi Member;apply Free;cbn [In] in *;tauto. }
   destruct (exec_swu_through_third e le m bt bw ba bx bj bb bc w Count Plain ES EM EN EC EG EA EI
@@ -83,10 +92,11 @@ Proof.
     as (inv & ms & Start & TS & WS & AS & XS & JS & BS & CS & FreeS & JBounds & AScaled &
       ABounds & BBounds & CScaled & CBounds & Spec1 & Spec2 & Spec3 & JNumeric & ReadyS & FS & RS).
   assert (NewOutside:forall bi,In bi [bA;bB;bC] -> ~In bi [bt;bw;ba;bx;bj;bb;bc]).
-  { intros bi Member;repeat rewrite NoDup_cons_iff in Sep;cbn [In] in *;intuition congruence. }
-  assert (SepC:NoDup [ba;bb;bc;bA;bB;bC]) by
-    (repeat rewrite NoDup_cons_iff in Sep;repeat rewrite NoDup_cons_iff;
-     cbn [In] in *;intuition (try constructor;congruence)).
+  { exact (swu_nodup_app_disjoint [bt;bw;ba;bx;bj;bb;bc] [bA;bB;bC] Sep). }
+  assert (SepC:NoDup [ba;bb;bc;bA;bB;bC]).
+  { pose proof (@NoDup_app_remove_l block [bt;bw] [ba;bx;bj;bb;bc;bA;bB;bC] Sep) as S0.
+    pose proof (@NoDup_remove_1 block [ba] [bj;bb;bc;bA;bB;bC] bx S0) as S1.
+    exact (@NoDup_remove_1 block [ba] [bb;bc;bA;bB;bC] bj S1). }
   pose proof Free as All0;rewrite Forall_forall in All0.
   pose proof FreeS as AllS;rewrite Forall_forall in AllS.
   assert (FreeC:Forall (fun bi=>Mem.range_perm ms bi 0 40 Cur Freeable) [ba;bb;bc;bA;bB;bC]).
@@ -101,8 +111,13 @@ Proof.
     as (mf & Cubics & AF & BF & CF & Alpha & Beta & Gamma & FreeCubics & SA & OA & SB & OB &
       SC & OC & VA & VB & VC & FC & RC).
   assert (Safe:forall bi,In bi [bt;bw;bx;bj] -> ~In bi [ba;bb;bc;bA;bB;bC]).
-  { intros bi Member;clear -Sep Member;
-      repeat rewrite NoDup_cons_iff in Sep;cbn [In] in *;intuition congruence. }
+  { assert (Order:Permutation [bt;bw;ba;bx;bj;bb;bc;bA;bB;bC]
+      ([bt;bw;bx;bj]++[ba;bb;bc;bA;bB;bC])).
+    { apply perm_skip;apply perm_skip;eapply perm_trans;[apply perm_swap|].
+      apply perm_skip;apply perm_swap. }
+    pose proof (Permutation_NoDup Order Sep) as Ordered.
+    intros bi Member Other;exact (swu_nodup_app_disjoint
+      [bt;bw;bx;bj] [ba;bb;bc;bA;bB;bC] Ordered bi Other Member). }
   assert (Keep:forall bi rho,In bi [bt;bw;bx;bj] ->
     fe_at ms bi 0 (words5 rho) -> fe_at mf bi 0 (words5 rho)).
   { intros bi rho Member Field;eapply curve_keep_field_range;
