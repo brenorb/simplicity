@@ -15,13 +15,15 @@ Local Open Scope Z_scope.
 Set Default Timeout 10.
 Local Opaque secp_ge.
 
-Theorem eval_secp_sha_absorb_full (Hmodel:memcpy_model) l bytes regs m bc bs ba oa :
+Theorem eval_secp_sha_absorb_full_counter (Hmodel:memcpy_model) l bytes regs total m bc bs ba oa :
   (length l<64)%nat ->(length l+length bytes=64)%nat ->length regs=8%nat ->
+  0<=total -> total+Z.of_nat (length bytes)<2305843009213693952 ->
+  total mod 64=Z.of_nat (length l) ->
   bc<>ba ->bc<>bs ->secp_sha_startup m ->
   Mem.range_perm m bc 0 88 Cur Freeable ->Mem.range_perm m bs 0 32 Cur Freeable ->
   Ptrofs.unsigned oa+Z.of_nat (length bytes)<=Ptrofs.max_unsigned ->
   Mem.load Mptr m bc 0=Some (Vptr bs Ptrofs.zero) ->uint32_array_at m bs 0 regs ->
-  Mem.load Mint64 m bc 8=Some (Vlong (Int64.repr (Z.of_nat (length l)))) ->
+  Mem.load Mint64 m bc 8=Some (Vlong (Int64.repr total)) ->
   Mem.load Mint8unsigned m bc 80=Some (Vint Int.zero) ->
   (forall i,(i<length l)%nat ->Mem.load Mint8unsigned m bc (16+Z.of_nat i)=Some (Vint (nth i l Int.zero))) ->
   (forall i,(i<length bytes)%nat ->Mem.load Mint8unsigned m ba (Ptrofs.unsigned oa+Z.of_nat i)=
@@ -30,14 +32,14 @@ Theorem eval_secp_sha_absorb_full (Hmodel:memcpy_model) l bytes regs m bc bs ba 
     [Vptr bc Ptrofs.zero;Vptr ba oa;Vlong (Int64.repr (Z.of_nat (length bytes)))] E0 mf (Vint Int.one) /\
   uint32_array_at mf bs 0 (SHA256.hash_block regs (be_words (l++bytes))) /\
   Mem.load Mptr mf bc 0=Some (Vptr bs Ptrofs.zero) /\
-  Mem.load Mint64 mf bc 8=Some (Vlong (Int64.repr 64)) /\
+  Mem.load Mint64 mf bc 8=Some (Vlong (Int64.repr (total+Z.of_nat (length bytes)))) /\
   Mem.load Mint8unsigned mf bc 80=Some (Vint Int.zero) /\
   Mem.range_perm mf bc 0 88 Cur Freeable /\Mem.range_perm mf bs 0 32 Cur Freeable /\
   lframe (fun b _=>b<>bc /\b<>bs) m mf /\readonly_preserved m mf /\secp_sha_startup mf.
 Proof.
-  intros Used Full LR CA CS Startup FC FS SourceHi Pointer State Counter Overflow Buffer Source.
-  destruct (exec_secp_sha_absorb_head (length l) (length bytes) m bc ba oa Used ltac:(lia)
-    Startup FC Counter Overflow) as
+  intros Used Full LR Nonnegative Total Remainder CA CS Startup FC FS SourceHi Pointer State Counter Overflow Buffer Source.
+  destruct (exec_secp_sha_absorb_head_counter (length l) (length bytes) total m bc ba oa Used
+    Nonnegative Total Remainder Startup FC Counter Overflow) as
     (leh & mh & Head & HC & HA & HN & HD & HB & CounterH & OverflowH & FCH & LoadsH & BufferH & PermH & FrameH & ReadonlyH & StartupH).
   assert (PointerH:Mem.load Mptr mh bc 0=Some (Vptr bs Ptrofs.zero)).
   { rewrite LoadsH by (right;left;reflexivity);exact Pointer. }
@@ -71,8 +73,37 @@ Proof.
   - split;[exact Output|];split.
     + rewrite Fields by (left;change (size_chunk Mptr) with 8;lia);exact PointerH.
     + split.
-      * rewrite Fields by (left;reflexivity);rewrite Full in CounterH;exact CounterH.
+      * rewrite Fields by (left;reflexivity);exact CounterH.
       * split;[exact OverflowF|];split;[exact FCF|];split;[exact FSF|];split.
         -- eapply lframe_trans;[eapply lframe_implies;[exact FrameH|intros b pos [NC NS] Old;exact NC]|exact FrameL].
         -- split;[eapply preserved_trans;eassumption|exact StartupF].
+Qed.
+
+Theorem eval_secp_sha_absorb_full (Hmodel:memcpy_model) l bytes regs m bc bs ba oa :
+  (length l<64)%nat ->(length l+length bytes=64)%nat ->length regs=8%nat ->
+  bc<>ba ->bc<>bs ->secp_sha_startup m ->
+  Mem.range_perm m bc 0 88 Cur Freeable ->Mem.range_perm m bs 0 32 Cur Freeable ->
+  Ptrofs.unsigned oa+Z.of_nat (length bytes)<=Ptrofs.max_unsigned ->
+  Mem.load Mptr m bc 0=Some (Vptr bs Ptrofs.zero) ->uint32_array_at m bs 0 regs ->
+  Mem.load Mint64 m bc 8=Some (Vlong (Int64.repr (Z.of_nat (length l)))) ->
+  Mem.load Mint8unsigned m bc 80=Some (Vint Int.zero) ->
+  (forall i,(i<length l)%nat ->Mem.load Mint8unsigned m bc (16+Z.of_nat i)=Some (Vint (nth i l Int.zero))) ->
+  (forall i,(i<length bytes)%nat ->Mem.load Mint8unsigned m ba (Ptrofs.unsigned oa+Z.of_nat i)=
+    Some (Vint (nth i bytes Int.zero))) ->exists mf,
+  Clight2.eval_funcall secp_ge m (Internal jets_secp.f_sha256_uchars)
+    [Vptr bc Ptrofs.zero;Vptr ba oa;Vlong (Int64.repr (Z.of_nat (length bytes)))] E0 mf (Vint Int.one) /\
+  uint32_array_at mf bs 0 (SHA256.hash_block regs (be_words (l++bytes))) /\
+  Mem.load Mptr mf bc 0=Some (Vptr bs Ptrofs.zero) /\
+  Mem.load Mint64 mf bc 8=Some (Vlong (Int64.repr 64)) /\
+  Mem.load Mint8unsigned mf bc 80=Some (Vint Int.zero) /\
+  Mem.range_perm mf bc 0 88 Cur Freeable /\Mem.range_perm mf bs 0 32 Cur Freeable /\
+  lframe (fun b _=>b<>bc /\b<>bs) m mf /\readonly_preserved m mf /\secp_sha_startup mf.
+Proof.
+ intros Used Full LR CA CS Startup FC FS SourceHi Pointer State Counter Overflow Buffer Source.
+ replace (Int64.repr 64) with
+   (Int64.repr (Z.of_nat (length l)+Z.of_nat (length bytes))) by (f_equal;lia).
+ eapply eval_secp_sha_absorb_full_counter;try eassumption.
+ - lia.
+ - lia.
+ - apply Z.mod_small;lia.
 Qed.

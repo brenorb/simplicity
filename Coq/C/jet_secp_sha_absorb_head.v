@@ -17,10 +17,11 @@ Lemma secp_sha_absorb_body : fn_body jets_secp.f_sha256_uchars=
   statement_sequence [uc_pre1;uc_pre2;uc_ovf;uc_count] (Ssequence uc_loop uc_tail).
 Proof. reflexivity. Qed.
 
-Theorem exec_secp_sha_absorb_head used count m bc ba oa :
-  (used<64)%nat ->(used+count<=64)%nat ->secp_sha_startup m ->
+Theorem exec_secp_sha_absorb_head_counter used count total m bc ba oa :
+  (used<64)%nat -> 0<=total -> total+Z.of_nat count<2305843009213693952 ->
+  total mod 64=Z.of_nat used -> secp_sha_startup m ->
   Mem.range_perm m bc 0 88 Cur Freeable ->
-  Mem.load Mint64 m bc 8=Some (Vlong (Int64.repr (Z.of_nat used))) ->
+  Mem.load Mint64 m bc 8=Some (Vlong (Int64.repr total)) ->
   Mem.load Mint8unsigned m bc 80=Some (Vint Int.zero) ->exists lef mf,
   Clight2.exec_stmt secp_ge empty_env (uc_le0 bc 0 ba oa (Int64.repr (Z.of_nat count))) m
     secp_sha_absorb_head E0 lef mf Out_normal /\
@@ -28,7 +29,7 @@ Theorem exec_secp_sha_absorb_head used count m bc ba oa :
   lef!jets_sha._len=Some (Vlong (Int64.repr (Z.of_nat count))) /\
   lef!jets_sha._delta=Some (Vlong (Int64.repr (64-Z.of_nat used))) /\
   lef!jets_sha._block=Some (Vptr bc (Ptrofs.repr (16+Z.of_nat used))) /\
-  Mem.load Mint64 mf bc 8=Some (Vlong (Int64.repr (Z.of_nat (used+count)))) /\
+  Mem.load Mint64 mf bc 8=Some (Vlong (Int64.repr (total+Z.of_nat count))) /\
   Mem.load Mint8unsigned mf bc 80=Some (Vint Int.zero) /\
   Mem.range_perm mf bc 0 88 Cur Freeable /\
   (forall ch b ofs,(b<>bc \/ofs+size_chunk ch<=8 \/81<=ofs) ->Mem.load ch mf b ofs=Mem.load ch m b ofs) /\
@@ -36,29 +37,32 @@ Theorem exec_secp_sha_absorb_head used count m bc ba oa :
   (forall b ofs k p,Mem.perm m b ofs k p ->Mem.perm mf b ofs k p) /\
   lframe (fun b _=>b<>bc) m mf /\readonly_preserved m mf /\secp_sha_startup mf.
 Proof.
-  intros Used Total Startup Owned Counter Overflow.
-  set (c:=Int64.repr (Z.of_nat used));set (vn:=Int64.repr (Z.of_nat count)).
-  assert (CU:Int64.unsigned c=Z.of_nat used) by
+  intros Used Nonnegative Total Remainder Startup Owned Counter Overflow.
+  set (c:=Int64.repr total);set (vn:=Int64.repr (Z.of_nat count)).
+  assert (CU:Int64.unsigned c=total) by
     (unfold c;apply Int64.unsigned_repr;change Int64.max_unsigned with 18446744073709551615;lia).
   assert (NU:Int64.unsigned vn=Z.of_nat count) by
     (unfold vn;apply Int64.unsigned_repr;change Int64.max_unsigned with 18446744073709551615;lia).
-  assert (Mod:Int64.modu c c64=c) by (rewrite modu64,CU,Z.mod_small by lia;reflexivity).
+  assert (Mod:Int64.modu c c64=Int64.repr (Z.of_nat used)) by
+    (rewrite modu64,CU,Remainder;reflexivity).
+  assert (MU:Int64.unsigned (Int64.modu c c64)=Z.of_nat used).
+  { rewrite Mod;apply Int64.unsigned_repr;change Int64.max_unsigned with 18446744073709551615;lia. }
   set (vd:=Int64.sub c64 (Int64.modu c c64)).
   assert (VD:vd=Int64.repr (64-Z.of_nat used)) by
-    (unfold vd;rewrite Mod;unfold Int64.sub;rewrite CU;reflexivity).
+    (unfold vd, Int64.sub;rewrite MU;reflexivity).
   set (oblk:=Ptrofs.add (Ptrofs.repr 0) (Ptrofs.repr 16)).
   set (ob:=Ptrofs.add oblk (Ptrofs.mul (Ptrofs.repr 1) (Ptrofs.of_int64 (Int64.modu c c64)))).
   assert (OB:ob=Ptrofs.repr (16+Z.of_nat used)).
   { rewrite <-(Ptrofs.repr_unsigned ob);unfold ob at 1;rewrite ptr_add_long by
-      (rewrite Mod,CU;change (Ptrofs.unsigned oblk) with 16;change Ptrofs.max_unsigned with 18446744073709551615;lia).
-    rewrite Mod,CU;reflexivity. }
+      (rewrite MU;change (Ptrofs.unsigned oblk) with 16;change Ptrofs.max_unsigned with 18446744073709551615;lia).
+    rewrite MU;reflexivity. }
   set (le0:=uc_le0 bc 0 ba oa vn).
   set (le1:=PTree.set jets_sha._delta (Vlong vd) (PTree.set jets_sha._t'9 (Vlong c) le0)).
   set (le2:=PTree.set jets_sha._block (Vptr bc ob) (PTree.set jets_sha._t'8 (Vlong c) le1)).
   assert (Access80:Mem.valid_access m Mint8unsigned bc 80 Writable).
   { split;[intros pos Range;eapply Mem.perm_implies;[apply Owned;change (80<=pos<81) in Range;lia|constructor]|
       exists 80;reflexivity]. }
-  destruct (exec_secp_sha_bounded_overflow m le2 bc c vn ltac:(rewrite CU,NU;lia) eq_refl eq_refl
+  destruct (exec_secp_sha_available_overflow m le2 bc c vn ltac:(rewrite CU,NU;lia) eq_refl eq_refl
     Counter Overflow (proj2 (proj1 Startup)) Access80) as (le3 & m3 & Run3 & Store3 & Temps3).
   set (le4:=PTree.set jets_sha._t'4 (Vlong c) le3).
   assert (Access8:Mem.valid_access m3 Mint64 bc 8 Writable).
@@ -115,7 +119,7 @@ Proof.
       split;[rewrite Temps4 by (do 3 right;left;reflexivity);unfold le2;rewrite !PTree.gso by discriminate;
         unfold le1;rewrite PTree.gss,VD;reflexivity|];
       split;[rewrite Temps4 by (do 4 right;left;reflexivity);unfold le2;rewrite PTree.gss,OB;reflexivity|];split.
-    + rewrite (Mem.load_store_same _ _ _ _ _ _ Store4);unfold Int64.add;rewrite CU,NU,Nat2Z.inj_add;reflexivity.
+    + rewrite (Mem.load_store_same _ _ _ _ _ _ Store4);unfold Int64.add;rewrite CU,NU;reflexivity.
     + split.
       * rewrite (Mem.load_store_other _ _ _ _ _ _ Store4) by (right;right;change (size_chunk Mint64) with 8;lia).
         rewrite (Mem.load_store_same _ _ _ _ _ _ Store3);reflexivity.
@@ -125,4 +129,31 @@ Proof.
         -- split;[exact Perm|];split;[exact Frame|];split;[exact Readonly|].
            eapply secp_sha_startup_preserved;[exact Startup|exact Readonly|exact Frame|].
            intros pos;destruct (secp_sha_startup_separate m bc 88 Startup ltac:(lia) Owned) as [Other _];congruence.
+Qed.
+
+Theorem exec_secp_sha_absorb_head used count m bc ba oa :
+  (used<64)%nat ->(used+count<=64)%nat ->secp_sha_startup m ->
+  Mem.range_perm m bc 0 88 Cur Freeable ->
+  Mem.load Mint64 m bc 8=Some (Vlong (Int64.repr (Z.of_nat used))) ->
+  Mem.load Mint8unsigned m bc 80=Some (Vint Int.zero) ->exists lef mf,
+  Clight2.exec_stmt secp_ge empty_env (uc_le0 bc 0 ba oa (Int64.repr (Z.of_nat count))) m
+    secp_sha_absorb_head E0 lef mf Out_normal /\
+  lef!jets_sha._ctx=Some (Vptr bc Ptrofs.zero) /\lef!jets_sha._arr=Some (Vptr ba oa) /\
+  lef!jets_sha._len=Some (Vlong (Int64.repr (Z.of_nat count))) /\
+  lef!jets_sha._delta=Some (Vlong (Int64.repr (64-Z.of_nat used))) /\
+  lef!jets_sha._block=Some (Vptr bc (Ptrofs.repr (16+Z.of_nat used))) /\
+  Mem.load Mint64 mf bc 8=Some (Vlong (Int64.repr (Z.of_nat (used+count)))) /\
+  Mem.load Mint8unsigned mf bc 80=Some (Vint Int.zero) /\
+  Mem.range_perm mf bc 0 88 Cur Freeable /\
+  (forall ch b ofs,(b<>bc \/ofs+size_chunk ch<=8 \/81<=ofs) ->Mem.load ch mf b ofs=Mem.load ch m b ofs) /\
+  (forall ch ofs,16<=ofs ->ofs+size_chunk ch<=80 ->Mem.load ch mf bc ofs=Mem.load ch m bc ofs) /\
+  (forall b ofs k p,Mem.perm m b ofs k p ->Mem.perm mf b ofs k p) /\
+  lframe (fun b _=>b<>bc) m mf /\readonly_preserved m mf /\secp_sha_startup mf.
+Proof.
+ intros Used Total Startup Owned Counter Overflow.
+ replace (Z.of_nat (used+count)) with (Z.of_nat used+Z.of_nat count) by lia.
+ eapply exec_secp_sha_absorb_head_counter;try eassumption.
+ - lia.
+ - lia.
+ - apply Z.mod_small;lia.
 Qed.

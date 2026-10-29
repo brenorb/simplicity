@@ -94,12 +94,14 @@ Proof.
   - reflexivity.
 Qed.
 
-Theorem eval_secp_sha_absorb_short (Hmodel:memcpy_model) l bytes m bx ba oa out :
-  (length l+length bytes<64)%nat -> bx<>ba -> secp_sha_startup m ->
+Theorem eval_secp_sha_absorb_short_counter (Hmodel:memcpy_model) l bytes total m bx ba oa out :
+  (length l+length bytes<64)%nat -> 0<=total ->
+  total+Z.of_nat (length bytes)<2305843009213693952 ->
+  total mod 64=Z.of_nat (length l) -> bx<>ba -> secp_sha_startup m ->
   Mem.range_perm m bx 0 88 Cur Freeable ->
   Ptrofs.unsigned oa+Z.of_nat (length bytes)<=Ptrofs.max_unsigned ->
   Mem.load Mptr m bx 0=Some out ->
-  Mem.load Mint64 m bx 8=Some (Vlong (Int64.repr (Z.of_nat (length l)))) ->
+  Mem.load Mint64 m bx 8=Some (Vlong (Int64.repr total)) ->
   Mem.load Mint8unsigned m bx 80=Some (Vint Int.zero) ->
   (forall i,(i<length l)%nat ->Mem.load Mint8unsigned m bx (16+Z.of_nat i)=Some (Vint (nth i l Int.zero))) ->
   (forall i,(i<length bytes)%nat ->Mem.load Mint8unsigned m ba (Ptrofs.unsigned oa+Z.of_nat i)=
@@ -107,17 +109,17 @@ Theorem eval_secp_sha_absorb_short (Hmodel:memcpy_model) l bytes m bx ba oa out 
   Clight2.eval_funcall secp_ge m (Internal jets_secp.f_sha256_uchars)
     [Vptr bx Ptrofs.zero;Vptr ba oa;Vlong (Int64.repr (Z.of_nat (length bytes)))] E0 mf (Vint Int.one) /\
   Mem.load Mptr mf bx 0=Some out /\
-  Mem.load Mint64 mf bx 8=Some (Vlong (Int64.repr (Z.of_nat (length (l++bytes))))) /\
+  Mem.load Mint64 mf bx 8=Some (Vlong (Int64.repr (total+Z.of_nat (length bytes)))) /\
   Mem.load Mint8unsigned mf bx 80=Some (Vint Int.zero) /\
   (forall i,(i<length (l++bytes))%nat ->Mem.load Mint8unsigned mf bx (16+Z.of_nat i)=
     Some (Vint (nth i (l++bytes) Int.zero))) /\
   Mem.range_perm mf bx 0 88 Cur Freeable /\ lframe (fun b _=>b<>bx) m mf /\
   readonly_preserved m mf /\ secp_sha_startup mf.
 Proof.
-  intros Short Separate Startup Owned SourceHi Pointer Counter Overflow Buffer Source.
+  intros Short Nonnegative Total Remainder Separate Startup Owned SourceHi Pointer Counter Overflow Buffer Source.
   set (vn:=Int64.repr (Z.of_nat (length bytes))).
-  destruct (exec_secp_sha_absorb_head (length l) (length bytes) m bx ba oa ltac:(lia) ltac:(lia)
-    Startup Owned Counter Overflow) as
+  destruct (exec_secp_sha_absorb_head_counter (length l) (length bytes) total m bx ba oa
+    ltac:(lia) Nonnegative Total Remainder Startup Owned Counter Overflow) as
     (le4 & m4 & Head & HC & HA & HN & HD & HB & HeadCounter & HeadOverflow & OwnedI &
      L34 & HeadBuffer & P34 & HeadFrame & R34 & StartupI).
   set (vd:=Int64.repr (64-Z.of_nat (length l))).
@@ -199,7 +201,7 @@ Proof.
     + rewrite TailFrame by (right;left;change (size_chunk Mptr) with 8;lia);rewrite L34 by (right;left;reflexivity);exact Pointer.
     + split.
       * rewrite TailFrame by (right;left;change (size_chunk Mint64) with 8;lia).
-        rewrite app_length;exact HeadCounter.
+        exact HeadCounter.
       * split;[exact OverflowF|];split.
         -- intros i Index;rewrite app_length in Index;destruct (lt_dec i (length l)) as [Before|After].
            ++ rewrite app_nth1 by exact Before.
@@ -210,4 +212,34 @@ Proof.
         -- split;[intros pos Range;apply TailPerm,P34,Owned;exact Range|];split;[exact Frame|];split;[exact Preserved|].
            eapply secp_sha_startup_preserved;[exact Startup|exact Preserved|exact Frame|].
            intros ofs;destruct (secp_sha_startup_separate m bx 88 Startup ltac:(lia) Owned) as [Other _];congruence.
+Qed.
+
+Theorem eval_secp_sha_absorb_short (Hmodel:memcpy_model) l bytes m bx ba oa out :
+  (length l+length bytes<64)%nat -> bx<>ba -> secp_sha_startup m ->
+  Mem.range_perm m bx 0 88 Cur Freeable ->
+  Ptrofs.unsigned oa+Z.of_nat (length bytes)<=Ptrofs.max_unsigned ->
+  Mem.load Mptr m bx 0=Some out ->
+  Mem.load Mint64 m bx 8=Some (Vlong (Int64.repr (Z.of_nat (length l)))) ->
+  Mem.load Mint8unsigned m bx 80=Some (Vint Int.zero) ->
+  (forall i,(i<length l)%nat ->Mem.load Mint8unsigned m bx (16+Z.of_nat i)=Some (Vint (nth i l Int.zero))) ->
+  (forall i,(i<length bytes)%nat ->Mem.load Mint8unsigned m ba (Ptrofs.unsigned oa+Z.of_nat i)=
+    Some (Vint (nth i bytes Int.zero))) ->exists mf,
+  Clight2.eval_funcall secp_ge m (Internal jets_secp.f_sha256_uchars)
+    [Vptr bx Ptrofs.zero;Vptr ba oa;Vlong (Int64.repr (Z.of_nat (length bytes)))] E0 mf (Vint Int.one) /\
+  Mem.load Mptr mf bx 0=Some out /\
+  Mem.load Mint64 mf bx 8=Some (Vlong (Int64.repr (Z.of_nat (length (l++bytes))))) /\
+  Mem.load Mint8unsigned mf bx 80=Some (Vint Int.zero) /\
+  (forall i,(i<length (l++bytes))%nat ->Mem.load Mint8unsigned mf bx (16+Z.of_nat i)=
+    Some (Vint (nth i (l++bytes) Int.zero))) /\
+  Mem.range_perm mf bx 0 88 Cur Freeable /\ lframe (fun b _=>b<>bx) m mf /\
+  readonly_preserved m mf /\ secp_sha_startup mf.
+Proof.
+ intros Short Separate Startup Owned SourceHi Pointer Counter Overflow Buffer Source.
+ replace (Int64.repr (Z.of_nat (length (l++bytes)))) with
+   (Int64.repr (Z.of_nat (length l)+Z.of_nat (length bytes))) by
+   (f_equal;rewrite app_length;lia).
+ eapply eval_secp_sha_absorb_short_counter;try eassumption.
+ - lia.
+ - lia.
+ - apply Z.mod_small;lia.
 Qed.

@@ -358,6 +358,16 @@ assumptions only. These helper results add no jet coverage. Parsing/challenge
 callers and the complete verification result remain open; no additional
 public precondition is justified by these helpers.
 
+The shared secp SHA setup, partial-block and block-filling helpers now separate
+the total byte counter from the buffered length (`total mod 64`). Their actual
+C overflow test is discharged below the existing SHA counter bound, allowing
+the consumed 64-byte challenge-tag prefix. The old one-block interfaces are
+proved specializations, with unchanged statement/definition/axiom records.
+All four generalized modules and the existing u64/finalize48 consumers compile;
+reviewed no-update records match on all six. The bounded `memcpy_model`
+condition remains explicit. The three challenge-input calls and signature
+caller still need composition; this extension adds no jet coverage.
+
 ### Development history for the accepted off-curve linear-combination proof
 
 The helper milestones below record the route to `938cf401`. Their earlier
