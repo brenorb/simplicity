@@ -510,6 +510,12 @@ including matching failure routes. The returned-root range and double-negation
 facts are derived; no nonzero-Y or extra public-input premise is added.
 These two newer modules compile and their reviewed no-update records match;
 they postdate the recursive kernel check on `32748bf1` and add no jet coverage.
+The subsequent recursive check of these two roots and
+`C.jet_secp_schnorr_verify_literal` passed on the exact inputs of `b245264d`,
+with an unchanged fingerprint and no unsafe proof features. The seven
+predicate/guard/assertion lemmas in the latter module are closed. Reproduce
+with `ulimit -S -s 65520` and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_schnorr_challenge_literal C.jet_secp_decompress_sign C.jet_secp_schnorr_verify_literal`.
 
 The signature-verifier bridge still needs more than this challenge result.
 C uses the negated challenge scalar with an even-Y public key, whereas the
@@ -550,6 +556,25 @@ action `phi(P)=[lambda]P`. Two important library boundaries: `SMain.pelt` uses
 ordinary projective `(X/Z,Y/Z)`, not our Jacobian `(X/Z^2,Y/Z^3)`, and
 `EGroup.gpow` sends negative integers to the identity rather than implementing
 signed multiplication. Supply explicit adapters and retain scalar reduction.
+
+`jet_secp_curve_group` now instantiates that existing affine group at p,
+A=0, B=7, proves positive order and `#E <= 2p+1`, with all four recorded
+results closed. `jet_secp_curve_group_sign` identifies its curve equation
+with the existing numeric model and proves that negation fixes only infinity,
+reusing `secp_curve_y_nonzero`; all three recorded results are closed.
+Ordinary builds and reviewed no-update records pass. A fresh recursive kernel
+check of these new group roots remains to be run. Next derive odd cardinality
+by finite-list negation pairing, then supply the actual generator/order
+certificate; neither `#E=n` nor the Strauss/group bridge is proved yet.
+
+The new proof-only `jet-elliptic-deps.sh` wrapper and Nix build targets enable
+`SMain`/`GZnZ` from the existing pin. The frozen `jet-deps.sh` is byte-identical
+to the target manifest. The wrapper succeeds with the pinned toolchain; all
+142 cached CoqPrime source files were compared with the checksum-verified
+pinned archive and match. Shell syntax, workflow YAML and Nix expression
+parsing pass; a full Nix derivation build has not been run. These support
+changes leave production C, original specifications, ASTs and generation
+settings unchanged.
 
 Two legacy proof performance repairs are checked: root selection retains a
 named check expression instead of expensive inferred transitivity, and the
