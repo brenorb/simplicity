@@ -87,7 +87,7 @@ bash Coq/jet-deps.sh          # downloads, verifies and builds; ~4 minutes
 | --- | --- | --- |
 | CompCert | 3.14, tarball SHA-256 `5588747d…af20` (the hash pinned in `compcert-opensource.nix`) | configured `x86_64-linux`, with `clightgen` |
 | VST | tag `v2.14`, commit `e1db53a4e22ddd3f8223532ba73127b706faf1b3`, tarball SHA-256 `c11551c4…6c06` | only the `sha` library that `Simplicity.Word` imports is built |
-| CoqPrime | tag `v8.17`, commit `431d7a66877cbe8688fc8864ef892369401440e1`, tarball SHA-256 `cfd5845d…8d90` | only `PocklingtonCertificat.vo` and its standard-integer dependency closure; no bignums/native checker or generator |
+| CoqPrime | tag `v8.17`, commit `431d7a66877cbe8688fc8864ef892369401440e1`, tarball SHA-256 `cfd5845d…8d90` | `PocklingtonCertificat.vo`, `elliptic/SMain.vo`, `elliptic/GZnZ.vo` and their dependency closures; no bignums/native checker or generator |
 | safegcd-bounds | existing pin `06abb7f7aba9b00eb4ead96bdd7dbcc04ec45c4f`, `divsteps_def.v` SHA-256 `f8450b00…aff06` | only the arithmetic definitions and their checked lemmas, not the exhaustive 724-step certificate |
 
 The VST tag records version 2.13 and CompCert 3.13 in its metadata; it builds
@@ -104,7 +104,13 @@ source-tree location, just as `COMPCERT` and `VST` do.
 The integrated checker enables `coqchk -bytecode-compiler yes` for checked VM
 conversion of these certificates; it still recursively checks every dependency.
 For an existing CompCert/VST setup, run `bash Coq/jet-deps.sh --coqprime-only`
-to add just this dependency without rebuilding those trees.
+to add just the certificate checker without rebuilding those trees. Run
+`bash Coq/jet-elliptic-deps.sh` to include its finite affine curve-group library
+from the same pinned source. This wrapper leaves the frozen bootstrap and
+generation settings intact; the Nix proof dependency builds the same three
+targets. The group library supports the signature proof's missing mathematical
+bridge and does not itself establish secp256k1's group order or correctness of
+the C Strauss algorithm.
 
 The divstep termination proof reuses the existing `C.divstep` arithmetic and
 the pinned safegcd definitions. Run `bash Coq/jet-deps.sh --safegcd-only` to

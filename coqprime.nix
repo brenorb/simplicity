@@ -1,4 +1,4 @@
-# Only the standard-integer certificate checker: no bignums or native checker.
+# Standard-integer certificates and finite curve groups; no bignums/native checker.
 { coq, lib, stdenv, fetchurl }:
 stdenv.mkDerivation {
   pname = "coqprime-standard-checker";
@@ -10,7 +10,11 @@ stdenv.mkDerivation {
   buildInputs = [ coq ];
   enableParallelBuilding = true;
   makeFlags = [ "COQBIN=${coq}/bin/" ];
-  buildFlags = [ "src/Coqprime/PrimalityTest/PocklingtonCertificat.vo" ];
+  buildFlags = [
+    "src/Coqprime/PrimalityTest/PocklingtonCertificat.vo"
+    "src/Coqprime/elliptic/SMain.vo"
+    "src/Coqprime/elliptic/GZnZ.vo"
+  ];
   installPhase = ''
     runHook preInstall
     contrib="$out/lib/coq/${coq.coq-version}/user-contrib"
@@ -23,7 +27,7 @@ stdenv.mkDerivation {
     runHook postInstall
   '';
   meta = {
-    description = "CoqPrime standard-integer Pocklington checker for jet proof certificates";
+    description = "CoqPrime standard-integer certificates and finite curve groups for jet proofs";
     homepage = "https://github.com/thery/coqprime";
     license = lib.licenses.lgpl21Only;
   };

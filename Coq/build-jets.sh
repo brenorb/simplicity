@@ -26,8 +26,10 @@ if [[ "${JET_USE_COQPATH:-0}" != 1 ]]; then
     jet_flags+=(-Q "$VST/$dir" "VST.$dir")
   done
   jet_flags+=(-Q "$VST/sha" sha)
-  if [[ ! -f "$COQPRIME/src/Coqprime/PrimalityTest/PocklingtonCertificat.vo" ]]; then
-    echo "CoqPrime checker not found; run Coq/jet-deps.sh (see Coq/JET_BUILD.md)" >&2
+  if [[ ! -f "$COQPRIME/src/Coqprime/PrimalityTest/PocklingtonCertificat.vo" ||
+        ! -f "$COQPRIME/src/Coqprime/elliptic/SMain.vo" ||
+        ! -f "$COQPRIME/src/Coqprime/elliptic/GZnZ.vo" ]]; then
+    echo "CoqPrime proof libraries not found; run Coq/jet-elliptic-deps.sh (see Coq/JET_BUILD.md)" >&2
     exit 1
   fi
   jet_flags+=(-R "$COQPRIME/src/Coqprime" Coqprime)
