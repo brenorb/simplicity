@@ -1,5 +1,32 @@
 # Integration and pending-jet reconciliation
 
+## Scoped linear-verification acceptance
+
+`C.jet_secp_linear_verify_local.linear_verify_initialized_local_spec` passed
+full scoped acceptance on the exact inputs of `f3658dbf`. It proves the entire
+original `linear_verify_1` wrapper against its literal Simplicity assertion
+term for all six input words and general valid frames/cursors, including both
+success and failure. The proof composes the actual readers, curve guards,
+arithmetic calls, return conversion and seven local frees. The table
+denominator condition follows from the curve guard; the only extra library
+premise is the approved `memset_model`. No output capacity is required.
+
+```sh
+JOBS=12 bash Coq/check-jets.sh --accept --jets=simplicity_linear_verify_1
+```
+
+The run exited successfully after recursive kernel checking on 1,035 modules,
+matching assumption records on 966 modules and contract records on 984 modules,
+gate negative tests and all five AST regeneration comparisons. Its input
+fingerprint remained unchanged throughout the run. The existing source gate
+checks the canonical assertion tree, named Haskell term, CoreJets dispatch and
+FFI entry, rejecting fourteen targeted mutations.
+
+Accepted proof coverage is now 525/533: 375 equivalences without an extra
+library premise, 149 conditional equivalences (138 memcpy, 5 CTZ, 6 memset),
+and one whole-public divergence. Eight jets remain unresolved. This scoped
+result applies to its exact inputs, not later proof changes.
+
 ## Scoped checked linear-combination acceptance
 
 `C.jet_secp_checked_linear_local.checked_linear_initialized_local_spec` is
@@ -21,10 +48,10 @@ matching assumption records on 943 modules and contract records on 962 modules,
 negative tests and all five AST regeneration comparisons. Its input fingerprint
 stayed fixed and matched the committed inputs afterwards.
 
-Accepted proof coverage is now 524/533: 375 equivalences without an extra
+That accepted milestone covered 524/533: 375 equivalences without an extra
 library premise, 148 conditional equivalences (138 memcpy, 5 CTZ, 5 memset),
-and one whole-public divergence. Nine jets remain unresolved; the goal stays
-active. This scoped result applies to its exact inputs, not later proof changes.
+and one whole-public divergence. Nine jets remained unresolved. This scoped
+result applies to its exact inputs, not later proof changes.
 
 ## Scoped off-curve linear-combination acceptance
 

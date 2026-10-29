@@ -251,7 +251,8 @@ the source-binding check and its fourteen targeted mutations pass. Scoped
 assumption/contract comparisons match the reviewed records. The public
 axiom set is the same inherited set as the accepted checked linear-combination
 caller; existing literal-port theorem types and axiom sets are unchanged.
-Registration is complete; full scoped acceptance remains pending. Reproduce the build with
+Registration and full scoped acceptance pass on `f3658dbf`; the exact scope is
+recorded in `JET_ACCEPTANCE.md`. Reproduce the build with
 `JET_TARGETS=C/jet_secp_linear_verify_local.vo bash Coq/build-jets.sh -j4`.
 
 The next reserved jet is `point_verify_1`. Its arithmetic call sequence is
