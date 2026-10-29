@@ -699,7 +699,11 @@ word in the doubling branch. It does not replace the existing public theorem
 or erase the separately recorded raw-word divergence. The field identity is
 for table/pass2 composition. All five reviewed no-update records pass; the
 routing and zero/infinity facts are closed, while the arithmetic projections
-use existing functional extensionality. Fresh recursive checking is pending.
+use existing functional extensionality. Recursive checking of this root and
+`jet_secp_jacobian_word_transforms` passed on the exact inputs of `5b0d8728`,
+with matching fingerprints and no unsafe features. Reproduce with the same
+stack bound and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_jacobian_mixed_ratio C.jet_secp_jacobian_word_transforms`.
 
 `jet_secp_jacobian_word_transforms` interprets the actual literal lambda
 transform as `[lambda]P`, using the checked beta action and its exact original
@@ -708,10 +712,25 @@ word model. It also interprets literal Jacobian negation and rescaling, and
 `c * field(old_Z) * field(scale)`. Rescale/zinv require a nonzero internal
 scale, to be discharged from the table invariant. These adapters compile and
 all nine reviewed no-update records pass with only existing functional
-extensionality where used by the word arithmetic; fresh recursive checking
-remains pending. Table semantics,
+extensionality where used by the word arithmetic. The recursive check of
+both ratio/transform roots passed at `5b0d8728`, as recorded above. Table semantics,
 signed-digit reconstruction and the Strauss fold remain before the final C
-verifier composition. Public coverage remains 526/533.
+verifier composition.
+
+`jet_secp_table_pass2_group` now proves the actual balanced two-, four- and
+eight-entry pass2 operations preserve all represented group points under a
+common final denominator. Its tree relation records each adjacent context/ratio
+equality; carry equations derive the nonzero internal scales. No field inverse
+or ratio behavior is assumed. **Constructing this tree relation for the actual
+pass1 output is still required** before using the result for scalarTable5.
+The module compiles with the original 10-second command limit. A generic vector
+constructor lemma avoids repeatedly converting the concrete four-entry
+predicate; the four/eight-entry proof closings measured about 0.20/0.10 seconds.
+Earlier direct conversion hit a 60-second closing limit, preserved only as a
+failed temporary experiment. Do not reintroduce that expansion. Reviewed
+records now pass with only existing functional extensionality where used;
+independent kernel checking of this new module remains pending.
+Public coverage remains 526/533.
 
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
