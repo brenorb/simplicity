@@ -479,6 +479,31 @@ existing `memcpy_model`. Ordinary compilation and reviewed no-update records
 pass. The whole internal function must still provide the private objects by
 its actual allocations and free them before returning.
 
+`jet_secp_schnorr_challenge_function.eval_schnorr_challenge_word` now closes
+that whole original internal function for the public jets' 32-byte messages.
+It supplies the four fresh allocations, discharges all seven calls and the
+return-slot assignment, and releases the four locals in the actual environment
+order. The resulting scalar storage is the canonical normalization of the
+challenge hash word. Other old memory, output ownership, readonly state and
+SHA startup are preserved. Input arrays may alias each other or the output;
+their separation from the private locals follows from allocation freshness.
+The only extra library premise is `memcpy_model`. Ordinary compilation and
+reviewed no-update assumption/contract records pass. A fresh recursive kernel
+check of this new function and its dependencies is the next verification step;
+the older SHA-only kernel result does not cover this extension.
+
+The signature-verifier bridge still needs more than this challenge result.
+C uses the negated challenge scalar with an even-Y public key, whereas the
+canonical program uses the positive challenge with the negated (odd-Y) public
+key. Establish equivalence of their represented points, including infinity;
+do not demand equality of raw Jacobian coordinates or assume that the GLV
+split/wNAF streams simply negate. The final C finite/even-Y/X test must also
+be related to the canonical subtract-R-and-test-infinity predicate, retaining
+malformed-r and infinity rejection. Existing point/linear verification,
+decompression, scalar negation and general ecmult proofs provide components;
+these two remaining implications are not yet proved. No signature mismatch
+has been established by this proof gap.
+
 Two legacy proof performance repairs are checked: root selection retains a
 named check expression instead of expensive inferred transitivity, and the
 SWU pre-root storage proof derives separation by direct list projection and
