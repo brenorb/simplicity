@@ -752,6 +752,17 @@ The ordinary build and all four reviewed no-update records pass. Recursive
 kernel checking remains pending for the walk and pass1 roots.
 Public coverage remains 526/533.
 
+`jet_secp_scalar_table_group.secp_literal_scalar_table5_group` composes the
+original seed, doubled increment, pass1 ratios and balanced pass2. Its table
+represents 1P, 3P, ..., 15P under the actual returned nonzero context, derived
+from the valid-affine input. It introduces no extra public input premise and
+does not substitute an abstract table for the original computation. The ordinary
+build and all four reviewed no-update records pass, with only the existing
+functional extensionality in the word-level composition. Recursive kernel
+checking is still pending for this new root.
+The remaining Schnorr path needs signed lookup and digit reconstruction,
+generator action, the actual Strauss fold, and the final verification predicate.
+
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
 term arguments. When the context contains both `ValueA : value=point` and
