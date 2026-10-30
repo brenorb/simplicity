@@ -1691,13 +1691,18 @@ match without update flags. Execution has only the six inherited assumptions;
 no library premise or curve/input restriction is added to these loop results.
 They postdate the earlier recursive check and do not add accepted public coverage.
 
-Next reuse the pure wNAF tails instead of porting their arithmetic inductions:
-the original `wnaf_env` has one scalar local. Check same-memory statement
-transport for `wnaf_before_memset` and `wnaf_post_memset`, derive the actual
-linked memset call from the existing memset_model (the real 129-int buffer
-uses 516 bytes), then compose `jet_secp_wnaf_function5` and
-`jet_secp_wnaf_function15` entry/return/free structure. Do not transport the
-entire wNAF function as pure: its real memset must execute at the target GE.
+`jet_elements_taptweak_wnaf_transport` now checks same-memory transport of
+`wnaf_before_memset` and `wnaf_post_memset`, derives the actual one-scalar
+local domain, both 129/5 and 129/15 entries, and the linked freeing layout.
+`jet_elements_taptweak_wnaf_memset` derives the actual callee lookup,
+argument evaluation and original clear at the linked GE under the existing
+memset_model. Both build normally and their reviewed records match without
+update flags; execution has only the six inherited assumptions. Do not
+transport the entire wNAF function as pure: the real external call is handled
+separately. The complete 129/5 slice and 129/15 functions now compile in
+scratch, including their actual clear, return and private free. Integrate
+those next, then compose the original caller statements. The real 129-int
+buffer uses 516 bytes and stays within the approved memset bound.
 The actual `generator_final_statement` is also pure and can be transported
 after its own checked statement/layout fact; it is not yet in the three-item
 Strauss statement list. Reuse the original final-flag/nonzero-table bridges
