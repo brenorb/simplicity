@@ -372,8 +372,11 @@ represented group points. `jet_secp_even_y_unique` proves normalized even-Y
 uniqueness using the existing field square-root alternative and parity of p-y.
 `jet_secp_even_decompress` characterizes the actual even decompression and
 proves completeness using `swu_literal_root_success_on_square`; its failure
-corollary excludes every normalized on-curve even-Y candidate at that X. Next
-connect the Schnorr predicates, then compose the original C caller.
+corollary excludes every normalized on-curve even-Y candidate at that X.
+`jet_secp_even_x_test` proves the finite/even-Y/X predicate equivalent to even
+decompression representing the computed group point, including infinity and
+failed-decompression cases. This is a pure bridge; original C execution remains
+separate. Next connect the Schnorr predicates, then compose the original C caller.
 Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
 
