@@ -1122,8 +1122,23 @@ parser call and early-return guard for both outcomes, reusing the complete
 x-only parser and its representation result. Its source span is statement 6;
 it retains memcpy_model/memset_model explicitly and the six inherited axioms.
 Both ordinary builds and reviewed no-update assumption/contract records pass.
-Next compose the key read/absorption and input-hash reader with these hashing
-calls, parser/guards, native suffix, writer and generic/public lifecycle.
+`jet_secp_public_hash_read.eval_secp_public_hash_read` now transports the
+original read32s into the secp program and obtains exact state_regs for every
+Word256 input and valid cursor, including crossings. It retains the advanced
+frame, permissions, external framing and readonly memory; a checked closed
+four-function call table supplies preservation. Its statement adapter binds
+TapTweak's original input-hash read at index 7.
+`jet_secp_taptweak_io` binds the key read (index 4) and final write/return
+(index 14). The latter derives all 256 canonical output bits, cursor update,
+old-prefix preservation and full write_effect from the original writer call.
+Ordinary builds and reviewed no-update records pass for both modules, with no
+extra library premise and only the inherited six axioms.
+Next compose key read/absorption with the parser/guards, input-hash reader,
+hashing calls, native suffix, writer and complete generic/public lifecycle.
+All original callees and entry/cleanup packets are now available; the remaining
+work includes transporting their representations, ownership and initialized
+state through the full statement sequence, every return branch and frees.
+Do not start another helper implementation before inspecting these interfaces.
 The literal whole TapTweak assertion port and canonical source-binding gate
 also remain to be constructed; the hash formula and native arithmetic bridges
 alone do not count as the whole public theorem.
