@@ -1538,18 +1538,25 @@ concrete readonly_preserved results already provide the needed forwarding and
 avoid adding external_functions_properties/inline_assembly_properties.
 These later modules were not inputs to the `ca89b2aa` kernel run.
 
-The next prepared batch is in `/private/tmp/point-verify-scratch/`:
-`jet_elements_taptweak_frame_read.v` and `jet_elements_taptweak_key_phase.v`.
-Both compile there. The readers reuse actual read8s/read32s executions at the
-same final memory and arbitrary valid cursors. The key phase composes the
-actual key read, SHA absorption at counter 64 and the complete parser/guard,
-returning both outcomes, counter 96, ownership, frame/cursor and SHA state.
-Its scratch assumption check uses only the six inherited assumptions and
-existing memcpy_model/memset_model. Integrate both into the ordinary graph,
-replace the scratch import with C.*, then audit; do not copy scratch objects.
+`jet_elements_taptweak_frame_read` and `jet_elements_taptweak_key_phase` now
+also build in the ordinary graph, with their six reviewed assumption/contract
+records matching without update flags. The readers reuse actual read8s/read32s
+executions at identical final memory and arbitrary valid cursors. The key
+phase composes the actual key read, SHA absorption at counter 64 and the
+complete parser/guard, returning both outcomes, counter 96, ownership,
+frame/cursor and SHA state. Its only explicit library premises are the
+existing memcpy_model/memset_model; the assumption records contain only the
+six inherited assumptions. These two modules also postdate the `ca89b2aa`
+recursive kernel run. No scratch module or object is needed for these results.
 Next compose the input-hash read/message SHA phase with the Elements IV and
 linked SHA startup. The old Bitcoin key/hash theorems fix the Bitcoin IV/startup.
-Reuse the completed parser, tag and context prefix instead of restarting them.
+Reuse the completed parser, tag, context prefix and key phase instead of
+restarting them. For generic entry/free, reuse taptweak_entry with
+alloc_variables_transport and a checked vars_okb/layout agreement, as in the
+linked parser entry, rather than duplicating all eleven allocation proofs.
+The native tweak/convert/serialize suffix, its actual linked constant/global
+initialization, outer wrapper and final writer/free composition still remain;
+no whole Elements TapTweak equivalence is claimed.
 No full Elements generic or public jet is registered yet.
 
 Historical Bitcoin composition guidance (now completed above):
