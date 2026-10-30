@@ -631,6 +631,19 @@ applications can have differently elaborated `tySem Bit`/pair annotations, so
 syntactic rewriting/destruction may leave one occurrence untouched. Use
 `Int.one_not_zero` and explicit sum disjointness instead of reducing that
 large mixed goal with an unconstrained `discriminate`.
+`jet_secp_scalar_set_flag_frame` now exposes the original overflow-writing
+scalar parser's fine frame, reusing its checked symbolic prefix and actual
+overflow store. `scalar_flag_before_source` recovers the earlier bytes of the
+same signature block. `jet_secp_set_b32_owned_frame` similarly retains the
+field parser's source bytes and fine frame, with explicit footprint bounds to
+protect the later signature bytes. Both original contracts remain unchanged.
+`jet_secp_scalar_set_canonical` derives exact canonical scalar limbs/storage
+and the overflow flag from the same original parser for every Word256 value.
+The numeric four-word bridge is closed; execution adds no library premise.
+Ordinary builds and reviewed scoped no-update records pass. These modules are
+later than the pending `93b98930` recursive-check inputs. Next compose the
+original scalar-read/overflow guard and R field-read/guard with the key-load
+suffix, preserving both signature halves at their point of use.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
