@@ -1369,6 +1369,14 @@ checker and that Genv.init_mem actually exists; both statements are closed.
 This proves existence, not the full initialized SHA/curve state yet. Next
 parameterize the SHA dispatch/global-state packets at this concrete ge and
 reuse the proven pure helper calls; do not restart pure-helper transport.
+`jet_external_storebytes` proves the destination-call witness lemmas from
+the existing memcpy_model/memset_model_for premises and an already established
+Mem.storebytes result. Determinism fixes the model witness's final memory;
+memcpy keeps all original validity, non-overlap, pointer bounds and n<=64
+conditions. The general memset lemma is closed, the fixed memset wrapper uses
+only external_functions_sem, and the memcpy result has the existing six
+inherited assumptions. No model is discharged or widened by these helpers.
+The ordinary build and reviewed assumption/contract comparisons pass.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including
