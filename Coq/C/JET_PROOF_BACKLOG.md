@@ -21,8 +21,9 @@ on 1,430 modules, negative tests and all five AST comparisons. The full
 before/after source-and-object fingerprint agrees, and all 3,044 closure
 source/object files and their available snapshots match the main checkout.
 Reproduce with `JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_build_taptweak`.
-The four remaining public targets are Elements `simplicity_build_taptweak`,
-`simplicity_hash_to_curve`, `simplicity_output_is_fee` and `simplicity_total_fee`.
+The four remaining public targets are core `simplicity_hash_to_curve` and
+Elements `simplicity_build_taptweak`, `simplicity_output_is_fee` and
+`simplicity_total_fee`.
 BIP340 passed full scoped acceptance at `740a5536`: recursive kernel checking
 on 1,468 modules, matching reviewed assumptions on 1,358 modules and contracts
 on 1,376 modules, negative tests and all five AST regeneration comparisons.
@@ -1518,15 +1519,38 @@ and executes the generic TapTweak caller's real parse/early-return statement,
 including both outcomes. All four modules build normally and their thirteen
 reviewed records match without update flags. A combined scoped comparison of
 all thirteen new modules in this continuation also passes. Recursive kernel
-checking of this linked parser chain and the earlier linked SHA/tag chain is
-next; do not claim the old linked-helper kernel run covers these additions.
-Next compose the original output-context prefix: port sha256_hash and its
-empty/half-full 32-byte absorption wrapper (reuse the checked linked digest,
-short/full absorption, entry and frees), then specialize the double tag feed
-with elements_taptweak_iv_regs. The final key/hash phases must use the
-Elements IV and linked SHA startup; the old key-phase theorem fixes Bitcoin's
-IV/startup. Reuse this completed parser and caller guard instead of porting
-the root arithmetic or restarting native storage. No full Elements generic or public jet is registered yet.
+checking of the linked parser chain and earlier linked SHA/tag chain passed
+at `ca89b2aa`: 1,354 C modules, with all 5,213 recorded source/object/snapshot
+files unchanged across the run. Kernel safety and the existing library-context
+axiom checks pass. Reproduce with the pinned compiler and stack limit via
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_taptweak_parse_guard C.jet_elements_taptweak_tag_runtime C.jet_elements_taptweak_tag_startup`.
+This is a component check, not public Elements acceptance.
+
+The following later SHA additions now also build in the ordinary graph:
+`jet_elements_taptweak_append32` composes the actual empty/half-full byte
+absorption cases; `jet_elements_taptweak_hash32` executes the real hash-word
+wrapper, its private serialization buffer and free; `jet_elements_taptweak_prefix`
+executes output-context initialization and both tag-hash feeds, deriving exactly
+the canonical Elements IV with counter 64. Their ten reviewed records match
+without update flags. Only inherited assumptions and memcpy_model are used.
+Avoid the original prefix's generic clight_exec_forward calls when porting:
+concrete readonly_preserved results already provide the needed forwarding and
+avoid adding external_functions_properties/inline_assembly_properties.
+These later modules were not inputs to the `ca89b2aa` kernel run.
+
+The next prepared batch is in `/private/tmp/point-verify-scratch/`:
+`jet_elements_taptweak_frame_read.v` and `jet_elements_taptweak_key_phase.v`.
+Both compile there. The readers reuse actual read8s/read32s executions at the
+same final memory and arbitrary valid cursors. The key phase composes the
+actual key read, SHA absorption at counter 64 and the complete parser/guard,
+returning both outcomes, counter 96, ownership, frame/cursor and SHA state.
+Its scratch assumption check uses only the six inherited assumptions and
+existing memcpy_model/memset_model. Integrate both into the ordinary graph,
+replace the scratch import with C.*, then audit; do not copy scratch objects.
+Next compose the input-hash read/message SHA phase with the Elements IV and
+linked SHA startup. The old Bitcoin key/hash theorems fix the Bitcoin IV/startup.
+Reuse the completed parser, tag and context prefix instead of restarting them.
+No full Elements generic or public jet is registered yet.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including
