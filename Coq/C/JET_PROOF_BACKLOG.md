@@ -1,5 +1,13 @@
 # Remaining jet proof work
 
+The actual linked x-only tweak wrapper now builds in
+`jet_elements_taptweak_xonly_tweak_{entry,start,calls,function}`. Its nonnull
+guards, real 64-byte clear, key load, byte tweak, failure/success branches,
+save and private free are composed. Reviewed scoped records and no-update
+comparisons pass, with the six inherited assumptions and all three approved
+external models explicit. Source scanning and frozen-target checks pass.
+This remains a helper result and adds no accepted public coverage.
+
 The original linked byte-scalar tweak helper now builds in
 `jet_elements_taptweak_tweak_bytes_{entry,calls,function}`. Both overflow
 short-circuit and native success/failure paths, scalar parsing, actual native
@@ -44,7 +52,7 @@ in the next recursive check. This historical check does not cover later ports.
 Later native/helper ports through the entire frozen Elements wrapper compile
 in scratch. Integrate in the reviewed groups listed by
 `/private/tmp/elements-taptweak-integration-batches.json`, using the private
-integration script; groups 0 through 2 are integrated above. Each remaining group needs
+integration script; groups 0 through 3 are integrated above. Each remaining group needs
 ordinary builds, reviewed type/assumption records, no-update comparisons and
 its own signed atomic commit. The full candidate is still missing its final
 Elements specification bridge, canonical-source binding and public acceptance.
