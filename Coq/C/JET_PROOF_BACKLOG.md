@@ -977,9 +977,16 @@ Both modules build ordinarily and pass reviewed no-update records, with only
 the inherited eight axioms. The complete callee retains memset_model and
 ctz_model explicitly. These are native helper results, not yet the canonical
 Bitcoin TapTweak jet and not additional coverage.
-Next compose the original byte-scalar helper (32-byte scalar parser, overflow
-short circuit, complete native callee and local cleanup), then x-only
-tweak/load/save callers,
+`jet_secp_tweak_bytes_function.eval_ec_pubkey_tweak_add_helper` now composes
+that original byte-scalar helper for every 256-bit tweak: both actual local
+allocations, the initial overflow store, verified scalar parsing, overflow
+rejection without a native tweak call, the complete native callee otherwise,
+boolean conversion and both frees. It preserves caller key/byte-buffer
+ownership, unrelated memory and modinfo; its exact option payload rejects
+out-of-range tweaks or an infinite sum. The ordinary build and reviewed
+no-update records pass for it and its entry/call modules, with only the same
+eight inherited axioms and explicit memset_model/ctz_model premises.
+Next compose the x-only tweak/load/save callers,
 and the generic TapTweak SHA/reader/writer lifecycle. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential

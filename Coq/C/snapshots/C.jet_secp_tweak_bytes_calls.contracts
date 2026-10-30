@@ -1,0 +1,84 @@
+### C.jet_secp_tweak_bytes_calls.exec_tweak_bytes_init
+exec_tweak_bytes_init
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (bf : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._overflow e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bf Ctypesdefs.tint)))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.store AST.Mint32 m bf BinNums.Z0 (Values.Vint Integers.Int.zero))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_tweak_bytes_entry.tweak_bytes_init
+         Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_tweak_bytes_calls.exec_tweak_bytes_parse
+exec_tweak_bytes_parse
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (bt bb bf : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._term e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bt (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._overflow e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bf Ctypesdefs.tint)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_scalar_set_b32 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._tweak32 le)
+                (@Some Values.val (Values.Vptr bb Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_set_b32)
+                (@cons Values.val (Values.Vptr bt Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bf Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_tweak_bytes_entry.tweak_bytes_parse
+         Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_tweak_bytes_calls.exec_tweak_bytes_guard_reject
+exec_tweak_bytes_guard_reject
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (bf : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._overflow e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bf Ctypesdefs.tint)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint32 m bf BinNums.Z0)
+                (@Some Values.val (Values.Vint Integers.Int.one))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_tweak_bytes_entry.tweak_bytes_guard
+         Events.E0 (tweak_bytes_guard_temps le true false) m ClightBigstep.Out_normal
+### C.jet_secp_tweak_bytes_calls.exec_tweak_bytes_guard_accept
+exec_tweak_bytes_guard_accept
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (bt bk bf : Values.block) (result : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._term e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bt (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._overflow e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bf Ctypesdefs.tint)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_eckey_pubkey_tweak_add e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._p le)
+                (@Some Values.val (Values.Vptr bk Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint32 m bf BinNums.Z0)
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_eckey_pubkey_tweak_add)
+                (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bt Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                (Values.Vint (jet_readBit_layout.bit_int result))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_tweak_bytes_entry.tweak_bytes_guard
+         Events.E0 (tweak_bytes_guard_temps le false result) mf ClightBigstep.Out_normal
+### C.jet_secp_tweak_bytes_calls.exec_tweak_bytes_return
+exec_tweak_bytes_return
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (overflow result : bool),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e (tweak_bytes_guard_temps le overflow result) m
+         jet_secp_tweak_bytes_entry.tweak_bytes_return Events.E0 (tweak_bytes_guard_temps le overflow result) m
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type
+                  (Values.Vint
+                     (jet_readBit_layout.bit_int match overflow return bool with
+                                                 | true => false
+                                                 | false => result
+                                                 end)) Ctypesdefs.tint)))
