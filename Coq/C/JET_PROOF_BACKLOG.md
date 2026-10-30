@@ -1000,10 +1000,22 @@ axioms and explicit memcpy_model, memset_model and ctz_model premises.
 The source-key curve/coordinate premises are internal obligations supplied by
 the original x-only parser, not added public-jet restrictions. No public
 TapTweak result or additional coverage is claimed.
-Next prove the successful native tweak payload is on curve using the existing
-Strauss group interpretation and normalization lemmas. Then compose the
-remaining x-only from-pubkey/serialize callers, and the generic TapTweak
-SHA/reader/writer lifecycle and canonical program bridge. Do not substitute a
+`jet_secp_tweak_group` now discharges that successful payload's curve validity
+from the existing Strauss group interpretation, including scalar-one and
+finite normalization. It recovers exact opaque storage coordinates and proves
+the saved key passes the following native key-load check; this condition is
+not a new assumption.
+`jet_secp_tweak_add_equivalence` proves literal guarded normalization depends
+only on the represented group point, then proves the native tweak option is
+exactly the literal generate/gej_ge_add/gej_normalize sequence used by
+TapTweak. The byte-scalar bridge retains the original overflow rejection.
+This closes the arithmetic-result bridge; it is not the whole public jet.
+Both ordinary builds and reviewed no-update records pass. These bridges add
+no library premise and use only inherited logical axioms (the arithmetic
+comparison uses functional extensionality alone).
+Next compose the remaining x-only from-pubkey/serialize callers, and the
+generic TapTweak SHA/reader/writer lifecycle plus the canonical tagged-hash
+program and its source-binding checks. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential
 model does not specify every arbitrary external execution. BIP340 and CheckSig are registered candidates awaiting full acceptance.
