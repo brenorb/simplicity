@@ -545,6 +545,16 @@ fine framing and readonly preservation. It adds no library premise. Ordinary
 builds and reviewed scoped no-update audits pass. These modules are later than
 the `e71798a6` recursive-check inputs. Next execute both struct copies and
 normalizers in `ge_to_storage`, then compose the two packer calls and frees.
+That composition is now complete in `jet_secp_ge_storage_prepare`,
+`jet_secp_ge_storage_body`, `jet_secp_ge_storage_entry` and
+`jet_secp_ge_storage_function.eval_ge_to_storage_owned`: both actual struct
+copies, both canonical normalizers, both native packers, the two fresh local
+allocations and both frees. Its native X/Y values equal the source field
+values modulo p; complete destination ownership, outside framing and readonly
+preservation are retained. It adds no library premise. The ordinary build and
+reviewed scoped no-update records pass; these inputs are later than the frozen
+`e71798a6` recursive check. Next compose the original `pubkey_save` and x-only
+save wrapper, then the actual x-only parser and signature guards.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
