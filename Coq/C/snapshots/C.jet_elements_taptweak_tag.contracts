@@ -1,0 +1,78 @@
+### C.jet_elements_taptweak_tag.elements_taptweak_tag_length
+elements_taptweak_tag_length
+     : @eq nat (@length Integers.Int.int elements_taptweak_tag_bytes)
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+### C.jet_elements_taptweak_tag.elements_taptweak_tag_padded_words
+elements_taptweak_tag_padded_words
+     : @eq (list Integers.Int.int)
+         (jet_sha_ctx8_model.be_words
+            (@app Integers.Int.int elements_taptweak_tag_bytes
+               (jet_sha_finalize_exec.sha_pad
+                  (Integers.Int64.repr (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (SHA256.generate_and_pad
+            (SHA256.str_to_bytes
+               (String.String (Ascii.Ascii false false true false true false true false)
+                  (String.String (Ascii.Ascii true false false false false true true false)
+                     (String.String (Ascii.Ascii false false false false true true true false)
+                        (String.String (Ascii.Ascii false false true false true false true false)
+                           (String.String (Ascii.Ascii true true true false true true true false)
+                              (String.String (Ascii.Ascii true false true false false true true false)
+                                 (String.String (Ascii.Ascii true false false false false true true false)
+                                    (String.String (Ascii.Ascii true true false true false true true false)
+                                       (String.String (Ascii.Ascii true true true true false true false false)
+                                          (String.String (Ascii.Ascii true false true false false true true false)
+                                             (String.String (Ascii.Ascii false false true true false true true false)
+                                                (String.String
+                                                   (Ascii.Ascii true false true false false true true false)
+                                                   (String.String
+                                                      (Ascii.Ascii true false true true false true true false)
+                                                      (String.String
+                                                         (Ascii.Ascii true false true false false true true false)
+                                                         (String.String
+                                                            (Ascii.Ascii false true true true false true true false)
+                                                            (String.String
+                                                               (Ascii.Ascii false false true false true true true false)
+                                                               (String.String
+                                                                  (Ascii.Ascii true true false false true true true
+                                                                     false) String.EmptyString)))))))))))))))))))
+### C.jet_elements_taptweak_tag.elements_taptweak_tag_regs
+elements_taptweak_tag_regs
+     : @eq SHA256.registers (jet_secp_taptweak_tag_runtime.short_tag_regs elements_taptweak_tag_bytes)
+         (Digest.hash256_reg elements_taptweak_tag_digest)
+### C.jet_elements_taptweak_tag.elements_taptweak_iv_regs
+elements_taptweak_iv_regs
+     : @eq SHA256.registers
+         (SHA256.hash_block jet_sha256_iv_init.sha256_iv_words
+            (jet_sha_ctx8_model.be_words
+               (@app Integers.Int.int
+                  (jet_secp_sha_hash32.secp_hash_bytes (Digest.hash256_reg elements_taptweak_tag_digest))
+                  (jet_secp_sha_hash32.secp_hash_bytes (Digest.hash256_reg elements_taptweak_tag_digest)))))
+         (Digest.hash256_reg elements_taptweak_tag_iv)
+### C.jet_elements_taptweak_tag.elements_taptweak_iv_word_regs
+elements_taptweak_iv_word_regs
+     : @eq (list Integers.Int.int) (jet_sha_ctx8_model.state_regs elements_taptweak_iv_word)
+         (Digest.hash256_reg elements_taptweak_tag_iv)
+### C.jet_elements_taptweak_tag.elements_taptweak_tag_info
+elements_taptweak_tag_info
+     : @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info (Ctypes.fundef Clight.function) Ctypes.type
+            (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.program_of_program Clight.function jets_elements.prog)) elements_taptweak_tag_block)
+         (@Some (AST.globvar Ctypes.type) jets_elements.v_taptweak)
+### C.jet_elements_taptweak_tag.elements_taptweak_tag_symbol
+elements_taptweak_tag_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+            jets_elements._taptweak) (@Some Values.block elements_taptweak_tag_block)
+### C.jet_elements_taptweak_tag.elements_taptweak_tag_initial
+elements_taptweak_tag_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_elements.prog)) (@Some Memory.Mem.mem m)),
+       elements_taptweak_tag_state m
+### C.jet_elements_taptweak_tag.elements_taptweak_tag_owned_separate
+elements_taptweak_tag_owned_separate
+     : forall (m : Memory.Mem.mem) (b : Values.block) (size : BinNums.Z) (_ : elements_taptweak_tag_state m)
+         (_ : BinInt.Z.lt BinNums.Z0 size) (_ : Memory.Mem.range_perm m b BinNums.Z0 size Memtype.Cur Memtype.Freeable),
+       not (@eq Values.block b elements_taptweak_tag_block)

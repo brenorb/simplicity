@@ -1280,6 +1280,19 @@ concatenation collides on the Bitcoin/Elements taptweak globals and txEnv types;
 existing jet_transport supports only its checked internal/global-free subset.
 The short-tag C component is useful independently of that remaining linkage
 obligation; do not claim a complete Elements jet from it.
+`jet_elements_taptweak_tag` now proves the frozen Elements initializer's exact
+17-byte tag plus NUL, readable/writable bounds and exclusion of Freeable local
+ownership. Its SHA digest and doubled-digest IV agree with the canonical
+"TapTweak/elements" string hash, using the existing functional SHA bridge.
+Ordinary compilation and reviewed records pass; the pure digest/IV bridge uses
+only functional extensionality, with no new assumptions. Its initial-state
+result concerns the original elements program and is not a generic-call
+execution proof in that program.
+`jet_byte_pointer_separation` proves from CompCert memory decoding that a
+readable concrete byte excludes a pointer-valued Mptr load at the same address
+on the frozen LP64 target. Its ordinary build and reviewed records pass.
+This is a reusable representation fact, not an added no-overlap premise.
+
  Keep taptweak_ready (including
 dispatch extent) at the public boundary and use taptweak_ready_forward around
 existing startup-preserving phases. Reuse the key-phase result for normal parsing and immediate failure.

@@ -1,0 +1,17 @@
+### C.jet_byte_pointer_separation.decode_leading_byte_not_pointer
+decode_leading_byte_not_pointer
+     : forall (byte : Integers.Byte.int) (rest : list Memdata.memval) (bp : Values.block) (op : Integers.Ptrofs.int),
+       not
+         (@eq Values.val (Memdata.decode_val AST.Mptr (@cons Memdata.memval (Memdata.Byte byte) rest))
+            (Values.Vptr bp op))
+### C.jet_byte_pointer_separation.decode_uint8_byte_head
+decode_uint8_byte_head
+     : forall (cell : Memdata.memval) (rest : list Memdata.memval) (n : Integers.Int.int)
+         (_ : @eq Values.val (Memdata.decode_val AST.Mint8unsigned (@cons Memdata.memval cell rest)) (Values.Vint n)),
+       @ex Integers.Byte.int (fun byte : Integers.Byte.int => @eq Memdata.memval cell (Memdata.Byte byte))
+### C.jet_byte_pointer_separation.readable_byte_not_pointer
+readable_byte_not_pointer
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (n : Integers.Int.int)
+         (bp : Values.block) (op : Integers.Ptrofs.int)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint8unsigned m b ofs) (@Some Values.val (Values.Vint n))),
+       not (@eq (option Values.val) (Memory.Mem.load AST.Mptr m b ofs) (@Some Values.val (Values.Vptr bp op)))
