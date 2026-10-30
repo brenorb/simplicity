@@ -15,12 +15,12 @@ Lemma xonly_sum_distinct {A B} (a:A) (b:B):(inl a:sum A B)<>inr b.
 Proof. discriminate. Qed.
 Lemma xonly_parse_success_iff (pk:Ty.tySem (Word 8)):
  xonly_parse_result pk=Int.one <->@toZ (WordToZ 8) pk<feP /\
- exists ax ay,@literal_decompress Simplicity.Alg.CoreFunSem ((inl tt),pk)=inr (ax,ay).
+ exists ax ay:Ty.tySem (Word 8),@literal_decompress Simplicity.Alg.CoreFunSem ((inl tt),pk)=inr (ax,ay).
 Proof.
  pose (decoded:=@literal_decompress Simplicity.Alg.CoreFunSem ((inl tt:Ty.tySem Bit),pk)).
  change ((if Z.ltb (@toZ (WordToZ 8) pk) feP then
   match decoded with inl _=>Int.zero|inr _=>Int.one end else Int.zero)=Int.one <->
-  @toZ (WordToZ 8) pk<feP /\ exists ax ay,decoded=inr (ax,ay)).
+  @toZ (WordToZ 8) pk<feP /\ exists ax ay:Ty.tySem (Word 8),decoded=inr (ax,ay)).
  destruct (Z.ltb (@toZ (WordToZ 8) pk) feP) eqn:Accepted.
  - apply Z.ltb_lt in Accepted;destruct decoded as [[]|[ax ay]].
    + split.
