@@ -359,8 +359,10 @@ they are not covered by that historical recursive result.
 
 Both window reconstructions, the original four-stream/129-step group semantics,
 the four scalar Horner folds, and their binding to actual window outputs are
-now compiled. Next compose the actual normalized split_lambda/split128 outputs,
-final shared-Z correction and generator-only skipped branch; then the original
+now compiled. `jet_secp_strauss_body_group` composes the actual normalized
+split_lambda/split128 outputs and final shared-Z correction for valid affine
+inputs, with no nonzero scalar restriction. Next compose the generator-only
+skipped branch; then the original
 Schnorr caller and final predicate. Reuse those modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
 
