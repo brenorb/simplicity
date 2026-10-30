@@ -1,5 +1,21 @@
 # Remaining jet proof work
 
+The whole original linked `modinv64_var` call now builds as
+`jet_elements_taptweak_inverse_core.eval_elements_taptweak_field_inv_core`.
+The new normalize/finish/free/loop_finish modules derive normalization using
+the actual sparse metadata, preserve all six metadata words, copy the result
+back, and discharge all five actual private frees. The core composes those
+phases with real entry and the terminating loop; it retains normalized output,
+exact numeric/literal inverse equalities, ownership, framing and readonly
+preservation. Its only extra premise is the approved `ctz_model`; zero input
+is covered. Ordinary builds and reviewed scoped no-update records pass, with
+the same six inherited execution assumptions. Astra Medium's bounded static
+review of this port and its divstep/loop foundations found no boundary,
+address, oracle, conclusion or freeing issue; it did not run verification.
+No fresh recursive check or public acceptance is claimed. Next compose the
+real fe_inv_var preparation/core/unpack call, including in-place point Z,
+then affine conversion and the native Elements tweak suffix.
+
 The linked inverse's complete outer loop is now in ordinary modules
 `jet_elements_taptweak_inverse_{phases,divstep_batch,batch,loop}`.
 They derive the caller's two loads and actual divstep call, transport the
