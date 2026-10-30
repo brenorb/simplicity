@@ -1498,16 +1498,35 @@ original ge_set_xo_var proof at identical memory, retaining both root outcomes,
 both parities, coordinates, finite flag, permissions, framing and the exact
 literal Simplicity result. The ordinary build and fourteen reviewed scoped
 assumption/contract comparisons pass, with no added model or axiom. This
-closes arithmetic decompression, not the public Elements wrapper. `jet_elements_taptweak_save_copy` now executes that actual 64-byte copy with
+closes arithmetic decompression, not the public Elements wrapper.
+`jet_elements_taptweak_save_copy` now executes that actual 64-byte copy with
 memcpy_model explicit. Its layout and global lookup facts are discharged;
 `jet_elements_taptweak_save` reuses the full arithmetic packing proof, then
 composes the original pubkey_save and xonly_pubkey_save entries, body and
 frees in the linked program. All thirteen reviewed scoped records match,
 using only inherited assumptions and the existing memcpy_model premise.
-Next compose the complete parser from these actual calls and decompression;
-all field and square-root rejection branches must remain. The final key-phase composition must
-parameterize the Elements IV/startup, since the old key theorem fixes Bitcoin's
-IV. No full Elements generic or public jet is registered yet.
+The complete parser is now composed in ordinary modules:
+`jet_elements_taptweak_parse_decode` retains original decompression and both
+guards and derives native save on success; `jet_elements_taptweak_parse_field`
+retains strict rejection for every input word. `jet_elements_taptweak_parser`
+derives the real function entry, both private allocations, the clear/start,
+field/decode body and both frees. Its complete owned-buffer theorem returns
+xonly_parse_result and xonly_parsed_result, permissions, framing and readonly
+state. The only library premises are the existing memcpy_model/memset_model.
+`jet_elements_taptweak_parse_guard` binds the actual parser symbol/function
+and executes the generic TapTweak caller's real parse/early-return statement,
+including both outcomes. All four modules build normally and their thirteen
+reviewed records match without update flags. A combined scoped comparison of
+all thirteen new modules in this continuation also passes. Recursive kernel
+checking of this linked parser chain and the earlier linked SHA/tag chain is
+next; do not claim the old linked-helper kernel run covers these additions.
+Next compose the original output-context prefix: port sha256_hash and its
+empty/half-full 32-byte absorption wrapper (reuse the checked linked digest,
+short/full absorption, entry and frees), then specialize the double tag feed
+with elements_taptweak_iv_regs. The final key/hash phases must use the
+Elements IV and linked SHA startup; the old key-phase theorem fixes Bitcoin's
+IV/startup. Reuse this completed parser and caller guard instead of porting
+the root arithmetic or restarting native storage. No full Elements generic or public jet is registered yet.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including
