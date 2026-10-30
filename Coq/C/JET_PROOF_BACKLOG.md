@@ -348,8 +348,11 @@ reaching 526/533 as described above. Reproduce with
 
 Current resume checkpoint: the predicate and original challenge-to-return C
 chains are integrated into `feat/jet-equivalence`; `codex/schnorr-reconstruction`
-is frozen at `e71798a6`, where the recursive check of
-`C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/current
+is now frozen at `93b98930` for a new recursive check of
+`C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return`; its ordinary
+build is complete and the recursive result is **pending**. Do not edit that
+worktree while the check runs. The earlier recursive check at `e71798a6` of
+`C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/at-completion
 input fingerprints agree (`b02a3e8b659b4032e79b865b6df8e82bb1ed032999f51c1f7d7f8bf7cdfd4f27`);
 the axiom list is contained in the existing expectation, and all three unsafe
 feature lists are empty. This receipt covers only those exact checked inputs,
@@ -566,6 +569,14 @@ no-update audits pass. Next prove the actual x-only parser, including its
 initial clear, null checks, strict field parse, both decompression outcomes,
 the original correct-subgroup guard (whose helper returns 1), save call and
 local frees; derive each bounded coordinate premise from decompression.
+`jet_secp_decompress_native_save.eval_decompressed_native_save` now derives
+those save-input bounds and executes the actual x-only save from successful
+decompression fields. Its native X/Y words have exactly the unsigned values
+of the canonical decoded pair; neither a saved-coordinate premise nor a save
+execution is assumed. The canonical/negative limb bounds and numeric bridge
+are closed. Ordinary build and reviewed scoped no-update records pass. This
+module is later than the pending `93b98930` recursive-check snapshot; the
+parser control flow and lifecycle are still to compose.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
