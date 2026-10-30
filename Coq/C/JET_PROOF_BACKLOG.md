@@ -619,6 +619,18 @@ proof pattern into a small shared Clight lemma for this and the verifier checks.
 It leaves the existing generator modules unchanged. The incidental rebuild of
 `jet_secp_hashgen_outer` and its stale dependencies completed successfully.
 These parser modules are later than the frozen `93b98930` recursive-check inputs.
+`jet_secp_xonly_parse_result` now gives closed success/failure equivalences:
+return 1 iff the key is below p and even decompression succeeds; return 0 iff
+the key is at least p or even decompression fails. Its successful-call corollary
+derives actual C execution and exact native decoded coordinates from the
+existing general parser theorem. Ordinary build and reviewed scoped no-update
+records pass; only the existing copy/clear premises remain on execution.
+For these Word256 control proofs, pose a typed local decoded sum and `change`
+the whole goal to that variable before destructing it. Apparently identical
+applications can have differently elaborated `tySem Bit`/pair annotations, so
+syntactic rewriting/destruction may leave one occurrence untouched. Use
+`Int.one_not_zero` and explicit sum disjointness instead of reducing that
+large mixed goal with an unconstrained `discriminate`.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
