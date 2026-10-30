@@ -1097,7 +1097,14 @@ counter/pointer/overflow, all three private buffers, external framing and the
 full initialized state. The original source statement is checked by reflexivity.
 Ordinary compilation and reviewed no-update records pass; memcpy_model and
 the inherited eight axioms remain explicit. This is the tag block only.
-Next compose the two sha256_hash prefix calls and their output-context init.
+`jet_secp_taptweak_prefix.exec_taptweak_output_prefix` now constructs that
+output-context initialization/copy and both original sha256_hash calls. It
+obtains the exact canonical tagged IV at counter 64, keeps the source tag hash,
+all four owned buffers, external framing and initialized state. Its source
+lemma binds this span directly to the frozen generic function. Ordinary builds
+and reviewed no-update records pass; memcpy_model is the only library premise.
+Next compose the key read/absorption/parser and remaining message hash with
+the native suffix, output writer and complete generic/public lifecycle.
 The frozen `v_taptweak` global is a writable nine-byte array (eight characters
 plus NUL), not a readonly string; do not assume readonly tag memory. Establish
 its exact initial bytes, bounded permissions and no-Freeable property from
