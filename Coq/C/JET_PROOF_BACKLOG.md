@@ -447,7 +447,14 @@ and scoped no-update audits pass, with no added assumptions.
 the actual in-place scalar negation with that entire suffix (statement 9 onward),
 deriving its normalized scalar storage from the original helper. Its ordinary
 build and reviewed scoped no-update records pass, without adding assumptions.
-Next compose challenge construction, parsing and the outer lifecycle. Keep all preservation attached to the
+`jet_secp_schnorr_challenge_return.exec_schnorr_challenge_return_owned` now
+composes the actual 32-byte-message challenge call and that complete suffix
+(statement 8 onward), deriving the challenge scalar using the existing actual
+C SHA chain. It retains `memcpy_model`, `memset_model`, and `ctz_model` explicitly;
+no library linkage discharge is claimed. Ordinary compilation and reviewed
+scoped no-update records pass. Next connect the result to the full canonical
+predicate, then compose signature/key parsing, key-X serialization and the
+outer lifecycle. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
 new coverage is claimed yet.
