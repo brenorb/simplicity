@@ -437,8 +437,13 @@ and framing, and retains the explicit `memset_model` and `ctz_model` premises.
 `jet_secp_modinfo_fe_transport` derives initialized inversion metadata after
 the multiplier from initial readonly state, owned argument ranges, load framing
 and backward maximum-permission preservation. Both ordinary builds and reviewed
-scoped no-update audits pass. Next compose the original affine-to-Jacobian
-initializer, scalar negation, parsing/challenge and outer lifecycle. Keep all preservation attached to the
+scoped no-update audits pass.
+`jet_secp_schnorr_gej_mult_return.exec_schnorr_gej_mult_return_owned` now
+composes the original affine-to-Jacobian initializer with that entire suffix
+(statement 10 onward), deriving Z=1 and the finite flag from the actual C
+initializer and preserving all seven complete local ranges. Its ordinary build
+and scoped no-update audits pass, with no added assumptions. Next compose scalar
+negation, parsing/challenge and the outer lifecycle. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
 new coverage is claimed yet.
