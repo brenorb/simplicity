@@ -364,7 +364,9 @@ split_lambda/split128 outputs and final shared-Z correction for valid affine
 inputs, with no nonzero scalar restriction. `jet_secp_generator_complete_group`
 composes the actual two-stream generator for every input, including zero.
 `jet_secp_linear_combination_group` combines both top-level branches for every
-scalar pair and valid affine input. Next connect decompression and the final
+scalar pair and valid affine input. `jet_secp_affine_word_valid` derives finite
+representations from successful decompression and proves equality of normalized
+coordinates for representations of the same point. Next connect the final
 Schnorr predicate, then compose the original C caller. Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
 
