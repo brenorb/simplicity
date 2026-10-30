@@ -555,6 +555,17 @@ preservation are retained. It adds no library premise. The ordinary build and
 reviewed scoped no-update records pass; these inputs are later than the frozen
 `e71798a6` recursive check. Next compose the original `pubkey_save` and x-only
 save wrapper, then the actual x-only parser and signature guards.
+The save wrappers are now closed too: `jet_secp_pubkey_save_copy` executes
+the original 64-byte native-to-opaque copy, and
+`jet_secp_pubkey_save_function.eval_pubkey_save` / `eval_xonly_pubkey_save`
+compose the actual storage conversion, copy, local allocation/free and x-only
+cast wrapper. Complete 64-byte destination ownership, native coordinate words,
+outside framing and readonly preservation are retained. Only the existing
+bounded `memcpy_model` premise is used. Ordinary builds and reviewed scoped
+no-update audits pass. Next prove the actual x-only parser, including its
+initial clear, null checks, strict field parse, both decompression outcomes,
+the original correct-subgroup guard (whose helper returns 1), save call and
+local frees; derive each bounded coordinate premise from decompression.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
