@@ -348,10 +348,13 @@ reaching 526/533 as described above. Reproduce with
 
 Current resume checkpoint: the predicate and original challenge-to-return C
 chains are integrated into `feat/jet-equivalence`; `codex/schnorr-reconstruction`
-is frozen at `e71798a6` for a recursive check of
-`C.jet_secp_schnorr_checked_return`. Its ordinary build is complete; the recursive
-result is **pending**, and does not yet certify those later C composition
-modules. Reproduce with the pinned compiler, `ulimit -S -s 65520`, and
+is frozen at `e71798a6`, where the recursive check of
+`C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/current
+input fingerprints agree (`b02a3e8b659b4032e79b865b6df8e82bb1ed032999f51c1f7d7f8bf7cdfd4f27`);
+the axiom list is contained in the existing expectation, and all three unsafe
+feature lists are empty. This receipt covers only those exact checked inputs,
+not the later serializer, opaque-key loader or native-storage packer modules.
+Reproduce with the pinned compiler, `ulimit -S -s 65520`, and
 `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
 C.jet_secp_schnorr_checked_return`. Continue C caller work in the main checkout. The earlier
 worker worktree is archived. Public
@@ -489,7 +492,7 @@ limb bounds and representation, both input byte ranges, startup state and full
 ownership/frame preservation. The signature/message separation premises here
 are internal local-buffer facts for the outer allocation proof to discharge.
 The ordinary build and reviewed scoped no-update audits pass. These additive
-serializer modules are later than the pending `e71798a6` recursive-check inputs;
+serializer modules are later than the checked `e71798a6` recursive-check inputs;
 that check does not cover them. Next prove the real opaque x-only key load/save
 chain and signature guards, then the outer lifecycle. `pubkey_load` uses its
 actual `sizeof(storage)==64` branch: memcpy into fresh local storage followed
@@ -516,7 +519,7 @@ bounded `memcpy_model` library premise. `jet_secp_pubkey_load_coordinates`
 recovers exact canonical coordinate limbs and proves success for a represented
 on-curve point, using the existing `secp_curve_x_nonzero` theorem. These modules
 have ordinary builds and reviewed scoped no-update records. They are later than
-the pending `e71798a6` recursive-check inputs. Next compose the caller's key-load
+the checked `e71798a6` recursive-check inputs. Next compose the caller's key-load
 statement, then prove the actual parser/save path establishes the native key
 representation and close signature guards and the outer lifecycle.
 `jet_secp_schnorr_keyload_return.exec_schnorr_keyload_return_canonical` now
