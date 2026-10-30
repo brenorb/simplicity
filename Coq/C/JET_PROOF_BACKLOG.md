@@ -1,5 +1,16 @@
 # Remaining jet proof work
 
+`jet_elements_fee_key_literal` closes the actual readHash/memory-key adapter:
+the wrapper's 32 comparison bytes are injective in the input Word256 and,
+against a represented asset hash, byte equality (or bytes_cmp = Eq) is exactly
+the canonical word equality used by `totalFee`. It reuses existing chunk,
+hash-register and little-endian memory-byte proofs. All seven lemmas are
+closed; ordinary build, reviewed scoped no-update audits, scanning and frozen
+inputs pass. No memcmp execution, cache meaning or new public coverage is
+claimed. Reproduce its ordinary `.vo` target and scoped audits. The next
+bridge is the canonical accumulator to the C uint64 sum, then the existing
+real sumFees construction rather than assuming the desired table contents.
+
 The complete canonical `totalFee` program now compiles as
 `jet_elements_total_fee_literal`. `elements_total_fee_sem` proves its exact
 finite output-fold semantics, keeping the hash-based fee test, asset

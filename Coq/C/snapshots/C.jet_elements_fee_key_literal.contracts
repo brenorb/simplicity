@@ -1,0 +1,62 @@
+### C.jet_elements_fee_key_literal.fee_word32_map_injective
+fee_word32_map_injective
+     : forall (xs ys : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (_ : @eq (list Integers.Int.int)
+                (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                   jet_read32s_layout.word32_array_value xs)
+                (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                   jet_read32s_layout.word32_array_value ys)),
+       @eq (list (Ty.tySem (Word.Word (S (S (S (S (S O)))))))) xs ys
+### C.jet_elements_fee_key_literal.fee_word_key_injective
+fee_word_key_injective
+     : forall (a b : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : @eq (list Integers.Int.int) (fee_word_key a) (fee_word_key b)),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) a b
+### C.jet_elements_fee_key_literal.fee_word_key_hash
+fee_word_key_hash
+     : forall h : Digest.hash256,
+       @eq (list Integers.Int.int) (fee_word_key (Word.from_hash256 h))
+         (jet_memcmp_words.words_bytes (Digest.hash256_reg h))
+### C.jet_elements_fee_key_literal.fee_word_key_hash_iff
+fee_word_key_hash_iff
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (h : Digest.hash256),
+       iff (@eq (list Integers.Int.int) (fee_word_key a) (jet_memcmp_words.words_bytes (Digest.hash256_reg h)))
+         (@eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) a (Word.from_hash256 h))
+### C.jet_elements_fee_key_literal.fee_word_key_equality
+fee_word_key_equality
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (h : Digest.hash256),
+       @eq bool
+         match
+           @List.list_eq_dec Integers.Int.int Integers.Int.eq_dec (fee_word_key a)
+             (jet_memcmp_words.words_bytes (Digest.hash256_reg h)) return bool
+         with
+         | left _ => true
+         | right _ => false
+         end
+         (Bit.toBool
+            (@jet_equality_spec.equality_spec (Word.Word (S (S (S (S (S (S (S (S O))))))))) Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) a (Word.from_hash256 h))))
+### C.jet_elements_fee_key_literal.fee_word_key_length
+fee_word_key_length
+     : forall a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq nat (@length Integers.Int.int (fee_word_key a))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+### C.jet_elements_fee_key_literal.fee_word_key_cmp_eq
+fee_word_key_cmp_eq
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (h : Digest.hash256),
+       iff
+         (@eq comparison
+            (jet_memcmp_model.bytes_cmp (fee_word_key a) (jet_memcmp_words.words_bytes (Digest.hash256_reg h))) Eq)
+         (@eq bool
+            (Bit.toBool
+               (@jet_equality_spec.equality_spec (Word.Word (S (S (S (S (S (S (S (S O))))))))) Alg.CoreFunSem
+                  (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) a (Word.from_hash256 h)))) true)
+### C.jet_elements_fee_key_literal.fee_word_key
+fee_word_key =
+fun a : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))) =>
+jet_elements_total_fee_read.total_fee_input_key (jet_word32_chunks.word32_chunks (S (S (S O))) a)
+     : forall _ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))), list Integers.Int.int
+
+Arguments fee_word_key a
