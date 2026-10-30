@@ -347,8 +347,14 @@ reaching 526/533 as described above. Reproduce with
 ### Schnorr signature callers
 
 Current resume checkpoint: the predicate and original challenge-to-return C
-chains are integrated into `feat/jet-equivalence`; `codex/schnorr-reconstruction`
-is at `93b98930`, where recursive checking of
+chains are integrated into `feat/jet-equivalence`. The isolated worktree
+`codex/schnorr-reconstruction` is now frozen at `f3e0f457` while its ordinary
+cache/dependency refresh for `C/jet_secp_bip0340_verifier_return.vo` runs. After
+that build succeeds, run recursive checking with root
+`C.jet_secp_bip0340_verifier_return`, taking before/after fingerprints only
+once compilation is idle. Do not edit/copy caches into that worker while its
+build/check runs. That new recursive result is **pending**, not claimed.
+The earlier snapshot at `93b98930`, where recursive checking of
 `C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return` **passed**
 (exit 0). Before/after/at-completion fingerprints agree
 (`e1ea2ce84a814efd340e4b56ca2ee06b9de79f8002770a4af92604eb38d68f59`);
@@ -365,8 +371,10 @@ initial pointer/message checks and nine-local entry allocations are proved
 separately, and `jet_secp_schnorr_verify_function` now composes the entire
 original inner verifier call with all nine frees. Its parser-result adapter
 and the original public call/return tail are now built too. Next compose the
-outer jet's frame readers, key-parse guard and five-local lifecycle. Public
-acceptance is unchanged.
+outer jet's remaining message/signature reads and compose its complete
+lifecycle. The five-local entry/free, copied-source/key-read prefix and both
+key-parse guard outcomes are now built and audited too. Public acceptance is
+unchanged.
 The earlier recursive check at `e71798a6` of
 `C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/at-completion
 input fingerprints agree (`b02a3e8b659b4032e79b865b6df8e82bb1ed032999f51c1f7d7f8bf7cdfd4f27`);
@@ -732,6 +740,28 @@ globals), and both early-return/final-return frees. Reuse
 source-frame pattern; `word256_serializer_bytes` identifies its byte output
 with the strict parsers' original byte input. All input cursors, crossing cases
 and external framing must remain those of the existing public contracts.
+`jet_secp_bip0340_public_entry` now constructs the actual five outer locals
+and exact free-list order. `jet_secp_bip0340_public_read` executes the original
+source-frame struct copy and first 32-byte read for every valid cursor,
+including crossings; its result is exactly the strict key parser's input bytes
+using `word256_serializer_bytes`. All original memory and local ownership are
+preserved. It reuses the existing hash caller's core-reader transport and
+readonly theorem; stale ordinary reader dependencies were rebuilt.
+`jet_secp_bip0340_public_parse` executes the actual parser and both public
+early-return guard outcomes, with source equalities for BIP340 and check-sig.
+It retains the parser's native-key result, both buffer owners, frame and
+readonly state. The result's zero-or-one lemma is closed. All three ordinary
+builds and reviewed scoped no-update records pass. They are newer than the
+frozen `f3e0f457` worker and add no public jet coverage.
+Next execute the 32-byte message read and 64-byte signature read using
+`secp_read8s_layout` (as in `jet_secp_hash_public_read`), retaining parsed key,
+complete ownership, old-memory framing and readonly globals at each call.
+The 64 bytes are the byte-vector concatenation of r and s; expose the two
+32-byte arrays needed by `eval_schnorrsig_verify_parsed`. Reuse
+`xonly_parsed_result_framed` for native-key retention. Compose these with the
+actual parse guard, previously proved final call/return and five frees on
+both exits. Finally instantiate the public initialized frame contract and
+run full scoped acceptance; only then update jet coverage.
 Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
