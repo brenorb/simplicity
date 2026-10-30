@@ -1,0 +1,212 @@
+### C.jet_elements_taptweak_link.elements_taptweak_external_lookup
+elements_taptweak_external_lookup
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+            (jet_elements_linkage.elements_symbol_block jets_elements._simplicity_generic_taptweak))
+         (@Some Clight.fundef elements_taptweak_declaration)
+### C.jet_elements_taptweak_link.elements_taptweak_internal_lookup
+elements_taptweak_internal_lookup
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            (jet_secp_linkage.secp_symbol_block jets_elements._simplicity_generic_taptweak))
+         (@Some (Ctypes.fundef Clight.function)
+            (@Ctypes.Internal Clight.function jets_secp.f_simplicity_generic_taptweak))
+### C.jet_elements_taptweak_link.elements_taptweak_generic_type_compatible
+elements_taptweak_generic_type_compatible
+     : @eq Ctypes.type (Clight.type_of_fundef elements_taptweak_declaration)
+         (Clight.type_of_function jets_secp.f_simplicity_generic_taptweak)
+### C.jet_elements_taptweak_link.elements_taptweak_generic_signature
+elements_taptweak_generic_signature
+     : @eq AST.signature
+         (Ctypes.signature_of_type (Ctypes.type_of_params (Clight.fn_params jets_secp.f_simplicity_generic_taptweak))
+            (Clight.fn_return jets_secp.f_simplicity_generic_taptweak)
+            (Clight.fn_callconv jets_secp.f_simplicity_generic_taptweak))
+         (AST.mksignature
+            (@cons AST.typ AST.Tlong
+               (@cons AST.typ AST.Tlong (@cons AST.typ AST.Tlong (@cons AST.typ AST.Tlong (@nil AST.typ)))))
+            AST.Tint8unsigned AST.cc_default)
+### C.jet_elements_taptweak_link.elements_taptweak_declaration_links
+elements_taptweak_declaration_links
+     : @eq (option (Ctypes.fundef Clight.function))
+         (@Ctypes.link_fundef Clight.function elements_taptweak_declaration
+            (@Ctypes.Internal Clight.function jets_secp.f_simplicity_generic_taptweak))
+         (@Some (Ctypes.fundef Clight.function)
+            (@Ctypes.Internal Clight.function jets_secp.f_simplicity_generic_taptweak))
+### C.jet_elements_taptweak_link.elements_taptweak_declaration_links_reverse
+elements_taptweak_declaration_links_reverse
+     : @eq (option (Ctypes.fundef Clight.function))
+         (@Ctypes.link_fundef Clight.function
+            (@Ctypes.Internal Clight.function jets_secp.f_simplicity_generic_taptweak) elements_taptweak_declaration)
+         (@Some (Ctypes.fundef Clight.function)
+            (@Ctypes.Internal Clight.function jets_secp.f_simplicity_generic_taptweak))
+### C.jet_elements_taptweak_link.taptweak_shared_composites
+taptweak_shared_composites
+     : @eq
+         (list
+            (option
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat)))
+         (@List.map BinNums.positive
+            (option
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat))
+            (fun id : BinNums.positive =>
+             @option_map Ctypes.composite
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat) taptweak_composite_layout
+               (@Maps.PTree.get Ctypes.composite id (Clight.genv_cenv jet_elements_linkage.elements_ge)))
+            taptweak_shared_composite_names)
+         (@List.map BinNums.positive
+            (option
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat))
+            (fun id : BinNums.positive =>
+             @option_map Ctypes.composite
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat) taptweak_composite_layout
+               (@Maps.PTree.get Ctypes.composite id (Clight.genv_cenv jet_secp_linkage.secp_ge)))
+            taptweak_shared_composite_names)
+### C.jet_elements_taptweak_link.taptweak_shared_composite
+taptweak_shared_composite
+     : forall (id : AST.ident) (_ : @List.In AST.ident id taptweak_shared_composite_names),
+       @eq
+         (option
+            (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z) nat))
+         (@option_map Ctypes.composite
+            (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z) nat)
+            taptweak_composite_layout
+            (@Maps.PTree.get Ctypes.composite id (Clight.genv_cenv jet_elements_linkage.elements_ge)))
+         (@option_map Ctypes.composite
+            (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z) nat)
+            taptweak_composite_layout (@Maps.PTree.get Ctypes.composite id (Clight.genv_cenv jet_secp_linkage.secp_ge)))
+### C.jet_elements_taptweak_link.elements_taptweak_frame_size
+elements_taptweak_frame_size
+     : and
+         (@eq BinNums.Z
+            (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge)
+               (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (and
+            (@eq BinNums.Z
+               (Ctypes.sizeof (Clight.genv_cenv jet_secp_linkage.secp_ge)
+                  (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+            (and
+               (@eq BinNums.Z
+                  (Ctypes.alignof (Clight.genv_cenv jet_elements_linkage.elements_ge)
+                     (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+               (@eq BinNums.Z
+                  (Ctypes.alignof (Clight.genv_cenv jet_secp_linkage.secp_ge)
+                     (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+### C.jet_elements_taptweak_link.elements_taptweak_whole_composites_conflict
+elements_taptweak_whole_composites_conflict
+     : @eq (option (list Ctypes.composite_definition))
+         (Ctypes.link_composite_defs jets_elements.composites jets_secp.composites)
+         (@None (list Ctypes.composite_definition))
+### C.jet_elements_taptweak_link.taptweak_crypto_composite_source
+taptweak_crypto_composite_source
+     : forall (cd : Ctypes.composite_definition)
+         (_ : @List.In Ctypes.composite_definition cd taptweak_crypto_composites),
+       @List.In Ctypes.composite_definition cd jets_secp.composites
+### C.jet_elements_taptweak_link.taptweak_crypto_composite_names_exact
+taptweak_crypto_composite_names_exact
+     : @eq (list AST.ident)
+         (@List.map Ctypes.composite_definition AST.ident Ctypes.name_composite_def taptweak_crypto_composites)
+         taptweak_crypto_composite_names
+### C.jet_elements_taptweak_link.elements_taptweak_composites_link
+elements_taptweak_composites_link
+     : @eq (option (list Ctypes.composite_definition))
+         (Ctypes.link_composite_defs jets_elements.composites taptweak_crypto_composites)
+         (@Some (list Ctypes.composite_definition) elements_taptweak_linked_composites)
+### C.jet_elements_taptweak_link.elements_taptweak_composite_success
+elements_taptweak_composite_success
+     : match elements_taptweak_composite_result return Prop with
+       | Errors.OK _ => True
+       | Errors.Error _ => False
+       end
+### C.jet_elements_taptweak_link.elements_taptweak_composite_env_correct
+elements_taptweak_composite_env_correct
+     : @eq (Errors.res Ctypes.composite_env) (Ctypes.build_composite_env elements_taptweak_linked_composites)
+         (@Errors.OK Ctypes.composite_env elements_taptweak_composite_env)
+### C.jet_elements_taptweak_link.elements_taptweak_host_layouts_preserved
+elements_taptweak_host_layouts_preserved
+     : @eq
+         (list
+            (option
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat)))
+         (@List.map BinNums.positive
+            (option
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat))
+            (fun id : BinNums.positive =>
+             @option_map Ctypes.composite
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat) taptweak_composite_layout (@Maps.PTree.get Ctypes.composite id elements_taptweak_composite_env))
+            (@List.map Ctypes.composite_definition AST.ident Ctypes.name_composite_def jets_elements.composites))
+         (@List.map BinNums.positive
+            (option
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat))
+            (fun id : BinNums.positive =>
+             @option_map Ctypes.composite
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat) taptweak_composite_layout
+               (@Maps.PTree.get Ctypes.composite id (Clight.genv_cenv jet_elements_linkage.elements_ge)))
+            (@List.map Ctypes.composite_definition AST.ident Ctypes.name_composite_def jets_elements.composites))
+### C.jet_elements_taptweak_link.elements_taptweak_crypto_layouts_preserved
+elements_taptweak_crypto_layouts_preserved
+     : @eq
+         (list
+            (option
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat)))
+         (@List.map BinNums.positive
+            (option
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat))
+            (fun id : BinNums.positive =>
+             @option_map Ctypes.composite
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat) taptweak_composite_layout (@Maps.PTree.get Ctypes.composite id elements_taptweak_composite_env))
+            (@app AST.ident taptweak_shared_composite_names taptweak_crypto_composite_names))
+         (@List.map BinNums.positive
+            (option
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat))
+            (fun id : BinNums.positive =>
+             @option_map Ctypes.composite
+               (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z)
+                  nat) taptweak_composite_layout
+               (@Maps.PTree.get Ctypes.composite id (Clight.genv_cenv jet_secp_linkage.secp_ge)))
+            (@app AST.ident taptweak_shared_composite_names taptweak_crypto_composite_names))
+### C.jet_elements_taptweak_link.elements_taptweak_host_layout
+elements_taptweak_host_layout
+     : forall (id : AST.ident)
+         (_ : @List.In AST.ident id
+                (@List.map Ctypes.composite_definition AST.ident Ctypes.name_composite_def jets_elements.composites)),
+       @eq
+         (option
+            (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z) nat))
+         (@option_map Ctypes.composite
+            (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z) nat)
+            taptweak_composite_layout (@Maps.PTree.get Ctypes.composite id elements_taptweak_composite_env))
+         (@option_map Ctypes.composite
+            (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z) nat)
+            taptweak_composite_layout
+            (@Maps.PTree.get Ctypes.composite id (Clight.genv_cenv jet_elements_linkage.elements_ge)))
+### C.jet_elements_taptweak_link.elements_taptweak_crypto_layout
+elements_taptweak_crypto_layout
+     : forall (id : AST.ident)
+         (_ : @List.In AST.ident id (@app AST.ident taptweak_shared_composite_names taptweak_crypto_composite_names)),
+       @eq
+         (option
+            (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z) nat))
+         (@option_map Ctypes.composite
+            (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z) nat)
+            taptweak_composite_layout (@Maps.PTree.get Ctypes.composite id elements_taptweak_composite_env))
+         (@option_map Ctypes.composite
+            (prod (prod (prod (prod (prod Ctypes.struct_or_union Ctypes.members) Ctypes.attr) BinNums.Z) BinNums.Z) nat)
+            taptweak_composite_layout (@Maps.PTree.get Ctypes.composite id (Clight.genv_cenv jet_secp_linkage.secp_ge)))

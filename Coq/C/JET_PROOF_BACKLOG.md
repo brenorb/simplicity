@@ -1308,8 +1308,26 @@ it survives the real writer's write_effect/readonly interface. Ordinary build
 and reviewed records pass with only the four inherited memory axioms. No new
 public pointer-disjointness premise is introduced; linkage and the rest of
 Elements' full generic/public execution remain unproved.
+`jet_elements_taptweak_link` now checks the real external declaration against
+the frozen internal generic function: equal C function type and machine ABI,
+actual lookups, and CompCert's declaration/definition linker result in both
+orders. The whole proof-unit composite lists fail direct linking, as expected
+for their conflicting transaction types; this is a proof-unit composition
+issue, not a demonstrated jet behavior mismatch. The new crypto-type selection
+contains only 14 actual declarations from the frozen secp program. Linking
+those to the unchanged Elements composite list succeeds, and a concrete
+composite environment exists. Its layout views (members, attributes, size,
+alignment, rank) preserve every Elements composite and every imported crypto
+and shared composite. These are compiled, reviewed interface/layout facts,
+not a full linked-program execution or proof of the original external call.
+Next select and prove provenance/resolution of the actual required function
+and global definitions, retaining the Elements wrapper/tag and deduplicating
+only definitions proved identical. Explicit execution transport and initialized
+state construction remain. Do not count the interface/layout facts as Elements
+jet coverage or reinterpret the original external call as an internal one.
 
- Keep taptweak_ready (including
+Historical Bitcoin composition guidance (now completed above):
+Keep taptweak_ready (including
 dispatch extent) at the public boundary and use taptweak_ready_forward around
 existing startup-preserving phases. Reuse the key-phase result for normal parsing and immediate failure.
 For the final writer use secp_write8s_layout to obtain its actual call and
