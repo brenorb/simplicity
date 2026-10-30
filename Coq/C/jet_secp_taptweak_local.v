@@ -11,7 +11,7 @@ Require Import C.jets_secp C.jet_secp_linkage C.jet_readBit_layout C.jet_sx_mem
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 Local Opaque secp_ge taptweak_value taptweak_result taptweak_hash_word.
-Theorem bitcoin_build_taptweak_initialized_local_spec:
+Theorem bitcoin_build_taptweak_initialized_local_spec :
  memcpy_model ->memset_model ->ctz_model ->
  secp_jet_initialized_partial_local_spec taptweak_ready f_simplicity_bitcoin_build_taptweak
  (Word 9) (Word 8) (@literal_taptweak (Alg.AssertionSem option_Monad_Zero)).

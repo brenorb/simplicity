@@ -370,6 +370,14 @@ RECOVERED_CONTRACTS["simplicity_check_sig_verify"] = (
     "literal_checksig_args Ty.Unit "
     "(@literal_checksig_verify (Alg.AssertionSem option_Monad_Zero)).")
 
+
+# Complete Bitcoin TapTweak wrapper, including every assertion rejection and
+# actual initialized tag/curve/modulus/SHA state. Keep all helper models explicit.
+RECOVERED_CONTRACTS["simplicity_bitcoin_build_taptweak"] = (
+    "memcpy_model ->memset_model ->ctz_model -> "
+    "secp_jet_initialized_partial_local_spec taptweak_ready f_simplicity_bitcoin_build_taptweak "
+    "(Word 9) (Word 8) (@literal_taptweak (Alg.AssertionSem option_Monad_Zero)).")
+
 REPORTED_MISMATCH_CONTRACTS = {
     "simplicity_gej_ge_add_ex": {
         "contract": "secp_jet_local_spec_on (fun a => ~gej_ge_add_ex_ratio_mismatch a) "

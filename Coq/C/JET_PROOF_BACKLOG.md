@@ -14,7 +14,8 @@ explicit `memcpy_model` premise, 7 with the approved `ctz_model` premise, 9
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
 528/533 accepted proof entries, with 5 jets still lacking either accepted result.
-The registered candidate inventory is 528/533, including CheckSig.
+The registered candidate inventory is 529/533, including Bitcoin TapTweak
+which still awaits full acceptance.
 BIP340 passed full scoped acceptance at `740a5536`: recursive kernel checking
 on 1,468 modules, matching reviewed assumptions on 1,358 modules and contracts
 on 1,376 modules, negative tests and all five AST regeneration comparisons.
@@ -1242,14 +1243,15 @@ Word512 inputs and general valid frames/cursors. Both success and rejection
 come from actual entry, copy, calls, return and every free. Its ordinary build
 and reviewed assumption/contract records pass with exactly the existing
 memcpy_model, memset_model and ctz_model conditions and eight inherited axioms.
-It is an **unregistered candidate**: canonical-source binding and full acceptance
-remain, so accepted coverage stays 528/533.
-Next extend the existing `secp-field-integration/check-rescale.py` source gate
-with exact Bitcoin catalog/FFI dispatch, buildTaptweak assertion tree, tag,
-padding, literal ports, initialized public contract and targeted mutations.
-Review those bindings before adding the candidate to jet_coverage.tsv and its
-coverage contract parser. Then run scoped full acceptance for
-simplicity_bitcoin_build_taptweak on fixed inputs in the isolated verifier;
+It is a **registered candidate**, not additional accepted coverage yet.
+The existing `secp-field-integration/check-rescale.py` source gate now binds
+Bitcoin catalog/FFI/library dispatch, the exact buildTaptweak assertion tree,
+tag, padding, literal ports and complete initialized public contract, with
+26 targeted mutations rejected. The coverage parser retains all three helper
+models and checks the exact public boundary. Accepted coverage stays 528/533;
+the registered inventory is 529/533.
+Next run scoped full acceptance for simplicity_bitcoin_build_taptweak on fixed
+inputs in the isolated verifier;
 carry its receipt only after before/after fingerprints and main-checkout
 closure files agree. Do not repeat C execution or option-semantics development.
 The Elements wrapper remains separate work; this candidate proves Bitcoin only. Keep taptweak_ready (including
