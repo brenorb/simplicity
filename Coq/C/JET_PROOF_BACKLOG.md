@@ -1140,8 +1140,18 @@ fields while preserving ownership of every original local, initialized state
 and unrelated memory. The phase reuses the two complete source-bound spans;
 it introduces no new callee or library premise. Ordinary compilation and
 reviewed no-update records pass (memcpy_model and the inherited eight axioms).
-Next compose key read/absorption with the parser/guards, input-hash reader,
-hashing calls, native suffix, writer and complete generic/public lifecycle.
+`jet_secp_taptweak_key_phase.exec_taptweak_key_phase` now composes the original
+256-bit key read, 32-byte SHA absorption and parser/guard for both outcomes.
+It retains the parser's native-key representation, advances the source cursor,
+establishes the exact counter-96 buffered SHA view, preserves all participating
+owned regions and initialized state, and frames unrelated memory. The SHA view
+is independent of the globals of the standalone SHA translation unit; ctxi
+from that unit cannot be used unchanged for the secp program. Ordinary build
+and reviewed no-update records pass, with memcpy_model/memset_model explicit
+and the inherited six axioms. This is still an internal phase, not coverage.
+Next compose the input-hash reader/hashing calls, native suffix, writer and
+complete generic/public lifecycle. Reuse this key-phase result for both the
+normal parser path and immediate failure.
 All original callees and entry/cleanup packets are now available; the remaining
 work includes transporting their representations, ownership and initialized
 state through the full statement sequence, every return branch and frees.
