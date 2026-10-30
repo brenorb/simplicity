@@ -1,0 +1,81 @@
+### C.jet_elements_taptweak_inverse_phases.elements_taptweak_inverse_phases_checked
+elements_taptweak_inverse_phases_checked
+     : @eq bool
+         (@List.forallb Clight.statement
+            (jet_transport_locals.locals_stmt_okb jet_secp_linkage.secp_ge
+               jet_elements_taptweak_pure.elements_taptweak_ge
+               (@List.map (prod BinNums.positive Clight.function) BinNums.positive
+                  (@fst BinNums.positive Clight.function)
+                  jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers)
+               (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type)
+                  (Clight.fn_vars jets_secp.f_secp256k1_modinv64_var))) elements_taptweak_inverse_pure_phases) true
+### C.jet_elements_taptweak_inverse_phases.elements_taptweak_inverse_phases_closed
+elements_taptweak_inverse_phases_closed
+     : @eq bool
+         (@List.forallb Clight.statement
+            (jet_clight_internal_frame.closed_stmtb
+               jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers)
+            elements_taptweak_inverse_pure_phases) true
+### C.jet_elements_taptweak_inverse_phases.elements_taptweak_inverse_divstep_arguments_checked
+elements_taptweak_inverse_divstep_arguments_checked
+     : @eq bool
+         (jet_transport_locals.locals_exprs_okb jet_secp_linkage.secp_ge
+            jet_elements_taptweak_pure.elements_taptweak_ge
+            (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type)
+               (Clight.fn_vars jets_secp.f_secp256k1_modinv64_var))
+            (@cons Clight.expr (Clight.Etempvar jets_secp._eta Ctypesdefs.tlong)
+               (@cons Clight.expr (Clight.Etempvar jets_secp._t'7 Ctypesdefs.tlong)
+                  (@cons Clight.expr (Clight.Etempvar jets_secp._t'8 Ctypesdefs.tlong)
+                     (@cons Clight.expr jet_secp_modinv_var_de.inv_matrix_address (@nil Clight.expr)))))) true
+### C.jet_elements_taptweak_inverse_phases.elements_taptweak_divsteps_helper_linked
+elements_taptweak_divsteps_helper_linked
+     : @ex Values.block
+         (fun b : Values.block =>
+          and
+            (@eq (option Values.block)
+               (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                  (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge)
+                  jets_secp._secp256k1_modinv64_divsteps_62_var) (@Some Values.block b))
+            (@eq (option Clight.fundef)
+               (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                  (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge) b)
+               (@Some (Ctypes.fundef Clight.function)
+                  (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_modinv64_divsteps_62_var))))
+### C.jet_elements_taptweak_inverse_phases.elements_taptweak_inverse_env_domain
+elements_taptweak_inverse_env_domain
+     : forall (beta : jet_sx_state.layout) (e : Clight.env)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e),
+       jet_transport.edom e (Clight.fn_vars jets_secp.f_secp256k1_modinv64_var)
+### C.jet_elements_taptweak_inverse_phases.elements_taptweak_inverse_env_bound
+elements_taptweak_inverse_env_bound
+     : forall (beta : jet_sx_state.layout) (e : Clight.env)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (id : AST.ident)
+         (_ : @List.In AST.ident id
+                (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type)
+                   (Clight.fn_vars jets_secp.f_secp256k1_modinv64_var))),
+       @ex Values.block
+         (fun b : Values.block =>
+          @ex Ctypes.type
+            (fun ty : Ctypes.type =>
+             @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+               (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty))))
+### C.jet_elements_taptweak_inverse_phases.elements_taptweak_inverse_pure_exec
+elements_taptweak_inverse_pure_exec
+     : forall (beta : jet_sx_state.layout) (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (s : Clight.statement) (trace : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem)
+         (out : ClightBigstep.outcome)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : @List.In Clight.statement s elements_taptweak_inverse_pure_phases)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m s trace lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m s trace lef mf out
+### C.jet_elements_taptweak_inverse_phases.elements_taptweak_inverse_pure_phases
+elements_taptweak_inverse_pure_phases =
+@cons Clight.statement jet_secp_modinv_var_first_batch.inv_divstep_loads
+  (@cons Clight.statement jet_secp_modinv_var_batch_update.inv_return_eta
+     (@cons Clight.statement jet_secp_modinv_var_tail.inv_after_divsteps
+        (@cons Clight.statement jet_secp_modinv_var_finish.inv_finish (@nil Clight.statement))))
+     : list Clight.statement

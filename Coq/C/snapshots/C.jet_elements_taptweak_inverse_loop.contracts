@@ -1,0 +1,55 @@
+### C.jet_elements_taptweak_inverse_loop.exec_elements_taptweak_field_inv_loop_fuel
+exec_elements_taptweak_field_inv_loop_fuel
+     : forall (_ : jet_ctz_model.ctz_model) (fuel : nat) (value : BinNums.Z) (n : nat) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : nat)
+         (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 value) (BinInt.Z.lt value jet_secp_fe_math.feP))
+         (_ : jet_secp_fe_inverse_loop.field_inv_loop_ready value n beta e le0 m len rho)
+         (_ : @eq BinNums.Z
+                (divstep.g
+                   (jet_secp_fe_inverse_loop.field_inv_trajectory value
+                      (Nat.add (Nat.mul (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))) fuel)
+                         n))) BinNums.Z0),
+       @ex nat
+         (fun nf : nat =>
+          @ex nat
+            (fun lenf : nat =>
+             @ex (forall _ : nat, Integers.Int64.int)
+               (fun rhof : forall _ : nat, Integers.Int64.int =>
+                @ex Clight.temp_env
+                  (fun lef : Clight.temp_env =>
+                   @ex Memory.Mem.mem
+                     (fun mf : Memory.Mem.mem =>
+                      and
+                        (ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le0 m
+                           jet_secp_modinv_var_zero.inv_caller_loop Events.E0 lef mf ClightBigstep.Out_normal)
+                        (and (le (Nat.add n (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))) nf)
+                           (and (jet_secp_fe_inverse_loop.field_inv_loop_done value nf beta lef mf lenf rhof)
+                              (and (jet_secp_fe_inverse_loop.field_inv_loop_temps le0 lef)
+                                 (and (jet_sx_mem.lframe (jet_secp_fe_inverse_batch.field_inv_batch_frame beta) m mf)
+                                    (jet_clight_internal_preserve.readonly_preserved m mf))))))))))
+### C.jet_elements_taptweak_inverse_loop.exec_elements_taptweak_field_inv_loop
+exec_elements_taptweak_field_inv_loop
+     : forall (_ : jet_ctz_model.ctz_model) (value : BinNums.Z) (n : nat) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (len : nat)
+         (rho : forall _ : nat, Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 value) (BinInt.Z.lt value jet_secp_fe_math.feP))
+         (_ : jet_secp_fe_inverse_loop.field_inv_loop_ready value n beta e le0 m len rho),
+       @ex nat
+         (fun nf : nat =>
+          @ex nat
+            (fun lenf : nat =>
+             @ex (forall _ : nat, Integers.Int64.int)
+               (fun rhof : forall _ : nat, Integers.Int64.int =>
+                @ex Clight.temp_env
+                  (fun lef : Clight.temp_env =>
+                   @ex Memory.Mem.mem
+                     (fun mf : Memory.Mem.mem =>
+                      and
+                        (ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le0 m
+                           jet_secp_modinv_var_zero.inv_caller_loop Events.E0 lef mf ClightBigstep.Out_normal)
+                        (and (le (Nat.add n (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))) nf)
+                           (and (jet_secp_fe_inverse_loop.field_inv_loop_done value nf beta lef mf lenf rhof)
+                              (and (jet_secp_fe_inverse_loop.field_inv_loop_temps le0 lef)
+                                 (and (jet_sx_mem.lframe (jet_secp_fe_inverse_batch.field_inv_batch_frame beta) m mf)
+                                    (jet_clight_internal_preserve.readonly_preserved m mf))))))))))

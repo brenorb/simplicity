@@ -1,0 +1,43 @@
+### C.jet_elements_taptweak_inverse_divstep_batch.exec_elements_taptweak_inv_mod_batch
+exec_elements_taptweak_inv_mod_batch
+     : forall (_ : jet_ctz_model.ctz_model) (mu : forall _ : nat, Integers.Int64.int) (len : nat)
+         (rho : forall _ : nat, Integers.Int64.int) (st : divstep.State) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : and
+                (BinInt.Z.le
+                   (BinNums.Zneg
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                   (divstep.eta st))
+                (BinInt.Z.lt (divstep.eta st)
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (lt O len) (le len (S (S (S (S (S O)))))))
+         (_ : jet_sx_state.rep rho beta (jet_secp_modinv_seed_modulus.inv_mod_seed_regs mu) m)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_modinv_var_entry.inv_start_alloc) e)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._eta le0)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr (divstep.eta st)))))
+         (_ : jet_secp_modinv_var_invariant.inv_state_matches len rho st),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le0 m
+               jet_secp_modinv_batch_modulus.inv_divstep_batch Events.E0
+               (jet_secp_modinv_batch_modulus.inv_divstep_returned st rho le0) mf ClightBigstep.Out_normal)
+            (and
+               (jet_sx_state.rep (jet_secp_modinv_var_batch_exit.inv_batch_result_rho st rho) beta
+                  (jet_secp_modinv_loop_modulus.inv_mod_loop_regs mu) mf)
+               (and
+                  (jet_secp_modinv_var_invariant.inv_matrix_matches
+                     (jet_secp_modinv_var_batch_exit.inv_batch_result_rho st rho) st)
+                  (and
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (_ : BinNums.Z) =>
+                         not (@eq Values.block b (jet_sx_state.blk beta (S (S (S (S (S (S O))))))))) m mf)
+                     (jet_clight_internal_preserve.readonly_preserved m mf)))))

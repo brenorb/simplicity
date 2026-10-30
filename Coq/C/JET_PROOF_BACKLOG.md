@@ -1,5 +1,18 @@
 # Remaining jet proof work
 
+The linked inverse's complete outer loop is now in ordinary modules
+`jet_elements_taptweak_inverse_{phases,divstep_batch,batch,loop}`.
+They derive the caller's two loads and actual divstep call, transport the
+pure coefficient/f-g/shrink phases under the real five-local environment,
+and reuse the original trajectory and termination theorem. No desired
+matrix, output or counting execution is assumed. The final loop invariant,
+frame, temporaries and readonly preservation are retained. Builds and
+reviewed scoped statement/assumption comparisons pass without update flags;
+execution has the same six inherited assumptions and approved `ctz_model`.
+These helpers add no public coverage or fresh recursive-check claim. Next
+finish normalization and all five frees at the actual linked modulus block,
+then compose the full modinv64_var and affine field-inverse callers.
+
 `jet_elements_taptweak_div62_support` and `jet_elements_taptweak_div62`
 now derive the complete original 62-divstep call in the actual linked GE.
 The counting sentinel is proved nonzero at each iteration and the existing
