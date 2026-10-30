@@ -346,9 +346,14 @@ reaching 526/533 as described above. Reproduce with
 
 ### Schnorr signature callers
 
-Current resume checkpoint: the predicate chain is integrated into
-`feat/jet-equivalence`; `codex/schnorr-reconstruction` is frozen at `8d5ba448`
-for its recursive check. Continue C caller work in the main checkout. The earlier
+Current resume checkpoint: the predicate and original challenge-to-return C
+chains are integrated into `feat/jet-equivalence`; `codex/schnorr-reconstruction`
+is frozen at `e71798a6` for a recursive check of
+`C.jet_secp_schnorr_checked_return`. Its ordinary build is complete; the recursive
+result is **pending**, and does not yet certify those later C composition
+modules. Reproduce with the pinned compiler, `ulimit -S -s 65520`, and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_schnorr_checked_return`. Continue C caller work in the main checkout. The earlier
 worker worktree is archived. Public
 coverage is still **526/533**. The table/GLV/generator/window-5 chain passed
 recursive kernel checking at **`960a67dc`**, with identical before/after/current
