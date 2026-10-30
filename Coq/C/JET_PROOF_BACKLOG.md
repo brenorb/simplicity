@@ -1040,10 +1040,22 @@ The native source key's nonzero-X guard remains an explicit internal premise,
 already discharged by `xonly_tweak_saved_loadable` for successful tweaks.
 Both ordinary builds and reviewed no-update records pass with six inherited
 axioms; only the existing memcpy_model is needed for the conversion.
-The coordinate/curve bridge into the serializer also compiles in scratch;
-integrate and audit it next. Then compose the generic TapTweak
-SHA/reader/writer lifecycle plus the canonical tagged-hash program and its
-source-binding checks. Do not substitute a
+`jet_secp_xonly_from_coordinates.xonly_from_saved_ready` now discharges the
+converted saved key's exact normalized X, represented Y and curve validity
+from its source coordinates/curve and constructed native output. This supplies
+the serializer's actual premises, without assuming the conversion preserves
+validity. Ordinary build and reviewed no-update records pass; arithmetic
+lemmas use at most the inherited logical axioms and no external-library model.
+Next compose these actual native tweak/from-pubkey/serialize calls and their
+three guards as the original generic TapTweak statement suffix, then its
+SHA/reader/writer lifecycle plus the canonical tagged-hash program and
+source-binding checks. The original generic function's statement indices are:
+tag block 0, output-init/copy 1, tag hashes 2/3, key-read 4, key-absorb 5,
+parse/guard 6, input-hash read 7, input-hash absorb 8, finalize 9, digest 10,
+tweak/guard 11, from-pubkey/guard 12, serialize/guard 13, writer 14, return 15.
+There is no existing secp SHA hash-word wrapper in the `jet_secp_sha*` modules;
+inspect/reuse `jet_sha_hash_exec` and the actual seq-u32be call framework when
+composing the original `sha256_hash` calls, without substituting uchar calls. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential
 model does not specify every arbitrary external execution. BIP340 and CheckSig are registered candidates awaiting full acceptance.

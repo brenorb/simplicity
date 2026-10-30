@@ -1,0 +1,85 @@
+### C.jet_secp_xonly_from_coordinates.affine_storage_decoded_word
+affine_storage_decoded_word
+     : forall (w : forall _ : nat, Integers.Int64.int) (k : bool)
+         (a : Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+         (_ : @eq BinNums.Z
+                (jet_secp_storage_numeric.field_storage_value
+                   (fun i : nat => w (Nat.add match k return nat with
+                                              | true => S (S (S (S O)))
+                                              | false => O
+                                              end i)))
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) a)),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_rescale_literal.rescale_field_output (jet_secp_affine_storage.affine_storage_coord w k))
+         (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem a)
+### C.jet_secp_xonly_from_coordinates.secp_affine_normalized_curve
+secp_affine_normalized_curve
+     : forall (ax ay : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : @eq bool
+                (Bit.toBool
+                   (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+                      (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) ax ay))) true),
+       @eq bool
+         (Bit.toBool
+            (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem ax)
+                  (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem ay)))) true
+### C.jet_secp_xonly_from_coordinates.xonly_from_value_curve
+xonly_from_value_curve
+     : forall (w : forall _ : nat, Integers.Int64.int) (ax ay : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : @eq BinNums.Z (jet_secp_storage_numeric.field_storage_value w)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) ax))
+         (_ : @eq BinNums.Z
+                (jet_secp_storage_numeric.field_storage_value (fun i : nat => w (Nat.add (S (S (S (S O)))) i)))
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) ay))
+         (_ : @eq bool
+                (Bit.toBool
+                   (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+                      (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) ax ay))) true),
+       @eq bool
+         (Bit.toBool
+            (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+               (jet_secp_xonly_from_pubkey.xonly_from_value w))) true
+### C.jet_secp_xonly_from_coordinates.xonly_from_saved_ready
+xonly_from_saved_ready
+     : forall (w : forall _ : nat, Integers.Int64.int) (ax ay : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (m : Memory.Mem.mem) (b : Values.block)
+         (_ : @eq BinNums.Z (jet_secp_storage_numeric.field_storage_value w)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) ax))
+         (_ : @eq BinNums.Z
+                (jet_secp_storage_numeric.field_storage_value (fun i : nat => w (Nat.add (S (S (S (S O)))) i)))
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) ay))
+         (_ : @eq bool
+                (Bit.toBool
+                   (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+                      (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) ax ay))) true)
+         (_ : jet_secp_xonly_tweak_function.xonly_tweak_saved_result
+                (@Some
+                   (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                   (jet_secp_xonly_from_pubkey.xonly_from_value w)) m b),
+       @ex (forall _ : nat, Integers.Int64.int)
+         (fun storage : forall _ : nat, Integers.Int64.int =>
+          @ex (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+            (fun outy : Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))) =>
+             and (jet_secp_affine_storage.affine_storage_readable m b BinNums.Z0 storage)
+               (and
+                  (@eq BinNums.Z (jet_secp_storage_numeric.field_storage_value storage)
+                     (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                        (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem ax)))
+                  (and
+                     (@eq BinNums.Z
+                        (jet_secp_storage_numeric.field_storage_value
+                           (fun i : nat => storage (Nat.add (S (S (S (S O)))) i)))
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) outy))
+                     (@eq bool
+                        (Bit.toBool
+                           (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+                              (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))))
+                                 (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem ax) outy))) true)))))
