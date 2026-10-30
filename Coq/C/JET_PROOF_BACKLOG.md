@@ -1234,10 +1234,25 @@ option semantics compile. `literal_taptweak_matches_output` proves equality
 with taptweak_output for every key/hash pair, using the existing verified
 native-to-generate/add/normalize bridge and bounded normalized X. The final
 bridge uses functional extensionality only; no new assumptions were introduced.
-Ordinary compilation and reviewed scoped records pass. Complete public local
-packaging, canonical-source binding and full acceptance remain; coverage stays
-528/533 until those checks pass.
-Next finish the public local contract and canonical-source binding. Keep taptweak_ready (including
+Ordinary compilation and reviewed scoped records pass.
+`jet_secp_taptweak_local.bitcoin_build_taptweak_initialized_local_spec` now
+packages the complete standard initialized partial contract for the actual
+Bitcoin public function against literal_taptweak's option semantics, for all
+Word512 inputs and general valid frames/cursors. Both success and rejection
+come from actual entry, copy, calls, return and every free. Its ordinary build
+and reviewed assumption/contract records pass with exactly the existing
+memcpy_model, memset_model and ctz_model conditions and eight inherited axioms.
+It is an **unregistered candidate**: canonical-source binding and full acceptance
+remain, so accepted coverage stays 528/533.
+Next extend the existing `secp-field-integration/check-rescale.py` source gate
+with exact Bitcoin catalog/FFI dispatch, buildTaptweak assertion tree, tag,
+padding, literal ports, initialized public contract and targeted mutations.
+Review those bindings before adding the candidate to jet_coverage.tsv and its
+coverage contract parser. Then run scoped full acceptance for
+simplicity_bitcoin_build_taptweak on fixed inputs in the isolated verifier;
+carry its receipt only after before/after fingerprints and main-checkout
+closure files agree. Do not repeat C execution or option-semantics development.
+The Elements wrapper remains separate work; this candidate proves Bitcoin only. Keep taptweak_ready (including
 dispatch extent) at the public boundary and use taptweak_ready_forward around
 existing startup-preserving phases. Reuse the key-phase result for normal parsing and immediate failure.
 For the final writer use secp_write8s_layout to obtain its actual call and
