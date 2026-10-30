@@ -27,6 +27,15 @@ def main():
     signature = "bool simplicity_example(frameItem * dst, frameItem src, const txEnv * env);"
     assert coverage.declarations(f"/* {signature} */\n// {signature}\n{signature}") == ["simplicity_example"]
     rejects(lambda: coverage.declarations("bool simplicity_bad(int x);"), "signature")
+    # Multi-model proofs must expose every premise and count as one
+    # conditional jet, without being relabelled as a direct proof.
+    combined = "memcpy_model+memset_model+ctz_model"
+    assert coverage.library_condition("memcpy_model -> memset_model -> ctz_model -> contract") == combined
+    assert coverage.condition_models(combined) == ("memcpy_model", "memset_model", "ctz_model")
+    assert coverage.library_condition("memcpy_model -> contract") == "memcpy_model"
+    assert coverage.library_condition("ctz_model -> contract") == "ctz_model"
+    assert coverage.library_condition("contract") == ""
+    assert coverage.condition_models("reported_mismatch") == ()
     rows = coverage.inventory()
     # Even with a theorem registered for every other row, an input-restricted
     # mismatch theorem must not make the all-input completion gate succeed.

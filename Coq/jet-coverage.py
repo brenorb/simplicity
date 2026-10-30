@@ -282,11 +282,19 @@ LIBRARY_MODELS = ("memcpy_model", "ctz_model", "memset_model")
 
 
 def library_condition(body):
-    """The single leading library-model premise of a contract, if any."""
-    for model in LIBRARY_MODELS:
-        if re.match(rf"{model}\s*->", body):
-            return model
-    return ""
+    """All explicit leading approved library models, in declaration order."""
+    models = []
+    rest = body.lstrip()
+    pattern = r"(" + "|".join(LIBRARY_MODELS) + r")\s*->\s*"
+    while match := re.match(pattern, rest):
+        models.append(match[1])
+        rest = rest[match.end():]
+    return "+".join(models)
+
+
+def condition_models(condition):
+    """Model membership for conditional counts; one jet can use several."""
+    return tuple(model for model in condition.split("+") if model in LIBRARY_MODELS)
 
 
 # Original CTZ-dependent secp callers: full initialized contracts whose only
@@ -689,7 +697,7 @@ def main():
         for family in HEADERS:
             rows = [row for row in jets if row["family"] == family]
             direct = sum(bool(row["proof"]) and not row["condition"] for row in rows)
-            conditional = sum(row["condition"] in LIBRARY_MODELS for row in rows)
+            conditional = sum(bool(condition_models(row["condition"])) for row in rows)
             reported = sum(row["condition"] == "reported_mismatch" for row in rows)
             divergent = sum(bool(row["divergence_proof"]) for row in rows)
             print(f"{family}: {direct} proof entries without an extra library premise; "
@@ -698,8 +706,8 @@ def main():
         missing = len(missing_proofs(jets))
         missing_equivalence = len(missing_equivalences(jets))
         divergent = sum(bool(row["divergence_proof"]) for row in jets)
-        conditional = sum(row["condition"] in LIBRARY_MODELS for row in jets)
-        by_model = {model: sum(row["condition"] == model for row in jets) for model in LIBRARY_MODELS}
+        conditional = sum(bool(condition_models(row["condition"])) for row in jets)
+        by_model = {model: sum(model in condition_models(row["condition"]) for row in jets) for model in LIBRARY_MODELS}
         reported = [row for row in jets if row["condition"] == "reported_mismatch"]
         unregistered = sum(not row["registrations"] for row in jets)
         print(f"total: {len(jets) - missing}/{len(jets)}; remaining: {missing}; unregistered declarations: {unregistered}")
@@ -707,7 +715,7 @@ def main():
         print(f"Of the equivalence entries: {len(jets) - missing_equivalence - conditional} without an extra library premise, "
               f"{conditional} conditional on an explicit library model ("
               + ", ".join(f"{n} {m}" for m, n in by_model.items())
-              + "; library/compiler implementation not proved).")
+              + "; model-use counts overlap for multi-model jets; library/compiler implementations not proved).")
         print(f"Separately: {len(reported)} proved only outside a reported specification mismatch; "
               "restricted equivalence alone does not count toward proof completion.")
         for row in jets:
