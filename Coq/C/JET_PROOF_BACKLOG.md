@@ -362,8 +362,10 @@ scoped records pass; this later parser chain is outside that checked snapshot.
 The signature-reader prefix and canonical key-load suffix are now composed
 for every Word256 r/s pair, including both range-rejection paths. The original
 initial pointer/message checks and nine-local entry allocations are proved
-separately. Next compose the complete body and allocation/free lifecycle, then
-the public jet readers/caller. Public acceptance is unchanged.
+separately, and `jet_secp_schnorr_verify_function` now composes the entire
+original inner verifier call with all nine frees. Next use the key-parser
+result in the outer jet and compose its frame readers/caller. Public acceptance
+is unchanged.
 The earlier recursive check at `e71798a6` of
 `C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/at-completion
 input fingerprints agree (`b02a3e8b659b4032e79b865b6df8e82bb1ed032999f51c1f7d7f8bf7cdfd4f27`);
@@ -704,6 +706,16 @@ locals, and the models `memcpy_model`, `memset_model`, `ctz_model` remain
 explicit. Next combine these body stages and all nine frees into the original
 function call; then handle the outer key-parse guard, frame readers and public
 wrapper return. Later modules are outside the `93b98930` kernel receipt.
+`jet_secp_schnorr_verify_function.eval_schnorrsig_verify_owned` now executes
+the complete original inner verifier for every r/s, with a successfully parsed
+native key and a 32-byte message. Entry, original checks, all parsing/rejection
+branches, arithmetic, return conversion and all nine frees are derived. The
+caller retains its full signature-buffer ownership and framing outside that
+private buffer. Ordinary build and reviewed scoped no-update records pass;
+the inherited axiom set is unchanged. This remains conditional on the three
+explicit helper models and initialized program globals. The public wrappers,
+input frame readers and x-only-parse guard still require composition, so it
+does not add accepted jet coverage. It is outside the `93b98930` receipt.
 Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
