@@ -1,5 +1,14 @@
 # Remaining jet proof work
 
+The linked native eckey tweak caller now builds in ordinary modules
+`jet_elements_taptweak_eckey_{entry,prepare,finish,function}`. Its actual
+in-place multiplication, infinity guard, finite affine call and both private
+frees are derived, including overflow-independent scalar preparation and
+readonly/global preservation. Scoped contract and assumption comparisons,
+proof-source scanning and the 283-input frozen-target check pass. The whole
+call retains the six inherited assumptions and approved memset/ctz models;
+no public coverage or new recursive-check receipt is claimed.
+
 The actual linked `fe_inv_var` and finite affine conversion now build in the
 ordinary project (`jet_elements_taptweak_inverse_state`,
 `jet_elements_taptweak_fe_inverse_prefix`, `jet_elements_taptweak_fe_inverse_var`,
@@ -27,7 +36,7 @@ in the next recursive check. This historical check does not cover later ports.
 Later native/helper ports through the entire frozen Elements wrapper compile
 in scratch. Integrate in the reviewed groups listed by
 `/private/tmp/elements-taptweak-integration-batches.json`, using the private
-integration script; group 0 is integrated above. Each remaining group needs
+integration script; groups 0 and 1 are integrated above. Each remaining group needs
 ordinary builds, reviewed type/assumption records, no-update comparisons and
 its own signed atomic commit. The full candidate is still missing its final
 Elements specification bridge, canonical-source binding and public acceptance.
