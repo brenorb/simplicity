@@ -1230,6 +1230,100 @@ SC.comp (SC.pair (@literal_point_check (Alg.Assertion.toCore term)) SC.unit)
         raise ValueError('PointVerify1 complete success/failure contract differs')
 
 
+def check_bip0340(s):
+    """Bind BIP340 to the frozen signature jet and its all-input C theorem."""
+    check_point_verify(s)
+    for key, fragment in [
+        ('catalog', 'Bip0340Verify :: SignatureJet ((Secp256k1.PubKey, Word256),Secp256k1.Sig) ()'),
+        ('catalog', 'specificationSignature Bip0340Verify = Secp256k1.bip_0340_verify'),
+        ('catalog', 'implementationSignature Bip0340Verify a = FFI.bip_0340_verify a'),
+        ('types', 'type PubKey = Word256'),
+        ('types', 'type Sig = (Word256, Word256)'),
+        ('program', 'bip_0340_verify :: Assert term => Lib term -> term ((PubKey, Word256), Sig) ()'),
+        ('program', 'bip_0340_verify m = assert (bip_0340_check m)'),
+        ('program', 'pubkey_check = (iden &&& scribe (toWord256 LibSecp256k1.fieldOrder) >>> lt256) &&& iden'),
+        ('program', 'lt256 = Arith.lt word256'),
+        ('scale_ffi', 'bip_0340_verify :: ((PubKey, Word256), Sig) -> Maybe ()'),
+        ('scale_ffi', 'bip_0340_verify = unsafeLocalCoreJet c_bip_0340_verify'),
+        ('scale_ffi', 'foreign import ccall unsafe "" c_bip_0340_verify :: Ptr FrameItem -> Ptr FrameItem -> IO CBool'),
+        ('schnorr_digest', 'tagIv tag = compress noTagIv (tagDigest, tagDigest)'),
+        ('schnorr_digest', 'tagDigest = bsHash . BSC.pack $ tag'),
+        ('schnorr_digest', 'noTagIv = IV sha256Incremental'),
+        ('schnorr_digest', 'compress (IV state) (h1, h2) = IV $ state `pushChunk` BSS.fromShort (hash256 h1) `pushChunk` BSS.fromShort (hash256 h2)'),
+    ]:
+        p.require(s[key], fragment, 'BIP340 binding')
+    impl = s['program'].split('lib@Lib{..} = Lib {', 1)[1]
+    p.exact_program(impl, 'pubkey_unpack_neg', 'signature_unpack',
+                    'pubkey_check >>> cond (injr ((unit >>> true) &&& iden)) (injl unit)')
+    p.exact_program(impl, 'signature_unpack', 'bip_0340_check', '''
+and (oh &&& scribe (toWord256 LibSecp256k1.fieldOrder) >>> lt256)
+    (ih &&& scribe (toWord256 LibSecp256k1.groupOrder) >>> lt256)
+ &&& iden >>> cond (injr iden) (injl unit)
+    ''')
+    p.exact_program(impl, 'bip_0340_check', 'swu', '''
+let
+ k1 = iih &&& (ioh &&& oh) >>> match false k2
+ k2 = (ih &&& oih) &&& ((unit >>> false) &&& ooh) >>> point_check_1
+ e = m >>> (iv &&& oh >>> hashBlock) &&& ih >>> hashBlock >>> scalar_normalize
+ iv = scribe $ toWord256 . integerHash256 . ivHash . tagIv $ "BIP0340/challenge"
+ m = (ioh &&& ooh) &&& (oih &&& (scribe (toWord256 0x8000000000000000000000000000000000000000000000000000000000000500)))
+in take (take pubkey_unpack_neg) &&& (e &&& drop signature_unpack) >>> match false k1
+    ''')
+    ports = [
+        ('schnorr_literal', 'literal_schnorr_signature', 'Ty.Prod (Word 8) (Word 8)'),
+        ('schnorr_literal', 'literal_schnorr_pubkey_check',
+         '((iden &&& Alg.scribe canonical_field_word) >>> @lt_word_spec term 8) &&& iden'),
+        ('schnorr_literal', 'literal_schnorr_pubkey_unpack_neg', '''
+@literal_schnorr_pubkey_check term >>> Bit.cond
+ (injr ((unit >>> Bit.true) &&& iden)) (injl unit)
+        '''),
+        ('schnorr_literal', 'literal_schnorr_signature_unpack', '''
+(Bit.and ((O H &&& Alg.scribe canonical_field_word) >>> @lt_word_spec term 8)
+         ((I H &&& Alg.scribe canonical_group_word) >>> @lt_word_spec term 8) &&& iden)
+ >>> Bit.cond (injr iden) (injl unit)
+        '''),
+        ('schnorr_literal', 'literal_bip0340_k2',
+         '((I H &&& O (I H)) &&& ((unit >>> Bit.false) &&& O (O H))) >>> @literal_point_check term'),
+        ('schnorr_literal', 'literal_bip0340_k1',
+         '(I (I H) &&& (I (O H) &&& O H)) >>> case Bit.false (@literal_bip0340_k2 term)'),
+        ('schnorr_literal', 'literal_bip0340_check', '''
+(O (O (@literal_schnorr_pubkey_unpack_neg term)) &&&
+ (@literal_bip0340_challenge term &&& I (@literal_schnorr_signature_unpack term)))
+ >>> case Bit.false (@literal_bip0340_k1 term)
+        '''),
+        ('schnorr_literal', 'literal_bip0340_verify', '''
+SC.comp (SC.pair (@literal_bip0340_check (Alg.Assertion.toCore term)) SC.unit)
+ (Alg.Assertion.Combinators.assertr assertion_cmr_fail0 (SC.take SC.iden))
+        '''),
+        ('schnorr_challenge', 'literal_bip0340_args',
+         'Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Ty.Prod (Word 8) (Word 8))'),
+        ('schnorr_challenge', 'literal_bip0340_challenge_message',
+         '(I (O H) &&& O (O H)) &&& (O (I H) &&& Alg.scribe schnorr_challenge_pad_word)'),
+        ('schnorr_challenge', 'literal_bip0340_challenge', '''
+@literal_bip0340_challenge_message term >>>
+ (((Alg.scribe schnorr_challenge_iv_word &&& O H) >>> @Simplicity.SHA256.hashBlock term) &&& I H)
+ >>> @Simplicity.SHA256.hashBlock term >>> @canonical_scalar_normalize term
+        '''),
+        ('schnorr_tag', 'schnorr_challenge_tag_digest', 'Digest.stringHash "BIP0340/challenge"'),
+        ('schnorr_tag', 'schnorr_challenge_tag_iv',
+         'Digest.compress Digest.sha256_iv schnorr_challenge_tag_digest schnorr_challenge_tag_digest'),
+        ('schnorr_tag', 'schnorr_challenge_iv_word', 'Word.from_hash256 schnorr_challenge_tag_iv'),
+        ('schnorr_hash', 'schnorr_challenge_pad_word',
+         '@fromZ (WordToZ 8) 0x8000000000000000000000000000000000000000000000000000000000000500'),
+        ('schnorr_startup', 'schnorr_startup', r'linear_startup m /\modinfo_fe_state m /\secp_sha_startup m'),
+    ]
+    for key, name, expected in ports:
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('BIP340 literal dependency differs: ' + name)
+    statements = re.findall(r'Theorem bip0340_initialized_local_spec\s*:(.*?)\bProof\.', s['schnorr_jet'], re.S)
+    expected = ('memcpy_model ->memset_model ->ctz_model -> '
+                'secp_jet_initialized_partial_local_spec schnorr_startup f_simplicity_bip_0340_verify '
+                'literal_bip0340_args Ty.Unit '
+                '(@literal_bip0340_verify (Alg.AssertionSem option_Monad_Zero)).')
+    if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
+        raise ValueError('BIP340 complete success/failure contract differs')
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1244,6 +1338,13 @@ def test():
         "linear_verify_jet": COQ / "C/jet_secp_linear_verify_local.v",
         "point_verify_literal": COQ / "C/jet_secp_point_verify_literal.v",
         "point_verify_jet": COQ / "C/jet_secp_point_verify_local.v",
+        "schnorr_literal": COQ / "C/jet_secp_schnorr_verify_literal.v",
+        "schnorr_challenge": COQ / "C/jet_secp_schnorr_challenge_literal.v",
+        "schnorr_tag": COQ / "C/jet_secp_schnorr_tagged_spec.v",
+        "schnorr_hash": COQ / "C/jet_secp_schnorr_challenge_hash.v",
+        "schnorr_startup": COQ / "C/jet_secp_schnorr_startup.v",
+        "schnorr_jet": COQ / "C/jet_secp_bip0340_local.v",
+        "schnorr_digest": REPO / "Haskell/Core/Simplicity/Digest.hs",
         "scale_ffi": REPO / "Haskell/Core/Simplicity/FFI/Jets.hs",
         "scale_ffi_test": REPO / "Haskell/Tests/Simplicity/FFI/Tests.hs",
         "scale_arith": REPO / "Haskell/Core/Simplicity/Programs/Arith.hs",
@@ -1802,6 +1903,53 @@ def test():
             continue
         raise ValueError('accepted point verifier source mutation: ' + old)
     print(f'PointVerify1 catalog/assertion/initialized partial contract match; {len(mutations)} targeted mutations rejected')
+
+    check_bip0340(s)
+    mutations = [
+        ('catalog', 'Bip0340Verify :: SignatureJet ((Secp256k1.PubKey, Word256),Secp256k1.Sig) ()',
+         'Bip0340Verify :: SignatureJet ((Secp256k1.PubKey, Word512),Secp256k1.Sig) ()'),
+        ('catalog', 'specificationSignature Bip0340Verify = Secp256k1.bip_0340_verify',
+         'specificationSignature Bip0340Verify = CheckSig.checkSigVerify'),
+        ('catalog', 'implementationSignature Bip0340Verify a = FFI.bip_0340_verify a',
+         'implementationSignature Bip0340Verify a = FFI.check_sig_verify a'),
+        ('types', 'type Sig = (Word256, Word256)', 'type Sig = (Word128, Word256)'),
+        ('scale_ffi', 'bip_0340_verify = unsafeLocalCoreJet c_bip_0340_verify',
+         'bip_0340_verify = unsafeLocalCoreJet c_check_sig_verify'),
+        ('program', 'bip_0340_verify m = assert (bip_0340_check m)', 'bip_0340_verify m = assert true'),
+        ('program', 'pubkey_check >>> cond (injr ((unit >>> true) &&& iden))',
+         'pubkey_check >>> cond (injr ((unit >>> false) &&& iden))'),
+        ('program', 'iih &&& (ioh &&& oh)', 'iih &&& (oih &&& oh)'),
+        ('program', 'm >>> (iv &&& oh >>> hashBlock) &&& ih >>> hashBlock >>> scalar_normalize',
+         'm >>> (iv &&& ih >>> hashBlock) &&& oh >>> hashBlock >>> scalar_normalize'),
+        ('program', 'toWord256 0x8000000000000000000000000000000000000000000000000000000000000500',
+         'toWord256 0x8000000000000000000000000000000000000000000000000000000000000300'),
+        ('schnorr_digest', 'tagIv tag = compress noTagIv (tagDigest, tagDigest)',
+         'tagIv tag = compress noTagIv (tagDigest, hash0)'),
+        ('schnorr_literal', 'Alg.scribe canonical_group_word', 'Alg.scribe canonical_field_word'),
+        ('schnorr_literal', 'I (I H) &&& (I (O H) &&& O H)', 'I (I H) &&& (O (I H) &&& O H)'),
+        ('schnorr_literal', 'case Bit.false (@literal_bip0340_k1 term)', 'case Bit.true (@literal_bip0340_k1 term)'),
+        ('schnorr_literal', 'assertr assertion_cmr_fail0', 'assertr assertion_hash0'),
+        ('schnorr_challenge', 'I (O H) &&& O (O H)', 'O (I H) &&& O (O H)'),
+        ('schnorr_challenge', '>>> @canonical_scalar_normalize term', '>>> @canonical_fe_normalize term'),
+        ('schnorr_tag', '"BIP0340/challenge"', '"BIP0340/Challenge"'),
+        ('schnorr_hash', '0x8000000000000000000000000000000000000000000000000000000000000500',
+         '0x8000000000000000000000000000000000000000000000000000000000000300'),
+        ('schnorr_startup', r'linear_startup m /\modinfo_fe_state m /\secp_sha_startup m', 'False'),
+        ('schnorr_jet', 'memcpy_model ->memset_model ->ctz_model ->', 'memcpy_model ->memset_model ->ctz_model ->False ->'),
+        ('schnorr_jet', 'f_simplicity_bip_0340_verify', 'f_secp256k1_schnorrsig_verify'),
+        ('schnorr_jet', 'literal_bip0340_args Ty.Unit', '(Word 8) Ty.Unit'),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive BIP340 mutation fixture: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_bip0340(changed)
+        except ValueError:
+            continue
+        raise ValueError('accepted BIP340 source mutation: ' + old)
+    print(f'BIP340 catalog/tag/challenge/assertion/complete public contract match; {len(mutations)} targeted mutations rejected')
 
 
 if __name__ == "__main__":

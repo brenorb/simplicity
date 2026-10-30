@@ -370,7 +370,7 @@ for every Word256 r/s pair, including both range-rejection paths. The original
 initial pointer/message checks and nine-local entry allocations are proved
 separately, and `jet_secp_schnorr_verify_function` now composes the entire
 original inner verifier call with all nine frees. Its parser-result adapter
-and the original public call/return tail are now built too. Next compose the
+and the original public call/return tail are now built too. Next finish
 the full scoped acceptance path for the new complete public BIP340 candidate.
 `jet_secp_bip0340_local.bip0340_initialized_local_spec` now builds for every
 input under the explicit memcpy/memset/ctz models. Both key-parser exits, all
@@ -807,6 +807,14 @@ added source-identical compiled modules after that advance; copying every old
 object with fresh timestamps causes unnecessary dependency rebuilds. Take
 fingerprints only after its build is idle. Its older 93b98930 receipt remains
 valid only for those older exact inputs.
+The BIP340 canonical binding in the existing `check-rescale.py` gate now
+passes together with 23 new targeted mutation rejections. It checks SignatureJet
+catalog/FFI/type routing, pubkey/signature unpacking, every challenge/check
+routing term, tag, padding, assertion and the exact initialized public contract.
+The previously accepted point-check/linear/decompression bindings remain its
+checked dependencies. The gate does not itself establish C execution or count
+the new candidate as accepted. Multi-model coverage diagnostics and full scoped
+acceptance are still pending.
 Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
