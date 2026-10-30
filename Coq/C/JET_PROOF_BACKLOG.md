@@ -1133,6 +1133,13 @@ TapTweak's original input-hash read at index 7.
 old-prefix preservation and full write_effect from the original writer call.
 Ordinary builds and reviewed no-update records pass for both modules, with no
 extra library premise and only the inherited six axioms.
+`jet_secp_taptweak_body_prefix.exec_taptweak_initial_phase` now composes the
+runtime tag block and tagged output-context phase in the actual eleven-local
+`taptweak_env`. It obtains both canonical states, counter 64 and exact context
+fields while preserving ownership of every original local, initialized state
+and unrelated memory. The phase reuses the two complete source-bound spans;
+it introduces no new callee or library premise. Ordinary compilation and
+reviewed no-update records pass (memcpy_model and the inherited eight axioms).
 Next compose key read/absorption with the parser/guards, input-hash reader,
 hashing calls, native suffix, writer and complete generic/public lifecycle.
 All original callees and entry/cleanup packets are now available; the remaining
