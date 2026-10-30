@@ -1578,20 +1578,22 @@ sixteen reviewed theorem records match without update flags. Their only
 library premise is the existing memcpy_model, with six inherited execution
 assumptions (layout/lookup facts closed).
 
-A read-only Astra Medium review confirms converter and serializer as the next
-native steps: both can reuse this loader, the linked save and pure arithmetic
-transport. Prepared scratch modules `jet_elements_taptweak_native_pure.v` and
-`jet_elements_taptweak_convert.v` already compile; they contain the even-Y and
-field-to-byte calls, point-free lifecycle and complete null-parity converter.
-Integrate/audit them after the loader; preserve the original null-pointer
-branch. Serializer is being prepared against the same interfaces.
+`jet_elements_taptweak_native_pure`, `jet_elements_taptweak_convert` and
+`jet_elements_taptweak_serialize` now build in the ordinary project. They
+derive the even-Y and field-to-byte calls, actual point allocation/free,
+complete null-parity converter and complete original serializer, including
+the actual 32-byte clear and native key-load guard. All fourteen reviewed
+theorem records match without update flags. Execution uses only the six
+inherited assumptions and existing memcpy_model/memset_model; layout and
+lookup facts are closed. These modules also postdate the `ca89b2aa` kernel
+check. No scratch object is needed to build them.
 The ecmult path additionally needs linked state/lookup interfaces for scalar
 split constants (_g1/_g2/_minus_b1/_minus_b2/lambda), beta and both pre_g tables;
 affine finish needs the actual field modulus metadata and existing CTZ model.
 Source readiness predicates name source blocks and cannot be reused as linked
 initialization facts merely because the initializers match. Reuse the completed
 parser, tag, context prefix, key and message phases instead of restarting them.
-The native tweak/convert/serialize suffix, its actual linked constant/global
+The native tweak call and suffix composition, actual linked constant/global
 initialization, outer wrapper and final writer/free composition still remain;
 no whole Elements TapTweak equivalence is claimed.
 No full Elements generic or public jet is registered yet.
