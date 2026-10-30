@@ -1,0 +1,75 @@
+### C.jet_elements_taptweak_tag_startup.elements_taptweak_linked_tag_info
+elements_taptweak_linked_tag_info
+     : @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info (Ctypes.fundef Clight.function) Ctypes.type
+            (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.program_of_program Clight.function
+                  jet_elements_taptweak_program.elements_taptweak_linked_program)) elements_taptweak_linked_tag_block)
+         (@Some (AST.globvar Ctypes.type) jets_elements.v_taptweak)
+### C.jet_elements_taptweak_tag_startup.elements_taptweak_linked_tag_symbol
+elements_taptweak_linked_tag_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+            (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge) jets_elements._taptweak)
+         (@Some Values.block elements_taptweak_linked_tag_block)
+### C.jet_elements_taptweak_tag_startup.elements_taptweak_linked_tag_initial
+elements_taptweak_linked_tag_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function
+                      jet_elements_taptweak_program.elements_taptweak_linked_program)) (@Some Memory.Mem.mem m)),
+       elements_taptweak_linked_tag_state m
+### C.jet_elements_taptweak_tag_startup.elements_taptweak_tag_startup_exists
+elements_taptweak_tag_startup_exists
+     : @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                  (@Ctypes.program_of_program Clight.function
+                     jet_elements_taptweak_program.elements_taptweak_linked_program)) (@Some Memory.Mem.mem m))
+            (and (jet_elements_taptweak_globals.elements_taptweak_sha_startup m) (elements_taptweak_linked_tag_state m)))
+### C.jet_elements_taptweak_tag_startup.elements_taptweak_linked_tag_owned_separate
+elements_taptweak_linked_tag_owned_separate
+     : forall (m : Memory.Mem.mem) (b : Values.block) (size : BinNums.Z)
+         (_ : jet_elements_taptweak_tag_state_at.elements_taptweak_tag_state_at elements_taptweak_linked_tag_block m)
+         (_ : BinInt.Z.lt BinNums.Z0 size) (_ : Memory.Mem.range_perm m b BinNums.Z0 size Memtype.Cur Memtype.Freeable),
+       not (@eq Values.block b elements_taptweak_linked_tag_block)
+### C.jet_elements_taptweak_tag_startup.elements_taptweak_linked_tag_output_separate
+elements_taptweak_linked_tag_output_separate
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z)
+         (_ : jet_elements_taptweak_tag_state_at.elements_taptweak_tag_state_at elements_taptweak_linked_tag_block m)
+         (_ : jet_output_layout.write_frame_at m bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       and (not (@eq Values.block bd elements_taptweak_linked_tag_block))
+         (not (@eq Values.block bw elements_taptweak_linked_tag_block))
+### C.jet_elements_taptweak_tag_startup.elements_taptweak_linked_tag_framed
+elements_taptweak_linked_tag_framed
+     : forall (m mf : Memory.Mem.mem) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : jet_elements_taptweak_tag_state_at.elements_taptweak_tag_state_at elements_taptweak_linked_tag_block m)
+         (_ : jet_clight_forward.mem_forward m mf) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall pos : BinNums.Z, P elements_taptweak_linked_tag_block pos),
+       jet_elements_taptweak_tag_state_at.elements_taptweak_tag_state_at elements_taptweak_linked_tag_block mf
+### C.jet_elements_taptweak_tag_startup.elements_taptweak_linked_tag_after_write
+elements_taptweak_linked_tag_after_write
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (cells : list BitMachine.Cell)
+         (_ : jet_elements_taptweak_tag_state_at.elements_taptweak_tag_state_at elements_taptweak_linked_tag_block m)
+         (_ : jet_output_layout.write_frame_at m bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf)
+         (_ : jet_bitcoin_effects.write_effect m mf bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                cells),
+       jet_elements_taptweak_tag_state_at.elements_taptweak_tag_state_at elements_taptweak_linked_tag_block mf

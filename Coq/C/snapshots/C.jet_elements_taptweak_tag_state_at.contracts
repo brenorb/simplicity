@@ -1,0 +1,49 @@
+### C.jet_elements_taptweak_tag_state_at.elements_taptweak_tag_initial_at
+elements_taptweak_tag_initial_at
+     : forall (prg : Clight.program) (bg : Values.block) (m : Memory.Mem.mem)
+         (_ : @eq (option (AST.globvar Ctypes.type))
+                (@Globalenvs.Genv.find_var_info (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+                      (@Ctypes.program_of_program Clight.function prg)) bg)
+                (@Some (AST.globvar Ctypes.type) jets_elements.v_taptweak))
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function prg)) (@Some Memory.Mem.mem m)),
+       elements_taptweak_tag_state_at bg m
+### C.jet_elements_taptweak_tag_state_at.elements_taptweak_tag_owned_separate_at
+elements_taptweak_tag_owned_separate_at
+     : forall (bg : Values.block) (m : Memory.Mem.mem) (b : Values.block) (size : BinNums.Z)
+         (_ : elements_taptweak_tag_state_at bg m) (_ : BinInt.Z.lt BinNums.Z0 size)
+         (_ : Memory.Mem.range_perm m b BinNums.Z0 size Memtype.Cur Memtype.Freeable), not (@eq Values.block b bg)
+### C.jet_elements_taptweak_tag_state_at.elements_taptweak_tag_output_separate_at
+elements_taptweak_tag_output_separate_at
+     : forall (bg : Values.block) (m : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z)
+         (bw : Values.block) (edge cursor : BinNums.Z) (_ : elements_taptweak_tag_state_at bg m)
+         (_ : jet_output_layout.write_frame_at m bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       and (not (@eq Values.block bd bg)) (not (@eq Values.block bw bg))
+### C.jet_elements_taptweak_tag_state_at.elements_taptweak_tag_framed_at
+elements_taptweak_tag_framed_at
+     : forall (bg : Values.block) (m mf : Memory.Mem.mem) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : elements_taptweak_tag_state_at bg m) (_ : jet_clight_forward.mem_forward m mf)
+         (_ : jet_sx_mem.lframe P m mf) (_ : forall pos : BinNums.Z, P bg pos), elements_taptweak_tag_state_at bg mf
+### C.jet_elements_taptweak_tag_state_at.elements_taptweak_tag_after_write_at
+elements_taptweak_tag_after_write_at
+     : forall (bg : Values.block) (m mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z)
+         (bw : Values.block) (edge cursor : BinNums.Z) (cells : list BitMachine.Cell)
+         (_ : elements_taptweak_tag_state_at bg m)
+         (_ : jet_output_layout.write_frame_at m bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf)
+         (_ : jet_bitcoin_effects.write_effect m mf bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                cells), elements_taptweak_tag_state_at bg mf

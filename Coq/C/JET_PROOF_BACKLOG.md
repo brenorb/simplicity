@@ -1461,13 +1461,30 @@ absorption and finalization calls are composed, with final counter 64, startup
 and tag bytes preserved. All three modules build normally and their eleven
 reviewed records match; only inherited assumptions and the existing explicit
 memcpy_model are used. This is a completed component, not an Elements public
-jet result. Next integrate generic tag-state/framing and concrete linked-startup
-sources checked at `/private/tmp/point-verify-scratch/jet_elements_taptweak_tag_state_at.v`
-and `jet_elements_taptweak_tag_startup.v`, then proceed through the remaining
-key, message-hash, tweak, writer and whole public phases. Those generic tag-state
-lemmas preserve the original plain-Elements proof files, and discharge the
-actual linked program's global bytes/extent rather than introducing a public
-caller-tag premise. No full Elements generic or public jet is registered yet.
+jet result.
+`jet_elements_taptweak_tag_state_at` now generalizes the real initializer's
+byte representation, permission bounds, freeable-owner exclusion, output-frame
+separation and frame/write preservation over the concrete tag block and
+program. `jet_elements_taptweak_tag_startup` instantiates these facts at the
+actual linked tag symbol and proves SHA startup and the real 17-byte tag state
+hold in the same Genv.init_mem. Its thirteen reviewed records match with only
+inherited assumptions, lookup facts closed. The old plain-Elements proof files
+are preserved. These facts discharge actual global bytes/extent and separation
+rather than introducing public caller-tag or non-overlap restrictions.
+A read-only Astra Medium review recommends singleton same-memory transport of
+fe_set_b32 as the first arithmetic packet. The prepared source
+`/private/tmp/point-verify-scratch/jet_elements_taptweak_set_b32.v` now compiles
+against current dependencies: lookups and the unchanged fundef_okb checker
+pass, and both the full owned set_b32 result (including rejection's raw limbs)
+and x-only field read are transported. Integrate and audit it next. Generic
+xfun support already accepts ge; do not reopen owned_b32_run or try to expose
+the entire secp_pure table in this slice. Afterwards, generalize named-call and
+x-only guard rules over ge with concrete lookup facts, and tackle the decoder
+packet through eval_decompress_helper_literal/eval_decompress_function/
+exec_decompress_body_owned. The clear/start branch requires the actual linked
+memset lookup and existing Clear model. The final key-phase composition must
+parameterize the Elements IV/startup, since the old key theorem fixes Bitcoin's
+IV. No full Elements generic or public jet is registered yet.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including
