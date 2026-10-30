@@ -1593,6 +1593,17 @@ affine finish needs the actual field modulus metadata and existing CTZ model.
 Source readiness predicates name source blocks and cannot be reused as linked
 initialization facts merely because the initializers match. Reuse the completed
 parser, tag, context prefix, key and message phases instead of restarting them.
+`jet_scalar_constant_init.scalar_constant_initializes_at` now generalizes
+the existing four-limb initialization proof to an arbitrary actual program.
+`jet_elements_taptweak_split_constants` checks the five actual linked symbol
+and variable lookups, establishes their exact storage and readonly state from
+Genv.init_mem, proves a real initialized memory exists, and preserves readiness
+through readonly-preserving calls. All sixteen theorem records and five
+explicit definition records match without update flags. Initialization uses
+only the four inherited memory/logical assumptions; lookup facts are closed.
+No library or desired-load premise is introduced. The scalar-splitting call
+composition is next; beta, generator tables and affine modulus/CTZ still need
+linked interfaces. These additions postdate the `ca89b2aa` kernel check.
 The native tweak call and suffix composition, actual linked constant/global
 initialization, outer wrapper and final writer/free composition still remain;
 no whole Elements TapTweak equivalence is claimed.
