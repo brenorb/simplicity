@@ -404,9 +404,22 @@ call premises from owned fields using `eval_affine_normalized_y_odd` and
 `eval_field_equal_loose_owned`, with complete freeable ranges, framing and
 readonly preservation. It has no extra library model. The return modules
 have ordinary builds and reviewed records; they are later than the pending
-`8d5ba448` recursive-check inputs. Next compose the actual arithmetic suffix
-(multiplier, affine conversion, infinity branch, this return), then original
-parsing/challenge and the outer jet entry/frees. No public Schnorr proof or
+`8d5ba448` recursive-check inputs.
+`jet_secp_schnorr_after_mult.exec_schnorr_after_mult_owned` now composes the
+actual original suffix from multiplier output through affine conversion,
+infinity testing and return, in both branches. It derives the exact
+`secp_even_x_test` value from the limb/word representation, preserves all
+three complete local ranges, framing and readonly memory, and retains only
+the approved `ctz_model` library premise. It reuses
+`eval_generator_affine_all`; do not duplicate affine conversion. Next add
+the actual multiplier call, then original parsing/challenge and the outer
+jet entry/frees. `literal_affine_scalar_table_nonzero` already discharges the
+conditional output-flag premise of `eval_ecmult_general_flag` for the valid
+parsed affine key. That multiplier theorem returns framing outside its four
+owned argument blocks, not `readonly_preserved` for all intermediate memory.
+Use caller freshness to lift its framing to original public memory, and
+preserve global setup via disjointness from the private blocks; do not assume
+the missing intermediate readonly conclusion. No public Schnorr proof or
 new coverage is claimed yet.
 Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
