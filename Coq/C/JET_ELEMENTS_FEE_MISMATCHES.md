@@ -4,6 +4,38 @@ Status at `d057851f`: **unresolved equivalence obligation, not a demonstrated
 wrong result or a proved specification/implementation mismatch**. No target
 source, API contract or generation setting has been changed.
 
+### Later formal comparison
+
+`jet_elements_fee_literal` ports the original `outputIsFee` combinator tree,
+including its primitive, optional hash equality, constant and explicit-value
+branches. `jet_elements_fee_compare.elements_output_fee_implementation_comparison`
+combines the separated whole-C contract with an exact comparison against that
+program. For every index and logical environment, the results disagree iff
+the selected output exists, both asset and amount are explicit, its script
+is nonempty, and that script's digest equals the empty-script digest. A C
+true result always implies a canonical true result. The pure comparison
+lemmas are closed; the combined C statement retains the six inherited
+execution assumptions and the original representation/separation premises.
+
+`jet_elements_total_fee_literal.elements_total_fee_sem` reduces the entire
+canonical `totalFee` program to its exact finite output fold, retaining the
+hash-based classifier, asset comparison and 64-bit carry discard. It covers
+every environment in the existing domain, including zero outputs and the
+largest permitted count. `jet_forWhile_fold_context` reuses the sequential
+loop invariant while preserving the asset key as context. This is the
+specification side of the cached-table comparison, not a new C-equivalence
+theorem. No table-meaning or empty-digest converse assumption is introduced.
+
+These modules compile in the ordinary build and pass reviewed scoped
+assumption/contract comparisons. The existing amount source gate checks the
+canonical fee program trees and literal definitions; the normal contract gate
+checks theorem statements. Bounded static review found no semantic discrepancy.
+These results establish neither a reachable collision witness nor the missing
+cached-table correspondence, and add no public coverage. They do not turn
+this boundary into a demonstrated bug. Reproduce their ordinary `.vo` targets,
+scoped audits, and the existing `elements-amount-literal/check-source.py` and
+`test-source.py` checks; logs remain temporary rather than part of this report.
+
 ## Expected versus implemented predicate
 
 The fixed canonical program `outputIsFee` in

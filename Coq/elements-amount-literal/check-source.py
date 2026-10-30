@@ -22,7 +22,7 @@ def load(name, path):
 
 
 def check_fee(repo):
-    """Anchor the unregistered fee comparison; do not claim equivalence."""
+    """Anchor the unregistered fee programs/comparison; not jet equivalence."""
     coq = repo / 'Coq'
     p = load('fee_amount_source_parser', coq / 'check-secp-predicates-specification.py')
     paths = []
@@ -50,13 +50,29 @@ def check_fee(repo):
     catalog = read(repo / 'Haskell/Simplicity/Elements/Jets.hs')
     p.require(catalog, 'OutputIsFee :: TransactionJet Word32 (S Bit)', 'fee type')
     line(catalog, 'specificationTransaction OutputIsFee', 'Prog.outputIsFee')
+    p.require(catalog, 'TotalFee :: TransactionJet Word256 Word64', 'total fee type')
+    line(catalog, 'specificationTransaction TotalFee', 'Prog.totalFee')
     line(read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs'),
          'outputIsFee', 'Transaction.outputIsFee Transaction.lib')
     line(read(repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs'),
          'interpret OutputScriptHash', 'return . (atOutput $ encodeHash . bslHash . txoScript)')
+    line(read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs'),
+         'totalFee', 'Transaction.totalFee Transaction.lib')
+    totals = re.findall(r'(?ms)^\s*, totalFee\s*=(.*?)(?=^\s*,|\Z)', program.split('lib = l', 1)[1])
+    if len(totals) != 1:
+        raise ValueError('missing/ambiguous total fee program')
+    equal(totals[0], '''let
+      body = take (drop outputIsFee) &&& (take (drop outputAmount) &&& (ooh &&& ih))
+       >>> match (injl iiih)
+        (injr (match iiih (drop (match iih
+         ((ooh &&& (injr ioh) >>> eq) &&& (oih &&& iih)
+          >>> (match iih (drop (match ih (add word64 >>> ih)))))))))
+      in (iden &&& (unit >>> zero word64)) >>> forWhile word32 body >>> copair iden iden''',
+      'canonical totalFee tree')
     core = read(repo / 'Haskell/Core/Simplicity/Term/Core.hs')
     for name, expected in [('ih', 'drop iden'), ('oh', 'take iden'),
-                           ('oih', 'take ih'), ('ooh', 'take oh')]:
+                           ('oih', 'take ih'), ('ooh', 'take oh'),
+                           ('ioh', 'drop oh'), ('iih', 'drop ih'), ('iiih', 'drop iih')]:
         line(core, name, expected)
     prim = read(coq / 'C/jet_elements_prim.v')
     sem = p.definition(prim, 'sem')
@@ -110,6 +126,30 @@ def check_fee(repo):
     if len(statements) != 1:
         raise ValueError('missing/ambiguous fee comparison')
     equal(statements[0], expected, 'whole C execution and exact comparison boundary')
+    total = coq / 'C/jet_elements_total_fee_literal.v'
+    for name, expected in [
+        ('total_fee_literal_tail', '''case (injl (drop(drop(drop iden))))
+          (injr (case (drop(drop(drop iden))) (drop(case (drop(drop iden))
+           (((take(take iden)&&&injr(drop(take iden))) >>> equality_spec (Ty.Sum(Ty.Prod Bit Word256)Word256))
+            &&&(take(drop iden)&&&drop(drop iden)) >>> case (drop(drop iden))
+              (drop(case (drop iden) (Word.adder >>> drop iden))))))))'''),
+        ('elements_total_fee_body', '''elements_comp
+          (elements_pair (take(drop elements_output_fee_spec))
+           (elements_pair (take(drop elements_output_amount_spec)) (take(take iden)&&&drop iden)))
+          (elements_core(fun core=>@total_fee_literal_tail core))'''),
+        ('total_fee_literal_program', '''(iden&&&(unit>>>Word.zero)) >>>
+          for_while_program 5 body >>> copair iden iden'''),
+        ('elements_total_fee_spec', 'total_fee_literal_program elements_total_fee_body'),
+        ('total_fee_literal_zero', '@Word.zero 6 CoreFunSem tt'),
+        ('total_fee_literal_step', '''match txoAsset o,txoAmount o with
+          | Explicit asset,Explicit v=>if Bit.toBool(fee_script_hash_test o) then
+           if Bit.toBool(@equality_spec Word256 CoreFunSem(key,from_hash256 asset)) then
+            snd(@Word.adder 6 CoreFunSem(@fromZ (WordToZ 6)(Int64.unsigned v),acc)) else acc
+           else acc | _,_=>acc end'''),
+        ('total_fee_literal_result', '''fold_left(total_fee_literal_step key)
+          (sigTxOut(Elements.envTx environment))total_fee_literal_zero'''),
+    ]:
+        definition(total, name, expected)
     return paths
 
 
@@ -299,6 +339,8 @@ def check(repo):
     cbody('simplicity_output_is_fee', '''uint_fast32_t i = simplicity_read32(&src);
       if (writeBit(dst, i < env->tx->numOutputs)) { writeBit(dst, isFee(&env->tx->output[i]));
       } else { skipBits(dst, 1); } return true;''')
+    cbody('simplicity_total_fee', '''sha256_midstate assetid; readHash(&assetid, &src);
+      simplicity_write64(dst, lookup_fee(&assetid, env->tx->feeOutputs, env->tx->numFees)); return true;''')
     paths.extend(check_fee(repo))
     r['source_sha256'].update({str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in set(paths)})
     r.update(selected_jets=['Elements.InputAmount', 'Elements.OutputAmount', 'Elements.CurrentAmount'],
@@ -307,6 +349,7 @@ def check(repo):
              caller_environment_construction_proved=False, formal_host_library_equivalence=False,
              fee_comparison_jet='Elements.OutputIsFee', fee_literal_and_comparison_reviewed=True,
              fee_empty_digest_converse_proved=False, fee_equivalence_or_reachable_divergence_proved=False,
+             total_fee_literal_fold_reviewed=True, total_fee_table_correspondence_proved=False,
              normal_registration=False, kernel_checked_by_this_tool=False)
     return r
 

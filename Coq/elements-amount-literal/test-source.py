@@ -79,7 +79,30 @@ for suffix, path in [('input', old), ('output', old), ('current', current)]:
 fee_literal = coq / 'C/jet_elements_fee_literal.v'
 fee_compare = coq / 'C/jet_elements_fee_compare.v'
 fee_caller = coq / 'C/jet_elements_fee_flag_caller.v'
+total_literal = coq / 'C/jet_elements_total_fee_literal.v'
 fixtures += [
+    (catalog, 'specificationTransaction TotalFee = Prog.totalFee',
+              'specificationTransaction TotalFee = Prog.outputIsFee'),
+    (program, 'take (drop outputIsFee)', 'take (drop outputAmount)'),
+    (program, '(add word64 >>> ih)', '(add word32 >>> ih)'),
+    (program, 'forWhile word32 body >>> copair iden iden',
+              'forWhile word16 body >>> copair iden iden'),
+    (program, '>>> match (injl iiih)', '>>> match (injr iiih)'),
+    (c, 'lookup_fee(&assetid, env->tx->feeOutputs, env->tx->numFees)',
+        'lookup_fee(&assetid, env->tx->feeOutputs, 0)'),
+    (total_literal, 'take(drop elements_output_fee_spec)',
+                    'take(drop elements_output_amount_spec)'),
+    (total_literal, 'injr(drop(take iden))', 'injl(drop(take iden))'),
+    (total_literal, 'Word.adder >>> drop iden', 'Word.adder >>> take iden'),
+    (total_literal, 'for_while_program 5 body', 'for_while_program 4 body'),
+    (total_literal, 'unit>>>Word.zero', 'unit>>>Word.one'),
+    (total_literal, 'total_fee_literal_program elements_total_fee_body',
+                    'total_fee_literal_program elements_other_body'),
+    (total_literal, 'Int64.unsigned v', 'Int64.signed v'),
+    (total_literal, 'CoreFunSem(key,from_hash256 asset)',
+                    'CoreFunSem(key,key)'),
+    (total_literal, 'sigTxOut(Elements.envTx environment))total_fee_literal_zero',
+                    'nil)total_fee_literal_zero'),
     (catalog, 'specificationTransaction OutputIsFee = Prog.outputIsFee',
               'specificationTransaction OutputIsFee = Prog.outputAmount'),
     (repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs',

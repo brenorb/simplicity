@@ -1,0 +1,94 @@
+### C.jet_forWhile_fold_context.for_while_run_fold_list_context
+@for_while_run_fold_list_context
+     : forall (X : Type) (C A : Ty.Ty) (n : nat) (xs : list X) (step : forall (_ : Ty.tySem A) (_ : X), Ty.tySem A)
+         (initial : Ty.tySem A) (context : Ty.tySem C)
+         (body : forall _ : Ty.tySem (Ty.Prod (Ty.Prod C (Word.Word n)) A), option (Ty.tySem (Ty.Sum A A)))
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat (@length X xs)) (jet_forWhile_seq.wsize n))
+         (_ : forall
+                (w : (fix tySem (X0 : Ty.Ty) : Set :=
+                        match X0 return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                        | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                        end) (Word.Word n))
+                (a : (fix tySem (X0 : Ty.Ty) : Set :=
+                        match X0 return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                        | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                        end) A),
+              @eq (option (Ty.tySem (Ty.Sum A A)))
+                (body
+                   (@pair
+                      (prod (Ty.tySem C)
+                         ((fix tySem (X0 : Ty.Ty) : Set :=
+                             match X0 return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                             | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                             end) (Word.Word n)))
+                      ((fix tySem (X0 : Ty.Ty) : Set :=
+                          match X0 return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                          | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                          end) A)
+                      (@pair (Ty.tySem C)
+                         ((fix tySem (X0 : Ty.Ty) : Set :=
+                             match X0 return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                             | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                             end) (Word.Word n)) context w) a))
+                (@Some
+                   (sum
+                      ((fix tySem (X0 : Ty.Ty) : Set :=
+                          match X0 return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                          | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                          end) A) (Ty.tySem A))
+                   match
+                     @List.nth_error X xs (BinInt.Z.to_nat (jet_forWhile_seq.wz n w))
+                     return
+                       (sum
+                          ((fix tySem (X0 : Ty.Ty) : Set :=
+                              match X0 return Set with
+                              | Ty.Unit => unit
+                              | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                              | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                              end) A) (Ty.tySem A))
+                   with
+                   | Some x =>
+                       @inr
+                         ((fix tySem (X0 : Ty.Ty) : Set :=
+                             match X0 return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                             | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                             end) A) (Ty.tySem A) (step a x)
+                   | None =>
+                       @inl
+                         ((fix tySem (X0 : Ty.Ty) : Set :=
+                             match X0 return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                             | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                             end) A) (Ty.tySem A) a
+                   end)),
+       @eq (option (Ty.tySem (Ty.Sum A A))) (@jet_forWhile_spec.for_while_run n C A A body context initial)
+         (@Some
+            (sum (Ty.tySem A)
+               ((fix tySem (X0 : Ty.Ty) : Set :=
+                   match X0 return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                   | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                   end) A))
+            (@inl (Ty.tySem A)
+               ((fix tySem (X0 : Ty.Ty) : Set :=
+                   match X0 return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A0 B => sum (tySem A0) (tySem B)
+                   | Ty.Prod A0 B => prod (tySem A0) (tySem B)
+                   end) A) (@List.fold_left (Ty.tySem A) X step xs initial)))

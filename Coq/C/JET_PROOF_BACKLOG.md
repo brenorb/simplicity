@@ -1,5 +1,31 @@
 # Remaining jet proof work
 
+The complete canonical `totalFee` program now compiles as
+`jet_elements_total_fee_literal`. `elements_total_fee_sem` proves its exact
+finite output-fold semantics, keeping the hash-based fee test, asset
+comparison, 64-bit adder and discarded carry. The new
+`jet_forWhile_fold_context` reuses the existing sequential loop invariant
+with the fixed asset key as context. All count bounds come from the existing
+environment domain; zero and maximal permitted output counts are covered.
+This is the specification side of the existing stored-table C comparison,
+not a C-equivalence theorem or public coverage increment. The cached-table
+construction/meaning, unapproved `memcmp_model`, and hash-classification
+boundary remain unresolved. Reuse Claude's existing
+`claude/shared-obligations:Coq/elements-env/C/jet_elements_env_sumfees.v`
+before implementing that helper again; its C execution theorem is not a
+canonical fee-sum bridge or a linked public-jet theorem.
+
+The two new modules pass ordinary builds, reviewed no-update statement and
+assumption comparisons, scanning and the 283 frozen-input checks. The fold
+infrastructure/value lemmas are closed; reader semantics uses only inherited
+functional extensionality. Astra Medium static review found no blocking
+semantic issue. The existing amount source gate checks both fee program
+trees and definitions, rejecting 112 targeted corruptions; theorem statements
+remain checked by the normal contract gate. Reproduce with the two ordinary
+`.vo` targets, scoped audits and both amount source scripts. No new transitive
+kernel receipt is claimed, no coverage entry is added, and main's acceptance
+run remains fixed at `249a2acf`.
+
 The ordinary `jet_elements_fee_literal` and `jet_elements_fee_compare` modules
 now connect the original `output_is_fee` C contract with the literal Haskell
 `outputIsFee` program. They prove an exact comparison for every index and
