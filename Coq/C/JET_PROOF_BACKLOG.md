@@ -1330,9 +1330,33 @@ private tag is proved absent. Definition provenance, per-name equality and
 closedness are compiled and recorded with no axioms. Dynamic function-pointer
 resolution remains separate. Next complete actual CompCert linking with the
 selected fragment, retaining the Elements wrapper/tag and deduplicating only
-these identical definitions. Explicit execution transport and initialized
-state construction remain. Do not count the interface/layout facts as Elements
-jet coverage or reinterpret the original external call as an internal one.
+these identical definitions. That step is now compiled in
+`jet_elements_taptweak_program`: CompCert's actual AST linker succeeds for the
+original host and the selected fragment (root plus 102 fresh definitions), and
+the actual composite linker produces the already checked layout extension.
+The concrete typed artifact contains exactly that linked AST and composite
+environment. Every selected import resolves exactly to its frozen definition;
+every host definition except the resolved generic declaration is retained,
+including the Elements wrapper and its private tag. Provenance and named
+reference closedness hold for the linked map. All 22 registered helper results
+have reviewed, closed assumption records. An initial bridge through
+`Ctypes.link_program` was rejected by the assumption audit: CompCert's generic
+`link_build_composite_env` imports `lib.Axioms.proof_irr`. That bridge is removed;
+no allowlist, gate or target is changed. Use the direct AST/composite artifact,
+not a claim of axiom-free equality to the generic typed-linker record.
+Explicit execution transport and initialized state construction remain. Do not
+count these facts as Elements jet coverage or reinterpret the original
+external call in elements_ge as an internal one.
+A second read-only Astra Medium review recommends transporting pure helper
+executions with existing `jet_transport.transport_funcall` (same starting/final
+memories), then parameterizing packets that access globals/dispatch or modeled
+library calls by concrete lookup/layout/global-state interfaces. Start with
+`secp_sha_pure_helpers` and the owned SHA initializer. Re-establish memcpy and
+memset witnesses at the destination ge using their existing models and exact
+Mem.storebytes result, which fixes the final memory; do not transport arbitrary
+abstract external executions. General memory-injection transport is a larger
+route, and CompCert's external-call injection requires a public-symbol
+interface equality that this selected slice does not have.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including

@@ -1,0 +1,200 @@
+### C.jet_elements_taptweak_program.taptweak_filter_fold
+@taptweak_filter_fold
+     : forall (A : Type) (keep : forall _ : AST.ident, bool) (defs : list (prod AST.ident A))
+         (before after : Maps.PTree.t A)
+         (_ : forall id : BinNums.positive,
+              @eq (option A) (@Maps.PTree.get A id after)
+                match keep id return (option A) with
+                | true => @Maps.PTree.get A id before
+                | false => @None A
+                end) (id : BinNums.positive),
+       @eq (option A)
+         (@Maps.PTree.get A id
+            (@List.fold_left (Maps.PTree.tree A) (prod BinNums.positive A)
+               (fun (m : Maps.PTree.tree A) (entry : prod BinNums.positive A) =>
+                @Maps.PTree.set A (@fst BinNums.positive A entry) (@snd BinNums.positive A entry) m)
+               (@List.filter (prod AST.ident A) (fun entry : prod AST.ident A => keep (@fst AST.ident A entry)) defs)
+               after))
+         match keep id return (option A) with
+         | true =>
+             @Maps.PTree.get A id
+               (@List.fold_left (Maps.PTree.tree A) (prod BinNums.positive A)
+                  (fun (m : Maps.PTree.tree A) (entry : prod BinNums.positive A) =>
+                   @Maps.PTree.set A (@fst BinNums.positive A entry) (@snd BinNums.positive A entry) m) defs before)
+         | false => @None A
+         end
+### C.jet_elements_taptweak_program.taptweak_filter_defmap
+@taptweak_filter_defmap
+     : forall (A : Type) (defs : list (prod AST.ident A)) (keep : forall _ : AST.ident, bool) (id : BinNums.positive),
+       @eq (option A)
+         (@Maps.PTree.get A id
+            (@Maps.PTree_Properties.of_list A
+               (@List.filter (prod AST.ident A) (fun entry : prod AST.ident A => keep (@fst AST.ident A entry)) defs)))
+         match keep id return (option A) with
+         | true => @Maps.PTree.get A id (@Maps.PTree_Properties.of_list A defs)
+         | false => @None A
+         end
+### C.jet_elements_taptweak_program.taptweak_fragment_composite_success
+taptweak_fragment_composite_success
+     : match taptweak_fragment_composite_result return Prop with
+       | Errors.OK _ => True
+       | Errors.Error _ => False
+       end
+### C.jet_elements_taptweak_program.taptweak_fragment_composite_env_correct
+taptweak_fragment_composite_env_correct
+     : @eq (Errors.res Ctypes.composite_env) (Ctypes.build_composite_env taptweak_fragment_composites)
+         (@Errors.OK Ctypes.composite_env taptweak_fragment_composite_env)
+### C.jet_elements_taptweak_program.taptweak_fragment_types_link
+taptweak_fragment_types_link
+     : @eq (option (list Ctypes.composite_definition))
+         (Ctypes.link_composite_defs jets_elements.composites taptweak_fragment_composites)
+         (@Some (list Ctypes.composite_definition) jet_elements_taptweak_link.elements_taptweak_linked_composites)
+### C.jet_elements_taptweak_program.elements_taptweak_globals_link_success
+elements_taptweak_globals_link_success
+     : match
+         @Linking.link_prog (Ctypes.fundef Clight.function) Ctypes.type (Ctypes.Linker_fundef Clight.function)
+           Ctypes.Linker_types (@Ctypes.program_of_program Clight.function jets_elements.prog)
+           (@Ctypes.program_of_program Clight.function taptweak_fragment_program) return Prop
+       with
+       | Some _ => True
+       | None => False
+       end
+### C.jet_elements_taptweak_program.elements_taptweak_linked_ast_correct
+elements_taptweak_linked_ast_correct
+     : @eq (option (AST.program (Ctypes.fundef Clight.function) Ctypes.type))
+         (@Linking.link_prog (Ctypes.fundef Clight.function) Ctypes.type (Ctypes.Linker_fundef Clight.function)
+            Ctypes.Linker_types (@Ctypes.program_of_program Clight.function jets_elements.prog)
+            (@Ctypes.program_of_program Clight.function taptweak_fragment_program))
+         (@Some (AST.program (Ctypes.fundef Clight.function) Ctypes.type) elements_taptweak_linked_ast)
+### C.jet_elements_taptweak_program.taptweak_typed_program_ast
+taptweak_typed_program_ast
+     : forall (a : AST.program Clight.fundef Ctypes.type) (types : list Ctypes.composite_definition)
+         (ce : Ctypes.composite_env)
+         (correct : @eq (Errors.res Ctypes.composite_env) (Ctypes.build_composite_env types)
+                      (@Errors.OK Ctypes.composite_env ce)),
+       @eq (AST.program (Ctypes.fundef Clight.function) Ctypes.type)
+         (@Ctypes.program_of_program Clight.function (taptweak_typed_program a types ce correct)) a
+### C.jet_elements_taptweak_program.elements_taptweak_program_ast_exact
+elements_taptweak_program_ast_exact
+     : @eq (AST.program (Ctypes.fundef Clight.function) Ctypes.type)
+         (@Ctypes.program_of_program Clight.function elements_taptweak_linked_program) elements_taptweak_linked_ast
+### C.jet_elements_taptweak_program.elements_taptweak_program_composites_exact
+elements_taptweak_program_composites_exact
+     : and
+         (@eq (list Ctypes.composite_definition) (@Ctypes.prog_types Clight.function elements_taptweak_linked_program)
+            jet_elements_taptweak_link.elements_taptweak_linked_composites)
+         (@eq Ctypes.composite_env (@Ctypes.prog_comp_env Clight.function elements_taptweak_linked_program)
+            jet_elements_taptweak_link.elements_taptweak_composite_env)
+### C.jet_elements_taptweak_program.taptweak_ast_link_lookup
+taptweak_ast_link_lookup
+     : forall (p q r : AST.program Clight.fundef Ctypes.type) (id : BinNums.positive)
+         (_ : @eq (option (AST.program Clight.fundef Ctypes.type))
+                (@Linking.link_prog Clight.fundef Ctypes.type (Ctypes.Linker_fundef Clight.function)
+                   Ctypes.Linker_types p q) (@Some (AST.program Clight.fundef Ctypes.type) r)),
+       @eq (option (AST.globdef Clight.fundef Ctypes.type))
+         (@Maps.PTree.get (AST.globdef Clight.fundef Ctypes.type) id (@AST.prog_defmap Clight.fundef Ctypes.type r))
+         (@Linking.link_prog_merge Clight.fundef Ctypes.type (Ctypes.Linker_fundef Clight.function) Ctypes.Linker_types
+            (@Maps.PTree.get (AST.globdef Clight.fundef Ctypes.type) id (@AST.prog_defmap Clight.fundef Ctypes.type p))
+            (@Maps.PTree.get (AST.globdef Clight.fundef Ctypes.type) id (@AST.prog_defmap Clight.fundef Ctypes.type q)))
+### C.jet_elements_taptweak_program.elements_taptweak_linked_lookup
+elements_taptweak_linked_lookup
+     : forall id : BinNums.positive,
+       @eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id elements_taptweak_linked_defmap)
+         (@Linking.link_prog_merge (Ctypes.fundef Clight.function) Ctypes.type (Ctypes.Linker_fundef Clight.function)
+            Ctypes.Linker_types
+            (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id
+               jet_elements_taptweak_import.taptweak_host_defmap)
+            (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id taptweak_fragment_defmap))
+### C.jet_elements_taptweak_program.elements_taptweak_generic_resolves
+elements_taptweak_generic_resolves
+     : @eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+            jets_elements._simplicity_generic_taptweak elements_taptweak_linked_defmap)
+         (@Some (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+            (@AST.Gfun (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.Internal Clight.function jets_secp.f_simplicity_generic_taptweak)))
+### C.jet_elements_taptweak_program.elements_taptweak_wrapper_retained
+elements_taptweak_wrapper_retained
+     : @eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+            jets_elements._simplicity_build_taptweak elements_taptweak_linked_defmap)
+         (@Some (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+            (@AST.Gfun (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.Internal Clight.function jets_elements.f_simplicity_build_taptweak)))
+### C.jet_elements_taptweak_program.elements_taptweak_tag_retained
+elements_taptweak_tag_retained
+     : @eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) jets_elements._taptweak
+            elements_taptweak_linked_defmap)
+         (@Some (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+            (@AST.Gvar (Ctypes.fundef Clight.function) Ctypes.type jets_elements.v_taptweak))
+### C.jet_elements_taptweak_program.taptweak_source_generic
+taptweak_source_generic
+     : @eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+            jets_secp._simplicity_generic_taptweak jet_elements_taptweak_import.taptweak_source_defmap)
+         (@Some (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+            (@AST.Gfun (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.Internal Clight.function jets_secp.f_simplicity_generic_taptweak)))
+### C.jet_elements_taptweak_program.taptweak_fragment_lookup
+taptweak_fragment_lookup
+     : forall id : BinNums.positive,
+       @eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id taptweak_fragment_defmap)
+         match taptweak_fragment_keep id return (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)) with
+         | true =>
+             match
+               @List.existsb BinNums.positive (BinPos.Pos.eqb id) jet_elements_taptweak_import.taptweak_import_names
+               return (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+             with
+             | true =>
+                 @Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id
+                   jet_elements_taptweak_import.taptweak_source_defmap
+             | false => @None (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+             end
+         | false => @None (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+         end
+### C.jet_elements_taptweak_program.elements_taptweak_host_preserved
+elements_taptweak_host_preserved
+     : forall (id : AST.ident) (gd : AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+         (_ : not (@eq AST.ident id jets_secp._simplicity_generic_taptweak))
+         (_ : @eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+                (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id
+                   jet_elements_taptweak_import.taptweak_host_defmap)
+                (@Some (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) gd)),
+       @eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id elements_taptweak_linked_defmap)
+         (@Some (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) gd)
+### C.jet_elements_taptweak_program.elements_taptweak_import_preserved
+elements_taptweak_import_preserved
+     : forall (id : BinNums.positive)
+         (_ : @List.In BinNums.positive id jet_elements_taptweak_import.taptweak_import_names),
+       @eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id elements_taptweak_linked_defmap)
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id
+            jet_elements_taptweak_import.taptweak_source_defmap)
+### C.jet_elements_taptweak_program.taptweak_fragment_definition_source
+taptweak_fragment_definition_source
+     : forall (entry : prod BinNums.positive (AST.globdef Clight.fundef Ctypes.type))
+         (_ : @List.In (prod BinNums.positive (AST.globdef Clight.fundef Ctypes.type)) entry
+                taptweak_fragment_definitions),
+       @List.In (prod BinNums.positive (AST.globdef Clight.fundef Ctypes.type)) entry jets_secp.global_definitions
+### C.jet_elements_taptweak_program.taptweak_fragment_composite_source
+taptweak_fragment_composite_source
+     : forall (cd : Ctypes.composite_definition)
+         (_ : @List.In Ctypes.composite_definition cd taptweak_fragment_composites),
+       @List.In Ctypes.composite_definition cd jets_secp.composites
+### C.jet_elements_taptweak_program.elements_taptweak_named_references_closed
+elements_taptweak_named_references_closed
+     : forall (id : BinNums.positive)
+         (_ : @List.In BinNums.positive id jet_elements_taptweak_import.taptweak_import_names),
+       @ex (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+         (fun gd : AST.globdef (Ctypes.fundef Clight.function) Ctypes.type =>
+          and
+            (@eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+               (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id
+                  elements_taptweak_linked_defmap) (@Some (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) gd))
+            (forall (ref : AST.ident)
+               (_ : @List.In AST.ident ref (jet_elements_taptweak_import.taptweak_definition_references gd)),
+             @List.In AST.ident ref jet_elements_taptweak_import.taptweak_import_names))
