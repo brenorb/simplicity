@@ -808,6 +808,28 @@ or successful caller execution is assumed. The ordinary build and all three
 reviewed no-update records pass, with existing functional extensionality only.
 Fresh recursive kernel checking remains pending.
 
+`jet_secp_generate_small_group.secp_literal_generate_small_valid_group`
+composes the actual generator recursion and affine normalization for each
+present valid window-15 digit and either actual generator base. It derives
+non-infinity from the checked generator order, then nonzero Z from the group
+representation. No inversion, finiteness, or helper execution is assumed.
+The original window-15 stream's existing `literal_wnaf15_values` theorem
+supplies digit validity at the caller. The ordinary build and all eight reviewed no-update records pass, with
+existing functional extensionality only for the literal operations. Fresh
+recursive kernel checking remains pending.
+
+The recursive checks started for the walk/pass1 and signed-action roots did
+not leave terminal statuses or after-run fingerprints, and neither checker
+was running when revalidated. Their partial logs remain in temporary output;
+these attempts are not recorded as passes. The direct commands omitted the
+normal driver's `-bytecode-compiler yes` flag, causing very slow computational
+certificate conversion. Reuse the existing checked-reduction command:
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_generate_small_group C.jet_secp_wnaf5_reconstruction` (with the
+pinned compiler and 64 MiB stack). It checks the complete dependency closure;
+it does not use `-admit` or `-norec`. Fresh recursive checking remains pending. Ordinary builds and the scoped no-update records described above
+are completed evidence; public coverage remains 526/533.
+
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
 term arguments. When the context contains both `ValueA : value=point` and
