@@ -1,0 +1,71 @@
+### C.jet_elements_taptweak_generator_split.elements_taptweak_has_scalar_split128
+elements_taptweak_has_scalar_split128
+     : @List.In (prod AST.ident Clight.function)
+         (@pair AST.ident Clight.function jets_secp._secp256k1_scalar_split_128 jets_secp.f_secp256k1_scalar_split_128)
+         jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers
+### C.jet_elements_taptweak_generator_split.exec_elements_taptweak_generator_scalar_split
+exec_elements_taptweak_generator_scalar_split
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (b0 b128 bs : Values.block) (base : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._ng_1 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b0 (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._ng_128 e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b128 (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_scalar_split_128 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._ng le)
+                (@Some Values.val (Values.Vptr bs (Integers.Ptrofs.repr base)))) (_ : not (@eq Values.block b0 b128))
+         (_ : not (@eq Values.block b0 bs)) (_ : not (@eq Values.block b128 bs))
+         (_ : Memory.Mem.range_perm m b0 BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m b128 BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bs base
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                         (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem value))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m
+               jet_secp_generator_split_call.generator_scalar_split_call Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_secp_scalar_get_b32_storage.scalar_at mf b0 BinNums.Z0
+                  (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                     (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O))))))))
+                           (jet_secp_scalar_split128_literal.literal_split128_low value)))))
+               (and
+                  (jet_secp_scalar_get_b32_storage.scalar_at mf b128 BinNums.Z0
+                     (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                        (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                           (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O))))))))
+                              (jet_secp_scalar_split128_literal.literal_split128_high value)))))
+                  (and
+                     (Memory.Mem.range_perm mf b0 BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf b128 BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock m))
+                           (and
+                              (forall (b : Values.block) (pos : BinNums.Z) (k : Memtype.perm_kind)
+                                 (p : Memtype.permission),
+                               iff (Memory.Mem.perm mf b pos k p) (Memory.Mem.perm m b pos k p))
+                              (and
+                                 (jet_sx_mem.lframe
+                                    (fun (b : Values.block) (_ : BinNums.Z) =>
+                                     and (not (@eq Values.block b b0))
+                                       (and (not (@eq Values.block b b128)) (not (@eq Values.block b bs)))) m mf)
+                                 (jet_clight_internal_preserve.readonly_preserved m mf)))))))))

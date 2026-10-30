@@ -1743,8 +1743,35 @@ normally and their reviewed scoped records match without update flags,
 with the same six inherited execution assumptions. Their local-domain
 conditions are internal obligations discharged by the actual entry, and the
 finite/nonzero branch must still be composed with the skipped cases.
-Next compose the arbitrary-count generator branch, whole Strauss/ecmult and
-the inverse. No whole ecmult or public call is established yet.
+`jet_elements_taptweak_generator_split` now executes the original split-128
+call with its exact permission effects and readonly preservation.
+`jet_elements_taptweak_generator_from` derives both real window-15 calls
+with an arbitrary incoming count up to 129, and
+`jet_elements_taptweak_generator_branch` composes the nonnull generator
+branch without deferred clear/callee premises, preserving the actual linked
+tables, old permissions and readonly state.
+`jet_elements_taptweak_point_stage` composes the original infinity
+initializer, full four-stream descending loop and final Z correction.
+`jet_elements_taptweak_strauss_main` connects the generator branch to that
+point stage and proves the exact existing literal Strauss-body result,
+ownership, old-memory framing, readonly preservation and the conditional
+stored infinity-flag guarantee. It discharges the domain/bound-local
+conditions from the actual nine-local environment; these are not added
+caller premises. All five build normally and their reviewed scoped
+assumption/contract records match without update flags, with the same six
+inherited execution assumptions. No whole ecmult or public call is
+established yet.
+
+Next derive `generator_initialize` and its real entry at the linked GE,
+then compose finite and skipped preprocessing, beta/main phases and all
+nine frees into whole Strauss and the four outer ecmult frees. Reuse
+`strauss_entry_and_initialize`'s source allocation witnesses through the
+checked variable layout and transport the pure initialization statement;
+do not redo the allocation/ownership proof. Preserve the new readonly
+results instead of using general external-call forwarding properties.
+Then connect the inverse and native tweak suffix. The old inverse CountCall
+and modulus predicates still use source addresses and need actual linked
+callees, not an assumed source-to-target oracle.
 Reproduce the completed component builds with:
 
 ```sh
