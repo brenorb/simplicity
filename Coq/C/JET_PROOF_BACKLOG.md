@@ -1,18 +1,33 @@
 # Remaining jet proof work
 
-The final Elements implementation-to-Simplicity theorem now builds in
-`jet_elements_taptweak_local.elements_build_taptweak_initialized_local_spec`.
-It uses shared `jet_taptweak_literal_at` (arbitrary tag IV, all assertion
-branches) and `jet_initialized_partial_contract_at` (the unchanged standard
-partial contract indexed by the actual linked GE). Initialized memory exists
-and readiness is preserved. Reviewed scoped records and no-update comparisons,
-proof scanning and frozen-target checks pass. The theorem has the same six
-inherited assumptions and only the three approved library models. Astra
-Medium found no blocking semantic, domain or oracle issue in the bridge; its
-review was static and did not recheck dependencies. The canonical source-gate
-extension privately passes its 24 new negative mutations. Next integrate
-that gate and the exact public registration, then run full scoped acceptance
-without updates. Accepted coverage remains 529/533 until it passes.
+The complete frozen Elements `simplicity_build_taptweak` theorem is now
+registered as
+`C.jet_elements_taptweak_local.elements_build_taptweak_initialized_local_spec`.
+It executes the actual CompCert-linked program against the shared literal
+Simplicity assertion instantiated with the Elements tag IV; all inputs and
+success/failure branches, frame observations and startup preservation remain.
+Its only explicit library models are the approved memcpy, memset and CTZ
+contracts; its reviewed assumption record has the six inherited assumptions.
+Initial-memory existence is proved. All ordinary builds, focused no-update
+records, source scanning, frozen-target checks and coverage tests pass.
+The existing canonical-source gate now checks the Elements instance and
+rejects 24 targeted mutations. Astra Medium's bounded static review found no
+blocking bridge issue; it did not perform the transitive kernel check.
+
+Registration is now 530/533; **accepted coverage remains 529/533** pending:
+
+```sh
+JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_build_taptweak
+```
+
+Run it on the final committed inputs without update flags. The closure has
+1,665 C modules. Private runner `/private/tmp/run-elements-taptweak-acceptance.sh`
+captures the exact revision, source/object/dependency fingerprints, exit code
+and log at `/private/tmp/elements-taptweak-acceptance.*`. Do not edit formal
+inputs during the run or reuse a historical receipt for these newer ports.
+After success, update this checkpoint and continue `hash_to_curve` and the two
+fee jets. Preserve the remaining return/infinity and empty-script/hash
+obligations; do not assume them away or count restricted helper results.
 
 ## Linked Elements TapTweak integration notes (historical)
 

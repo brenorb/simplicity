@@ -378,6 +378,14 @@ RECOVERED_CONTRACTS["simplicity_bitcoin_build_taptweak"] = (
     "secp_jet_initialized_partial_local_spec taptweak_ready f_simplicity_bitcoin_build_taptweak "
     "(Word 9) (Word 8) (@literal_taptweak (Alg.AssertionSem option_Monad_Zero)).")
 
+# Whole frozen Elements wrapper in the actual CompCert-linked program.
+# Its shared literal assertion is instantiated with the Elements tag IV.
+RECOVERED_CONTRACTS["simplicity_build_taptweak"] = (
+    "memcpy_model ->memset_model ->ctz_model -> "
+    "jet_initialized_partial_local_spec_at elements_taptweak_ge elements_taptweak_runtime_ready C.jets_elements.f_simplicity_build_taptweak "
+    "(Word 9) (Word 8) (@literal_taptweak_at elements_taptweak_iv_word (Alg.AssertionSem option_Monad_Zero)).")
+
+
 REPORTED_MISMATCH_CONTRACTS = {
     "simplicity_gej_ge_add_ex": {
         "contract": "secp_jet_local_spec_on (fun a => ~gej_ge_add_ex_ratio_mismatch a) "

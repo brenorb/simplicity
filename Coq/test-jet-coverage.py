@@ -51,8 +51,8 @@ def main():
     assert coverage.missing_proofs([complete, absent, divergent]) == [absent]
     assert coverage.missing_equivalences([complete, divergent]) == [divergent]
     assert sum(bool(row["divergence_proof"]) for row in rows) == 1
-    assert len(coverage.missing_equivalences(rows)) == 5
-    assert len(coverage.missing_proofs(rows)) == 4
+    assert len(coverage.missing_equivalences(rows)) == 4
+    assert len(coverage.missing_proofs(rows)) == 3
     assert coverage.proof_roots(rows, ["simplicity_gej_ge_add_ex"]) == {
         "C.jet_secp_mixed_ex_local", "C.jet_secp_mixed_ex_refutation"}
     assert coverage.proof_roots(rows, ["simplicity_scale"]) == {"C.jet_secp_checked_scale_local"}
@@ -69,10 +69,13 @@ def main():
     assert coverage.proof_roots(rows, ["simplicity_bitcoin_build_taptweak"]) == {"C.jet_secp_taptweak_local"}
     taptweak_row = next(row for row in rows if row["function"] == "simplicity_bitcoin_build_taptweak")
     assert taptweak_row["condition"] == combined
-    assert sum(bool(coverage.condition_models(row["condition"])) for row in rows) == 153
-    assert sum("memcpy_model" in coverage.condition_models(row["condition"]) for row in rows) == 141
-    assert sum("ctz_model" in coverage.condition_models(row["condition"]) for row in rows) == 8
-    assert sum("memset_model" in coverage.condition_models(row["condition"]) for row in rows) == 10
+    assert coverage.proof_roots(rows, ["simplicity_build_taptweak"]) == {"C.jet_elements_taptweak_local"}
+    elements_tweak = next(row for row in rows if row["function"] == "simplicity_build_taptweak")
+    assert elements_tweak["condition"] == combined
+    assert sum(bool(coverage.condition_models(row["condition"])) for row in rows) == 154
+    assert sum("memcpy_model" in coverage.condition_models(row["condition"]) for row in rows) == 142
+    assert sum("ctz_model" in coverage.condition_models(row["condition"]) for row in rows) == 9
+    assert sum("memset_model" in coverage.condition_models(row["condition"]) for row in rows) == 11
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_hash_to_curve"]),
             "jets without registered proof entries")
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_not_a_jet"]),
@@ -151,7 +154,7 @@ def main():
                 variants += [tail.replace("ctz_model ->", "memset_model ->", 1),
                              tail.replace("ctz_model ->", "", 1),
                              tail.replace("ctz_model ->", "ctz_model -> ctz_model ->", 1)]
-                for state in ("modinfo_fe_state", "modinfo_scalar_initialized", "swu_startup", "generator_startup", "schnorr_startup"):
+                for state in ("modinfo_fe_state", "modinfo_scalar_initialized", "swu_startup", "generator_startup", "schnorr_startup", "elements_taptweak_runtime_ready"):
                     if state in tail:
                         variants.append(tail.replace(state, "(fun _ => True)", 1))
             if "memset_model ->" in tail:
@@ -163,6 +166,10 @@ def main():
             if "secp_jet_initialized_partial_local_spec" in tail:
                 variants.append(tail.replace("secp_jet_initialized_partial_local_spec",
                                              "secp_jet_initialized_local_spec", 1))
+            if "jet_initialized_partial_local_spec_at" in tail:
+                variants += [tail.replace("jet_initialized_partial_local_spec_at", "secp_jet_initialized_partial_local_spec", 1),
+                             tail.replace("elements_taptweak_ge", "elements_ge", 1),
+                             tail.replace("elements_taptweak_iv_word", "taptweak_iv_word", 1)]
             if "beta_initialized" in tail:
                 variants.append(tail.replace("beta_initialized", "(fun _ => True)", 1))
             for changed in variants:

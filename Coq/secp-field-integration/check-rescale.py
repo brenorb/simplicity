@@ -1441,6 +1441,79 @@ def check_taptweak(s):
         raise ValueError('Bitcoin TapTweak complete success/failure contract differs')
 
 
+
+def check_elements_taptweak(s):
+    """Check the Elements instance against the already checked shared tree.
+
+    This supplements kernel checking; it is not a proof of C execution.
+    Bitcoin and Elements have the same assertion tree with distinct tag IVs.
+    """
+    for key, fragment in [
+        ('elements_catalog', 'import qualified Simplicity.Programs.Elements.Lib as Prog'),
+        ('elements_catalog', 'BuildTaptweak :: SigHashJet (PubKey, Word256) PubKey'),
+        ('elements_catalog', 'specificationSigHash BuildTaptweak = Prog.buildTaptweak'),
+        ('elements_library', 'buildTaptweak = Elements.buildTaptweak Elements.libAssert'),
+        ('elements_program', 'libAssert = mkLibAssert Sha256.lib Sha256.libAssert LibSecp256k1.lib'),
+        ('elements_ffi', 'build_taptweak :: (Word256, Word256) -> Maybe Word256'),
+        ('elements_ffi', 'build_taptweak = unsafeLocalCoreJet c_build_taptweak'),
+        ('elements_ffi', 'foreign import ccall unsafe "" c_build_taptweak :: Ptr FrameItem -> Ptr FrameItem -> IO CBool'),
+        ('elements_program', 'taptweakPrefix = scribe . toWord256 . integerHash256 . ivHash . tagIv $ fromString "TapTweak/elements"'),
+        ('elements_program', 'lt256 = lt word256'),
+    ]:
+        p.require(s[key], fragment, 'Elements TapTweak binding')
+    def body(program):
+        impl = program.split('libAssert@LibAssert{..} = LibAssert {', 1)[1]
+        found = re.search(r',\s*buildTaptweak\s*=(.*?)\}\s*where', impl, re.S)
+        if not found:
+            raise ValueError('missing TapTweak assertion tree')
+        return p.compact(found[1])
+    if body(s['elements_program']) != body(s['bitcoin_program']):
+        raise ValueError('Elements TapTweak assertion tree differs from checked shared tree')
+    for old, new in [('literal_taptweak_hash', 'literal_taptweak_hash_at'),
+                     ('literal_taptweak_generate', 'literal_taptweak_generate_at'),
+                     ('literal_taptweak', 'literal_taptweak_at')]:
+        expected = p.definition(s['taptweak_literal'], old)
+        for source, target in [('literal_taptweak_generate', 'literal_taptweak_generate_at'),
+                               ('literal_taptweak_hash', 'literal_taptweak_hash_at'),
+                               ('taptweak_iv_word', 'iv')]:
+            expected = re.sub(r'\b' + source + r'\b', target, expected)
+        if p.compact(p.definition(s['tagged_taptweak_literal'], new)) != p.compact(expected):
+            raise ValueError('generic tagged TapTweak assertion port differs: ' + new)
+    for key, name, expected in [
+        ('tagged_taptweak_literal', 'tagged_taptweak_hash_word',
+         '@Simplicity.SHA256.hashBlock Alg.CoreFunSem (@Simplicity.SHA256.hashBlock Alg.CoreFunSem(iv,(pk,h)),taptweak_pad_word)'),
+        ('elements_taptweak_tag', 'elements_taptweak_tag_bytes',
+         'map Int.repr [84;97;112;84;119;101;97;107;47;101;108;101;109;101;110;116;115]'),
+        ('elements_taptweak_tag', 'elements_taptweak_tag_digest', 'Digest.stringHash "TapTweak/elements"'),
+        ('elements_taptweak_tag', 'elements_taptweak_tag_iv',
+         'Digest.compress Digest.sha256_iv elements_taptweak_tag_digest elements_taptweak_tag_digest'),
+        ('elements_taptweak_tag', 'elements_taptweak_iv_word', 'Word.from_hash256 elements_taptweak_tag_iv'),
+        ('elements_taptweak_hash', 'elements_taptweak_hash_word',
+         '@Simplicity.SHA256.hashBlock Alg.CoreFunSem (@Simplicity.SHA256.hashBlock Alg.CoreFunSem (elements_taptweak_iv_word,(pk,h)),taptweak_pad_word)'),
+        ('elements_taptweak_ready', 'elements_taptweak_runtime_tag_block',
+         'elements_taptweak_symbol_block jets_elements._taptweak'),
+        ('elements_taptweak_ready', 'elements_taptweak_curve_state',
+         '(forall high,elements_taptweak_generator_table_state high m) /\\elements_taptweak_split_ready m /\\elements_taptweak_beta_initialized m /\\elements_taptweak_modinfo_fe_state m'),
+        ('elements_taptweak_ready', 'elements_taptweak_dispatch_extent',
+         'Mem.valid_block m elements_taptweak_sha_dispatch_block /\\block_extent m elements_taptweak_sha_dispatch_block 8'),
+        ('elements_taptweak_ready', 'elements_taptweak_runtime_ready',
+         'elements_taptweak_curve_state m /\\elements_taptweak_sha_startup m /\\elements_taptweak_tag_state_at elements_taptweak_runtime_tag_block m /\\elements_taptweak_dispatch_extent m'),
+        ('elements_taptweak_ge', 'elements_taptweak_ge', 'Clight.globalenv elements_taptweak_linked_program'),
+    ]:
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('Elements TapTweak literal dependency differs: ' + name)
+    expected_contract = p.definition(s['secp_partial_contract'], 'secp_jet_initialized_partial_local_spec')
+    expected_contract = re.sub(r'\bsecp_ge\b', 'ge', expected_contract)
+    if p.compact(p.definition(s['partial_contract_at'], 'jet_initialized_partial_local_spec_at')) != p.compact(expected_contract):
+        raise ValueError('program-indexed initialized partial contract differs')
+    statements = re.findall(r'Theorem elements_build_taptweak_initialized_local_spec\s*:(.*?)\bProof\.', s['elements_taptweak_jet'], re.S)
+    expected = ('memcpy_model ->memset_model ->ctz_model -> '
+                'jet_initialized_partial_local_spec_at elements_taptweak_ge elements_taptweak_runtime_ready C.jets_elements.f_simplicity_build_taptweak '
+                '(Word 9) (Word 8) (@literal_taptweak_at elements_taptweak_iv_word (Alg.AssertionSem option_Monad_Zero)).')
+    if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
+        raise ValueError('Elements TapTweak complete public contract differs')
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1461,6 +1534,18 @@ def test():
         "schnorr_hash": COQ / "C/jet_secp_schnorr_challenge_hash.v",
         "schnorr_startup": COQ / "C/jet_secp_schnorr_startup.v",
         "schnorr_jet": COQ / "C/jet_secp_bip0340_local.v",
+        "elements_catalog": REPO / "Haskell/Simplicity/Elements/Jets.hs",
+        "elements_ffi": REPO / "Haskell/Simplicity/Elements/FFI/Jets.hs",
+        "elements_library": REPO / "Haskell/Core/Simplicity/Programs/Elements/Lib.hs",
+        "elements_program": REPO / "Haskell/Core/Simplicity/Programs/Elements.hs",
+        "elements_taptweak_tag": COQ / "C/jet_elements_taptweak_tag.v",
+        "elements_taptweak_hash": COQ / "C/jet_elements_taptweak_message_hash.v",
+        "elements_taptweak_ready": COQ / "C/jet_elements_taptweak_runtime_ready.v",
+        "elements_taptweak_ge": COQ / "C/jet_elements_taptweak_pure.v",
+        "elements_taptweak_jet": COQ / "C/jet_elements_taptweak_local.v",
+        "partial_contract_at": COQ / "C/jet_initialized_partial_contract_at.v",
+        "secp_partial_contract": COQ / "C/jet_secp_initialized_partial_contract.v",
+        "tagged_taptweak_literal": COQ / "C/jet_taptweak_literal_at.v",
         "bitcoin_catalog": REPO / "Haskell/Simplicity/Bitcoin/Jets.hs",
         "bitcoin_ffi": REPO / "Haskell/Simplicity/Bitcoin/FFI/Jets.hs",
         "bitcoin_library": REPO / "Haskell/Core/Simplicity/Programs/Bitcoin/Lib.hs",
@@ -2160,6 +2245,46 @@ def test():
             continue
         raise ValueError('accepted Bitcoin TapTweak source mutation: ' + old)
     print(f'Bitcoin TapTweak catalog/tag/assertion/complete public contract match; {len(mutations)} targeted mutations rejected')
+
+
+    check_elements_taptweak(s)
+    mutations = [
+        ('elements_catalog', 'specificationSigHash BuildTaptweak = Prog.buildTaptweak', 'specificationSigHash BuildTaptweak = Prog.buildTapbranch'),
+        ('elements_library', 'Elements.buildTaptweak Elements.libAssert', 'Elements.buildTaptweak Elements.lib'),
+        ('elements_ffi', 'build_taptweak = unsafeLocalCoreJet c_build_taptweak', 'build_taptweak = unsafeLocalCoreJet c_build_tapbranch'),
+        ('elements_program', 'fromString "TapTweak/elements"', 'fromString "TapTweak"'),
+        ('elements_program', '2^511 + 1024)) >>> hashBlock >>>', '2^511 + 512)) >>> hashBlock >>>'),
+        ('elements_program', 'unit >>> false', 'unit >>> true'),
+        ('elements_program', '>>> gej_ge_add >>> gej_normalize', '>>> gej_add >>> gej_normalize'),
+        ('elements_program', 'lt256 = lt word256', 'lt256 = le word256'),
+        ('tagged_taptweak_literal', 'canonical_field_word core', 'canonical_group_word core'),
+        ('tagged_taptweak_literal', 'canonical_group_word core', 'canonical_field_word core'),
+        ('tagged_taptweak_literal', 'TC.drop (@literal_generate core)', 'TC.take (@literal_generate core)'),
+        ('tagged_taptweak_literal', 'iv,(pk,h)', 'iv,(h,pk)'),
+        ('tagged_taptweak_literal', '(@literal_gej_ge_add core)', '(@literal_gej_add core)'),
+        ('elements_taptweak_tag', '"TapTweak/elements"', '"TapTweak"'),
+        ('elements_taptweak_hash', 'elements_taptweak_iv_word,(pk,h)', 'elements_taptweak_iv_word,(h,pk)'),
+        ('elements_taptweak_ready', 'elements_taptweak_curve_state m /\\', 'True /\\'),
+        ('elements_taptweak_ready', 'elements_taptweak_sha_dispatch_block 8', 'elements_taptweak_sha_dispatch_block 9'),
+        ('elements_taptweak_ge', 'Clight.globalenv elements_taptweak_linked_program', 'Clight.globalenv jets_elements.prog'),
+        ('partial_contract_at', 'Clight2.eval_funcall ge', 'Clight2.eval_funcall secp_ge'),
+        ('partial_contract_at', 'match spec a with', 'match None with'),
+        ('elements_taptweak_jet', 'memcpy_model ->memset_model ->ctz_model ->', 'memcpy_model ->memset_model ->ctz_model ->False ->'),
+        ('elements_taptweak_jet', 'C.jets_elements.f_simplicity_build_taptweak', 'f_simplicity_generic_taptweak'),
+        ('elements_taptweak_jet', 'jet_initialized_partial_local_spec_at elements_taptweak_ge elements_taptweak_runtime_ready', 'jet_initialized_partial_local_spec_at elements_taptweak_ge (fun _ => True)'),
+        ('elements_taptweak_jet', 'elements_taptweak_iv_word (Alg.AssertionSem', 'taptweak_iv_word (Alg.AssertionSem'),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive Elements TapTweak mutation fixture: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_elements_taptweak(changed)
+        except ValueError:
+            continue
+        raise ValueError('accepted Elements TapTweak source mutation: ' + old)
+    print(f'Elements TapTweak catalog/tag/shared assertion/full public contract match; {len(mutations)} targeted mutations rejected')
 
 
 if __name__ == "__main__":
