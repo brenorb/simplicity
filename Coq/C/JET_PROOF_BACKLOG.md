@@ -505,7 +505,20 @@ reviewed scoped no-update records pass. `jet_secp_field_zero_readonly` executes
 the exact `fe_is_zero` accessor with memory unchanged, and derives its nonzero
 result from nonzero limb value; it does not substitute the normalization-based
 zero helper. Its ordinary build and audits also pass. Compose these with the
-original loader entry, `ge_from_storage`, zero-X guard, and frees next.
+original loader entry, `ge_from_storage`, zero-X guard, and frees.
+`jet_secp_pubkey_load_entry` and `jet_secp_pubkey_load_body` now compile the
+three real allocations and both zero-X outcomes of the native-storage branch.
+`jet_secp_pubkey_load_function.eval_pubkey_load` closes the complete original
+function, including return conversion and all frees; `eval_xonly_pubkey_load`
+composes the original cast/call/return wrapper. It accepts every represented
+native storage value, retaining the actual zero-X outcome and only the existing
+bounded `memcpy_model` library premise. `jet_secp_pubkey_load_coordinates`
+recovers exact canonical coordinate limbs and proves success for a represented
+on-curve point, using the existing `secp_curve_x_nonzero` theorem. These modules
+have ordinary builds and reviewed scoped no-update records. They are later than
+the pending `e71798a6` recursive-check inputs. Next compose the caller's key-load
+statement, then prove the actual parser/save path establishes the native key
+representation and close signature guards and the outer lifecycle.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
