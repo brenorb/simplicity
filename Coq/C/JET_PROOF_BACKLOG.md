@@ -1655,9 +1655,18 @@ loose-field bounds, literal beta product, permissions and readonly frame.
 expressions and Strauss state-pointer loads through checked layouts, and
 derives the beta global address and loop steps. Both build normally; reviewed
 assumption/contract records match without update flags. Execution uses the
-same six inherited assumptions, without a library premise. The single update
-and complete eight-product loop also compile in scratch; integrate them next.
-No whole ecmult or public call is established by these components.
+same six inherited assumptions, without a library premise.
+`jet_elements_taptweak_beta_step` and `jet_elements_taptweak_beta_loop` now
+derive the actual update, all eight products and both the one-point and empty
+auxiliary paths in the linked program. The resulting memory retains the
+source table, both state pointers, every caller-owned range, beta state,
+permissions, framing and the existing literal product relation. Both build
+normally, and reviewed theorem/definition records match without update flags,
+with only the six inherited execution assumptions and no library premise.
+The generator lookup/literal bridge, nonzero-digit addition, digit dispatch
+and pair execution compile in scratch; integrate their checked internal-graph
+effects first, then the complete digit pair. No whole ecmult or public call
+is established by these components.
 Reproduce the completed component builds with:
 
 ```sh
