@@ -1,0 +1,349 @@
+### C.jet_elements_fee_literal.fee_empty_hash_word_matches
+fee_empty_hash_word_matches
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) fee_empty_hash_word
+         (Word.from_hash256 (Digest.byteStringHash (@nil Integers.Byte.int)))
+### C.jet_elements_fee_literal.elements_fee_tail_parametric
+elements_fee_tail_parametric
+     : @Alg.Core.Parametric
+         (Ty.Prod
+            (Ty.Sum Ty.Unit
+               (Ty.Prod
+                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Word.Word (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit))
+         (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)) (fun alg : Alg.Core.Algebra => @elements_fee_tail alg)
+### C.jet_elements_fee_literal.elements_fee_tail_value
+elements_fee_tail_value
+     : forall (asset : jet_elements_prim.assetWith unit) (amount : jet_elements_prim.amountWith unit)
+         (b : sum unit unit),
+       @eq (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)))
+         (@elements_fee_tail Alg.CoreFunSem
+            (@pair
+               (sum unit
+                  (prod
+                     (Ty.tySem
+                        (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                     (Ty.tySem
+                        (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Word.Word (S (S (S (S (S (S O))))))))))) (sum unit unit)
+               (@inr unit
+                  (prod
+                     (Ty.tySem
+                        (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                     (Ty.tySem
+                        (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Word.Word (S (S (S (S (S (S O))))))))))
+                  (@pair
+                     (Ty.tySem
+                        (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                     (Ty.tySem
+                        (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Word.Word (S (S (S (S (S (S O))))))))) (jet_elements_asset_jets.encode_asset asset)
+                     (jet_elements_amount_jets.encode_amount amount))) b))
+         (@inr unit (sum unit unit)
+            match amount return (sum unit unit) with
+            | jet_elements_prim.Explicit _ =>
+                match asset return (sum unit unit) with
+                | jet_elements_prim.Explicit _ => b
+                | jet_elements_prim.Confidential _ _ => @inl unit unit tt
+                end
+            | jet_elements_prim.Confidential _ _ => @inl unit unit tt
+            end)
+### C.jet_elements_fee_literal.fee_empty_constant_parametric
+fee_empty_constant_parametric
+     : @Alg.Core.Parametric (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (fun core : Alg.Core.Algebra =>
+          @Alg.scribe (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) fee_empty_hash_word) core)
+### C.jet_elements_fee_literal.elements_fee_hash_eq_reader
+elements_fee_hash_eq_reader
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)))
+         (@elements_output_fee_hash_eq
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+         (@Some (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+            (@jet_equality_spec.equality_spec (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               Alg.CoreFunSem
+               (@pair (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                  (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                  match
+                    @List.nth_error jet_elements_prim.txOutput
+                      (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment))
+                      (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) a))
+                    return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                  with
+                  | Some o =>
+                      @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Word.from_hash256 (Digest.byteStringHash (jet_elements_prim.txoScript o)))
+                  | None => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) tt
+                  end (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) fee_empty_hash_word))))
+### C.jet_elements_fee_literal.elements_output_fee_sem
+elements_output_fee_sem
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))))
+         (@elements_output_fee_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (@Some (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))) (fee_spec_result a environment))
+### C.jet_elements_fee_literal.fee_empty_hash_word
+fee_empty_hash_word =
+jet_haskell_word_conversion.haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+  (jet_haskell_hash_word.haskell_integer_hash256
+     (Digest.hash256_to_bytelist (Digest.byteStringHash (@nil Integers.Byte.int))))
+     : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+### C.jet_elements_fee_literal.elements_fee_tail
+elements_fee_tail =
+fun alg : Alg.Core.Algebra =>
+@Alg.Core.Combinators.case Ty.Unit
+  (Ty.Prod
+     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Word.Word (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)) alg
+  (@Alg.Core.Combinators.injl (Ty.Prod Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)) Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) alg
+     (@Alg.Core.Combinators.unit (Ty.Prod Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)) alg))
+  (@Alg.Core.Combinators.injr
+     (Ty.Prod
+        (Ty.Prod
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit)) Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) alg
+     (@Alg.Core.Combinators.comp
+        (Ty.Prod
+           (Ty.Prod
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit))
+        (Ty.Prod
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))
+           (Ty.Prod
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit)))
+        (Ty.Sum Ty.Unit Ty.Unit) alg
+        (@Alg.Core.Combinators.pair
+           (Ty.Prod
+              (Ty.Prod
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit))
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O))))))))
+           (Ty.Prod
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit)) alg
+           (@Alg.Core.Combinators.take
+              (Ty.Prod
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit)
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O)))))))) alg
+              (@Alg.Core.Combinators.drop
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O))))))))
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S O)))))))) alg
+                 (@Alg.Core.Combinators.iden
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O)))))))) alg)))
+           (@Alg.Core.Combinators.pair
+              (Ty.Prod
+                 (Ty.Prod
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit))
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit) alg
+              (@Alg.Core.Combinators.take
+                 (Ty.Prod
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit)
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S (S (S O)))))))))) alg
+                 (@Alg.Core.Combinators.take
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S (S (S O)))))))))) alg
+                    (@Alg.Core.Combinators.iden
+                       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                          (Word.Word (S (S (S (S (S (S (S (S O)))))))))) alg)))
+              (@Alg.Core.Combinators.drop
+                 (Ty.Prod
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) alg
+                 (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) alg))))
+        (@Alg.Core.Combinators.case (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Word.Word (S (S (S (S (S (S O)))))))
+           (Ty.Prod
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit)) (Ty.Sum Ty.Unit Ty.Unit) alg
+           (@Bit.false
+              (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Ty.Prod
+                    (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit))) alg)
+           (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S (S O)))))))
+              (Ty.Prod
+                 (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                    (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit))
+              (Ty.Sum Ty.Unit Ty.Unit) alg
+              (@Alg.Core.Combinators.case
+                 (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) alg
+                 (@Bit.false
+                    (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                       (Ty.Sum Ty.Unit Ty.Unit)) alg)
+                 (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                    (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) alg
+                    (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) alg)))))))
+     : forall alg : Alg.Core.Algebra,
+       Alg.Core.domain alg
+         (Ty.Prod
+            (Ty.Sum Ty.Unit
+               (Ty.Prod
+                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Word.Word (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit))
+         (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))
+
+Arguments elements_fee_tail {alg}
+### C.jet_elements_fee_literal.elements_output_fee_hash_eq
+elements_output_fee_hash_eq =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@jet_elements_current_spec.elements_comp alg (Word.Word (S (S (S (S (S O))))))
+  (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (Ty.Sum Ty.Unit Ty.Unit)
+  (@jet_elements_prim_sem.elements_pair alg (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) alg jet_elements_prim.Elements.OutputScriptHash)
+     (@jet_elements_prim_sem.elements_core (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (fun core : Alg.Core.Algebra =>
+         @Alg.scribe (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) fee_empty_hash_word) core) alg))
+  (@jet_elements_prim_sem.elements_core
+     (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (Ty.Sum Ty.Unit Ty.Unit)
+     (fun core : Alg.Core.Algebra =>
+      @jet_equality_spec.equality_spec (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core) alg)
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments elements_output_fee_hash_eq {alg}
+### C.jet_elements_fee_literal.elements_output_fee_spec
+elements_output_fee_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@jet_elements_current_spec.elements_comp alg (Word.Word (S (S (S (S (S O))))))
+  (Ty.Prod
+     (Ty.Sum Ty.Unit
+        (Ty.Prod
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit))
+  (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))
+  (@jet_elements_prim_sem.elements_pair alg (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit
+        (Ty.Prod
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit)
+     (@jet_elements_amount_jets.elements_output_amount_spec alg) (@elements_output_fee_hash_eq alg))
+  (@jet_elements_prim_sem.elements_core
+     (Ty.Prod
+        (Ty.Sum Ty.Unit
+           (Ty.Prod
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                 (Word.Word (S (S (S (S (S (S O)))))))))) (Ty.Sum Ty.Unit Ty.Unit))
+     (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)) (fun core : Alg.Core.Algebra => @elements_fee_tail core) alg)
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))
+
+Arguments elements_output_fee_spec {alg}
+### C.jet_elements_fee_literal.fee_script_hash_test
+fee_script_hash_test =
+fun o : jet_elements_prim.txOutput =>
+@jet_equality_spec.equality_spec (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Alg.CoreFunSem
+  (@pair (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Word.from_hash256 (Digest.byteStringHash (jet_elements_prim.txoScript o))))
+     (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) fee_empty_hash_word))
+     : forall _ : jet_elements_prim.txOutput, Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments fee_script_hash_test o
+### C.jet_elements_fee_literal.fee_spec_bit
+fee_spec_bit =
+fun o : jet_elements_prim.txOutput =>
+match jet_elements_prim.txoAmount o return (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) with
+| jet_elements_prim.Explicit _ =>
+    match jet_elements_prim.txoAsset o return (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) with
+    | jet_elements_prim.Explicit _ => fee_script_hash_test o
+    | jet_elements_prim.Confidential _ _ => @inl unit unit tt
+    end
+| jet_elements_prim.Confidential _ _ => @inl unit unit tt
+end
+     : forall _ : jet_elements_prim.txOutput, Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments fee_spec_bit o
+### C.jet_elements_fee_literal.fee_spec_result
+fee_spec_result =
+fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+match
+  @List.nth_error jet_elements_prim.txOutput
+    (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment))
+    (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) a))
+  return (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)))
+with
+| Some o => @inr unit (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (fee_spec_bit o)
+| None =>
+    @inl unit
+      (sum
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) Ty.Unit)
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) Ty.Unit)) tt
+end
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
+       Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))
+
+Arguments fee_spec_result a environment

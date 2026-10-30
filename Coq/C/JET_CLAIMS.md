@@ -9,3 +9,4 @@ instead of starting a parallel proof.
 | --- | --- | --- | --- |
 | `simplicity_total_fee` | Codex (current goal session; original lookup execution) | `feat/jet-equivalence` | 2026-10-24 |
 | `simplicity_hash_to_curve` | Codex (current goal session; original generator load/save and caller composition) | `feat/jet-equivalence` | 2026-10-24 |
+| `simplicity_output_is_fee` | Codex (current goal session; literal specification and exact comparison) | `codex/hash-caller-obligations` | 2026-10-30 |

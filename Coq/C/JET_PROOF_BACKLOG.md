@@ -1,5 +1,28 @@
 # Remaining jet proof work
 
+The ordinary `jet_elements_fee_literal` and `jet_elements_fee_compare` modules
+now connect the original `output_is_fee` C contract with the literal Haskell
+`outputIsFee` program. They prove an exact comparison for every index and
+logical environment: disagreement occurs iff the selected output exists,
+both its asset and amount are explicit, and its nonempty script hashes to
+the empty-script digest. The C-true direction always implies literal-true.
+This does not prove that such a nonempty script exists, assume hash
+injectivity, or add a public coverage entry. The separated C contract and
+processed-environment representation remain explicit.
+
+Both modules compile with the pinned toolchain, and reviewed no-update
+assumption/contract comparisons, proof scanning and all 283 frozen-input
+checks pass. Pure comparison lemmas are closed; the combined C theorem has
+the six inherited execution assumptions. The existing amount source gate
+now also anchors this literal/comparison, actual Haskell primitive and both
+original C classifier bodies, rejecting 97 targeted corruptions. A bounded
+Astra Medium review found no blocking semantic issue; its two source-guard
+omissions were addressed. No fresh recursive kernel receipt is claimed.
+Reproduce with their two ordinary `.vo` targets, scoped audits, and
+`python3 Coq/elements-amount-literal/{check-source,test-source}.py .`
+(run each script separately). Keep this batch isolated from the still-running
+main acceptance check at `249a2acf`.
+
 The next `hash_to_curve` caller milestone builds in the ordinary project as
 `jet_secp_hash_{startup,initialized,frames}`. The actual entire public C
 execution is derived for every key from the approved memcpy/CTZ models, real

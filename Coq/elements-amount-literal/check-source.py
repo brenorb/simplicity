@@ -21,6 +21,98 @@ def load(name, path):
     return m
 
 
+def check_fee(repo):
+    """Anchor the unregistered fee comparison; do not claim equivalence."""
+    coq = repo / 'Coq'
+    p = load('fee_amount_source_parser', coq / 'check-secp-predicates-specification.py')
+    paths = []
+    def read(path):
+        paths.append(path)
+        return p.read_code(path)
+    def equal(actual, expected, label):
+        if p.compact(actual) != p.compact(expected):
+            raise ValueError('output fee source differs: ' + label)
+    def line(source, name, expected):
+        rows = re.findall(r'(?m)^\s*' + re.escape(name) + r'\s*=([^\n]*)$', source)
+        if len(rows) != 1:
+            raise ValueError('missing/ambiguous fee clause: ' + name)
+        equal(rows[0], expected, name)
+    def definition(path, name, expected):
+        equal(p.definition(read(path), name), expected, name)
+    program = read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs')
+    rows = re.findall(r'(?ms)^\s*, outputIsFee\s*=(.*?)(?=^\s*,|\Z)', program.split('lib = l', 1)[1])
+    if len(rows) != 1:
+        raise ValueError('missing/ambiguous fee program')
+    equal(rows[0], '''outputAmount &&& (primitive OutputScriptHash &&& scribe (Right emptyHash) >>> eq)
+      >>> match (injl unit) (injr (oih &&& (ooh &&& ih)
+       >>> match false (drop (match false ih))))''', 'canonical outputIsFee tree')
+    line(program, 'emptyHash', 'toWord256 . integerHash256 $ bsHash mempty')
+    catalog = read(repo / 'Haskell/Simplicity/Elements/Jets.hs')
+    p.require(catalog, 'OutputIsFee :: TransactionJet Word32 (S Bit)', 'fee type')
+    line(catalog, 'specificationTransaction OutputIsFee', 'Prog.outputIsFee')
+    line(read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs'),
+         'outputIsFee', 'Transaction.outputIsFee Transaction.lib')
+    line(read(repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs'),
+         'interpret OutputScriptHash', 'return . (atOutput $ encodeHash . bslHash . txoScript)')
+    core = read(repo / 'Haskell/Core/Simplicity/Term/Core.hs')
+    for name, expected in [('ih', 'drop iden'), ('oh', 'take iden'),
+                           ('oih', 'take ih'), ('ooh', 'take oh')]:
+        line(core, name, expected)
+    prim = read(coq / 'C/jet_elements_prim.v')
+    sem = p.definition(prim, 'sem')
+    if sem.count('| OutputScriptHash =>') != 1:
+        raise ValueError('ambiguous fee script-hash primitive')
+    equal(sem.split('| OutputScriptHash =>', 1)[1].split('| OutputNullDatum =>', 1)[0],
+          'atOutput (fun txo => encodeHash (byteStringHash (txoScript txo)))', 'script primitive semantics')
+    literal = coq / 'C/jet_elements_fee_literal.v'
+    for name, expected in [
+        ('fee_empty_hash_word', 'haskell_to_word 8(haskell_integer_hash256(hash256_to_bytelist(byteStringHash [])))'),
+        ('elements_fee_tail', '''case(injl unit)
+          (injr((take(drop iden)&&&(take(take iden)&&&drop iden)) >>>
+            case Bit.false(drop(case Bit.false(drop iden)))))'''),
+        ('elements_output_fee_hash_eq', '''elements_comp
+          (elements_pair(Primitive.Combinators.prim Elements.OutputScriptHash)
+           (elements_core(fun core=>@Alg.scribe Word32(Ty.Unit+Word256)(inr fee_empty_hash_word)core)))
+          (elements_core(fun core=>@equality_spec(Ty.Unit+Word256)core))'''),
+        ('elements_output_fee_spec', '''elements_comp
+          (elements_pair(@elements_output_amount_spec alg)(@elements_output_fee_hash_eq alg))
+          (elements_core(fun core=>@elements_fee_tail core))'''),
+        ('fee_script_hash_test', '''@equality_spec(Ty.Unit+Word256)CoreFunSem
+          (inr(from_hash256(byteStringHash(txoScript o))),inr fee_empty_hash_word)'''),
+        ('fee_spec_bit', '''match txoAmount o,txoAsset o with
+          | Explicit _,Explicit _=>fee_script_hash_test o | _,_=>Bit.zero end'''),
+        ('fee_spec_result', '''match nth_error(sigTxOut(Elements.envTx environment))(Z.to_nat(toZ a))with
+          | Some o=>inr(fee_spec_bit o)|None=>inl tt end'''),
+    ]:
+        definition(literal, name, expected)
+    caller = coq / 'C/jet_elements_fee_flag_caller.v'
+    definition(caller, 'processed_fee_result', '''match nth_error (sigTxOut (Elements.envTx environment)) (Z.to_nat (toZ a)) with
+      | Some o => inr (if processed_fee_bit o then inr tt else inl tt) | None => inl tt end''')
+    definition(caller, 'processed_fee_empty', 'match txoScript o with [] => true | _::_ => false end')
+    definition(caller, 'processed_fee_bit', '''fee_classifier (processed_fee_empty o)
+      (conf_prefix (clearPrf (txoAsset o))) (conf_prefix (clearPrf (txoAmount o)))''')
+    definition(caller, 'processed_fee_rep', r'''Mem.load Mint8unsigned m b (ofs+241) = Some (Vint (fee_bool_int (processed_fee_empty o))) /\
+      Mem.load Mint32 m b (ofs+32) = Some (Vint (conf_prefix (clearPrf (txoAsset o)))) /\
+      Mem.load Mint32 m b (ofs+136) = Some (Vint (conf_prefix (clearPrf (txoAmount o))))''')
+    definition(coq / 'C/jet_elements_fee_compare.v', 'fee_explicit_components',
+               'match txoAsset o,txoAmount o with Explicit _,Explicit _=>Datatypes.true|_,_=>Datatypes.false end')
+    compare = read(coq / 'C/jet_elements_fee_compare.v')
+    statements = re.findall(r'Theorem elements_output_fee_implementation_comparison\s*:(.*?)\bProof\.', compare, re.S)
+    expected = r'''application_jet_local_spec_sep f_simplicity_output_is_fee elements_ge Elements.env Word32
+      (Ty.Sum Ty.Unit Bit)
+      (indexed_ptr_rep(fun e=>sigTxOut(Elements.envTx e))processed_fee_rep 248 0 8 704)
+      (fun a environment=>Some(processed_fee_result a environment)) /\
+      forall a environment,
+      (Some(processed_fee_result a environment)<>
+       @elements_output_fee_spec(PrimitivePrimSem option_Monad_Zero)a environment <->
+       exists o,nth_error(sigTxOut(Elements.envTx environment))(Z.to_nat(toZ a))=Some o /\
+       fee_explicit_components o=Datatypes.true /\txoScript o<>[] /\byteStringHash(txoScript o)=byteStringHash []).'''
+    if len(statements) != 1:
+        raise ValueError('missing/ambiguous fee comparison')
+    equal(statements[0], expected, 'whole C execution and exact comparison boundary')
+    return paths
+
+
 def check(repo):
     coq = repo / 'Coq'
     prior = load('amount_shared_asset_source', HERE.parent / 'elements-asset-literal/check-source.py')
@@ -203,11 +295,18 @@ def check(repo):
           } else { skipBits(dst, 516); } return true;''')
     cbody('simplicity_current_amount', '''(void) src; if (env->tx->numInputs <= env->ix) return false;
       asset(dst, &env->tx->input[env->ix].txo.asset); amt(dst, &env->tx->input[env->ix].txo.amt); return true;''')
+    cbody('isFee', '''return output->emptyScript && EXPLICIT == output->asset.prefix && EXPLICIT == output->amt.prefix;''')
+    cbody('simplicity_output_is_fee', '''uint_fast32_t i = simplicity_read32(&src);
+      if (writeBit(dst, i < env->tx->numOutputs)) { writeBit(dst, isFee(&env->tx->output[i]));
+      } else { skipBits(dst, 1); } return true;''')
+    paths.extend(check_fee(repo))
     r['source_sha256'].update({str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in set(paths)})
     r.update(selected_jets=['Elements.InputAmount', 'Elements.OutputAmount', 'Elements.CurrentAmount'],
              primitive_and_jet_codomain_distinguished=True, canonical_pair_routing_reviewed=True,
              explicit_word64_and_padding_reviewed=True, whole_contracts_reviewed=True,
              caller_environment_construction_proved=False, formal_host_library_equivalence=False,
+             fee_comparison_jet='Elements.OutputIsFee', fee_literal_and_comparison_reviewed=True,
+             fee_empty_digest_converse_proved=False, fee_equivalence_or_reachable_divergence_proved=False,
              normal_registration=False, kernel_checked_by_this_tool=False)
     return r
 

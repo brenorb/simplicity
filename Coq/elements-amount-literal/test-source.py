@@ -76,6 +76,60 @@ for suffix, path in [('input', old), ('output', old), ('current', current)]:
             (codomain, 'Word64')]:
             assert a in statement, (name, a)
             fixtures.append((file, statement, statement.replace(a, b, 1)))
+fee_literal = coq / 'C/jet_elements_fee_literal.v'
+fee_compare = coq / 'C/jet_elements_fee_compare.v'
+fee_caller = coq / 'C/jet_elements_fee_flag_caller.v'
+fixtures += [
+    (catalog, 'specificationTransaction OutputIsFee = Prog.outputIsFee',
+              'specificationTransaction OutputIsFee = Prog.outputAmount'),
+    (repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs',
+     'outputIsFee = Transaction.outputIsFee Transaction.lib',
+     'outputIsFee = Transaction.outputAmount Transaction.lib'),
+    (program, 'outputIsFee = outputAmount &&& (primitive OutputScriptHash',
+              'outputIsFee = outputAmount &&& (primitive OutputAsset'),
+    (hs, 'interpret OutputScriptHash = return . (atOutput $ encodeHash . bslHash . txoScript)',
+         'interpret OutputScriptHash = return . (atOutput $ encodeHash . bslHash . txoSurjectionProof)'),
+    (c, 'return output->emptyScript && EXPLICIT == output->asset.prefix && EXPLICIT == output->amt.prefix;',
+        'return EXPLICIT == output->asset.prefix && EXPLICIT == output->amt.prefix;'),
+    (c, 'writeBit(dst, isFee(&env->tx->output[i]));',
+        'writeBit(dst, true);'),
+    (program, 'emptyHash = toWord256 . integerHash256 $ bsHash mempty',
+              'emptyHash = toWord256 0'),
+    (repo / 'Haskell/Core/Simplicity/Term/Core.hs', 'oih = take ih', 'oih = take oh'),
+    (coq / 'C/jet_elements_prim.v',
+     'OutputScriptHash => atOutput (fun txo => encodeHash (byteStringHash (txoScript txo)))',
+     'OutputScriptHash => atOutput (fun txo => encodeHash (byteStringHash []))'),
+    (fee_literal, 'Z.to_nat(toZ a)', '0%nat'),
+    (fee_caller, 'Z.to_nat (toZ a)', '0%nat'),
+    (fee_literal, 'byteStringHash []', 'byteStringHash [Int.zero]'),
+    (fee_literal, 'case Bit.false(drop(case Bit.false(drop iden)))',
+                  'case Bit.true(drop(case Bit.false(drop iden)))'),
+    (fee_literal, 'take(drop iden)&&&', 'take(take iden)&&&'),
+    (fee_literal, 'equality_spec(Ty.Unit+Word256)core', 'equality_spec(Ty.Unit+Word128)core'),
+    (fee_literal, 'Primitive.Combinators.prim Elements.OutputScriptHash',
+                  'Primitive.Combinators.prim Elements.OutputAsset'),
+    (fee_literal, 'Explicit _,Explicit _=>fee_script_hash_test o',
+                  'Explicit _,Explicit _=>Bit.zero'),
+    (fee_caller, 'match txoScript o with [] => true | _::_ => false end',
+                 'match txoScript o with [] => false | _::_ => true end'),
+    (fee_caller, '(ofs+241)', '(ofs+240)'),
+    (fee_compare, 'Explicit _,Explicit _=>Datatypes.true|_,_=>Datatypes.false',
+                  'Explicit _,_=>Datatypes.true|_,_=>Datatypes.false'),
+]
+text = fee_compare.read_text()
+start = text.index('Theorem elements_output_fee_implementation_comparison:')
+stop = text.index('Proof.', start)
+whole = text[start:stop]
+for old, new in [
+    ('application_jet_local_spec_sep', 'False -> application_jet_local_spec_sep'),
+    ('f_simplicity_output_is_fee', 'f_simplicity_output_amount'),
+    ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+    ('processed_fee_rep 248 0 8 704', '(fun _ _ _ _ => True) 248 0 8 704'),
+    ('txoScript o<>[] /\\', 'True /\\'),
+    ('byteStringHash(txoScript o)=byteStringHash []', 'True'),
+]:
+    assert old in whole, old
+    fixtures.append((fee_compare, whole, whole.replace(old, new, 1)))
 original = Path.read_text
 g.check(repo)
 for path, a, b in fixtures:
