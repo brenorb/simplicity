@@ -378,8 +378,15 @@ decompression representing the computed group point, including infinity and
 failed-decompression cases. This is a pure bridge; original C execution remains
 separate. `jet_secp_schnorr_group_predicate` now proves the canonical point
 check equals that finite/even-Y/X test with C's negative-challenge/even-key
-convention, for every scalar and including failed r decompression. Next add
-the outer guards and compose the original C caller.
+convention, for every scalar and including failed r decompression.
+`jet_secp_schnorr_check_predicate` adds all public-key/signature guards and
+failed-public-key decoding, yielding the complete canonical BIP340 boolean
+as the finite/even-Y/X test on the negative-challenge/even-key result. This
+closes the pure predicate bridge, not public C execution. Next compose the
+original `secp256k1_schnorrsig_verify` helper and outer jet lifecycle, reusing
+`eval_schnorr_challenge_literal` and `eval_ecmult_general_flag`, the existing
+scalar parser/negation, `eval_gej_set_ge_owned`, normalization and field
+comparison helpers. Preserve their explicit external-library premises.
 Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
 
