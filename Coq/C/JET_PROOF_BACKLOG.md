@@ -1804,7 +1804,23 @@ one scalar and validated point. Then port the affine inverse/normalization
 and compose the native tweak and public suffix. The old inverse CountCall
 and modulus predicates still use source GE/addresses; derive actual linked
 callees using the existing ctz_model and linked modinfo, not a source-call
-oracle. No whole ecmult or public Elements call is established yet.
+oracle.
+
+`jet_elements_taptweak_strauss_overlap_finite` now executes the complete
+finite/nonzero Strauss call while allowing the point input and result to
+share their block. It retains separate input/output separation lists,
+the original literal result and conditional flag, every caller owner,
+framing, forwardness and readonly preservation, and all nine actual frees.
+`jet_elements_taptweak_ecmult_entry` derives the four real allocations,
+three state stores, actual Strauss callee lookup and exact free-list layout.
+`jet_elements_taptweak_ecmult_finite` composes that entry, the overlap-aware
+Strauss call and all four outer frees into the complete original ecmult
+execution. Both readonly and forwardness are retained through the full call.
+All three ordinary builds and reviewed scoped assumption/contract comparisons
+pass without update flags. Execution has six inherited assumptions and the
+existing memset_model only; these modules postdate the historical recursive
+check above. They establish the finite ecmult path, not the public Elements
+wrapper or the skipped internal path. No additional public coverage is claimed.
 
 Supporting scratch work remains at `/private/tmp/point-verify-scratch/`:
 `jet_elements_taptweak_strauss_skip.v` compiles and derives unchanged-memory
