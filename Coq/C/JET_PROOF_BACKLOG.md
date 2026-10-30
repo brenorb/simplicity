@@ -1699,10 +1699,17 @@ argument evaluation and original clear at the linked GE under the existing
 memset_model. Both build normally and their reviewed records match without
 update flags; execution has only the six inherited assumptions. Do not
 transport the entire wNAF function as pure: the real external call is handled
-separately. The complete 129/5 slice and 129/15 functions now compile in
-scratch, including their actual clear, return and private free. Integrate
-those next, then compose the original caller statements. The real 129-int
-buffer uses 516 bytes and stays within the approved memset bound.
+separately. `jet_elements_taptweak_wnaf5` and
+`jet_elements_taptweak_wnaf15` now build in the ordinary project, including
+their actual clear, return and private free. The 129/5 slice retains bytes
+outside its own 516-byte range, allowing both arrays in one point-state block.
+The 129/15 result retains the exact one-allocation count, old permissions,
+readonly state and both full/trimmed literal digit equalities. Both use only
+the existing memset_model and six inherited execution assumptions. Their
+reviewed scoped assumption/contract records match without update flags;
+these are component checks, not fresh recursive or public acceptance.
+Next compose the original caller statements. The real 129-int buffer uses
+516 bytes and stays within the approved memset bound.
 The actual `generator_final_statement` is also pure and can be transported
 after its own checked statement/layout fact; it is not yet in the three-item
 Strauss statement list. Reuse the original final-flag/nonzero-table bridges
