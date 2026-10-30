@@ -51,8 +51,8 @@ def main():
     assert coverage.missing_proofs([complete, absent, divergent]) == [absent]
     assert coverage.missing_equivalences([complete, divergent]) == [divergent]
     assert sum(bool(row["divergence_proof"]) for row in rows) == 1
-    assert len(coverage.missing_equivalences(rows)) == 7
-    assert len(coverage.missing_proofs(rows)) == 6
+    assert len(coverage.missing_equivalences(rows)) == 6
+    assert len(coverage.missing_proofs(rows)) == 5
     assert coverage.proof_roots(rows, ["simplicity_gej_ge_add_ex"]) == {
         "C.jet_secp_mixed_ex_local", "C.jet_secp_mixed_ex_refutation"}
     assert coverage.proof_roots(rows, ["simplicity_scale"]) == {"C.jet_secp_checked_scale_local"}
@@ -63,10 +63,13 @@ def main():
     assert coverage.proof_roots(rows, ["simplicity_bip_0340_verify"]) == {"C.jet_secp_bip0340_local"}
     signature_row = next(row for row in rows if row["function"] == "simplicity_bip_0340_verify")
     assert signature_row["condition"] == combined
-    assert sum(bool(coverage.condition_models(row["condition"])) for row in rows) == 151
-    assert sum("memcpy_model" in coverage.condition_models(row["condition"]) for row in rows) == 139
-    assert sum("ctz_model" in coverage.condition_models(row["condition"]) for row in rows) == 6
-    assert sum("memset_model" in coverage.condition_models(row["condition"]) for row in rows) == 8
+    assert coverage.proof_roots(rows, ["simplicity_check_sig_verify"]) == {"C.jet_secp_checksig_local"}
+    checksig_row = next(row for row in rows if row["function"] == "simplicity_check_sig_verify")
+    assert checksig_row["condition"] == combined
+    assert sum(bool(coverage.condition_models(row["condition"])) for row in rows) == 152
+    assert sum("memcpy_model" in coverage.condition_models(row["condition"]) for row in rows) == 140
+    assert sum("ctz_model" in coverage.condition_models(row["condition"]) for row in rows) == 7
+    assert sum("memset_model" in coverage.condition_models(row["condition"]) for row in rows) == 9
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_hash_to_curve"]),
             "jets without registered proof entries")
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_not_a_jet"]),

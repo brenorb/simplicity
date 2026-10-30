@@ -362,6 +362,14 @@ RECOVERED_CONTRACTS["simplicity_bip_0340_verify"] = (
     "literal_bip0340_args Ty.Unit "
     "(@literal_bip0340_verify (Alg.AssertionSem option_Monad_Zero)).")
 
+# The standard Signature hash and original CheckSig public wrapper, including
+# every rejection and actual initialized Signature/curve/modulus/SHA state.
+RECOVERED_CONTRACTS["simplicity_check_sig_verify"] = (
+    "memcpy_model ->memset_model ->ctz_model -> "
+    "secp_jet_initialized_partial_local_spec checksig_startup f_simplicity_check_sig_verify "
+    "literal_checksig_args Ty.Unit "
+    "(@literal_checksig_verify (Alg.AssertionSem option_Monad_Zero)).")
+
 REPORTED_MISMATCH_CONTRACTS = {
     "simplicity_gej_ge_add_ex": {
         "contract": "secp_jet_local_spec_on (fun a => ~gej_ge_add_ex_ratio_mismatch a) "

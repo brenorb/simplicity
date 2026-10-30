@@ -14,8 +14,9 @@ explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 7
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
 526/533 accepted proof entries, with 7 jets still lacking either accepted result.
-The registered candidate inventory is 527/533, including BIP340; its full
-scoped acceptance at 740a5536 is running and remains unclaimed.
+The registered candidate inventory is 528/533, including BIP340 and CheckSig.
+BIP340 full scoped acceptance at 740a5536 is running; CheckSig full scoped
+acceptance is queued. Neither new acceptance is claimed.
 `point_verify_1` passed full scoped acceptance on the exact inputs of
 `0180f32b`: kernel checking on 1,084 modules, matching assumption records on
 1,015 modules and contract records on 1,033 modules, negative tests and all
@@ -902,11 +903,37 @@ the message block, signature read and verifier, preserving parsed key, owned
 regions and startup. `jet_secp_checksig_function.eval_checksig_public` now
 composes the complete original public C function for every input, including
 both key-parser outcomes and all eight frees. All four ordinary builds and
-reviewed scoped no-update assumption/contract records pass. The remaining
-step is the public Simplicity assertion packaging and registration/acceptance.
-Bind the eventual full public contract in the existing
-source gate before registration. Preserve BIP340's already reviewed startup
-definition and frozen targets; add only CheckSig-specific proof predicates.
+reviewed scoped no-update assumption/contract records pass. `jet_secp_checksig_local.checksig_initialized_local_spec` now builds the
+complete public initialized assertion contract for the exact canonical term,
+all 1280-bit inputs, valid cursors/crossings, both parser outcomes and all
+return paths. Its only library conditions are the existing explicit
+memcpy_model, memset_model and ctz_model; its inherited axiom set matches
+BIP340. The ordinary build and reviewed no-update assumption/contract records
+pass. The existing canonical source gate now pins the full CheckSig public
+contract and startup definition and rejects 17 targeted mutations.
+The candidate is registered and the complete coverage negative tests pass.
+Registered inventory is **528/533**, while accepted coverage remains **526/533**.
+After the live BIP340 acceptance finishes, inspect its terminal status and
+before/after fingerprints before editing its worker. On success, record that
+exact receipt, then advance the idle clean worker to the CheckSig registration
+commit and copy only newly added source-identical caches, retaining their
+source/object mtimes and leaving old objects alone. Build
+`C/jet_secp_checksig_local.vo`, fingerprint the idle worker, then run
+`JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_check_sig_verify`.
+Compare after-fingerprint/status. Do not label either candidate accepted
+before its full scoped command passes.
+
+Next independent target: Bitcoin build_taptweak. Inspection shows that the
+**frozen jets_secp.v already contains both its original public wrapper and
+internal simplicity_generic_taptweak**; the generic implementation is external
+only in the standalone Bitcoin program. Thus prove the actual Bitcoin wrapper
+in the existing secp program, without changing AST generation or adding a
+linkage assumption. Reuse the new generic tagged initializer/context and
+reader/hash helpers plus the existing x-only parser, native key load/save,
+complete ecmult and affine conversion. New work is still needed for the actual
+x-only tweak-add/from-pubkey/serialize control flow and the canonical TapTweak
+hash/program. Elements has a separate wrapper and still needs actual linkage;
+inspect it separately rather than claiming this resolves both programs.
 Keep all preservation attached to constructed memset witnesses: its existential
 model does not specify every arbitrary external execution. BIP340 is a
 registered candidate awaiting full acceptance; CheckSig remains unregistered.
