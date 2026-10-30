@@ -1021,13 +1021,29 @@ with the exact big-endian X bytes, caller buffer ownership, unrelated-memory
 framing and readonly preservation. Ordinary build and reviewed no-update
 records pass; memcpy_model/memset_model are explicit, and six inherited axioms
 remain. Entry/free reuse the preceding x-only environment and cleanup proofs.
-Next prove the remaining x-only from-pubkey caller and its actual
-extrakeys_ge_even_y helper. Its Y field is at offset 40; current convenient
-field-odd/negate wrappers assume a separate block at offset zero. Reuse their
-symbolic runs/arithmetic facts, but construct a faithful nested-field contract;
-do not replace the actual in-place Y call with another C temporary or assert
-its execution. Then compose the generic TapTweak SHA/reader/writer lifecycle
-plus the canonical tagged-hash program and its source-binding checks. Do not substitute a
+The previous note overstated a Y-field contract gap: the existing
+`jet_secp_affine_odd_y.eval_affine_odd_y_words` and
+`jet_secp_affine_negate_words.eval_affine_y_negate_words` already handle
+Y at offset 40 within the real 88-byte allocation. Reuse them directly.
+`jet_secp_extrakeys_even_y.eval_extrakeys_ge_even_y` now composes the entire
+original wrapper for both machine-parity values, including the actual
+infinity-accessor loop, oddness call, conditional in-place negation and return.
+It retains whole-point ownership, precise framing outside Y, readonly memory
+and result field bounds; it adds no external-library model.
+`jet_secp_xonly_from_pubkey.eval_xonly_pubkey_from_pubkey_null` now composes
+the whole original native-to-x-only conversion for precisely the NULL parity
+argument used by TapTweak: actual entry allocation, pointer checks, native key
+load/success guard, even-Y helper, skipped NULL parity store, native save and
+local free. Its exact saved coordinate payload preserves X up to canonical
+field normalization; caller storage and unrelated/readonly memory are retained.
+The native source key's nonzero-X guard remains an explicit internal premise,
+already discharged by `xonly_tweak_saved_loadable` for successful tweaks.
+Both ordinary builds and reviewed no-update records pass with six inherited
+axioms; only the existing memcpy_model is needed for the conversion.
+The coordinate/curve bridge into the serializer also compiles in scratch;
+integrate and audit it next. Then compose the generic TapTweak
+SHA/reader/writer lifecycle plus the canonical tagged-hash program and its
+source-binding checks. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential
 model does not specify every arbitrary external execution. BIP340 and CheckSig are registered candidates awaiting full acceptance.
