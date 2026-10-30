@@ -61,3 +61,21 @@ Proof.
  exact (elements_taptweak_sha_transport jets_sha._sha256_init jets_sha.f_sha256_init
  m _ _ mf _ ltac:(right;left;reflexivity) Call).
 Qed.
+
+Theorem eval_elements_taptweak_sha_digest_owned regs m bb bs:
+ length regs=8%nat ->bb<>bs ->uint32_array_at m bs 0 regs ->
+ Mem.range_perm m bb 0 32 Cur Freeable ->Mem.range_perm m bs 0 32 Cur Freeable ->exists mf,
+ Clight2.eval_funcall elements_taptweak_ge m (Internal jets_secp.f_sha256_fromMidstate)
+ [Vptr bb Ptrofs.zero;Vptr bs Ptrofs.zero] E0 mf Vundef /\
+ (forall i,(i<32)%nat ->Mem.load Mint8unsigned mf bb (Z.of_nat i)=
+ Some (Vint (Int.repr (nth i (secp_sha_digest_bytes regs) 0)))) /\
+ uint32_array_at mf bs 0 regs /\
+ Mem.range_perm mf bb 0 32 Cur Freeable /\Mem.range_perm mf bs 0 32 Cur Freeable /\
+ lframe (fun b _=>b<>bb) m mf /\readonly_preserved m mf.
+Proof.
+ intros Len Separate State Dest Source.
+ destruct (eval_secp_sha_digest_owned regs m bb bs Len Separate State Dest Source) as (mf & Call & Memory).
+ exists mf;split;[|exact Memory].
+ exact (elements_taptweak_sha_transport jets_sha._sha256_fromMidstate jets_sha.f_sha256_fromMidstate
+ m _ _ mf _ ltac:(do 5 right;left;reflexivity) Call).
+Qed.

@@ -1400,6 +1400,20 @@ readonly max counter and permission bounds from Genv.init_mem and proves this
 startup state exists. Its preservation/separation aliases reuse the generic
 memory lemmas. All four modules compile and their records use only inherited
 assumptions, with lookup/initialization-check facts closed.
+`jet_elements_taptweak_compression` now transports the eight portable
+round-chain helpers directly from sha_ge and proves the owned compressor's
+output words, framing, permissions and readonly preservation in the linked ge.
+A direct secp_ge transport fails the conservative checker because its global
+`a` and `d` names collide with SHA locals; using the original verified SHA
+source passes the unchanged checker. Do not weaken it or treat that rejection
+as a code mismatch. `jet_elements_taptweak_dispatch` proves the actual indirect
+compression call through the initialized dispatch cell, all local allocation,
+word conversion, free, output and startup preservation, including an arbitrary
+byte-buffer offset. The pure-helper module also now transports the complete
+owned digest serializer, preserving source words and caller memory. These
+extensions compile and their reviewed records contain only the existing six
+inherited assumptions; they introduce no external-library premise. They are
+newer than the helper kernel run at `9b7e721d` and do not add public coverage.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including

@@ -1,0 +1,114 @@
+### C.jet_elements_taptweak_compression.elements_taptweak_sha_round_lookup
+elements_taptweak_sha_round_lookup
+     : @eq (list (option Clight.fundef))
+         (@List.map (prod AST.ident Clight.function) (option Clight.fundef)
+            (jet_secp_linkage.secp_helper_lookup jet_elements_taptweak_pure.elements_taptweak_ge)
+            jet_secp_sha_compression.secp_sha_compression_helpers)
+         (@List.map (prod AST.ident Clight.function) (option (Ctypes.fundef Clight.function))
+            (fun p : prod AST.ident Clight.function =>
+             @Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function (@snd AST.ident Clight.function p)))
+            jet_secp_sha_compression.secp_sha_compression_helpers)
+### C.jet_elements_taptweak_compression.elements_taptweak_sha_round_checked
+elements_taptweak_sha_round_checked
+     : @eq bool
+         (@List.forallb (prod AST.ident Clight.function)
+            (fun p : prod AST.ident Clight.function =>
+             jet_transport.fundef_okb jet_sha_linkage.sha_ge jet_elements_taptweak_pure.elements_taptweak_ge
+               (@List.map (prod AST.ident Clight.function) AST.ident (@fst AST.ident Clight.function)
+                  jet_secp_sha_compression.secp_sha_compression_helpers)
+               (@Ctypes.Internal Clight.function (@snd AST.ident Clight.function p)))
+            jet_secp_sha_compression.secp_sha_compression_helpers) true
+### C.jet_elements_taptweak_compression.elements_taptweak_sha_round_entries
+elements_taptweak_sha_round_entries
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f)
+                jet_secp_sha_compression.secp_sha_compression_helpers),
+       @ex Values.block
+         (fun b1 : Values.block =>
+          @ex Values.block
+            (fun b2 : Values.block =>
+             and
+               (@eq (option Values.block)
+                  (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_sha_linkage.sha_ge) id)
+                  (@Some Values.block b1))
+               (and
+                  (@eq (option Clight.fundef)
+                     (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                        (Clight.genv_genv jet_sha_linkage.sha_ge) b1)
+                     (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+                  (and
+                     (@eq (option Values.block)
+                        (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                           (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge) id)
+                        (@Some Values.block b2))
+                     (@eq (option Clight.fundef)
+                        (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                           (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge) b2)
+                        (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))))))
+### C.jet_elements_taptweak_compression.elements_taptweak_sha_round_ok
+elements_taptweak_sha_round_ok
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f)
+                jet_secp_sha_compression.secp_sha_compression_helpers),
+       @eq bool
+         (jet_transport.fundef_okb jet_sha_linkage.sha_ge jet_elements_taptweak_pure.elements_taptweak_ge
+            (@List.map (prod AST.ident Clight.function) AST.ident (@fst AST.ident Clight.function)
+               jet_secp_sha_compression.secp_sha_compression_helpers) (@Ctypes.Internal Clight.function f)) true
+### C.jet_elements_taptweak_compression.elements_taptweak_sha_round_transport
+elements_taptweak_sha_round_transport
+     : forall (id : AST.ident) (f : Clight.function) (m : Memory.Mem.mem) (args : list Values.val)
+         (trace : Events.trace) (mf : Memory.Mem.mem) (result : Values.val)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f)
+                jet_secp_sha_compression.secp_sha_compression_helpers)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_sha_linkage.sha_ge m (@Ctypes.Internal Clight.function f) args
+                trace mf result),
+       ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+         (@Ctypes.Internal Clight.function f) args trace mf result
+### C.jet_elements_taptweak_compression.elements_taptweak_sha_round_table_ok
+elements_taptweak_sha_round_table_ok
+     : jet_clight_internal_frame.internal_table_ok jet_elements_taptweak_pure.elements_taptweak_ge
+         jet_secp_sha_compression.secp_sha_compression_helpers
+### C.jet_elements_taptweak_compression.elements_taptweak_sha_round_preserved
+elements_taptweak_sha_round_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (trace : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_sha256_compression_portable) args trace mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_elements_taptweak_compression.eval_elements_taptweak_sha_compression_owned
+eval_elements_taptweak_sha_compression_owned
+     : forall (regs chunk : list Integers.Int.int) (m : Memory.Mem.mem) (bs bb : Values.block)
+         (_ : @eq nat (@length Integers.Int.int regs) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : @eq nat (@length Integers.Int.int chunk)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))) (_ : not (@eq Values.block bs bb))
+         (_ : jet_uint32_array_init.uint32_array_at m bs BinNums.Z0 regs)
+         (_ : jet_uint32_array_init.uint32_array_at m bb BinNums.Z0 chunk)
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_sha256_compression_portable)
+               (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_uint32_array_init.uint32_array_at mf bs BinNums.Z0 (SHA256.hash_block regs chunk))
+               (and (jet_uint32_array_init.uint32_array_at mf bb BinNums.Z0 chunk)
+                  (and
+                     (Memory.Mem.range_perm mf bs BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (Memory.Mem.range_perm mf bb BinNums.Z0
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bs)) m
+                              mf) (jet_clight_internal_preserve.readonly_preserved m mf)))))))
