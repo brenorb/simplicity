@@ -894,10 +894,17 @@ canonical message bytes, advances the cursor by 512, retains all eight owned
 local regions and preserves framing/readonly memory/checksig_startup. The
 ordinary build and reviewed scoped no-update assumption/contract records pass;
 only the existing memcpy_model remains explicit. This is not yet the public
-jet theorem. Next compose the signature read and existing parsed-key Schnorr
-verifier with this message block. The outer entry/free lemmas are ready. The initial source-frame copy/key read and key
-parse need adapters to the eight-local environment, reusing the existing
-reader/parser results. Bind the eventual full public contract in the existing
+jet theorem. `jet_secp_checksig_public_read` now supplies the real frame copy
+and key read in the eight-local environment. The existing generic key parser
+is reused unchanged. `jet_secp_checksig_verifier_return` supplies the real
+final call using _buf as the message. `jet_secp_checksig_after_parse` composes
+the message block, signature read and verifier, preserving parsed key, owned
+regions and startup. `jet_secp_checksig_function.eval_checksig_public` now
+composes the complete original public C function for every input, including
+both key-parser outcomes and all eight frees. All four ordinary builds and
+reviewed scoped no-update assumption/contract records pass. The remaining
+step is the public Simplicity assertion packaging and registration/acceptance.
+Bind the eventual full public contract in the existing
 source gate before registration. Preserve BIP340's already reviewed startup
 definition and frozen targets; add only CheckSig-specific proof predicates.
 Keep all preservation attached to constructed memset witnesses: its existential

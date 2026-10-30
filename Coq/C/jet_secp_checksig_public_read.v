@@ -1,0 +1,140 @@
+(** Original CheckSig source-frame copy and strict public-key byte read. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Values Events Globalenvs.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_exec C.jet_encoding C.jet_frame_layout C.jet_frame_copy_layout C.jet_frame_inv
+ C.jet_input_layout C.jet_buffer_input C.jet_read8s_layout C.jet_sx_mem C.jet_sx_state C.jet_sx_exec
+ C.jet_secp_frame C.jet_secp_linkage C.jets_secp C.jet_secp_local_regions C.jet_secp_checksig_public_entry C.jet_secp_bip0340_data_reads C.jet_secp_hash_public_read C.jet_secp_word_bytes_codec C.jet_secp_xonly_parse_field
+ C.jet_clight_internal_preserve C.jet_secp_modinfo_fe_caller.
+Import ListNotations Ctypes Values.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge Translate.encode.
+
+Definition checksig_public_copy := Sassign (Evar _src (Tstruct _frameItem noattr))
+ (Etempvar _src (Tstruct _frameItem noattr)).
+Definition checksig_public_read := Scall None
+ (Evar _read8s (Tfunction (Tcons (tptr tuchar)
+   (Tcons tulong (Tcons (tptr (Tstruct _frameItem noattr)) Tnil))) tvoid cc_default))
+ [Evar _buf (tarray tuchar 32);Econst_int (Int.repr 32) tint;
+  Eaddrof (Evar _src (Tstruct _frameItem noattr)) (tptr (Tstruct _frameItem noattr))].
+Definition checksig_public_prefix := Ssequence checksig_public_copy checksig_public_read.
+Definition checksig_public_tail := match fn_body f_simplicity_check_sig_verify with
+ | Ssequence _ (Ssequence _ rest)=>rest | _=>Sskip end.
+Lemma checksig_public_source : fn_body f_simplicity_check_sig_verify=
+ Ssequence checksig_public_copy (Ssequence checksig_public_read checksig_public_tail).
+Proof. reflexivity. Qed.
+
+Lemma exec_checksig_public_read le m mf bl bb bkey bmsg bsig bout bctx bres :
+ Clight2.eval_funcall secp_ge m (Internal C.jets.f_read8s)
+   [Vptr bb Ptrofs.zero;Vlong (Int64.repr 32);Vptr bl Ptrofs.zero] E0 mf Vundef ->
+ Clight2.exec_stmt secp_ge (checksig_public_env bl bb bkey bmsg bsig bout bctx bres) le m checksig_public_read E0 le mf Out_normal.
+Proof.
+ intro Read;change (Clight2.exec_stmt secp_ge (checksig_public_env bl bb bkey bmsg bsig bout bctx bres)
+ le m (bip0340_read_bytes _buf 32) E0 le mf Out_normal).
+ eapply exec_bip0340_read_bytes;[left;reflexivity|reflexivity|reflexivity|reflexivity|exact Read].
+Qed.
+
+Theorem checksig_public_prepare key le m0 mi bl bb bkey bmsg bsig bout bctx bres bs sbase bi edge rc :
+ NoDup (checksig_public_locals bl bb bkey bmsg bsig bout bctx bres) ->
+ (forall b,Mem.valid_block m0 b ->~In b (checksig_public_locals bl bb bkey bmsg bsig bout bctx bres)) ->
+ (forall b hi,In (b,hi) (checksig_public_storage bl bb bkey bmsg bsig bout bctx bres) ->
+   Mem.range_perm mi b 0 hi Cur Freeable) ->
+ lframe (fun _ _=>True) m0 mi ->readonly_preserved m0 mi ->
+ le!_src=Some (Vptr bs (Ptrofs.repr sbase)) ->
+ frame_base_valid sbase ->(8|sbase) ->frame_fields_at m0 bs sbase bi edge rc ->
+ frame_input_cells_at m0 bi edge rc (Translate.encode (key:Ty.tySem (Word 8))) ->
+ 0<=rc ->rc+256<=Int64.max_unsigned ->exists mf,
+ Clight2.exec_stmt secp_ge (checksig_public_env bl bb bkey bmsg bsig bout bctx bres) le mi checksig_public_prefix E0 le mf Out_normal /\
+ uint8_array_at mf bb 0 (map Int.repr (xonly_input_bytes key)) /\
+ frame_fields_at mf bl 0 bi edge (rc+256) /\
+ (forall b hi,In (b,hi) (checksig_public_storage bl bb bkey bmsg bsig bout bctx bres) ->
+   Mem.range_perm mf b 0 hi Cur Freeable) /\
+ lframe (fun _ _=>True) m0 mf /\readonly_preserved m0 mf.
+Proof.
+ intros Distinct Old Free Alloc RO Temp Base Align Source Input RC Max.
+ assert (Length:length (vector_values (Word 3) 5 key)=32%nat) by apply vector_values_length.
+ assert (InputBytes:forall i x,nth_error (vector_values (Word 3) 5 key) i=Some x ->
+   frame_input_word_at m0 bi edge (rc+8*Z.of_nat i) x).
+ { apply frame_input_byte_list;rewrite <-(encode_vector_values (Word 3) 5 key);exact Input. }
+ assert (ValidI:Mem.valid_block m0 bi).
+ { destruct (vector_values (Word 3) 5 key) as [|x xs] eqn:Bytes;[discriminate|].
+   pose proof (InputBytes 0%nat x eq_refl) as Bits.
+   specialize (Bits 0%nat (Z.testbit (@toZ (WordToZ 3) x) 7) eq_refl).
+   destruct Bits as (_ & _ & w & Load & _);eapply load_valid;exact Load. }
+ assert (Apart:bl<>bb /\ bl<>bi /\ bb<>bi).
+ { split.
+   - clear -Distinct;unfold checksig_public_locals in Distinct;repeat rewrite NoDup_cons_iff in Distinct;
+     cbn [In] in Distinct;intuition congruence.
+   - split;intro Same;subst;apply (Old bi ValidI);unfold checksig_public_locals;cbn;tauto. }
+ destruct Apart as (LK & LI & KI).
+ assert (FL:Mem.range_perm mi bl 0 16 Cur Freeable).
+ { apply Free;clear;cbn [checksig_public_storage In];tauto. }
+ assert (SourceI:frame_fields_at mi bs sbase bi edge rc).
+ { destruct Source as [Edge Cursor];pose proof (load_valid _ _ _ _ _ Edge) as V.
+   split;rewrite (proj1 Alloc) by auto;assumption. }
+ destruct SourceI as [EdgeI CursorI].
+ destruct (frame_loadbytes_at mi bs sbase _ _ EdgeI CursorI) as (bytes & LoadBytes).
+ pose proof (Mem.loadbytes_length _ _ _ _ _ LoadBytes) as BytesLength.
+ assert (CopyWritable:Mem.range_perm mi bl 0 (0+Z.of_nat (length bytes)) Cur Writable).
+ { rewrite BytesLength;apply freeable_range_writable;exact FL. }
+ destruct (Mem.range_perm_storebytes mi bl 0 bytes CopyWritable) as (md & Store).
+ assert (FrameD:lframe (fun b _=>Mem.valid_block m0 b) m0 md).
+ { eapply lframe_trans.
+   - eapply lframe_implies;[exact Alloc|];intros;exact I.
+   - apply lframe_unchanged;eapply Mem.storebytes_unchanged_on;[exact Store|].
+     intros pos Range Valid;apply (Old bl Valid);unfold checksig_public_locals;cbn;tauto. }
+ assert (Copy:Clight2.exec_stmt secp_ge (checksig_public_env bl bb bkey bmsg bsig bout bctx bres) le mi checksig_public_copy E0 le md Out_normal).
+ { assert (Unsigned:Ptrofs.unsigned (Ptrofs.repr sbase)=sbase).
+   { apply Ptrofs.unsigned_repr;unfold frame_base_valid in Base;lia. }
+   unfold checksig_public_copy;eapply exec_Sassign_copy.
+   - apply eval_Evar_local;reflexivity.
+   - apply eval_Etempvar;exact Temp.
+   - reflexivity.
+   - eapply assign_loc_copy with (b':=bs) (ofs':=Ptrofs.repr sbase) (bytes:=bytes).
+     + reflexivity.
+     + intros _;change (8|Ptrofs.unsigned (Ptrofs.repr sbase));rewrite Unsigned;exact Align.
+     + intros _;change (8|0);exists 0;reflexivity.
+     + left;intro Same;subst bs;apply (Old bl (load_valid _ _ _ _ _ (proj1 Source)));
+       unfold checksig_public_locals;cbn;tauto.
+     + change (Mem.loadbytes mi bs (Ptrofs.unsigned (Ptrofs.repr sbase)) 16=Some bytes).
+       rewrite Unsigned;exact LoadBytes.
+     + exact Store. }
+ assert (FreeD:forall b hi,In (b,hi) (checksig_public_storage bl bb bkey bmsg bsig bout bctx bres) ->
+   Mem.range_perm md b 0 hi Cur Freeable).
+ { intros b hi Slot pos Range;eapply Mem.perm_storebytes_1;[exact Store|exact (Free b hi Slot pos Range)]. }
+ assert (InputD:forall i x,nth_error (vector_values (Word 3) 5 key) i=Some x ->
+   frame_input_word_at md bi edge (rc+8*Z.of_nat i) x).
+ { intros i x At;eapply frame_input_bits_at_preserved;[|exact (InputBytes i x At)].
+   intros ofs w Load;rewrite (proj1 FrameD) by auto;exact Load. }
+ assert (KeyWritable:Mem.range_perm md bb 0 (0+Z.of_nat (length (vector_values (Word 3) 5 key))) Cur Writable).
+ { rewrite Length;apply freeable_range_writable;apply FreeD;clear;cbn [checksig_public_storage In];tauto. }
+ assert (CursorWritable:Mem.valid_access md Mint64 bl (0+8) Writable).
+ { split;[|change (8|8);exists 1;reflexivity].
+   intros pos Range;eapply Mem.perm_implies;[apply (FreeD bl 16);[clear;cbn [checksig_public_storage In];tauto|cbn in Range;lia]|constructor]. }
+ destruct (secp_read8s_layout md bb 0 bl 0 bi edge rc (vector_values (Word 3) 5 key)
+   ltac:(clear;lia) ltac:(rewrite Length;clear;change (32<=18446744073709551615);lia)
+   KeyWritable LK LI KI ltac:(unfold frame_base_valid;change (0<=0 /\ 0+16<=18446744073709551615);lia)
+   RC ltac:(rewrite Length;exact Max) (frame_copy_fields_at _ _ _ _ _ _ _ _ LoadBytes Store EdgeI CursorI)
+   CursorWritable InputD) as (mf & Read & Key & Fields & Loads & Perms & Valid).
+ assert (FrameR:lframe (fun b _=>Mem.valid_block m0 b) md mf).
+ { split.
+   - intros chunk b ofs VB Range;apply Loads.
+     + left;intro Same;subst b;apply (Old bl (Range ofs ltac:(pose proof (size_chunk_pos chunk);lia)));
+       unfold checksig_public_locals;cbn;tauto.
+     + left;intro Same;subst b;apply (Old bb (Range ofs ltac:(pose proof (size_chunk_pos chunk);lia)));
+       unfold checksig_public_locals;cbn;tauto.
+   - split;[intros;apply Perms;assumption|exact Valid]. }
+ exists mf;split.
+ - unfold checksig_public_prefix;eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (m1:=md) (le1:=le);
+   [exact Copy|apply exec_checksig_public_read;rewrite Length in Read;exact Read].
+ - split.
+   + unfold xonly_input_bytes;rewrite word256_serializer_bytes;exact Key.
+   + split;[rewrite Length in Fields;exact Fields|];split.
+     * intros b hi Slot pos Range;apply Perms;exact (FreeD b hi Slot pos Range).
+     * split.
+       -- eapply lframe_implies;[eapply lframe_trans;[exact FrameD|exact FrameR]|];auto.
+       -- eapply preserved_trans;[exact RO|];eapply preserved_trans.
+          ++ eapply storebytes_preserved;exact Store.
+          ++ eapply hash_raw_reader_preserved;exact Read.
+Qed.

@@ -1,0 +1,66 @@
+### C.jet_secp_checksig_function.eval_checksig_public
+eval_checksig_public
+     : forall (_ : jet_memcpy_model.memcpy_model) (_ : jet_memset_model.memset_model) (_ : jet_ctz_model.ctz_model)
+         (pk ir h r s : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (v_env : Values.val)
+         (m0 : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (bi : Values.block) (edge cursor : BinNums.Z) (_ : jet_secp_checksig_tag.checksig_startup m0)
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m0 bs sbase bi edge cursor)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge cursor
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) pk))
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+                   (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) ir h)))
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+                (@Translate.encode
+                   (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                   (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) r s)))
+         (_ : BinInt.Z.le BinNums.Z0 cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+                Integers.Int64.max_unsigned),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m0
+               (@Ctypes.Internal Clight.function jets_secp.f_simplicity_check_sig_verify)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val v_env (@nil Values.val)))) Events.E0 mf
+               (Values.Vint
+                  (jet_readBit_layout.bit_int
+                     (Bit.toBool
+                        (@jet_secp_schnorr_verify_literal.literal_bip0340_check Alg.CoreFunSem
+                           (@pair
+                              (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                              (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                              (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) pk
+                                 (jet_secp_checksig_hash.checksig_hash_word ir h))
+                              (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) r s)))))))
+            (and (jet_sx_mem.lframe (fun (_ : Values.block) (_ : BinNums.Z) => True) m0 mf)
+               (and (jet_clight_forward.mem_forward m0 mf) (jet_secp_checksig_tag.checksig_startup mf))))

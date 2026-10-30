@@ -1,0 +1,75 @@
+### C.jet_secp_checksig_public_read.checksig_public_source
+checksig_public_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_simplicity_check_sig_verify)
+         (Clight.Ssequence checksig_public_copy (Clight.Ssequence checksig_public_read checksig_public_tail))
+### C.jet_secp_checksig_public_read.exec_checksig_public_read
+exec_checksig_public_read
+     : forall (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bl bb bkey bmsg bsig bout bctx bres : Values.block)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets.f_read8s)
+                (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      (Values.Vlong
+                         (Integers.Int64.repr
+                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+         (jet_secp_checksig_public_entry.checksig_public_env bl bb bkey bmsg bsig bout bctx bres) le m
+         checksig_public_read Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_checksig_public_read.checksig_public_prepare
+checksig_public_prepare
+     : forall (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (le : Maps.PTree.tree Values.val)
+         (m0 mi : Memory.Mem.mem) (bl bb bkey bmsg bsig bout bctx bres bs : Values.block) (sbase : BinNums.Z)
+         (bi : Values.block) (edge rc : BinNums.Z)
+         (_ : @List.NoDup Values.block
+                (jet_secp_checksig_public_entry.checksig_public_locals bl bb bkey bmsg bsig bout bctx bres))
+         (_ : forall (b : Values.block) (_ : Memory.Mem.valid_block m0 b),
+              not
+                (@List.In Values.block b
+                   (jet_secp_checksig_public_entry.checksig_public_locals bl bb bkey bmsg bsig bout bctx bres)))
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                       (jet_secp_checksig_public_entry.checksig_public_storage bl bb bkey bmsg bsig bout bctx bres)),
+              Memory.Mem.range_perm mi b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+         (_ : jet_sx_mem.lframe (fun (_ : Values.block) (_ : BinNums.Z) => True) m0 mi)
+         (_ : jet_clight_internal_preserve.readonly_preserved m0 mi)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._src le)
+                (@Some Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))))
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m0 bs sbase bi edge rc)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) key)) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+               (jet_secp_checksig_public_entry.checksig_public_env bl bb bkey bmsg bsig bout bctx bres) le mi
+               checksig_public_prefix Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_read8s_layout.uint8_array_at mf bb BinNums.Z0
+                  (@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+                     (jet_secp_xonly_parse_field.xonly_input_bytes key)))
+               (and
+                  (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge
+                     (BinInt.Z.add rc
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                  (and
+                     (forall (b : Values.block) (hi : BinNums.Z)
+                        (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                               (jet_secp_checksig_public_entry.checksig_public_storage bl bb bkey bmsg bsig bout bctx
+                                  bres)), Memory.Mem.range_perm mf b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+                     (and (jet_sx_mem.lframe (fun (_ : Values.block) (_ : BinNums.Z) => True) m0 mf)
+                        (jet_clight_internal_preserve.readonly_preserved m0 mf))))))
