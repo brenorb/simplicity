@@ -348,14 +348,15 @@ reaching 526/533 as described above. Reproduce with
 
 Current resume checkpoint: the predicate and original challenge-to-return C
 chains are integrated into `feat/jet-equivalence`. The isolated worktree
-`codex/schnorr-reconstruction` is now frozen at `f3e0f457` while its ordinary
-cache/dependency refresh for `C/jet_secp_bip0340_verifier_return.vo` runs. After
-that build succeeds, advance the idle clean worker to the BIP340 registration
-commit `740a5536`, copy only newly added source-identical object caches,
-and build `C/jet_secp_bip0340_local.vo`. Then take a fingerprint and run
-`JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bip_0340_verify`,
-checking the matching after-fingerprint. This supersedes a separate inner-tail
-kernel run. Do not edit/copy caches while the worker's build/check runs.
+`codex/schnorr-reconstruction` is now frozen at the BIP340 registration commit
+`740a5536`. The ordinary dependency refresh and the exact public candidate
+build both succeeded. Only nine newly added, source-identical compiled caches
+were copied before that final build; older worker objects were retained.
+The full scoped acceptance command is now running there:
+`JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bip_0340_verify`.
+Before/after source/object fingerprints bracket the run; compare them and the
+final exit status before claiming acceptance. Do not edit/copy caches while the
+worker's check runs. This supersedes a separate inner-tail kernel run.
 The new full scoped acceptance result is **pending**, not claimed.
 The earlier snapshot at `93b98930`, where recursive checking of
 `C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return` **passed**
@@ -869,27 +870,33 @@ parametricity and option-semantics reduction to the existing BIP340 term.
 All four bridges are closed. Its ordinary build and reviewed no-update records
 pass. The existing source correspondence gate now checks this composition,
 tag, padding, catalog and FFI binding and rejects 13 targeted mutations; it
-explicitly does not claim a public C contract yet. Next compose the wrapper's
-owned context copy, message read, digest serialization, signature read and
-existing Schnorr call. `jet_secp_checksig_public_entry` now supplies all eight
+explicitly does not claim a public C contract yet.
+`jet_secp_checksig_public_entry` now supplies all eight
 actual allocations, their exact environment, distinctness/freshness and
 permissions, and all eight frees in the actual PTree order.
 `jet_secp_context_copy` reuses the checked 88-byte context-copy structure with
 explicit local identifiers; `jet_secp_checksig_context` composes the actual
 constructor call and _ctx assignment with canonical state, permissions,
 external framing and startup preservation. Their ordinary builds and reviewed
-no-update records pass. The CheckSig wrapper copies
-this result to `_ctx`, reads/absorbs its 64-byte message, finalizes, serializes
-32 digest bytes to `_buf`, reads the signature and calls the original Schnorr
-verifier. Its full outer entry has eight locals. Preserve BIP340's already
-reviewed startup definition and frozen targets; add only CheckSig-specific
-proof predicates. Do not silently replace native SHA or its actual caller.
-Keep all preservation attached to the
-constructed memset witnesses; its existential model does not specify every
-arbitrary external execution. No public Schnorr proof or
-new coverage is claimed yet.
-Reuse these modules rather than re-proving
-the table, generator bases or inverse. No Schnorr jet is registered yet.
+no-update records pass. `jet_secp_public_pair_read` now executes the shared
+original 64-byte read for either message or signature, at arbitrary valid
+cursors with word crossings. `jet_secp_checksig_hash_calls` composes the
+actual absorption, finalization and digest-serialization statements and
+returns the exact canonical message bytes with owned memory, external framing,
+readonly memory and SHA startup preserved. Their ordinary builds and reviewed
+no-update records pass. These execution contracts retain memcpy_model only.
+Next compose context setup, the 64-byte message read and this hashing suffix;
+then the signature read and existing parsed-key Schnorr verifier. The outer
+entry/free lemmas are ready. The initial source-frame copy/key read and key
+parse need adapters to the eight-local environment, reusing the existing
+reader/parser results. Bind the eventual full public contract in the existing
+source gate before registration. Preserve BIP340's already reviewed startup
+definition and frozen targets; add only CheckSig-specific proof predicates.
+Keep all preservation attached to constructed memset witnesses: its existential
+model does not specify every arbitrary external execution. BIP340 is a
+registered candidate awaiting full acceptance; CheckSig remains unregistered.
+No new accepted coverage is claimed for these helpers. Reuse the table,
+generator and inverse modules rather than re-proving them.
 
 The paragraphs below preserve the sequential development history; their
 remaining-work statements describe the corresponding earlier checkpoints.
