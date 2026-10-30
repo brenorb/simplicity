@@ -588,6 +588,14 @@ Ordinary builds and reviewed scoped no-update audits pass. Next add the strict
 field reader/guard, output clear and null checks, then the two allocations/frees.
 The public wrapper supplies the input as its fresh 32-byte local `buf`, so reuse
 `eval_set_b32_owned`; its owned-source premise is an internal caller fact.
+`jet_secp_xonly_parse_field.exec_xonly_parse_field` now composes that actual
+strict field reader/guard with the decompression-to-return suffix for every
+Word256 key. It retains field-range rejection (raw key >= p), decompression
+rejection and success, with native decoded coordinates on the successful path.
+All four complete owned ranges, framing and readonly preservation are kept.
+Its ordinary build and reviewed scoped no-update records pass. Only the
+existing `memcpy_model` premise remains; the original initial clear still
+needs its existing `memset_model` when composing the complete parser.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
