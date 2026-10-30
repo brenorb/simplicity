@@ -21,7 +21,7 @@ on 1,376 modules, negative tests and all five AST regeneration comparisons.
 The before/after source-and-object fingerprints agree; every source and object
 in its 1,468-module closure also matches the main checkout. Reproduce with
 `JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bip_0340_verify`.
-CheckSig full scoped acceptance at `05e9fc35` is the next verification task;
+CheckSig full scoped acceptance at `05e9fc35` is running in the isolated verifier;
 it remains a registered candidate until that complete command passes.
 `point_verify_1` passed full scoped acceptance on the exact inputs of
 `0180f32b`: kernel checking on 1,084 modules, matching assumption records on
@@ -361,8 +361,9 @@ The command was `JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bip_03
 The clean `codex/schnorr-reconstruction` verifier was then advanced to CheckSig
 registration commit `05e9fc35`; 17 newly added, source-identical compiled objects
 were copied with preserved mtimes, while all older objects were retained.
-Build `C/jet_secp_checksig_local.vo` before fingerprinting the idle worker and
-running its complete scoped acceptance. Do not edit worker sources or caches
+The ordinary `C/jet_secp_checksig_local.vo` build passed. Its full scoped
+acceptance is now running, bracketed by source/object fingerprints; recursive
+kernel checking is the current phase. Do not edit worker sources or caches
 during that run. Main-checkout TapTweak proof work is independent of it.
 The earlier snapshot at `93b98930`, where recursive checking of
 `C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return` **passed**
@@ -918,7 +919,7 @@ The candidate is registered and the complete coverage negative tests pass.
 Registered inventory is **528/533**, while accepted coverage is **527/533**.
 BIP340 acceptance passed. The now-idle clean verifier is at CheckSig registration
 commit `05e9fc35`, with only new source-identical objects copied, preserving
-mtimes. After its ordinary target build succeeds, fingerprint it and run
+mtimes. The ordinary target build succeeded; the fingerprinted worker is now running
 `JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_check_sig_verify`.
 Compare after-fingerprint/status. CheckSig remains unaccepted until the full
 scoped command passes.
@@ -1112,8 +1113,20 @@ to the original generic statement span 8--10. Its register/padding/byte bridges
 are closed; execution retains memcpy_model and the inherited six axioms.
 Ordinary compilation and reviewed no-update records pass. This is an internal
 hashing span, not a whole-public TapTweak equivalence theorem.
-Next compose the key read/absorption/parser and input-hash reader with these
-hashing calls, the native suffix, writer and complete generic/public lifecycle.
+`jet_secp_taptweak_entry` now constructs all eleven original generic-function
+local allocations, the exact parameter/local environment, freshness/ownership,
+and the actual environment-order free list. It proves all eleven locals can
+be freed while preserving unrelated memory. No library premise is added.
+`jet_secp_taptweak_parse.exec_taptweak_parse` constructs the original input-key
+parser call and early-return guard for both outcomes, reusing the complete
+x-only parser and its representation result. Its source span is statement 6;
+it retains memcpy_model/memset_model explicitly and the six inherited axioms.
+Both ordinary builds and reviewed no-update assumption/contract records pass.
+Next compose the key read/absorption and input-hash reader with these hashing
+calls, parser/guards, native suffix, writer and generic/public lifecycle.
+The literal whole TapTweak assertion port and canonical source-binding gate
+also remain to be constructed; the hash formula and native arithmetic bridges
+alone do not count as the whole public theorem.
 The frozen `v_taptweak` global is a writable nine-byte array (eight characters
 plus NUL), not a readonly string; do not assume readonly tag memory. Establish
 its exact initial bytes, bounded permissions and no-Freeable property from
