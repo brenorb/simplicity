@@ -854,6 +854,24 @@ Together with window-5 reconstruction and
 group fold to its scalar expression; that reduction and the full Schnorr
 caller/predicate composition remain. Public coverage is still 526/533.
 
+`jet_secp_strauss_scalar_group.secp_literal_strauss_fold_scalar` reduces the
+actual word fold, starting at infinity, to a four-scalar group combination.
+It proves the lambda/signed-scalar transfer and componentwise doubling/addition,
+then exposes all four coefficients as Horner folds of the respective digits.
+Its ordinary build and all twelve reviewed no-update records pass (closed
+group/scalar algebra, existing functional extensionality only in the word-fold
+composition). Fresh recursive checking of this root remains pending.
+Binding the four projections of the actual 129-digit combined list to the
+window-5/window-15 reconstruction theorems remains. Then compose the actual
+complete ecmult routing (including its skipped branch and final Z correction),
+final normalization, the Schnorr predicate and original public caller.
+
+For these group proofs, unfold coefficient definitions explicitly before
+rewriting their algebra: `cbn` may leave them folded under opaque operations.
+Avoid greedily rewriting every signed-power addition, which can trigger
+conversion against unrelated bases; split the combination with `f_equal2`
+and apply the same-base power lemma at each leaf instead.
+
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
 term arguments. When the context contains both `ValueA : value=point` and
