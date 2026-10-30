@@ -1628,9 +1628,31 @@ same inputs and outputs, using the checked internal call graph instead.
 The linked lookup uses this result; its reviewed assumption record has only
 the six inherited assumptions. Original accepted source helpers are unchanged.
 Initialization/preservation uses only the four inherited memory/logical
-assumptions, and lookup/AST facts are closed. The linked field metadata and
-actual CTZ call compile in scratch; normal integration/audits are next.
-These additions postdate the `ca89b2aa` kernel check.
+assumptions, and lookup/AST facts are closed.
+`jet_elements_taptweak_modinfo` and `jet_elements_taptweak_ctz` now also build
+normally, with nineteen reviewed theorem records and three state definitions
+matching without update flags. The former establishes the exact six field
+metadata words and readonly state from actual linked initialization, and
+derives separation/preservation. The latter derives the whole original
+ctz64 call at the actual linked builtin declaration and guard, conditional
+only on the existing ctz_model for nonzero arguments. Its execution has the
+same six inherited assumptions; initialization/preservation uses four and
+lookup/layout facts are closed. No new external model is introduced.
+
+Next port the actual beta auxiliary calls and generator digit dispatch to
+these linked symbols/states, then compose the complete ecmult and affine
+inverse paths. Reuse the complete linked scalar split, signed table lookup
+and pure arithmetic transport. The old inverse-loop CountCall and modulus
+predicates still name secp_ge/source blocks: the new target CTZ/metadata
+theorems alone do not establish a linked inverse execution. Derive every
+callee at the target GE before claiming the native tweak or public wrapper.
+All of these additions postdate the `ca89b2aa` recursive kernel check; they
+have ordinary builds and reviewed scoped records, not fresh public acceptance.
+Reproduce the completed component builds with:
+
+```sh
+JET_TARGETS='C/jet_elements_taptweak_entry.vo C/jet_elements_taptweak_hash_phase.vo C/jet_elements_taptweak_serialize.vo C/jet_elements_taptweak_split_function.vo C/jet_elements_taptweak_beta.vo C/jet_elements_taptweak_generator_globals.vo C/jet_elements_taptweak_modinfo.vo C/jet_elements_taptweak_ctz.vo' bash Coq/build-jets.sh -j2
+```
 The native tweak call and suffix composition, actual linked constant/global
 initialization, outer wrapper and final writer/free composition still remain;
 no whole Elements TapTweak equivalence is claimed.

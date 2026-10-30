@@ -1,0 +1,104 @@
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_global_symbol
+elements_taptweak_modinfo_fe_global_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+            (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge) jets_secp._secp256k1_const_modinfo_fe)
+         (@Some Values.block elements_taptweak_modinfo_fe_block)
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_global_info
+elements_taptweak_modinfo_fe_global_info
+     : @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info Clight.fundef Ctypes.type
+            (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge) elements_taptweak_modinfo_fe_block)
+         (@Some (AST.globvar Ctypes.type) jets_secp.v_secp256k1_const_modinfo_fe)
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_genv_projection
+elements_taptweak_modinfo_fe_genv_projection
+     : @eq (Globalenvs.Genv.t Clight.fundef Ctypes.type)
+         (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge)
+         (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+            (@Ctypes.program_of_program Clight.function jet_elements_taptweak_program.elements_taptweak_linked_program))
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_global_initializes
+elements_taptweak_modinfo_fe_global_initializes
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function
+                      jet_elements_taptweak_program.elements_taptweak_linked_program)) (@Some Memory.Mem.mem m)),
+       elements_taptweak_modinfo_fe_global_rep m
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_global_readonly_initial
+elements_taptweak_modinfo_fe_global_readonly_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function
+                      jet_elements_taptweak_program.elements_taptweak_linked_program)) (@Some Memory.Mem.mem m))
+         (ofs : BinNums.Z), not (Memory.Mem.perm m elements_taptweak_modinfo_fe_block ofs Memtype.Max Memtype.Writable)
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_global_unchanged
+elements_taptweak_modinfo_fe_global_unchanged
+     : forall (m m' : Memory.Mem.mem)
+         (_ : Memory.Mem.unchanged_on
+                (fun (b : Values.block) (_ : BinNums.Z) => @eq Values.block b elements_taptweak_modinfo_fe_block) m m')
+         (_ : elements_taptweak_modinfo_fe_global_rep m), elements_taptweak_modinfo_fe_global_rep m'
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_global_lframe
+elements_taptweak_modinfo_fe_global_lframe
+     : forall (m mf : Memory.Mem.mem) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : elements_taptweak_modinfo_fe_global_rep m) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall pos : BinNums.Z, P elements_taptweak_modinfo_fe_block pos),
+       elements_taptweak_modinfo_fe_global_rep mf
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_initial
+elements_taptweak_modinfo_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function
+                      jet_elements_taptweak_program.elements_taptweak_linked_program)) (@Some Memory.Mem.mem m)),
+       elements_taptweak_modinfo_fe_state m
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_initial_memory
+elements_taptweak_modinfo_initial_memory
+     : @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                  (@Ctypes.program_of_program Clight.function
+                     jet_elements_taptweak_program.elements_taptweak_linked_program)) (@Some Memory.Mem.mem m))
+            (elements_taptweak_modinfo_fe_state m))
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_separate
+elements_taptweak_modinfo_separate
+     : forall (m : Memory.Mem.mem) (b : Values.block) (hi : BinNums.Z) (_ : elements_taptweak_modinfo_fe_state m)
+         (_ : BinInt.Z.lt BinNums.Z0 hi) (_ : Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable),
+       not (@eq Values.block b elements_taptweak_modinfo_fe_block)
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_readonly
+elements_taptweak_modinfo_readonly
+     : forall (m mf : Memory.Mem.mem) (_ : elements_taptweak_modinfo_fe_state m)
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf), elements_taptweak_modinfo_fe_state mf
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_block
+elements_taptweak_modinfo_fe_block =
+jet_elements_taptweak_globals.elements_taptweak_symbol_block jets_secp._secp256k1_const_modinfo_fe
+     : Values.block
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_global_rep
+elements_taptweak_modinfo_fe_global_rep =
+fun m : Memory.Mem.mem =>
+and (Memory.Mem.valid_block m elements_taptweak_modinfo_fe_block)
+  (and
+     (Memory.Mem.range_perm m elements_taptweak_modinfo_fe_block BinNums.Z0
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))) Memtype.Cur
+        Memtype.Readable)
+     (forall (i : nat) (w : Integers.Int64.int)
+        (_ : @eq (option Integers.Int64.int)
+               (@List.nth_error Integers.Int64.int jet_secp_modinfo_fe_global.modinfo_fe_words i)
+               (@Some Integers.Int64.int w)),
+      @eq (option Values.val)
+        (Memory.Mem.load AST.Mint64 m elements_taptweak_modinfo_fe_block
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+        (@Some Values.val (Values.Vlong w))))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments elements_taptweak_modinfo_fe_global_rep m
+### C.jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_state
+elements_taptweak_modinfo_fe_state =
+fun m : Memory.Mem.mem =>
+and (elements_taptweak_modinfo_fe_global_rep m)
+  (forall ofs : BinNums.Z, not (Memory.Mem.perm m elements_taptweak_modinfo_fe_block ofs Memtype.Max Memtype.Writable))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments elements_taptweak_modinfo_fe_state m
