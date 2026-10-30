@@ -1423,9 +1423,27 @@ loop test, byte copy, counter, return and free for partial blocks. The complete
 partial-block calls preserve the untouched caller memory, context pointer,
 permissions and SHA startup. Both modules compile in the normal dependency
 build; all ten helper records match with only the inherited assumptions and
-the explicit existing memcpy_model where used. Next integrate the checked
-single-block loop/call sources, then the u64 length writer and short finalizer;
-no full Elements generic or public jet is registered yet.
+the explicit existing memcpy_model where used.
+`jet_elements_taptweak_absorb_block` and `jet_elements_taptweak_absorb_full`
+now compile in the normal project too: the original loop copies exactly the
+remaining bytes, updates pointers/counts, invokes the dispatched compressor,
+resets the buffer and terminates. The full call composes real entry, shared
+setup, this loop, the zero tail, return and free. Its postcondition includes
+the actual SHA block result, context pointer, total counter, overflow,
+permissions, caller framing, readonly preservation and startup. All five
+helper records match; the only explicit library premise remains memcpy_model.
+Next complete the u64 length writer and short finalizer, then compose runtime
+tag hashing and the remaining generic/public phases. No full Elements generic
+or public jet is registered yet. A prepared port is at
+`/private/tmp/point-verify-scratch/jet_elements_taptweak_u64_full.v`; it is
+**not checked against the current dependencies**. Its scratch compile stopped
+on old-object inconsistency after the pure module gained its digest serializer.
+Convert its scratch Requires to the ordinary C modules and compile it there;
+do not copy scratch objects or infer success from an older .vo. It keeps the
+existing WriteBE64 source call for its memory properties, then transports just
+the execution into the linked ge. After that, reuse the padding fill/entry/free
+layout from finalize48 when porting the general short finalizer; the pure
+`secp_sha_short_padding` lemma already applies unchanged.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including
