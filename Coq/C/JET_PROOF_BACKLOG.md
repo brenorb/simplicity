@@ -1414,6 +1414,18 @@ owned digest serializer, preserving source words and caller memory. These
 extensions compile and their reviewed records contain only the existing six
 inherited assumptions; they introduce no external-library premise. They are
 newer than the helper kernel run at `9b7e721d` and do not add public coverage.
+`jet_elements_taptweak_absorb_head` now executes the original shared
+counter/overflow/cursor setup with an arbitrary valid total counter and keeps
+all observations, framing and startup. `jet_elements_taptweak_absorb_short`
+constructs real destination-ge memcpy calls under the unchanged n<=64 model,
+handles empty tails without a call, and composes the original entry, setup,
+loop test, byte copy, counter, return and free for partial blocks. The complete
+partial-block calls preserve the untouched caller memory, context pointer,
+permissions and SHA startup. Both modules compile in the normal dependency
+build; all ten helper records match with only the inherited assumptions and
+the explicit existing memcpy_model where used. Next integrate the checked
+single-block loop/call sources, then the u64 length writer and short finalizer;
+no full Elements generic or public jet is registered yet.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including
