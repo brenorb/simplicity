@@ -9,11 +9,11 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-At the last fully accepted milestone there are 526 equivalence entries (139 with the existing
-explicit `memcpy_model` premise, 6 with the approved `ctz_model` premise, 8
+At the last fully accepted milestone there are 527 equivalence entries (140 with the existing
+explicit `memcpy_model` premise, 7 with the approved `ctz_model` premise, 9
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-527/533 accepted proof entries, with 6 jets still lacking either accepted result.
+528/533 accepted proof entries, with 5 jets still lacking either accepted result.
 The registered candidate inventory is 528/533, including CheckSig.
 BIP340 passed full scoped acceptance at `740a5536`: recursive kernel checking
 on 1,468 modules, matching reviewed assumptions on 1,358 modules and contracts
@@ -21,8 +21,13 @@ on 1,376 modules, negative tests and all five AST regeneration comparisons.
 The before/after source-and-object fingerprints agree; every source and object
 in its 1,468-module closure also matches the main checkout. Reproduce with
 `JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bip_0340_verify`.
-CheckSig full scoped acceptance at `05e9fc35` is running in the isolated verifier;
-it remains a registered candidate until that complete command passes.
+CheckSig passed full scoped acceptance at `05e9fc35`: recursive kernel checking
+on 1,484 modules, matching assumptions on 1,374 modules and contracts on 1,392
+modules, negative tests and all five AST regeneration comparisons. The full
+before/after source-and-object fingerprint agrees, and all 1,484 closure
+sources/objects match the main checkout. Reproduce with
+`JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_check_sig_verify`.
+Later TapTweak helper additions are separate work and do not add accepted coverage.
 `point_verify_1` passed full scoped acceptance on the exact inputs of
 `0180f32b`: kernel checking on 1,084 modules, matching assumption records on
 1,015 modules and contract records on 1,033 modules, negative tests and all
