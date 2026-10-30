@@ -1,0 +1,192 @@
+### C.jet_secp_wnaf15_reconstruction.secp_wnaf15_small_digit
+secp_wnaf15_small_digit
+     : forall (q : BinNums.Z)
+         (_ : and
+                (BinInt.Z.lt
+                   (BinNums.Zneg
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+                   q)
+                (BinInt.Z.lt q
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))),
+       @eq BinNums.Z
+         (jet_secp_wnaf_digit.wnaf_digit
+            (BinInt.Z.modulo q
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+            (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))) q
+### C.jet_secp_wnaf15_reconstruction.secp_wnaf15_next_bound
+secp_wnaf15_next_bound
+     : forall (k : nat) (q : BinNums.Z)
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.opp (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat (S k)))) q)
+                (BinInt.Z.le q (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat (S k))))),
+       and
+         (BinInt.Z.le (BinInt.Z.opp (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat k)))
+            (secp_wnaf15_next q))
+         (BinInt.Z.le (secp_wnaf15_next q) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat k)))
+### C.jet_secp_wnaf15_reconstruction.secp_wnaf15_positive_step
+secp_wnaf15_positive_step
+     : forall word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))),
+       @ex (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+         (fun next : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))) =>
+          @ex (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit)
+            (fun digit : Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit =>
+             and
+               (@eq
+                  (Ty.tySem (Ty.Prod jet_secp_wnaf_literal.literal_wnaf_state jet_secp_wnaf_literal.literal_wnaf_digit))
+                  (@jet_secp_wnaf_literal.literal_wnaf15_step Alg.CoreFunSem
+                     (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+                        (@inl unit unit tt) word))
+                  (@pair (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))))
+                     (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit)
+                     (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+                        (@inl unit unit tt) next) digit))
+               (and
+                  (@eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+                     (BinInt.Z.add
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH))
+                           (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) next))
+                        (jet_secp_wnaf_literal_array.wnaf_literal_value digit)))
+                  (@eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) next)
+                     (secp_wnaf15_next (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word))))))
+### C.jet_secp_wnaf15_reconstruction.secp_wnaf15_run_reconstruct
+secp_wnaf15_run_reconstruct
+     : forall (count : nat) (word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))),
+       @ex (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+         (fun final : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))) =>
+          @ex (list (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit))
+            (fun digits : list (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit) =>
+             and
+               (@eq
+                  (prod (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_state)
+                     (list (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit)))
+                  (jet_secp_wnaf_literal.literal_wnaf_run count
+                     (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+                        (@inl unit unit tt) word))
+                  (@pair (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))))
+                     (list (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit))
+                     (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+                        (@inl unit unit tt) final) digits))
+               (and
+                  (@eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+                     (@List.fold_left BinNums.Z (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit)
+                        secp_wnaf15_digit_fold digits
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) final)))
+                  (forall
+                     _ : and
+                           (BinInt.Z.le
+                              (BinInt.Z.opp
+                                 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat count)))
+                              (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word))
+                           (BinInt.Z.le (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)
+                              (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat count))),
+                   and
+                     (BinInt.Z.le (BinNums.Zneg BinNums.xH)
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) final))
+                     (BinInt.Z.le (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) final)
+                        (BinNums.Zpos BinNums.xH))))))
+### C.jet_secp_wnaf15_reconstruction.secp_wnaf15_next_small_zero
+secp_wnaf15_next_small_zero
+     : forall (q : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zneg BinNums.xH) q) (BinInt.Z.le q (BinNums.Zpos BinNums.xH))),
+       @eq BinNums.Z (secp_wnaf15_next q) BinNums.Z0
+### C.jet_secp_wnaf15_reconstruction.secp_wnaf15_run129_zero_payload
+secp_wnaf15_run129_zero_payload
+     : forall word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O))))))))
+            (@snd (sum unit unit)
+               (prod
+                  (prod
+                     (prod
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                     (prod
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                  (prod
+                     (prod
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                     (prod
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))))
+               (@fst (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_state)
+                  (list (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit))
+                  (jet_secp_wnaf_literal.literal_wnaf_run
+                     (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))
+                     (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))))
+                        (@inl unit unit tt) word))))) BinNums.Z0
+### C.jet_secp_wnaf15_reconstruction.secp_wnaf15_digits_reconstruct
+secp_wnaf15_digits_reconstruct
+     : forall word : Ty.tySem (Word.Word (S (S (S (S (S (S (S O)))))))),
+       @eq BinNums.Z
+         (@List.fold_left BinNums.Z (Ty.tySem jet_secp_wnaf_literal.literal_wnaf_digit) secp_wnaf15_digit_fold
+            (jet_secp_wnaf_literal.literal_wnaf15_digits
+               (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S O))))))))) (@inl unit unit tt) word))
+            BinNums.Z0) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S O)))))))) word)

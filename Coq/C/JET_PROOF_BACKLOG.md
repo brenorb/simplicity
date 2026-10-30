@@ -843,6 +843,17 @@ meaning (window-5 reconstruction is proved, window-15 reconstruction remains),
 then composed with the final normalization, Schnorr predicate and actual caller.
 No new public jet is registered or accepted by this helper result.
 
+`jet_secp_wnaf15_reconstruction.secp_wnaf15_digits_reconstruct` reconstructs
+all 129 original generator-stream digits for every Word128 input in the
+positive encoding used by the real caller. It derives step balance, preservation
+of that encoding, a residual bound and a zero final residual. No termination
+or digit-value fact is assumed. The ordinary build and all seven reviewed no-update records pass, and every
+result is closed. Fresh recursive checking of this root remains pending.
+Together with window-5 reconstruction and
+`secp_literal_strauss129_group`, this supplies the inputs for reducing the
+group fold to its scalar expression; that reduction and the full Schnorr
+caller/predicate composition remain. Public coverage is still 526/533.
+
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
 term arguments. When the context contains both `ValueA : value=point` and
