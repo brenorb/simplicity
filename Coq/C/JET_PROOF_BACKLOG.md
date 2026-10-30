@@ -1720,10 +1720,20 @@ without update flags; layout/lookup facts are closed and execution retains
 only the six inherited assumptions. Next connect the scalar split and full
 point preparation. The real 129-int buffer uses 516 bytes and stays within
 the approved memset bound.
-The actual `generator_final_statement` is also pure and can be transported
-after its own checked statement/layout fact; it is not yet in the three-item
-Strauss statement list. Reuse the original final-flag/nonzero-table bridges
-when composing the real caller. No whole ecmult or public call is established yet.
+`jet_elements_taptweak_split_wnaf` now derives the actual split call, the
+two signed digit arrays and both count stores, with the actual linked
+constant/frame predicates. `jet_elements_taptweak_scalar_prepare` composes
+the original count reads and maximum updates, retaining the literal halves,
+source scalar and caller state. `jet_elements_taptweak_strauss_final` checks
+the actual final-correction statement separately from the three-item Strauss
+list, and transports all three original any/literal/flag contracts. Its
+stored-flag result keeps the original nonzero-denominator condition; final
+callers must derive that from the valid input and discharge the local-domain
+obligations using the actual entry. All three build normally, with reviewed
+scoped records matching without update flags and the same six inherited
+execution assumptions. They have no fresh recursive/public acceptance.
+Next compose finite point/table preprocessing, the generator branch, whole
+Strauss/ecmult and the inverse. No whole ecmult or public call is established yet.
 Reproduce the completed component builds with:
 
 ```sh
