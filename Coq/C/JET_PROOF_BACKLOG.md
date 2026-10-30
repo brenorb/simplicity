@@ -1162,9 +1162,30 @@ option value includes the strict key bound and even-Y decompression; rejection
 and successful serialization retain owned storage, external framing and full
 initialized state. Reviewed ordinary/no-update records pass, with the existing
 memcpy_model/memset_model/ctz_model and inherited eight axioms only.
+`jet_secp_taptweak_writer_state` derives separation of a 256-bit writable
+frame from any block bounded by nine bytes, including its sixteen-byte frame
+descriptor. The proof uses the actual byte permissions and distinct output
+word addresses, adding no public pointer-separation premise.
+`taptweak_ready` extends the existing initialized state with the real eight-byte
+extent of the writable SHA dispatch cell. This extent is established from
+Genv.init_mem and preserved by mem_forward; the old no-Freeable condition alone
+does not describe the size of that writable global. This is a representation
+invariant of real program initialization, not a C/specification mismatch.
+`taptweak_ready_after_write` proves the original output write keeps the tables,
+modulus, SHA state/dispatch and writable tag. A closed four-function writer table
+supplies readonly preservation. Initial constructibility, ordinary compilation
+and reviewed no-update records pass, with no extra library premise.
 Next compose the native suffix and writer with the complete generic/public
-lifecycle. Reuse the key-phase result for both the normal parser path and
-immediate failure.
+lifecycle. Keep taptweak_ready (including dispatch extent) at the public
+boundary and use taptweak_ready_forward around existing startup-preserving
+phases. Reuse the key-phase result for normal parsing and immediate failure.
+For the final writer use secp_write8s_layout to obtain its actual call and
+write_effect, exec_taptweak_write_return for control flow, and
+secp_write8s_preserved plus taptweak_ready_after_write for initialized-state
+preservation. Do not assume a new separation from globals or that all memory
+permissions survive a native suffix whose interface only retains caller-owned
+regions; preserve the public output observations and old-memory framing from
+the supplied lframes instead.
 All original callees and entry/cleanup packets are now available; the remaining
 work includes transporting their representations, ownership and initialized
 state through the full statement sequence, every return branch and frees.

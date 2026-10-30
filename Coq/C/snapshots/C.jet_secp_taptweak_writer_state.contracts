@@ -1,0 +1,77 @@
+### C.jet_secp_taptweak_writer_state.taptweak_dispatch_extent_initial
+taptweak_dispatch_extent_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       taptweak_dispatch_extent m
+### C.jet_secp_taptweak_writer_state.block_extent_forward
+block_extent_forward
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (hi : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+         (_ : block_extent m b hi) (_ : jet_clight_forward.mem_forward m mf), block_extent mf b hi
+### C.jet_secp_taptweak_writer_state.taptweak_ready_initial
+taptweak_ready_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       taptweak_ready m
+### C.jet_secp_taptweak_writer_state.taptweak_ready_exists
+taptweak_ready_exists
+     : @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                  (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m))
+            (taptweak_ready m))
+### C.jet_secp_taptweak_writer_state.taptweak_ready_forward
+taptweak_ready_forward
+     : forall (m mf : Memory.Mem.mem) (_ : taptweak_ready m) (_ : jet_secp_taptweak_tag.taptweak_startup mf)
+         (_ : jet_clight_forward.mem_forward m mf), taptweak_ready mf
+### C.jet_secp_taptweak_writer_state.small_block_output_separate
+small_block_output_separate
+     : forall (m : Memory.Mem.mem) (bg : Values.block) (hi : BinNums.Z) (bd : Values.block)
+         (base : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z)
+         (_ : BinInt.Z.le hi (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))
+         (_ : block_extent m bg hi)
+         (_ : jet_output_layout.write_frame_at m bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       and (not (@eq Values.block bd bg)) (not (@eq Values.block bw bg))
+### C.jet_secp_taptweak_writer_state.secp_write8_internal_ok
+secp_write8_internal_ok
+     : jet_clight_internal_frame.internal_table_ok jet_secp_linkage.secp_ge secp_write8_internal_table
+### C.jet_secp_taptweak_writer_state.secp_write8s_preserved
+secp_write8s_preserved
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets.f_write8s) args t mf result),
+       jet_clight_internal_preserve.readonly_preserved m mf
+### C.jet_secp_taptweak_writer_state.write_effect_lframe
+write_effect_lframe
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor count : BinNums.Z) (cells : list BitMachine.Cell)
+         (_ : jet_bitcoin_effects.write_effect m mf bd base bw edge cursor count cells),
+       jet_sx_mem.lframe
+         (fun (b : Values.block) (_ : BinNums.Z) => and (not (@eq Values.block b bd)) (not (@eq Values.block b bw))) m
+         mf
+### C.jet_secp_taptweak_writer_state.taptweak_ready_after_write
+taptweak_ready_after_write
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (cells : list BitMachine.Cell) (_ : taptweak_ready m)
+         (_ : jet_output_layout.write_frame_at m bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf)
+         (_ : jet_bitcoin_effects.write_effect m mf bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                cells), taptweak_ready mf
