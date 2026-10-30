@@ -830,6 +830,19 @@ pinned compiler and 64 MiB stack). It checks the complete dependency closure;
 it does not use `-admit` or `-norec`. Fresh recursive checking remains pending. Ordinary builds and the scoped no-update records described above
 are completed evidence; public coverage remains 526/533.
 
+`jet_secp_strauss_group.secp_literal_strauss129_group` interprets the actual
+four-stream step and complete 129-step traversal in the curve group. It derives
+each double, signed table addition, lambda lookup and shared-context generator
+addition, including every absent-digit branch. Its internal premises are the
+represented table/accumulator, nonzero shared context and valid generator digits;
+those are supplied by the seed and existing window-15 validity proofs, not by
+an assumed helper execution. The ordinary build and all six reviewed no-update records pass, with existing
+functional extensionality only for the literal operations. Fresh recursive
+checking of this loop root remains pending. The group fold must still be reduced to its scalar
+meaning (window-5 reconstruction is proved, window-15 reconstruction remains),
+then composed with the final normalization, Schnorr predicate and actual caller.
+No new public jet is registered or accepted by this helper result.
+
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
 term arguments. When the context contains both `ValueA : value=point` and
