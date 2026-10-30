@@ -376,7 +376,10 @@ corollary excludes every normalized on-curve even-Y candidate at that X.
 `jet_secp_even_x_test` proves the finite/even-Y/X predicate equivalent to even
 decompression representing the computed group point, including infinity and
 failed-decompression cases. This is a pure bridge; original C execution remains
-separate. Next connect the Schnorr predicates, then compose the original C caller.
+separate. `jet_secp_schnorr_group_predicate` now proves the canonical point
+check equals that finite/even-Y/X test with C's negative-challenge/even-key
+convention, for every scalar and including failed r decompression. Next add
+the outer guards and compose the original C caller.
 Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
 

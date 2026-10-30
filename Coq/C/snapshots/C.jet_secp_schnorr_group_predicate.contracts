@@ -1,0 +1,88 @@
+### C.jet_secp_schnorr_group_predicate.secp_scalar_normalize_idempotent
+secp_scalar_normalize_idempotent
+     : forall raw : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem
+            (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem raw))
+         (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem raw)
+### C.jet_secp_schnorr_group_predicate.secp_schnorr_scalar_sign
+secp_schnorr_scalar_sign
+     : forall (p : jet_secp_curve_group_sign.secp_group_point)
+         (raw : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))),
+       @eq
+         (@SMain.elt (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.one jet_secp_fe_math.feP) (GZnZ.add jet_secp_fe_math.feP)
+            (GZnZ.mul jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven)
+         (jet_secp_lookup5_group.secp_group_signed_power p
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem
+                  (@jet_secp_canonical_scalar_negate.canonical_scalar_negate Alg.CoreFunSem
+                     (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem raw)))))
+         (jet_secp_lookup5_group.secp_group_signed_power
+            (@SMain.opp (GZnZ.znz jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP)
+               (GZnZ.one jet_secp_fe_math.feP) (GZnZ.add jet_secp_fe_math.feP) (GZnZ.mul jet_secp_fe_math.feP)
+               (GZnZ.sub jet_secp_fe_math.feP) (GZnZ.opp jet_secp_fe_math.feP) (GZnZ.inv jet_secp_fe_math.feP)
+               (GZnZ.div jet_secp_fe_math.feP) (GZnZ.zero jet_secp_fe_math.feP) jet_secp_curve_group.secp_group_seven
+               jet_secp_curve_group.secp_group_zero_test jet_secp_curve_group.secp_group_theory p)
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem raw)))
+### C.jet_secp_schnorr_group_predicate.secp_schnorr_point_predicate
+secp_schnorr_point_predicate
+     : forall (pk raw s r ax ay : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : @eq
+                (Ty.tySem
+                   (Ty.Sum Ty.Unit
+                      (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                         (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                (@jet_secp_decompress_literal.literal_decompress Alg.CoreFunSem
+                   (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (@inl unit unit tt) pk))
+                (@inr unit
+                   (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                   (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) ax ay)))
+         (_ : and (BinInt.Z.le BinNums.Z0 (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) r))
+                (BinInt.Z.lt (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) r)
+                   jet_secp_fe_math.feP)),
+       @eq bool
+         (Bit.toBool
+            (@jet_secp_point_verify_literal.literal_point_check Alg.CoreFunSem
+               (@pair
+                  (prod
+                     (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                  (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                  (@pair
+                     (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                        (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem raw)
+                        (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (@inr unit unit tt) pk)) s)
+                  (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@inl unit unit tt) r))))
+         (jet_secp_even_x_test.secp_even_x_test
+            (@jet_secp_strauss_complete_program.literal_off_curve_linear_combination_1 Alg.CoreFunSem
+               (@pair
+                  (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (prod
+                        (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (prod
+                        (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                     (@jet_secp_canonical_scalar_negate.canonical_scalar_negate Alg.CoreFunSem
+                        (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem raw))
+                     (@pair
+                        (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) ax ay)
+                        (@jet_secp_literal_add_program.literal_fe_one256 Alg.CoreFunSem tt))) s)) r)
