@@ -1254,7 +1254,33 @@ Next run scoped full acceptance for simplicity_bitcoin_build_taptweak on fixed
 inputs in the isolated verifier;
 carry its receipt only after before/after fingerprints and main-checkout
 closure files agree. Do not repeat C execution or option-semantics development.
-The Elements wrapper remains separate work; this candidate proves Bitcoin only. Keep taptweak_ready (including
+The Elements wrapper remains separate work; this candidate proves Bitcoin only.
+
+Elements follow-up (no additional public coverage):
+`jet_secp_taptweak_tag_runtime.exec_taptweak_short_tag` executes the original
+runtime tag-hashing statement for every tag shorter than 56 bytes, covering
+both Bitcoin's 8 bytes and Elements' 17 bytes. It derives SHA initialization,
+the real context copy, absorption and finalization, returns the exact digest,
+pointer/counter/overflow and all three local owners, preserves outside memory,
+startup and tag bytes. Its only explicit library premise is memcpy_model;
+ordinary compilation and reviewed records pass with the inherited six axioms.
+Caller-tag/private-local separation is internal and must be derived from
+fresh allocation at a public boundary, not added as a public input restriction.
+A read-only Astra Medium review confirmed that none of the eight frozen jets
+programs contains both the Elements wrapper and an internal generic TapTweak.
+The frozen Elements wrapper calls that function externally; the verified real
+body is present in jets_secp and jets_secp256k1. Do not add an unproved generic
+external model, regenerate targets, or confuse that external declaration with
+a behavior mismatch. A derived linked artifact from the frozen bodies is
+possible proof support only with proved provenance, call/global resolution,
+layout/renaming, initialization and execution transport. It does not by itself
+prove a call in the original elements_ge. Identify and close that target
+connection before any Elements public registration. In particular, whole-TU
+concatenation collides on the Bitcoin/Elements taptweak globals and txEnv types;
+existing jet_transport supports only its checked internal/global-free subset.
+The short-tag C component is useful independently of that remaining linkage
+obligation; do not claim a complete Elements jet from it.
+ Keep taptweak_ready (including
 dispatch extent) at the public boundary and use taptweak_ready_forward around
 existing startup-preserving phases. Reuse the key-phase result for normal parsing and immediate failure.
 For the final writer use secp_write8s_layout to obtain its actual call and
