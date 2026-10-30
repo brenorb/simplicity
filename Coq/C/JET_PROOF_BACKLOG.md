@@ -1,5 +1,18 @@
 # Remaining jet proof work
 
+`jet_elements_taptweak_div62_support` and `jet_elements_taptweak_div62`
+now derive the complete original 62-divstep call in the actual linked GE.
+The counting sentinel is proved nonzero at each iteration and the existing
+approved `ctz_model` supplies the actual linked helper execution. Pure
+post-count/initialization/final-store executions are transported separately;
+the original numerical invariant and progress proof are reused. The result
+includes exact four-word transition-matrix loads, returned eta, ownership,
+external framing and readonly preservation. Ordinary builds, reviewed scoped
+statement/assumption records and no-update comparisons pass (six inherited
+execution assumptions, no new oracle). No fresh recursive check or public
+acceptance is claimed. Next compose these real calls with the inverse's
+coefficient/f-g updates and termination proof.
+
 The linked inverse foundation now builds in the ordinary project:
 `jet_transport_entry` derives local domains/bindings from actual function
 entry and transports that entry; `jet_elements_taptweak_inverse_copy`

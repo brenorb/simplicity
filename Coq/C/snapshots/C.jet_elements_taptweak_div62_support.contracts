@@ -1,0 +1,68 @@
+### C.jet_elements_taptweak_div62_support.elements_taptweak_div62_phases_checked
+elements_taptweak_div62_phases_checked
+     : @eq bool
+         (@List.forallb Clight.statement
+            (jet_transport_locals.locals_stmt_okb jet_secp_linkage.secp_ge
+               jet_elements_taptweak_pure.elements_taptweak_ge
+               (@List.map (prod BinNums.positive Clight.function) BinNums.positive
+                  (@fst BinNums.positive Clight.function)
+                  jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers) (@nil AST.ident))
+            elements_taptweak_div62_pure_phases) true
+### C.jet_elements_taptweak_div62_support.elements_taptweak_div62_finish_closed
+elements_taptweak_div62_finish_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers
+            jet_secp_div62_finish.div62_finish) true
+### C.jet_elements_taptweak_div62_support.elements_taptweak_div62_sentinel_checked
+elements_taptweak_div62_sentinel_checked
+     : @eq bool
+         (jet_transport.expr_okb jet_secp_linkage.secp_ge jet_elements_taptweak_pure.elements_taptweak_ge
+            jet_secp_div62_consume.div62_sentinel_expr) true
+### C.jet_elements_taptweak_div62_support.elements_taptweak_div62_vars_checked
+elements_taptweak_div62_vars_checked
+     : @eq bool
+         (jet_transport.vars_okb jet_secp_linkage.secp_ge jet_elements_taptweak_pure.elements_taptweak_ge
+            (Clight.fn_vars jets_secp.f_secp256k1_modinv64_divsteps_62_var)) true
+### C.jet_elements_taptweak_div62_support.elements_taptweak_ctz_helper_linked
+elements_taptweak_ctz_helper_linked
+     : @ex Values.block
+         (fun b : Values.block =>
+          and
+            (@eq (option Values.block)
+               (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                  (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge) jets_secp._secp256k1_ctz64_var)
+               (@Some Values.block b))
+            (@eq (option Clight.fundef)
+               (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                  (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge) b)
+               (@Some (Ctypes.fundef Clight.function)
+                  (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ctz64_var))))
+### C.jet_elements_taptweak_div62_support.elements_taptweak_div62_pure_exec
+elements_taptweak_div62_pure_exec
+     : forall (le : Clight.temp_env) (m : Memory.Mem.mem) (s : Clight.statement) (trace : Events.trace)
+         (lef : Clight.temp_env) (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : @List.In Clight.statement s elements_taptweak_div62_pure_phases)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m s trace lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge Clight.empty_env le m s trace
+         lef mf out
+### C.jet_elements_taptweak_div62_support.exec_elements_taptweak_div62_count_call
+exec_elements_taptweak_div62_count_call
+     : forall (_ : jet_ctz_model.ctz_model) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (g : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._g le) (@Some Values.val (Values.Vlong g)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge Clight.empty_env le m
+         (Clight.Ssequence jet_secp_div62_loop.div62_count_call jet_secp_div62_count.div62_copy_count) Events.E0
+         (jet_secp_div62_loop.div62_counted_temps le (jet_secp_div62_consume.div62_sentinel_count g i)) m
+         ClightBigstep.Out_normal
+### C.jet_elements_taptweak_div62_support.elements_taptweak_div62_pure_phases
+elements_taptweak_div62_pure_phases =
+@cons Clight.statement jet_secp_div62_entry.div62_initializers
+  (@cons Clight.statement jet_secp_div62_count.div62_after_count
+     (@cons Clight.statement jet_secp_div62_count.div62_copy_count
+        (@cons Clight.statement jet_secp_div62_finish.div62_finish (@nil Clight.statement))))
+     : list Clight.statement
