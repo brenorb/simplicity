@@ -655,6 +655,17 @@ and r range-rejection bridges are closed. No new library premise is added.
 Ordinary builds and reviewed scoped no-update records pass. These are still
 internal stage proofs: successful-path composition, R parsing and the full
 verifier/public-wrapper lifecycle remain; accepted coverage is still 526/533.
+`jet_secp_schnorr_r_read.exec_schnorr_r_read` now executes the original
+r reader and both strict field-range guard outcomes. It retains the exact
+raw r limbs and challenge bytes and preserves the later s bytes in the same
+64-byte signature buffer. `exec_schnorr_r_reject` executes the entire remaining
+original verifier suffix when r >= p and proves the frozen BIP340 predicate
+is false there. `schnorr_spec_reject_pubkey` also turns the already-proved
+key-parser return zero into failure of that full predicate, using the existing
+point-failure bridge and its inherited functional-extensionality assumption.
+Ordinary builds and reviewed scoped no-update records pass. No library premise
+is added. The successful parser states still need composition with the
+canonical key-load suffix and the enclosing verifier/public-jet lifecycles.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
