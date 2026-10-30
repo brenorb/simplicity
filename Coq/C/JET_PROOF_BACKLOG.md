@@ -762,6 +762,16 @@ The 64 bytes are the byte-vector concatenation of r and s; expose the two
 actual parse guard, previously proved final call/return and five frees on
 both exits. Finally instantiate the public initialized frame contract and
 run full scoped acceptance; only then update jet coverage.
+`jet_secp_public_byte_read` now packages the actual core read8s execution
+with full permissions, framing and readonly preservation for arbitrary byte
+lists; its array-splitting/framing lemmas retain the earlier half of a buffer.
+`jet_secp_bip0340_data_reads` executes both original remaining public reads,
+retains the parsed key and all five owners, and exposes the message bytes and
+both exact strict-parser signature halves. Its cursor becomes rc+1024, with
+no alignment or no-crossing restriction. Ordinary builds and reviewed scoped
+no-update records pass. Next compose these with the original parse guard and
+final verifier-call/return, and all five frees; the old message/signature-read
+work item above is now done.
 Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or

@@ -1,0 +1,123 @@
+### C.jet_secp_bip0340_data_reads.bip0340_data_reads_source
+bip0340_data_reads_source
+     : @eq Clight.statement
+         (jet_secp_root_chain_owned.root_drop_statements (S (S (S O)))
+            (Clight.fn_body jets_secp.f_simplicity_bip_0340_verify))
+         (jet_secp_statement_prefix.statement_sequence bip0340_data_read_statements
+            jet_secp_bip0340_verifier_return.bip0340_verifier_return)
+### C.jet_secp_bip0340_data_reads.exec_bip0340_read_bytes
+exec_bip0340_read_bytes
+     : forall (id : BinNums.positive) (n : BinNums.Z) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bo bl : Values.block)
+         (_ : or
+                (@eq BinNums.Z n
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@eq BinNums.Z n
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bo (Ctypesdefs.tarray Ctypesdefs.tuchar n))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._read8s e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets.f_read8s)
+                (@cons Values.val (Values.Vptr bo Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vlong (Integers.Int64.repr n))
+                      (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (bip0340_read_bytes id n) Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_secp_bip0340_data_reads.exec_bip0340_data_reads
+exec_bip0340_data_reads
+     : forall (pk msg r s : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (bl bb bkey bmsg bsig bi : Values.block) (edge cursor : BinNums.Z)
+         (_ : @List.NoDup Values.block (jet_secp_bip0340_public_entry.bip0340_public_locals bl bb bkey bmsg bsig))
+         (_ : not (@eq Values.block bl bi)) (_ : not (@eq Values.block bmsg bi)) (_ : not (@eq Values.block bsig bi))
+         (_ : BinInt.Z.le BinNums.Z0 cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                Integers.Int64.max_unsigned)
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                       (jet_secp_bip0340_public_entry.bip0340_public_storage bl bb bkey bmsg bsig)),
+              Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+         (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : jet_encoding.frame_input_cells_at m bi edge
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) msg))
+         (_ : jet_encoding.frame_input_cells_at m bi edge
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (@Translate.encode
+                   (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                   (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) r s)))
+         (_ : jet_secp_xonly_parse_field.xonly_parsed_result pk m bkey),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+               (jet_secp_bip0340_public_entry.bip0340_public_env bl bb bkey bmsg bsig) le m
+               (jet_secp_statement_prefix.statement_sequence bip0340_data_read_statements Clight.Sskip) Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_secp_schnorr_challenge_absorb.schnorr_bytes_at mf bmsg Integers.Ptrofs.zero
+                  (jet_secp_schnorr_challenge_hash.schnorr_word_bytes msg))
+               (and
+                  (jet_read8s_layout.uint8_array_at mf bsig BinNums.Z0
+                     (@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+                        (jet_secp_xonly_parse_field.xonly_input_bytes r)))
+                  (and
+                     (jet_read8s_layout.uint8_array_at mf bsig
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        (@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+                           (jet_secp_xonly_parse_field.xonly_input_bytes s)))
+                     (and (jet_secp_xonly_parse_field.xonly_parsed_result pk mf bkey)
+                        (and
+                           (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge
+                              (BinInt.Z.add cursor
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))
+                           (and
+                              (forall (b : Values.block) (hi : BinNums.Z)
+                                 (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                                        (jet_secp_bip0340_public_entry.bip0340_public_storage bl bb bkey bmsg bsig)),
+                               Memory.Mem.range_perm mf b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+                              (and
+                                 (jet_sx_mem.lframe
+                                    (fun (b : Values.block) (_ : BinNums.Z) =>
+                                     and (not (@eq Values.block b bl))
+                                       (and (not (@eq Values.block b bmsg)) (not (@eq Values.block b bsig)))) m mf)
+                                 (jet_clight_internal_preserve.readonly_preserved m mf)))))))))
