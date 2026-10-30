@@ -1,0 +1,79 @@
+### C.jet_secp_checksig_tagged.checksig_iv_state_regs
+checksig_iv_state_regs
+     : @eq (list Integers.Int.int) (jet_sha_ctx8_model.state_regs jet_secp_checksig_tag.checksig_iv_word)
+         jet_secp_checksig_tag.checksig_iv_words
+### C.jet_secp_checksig_tagged.checksig_tag_separate
+checksig_tag_separate
+     : forall (m : Memory.Mem.mem) (b : Values.block) (hi : BinNums.Z) (_ : jet_secp_checksig_tag.checksig_tag_ok m)
+         (_ : BinInt.Z.lt BinNums.Z0 hi) (_ : Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable),
+       not (@eq Values.block b jet_secp_checksig_tag.checksig_tag_block)
+### C.jet_secp_checksig_tagged.checksig_startup_owned_forward
+checksig_startup_owned_forward
+     : forall (m mf : Memory.Mem.mem) (slots : list (prod Values.block BinNums.Z))
+         (_ : jet_secp_checksig_tag.checksig_startup m) (_ : jet_clight_forward.mem_forward m mf)
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi) slots),
+              and (BinInt.Z.lt BinNums.Z0 hi) (Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable))
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 not
+                   (@List.In Values.block b
+                      (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) slots))) m mf),
+       jet_secp_checksig_tag.checksig_startup mf
+### C.jet_secp_checksig_tagged.eval_checksig_tagged_init
+eval_checksig_tagged_init
+     : forall (_ : jet_memcpy_model.memcpy_model) (m : Memory.Mem.mem) (bc bs : Values.block)
+         (_ : not (@eq Values.block bc bs)) (_ : jet_secp_checksig_tag.checksig_startup m)
+         (_ : Memory.Mem.range_perm m bc BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_sha256_tagged_init)
+               (@cons Values.val (Values.Vptr bc Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+                     (@cons Values.val (Values.Vptr jet_secp_checksig_tag.checksig_tag_block Integers.Ptrofs.zero)
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (@eq (option Values.val) (Memory.Mem.load AST.Mptr mf bc BinNums.Z0)
+                  (@Some Values.val (Values.Vptr bs Integers.Ptrofs.zero)))
+               (and
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf bc (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                     (@Some Values.val
+                        (Values.Vlong
+                           (Integers.Int64.repr
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                  (and
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint8unsigned mf bc
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (@Some Values.val (Values.Vint Integers.Int.zero)))
+                     (and
+                        (jet_uint32_array_init.uint32_array_at mf bs BinNums.Z0
+                           (jet_sha_ctx8_model.state_regs jet_secp_checksig_tag.checksig_iv_word))
+                        (and
+                           (Memory.Mem.range_perm mf bc BinNums.Z0
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and
+                              (Memory.Mem.range_perm mf bs BinNums.Z0
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                 Memtype.Cur Memtype.Freeable)
+                              (and
+                                 (jet_sx_mem.lframe
+                                    (fun (b : Values.block) (_ : BinNums.Z) =>
+                                     and (not (@eq Values.block b bc)) (not (@eq Values.block b bs))) m mf)
+                                 (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                                    (jet_secp_checksig_tag.checksig_startup mf))))))))))

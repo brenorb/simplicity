@@ -854,8 +854,18 @@ snapshot intended for the worker.
 both caller regions, external framing and readonly memory. Its only library
 condition is the existing explicit memcpy_model; no new axiom is introduced.
 Both ordinary builds and reviewed scoped assumption/contract records pass.
-Next compose the canonical tag adapter and 64-byte message hash, then the
-CheckSig wrapper copies
+`jet_secp_checksig_tagged` now instantiates that constructor with the actual
+signatureIV global, derives global/local separation from readonly versus
+Freeable permissions, and retains checksig_startup through the call. The
+canonical IV register adapter is closed. `jet_secp_checksig_hash` composes
+actual sha256_uchars(64) and finalize calls and proves their result is the
+canonical two-block hash (tagged 64-byte prefix, 64-byte message and 1024-bit
+padding length). Its padding/register bridges are closed; execution keeps the
+existing explicit memcpy_model only. Ordinary builds and reviewed no-update
+records pass for both modules. They are caller prerequisites, not additional
+public coverage. Next finish the literal CheckSig composition and the wrapper's
+owned context copy, message read, digest serialization, signature read and
+existing Schnorr call. The CheckSig wrapper copies
 this result to `_ctx`, reads/absorbs its 64-byte message, finalizes, serializes
 32 digest bytes to `_buf`, reads the signature and calls the original Schnorr
 verifier. Its full outer entry has eight locals. Preserve BIP340's already
