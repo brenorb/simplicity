@@ -577,6 +577,17 @@ execution is assumed. The canonical/negative limb bounds and numeric bridge
 are closed. Ordinary build and reviewed scoped no-update records pass. This
 module is later than the pending `93b98930` recursive-check snapshot; the
 parser control flow and lifecycle are still to compose.
+`jet_secp_xonly_parse_control` binds the original parser suffix after strict
+field parsing, proves both return guards, and executes the actual constant-1
+correct-subgroup helper. `jet_secp_xonly_parse_decode.exec_xonly_parse_decode`
+now composes the original decompression call and both outcomes: failure returns
+zero; success executes the subgroup guard and actual x-only save. It returns
+exact native decoded coordinates on success and retains all three owned ranges,
+framing and readonly memory. Only the existing `memcpy_model` premise remains.
+Ordinary builds and reviewed scoped no-update audits pass. Next add the strict
+field reader/guard, output clear and null checks, then the two allocations/frees.
+The public wrapper supplies the input as its fresh 32-byte local `buf`, so reuse
+`eval_set_b32_owned`; its owned-source premise is an internal caller fact.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
