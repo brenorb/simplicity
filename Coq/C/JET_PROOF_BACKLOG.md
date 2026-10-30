@@ -1013,9 +1013,21 @@ This closes the arithmetic-result bridge; it is not the whole public jet.
 Both ordinary builds and reviewed no-update records pass. These bridges add
 no library premise and use only inherited logical axioms (the arithmetic
 comparison uses functional extensionality alone).
-Next compose the remaining x-only from-pubkey/serialize callers, and the
-generic TapTweak SHA/reader/writer lifecycle plus the canonical tagged-hash
-program and its source-binding checks. Do not substitute a
+`jet_secp_xonly_serialize.eval_xonly_pubkey_serialize` now constructs the
+whole original serializer for a represented valid native key: its local key
+allocation, both pointer checks, actual 32-byte clear, native key load and
+success guard, original field serialization and local free. It returns one
+with the exact big-endian X bytes, caller buffer ownership, unrelated-memory
+framing and readonly preservation. Ordinary build and reviewed no-update
+records pass; memcpy_model/memset_model are explicit, and six inherited axioms
+remain. Entry/free reuse the preceding x-only environment and cleanup proofs.
+Next prove the remaining x-only from-pubkey caller and its actual
+extrakeys_ge_even_y helper. Its Y field is at offset 40; current convenient
+field-odd/negate wrappers assume a separate block at offset zero. Reuse their
+symbolic runs/arithmetic facts, but construct a faithful nested-field contract;
+do not replace the actual in-place Y call with another C temporary or assert
+its execution. Then compose the generic TapTweak SHA/reader/writer lifecycle
+plus the canonical tagged-hash program and its source-binding checks. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential
 model does not specify every arbitrary external execution. BIP340 and CheckSig are registered candidates awaiting full acceptance.
