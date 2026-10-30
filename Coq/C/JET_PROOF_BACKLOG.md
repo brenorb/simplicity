@@ -1486,13 +1486,21 @@ and pointer-check prefix, with explicit sizeof/lookup interface facts.
 ge. Its specialization needs only the existing memset_model and retains
 permissions, framing and readonly state. All fourteen reviewed records match.
 The original specialized secp files and checker remain untouched.
-The whole decompression transport needs a local-aware checker: actual field
-multiplication declares `_d` locally although the source ge also contains a
-global with that name. A separate scratch mutual transport proof now compiles,
-deriving local-domain completeness from the real callee allocation. A
-101-function table passes closure and both actual lookup checks in scratch;
-its normal integration and whole-decoder result remain next. This is a proof
-infrastructure limitation, not evidence of a target mismatch. The final key-phase composition must
+`jet_transport_locals` now builds normally and proves a separate local-aware
+checker: it derives local-name completeness from actual callee allocation,
+retains callee-not-local checks, and still rejects external calls, builtins,
+indirect calls and genuine global data accesses. The existing checker is
+unchanged. `jet_elements_taptweak_curve_transport` checks its final table's
+closure against itself and proves both original and linked lookups. This
+resolves the conservative rejection of `_d` in the real field multiplication
+and squaring locals. `jet_elements_taptweak_decompress` reuses the whole
+original ge_set_xo_var proof at identical memory, retaining both root outcomes,
+both parities, coordinates, finite flag, permissions, framing and the exact
+literal Simplicity result. The ordinary build and fourteen reviewed scoped
+assumption/contract comparisons pass, with no added model or axiom. This
+closes arithmetic decompression, not the public Elements wrapper. Next
+compose native key save and the complete parser, keeping memcpy_model explicit
+for the actual 64-byte copy. The final key-phase composition must
 parameterize the Elements IV/startup, since the old key theorem fixes Bitcoin's
 IV. No full Elements generic or public jet is registered yet.
 

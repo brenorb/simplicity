@@ -1,0 +1,84 @@
+### C.jet_elements_taptweak_curve_transport.elements_taptweak_curve_closed
+elements_taptweak_curve_closed
+     : @eq bool
+         (@List.forallb (prod BinNums.positive Clight.function)
+            (fun it : prod BinNums.positive Clight.function =>
+             jet_transport_locals.locals_fundef_okb jet_secp_linkage.secp_ge
+               jet_elements_taptweak_pure.elements_taptweak_ge
+               (@List.map (prod BinNums.positive Clight.function) BinNums.positive
+                  (@fst BinNums.positive Clight.function) elements_taptweak_curve_helpers)
+               (@Ctypes.Internal Clight.function (@snd BinNums.positive Clight.function it)))
+            elements_taptweak_curve_helpers) true
+### C.jet_elements_taptweak_curve_transport.elements_taptweak_curve_source_lookup
+elements_taptweak_curve_source_lookup
+     : @eq (list (option Clight.fundef))
+         (@List.map (prod AST.ident Clight.function) (option Clight.fundef)
+            (jet_secp_linkage.secp_helper_lookup jet_secp_linkage.secp_ge) elements_taptweak_curve_helpers)
+         (@List.map (prod BinNums.positive Clight.function) (option (Ctypes.fundef Clight.function))
+            (fun it : prod BinNums.positive Clight.function =>
+             @Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function (@snd BinNums.positive Clight.function it)))
+            elements_taptweak_curve_helpers)
+### C.jet_elements_taptweak_curve_transport.elements_taptweak_curve_target_lookup
+elements_taptweak_curve_target_lookup
+     : @eq (list (option Clight.fundef))
+         (@List.map (prod AST.ident Clight.function) (option Clight.fundef)
+            (jet_secp_linkage.secp_helper_lookup jet_elements_taptweak_pure.elements_taptweak_ge)
+            elements_taptweak_curve_helpers)
+         (@List.map (prod BinNums.positive Clight.function) (option (Ctypes.fundef Clight.function))
+            (fun it : prod BinNums.positive Clight.function =>
+             @Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function (@snd BinNums.positive Clight.function it)))
+            elements_taptweak_curve_helpers)
+### C.jet_elements_taptweak_curve_transport.elements_taptweak_curve_has_decompress
+elements_taptweak_curve_has_decompress
+     : @List.In (prod AST.ident Clight.function)
+         (@pair AST.ident Clight.function jets_secp._secp256k1_ge_set_xo_var jets_secp.f_secp256k1_ge_set_xo_var)
+         elements_taptweak_curve_helpers
+### C.jet_elements_taptweak_curve_transport.elements_taptweak_curve_entries
+elements_taptweak_curve_entries
+     : forall (id : BinNums.positive) (f : Clight.function)
+         (_ : @List.In (prod BinNums.positive Clight.function) (@pair BinNums.positive Clight.function id f)
+                elements_taptweak_curve_helpers),
+       @ex Values.block
+         (fun b1 : Values.block =>
+          @ex Values.block
+            (fun b2 : Values.block =>
+             and
+               (@eq (option Values.block)
+                  (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+                     id) (@Some Values.block b1))
+               (and
+                  (@eq (option Clight.fundef)
+                     (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                        (Clight.genv_genv jet_secp_linkage.secp_ge) b1)
+                     (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+                  (and
+                     (@eq (option Values.block)
+                        (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                           (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge) id)
+                        (@Some Values.block b2))
+                     (@eq (option Clight.fundef)
+                        (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                           (Clight.genv_genv jet_elements_taptweak_pure.elements_taptweak_ge) b2)
+                        (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))))))
+### C.jet_elements_taptweak_curve_transport.elements_taptweak_curve_ok
+elements_taptweak_curve_ok
+     : forall (id : BinNums.positive) (f : Clight.function)
+         (_ : @List.In (prod BinNums.positive Clight.function) (@pair BinNums.positive Clight.function id f)
+                elements_taptweak_curve_helpers),
+       @eq bool
+         (jet_transport_locals.locals_fundef_okb jet_secp_linkage.secp_ge
+            jet_elements_taptweak_pure.elements_taptweak_ge
+            (@List.map (prod BinNums.positive Clight.function) BinNums.positive (@fst BinNums.positive Clight.function)
+               elements_taptweak_curve_helpers) (@Ctypes.Internal Clight.function f)) true
+### C.jet_elements_taptweak_curve_transport.elements_taptweak_curve_transport
+elements_taptweak_curve_transport
+     : forall (id : BinNums.positive) (f : Clight.function) (m : Memory.Mem.mem) (args : list Values.val)
+         (trace : Events.trace) (mf : Memory.Mem.mem) (result : Values.val)
+         (_ : @List.In (prod BinNums.positive Clight.function) (@pair BinNums.positive Clight.function id f)
+                elements_taptweak_curve_helpers)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m (@Ctypes.Internal Clight.function f) args
+                trace mf result),
+       ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+         (@Ctypes.Internal Clight.function f) args trace mf result

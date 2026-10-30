@@ -1,0 +1,145 @@
+### C.jet_transport_locals.locals_eval_expr_transport
+locals_eval_expr_transport
+     : forall (ge1 ge2 : Clight.genv) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (V : list BinNums.positive)
+         (_ : forall (id : BinNums.positive) (_ : @List.In BinNums.positive id V),
+              @ex Values.block
+                (fun b : Values.block =>
+                 @ex Ctypes.type
+                   (fun ty : Ctypes.type =>
+                    @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                      (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty))))),
+       and
+         (forall (a : Clight.expr) (v : Values.val) (_ : Clight.eval_expr ge1 e le m a v)
+            (_ : @eq bool (locals_expr_okb ge1 ge2 V a) true), Clight.eval_expr ge2 e le m a v)
+         (forall (a : Clight.expr) (b : Values.block) (ofs : Integers.Ptrofs.int) (bf : Ctypes.bitfield)
+            (_ : Clight.eval_lvalue ge1 e le m a b ofs bf) (_ : @eq bool (locals_expr_okb ge1 ge2 V a) true),
+          Clight.eval_lvalue ge2 e le m a b ofs bf)
+### C.jet_transport_locals.locals_eval_exprlist_transport
+locals_eval_exprlist_transport
+     : forall (ge1 ge2 : Clight.genv) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (V : list BinNums.positive)
+         (_ : forall (id : BinNums.positive) (_ : @List.In BinNums.positive id V),
+              @ex Values.block
+                (fun b : Values.block =>
+                 @ex Ctypes.type
+                   (fun ty : Ctypes.type =>
+                    @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                      (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty)))))
+         (al : list Clight.expr) (tys : Ctypes.typelist) (vs : list Values.val)
+         (_ : Clight.eval_exprlist ge1 e le m al tys vs) (_ : @eq bool (locals_exprs_okb ge1 ge2 V al) true),
+       Clight.eval_exprlist ge2 e le m al tys vs
+### C.jet_transport_locals.locals_alloc_variables_bound
+locals_alloc_variables_bound
+     : forall (ge1 : Clight.genv) (e : Clight.env) (m : Memory.Mem.mem) (vars : list (prod AST.ident Ctypes.type))
+         (ef : Clight.env) (mf : Memory.Mem.mem) (_ : Clight.alloc_variables ge1 e m vars ef mf)
+         (id : BinNums.positive)
+         (_ : or
+                (@ex Values.block
+                   (fun b : Values.block =>
+                    @ex Ctypes.type
+                      (fun ty : Ctypes.type =>
+                       @eq (option (prod Values.block Ctypes.type))
+                         (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                         (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty)))))
+                (@List.In BinNums.positive id
+                   (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type) vars))),
+       @ex Values.block
+         (fun b : Values.block =>
+          @ex Ctypes.type
+            (fun ty : Ctypes.type =>
+             @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id ef)
+               (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty))))
+### C.jet_transport_locals.locals_transport_main
+locals_transport_main
+     : forall (ge1 ge2 : Clight.genv) (C : list AST.ident) (_ : locals_transportable ge1 ge2 C),
+       and
+         (forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (s : Clight.statement)
+            (t : Events.trace) (le' : Clight.temp_env) (m' : Memory.Mem.mem) (out : ClightBigstep.outcome)
+            (_ : ClightBigstep.Clight2.exec_stmt ge1 e le m s t le' m' out) (vars : list (prod AST.ident Ctypes.type))
+            (_ : jet_transport.edom e vars)
+            (_ : forall (id : AST.ident)
+                   (_ : @List.In AST.ident id
+                          (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type) vars)),
+                 @ex Values.block
+                   (fun b : Values.block =>
+                    @ex Ctypes.type
+                      (fun ty : Ctypes.type =>
+                       @eq (option (prod Values.block Ctypes.type))
+                         (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                         (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty)))))
+            (_ : @eq bool
+                   (locals_stmt_okb ge1 ge2 C
+                      (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type) vars) s) true),
+          ClightBigstep.Clight2.exec_stmt ge2 e le m s t le' m' out)
+         (forall (m : Memory.Mem.mem) (fd : Clight.fundef) (args : list Values.val) (t : Events.trace)
+            (m' : Memory.Mem.mem) (res : Values.val) (_ : ClightBigstep.Clight2.eval_funcall ge1 m fd args t m' res)
+            (_ : @eq bool (locals_fundef_okb ge1 ge2 C fd) true),
+          ClightBigstep.Clight2.eval_funcall ge2 m fd args t m' res)
+### C.jet_transport_locals.locals_transportable_of_entries
+locals_transportable_of_entries
+     : forall (ge1 ge2 : Clight.genv) (L : list (prod AST.ident Clight.function))
+         (_ : forall (id : AST.ident) (f : Clight.function)
+                (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) L),
+              @ex Values.block
+                (fun b1 : Values.block =>
+                 @ex Values.block
+                   (fun b2 : Values.block =>
+                    and
+                      (@eq (option Values.block)
+                         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge1) id)
+                         (@Some Values.block b1))
+                      (and
+                         (@eq (option Clight.fundef)
+                            (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge1) b1)
+                            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+                         (and
+                            (@eq (option Values.block)
+                               (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge2) id)
+                               (@Some Values.block b2))
+                            (@eq (option Clight.fundef)
+                               (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge2) b2)
+                               (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f))))))))
+         (_ : forall (id : AST.ident) (f : Clight.function)
+                (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) L),
+              @eq bool
+                (locals_fundef_okb ge1 ge2
+                   (@List.map (prod AST.ident Clight.function) AST.ident (@fst AST.ident Clight.function) L)
+                   (@Ctypes.Internal Clight.function f)) true),
+       locals_transportable ge1 ge2
+         (@List.map (prod AST.ident Clight.function) AST.ident (@fst AST.ident Clight.function) L)
+### C.jet_transport_locals.locals_transport_funcall
+locals_transport_funcall
+     : forall (ge1 ge2 : Clight.genv) (L : list (prod AST.ident Clight.function))
+         (_ : forall (id : AST.ident) (f : Clight.function)
+                (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) L),
+              @ex Values.block
+                (fun b1 : Values.block =>
+                 @ex Values.block
+                   (fun b2 : Values.block =>
+                    and
+                      (@eq (option Values.block)
+                         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge1) id)
+                         (@Some Values.block b1))
+                      (and
+                         (@eq (option Clight.fundef)
+                            (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge1) b1)
+                            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+                         (and
+                            (@eq (option Values.block)
+                               (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge2) id)
+                               (@Some Values.block b2))
+                            (@eq (option Clight.fundef)
+                               (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge2) b2)
+                               (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f))))))))
+         (_ : forall (id : AST.ident) (f : Clight.function)
+                (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) L),
+              @eq bool
+                (locals_fundef_okb ge1 ge2
+                   (@List.map (prod AST.ident Clight.function) AST.ident (@fst AST.ident Clight.function) L)
+                   (@Ctypes.Internal Clight.function f)) true) (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) L)
+         (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (m' : Memory.Mem.mem)
+         (res : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall ge1 m (@Ctypes.Internal Clight.function f) args t m' res),
+       ClightBigstep.Clight2.eval_funcall ge2 m (@Ctypes.Internal Clight.function f) args t m' res
