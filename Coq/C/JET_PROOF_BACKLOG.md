@@ -355,9 +355,10 @@ worktree while the check runs. Main-checkout progress now includes the complete
 original x-only key parser on the public caller's owned 32-byte input and
 64-byte key buffers, for every Word256 key. Its ordinary builds and reviewed
 scoped records pass; this later parser chain is outside that pending snapshot.
-Next compose the original Schnorr verifier's strict R/S parsers and overflow
-guard, its initial pointer/message checks and nine-local allocation/free
-lifecycle, then the public jet readers/caller. Public acceptance is unchanged.
+Next join the successful signature-reader prefix to the canonical key-load
+suffix, then compose the original initial pointer/message checks, nine-local
+allocation/free lifecycle and public jet readers/caller. The R/S readers and
+all range/key rejection bridges are now built and have reviewed scoped records. Public acceptance is unchanged.
 The earlier recursive check at `e71798a6` of
 `C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/at-completion
 input fingerprints agree (`b02a3e8b659b4032e79b865b6df8e82bb1ed032999f51c1f7d7f8bf7cdfd4f27`);
@@ -666,6 +667,22 @@ point-failure bridge and its inherited functional-extensionality assumption.
 Ordinary builds and reviewed scoped no-update records pass. No library premise
 is added. The successful parser states still need composition with the
 canonical key-load suffix and the enclosing verifier/public-jet lifecycles.
+`jet_secp_schnorr_signature_read.exec_schnorr_signature_read` now composes
+both original readers and guards on the successful range path. It provides
+exact native R/scalar storage, the retained challenge R bytes, the literal R
+limb bounds/value required by `exec_schnorr_keyload_return_canonical`, complete
+permission preservation, framing outside the four affected owned blocks and
+readonly preservation. It adds no library premise. Ordinary build and reviewed
+scoped no-update records pass. Next join this actual prefix to that canonical
+key-load suffix. Transport the native key/message bytes through its frame,
+all complete owned ranges through `keeps_permissions`, and initialized tables,
+split/beta/modulus state through `readonly_preserved`. The enclosing caller
+provides separate fresh signature/message/key buffers; the signature buffer
+may remain in this internal frame's affected-block list because it is a
+private outer-wrapper local. Do not weaken the public external frame. Then
+add the original initial pointer/message checks, nine-local entry/frees and
+the public-wrapper readers/callers. All new signature modules are later than
+the pending frozen `93b98930` recursive-check inputs.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
