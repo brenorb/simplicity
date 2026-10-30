@@ -1498,9 +1498,14 @@ original ge_set_xo_var proof at identical memory, retaining both root outcomes,
 both parities, coordinates, finite flag, permissions, framing and the exact
 literal Simplicity result. The ordinary build and fourteen reviewed scoped
 assumption/contract comparisons pass, with no added model or axiom. This
-closes arithmetic decompression, not the public Elements wrapper. Next
-compose native key save and the complete parser, keeping memcpy_model explicit
-for the actual 64-byte copy. The final key-phase composition must
+closes arithmetic decompression, not the public Elements wrapper. `jet_elements_taptweak_save_copy` now executes that actual 64-byte copy with
+memcpy_model explicit. Its layout and global lookup facts are discharged;
+`jet_elements_taptweak_save` reuses the full arithmetic packing proof, then
+composes the original pubkey_save and xonly_pubkey_save entries, body and
+frees in the linked program. All thirteen reviewed scoped records match,
+using only inherited assumptions and the existing memcpy_model premise.
+Next compose the complete parser from these actual calls and decompression;
+all field and square-root rejection branches must remain. The final key-phase composition must
 parameterize the Elements IV/startup, since the old key theorem fixes Bitcoin's
 IV. No full Elements generic or public jet is registered yet.
 
