@@ -375,9 +375,9 @@ the full scoped acceptance path for the new complete public BIP340 candidate.
 `jet_secp_bip0340_local.bip0340_initialized_local_spec` now builds for every
 input under the explicit memcpy/memset/ctz models. Both key-parser exits, all
 reads, original verifier, five outer frees, and initialized-state preservation
-are composed. Reviewed scoped records pass. It is **unregistered/unaccepted**
-pending the canonical source binding, exact coverage contract/model reporting,
-and full scoped acceptance (including recursive kernel and AST checks).
+are composed. Reviewed scoped records pass. It is a **registered candidate, not yet accepted**. Canonical source binding
+and exact multi-model reporting now pass; full scoped acceptance, including
+recursive kernel and AST checks, remains pending.
 Public accepted coverage stays 526/533.
 The earlier recursive check at `e71798a6` of
 `C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/at-completion
@@ -815,6 +815,26 @@ The previously accepted point-check/linear/decompression bindings remain its
 checked dependencies. The gate does not itself establish C execution or count
 the new candidate as accepted. Multi-model coverage diagnostics and full scoped
 acceptance are still pending.
+BIP340's exact candidate registration is now staged in the ordinary coverage
+map. The canonical source gate passes and the public module rebuilds with
+unchanged audited contracts/axioms. The full negative coverage suite passes,
+including its new complete partial contract, rejection of every changed/removed
+helper premise and startup, and model-reporting regressions. Model diagnostics
+now expose memcpy+memset+ctz together; the candidate inventory is **527/533**,
+with 151 conditional equivalences and overlapping model-use counts 139/6/8.
+That is registration bookkeeping: **accepted coverage remains 526/533** until
+`JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bip_0340_verify`
+succeeds on the committed inputs. The candidate closure has 1468 modules.
+Do not report this as accepted merely because inventory or source/negative
+tests pass. Keep the historical kernel receipts restricted to their snapshots.
+Once the frozen worker's live build finishes, fast-forward that clean worker
+to this registration commit, refresh only new source-identical object caches,
+and run the full acceptance command there. Main remains available for the
+claimed `check_sig_verify` work. Its actual wrapper adds signatureIV/tagged
+initialization, context copy, one 64-byte message hash and digest serialization
+before reusing the now-proved BIP340 verifier; inspect `jet_sha_tagged_ctx`,
+`jet_sha256_tagged_fields`, existing secp SHA transport and challenge owned
+proofs before developing any duplicate helper. Its input cursor is 1280 bits.
 Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or

@@ -51,8 +51,8 @@ def main():
     assert coverage.missing_proofs([complete, absent, divergent]) == [absent]
     assert coverage.missing_equivalences([complete, divergent]) == [divergent]
     assert sum(bool(row["divergence_proof"]) for row in rows) == 1
-    assert len(coverage.missing_equivalences(rows)) == 8
-    assert len(coverage.missing_proofs(rows)) == 7
+    assert len(coverage.missing_equivalences(rows)) == 7
+    assert len(coverage.missing_proofs(rows)) == 6
     assert coverage.proof_roots(rows, ["simplicity_gej_ge_add_ex"]) == {
         "C.jet_secp_mixed_ex_local", "C.jet_secp_mixed_ex_refutation"}
     assert coverage.proof_roots(rows, ["simplicity_scale"]) == {"C.jet_secp_checked_scale_local"}
@@ -60,6 +60,13 @@ def main():
     assert coverage.proof_roots(rows, ["simplicity_off_curve_linear_combination_1"]) == {"C.jet_secp_linear_local"}
     assert coverage.proof_roots(rows, ["simplicity_linear_verify_1"]) == {"C.jet_secp_linear_verify_local"}
     assert coverage.proof_roots(rows, ["simplicity_point_verify_1"]) == {"C.jet_secp_point_verify_local"}
+    assert coverage.proof_roots(rows, ["simplicity_bip_0340_verify"]) == {"C.jet_secp_bip0340_local"}
+    signature_row = next(row for row in rows if row["function"] == "simplicity_bip_0340_verify")
+    assert signature_row["condition"] == combined
+    assert sum(bool(coverage.condition_models(row["condition"])) for row in rows) == 151
+    assert sum("memcpy_model" in coverage.condition_models(row["condition"]) for row in rows) == 139
+    assert sum("ctz_model" in coverage.condition_models(row["condition"]) for row in rows) == 6
+    assert sum("memset_model" in coverage.condition_models(row["condition"]) for row in rows) == 8
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_hash_to_curve"]),
             "jets without registered proof entries")
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_not_a_jet"]),
@@ -138,7 +145,7 @@ def main():
                 variants += [tail.replace("ctz_model ->", "memset_model ->", 1),
                              tail.replace("ctz_model ->", "", 1),
                              tail.replace("ctz_model ->", "ctz_model -> ctz_model ->", 1)]
-                for state in ("modinfo_fe_state", "modinfo_scalar_initialized", "swu_startup", "generator_startup"):
+                for state in ("modinfo_fe_state", "modinfo_scalar_initialized", "swu_startup", "generator_startup", "schnorr_startup"):
                     if state in tail:
                         variants.append(tail.replace(state, "(fun _ => True)", 1))
             if "memset_model ->" in tail:

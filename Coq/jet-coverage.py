@@ -352,6 +352,16 @@ _MEMSET_PARTIAL_JETS = {
 for _name, _tail in _MEMSET_PARTIAL_JETS.items():
     RECOVERED_CONTRACTS[_name] = "memset_model -> secp_jet_initialized_partial_local_spec " + _tail
 
+
+# Full original BIP340 public wrapper, including every rejected input and
+# initialization/preservation of its curve/modulus/SHA globals. The exact
+# boundary retains all three existing explicit helper models.
+RECOVERED_CONTRACTS["simplicity_bip_0340_verify"] = (
+    "memcpy_model ->memset_model ->ctz_model -> "
+    "secp_jet_initialized_partial_local_spec schnorr_startup f_simplicity_bip_0340_verify "
+    "literal_bip0340_args Ty.Unit "
+    "(@literal_bip0340_verify (Alg.AssertionSem option_Monad_Zero)).")
+
 REPORTED_MISMATCH_CONTRACTS = {
     "simplicity_gej_ge_add_ex": {
         "contract": "secp_jet_local_spec_on (fun a => ~gej_ge_add_ex_ratio_mismatch a) "

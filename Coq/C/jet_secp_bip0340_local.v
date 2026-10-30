@@ -12,7 +12,7 @@ Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 Local Opaque secp_ge literal_bip0340_check Simplicity.Translate.encode.
-Theorem bip0340_initialized_local_spec:
+Theorem bip0340_initialized_local_spec :
  memcpy_model ->memset_model ->ctz_model ->
  secp_jet_initialized_partial_local_spec schnorr_startup f_simplicity_bip_0340_verify
  literal_bip0340_args Ty.Unit (@literal_bip0340_verify (Alg.AssertionSem option_Monad_Zero)).
