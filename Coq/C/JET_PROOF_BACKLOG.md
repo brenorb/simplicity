@@ -1478,11 +1478,21 @@ transport retains the full owned set_b32 result, including rejection's raw
 limbs, and the x-only field read for every input word. No field-range premise
 or external-helper model was added. Generic
 xfun support already accepts ge; do not reopen owned_b32_run or try to expose
-the entire secp_pure table in this slice. Afterwards, generalize named-call and
-x-only guard rules over ge with concrete lookup facts, and tackle the decoder
-packet through eval_decompress_helper_literal/eval_decompress_function/
-exec_decompress_body_owned. The clear/start branch requires the actual linked
-memset lookup and existing Clear model. The final key-phase composition must
+the entire secp_pure table in this slice. The next batch now also builds normally:
+`jet_xonly_parse_control_at` supplies named calls, both guards and the constant
+subgroup check for any ge; `jet_xonly_parse_clear_at` supplies the real clear
+and pointer-check prefix, with explicit sizeof/lookup interface facts.
+`jet_elements_taptweak_parse_start` discharges both facts in the actual linked
+ge. Its specialization needs only the existing memset_model and retains
+permissions, framing and readonly state. All fourteen reviewed records match.
+The original specialized secp files and checker remain untouched.
+The whole decompression transport needs a local-aware checker: actual field
+multiplication declares `_d` locally although the source ge also contains a
+global with that name. A separate scratch mutual transport proof now compiles,
+deriving local-domain completeness from the real callee allocation. A
+101-function table passes closure and both actual lookup checks in scratch;
+its normal integration and whole-decoder result remain next. This is a proof
+infrastructure limitation, not evidence of a target mismatch. The final key-phase composition must
 parameterize the Elements IV/startup, since the old key theorem fixes Bitcoin's
 IV. No full Elements generic or public jet is registered yet.
 

@@ -1,0 +1,43 @@
+### C.jet_xonly_parse_control_at.exec_curve_call_at
+exec_curve_call_at
+     : forall (ge : Clight.genv) (id : AST.ident) (fd : Clight.function) (result : option AST.ident)
+         (args : list Clight.expr) (vargs : list Values.val) (v : Values.val)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env) (m mf : Memory.Mem.mem)
+         (bf : Values.block)
+         (_ : @eq (option Values.block)
+                (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+                (@Some Values.block bf))
+         (_ : @eq (option Clight.fundef)
+                (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv ge)
+                   (Values.Vptr bf Integers.Ptrofs.zero))
+                (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function fd)))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : Clight.eval_exprlist ge e le m args (Ctypes.type_of_params (Clight.fn_params fd)) vargs)
+         (_ : ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function fd) vargs Events.E0 mf v),
+       ClightBigstep.Clight2.exec_stmt ge e le m (jet_secp_curve_statements.curve_call id fd result args) Events.E0
+         (Clight.set_opttemp result v le) mf ClightBigstep.Out_normal
+### C.jet_xonly_parse_control_at.exec_xonly_guard_one_at
+exec_xonly_guard_one_at
+     : forall (ge : Clight.genv) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (id : BinNums.positive)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vint Integers.Int.one))),
+       ClightBigstep.Clight2.exec_stmt ge e le m (jet_secp_xonly_parse_control.xonly_parse_guard id) Events.E0 le m
+         ClightBigstep.Out_normal
+### C.jet_xonly_parse_control_at.exec_xonly_guard_zero_at
+exec_xonly_guard_zero_at
+     : forall (ge : Clight.genv) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (id : BinNums.positive)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vint Integers.Int.zero))),
+       ClightBigstep.Clight2.exec_stmt ge e le m (jet_secp_xonly_parse_control.xonly_parse_guard id) Events.E0 le m
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.zero) Ctypesdefs.tint)))
+### C.jet_xonly_parse_control_at.eval_xonly_correct_subgroup_at
+eval_xonly_correct_subgroup_at
+     : forall (ge : Clight.genv) (m : Memory.Mem.mem) (point : Values.val),
+       ClightBigstep.Clight2.eval_funcall ge m
+         (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_is_in_correct_subgroup)
+         (@cons Values.val point (@nil Values.val)) Events.E0 m (Values.Vint Integers.Int.one)
