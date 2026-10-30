@@ -429,8 +429,16 @@ forward preservation, with their original theorem interfaces and assumptions
 unchanged. The whole Strauss and ecmult wrappers now expose the same fact;
 their ordinary builds and scoped no-update audits pass. Setup preservation
 is derived directly from its constructed unchanged memory, without generic
-external-call preservation. Next compose the actual Schnorr multiplier call
-with its conversion and return suffix. Keep all preservation attached to the
+external-call preservation. `jet_secp_schnorr_mult_return.exec_schnorr_mult_return_owned` now composes
+the actual original multiplier call, conversion, infinity guard, and return
+for every scalar pair and valid affine input. Its source equality binds the
+original suffix at statement 11. It preserves all six argument/local ranges
+and framing, and retains the explicit `memset_model` and `ctz_model` premises.
+`jet_secp_modinfo_fe_transport` derives initialized inversion metadata after
+the multiplier from initial readonly state, owned argument ranges, load framing
+and backward maximum-permission preservation. Both ordinary builds and reviewed
+scoped no-update audits pass. Next compose the original affine-to-Jacobian
+initializer, scalar negation, parsing/challenge and outer lifecycle. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
 new coverage is claimed yet.

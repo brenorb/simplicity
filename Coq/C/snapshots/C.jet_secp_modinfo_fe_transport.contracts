@@ -1,0 +1,45 @@
+### C.jet_secp_modinfo_fe_transport.modinfo_fe_owned_distinct
+modinfo_fe_owned_distinct
+     : forall (m : Memory.Mem.mem) (b : Values.block) (hi : BinNums.Z)
+         (_ : jet_secp_modinfo_fe_caller.modinfo_fe_state m) (_ : BinInt.Z.lt BinNums.Z0 hi)
+         (_ : Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable),
+       not (@eq Values.block b jet_secp_modinfo_fe_global.modinfo_fe_block)
+### C.jet_secp_modinfo_fe_transport.modinfo_fe_global_owned_frame
+modinfo_fe_global_owned_frame
+     : forall (m mf : Memory.Mem.mem) (slots : list (prod Values.block BinNums.Z))
+         (_ : jet_secp_modinfo_fe_caller.modinfo_fe_state m)
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi) slots),
+              and (BinInt.Z.lt BinNums.Z0 hi) (Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable))
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 not
+                   (@List.In Values.block b
+                      (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) slots))) m mf),
+       jet_secp_modinfo_fe_global.modinfo_fe_global_rep mf
+### C.jet_secp_modinfo_fe_transport.modinfo_fe_state_unchanged
+modinfo_fe_state_unchanged
+     : forall (m mf : Memory.Mem.mem) (_ : jet_secp_modinfo_fe_caller.modinfo_fe_state m)
+         (_ : Memory.Mem.unchanged_on
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 @eq Values.block b jet_secp_modinfo_fe_global.modinfo_fe_block) m mf),
+       jet_secp_modinfo_fe_caller.modinfo_fe_state mf
+### C.jet_secp_modinfo_fe_transport.modinfo_fe_state_framed_forward
+modinfo_fe_state_framed_forward
+     : forall (m mf : Memory.Mem.mem) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : jet_secp_modinfo_fe_caller.modinfo_fe_state m) (_ : jet_clight_forward.mem_forward m mf)
+         (_ : jet_sx_mem.lframe P m mf) (_ : forall ofs : BinNums.Z, P jet_secp_modinfo_fe_global.modinfo_fe_block ofs),
+       jet_secp_modinfo_fe_caller.modinfo_fe_state mf
+### C.jet_secp_modinfo_fe_transport.modinfo_fe_state_owned_frame
+modinfo_fe_state_owned_frame
+     : forall (m mf : Memory.Mem.mem) (slots : list (prod Values.block BinNums.Z))
+         (_ : jet_secp_modinfo_fe_caller.modinfo_fe_state m) (_ : jet_clight_forward.mem_forward m mf)
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi) slots),
+              and (BinInt.Z.lt BinNums.Z0 hi) (Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable))
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 not
+                   (@List.In Values.block b
+                      (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) slots))) m mf),
+       jet_secp_modinfo_fe_caller.modinfo_fe_state mf
