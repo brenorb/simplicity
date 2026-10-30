@@ -442,8 +442,12 @@ scoped no-update audits pass.
 composes the original affine-to-Jacobian initializer with that entire suffix
 (statement 10 onward), deriving Z=1 and the finite flag from the actual C
 initializer and preserving all seven complete local ranges. Its ordinary build
-and scoped no-update audits pass, with no added assumptions. Next compose scalar
-negation, parsing/challenge and the outer lifecycle. Keep all preservation attached to the
+and scoped no-update audits pass, with no added assumptions.
+`jet_secp_schnorr_negate_return.exec_schnorr_negate_return_owned` also composes
+the actual in-place scalar negation with that entire suffix (statement 9 onward),
+deriving its normalized scalar storage from the original helper. Its ordinary
+build and reviewed scoped no-update records pass, without adding assumptions.
+Next compose challenge construction, parsing and the outer lifecycle. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
 new coverage is claimed yet.
