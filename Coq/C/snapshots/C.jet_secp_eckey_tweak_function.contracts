@@ -1,0 +1,78 @@
+### C.jet_secp_eckey_tweak_function.eckey_tweak_key_framed
+eckey_tweak_key_framed
+     : forall
+         (value : option
+                    (Ty.tySem
+                       (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                          (Word.Word (S (S (S (S (S (S (S (S O)))))))))))) (m mf : Memory.Mem.mem)
+         (bk : Values.block) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : eckey_tweak_key_result value m bk) (_ : jet_sx_mem.lframe P m mf) (_ : forall pos : BinNums.Z, P bk pos),
+       eckey_tweak_key_result value mf bk
+### C.jet_secp_eckey_tweak_function.eckey_prepare_then_finish
+eckey_prepare_then_finish
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (li : Clight.temp_env)
+         (mi : Memory.Mem.mem) (lef : Clight.temp_env) (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                jet_secp_eckey_tweak_prepare.eckey_tweak_prepare Events.E0 li mi ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e li mi
+                jet_secp_eckey_tweak_entry.eckey_tweak_finish Events.E0 lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (Clight.fn_body jets_secp.f_secp256k1_eckey_pubkey_tweak_add) Events.E0 lef mf out
+### C.jet_secp_eckey_tweak_function.eval_eckey_pubkey_tweak_add
+eval_eckey_pubkey_tweak_add
+     : forall (_ : jet_memset_model.memset_model) (_ : jet_ctz_model.ctz_model)
+         (ng ax ay : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (x y : forall _ : nat, Integers.Int64.int)
+         (m : Memory.Mem.mem) (bk bt : Values.block) (_ : not (@eq Values.block bk bt))
+         (_ : Memory.Mem.range_perm m bk BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bt BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable) (_ : forall h : bool, jet_secp_generator_globals.generator_table_state h m)
+         (_ : jet_secp_split_constants.split_constants_ready m) (_ : jet_secp_beta_global.beta_initialized m)
+         (_ : jet_secp_modinfo_fe_caller.modinfo_fe_state m)
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bt BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                         (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem ng)))))
+         (_ : jet_secp_square_columns.square_input_bounds x) (_ : jet_secp_square_columns.square_input_bounds y)
+         (_ : jet_secp_fe_nv.fe_at m bk BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 x))
+         (_ : jet_secp_fe_nv.fe_at m bk
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_multiply_normalize_bridge.words5 y))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m bk
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : jet_secp_odd_table_literal_walk.table_word_literal x ax)
+         (_ : jet_secp_odd_table_literal_walk.table_word_literal y ay)
+         (_ : @eq bool
+                (Bit.toBool
+                   (@jet_secp_curve_literal.literal_ge_is_on_curve Alg.CoreFunSem
+                      (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) ax ay))) true),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_eckey_pubkey_tweak_add)
+               (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bt Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+               (Values.Vint (jet_readBit_layout.bit_int (negb (eckey_tweak_infinite ng ax ay)))))
+            (and (eckey_tweak_key_result (eckey_tweak_value ng ax ay) mf bk)
+               (and
+                  (Memory.Mem.range_perm mf bk BinNums.Z0
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and
+                     (Memory.Mem.range_perm mf bt BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (_ : BinNums.Z) =>
+                            and (not (@eq Values.block b bk)) (not (@eq Values.block b bt))) m mf)
+                        (and (jet_clight_forward.mem_forward m mf) (jet_secp_modinfo_fe_caller.modinfo_fe_state mf)))))))

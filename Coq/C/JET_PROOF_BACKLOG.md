@@ -965,10 +965,21 @@ infinity returns zero without conversion, while the finite branch runs the
 original affine converter and returns one with the exact literal normalization
 payload. Entry has no library premise; the finish retains ctz_model only.
 Both ordinary builds and reviewed no-update assumption/contract records pass.
-The initialization/in-place multiplication prefix also compiles in scratch;
-its ordinary integration and whole-callee composition are next. This is helper
-progress, not a public TapTweak proof or additional coverage.
-Then compose the byte-scalar overflow guard and x-only tweak/load/save callers,
+The ordinary `jet_secp_eckey_tweak_prepare` now composes initialization and
+in-place multiplication, discharging the shared-Z/nonzero requirements from
+scalar one and the represented valid affine key.
+`jet_secp_eckey_tweak_function.eval_eckey_pubkey_tweak_add` constructs the
+complete original callee: both actual allocations, that prefix, both infinity
+exits, finite affine conversion and both frees. Its success payload is the
+exact existing Strauss result followed by literal normalization; it preserves
+the caller key/scalar storage, unrelated memory and initialized modinfo.
+Both modules build ordinarily and pass reviewed no-update records, with only
+the inherited eight axioms. The complete callee retains memset_model and
+ctz_model explicitly. These are native helper results, not yet the canonical
+Bitcoin TapTweak jet and not additional coverage.
+Next compose the original byte-scalar helper (32-byte scalar parser, overflow
+short circuit, complete native callee and local cleanup), then x-only
+tweak/load/save callers,
 and the generic TapTweak SHA/reader/writer lifecycle. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential
