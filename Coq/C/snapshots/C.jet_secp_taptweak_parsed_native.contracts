@@ -1,0 +1,109 @@
+### C.jet_secp_taptweak_parsed_native.taptweak_result_option
+taptweak_result_option
+     : forall ng pk : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq bool (taptweak_result ng pk)
+         match taptweak_value ng pk return bool with
+         | Some _ => true
+         | None => false
+         end
+### C.jet_secp_taptweak_parsed_native.exec_taptweak_parsed_native
+exec_taptweak_parsed_native
+     : forall (_ : jet_memcpy_model.memcpy_model) (_ : jet_memset_model.memset_model) (_ : jet_ctz_model.ctz_model)
+         (ng pk : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (bi bp bo bb : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._input_pubkey e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bi (Ctypes.Tstruct jets_secp.__6478 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._pubkey e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bp (Ctypes.Tstruct jets_secp.__2078 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._output_pubkey e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bo (Ctypes.Tstruct jets_secp.__6478 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._buf e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bb
+                      (Ctypesdefs.tarray Ctypesdefs.tuchar
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_xonly_pubkey_tweak_add e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_xonly_pubkey_from_pubkey e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_xonly_pubkey_serialize e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @List.NoDup Values.block
+                (@cons Values.block bi
+                   (@cons Values.block bp (@cons Values.block bo (@cons Values.block bb (@nil Values.block))))))
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                       (@cons (prod Values.block BinNums.Z)
+                          (@pair Values.block BinNums.Z bi
+                             (BinNums.Zpos
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                          (@cons (prod Values.block BinNums.Z)
+                             (@pair Values.block BinNums.Z bp
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                             (@cons (prod Values.block BinNums.Z)
+                                (@pair Values.block BinNums.Z bo
+                                   (BinNums.Zpos
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                (@cons (prod Values.block BinNums.Z)
+                                   (@pair Values.block BinNums.Z bb
+                                      (BinNums.Zpos
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                   (@nil (prod Values.block BinNums.Z))))))),
+              Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+         (_ : @eq Integers.Int.int (jet_secp_xonly_parse_field.xonly_parse_result pk) Integers.Int.one)
+         (_ : jet_secp_xonly_parse_field.xonly_parsed_result pk m bi) (_ : jet_secp_taptweak_tag.taptweak_startup m)
+         (_ : jet_read8s_layout.uint8_array_at m bb BinNums.Z0 (jet_secp_schnorr_challenge_hash.schnorr_word_bytes ng)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+               (jet_secp_statement_prefix.statement_sequence jet_secp_taptweak_native.taptweak_native_statements
+                  Clight.Sskip) Events.E0 (jet_secp_taptweak_native.taptweak_native_temps le (taptweak_result ng pk))
+               mf (jet_secp_taptweak_native.taptweak_native_outcome (taptweak_result ng pk)))
+            (and (jet_secp_taptweak_native.taptweak_native_bytes (taptweak_value ng pk) mf bb)
+               (and
+                  (forall (b : Values.block) (hi : BinNums.Z)
+                     (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                            (@cons (prod Values.block BinNums.Z)
+                               (@pair Values.block BinNums.Z bi
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                               (@cons (prod Values.block BinNums.Z)
+                                  (@pair Values.block BinNums.Z bp
+                                     (BinNums.Zpos
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                  (@cons (prod Values.block BinNums.Z)
+                                     (@pair Values.block BinNums.Z bo
+                                        (BinNums.Zpos
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                     (@cons (prod Values.block BinNums.Z)
+                                        (@pair Values.block BinNums.Z bb
+                                           (BinNums.Zpos
+                                              (BinNums.xO
+                                                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                        (@nil (prod Values.block BinNums.Z))))))),
+                   Memory.Mem.range_perm mf b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+                  (and
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (_ : BinNums.Z) =>
+                         and (not (@eq Values.block b bp))
+                           (and (not (@eq Values.block b bo)) (not (@eq Values.block b bb)))) m mf)
+                     (and (jet_clight_forward.mem_forward m mf) (jet_secp_taptweak_tag.taptweak_startup mf))))))

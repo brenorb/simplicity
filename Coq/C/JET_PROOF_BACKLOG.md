@@ -1155,6 +1155,13 @@ canonical tweak digest as bytes and state words, keeps the read input hash,
 advances the source cursor and retains owned storage, external framing and
 full initialized state. Ordinary build and reviewed no-update records pass;
 memcpy_model is explicit and only the inherited six axioms remain.
+`jet_secp_taptweak_parsed_native.exec_taptweak_parsed_native` now derives all
+native-coordinate and curve conditions from parser success and its represented
+result, then constructs the original tweak/conversion/serializer suffix. Its
+option value includes the strict key bound and even-Y decompression; rejection
+and successful serialization retain owned storage, external framing and full
+initialized state. Reviewed ordinary/no-update records pass, with the existing
+memcpy_model/memset_model/ctz_model and inherited eight axioms only.
 Next compose the native suffix and writer with the complete generic/public
 lifecycle. Reuse the key-phase result for both the normal parser path and
 immediate failure.
