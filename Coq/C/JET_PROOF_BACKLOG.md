@@ -1187,6 +1187,21 @@ phases at the original statement boundaries, with both normal and aborting
 paths. These are Clight sequence proofs, not new callee assumptions. Both
 ordinary builds and reviewed no-update records pass with inherited assumptions
 only; the finish retains the three existing library models explicitly.
+`jet_secp_taptweak_body.exec_taptweak_body` now constructs the complete original
+generic function body for every Word256 key/hash pair. It derives initialization,
+key read/absorption/parser, second-input read and digest, native suffix and
+writer, including immediate parser failure and later tweak rejection. Its
+result keeps every local and the source frame owned, exact output observations,
+precise old-memory framing, forward memory and taptweak_ready. Reusable slot
+ownership/size lemmas preserve the actual caller storage across all phases.
+Ordinary compilation and reviewed no-update records pass; memcpy_model,
+memset_model and ctz_model remain explicit, with the inherited eight axioms.
+This is body execution only; generic entry/free and the Bitcoin wrapper remain.
+The final proof-term check took 10.31 seconds in the measured scratch run;
+only its Qed uses a 60-second bound, restored to 10 afterwards. Proof search
+keeps the short default. Avoid reconstructing thirteen-way separation by
+unrestricted intuition: the existing NoDup_app_remove_r/NoDup_remove_2 lemmas
+and explicit not_in_cons normalization avoid the earlier search timeout.
 Next construct the complete generic/public lifecycle, including every original
 allocation/free and both parser outcomes. Keep taptweak_ready (including
 dispatch extent) at the public boundary and use taptweak_ready_forward around
