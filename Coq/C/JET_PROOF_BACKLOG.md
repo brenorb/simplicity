@@ -1196,7 +1196,13 @@ precise old-memory framing, forward memory and taptweak_ready. Reusable slot
 ownership/size lemmas preserve the actual caller storage across all phases.
 Ordinary compilation and reviewed no-update records pass; memcpy_model,
 memset_model and ctz_model remain explicit, with the inherited eight axioms.
-This is body execution only; generic entry/free and the Bitcoin wrapper remain.
+The subsequent `jet_secp_taptweak_function.eval_generic_taptweak` now composes
+actual entry, this body and all eleven frees. It derives fresh-local separation
+from allocation and retains exact optional output, the caller source-frame
+ownership, precise old-memory framing and startup. Its ordinary build and
+reviewed scoped assumption/contract records pass, with the same explicit
+library models and inherited axioms. The Bitcoin public wrapper and canonical
+assertion-term bridge remain; neither module is public coverage by itself.
 The final proof-term check took 10.31 seconds in the measured scratch run;
 only its Qed uses a 60-second bound, restored to 10 afterwards. Proof search
 keeps the short default. Avoid reconstructing thirteen-way separation by
