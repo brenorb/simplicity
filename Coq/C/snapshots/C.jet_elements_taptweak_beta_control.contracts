@@ -1,0 +1,187 @@
+### C.jet_elements_taptweak_beta_control.elements_taptweak_beta_expressions_checked
+elements_taptweak_beta_expressions_checked
+     : @eq bool
+         (@List.forallb Clight.expr
+            (jet_transport.expr_okb jet_secp_linkage.secp_ge jet_elements_taptweak_pure.elements_taptweak_ge)
+            elements_taptweak_beta_expressions) true
+### C.jet_elements_taptweak_beta_control.elements_taptweak_state_pointer_checked
+elements_taptweak_state_pointer_checked
+     : forall (field : AST.ident) (delta : BinNums.Z) (ty : Ctypes.type)
+         (_ : @List.In (prod AST.ident BinNums.Z) (@pair AST.ident BinNums.Z field delta)
+                (@cons (prod AST.ident BinNums.Z)
+                   (@pair AST.ident BinNums.Z jets_secp._pre_a
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (@cons (prod AST.ident BinNums.Z) (@pair AST.ident BinNums.Z jets_secp._aux BinNums.Z0)
+                      (@nil (prod AST.ident BinNums.Z))))),
+       @eq bool
+         (jet_transport.expr_okb jet_secp_linkage.secp_ge jet_elements_taptweak_pure.elements_taptweak_ge
+            (jet_secp_generator_globalz_call.generator_state_pointer field ty)) true
+### C.jet_elements_taptweak_beta_control.elements_taptweak_beta_expression
+elements_taptweak_beta_expression
+     : forall (expression : Clight.expr) (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (v : Values.val) (_ : @List.In Clight.expr expression elements_taptweak_beta_expressions)
+         (_ : Clight.eval_expr jet_secp_linkage.secp_ge e le m expression v),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m expression v
+### C.jet_elements_taptweak_beta_control.eval_elements_taptweak_state_pointer
+eval_elements_taptweak_state_pointer
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (base : BinNums.Z) (field : AST.ident) (delta : BinNums.Z) (ty : Ctypes.type) (v : Values.val)
+         (_ : @List.In (prod AST.ident BinNums.Z) (@pair AST.ident BinNums.Z field delta)
+                (@cons (prod AST.ident BinNums.Z)
+                   (@pair AST.ident BinNums.Z jets_secp._pre_a
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (@cons (prod AST.ident BinNums.Z) (@pair AST.ident BinNums.Z jets_secp._aux BinNums.Z0)
+                      (@nil (prod AST.ident BinNums.Z)))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._state le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base)))) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m b (BinInt.Z.add base delta)) (@Some Values.val v)),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         (jet_secp_generator_globalz_call.generator_state_pointer field ty) v
+### C.jet_elements_taptweak_beta_control.eval_elements_taptweak_beta_aux_width
+eval_elements_taptweak_beta_aux_width
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_beta_loop_control.beta_aux_width
+         (Values.Vlong (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_elements_taptweak_beta_control.eval_elements_taptweak_beta_aux_index
+eval_elements_taptweak_beta_aux_index
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_beta_loop_control.beta_aux_index (Values.Vlong (Integers.Int64.repr i))
+### C.jet_elements_taptweak_beta_control.eval_elements_taptweak_beta_aux_out
+eval_elements_taptweak_beta_aux_out
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bx : Values.block)
+         (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'30 le)
+                (@Some Values.val (Values.Vptr bx Integers.Ptrofs.zero))),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m jet_secp_beta_loop_control.beta_aux_out
+         (Values.Vptr bx
+            (Integers.Ptrofs.repr
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  i)))
+### C.jet_elements_taptweak_beta_control.eval_elements_taptweak_beta_aux_table
+eval_elements_taptweak_beta_aux_table
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bt : Values.block)
+         (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'31 le)
+                (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero))),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_beta_loop_control.beta_aux_table
+         (Values.Vptr bt
+            (Integers.Ptrofs.repr
+               (BinInt.Z.mul
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))) i)))
+### C.jet_elements_taptweak_beta_control.eval_elements_taptweak_beta_aux_in
+eval_elements_taptweak_beta_aux_in
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bt : Values.block)
+         (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t'31 le)
+                (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero))),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m jet_secp_beta_loop_control.beta_aux_in
+         (Values.Vptr bt
+            (Integers.Ptrofs.repr
+               (BinInt.Z.mul
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))) i)))
+### C.jet_elements_taptweak_beta_control.eval_elements_taptweak_beta_aux_guard
+eval_elements_taptweak_beta_aux_guard
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_beta_loop_control.beta_aux_guard
+         (Values.Vint
+            match
+              BinInt.Z.ltb i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) return Integers.Int.int
+            with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+### C.jet_elements_taptweak_beta_control.eval_elements_taptweak_beta_aux_outer_guard
+eval_elements_taptweak_beta_aux_outer_guard
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (done : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val
+                   (Values.Vlong
+                      match done return Integers.Int64.int with
+                      | true => Integers.Int64.one
+                      | false => Integers.Int64.zero
+                      end)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._no le)
+                (@Some Values.val (Values.Vlong Integers.Int64.one))),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_beta_loop_control.beta_aux_outer_guard
+         (Values.Vint
+            match done return Integers.Int.int with
+            | true => Integers.Int.zero
+            | false => Integers.Int.one
+            end)
+### C.jet_elements_taptweak_beta_control.exec_elements_taptweak_beta_aux_step
+exec_elements_taptweak_beta_aux_step
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._i le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr i)))),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_beta_loop_control.beta_aux_step Events.E0
+         (@Maps.PTree.set Values.val jets_secp._i
+            (Values.Vint (Integers.Int.repr (BinInt.Z.add i (BinNums.Zpos BinNums.xH)))) le) m ClightBigstep.Out_normal
+### C.jet_elements_taptweak_beta_control.exec_elements_taptweak_beta_aux_outer_step
+exec_elements_taptweak_beta_aux_outer_step
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero))),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_beta_loop_control.beta_aux_outer_step Events.E0
+         (@Maps.PTree.set Values.val jets_secp._np (Values.Vlong Integers.Int64.one) le) m ClightBigstep.Out_normal
+### C.jet_elements_taptweak_beta_control.eval_elements_taptweak_beta_aux_constant
+eval_elements_taptweak_beta_aux_constant
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_const_beta e)
+                (@None (prod Values.block Ctypes.type))),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_beta_loop_control.beta_aux_constant
+         (Values.Vptr jet_elements_taptweak_beta.elements_taptweak_beta_block Integers.Ptrofs.zero)
+### C.jet_elements_taptweak_beta_control.elements_taptweak_beta_expressions
+elements_taptweak_beta_expressions =
+@cons Clight.expr jet_secp_beta_loop_control.beta_aux_width
+  (@cons Clight.expr jet_secp_beta_loop_control.beta_aux_index
+     (@cons Clight.expr jet_secp_beta_loop_control.beta_aux_out
+        (@cons Clight.expr jet_secp_beta_loop_control.beta_aux_table
+           (@cons Clight.expr jet_secp_beta_loop_control.beta_aux_in
+              (@cons Clight.expr jet_secp_beta_loop_control.beta_aux_guard
+                 (@cons Clight.expr jet_secp_beta_loop_control.beta_aux_outer_guard (@nil Clight.expr)))))))
+     : list Clight.expr

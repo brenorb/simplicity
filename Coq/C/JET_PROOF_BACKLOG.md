@@ -1648,6 +1648,16 @@ theorems alone do not establish a linked inverse execution. Derive every
 callee at the target GE before claiming the native tweak or public wrapper.
 All of these additions postdate the `ca89b2aa` recursive kernel check; they
 have ordinary builds and reviewed scoped records, not fresh public acceptance.
+`jet_elements_taptweak_beta_slice` now derives the actual linked fe_mul on
+the caller's field slices and the initialized beta block, with the original
+loose-field bounds, literal beta product, permissions and readonly frame.
+`jet_elements_taptweak_beta_control` transports the seven actual argument/guard
+expressions and Strauss state-pointer loads through checked layouts, and
+derives the beta global address and loop steps. Both build normally; reviewed
+assumption/contract records match without update flags. Execution uses the
+same six inherited assumptions, without a library premise. The single update
+and complete eight-product loop also compile in scratch; integrate them next.
+No whole ecmult or public call is established by these components.
 Reproduce the completed component builds with:
 
 ```sh
