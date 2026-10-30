@@ -1,0 +1,61 @@
+### C.jet_secp_hash_startup.hash_to_curve_ready_initial
+hash_to_curve_ready_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       hash_to_curve_ready m
+### C.jet_secp_hash_startup.hash_to_curve_ready_exists
+hash_to_curve_ready_exists
+     : @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                  (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m))
+            (hash_to_curve_ready m))
+### C.jet_secp_hash_startup.hash_sha_startup_from_dispatch_load
+hash_sha_startup_from_dispatch_load
+     : forall (m mf : Memory.Mem.mem) (_ : jet_secp_sha_startup.secp_sha_startup m)
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mptr mf jet_secp_sha_startup.secp_sha_dispatch_block BinNums.Z0)
+                (Memory.Mem.load AST.Mptr m jet_secp_sha_startup.secp_sha_dispatch_block BinNums.Z0)),
+       jet_secp_sha_startup.secp_sha_startup mf
+### C.jet_secp_hash_startup.hash_to_curve_ready_after_output
+hash_to_curve_ready_after_output
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (outedge cursor : BinNums.Z) (bi : Values.block)
+         (result : option
+                     (Ty.tySem
+                        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                           (Word.Word (S (S (S (S (S (S (S (S O)))))))))))) (_ : hash_to_curve_ready m)
+         (_ : jet_frame_inv.finv m bd base bw outedge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                bi mf match result return bool with
+                      | Some _ => true
+                      | None => false
+                      end
+                match result return (list BitMachine.Cell) with
+                | Some value =>
+                    @Translate.encode
+                      (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                         (Word.Word (S (S (S (S (S (S (S (S O)))))))))) value
+                | None => @nil BitMachine.Cell
+                end)
+         (_ : jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (jet_secp_frame.extA m bd bw bi b)) m mf)
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf), hash_to_curve_ready mf
+### C.jet_secp_hash_startup.hash_to_curve_ready
+hash_to_curve_ready =
+fun m : Memory.Mem.mem =>
+and (jet_secp_sha_startup.secp_sha_startup m)
+  (and (jet_secp_swu_startup.swu_startup m)
+     (and (forall prefix : bool, jet_secp_generator_sha_absorb.generator_sha_prefix_state prefix m)
+        (jet_secp_taptweak_writer_state.taptweak_dispatch_extent m)))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments hash_to_curve_ready m

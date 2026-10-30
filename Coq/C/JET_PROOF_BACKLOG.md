@@ -1,5 +1,27 @@
 # Remaining jet proof work
 
+The next `hash_to_curve` caller milestone builds in the ordinary project as
+`jet_secp_hash_{startup,initialized,frames}`. The actual entire public C
+execution is derived for every key from the approved memcpy/CTZ models, real
+program initialization and constructed separated frames. The general caller
+handles arbitrary valid cursors and preserves startup; the fresh theorem also
+exports old-memory preservation and freshness. Its exact canonical comparison
+is retained: with A the two hash-range acceptances, C returns A, while the
+Simplicity option succeeds only when A and the computed sum flag is zero.
+No finiteness premise or actual divergent key is asserted, and no hash jet
+coverage entry is added. All ordinary builds and reviewed no-update assumption
+and contract comparisons pass for the 13 new/refreshed modules, together with
+scanning and all 283 frozen inputs. Execution retains six inherited assumptions.
+Astra Medium static review found no blocking soundness issue; its suggested
+interface strengthening now exports the fresh-state relationships explicitly.
+No fresh recursive kernel receipt is claimed for these helper additions.
+
+This batch was prepared on local `codex/hash-caller-obligations` in the clean
+`schnorr-reconstruction` verifier worktree while the main Elements acceptance
+run at `249a2acf` remains fixed. Integrate this branch only after that run
+finishes and its before/after evidence is preserved. The previous verifier
+branch `codex/schnorr-reconstruction` remains at `897ae888`.
+
 The complete frozen Elements `simplicity_build_taptweak` theorem is now
 registered as
 `C.jet_elements_taptweak_local.elements_build_taptweak_initialized_local_spec`.

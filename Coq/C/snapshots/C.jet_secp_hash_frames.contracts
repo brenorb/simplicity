@@ -1,0 +1,54 @@
+### C.jet_secp_hash_frames.hash_swu_constant_old_blocks
+hash_swu_constant_old_blocks
+     : forall (d : bool) (m mf : Memory.Mem.mem) (_ : jet_secp_swu_startup.swu_constant_state d m)
+         (_ : hash_old_blocks m mf), jet_secp_swu_startup.swu_constant_state d mf
+### C.jet_secp_hash_frames.hash_to_curve_ready_old_blocks
+hash_to_curve_ready_old_blocks
+     : forall (m mf : Memory.Mem.mem) (_ : jet_secp_hash_startup.hash_to_curve_ready m) (_ : hash_old_blocks m mf),
+       jet_secp_hash_startup.hash_to_curve_ready mf
+### C.jet_secp_hash_frames.hash_to_curve_runs_from_actual_init
+hash_to_curve_runs_from_actual_init
+     : forall (_ : jet_memcpy_model.memcpy_model) (_ : jet_ctz_model.ctz_model)
+         (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (ve : Values.val),
+       @ex Memory.Mem.mem
+         (fun mi : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun m : Memory.Mem.mem =>
+             @ex Values.block
+               (fun bd : Values.block =>
+                @ex Values.block
+                  (fun bs : Values.block =>
+                   @ex Values.block
+                     (fun bi : Values.block =>
+                      @ex Values.block
+                        (fun bw : Values.block =>
+                         @ex BinNums.Z
+                           (fun edge : BinNums.Z =>
+                            @ex Memory.Mem.mem
+                              (fun mf : Memory.Mem.mem =>
+                               @ex (forall _ : nat, Integers.Int64.int)
+                                 (fun sx : forall _ : nat, Integers.Int64.int =>
+                                  @ex (forall _ : nat, Integers.Int64.int)
+                                    (fun sy : forall _ : nat, Integers.Int64.int =>
+                                     @ex (forall _ : nat, Integers.Int64.int)
+                                       (fun sz : forall _ : nat, Integers.Int64.int =>
+                                        @ex Integers.Int.int
+                                          (fun flag : Integers.Int.int =>
+                                           @ex (forall _ : nat, Integers.Int64.int)
+                                             (fun ox : forall _ : nat, Integers.Int64.int =>
+                                              @ex (forall _ : nat, Integers.Int64.int)
+                                                (fun oy : forall ..., Integers.Int64.int =>
+                                                 and (@eq (...) (...) (...)) (and (...) (...))))))))))))))))
+### C.jet_secp_hash_frames.hash_old_blocks
+hash_old_blocks =
+fun m mf : Memory.Mem.mem =>
+forall (b : Values.block) (_ : Memory.Mem.valid_block m b),
+and (Memory.Mem.valid_block mf b)
+  (and
+     (forall (chunk : AST.memory_chunk) (ofs : BinNums.Z),
+      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+     (forall (ofs : BinNums.Z) (kind : Memtype.perm_kind) (perm : Memtype.permission)
+        (_ : Memory.Mem.perm mf b ofs kind perm), Memory.Mem.perm m b ofs kind perm))
+     : forall (_ : Memory.Mem.mem) (_ : Memory.Mem.mem), Prop
+
+Arguments hash_old_blocks m mf
