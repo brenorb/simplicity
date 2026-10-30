@@ -346,6 +346,27 @@ reaching 526/533 as described above. Reproduce with
 
 ### Schnorr signature callers
 
+Current resume checkpoint: work on `codex/schnorr-reconstruction`, integrating
+into `feat/jet-equivalence`; the earlier worker worktree is archived. Public
+coverage is still **526/533**. The table/GLV/generator/window-5 chain passed
+recursive kernel checking at **`960a67dc`**, with identical before/after/current
+input fingerprints, an axiom list contained in the existing expectation, and no
+unsafe proof features. Reproduce with the pinned compiler, `ulimit -S -s 65520`,
+and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_generate_small_group C.jet_secp_wnaf5_reconstruction`. Later Strauss
+and window-binding modules have ordinary builds and reviewed no-update records;
+they are not covered by that historical recursive result.
+
+Both window reconstructions, the original four-stream/129-step group semantics,
+the four scalar Horner folds, and their binding to actual window outputs are
+now compiled. Next compose the actual normalized split_lambda/split128 outputs,
+final shared-Z correction and generator-only skipped branch; then the original
+Schnorr caller and final predicate. Reuse those modules rather than re-proving
+the table, generator bases or inverse. No Schnorr jet is registered yet.
+
+The paragraphs below preserve the sequential development history; their
+remaining-work statements describe the corresponding earlier checkpoints.
+
 The next reserved callers are `bip_0340_verify` and `check_sig_verify` on
 `codex/schnorr-verifier`. `jet_secp_schnorr_tagged_init` proves the original
 challenge-tag initializer from writable storage through all eight state-word
@@ -827,8 +848,9 @@ certificate conversion. Reuse the existing checked-reduction command:
 `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
 C.jet_secp_generate_small_group C.jet_secp_wnaf5_reconstruction` (with the
 pinned compiler and 64 MiB stack). It checks the complete dependency closure;
-it does not use `-admit` or `-norec`. Fresh recursive checking remains pending. Ordinary builds and the scoped no-update records described above
-are completed evidence; public coverage remains 526/533.
+it does not use `-admit` or `-norec`. That fresh check passed at `960a67dc`,
+with matching fingerprints and no axioms outside the existing expectation,
+as recorded in the resume checkpoint above. Public coverage remains 526/533.
 
 `jet_secp_strauss_group.secp_literal_strauss129_group` interprets the actual
 four-stream step and complete 129-step traversal in the curve group. It derives
@@ -871,6 +893,19 @@ rewriting their algebra: `cbn` may leave them folded under opaque operations.
 Avoid greedily rewriting every signed-power addition, which can trigger
 conversion against unrelated bases; split the combination with `f_equal2`
 and apply the same-base power lemma at each leaf instead.
+
+`jet_secp_strauss_window_values.secp_literal_strauss_window_group` binds the
+actual 129-step word result to the two signed window-5 scalar values and two
+Word128 generator scalar values. It derives all projection/length equalities
+from the balanced vector structure and discharges generator-digit validity
+using the actual window outputs. Its only internal premises are the represented
+odd-multiple table and nonzero shared context, supplied by scalarTable5.
+The ordinary build and all eight reviewed no-update records pass; only the
+existing functional extensionality is used for the word-level composition.
+Fresh recursive checking of this new root remains pending.
+Next bind the actual split_lambda/split128 outputs to the normalized scalars,
+compose the final Z correction and the generator-only skipped branch, then
+finish the original Schnorr caller and predicate. Coverage remains 526/533.
 
 For the next word/branch adapters, avoid bare `H`/`I` hypothesis names when
 importing the Simplicity combinator notations; they can parse as notations in
