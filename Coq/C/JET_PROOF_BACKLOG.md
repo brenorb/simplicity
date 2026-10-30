@@ -1208,6 +1208,12 @@ only its Qed uses a 60-second bound, restored to 10 afterwards. Proof search
 keeps the short default. Avoid reconstructing thirteen-way separation by
 unrestricted intuition: the existing NoDup_app_remove_r/NoDup_remove_2 lemmas
 and explicit not_in_cons normalization avoid the earlier search timeout.
+`jet_secp_taptweak_public_support` now compiles the original Bitcoin wrapper's
+single-local entry, source struct copy, generic call (including its actual
+sizeof-minus-one tag length), return temporary and local free boundary.
+Its statement-tree equality is checked against the frozen AST. This is
+wrapper support; whole-public composition remains below. Ordinary build and
+reviewed scoped records pass with no new assumptions.
 Next construct the complete generic/public lifecycle, including every original
 allocation/free and both parser outcomes. Keep taptweak_ready (including
 dispatch extent) at the public boundary and use taptweak_ready_forward around
