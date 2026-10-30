@@ -1214,8 +1214,16 @@ sizeof-minus-one tag length), return temporary and local free boundary.
 Its statement-tree equality is checked against the frozen AST. This is
 wrapper support; whole-public composition remains below. Ordinary build and
 reviewed scoped records pass with no new assumptions.
-Next construct the complete generic/public lifecycle, including every original
-allocation/free and both parser outcomes. Keep taptweak_ready (including
+`jet_secp_taptweak_public_function.eval_bitcoin_taptweak_public` now composes
+the complete original Bitcoin public call for every Word512 input and general
+valid frames/cursors. It derives the fresh source-frame copy, all generic
+execution and both return paths, frees the wrapper local, and preserves exact
+optional output, precise old-memory framing, forward memory and taptweak_ready.
+Its ordinary build and reviewed records pass with the existing three library
+models and eight inherited axioms. The value is still taptweak_output: the
+canonical Simplicity assertion bridge, source binding and public registration
+remain. This C-level theorem is not additional accepted coverage.
+Next finish the canonical assertion-term value bridge and public local contract. Keep taptweak_ready (including
 dispatch extent) at the public boundary and use taptweak_ready_forward around
 existing startup-preserving phases. Reuse the key-phase result for normal parsing and immediate failure.
 For the final writer use secp_write8s_layout to obtain its actual call and
