@@ -1320,9 +1320,17 @@ composite environment exists. Its layout views (members, attributes, size,
 alignment, rank) preserve every Elements composite and every imported crypto
 and shared composite. These are compiled, reviewed interface/layout facts,
 not a full linked-program execution or proof of the original external call.
-Next select and prove provenance/resolution of the actual required function
-and global definitions, retaining the Elements wrapper/tag and deduplicating
-only definitions proved identical. Explicit execution transport and initialized
+`jet_elements_taptweak_import` now computes a 141-name dependency slice
+from the actual generic body, following named expression references and global
+address initializers. A closedness theorem checks every selected definition
+exists and every such reference stays in the slice; the finite traversal limit
+cannot silently truncate this checked slice. All 38 non-root definitions also
+present in Elements are proved exactly identical, and the Bitcoin wrapper's
+private tag is proved absent. Definition provenance, per-name equality and
+closedness are compiled and recorded with no axioms. Dynamic function-pointer
+resolution remains separate. Next complete actual CompCert linking with the
+selected fragment, retaining the Elements wrapper/tag and deduplicating only
+these identical definitions. Explicit execution transport and initialized
 state construction remain. Do not count the interface/layout facts as Elements
 jet coverage or reinterpret the original external call as an internal one.
 

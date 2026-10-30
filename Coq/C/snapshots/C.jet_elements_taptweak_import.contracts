@@ -1,0 +1,61 @@
+### C.jet_elements_taptweak_import.taptweak_import_names_unique
+taptweak_import_names_unique
+     : @List.NoDup BinNums.positive taptweak_import_names
+### C.jet_elements_taptweak_import.taptweak_import_has_generic
+taptweak_import_has_generic
+     : @eq bool
+         (@List.existsb BinNums.positive (BinPos.Pos.eqb jets_secp._simplicity_generic_taptweak) taptweak_import_names)
+         true
+### C.jet_elements_taptweak_import.taptweak_named_imports_closedb
+taptweak_named_imports_closedb
+     : @eq bool
+         (@List.forallb BinNums.positive
+            (fun id : BinNums.positive =>
+             match
+               @Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id taptweak_source_defmap
+               return bool
+             with
+             | Some gd =>
+                 @List.forallb BinNums.positive
+                   (fun ref : BinNums.positive =>
+                    @List.existsb BinNums.positive (BinPos.Pos.eqb ref) taptweak_import_names)
+                   (taptweak_definition_references gd)
+             | None => false
+             end) taptweak_import_names) true
+### C.jet_elements_taptweak_import.taptweak_named_imports_closed
+taptweak_named_imports_closed
+     : forall (id : BinNums.positive) (_ : @List.In BinNums.positive id taptweak_import_names),
+       @ex (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)
+         (fun gd : AST.globdef (Ctypes.fundef Clight.function) Ctypes.type =>
+          and
+            (@eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+               (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id taptweak_source_defmap)
+               (@Some (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) gd))
+            (forall (ref : AST.ident) (_ : @List.In AST.ident ref (taptweak_definition_references gd)),
+             @List.In AST.ident ref taptweak_import_names))
+### C.jet_elements_taptweak_import.taptweak_import_definition_source
+taptweak_import_definition_source
+     : forall (entry : prod BinNums.positive (AST.globdef Clight.fundef Ctypes.type))
+         (_ : @List.In (prod BinNums.positive (AST.globdef Clight.fundef Ctypes.type)) entry
+                taptweak_import_definitions),
+       @List.In (prod BinNums.positive (AST.globdef Clight.fundef Ctypes.type)) entry jets_secp.global_definitions
+### C.jet_elements_taptweak_import.taptweak_common_definitions_identical
+taptweak_common_definitions_identical
+     : @eq (list (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type)))
+         (@List.map BinNums.positive (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+            (fun id : BinNums.positive =>
+             @Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id taptweak_source_defmap)
+            taptweak_common_import_names)
+         (@List.map BinNums.positive (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+            (fun id : BinNums.positive =>
+             @Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id taptweak_host_defmap)
+            taptweak_common_import_names)
+### C.jet_elements_taptweak_import.taptweak_common_definition_identical
+taptweak_common_definition_identical
+     : forall (id : BinNums.positive) (_ : @List.In BinNums.positive id taptweak_common_import_names),
+       @eq (option (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type))
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id taptweak_source_defmap)
+         (@Maps.PTree.get (AST.globdef (Ctypes.fundef Clight.function) Ctypes.type) id taptweak_host_defmap)
+### C.jet_elements_taptweak_import.taptweak_bitcoin_tag_not_imported
+taptweak_bitcoin_tag_not_imported
+     : @eq bool (@List.existsb BinNums.positive (BinPos.Pos.eqb jets_secp._taptweak) taptweak_import_names) false
