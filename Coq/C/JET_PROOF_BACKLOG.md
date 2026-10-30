@@ -1,5 +1,19 @@
 # Remaining jet proof work
 
+The linked inverse foundation now builds in the ordinary project:
+`jet_transport_entry` derives local domains/bindings from actual function
+entry and transports that entry; `jet_elements_taptweak_inverse_copy`
+executes the sparse modulus copy from the actual linked readonly metadata;
+`jet_elements_taptweak_inverse_entry` derives the five-local inverse entry,
+initial copies and loop setup with ownership, framing, readonly preservation
+and permission preservation. Reviewed scoped statement/assumption comparisons
+pass. Entry transport is closed; execution uses the same six inherited
+assumptions. These modules have not had a new recursive kernel check and
+add no public coverage. Next derive the actual divstep counting call from
+the existing approved `ctz_model`, reuse the pure post-count invariant and
+exit, then compose the inverse batches and finish. Do not expose source-GE
+`CountCall` as a new premise of the linked caller.
+
 ## Current completion criterion: equivalence or proved divergence
 
 The user clarified that 533/533 means **proof coverage**, permitting checked

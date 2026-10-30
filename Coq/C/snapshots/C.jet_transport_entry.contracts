@@ -1,0 +1,24 @@
+### C.jet_transport_entry.function_entry2_domain
+function_entry2_domain
+     : forall (ge : Clight.genv) (f : Clight.function) (args : list Values.val) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (mi : Memory.Mem.mem) (_ : Clight.function_entry2 ge f args m e le mi),
+       jet_transport.edom e (Clight.fn_vars f)
+### C.jet_transport_entry.function_entry2_bound
+function_entry2_bound
+     : forall (ge : Clight.genv) (f : Clight.function) (args : list Values.val) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (mi : Memory.Mem.mem) (_ : Clight.function_entry2 ge f args m e le mi)
+         (id : AST.ident)
+         (_ : @List.In AST.ident id
+                (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type) (Clight.fn_vars f))),
+       @ex Values.block
+         (fun b : Values.block =>
+          @ex Ctypes.type
+            (fun ty : Ctypes.type =>
+             @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+               (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty))))
+### C.jet_transport_entry.function_entry2_transport
+function_entry2_transport
+     : forall (ge1 ge2 : Clight.genv) (f : Clight.function) (args : list Values.val) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (mi : Memory.Mem.mem)
+         (_ : @eq bool (jet_transport.vars_okb ge1 ge2 (Clight.fn_vars f)) true)
+         (_ : Clight.function_entry2 ge1 f args m e le mi), Clight.function_entry2 ge2 f args m e le mi
