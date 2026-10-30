@@ -467,11 +467,14 @@ signature predicate for the frozen specification. The ordinary build and
 reviewed scoped no-update records pass. This is an internal suffix theorem,
 not a registered public jet. Next compose signature/key parsing, key-X
 serialization and the outer lifecycle. For serialization reuse
-`eval_fe_get_b32_from_storage`; its current frame excludes both source and
-destination regions. Recover source storage from the existing symbolic final
-representation (`HFinal` in `eval_fe_get_b32_from_initial_regions`), and derive
-complete permission preservation from its actual closed helper execution,
-rather than assuming either fact in the caller. The x-only opaque key
+`eval_fe_get_b32_from_storage`; its frame excludes both source and destination
+regions. The new `eval_fe_get_b32_from_initial_regions_full` and
+`eval_fe_get_b32_from_storage_full` now export the existing symbolic final
+representation. Both compile and pass reviewed scoped audits; all original
+b32 theorem types, definitions and assumption records remain unchanged. Recover
+source storage from that final representation, and derive complete permission
+preservation from its actual closed helper execution, rather than assuming
+either fact in the caller. The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
