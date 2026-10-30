@@ -1558,12 +1558,13 @@ and the explicit hash-word definition match without update flags. The
 register bridge is closed; execution uses only the six inherited assumptions
 and existing memcpy_model. These modules postdate the earlier kernel run.
 
-Generic entry/free is prepared in
-`/private/tmp/point-verify-scratch/jet_elements_taptweak_entry.v` and compiles.
-It reuses taptweak_entry with alloc_variables_transport and a closed vars_okb
-check, proves actual linked sizes/freeing order, and retains all eleven owners,
-freshness, framing and readonly state. Integrate and audit it next; do not copy
-its scratch object.
+`jet_elements_taptweak_entry` now also builds normally and its five reviewed
+records match without update flags. It reuses the real taptweak_entry with
+alloc_variables_transport and a closed vars_okb check, proves actual linked
+sizes/freeing order, and retains all eleven owners, freshness, framing and
+readonly state. Only the four inherited memory/logical assumptions appear;
+no library model is needed. Entry/free are completed components, not a whole
+public call. These new modules postdate the `ca89b2aa` kernel check.
 
 A read-only Astra Medium review confirms the next native steps: port the real
 opaque-to-local 64-byte load copy, then pubkey_load/xonly_pubkey_load and their
