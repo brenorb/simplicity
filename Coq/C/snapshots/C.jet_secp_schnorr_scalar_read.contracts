@@ -1,0 +1,119 @@
+### C.jet_secp_schnorr_scalar_read.schnorr_scalar_read_source
+schnorr_scalar_read_source
+     : @eq Clight.statement
+         (jet_secp_root_chain_owned.root_drop_statements (S (S (S (S O))))
+            (Clight.fn_body jets_secp.f_secp256k1_schnorrsig_verify))
+         (jet_secp_statement_prefix.statement_sequence schnorr_scalar_read_statements
+            jet_secp_schnorr_keyload_return.schnorr_keyload_return)
+### C.jet_secp_schnorr_scalar_read.exec_schnorr_overflow_guard
+exec_schnorr_overflow_guard
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (bf : Values.block) (overflow : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._overflow e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bf Ctypesdefs.tint)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint32 m bf BinNums.Z0)
+                (@Some Values.val (Values.Vint (jet_sx_expr.b2i overflow)))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m schnorr_scalar_overflow_guard Events.E0
+         (schnorr_scalar_read_temps le overflow) m (schnorr_scalar_outcome overflow)
+### C.jet_secp_schnorr_scalar_read.exec_schnorr_scalar_read_call
+exec_schnorr_scalar_read_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (bs bsig bf : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._s e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bs (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._overflow e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bf Ctypesdefs.tint)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_scalar_set_b32 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._sig64 le)
+                (@Some Values.val (Values.Vptr bsig Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_set_b32)
+                (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      (Values.Vptr bsig
+                         (Integers.Ptrofs.repr
+                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (@cons Values.val (Values.Vptr bf Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m schnorr_scalar_read_call Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_secp_schnorr_scalar_read.exec_schnorr_scalar_read
+exec_schnorr_scalar_read
+     : forall (s : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (rbytes : list Integers.Int.int)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le0 : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bs bsig bf : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._s e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bs (Ctypes.Tstruct jets_secp.__5826 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._overflow e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bf Ctypesdefs.tint)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_scalar_set_b32 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._sig64 le0)
+                (@Some Values.val (Values.Vptr bsig Integers.Ptrofs.zero))) (_ : not (@eq Values.block bs bsig))
+         (_ : not (@eq Values.block bf bs)) (_ : not (@eq Values.block bf bsig))
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bsig BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bf BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : jet_read8s_layout.uint8_array_at m bsig
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+                   (jet_secp_xonly_parse_field.xonly_input_bytes s)))
+         (_ : le (@length Integers.Int.int rbytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : jet_secp_schnorr_challenge_absorb.schnorr_bytes_at m bsig Integers.Ptrofs.zero rbytes),
+       let overflow : bool :=
+         BinInt.Z.leb jet_secp_canonical_scalar.canonical_group_order
+           (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) s) in
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le0 m
+               (jet_secp_statement_prefix.statement_sequence schnorr_scalar_read_statements Clight.Sskip) Events.E0
+               (schnorr_scalar_read_temps le0 overflow) mf (schnorr_scalar_outcome overflow))
+            (and
+               (jet_secp_scalar_get_b32_storage.scalar_at mf bs BinNums.Z0
+                  (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                     (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                           (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem s)))))
+               (and
+                  (@eq (option Values.val) (Memory.Mem.load AST.Mint32 mf bf BinNums.Z0)
+                     (@Some Values.val (Values.Vint (jet_sx_expr.b2i overflow))))
+                  (and (jet_secp_schnorr_challenge_absorb.schnorr_bytes_at mf bsig Integers.Ptrofs.zero rbytes)
+                     (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                        (and
+                           (jet_sx_mem.lframe
+                              (fun (block : Values.block) (pos : BinNums.Z) =>
+                               and
+                                 (not
+                                    (jet_sx_state.foot
+                                       (@cons (prod Values.block BinNums.Z)
+                                          (@pair Values.block BinNums.Z bs BinNums.Z0)
+                                          (@cons (prod Values.block BinNums.Z)
+                                             (@pair Values.block BinNums.Z bsig
+                                                (BinNums.Zpos
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                             (@cons (prod Values.block BinNums.Z)
+                                                (@pair Values.block BinNums.Z bf BinNums.Z0)
+                                                (@nil (prod Values.block BinNums.Z)))))
+                                       (@List.map jet_sx_state.region
+                                          (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                          jet_sx_state.rshape jet_secp_scalar_set_flag.scalar_flag_regs) block pos))
+                                 (not (@eq Values.block block bf))) m mf)
+                           (jet_clight_internal_preserve.readonly_preserved m mf)))))))

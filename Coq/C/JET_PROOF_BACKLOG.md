@@ -644,6 +644,17 @@ Ordinary builds and reviewed scoped no-update records pass. These modules are
 later than the pending `93b98930` recursive-check inputs. Next compose the
 original scalar-read/overflow guard and R field-read/guard with the key-load
 suffix, preserving both signature halves at their point of use.
+`jet_secp_schnorr_scalar_read.exec_schnorr_scalar_read` now executes the
+actual scalar read at `sig64 + 32` and both overflow-guard outcomes. It
+derives canonical scalar storage and the loaded overflow flag, retains the
+earlier r bytes, and exposes permission/fine-frame/readonly preservation.
+`jet_secp_schnorr_signature_guards.exec_schnorr_scalar_reject` executes the
+entire remaining original verifier suffix on overflow, returning zero, and
+proves the full frozen BIP340 predicate is false on the same input. Its scalar
+and r range-rejection bridges are closed. No new library premise is added.
+Ordinary builds and reviewed scoped no-update records pass. These are still
+internal stage proofs: successful-path composition, R parsing and the full
+verifier/public-wrapper lifecycle remain; accepted coverage is still 526/533.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
