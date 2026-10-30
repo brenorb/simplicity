@@ -1,0 +1,200 @@
+### C.jet_secp_taptweak_finish.write_frame_at_framed
+write_frame_at_framed
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor count : BinNums.Z) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : jet_output_layout.write_frame_at m bd base bw edge cursor count) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall pos : BinNums.Z, and (P bd pos) (P bw pos)),
+       jet_output_layout.write_frame_at mf bd base bw edge cursor count
+### C.jet_secp_taptweak_finish.taptweak_native_destination
+taptweak_native_destination
+     : forall (le : Maps.PTree.tree Values.val) (result : bool),
+       @eq (option Values.val)
+         (@Maps.PTree.get Values.val jets_secp._dst (jet_secp_taptweak_native.taptweak_native_temps le result))
+         (@Maps.PTree.get Values.val jets_secp._dst le)
+### C.jet_secp_taptweak_finish.exec_taptweak_finish
+exec_taptweak_finish
+     : forall (_ : jet_memcpy_model.memcpy_model) (_ : jet_memset_model.memset_model) (_ : jet_ctz_model.ctz_model)
+         (ng pk : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bi bp bo bb bd : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._input_pubkey e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bi (Ctypes.Tstruct jets_secp.__6478 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._pubkey e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bp (Ctypes.Tstruct jets_secp.__2078 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._output_pubkey e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bo (Ctypes.Tstruct jets_secp.__6478 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._buf e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bb
+                      (Ctypesdefs.tarray Ctypesdefs.tuchar
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_xonly_pubkey_tweak_add e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_xonly_pubkey_from_pubkey e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_xonly_pubkey_serialize e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._write8s e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : @List.NoDup Values.block
+                (@cons Values.block bi
+                   (@cons Values.block bp (@cons Values.block bo (@cons Values.block bb (@nil Values.block))))))
+         (_ : not
+                (@List.In Values.block bd
+                   (@cons Values.block bi
+                      (@cons Values.block bp (@cons Values.block bo (@cons Values.block bb (@nil Values.block)))))))
+         (_ : not
+                (@List.In Values.block bw
+                   (@cons Values.block bi
+                      (@cons Values.block bp (@cons Values.block bo (@cons Values.block bb (@nil Values.block)))))))
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                       (@cons (prod Values.block BinNums.Z)
+                          (@pair Values.block BinNums.Z bi
+                             (BinNums.Zpos
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                          (@cons (prod Values.block BinNums.Z)
+                             (@pair Values.block BinNums.Z bp
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                             (@cons (prod Values.block BinNums.Z)
+                                (@pair Values.block BinNums.Z bo
+                                   (BinNums.Zpos
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                (@cons (prod Values.block BinNums.Z)
+                                   (@pair Values.block BinNums.Z bb
+                                      (BinNums.Zpos
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                   (@nil (prod Values.block BinNums.Z))))))),
+              Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+         (_ : @eq Integers.Int.int (jet_secp_xonly_parse_field.xonly_parse_result pk) Integers.Int.one)
+         (_ : jet_secp_xonly_parse_field.xonly_parsed_result pk m bi)
+         (_ : jet_secp_taptweak_writer_state.taptweak_ready m)
+         (_ : jet_read8s_layout.uint8_array_at m bb BinNums.Z0 (jet_secp_schnorr_challenge_hash.schnorr_word_bytes ng))
+         (_ : jet_output_layout.write_frame_at m bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+               (jet_secp_root_chain_owned.root_drop_statements (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                  (Clight.fn_body jets_secp.f_simplicity_generic_taptweak)) Events.E0
+               (jet_secp_taptweak_native.taptweak_native_temps le
+                  (jet_secp_taptweak_parsed_native.taptweak_result ng pk)) mf
+               (ClightBigstep.Out_return
+                  (@Some (prod Values.val Ctypes.type)
+                     (@pair Values.val Ctypes.type
+                        (Values.Vint
+                           (jet_readBit_layout.bit_int (jet_secp_taptweak_parsed_native.taptweak_result ng pk)))
+                        Ctypesdefs.tint))))
+            (and
+               match taptweak_output ng pk return Prop with
+               | Some value =>
+                   and
+                     (jet_encoding.frame_output_cells_at mf bw edge cursor
+                        (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) value))
+                     (and (jet_output_layout.write_prefix_at m mf bw edge cursor)
+                        (jet_frame_layout.frame_fields_at mf bd base bw edge
+                           (BinInt.Z.sub cursor
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+               | None => True
+               end
+               (and
+                  (forall (b : Values.block) (hi : BinNums.Z)
+                     (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                            (@cons (prod Values.block BinNums.Z)
+                               (@pair Values.block BinNums.Z bi
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                               (@cons (prod Values.block BinNums.Z)
+                                  (@pair Values.block BinNums.Z bp
+                                     (BinNums.Zpos
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                  (@cons (prod Values.block BinNums.Z)
+                                     (@pair Values.block BinNums.Z bo
+                                        (BinNums.Zpos
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                     (@cons (prod Values.block BinNums.Z)
+                                        (@pair Values.block BinNums.Z bb
+                                           (BinNums.Zpos
+                                              (BinNums.xO
+                                                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                        (@nil (prod Values.block BinNums.Z))))))),
+                   Memory.Mem.range_perm mf b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+                  (and
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (_ : BinNums.Z) =>
+                         and
+                           (not
+                              (@List.In Values.block b
+                                 (@cons Values.block bi
+                                    (@cons Values.block bp
+                                       (@cons Values.block bo (@cons Values.block bb (@nil Values.block)))))))
+                           (and (not (@eq Values.block b bd)) (not (@eq Values.block b bw)))) m mf)
+                     (and
+                        (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                           (_ : Memory.Mem.valid_block m b)
+                           (_ : not
+                                  (@List.In Values.block b
+                                     (@cons Values.block bi
+                                        (@cons Values.block bp
+                                           (@cons Values.block bo (@cons Values.block bb (@nil Values.block)))))))
+                           (_ : or (not (@eq Values.block b bd))
+                                  (or
+                                     (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                        (BinInt.Z.add base
+                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     (BinInt.Z.le
+                                        (BinInt.Z.add base
+                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                        ofs)))
+                           (_ : or (not (@eq Values.block b bw))
+                                  (or
+                                     (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                        (BinInt.Z.add edge
+                                           (BinInt.Z.mul
+                                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                              (BinInt.Z.div
+                                                 (BinInt.Z.sub cursor
+                                                    (BinNums.Zpos
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))
+                                                 (BinNums.Zpos
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                     (BinInt.Z.le
+                                        (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                         @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                        (and (jet_clight_forward.mem_forward m mf) (jet_secp_taptweak_writer_state.taptweak_ready mf)))))))

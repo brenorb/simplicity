@@ -1,0 +1,64 @@
+### C.jet_secp_taptweak_phase_glue.exec_sequence_prefix_then_suffix
+exec_sequence_prefix_then_suffix
+     : forall (ge : Clight.genv) (e : Clight.env) (prefix : list Clight.statement) (last suffix : Clight.statement)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (le1 : Clight.temp_env) (m1 : Memory.Mem.mem)
+         (le2 : Clight.temp_env) (m2 : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le m (jet_secp_statement_prefix.statement_sequence prefix last)
+                Events.E0 le1 m1 ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le1 m1 suffix Events.E0 le2 m2 out),
+       ClightBigstep.Clight2.exec_stmt ge e le m
+         (jet_secp_statement_prefix.statement_sequence prefix (Clight.Ssequence last suffix)) Events.E0 le2 m2 out
+### C.jet_secp_taptweak_phase_glue.exec_sequence_prefix_aborts
+exec_sequence_prefix_aborts
+     : forall (ge : Clight.genv) (e : Clight.env) (prefix : list Clight.statement) (last suffix : Clight.statement)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (lef : Clight.temp_env) (mf : Memory.Mem.mem)
+         (out : ClightBigstep.outcome) (_ : not (@eq ClightBigstep.outcome out ClightBigstep.Out_normal))
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le m (jet_secp_statement_prefix.statement_sequence prefix last)
+                Events.E0 lef mf out),
+       ClightBigstep.Clight2.exec_stmt ge e le m
+         (jet_secp_statement_prefix.statement_sequence prefix (Clight.Ssequence last suffix)) Events.E0 lef mf out
+### C.jet_secp_taptweak_phase_glue.exec_taptweak_initial_then
+exec_taptweak_initial_then
+     : forall (e : Clight.env) (le : Clight.temp_env) (m mi : Memory.Mem.mem) (lef : Clight.temp_env)
+         (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                jet_secp_taptweak_body_prefix.taptweak_initial_phase Events.E0 le mi ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le mi
+                (jet_secp_root_chain_owned.root_drop_statements (S (S (S (S O))))
+                   (Clight.fn_body jets_secp.f_simplicity_generic_taptweak)) Events.E0 lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (Clight.fn_body jets_secp.f_simplicity_generic_taptweak) Events.E0 lef mf out
+### C.jet_secp_taptweak_phase_glue.exec_taptweak_key_then
+exec_taptweak_key_then
+     : forall (e : Clight.env) (le : Clight.temp_env) (m mi : Memory.Mem.mem) (le1 lef : Clight.temp_env)
+         (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                jet_secp_taptweak_key_phase.taptweak_key_phase Events.E0 le1 mi ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le1 mi
+                (jet_secp_root_chain_owned.root_drop_statements (S (S (S (S (S (S (S O)))))))
+                   (Clight.fn_body jets_secp.f_simplicity_generic_taptweak)) Events.E0 lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (jet_secp_root_chain_owned.root_drop_statements (S (S (S (S O))))
+            (Clight.fn_body jets_secp.f_simplicity_generic_taptweak)) Events.E0 lef mf out
+### C.jet_secp_taptweak_phase_glue.exec_taptweak_key_aborts
+exec_taptweak_key_aborts
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (lef : Clight.temp_env)
+         (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : not (@eq ClightBigstep.outcome out ClightBigstep.Out_normal))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                jet_secp_taptweak_key_phase.taptweak_key_phase Events.E0 lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (jet_secp_root_chain_owned.root_drop_statements (S (S (S (S O))))
+            (Clight.fn_body jets_secp.f_simplicity_generic_taptweak)) Events.E0 lef mf out
+### C.jet_secp_taptweak_phase_glue.exec_taptweak_hash_then
+exec_taptweak_hash_then
+     : forall (e : Clight.env) (le : Clight.temp_env) (m mi : Memory.Mem.mem) (lef : Clight.temp_env)
+         (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                jet_secp_taptweak_hash_phase.taptweak_hash_phase Events.E0 le mi ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le mi
+                (jet_secp_root_chain_owned.root_drop_statements (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                   (Clight.fn_body jets_secp.f_simplicity_generic_taptweak)) Events.E0 lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (jet_secp_root_chain_owned.root_drop_statements (S (S (S (S (S (S (S O)))))))
+            (Clight.fn_body jets_secp.f_simplicity_generic_taptweak)) Events.E0 lef mf out

@@ -1175,10 +1175,22 @@ invariant of real program initialization, not a C/specification mismatch.
 modulus, SHA state/dispatch and writable tag. A closed four-function writer table
 supplies readonly preservation. Initial constructibility, ordinary compilation
 and reviewed no-update records pass, with no extra library premise.
-Next compose the native suffix and writer with the complete generic/public
-lifecycle. Keep taptweak_ready (including dispatch extent) at the public
-boundary and use taptweak_ready_forward around existing startup-preserving
-phases. Reuse the key-phase result for normal parsing and immediate failure.
+`jet_secp_taptweak_finish.exec_taptweak_finish` now constructs the complete
+original suffix from statement 11 through return. Tweak rejection returns zero
+without an output write; success derives the canonical X bytes, invokes the
+original writer and returns one. It preserves the precise public output
+observations, native caller ownership, old-memory loads outside the write
+ranges, initialized state, forward memory, and a permission/load frame for
+other private locals so the eventual eleven-local cleanup is justified.
+`jet_secp_taptweak_phase_glue` recombines the existing initial, key and input-hash
+phases at the original statement boundaries, with both normal and aborting
+paths. These are Clight sequence proofs, not new callee assumptions. Both
+ordinary builds and reviewed no-update records pass with inherited assumptions
+only; the finish retains the three existing library models explicitly.
+Next construct the complete generic/public lifecycle, including every original
+allocation/free and both parser outcomes. Keep taptweak_ready (including
+dispatch extent) at the public boundary and use taptweak_ready_forward around
+existing startup-preserving phases. Reuse the key-phase result for normal parsing and immediate failure.
 For the final writer use secp_write8s_layout to obtain its actual call and
 write_effect, exec_taptweak_write_return for control flow, and
 secp_write8s_preserved plus taptweak_ready_after_write for initialized-state
