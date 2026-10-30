@@ -871,7 +871,14 @@ pass. The existing source correspondence gate now checks this composition,
 tag, padding, catalog and FFI binding and rejects 13 targeted mutations; it
 explicitly does not claim a public C contract yet. Next compose the wrapper's
 owned context copy, message read, digest serialization, signature read and
-existing Schnorr call. The CheckSig wrapper copies
+existing Schnorr call. `jet_secp_checksig_public_entry` now supplies all eight
+actual allocations, their exact environment, distinctness/freshness and
+permissions, and all eight frees in the actual PTree order.
+`jet_secp_context_copy` reuses the checked 88-byte context-copy structure with
+explicit local identifiers; `jet_secp_checksig_context` composes the actual
+constructor call and _ctx assignment with canonical state, permissions,
+external framing and startup preservation. Their ordinary builds and reviewed
+no-update records pass. The CheckSig wrapper copies
 this result to `_ctx`, reads/absorbs its 64-byte message, finalizes, serializes
 32 digest bytes to `_buf`, reads the signature and calls the original Schnorr
 verifier. Its full outer entry has eight locals. Preserve BIP340's already
