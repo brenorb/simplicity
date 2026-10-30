@@ -1103,8 +1103,17 @@ obtains the exact canonical tagged IV at counter 64, keeps the source tag hash,
 all four owned buffers, external framing and initialized state. Its source
 lemma binds this span directly to the frozen generic function. Ordinary builds
 and reviewed no-update records pass; memcpy_model is the only library premise.
-Next compose the key read/absorption/parser and remaining message hash with
-the native suffix, output writer and complete generic/public lifecycle.
+`jet_secp_taptweak_hash.eval_taptweak_message_hash` now constructs the original
+hash-word/finalize/fromMidstate calls after the key has been absorbed and the
+input hash read. It obtains the canonical two-block hash and its serialized
+bytes, exact counter/pointer/overflow, all four owned buffers, the retained
+input hash, framing and SHA startup. The three-call statement adapter binds
+to the original generic statement span 8--10. Its register/padding/byte bridges
+are closed; execution retains memcpy_model and the inherited six axioms.
+Ordinary compilation and reviewed no-update records pass. This is an internal
+hashing span, not a whole-public TapTweak equivalence theorem.
+Next compose the key read/absorption/parser and input-hash reader with these
+hashing calls, the native suffix, writer and complete generic/public lifecycle.
 The frozen `v_taptweak` global is a writable nine-byte array (eight characters
 plus NUL), not a readonly string; do not assume readonly tag memory. Establish
 its exact initial bytes, bounded permissions and no-Freeable property from
