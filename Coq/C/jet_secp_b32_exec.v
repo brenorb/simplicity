@@ -270,7 +270,7 @@ Proof.
   - intro n; exact (limb_rho_unsigned value n HValue).
 Qed.
 
-Theorem eval_fe_get_b32_from_initial_regions_full m b offset bf base value :
+Theorem eval_fe_get_b32_from_initial_regions m b offset bf base value :
   0 <= value < 2 ^ 256 ->
   rep (limb_rho value) [(b, offset); (bf, base)]
     [mkreg (jet_secp_fe_b32.byte_undef 0 32) true None;
@@ -282,8 +282,7 @@ Theorem eval_fe_get_b32_from_initial_regions_full m b offset bf base value :
     lframe (fun block pos =>
       ~ foot [(b, offset); (bf, base)]
         (map rshape [mkreg (jet_secp_fe_b32.byte_undef 0 32) true None;
-                     mkreg (u64_cells 0 (vars5 0)) false None]) block pos) m mf /\
-    rep (limb_rho value) [(b, offset); (bf, base)] (sregs gb_leaf) mf.
+                     mkreg (u64_cells 0 (vars5 0)) false None]) block pos) m mf.
 Proof.
   intros HValue HRep; set (rho := limb_rho value) in *.
   pose proof (limb_rho_bound value HValue) as Hb; fold rho in Hb.
@@ -299,7 +298,7 @@ Proof.
   change (map (den rho (lay [(b, offset); (bf, base)])) [XP 0 0; XP 1 0]) with
     [Vptr b (Ptrofs.repr (offset + 0)); Vptr bf (Ptrofs.repr (base + 0))] in HExec.
   rewrite !Z.add_0_r in HExec.
-  exists mf; split; [exact HExec|]; split; [|split;[exact HFrame|exact HFinal]].
+  exists mf; split; [exact HExec|]; split; [|exact HFrame].
   destruct (rep_region rho [(b, offset); (bf, base)] _ mf 0 _ HFinal gb_output_region)
     as [_ [_ [_ [HCells _]]]].
   pose proof (zbyte_region_load rho limb52_bnd [(b, offset); (bf, base)] Hb mf 0 true
@@ -310,26 +309,6 @@ Proof.
   destruct (nth_error (zcells (zrho rho) (cells0 gb_leaf)) i) as [z|] eqn:HZ; [|discriminate].
   inversion HNth; subst byte.
   rewrite <- (HLoad i z HZ); f_equal; lia.
-Qed.
-
-Theorem eval_fe_get_b32_from_initial_regions m b offset bf base value :
-  0 <= value < 2 ^ 256 ->
-  rep (limb_rho value) [(b, offset); (bf, base)]
-    [mkreg (jet_secp_fe_b32.byte_undef 0 32) true None;
-     mkreg (u64_cells 0 (vars5 0)) false None] m ->
-  exists mf,
-    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_get_b32)
-      [Vptr b (Ptrofs.repr offset); Vptr bf (Ptrofs.repr base)] E0 mf Vundef /\
-    uint8_array_at mf b offset (map Int.repr (be_bytes value)) /\
-    lframe (fun block pos =>
-      ~ foot [(b, offset); (bf, base)]
-        (map rshape [mkreg (jet_secp_fe_b32.byte_undef 0 32) true None;
-                     mkreg (u64_cells 0 (vars5 0)) false None]) block pos) m mf.
-Proof.
- intros Range Initial.
- destruct (eval_fe_get_b32_from_initial_regions_full m b offset bf base value Range Initial)
- as (mf & Call & Bytes & Frame & Final).
- exists mf;repeat first [assumption|split].
 Qed.
 
 Lemma writable_undefined_cell rho layout m r chunk offset :
@@ -585,25 +564,4 @@ Proof.
   intros HValue HBase HMax HPerm HFe HDifferent.
   apply eval_fe_get_b32_from_initial_regions; [exact HValue|].
   apply get_b32_initial_rep_derived; assumption.
-Qed.
-
-Theorem eval_fe_get_b32_from_storage_full m b offset bf base value :
-  0 <= value < 2 ^ 256 ->
-  0 <= offset -> offset + 32 <= Ptrofs.max_unsigned ->
-  Mem.range_perm m b offset (offset + 32) Cur Writable ->
-  fe_at m bf base (map Int64.repr (fe_limbs_of value)) ->
-  b <> bf ->
-  exists mf,
-    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_get_b32)
-      [Vptr b (Ptrofs.repr offset); Vptr bf (Ptrofs.repr base)] E0 mf Vundef /\
-    uint8_array_at mf b offset (map Int.repr (be_bytes value)) /\
-    lframe (fun block pos =>
-      ~ foot [(b, offset); (bf, base)]
-        (map rshape [mkreg (jet_secp_fe_b32.byte_undef 0 32) true None;
-                     mkreg (u64_cells 0 (vars5 0)) false None]) block pos) m mf /\
-    rep (limb_rho value) [(b, offset); (bf, base)] (sregs gb_leaf) mf.
-Proof.
- intros Range Base Max Perms Input Separate.
- apply eval_fe_get_b32_from_initial_regions_full;[exact Range|].
- apply get_b32_initial_rep_derived;assumption.
 Qed.

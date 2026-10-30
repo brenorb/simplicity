@@ -42,6 +42,4 @@ Proof.
  - vm_compute;reflexivity.
  - vm_compute;reflexivity.
  - vm_compute;reflexivity.
-(* Closing the ten computed cases takes about nine seconds on the pinned
-   toolchain; leave margin beyond the default ten-second tactic budget. *)
-Timeout 30 Qed.
+Qed.
