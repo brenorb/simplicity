@@ -1357,6 +1357,18 @@ Mem.storebytes result, which fixes the final memory; do not transport arbitrary
 abstract external executions. General memory-injection transport is a larger
 route, and CompCert's external-call injection requires a public-symbol
 interface equality that this selected slice does not have.
+`jet_elements_taptweak_pure` now validates all six pure SHA helpers against
+the concrete linked ge and transports any of their existing secp calls with
+the exact same input/output memory, trace and result. Its owned SHA initializer
+is proved with the original pointer, counter, overflow, IV, permissions,
+framing and readonly guarantees. The execution results have the six inherited
+assumptions only; lookup/checker results are closed. The ordinary build and
+reviewed assumption/contract comparisons pass. `jet_elements_taptweak_startup`
+also proves that the linked artifact passes the existing initialization
+checker and that Genv.init_mem actually exists; both statements are closed.
+This proves existence, not the full initialized SHA/curve state yet. Next
+parameterize the SHA dispatch/global-state packets at this concrete ge and
+reuse the proven pure helper calls; do not restart pure-helper transport.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including
