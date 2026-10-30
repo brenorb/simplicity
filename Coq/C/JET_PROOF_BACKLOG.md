@@ -1250,8 +1250,11 @@ tag, padding, literal ports and complete initialized public contract, with
 26 targeted mutations rejected. The coverage parser retains all three helper
 models and checks the exact public boundary. Accepted coverage stays 528/533;
 the registered inventory is 529/533.
-Next run scoped full acceptance for simplicity_bitcoin_build_taptweak on fixed
-inputs in the isolated verifier;
+Full scoped acceptance for simplicity_bitcoin_build_taptweak is running at
+`897ae888` in the isolated verifier, on a 1,522-module closure. Static checks
+and the ordinary build passed; recursive kernel checking has begun. Source
+and object fingerprints still agree before the run and after its build.
+Wait for this same run's terminal result rather than restarting it. Afterwards,
 carry its receipt only after before/after fingerprints and main-checkout
 closure files agree. Do not repeat C execution or option-semantics development.
 The Elements wrapper remains separate work; this candidate proves Bitcoin only.
@@ -1291,7 +1294,20 @@ execution proof in that program.
 `jet_byte_pointer_separation` proves from CompCert memory decoding that a
 readable concrete byte excludes a pointer-valued Mptr load at the same address
 on the frozen LP64 target. Its ordinary build and reviewed records pass.
+Its recursive kernel check also passed, with library axioms inside the existing
+allowlist and no unsafe proof features. Reproduce with
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_byte_pointer_separation`.
 This is a reusable representation fact, not an added no-overlap premise.
+`jet_elements_taptweak_frame` now derives both output descriptor/tag and
+output buffer/tag separation from the actual initialized tag representation
+and a general valid 256-bit output frame. The descriptor proof uses alignment,
+the 18-byte bounds and concrete-byte/pointer exclusion; the buffer proof uses
+a reusable lemma that a block smaller than 32 bytes cannot hold such a frame.
+It also transports the exact tag state through a supplied lframe and proves
+it survives the real writer's write_effect/readonly interface. Ordinary build
+and reviewed records pass with only the four inherited memory axioms. No new
+public pointer-disjointness premise is introduced; linkage and the rest of
+Elements' full generic/public execution remain unproved.
 
  Keep taptweak_ready (including
 dispatch extent) at the public boundary and use taptweak_ready_forward around
