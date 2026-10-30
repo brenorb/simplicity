@@ -1601,9 +1601,19 @@ Genv.init_mem, proves a real initialized memory exists, and preserves readiness
 through readonly-preserving calls. All sixteen theorem records and five
 explicit definition records match without update flags. Initialization uses
 only the four inherited memory/logical assumptions; lookup facts are closed.
-No library or desired-load premise is introduced. The scalar-splitting call
-composition is next; beta, generator tables and affine modulus/CTZ still need
-linked interfaces. These additions postdate the `ca89b2aa` kernel check.
+No library or desired-load premise is introduced.
+`jet_elements_taptweak_split_rounding`, `jet_elements_taptweak_split_entry`,
+`jet_elements_taptweak_split_arithmetic` and `jet_elements_taptweak_split_function`
+now derive both rounded products, all six remaining arithmetic calls, the
+actual two allocations/frees and the entire original scalar_split_lambda call
+in the linked program. Its literal theorem reuses the existing signed-half
+residue bridge for every normalized input word. All twenty-two theorem records
+and four frame definitions have reviewed assumption/contract records that
+match without update flags. Execution adds no library premise or axiom beyond
+the six inherited assumptions; layouts and membership checks are closed.
+The linked beta state compiles in scratch; its integration and the generator
+tables/affine modulus/CTZ interfaces are next. These additions postdate the
+`ca89b2aa` kernel check.
 The native tweak call and suffix composition, actual linked constant/global
 initialization, outer wrapper and final writer/free composition still remain;
 no whole Elements TapTweak equivalence is claimed.

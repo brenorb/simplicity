@@ -1,0 +1,191 @@
+### C.jet_elements_taptweak_split_arithmetic.elements_taptweak_has_scalar_mul
+elements_taptweak_has_scalar_mul
+     : @List.In (prod AST.ident Clight.function)
+         (@pair AST.ident Clight.function jets_secp._secp256k1_scalar_mul jets_secp.f_secp256k1_scalar_mul)
+         jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers
+### C.jet_elements_taptweak_split_arithmetic.elements_taptweak_has_scalar_add
+elements_taptweak_has_scalar_add
+     : @List.In (prod AST.ident Clight.function)
+         (@pair AST.ident Clight.function jets_secp._secp256k1_scalar_add jets_secp.f_secp256k1_scalar_add)
+         jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers
+### C.jet_elements_taptweak_split_arithmetic.elements_taptweak_has_scalar_negate
+elements_taptweak_has_scalar_negate
+     : @List.In (prod AST.ident Clight.function)
+         (@pair AST.ident Clight.function jets_secp._secp256k1_scalar_negate jets_secp.f_secp256k1_scalar_negate)
+         jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers
+### C.jet_elements_taptweak_split_arithmetic.exec_elements_taptweak_split_product
+exec_elements_taptweak_split_product
+     : forall (first : bool) (bc1 bc2 : Values.block) (le : Clight.temp_env) (m mf : Memory.Mem.mem)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul)
+                (@cons Values.val
+                   (Values.Vptr match first return Values.block with
+                                | true => bc1
+                                | false => bc2
+                                end Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      (Values.Vptr match first return Values.block with
+                                   | true => bc1
+                                   | false => bc2
+                                   end Integers.Ptrofs.zero)
+                      (@cons Values.val
+                         (Values.Vptr (jet_elements_taptweak_split_constants.elements_taptweak_basis_block first)
+                            Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge
+         (jet_secp_split_rounding_calls.split_local_env bc1 bc2) le m
+         (jet_secp_split_arithmetic_calls.split_product_statement first) Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_elements_taptweak_split_arithmetic.exec_elements_taptweak_split_second
+exec_elements_taptweak_split_second
+     : forall (bc1 bc2 : Values.block) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (br : Values.block) (ret : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r2 le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_add)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bc1 Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bc2 Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                (Values.Vint ret)),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge
+         (jet_secp_split_rounding_calls.split_local_env bc1 bc2) le m
+         jet_secp_split_arithmetic_calls.split_second_statement Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_elements_taptweak_split_arithmetic.exec_elements_taptweak_split_lambda
+exec_elements_taptweak_split_lambda
+     : forall (bc1 bc2 : Values.block) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (br1 br2 : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r1 le)
+                (@Some Values.val (Values.Vptr br1 Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r2 le)
+                (@Some Values.val (Values.Vptr br2 Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul)
+                (@cons Values.val (Values.Vptr br1 Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br2 Integers.Ptrofs.zero)
+                      (@cons Values.val
+                         (Values.Vptr jet_elements_taptweak_split_constants.elements_taptweak_lambda_block
+                            Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge
+         (jet_secp_split_rounding_calls.split_local_env bc1 bc2) le m
+         jet_secp_split_arithmetic_calls.split_lambda_statement Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_elements_taptweak_split_arithmetic.exec_elements_taptweak_split_negate
+exec_elements_taptweak_split_negate
+     : forall (bc1 bc2 : Values.block) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (br : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r1 le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_negate)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge
+         (jet_secp_split_rounding_calls.split_local_env bc1 bc2) le m
+         jet_secp_split_arithmetic_calls.split_negate_statement Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_elements_taptweak_split_arithmetic.exec_elements_taptweak_split_last
+exec_elements_taptweak_split_last
+     : forall (bc1 bc2 : Values.block) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (br bk : Values.block) (ret : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r1 le)
+                (@Some Values.val (Values.Vptr br Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._k le)
+                (@Some Values.val (Values.Vptr bk Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_add)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                (Values.Vint ret)),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge
+         (jet_secp_split_rounding_calls.split_local_env bc1 bc2) le m
+         jet_secp_split_arithmetic_calls.split_last_statement Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_elements_taptweak_split_arithmetic.exec_elements_taptweak_split_arithmetic
+exec_elements_taptweak_split_arithmetic
+     : forall (k : BinNums.Z) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (bk br1 br2 bc1 bc2 : Values.block)
+         (_ : and (BinInt.Z.le BinNums.Z0 k) (BinInt.Z.lt k jet_secp_canonical_scalar.canonical_group_order))
+         (_ : jet_elements_taptweak_split_constants.elements_taptweak_split_ready m)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._k le)
+                (@Some Values.val (Values.Vptr bk Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r1 le)
+                (@Some Values.val (Values.Vptr br1 Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r2 le)
+                (@Some Values.val (Values.Vptr br2 Integers.Ptrofs.zero)))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bk BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of k)))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bc1 BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                      (jet_secp_split_multipliers.split_coefficient true k))))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m bc2 BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                      (jet_secp_split_multipliers.split_coefficient false k))))
+         (_ : Memory.Mem.range_perm m bk BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m br1 BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m br2 BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bc1 BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bc2 BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : @List.NoDup Values.block
+                (@cons Values.block bk
+                   (@cons Values.block br1
+                      (@cons Values.block br2 (@cons Values.block bc1 (@cons Values.block bc2 (@nil Values.block))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge
+               (jet_secp_split_rounding_calls.split_local_env bc1 bc2) le m
+               jet_secp_split_arithmetic_calls.split_arithmetic_suffix Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_secp_scalar_get_b32_storage.scalar_at mf br1 BinNums.Z0
+                  (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                     (jet_secp_scalar_get_b32_numeric.scalar_limbs_of (jet_secp_split_constants.split_first_value k))))
+               (and
+                  (jet_secp_scalar_get_b32_storage.scalar_at mf br2 BinNums.Z0
+                     (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                        (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                           (jet_secp_split_constants.split_second_value k))))
+                  (and
+                     (jet_secp_scalar_get_b32_storage.scalar_at mf bk BinNums.Z0
+                        (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                           (jet_secp_scalar_get_b32_numeric.scalar_limbs_of k)))
+                     (and
+                        (Memory.Mem.range_perm mf bc1 BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (Memory.Mem.range_perm mf bc2 BinNums.Z0
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                              (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                                 (and (jet_elements_taptweak_split_constants.elements_taptweak_split_ready mf)
+                                    (jet_sx_mem.lframe (elements_taptweak_arithmetic_frame bk br1 br2 bc1 bc2) m mf))))))))))
+### C.jet_elements_taptweak_split_arithmetic.elements_taptweak_arithmetic_frame
+elements_taptweak_arithmetic_frame =
+fun (bk br1 br2 bc1 bc2 b : Values.block) (_ : BinNums.Z) =>
+and (not (@eq Values.block b bk))
+  (and (not (@eq Values.block b br1))
+     (and (not (@eq Values.block b br2))
+        (and (not (@eq Values.block b bc1))
+           (and (not (@eq Values.block b bc2))
+              (and
+                 (not (@eq Values.block b (jet_elements_taptweak_split_constants.elements_taptweak_basis_block true)))
+                 (and
+                    (not
+                       (@eq Values.block b (jet_elements_taptweak_split_constants.elements_taptweak_basis_block false)))
+                    (not (@eq Values.block b jet_elements_taptweak_split_constants.elements_taptweak_lambda_block))))))))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block)
+         (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments elements_taptweak_arithmetic_frame bk br1 br2 bc1 bc2 b _%Z_scope
