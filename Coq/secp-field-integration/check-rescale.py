@@ -1375,6 +1375,72 @@ def check_checksig(s):
         raise ValueError('CheckSig complete success/failure contract differs')
 
 
+def check_taptweak(s):
+    """Bind Bitcoin's all-input TapTweak theorem to its frozen canonical term.
+
+    The Coq port uses a constant scribe directly where Haskell composes unit
+    with a constant scribe; its proved option semantics retain that value.
+    This source check supplements the implementation proof, not jet execution.
+    """
+    for key, fragment in [
+        ('bitcoin_catalog', 'import qualified Simplicity.Programs.Bitcoin.Lib as Prog'),
+        ('bitcoin_catalog', 'BuildTaptweak :: SigHashJet (PubKey, Word256) PubKey'),
+        ('bitcoin_catalog', 'specificationSigHash BuildTaptweak = Prog.buildTaptweak'),
+        ('bitcoin_library', 'buildTaptweak = Bitcoin.buildTaptweak Bitcoin.libAssert'),
+        ('bitcoin_program', 'libAssert = mkLibAssert Sha256.lib Sha256.libAssert LibSecp256k1.lib'),
+        ('bitcoin_ffi', 'build_taptweak :: (Word256, Word256) -> Maybe Word256'),
+        ('bitcoin_ffi', 'build_taptweak = unsafeLocalCoreJet c_bitcoin_build_taptweak'),
+        ('bitcoin_ffi', 'foreign import ccall unsafe "" c_bitcoin_build_taptweak :: Ptr FrameItem -> Ptr FrameItem -> IO CBool'),
+        ('types', 'type PubKey = Word256'),
+        ('bit_program', 'assert t = t &&& unit >>> assertr cmrFail0 oh'),
+        ('schnorr_digest', 'tagIv tag = compress noTagIv (tagDigest, tagDigest)'),
+        ('schnorr_digest', 'tagDigest = bsHash . BSC.pack $ tag'),
+        ('schnorr_digest', 'noTagIv = IV sha256Incremental'),
+        ('bitcoin_program', 'taptweakPrefix = scribe . toWord256 . integerHash256 . ivHash . tagIv $ fromString "TapTweak"'),
+    ]:
+        p.require(s[key], fragment, 'Bitcoin TapTweak binding')
+    # buildTaptweak is the last record field, so use the closing where boundary.
+    impl = s['bitcoin_program'].split('libAssert@LibAssert{..} = LibAssert {', 1)[1]
+    body = re.search(r',\s*buildTaptweak\s*=(.*?)\}\s*where', impl, re.S)
+    expected = """assert (
+      (((assert (oh &&& (unit >>> scribe (toWord256 fieldOrder)) >>> lt256) >>> taptweakPrefix) &&& iden >>> hashBlock)
+       &&& (unit >>> scribe (toWord512 $ 2^511 + 1024)) >>> hashBlock >>>
+       (assert (iden &&& (unit >>> scribe (toWord256 groupOrder)) >>> lt256) &&& iden) >>> drop generate)
+      &&& assert ((unit >>> false) &&& oh >>> decompress)
+      >>> gej_ge_add >>> gej_normalize) >>> oh"""
+    if not body or p.compact(body[1]) != p.compact(expected):
+        raise ValueError('canonical Bitcoin TapTweak assertion tree differs')
+    p.require(s['bitcoin_program'], 'lt256 = lt word256', 'TapTweak comparison width')
+    ports = [
+        ('taptweak_literal', 'taptweak_assert', 'TC.comp (TC.pair f TC.unit) (Alg.Assertion.Combinators.assertr assertion_cmr_fail0 (TC.take TC.iden))'),
+        ('taptweak_literal', 'literal_taptweak_hash', 'let core:=Alg.Assertion.toCore term in\n TC.comp\n  (TC.comp (TC.pair\n    (TC.comp (taptweak_assert (TC.comp (TC.pair (TC.take TC.iden) (@Alg.scribe (Word 9) (Word 8) canonical_field_word core))\n       (@lt_word_spec core 8))) (@Alg.scribe Ty.Unit (Word 8) taptweak_iv_word core)) TC.iden)\n    (@Simplicity.SHA256.hashBlock core))\n  (TC.comp (TC.pair TC.iden (@Alg.scribe (Word 8) (Word 9) taptweak_pad_word core)) (@Simplicity.SHA256.hashBlock core))'),
+        ('taptweak_literal', 'literal_taptweak_generate', 'let core:=Alg.Assertion.toCore term in\n TC.comp (@literal_taptweak_hash term)\n  (TC.comp (TC.pair\n    (taptweak_assert (TC.comp (TC.pair TC.iden (@Alg.scribe (Word 8) (Word 8) canonical_group_word core)) (@lt_word_spec core 8))) TC.iden)\n   (TC.drop (@literal_generate core)))'),
+        ('taptweak_literal', 'literal_taptweak_parse', 'let core:=Alg.Assertion.toCore term in\n taptweak_assert (TC.comp (TC.pair (TC.comp TC.unit (@Bit.false Ty.Unit core)) (TC.take TC.iden)) (@literal_decompress core))'),
+        ('taptweak_literal', 'literal_taptweak', 'let core:=Alg.Assertion.toCore term in\n TC.comp\n (taptweak_assert (TC.comp\n   (TC.comp (TC.pair (@literal_taptweak_generate term) (@literal_taptweak_parse term)) (@literal_gej_ge_add core))\n   (@literal_gej_normalize core))) (TC.take TC.iden)'),
+        ('taptweak_tag', 'taptweak_tag_bytes', 'map Int.repr [84;97;112;84;119;101;97;107]'),
+        ('taptweak_tag', 'taptweak_tag_digest', 'Digest.stringHash "TapTweak"'),
+        ('taptweak_tag', 'taptweak_tag_iv', 'Digest.compress Digest.sha256_iv taptweak_tag_digest taptweak_tag_digest'),
+        ('taptweak_tag', 'taptweak_iv_word', 'Word.from_hash256 taptweak_tag_iv'),
+        ('taptweak_tag', 'taptweak_startup', 'schnorr_startup m /\\taptweak_tag_ok m'),
+        ('taptweak_hash', 'taptweak_pad_word', '@fromZ (WordToZ 9) (2^511+1024)'),
+        ('taptweak_hash', 'taptweak_hash_word', '@Simplicity.SHA256.hashBlock Alg.CoreFunSem\n (@Simplicity.SHA256.hashBlock Alg.CoreFunSem (taptweak_iv_word,(pk,h)),taptweak_pad_word)'),
+        ('taptweak_ready', 'block_extent', 'forall pos kind p,Mem.perm m bg pos kind p ->0<=pos<hi'),
+        ('taptweak_ready', 'taptweak_dispatch_extent', 'Mem.valid_block m secp_sha_dispatch_block /\\block_extent m secp_sha_dispatch_block 8'),
+        ('taptweak_ready', 'taptweak_ready', 'taptweak_startup m /\\taptweak_dispatch_extent m'),
+        ('assertion_port', 'assertion_hash0', 'Simplicity.Digest.Hash256\n    [Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero]\n    eq_refl'),
+        ('assertion_port', 'assertion_cmr_fail0', '@Alg.Assertion.Combinators.fail Ty.Unit Ty.Unit\n    Simplicity.MerkleRoot.CommitmentRoot_Assertion_alg (assertion_hash0, assertion_hash0)'),
+    ]
+    for key, name, expected in ports:
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('Bitcoin TapTweak literal dependency differs: ' + name)
+    statements = re.findall(r'Theorem bitcoin_build_taptweak_initialized_local_spec\s*:(.*?)\bProof\.', s['taptweak_jet'], re.S)
+    expected = ('memcpy_model ->memset_model ->ctz_model -> '
+                'secp_jet_initialized_partial_local_spec taptweak_ready f_simplicity_bitcoin_build_taptweak '
+                '(Word 9) (Word 8) (@literal_taptweak (Alg.AssertionSem option_Monad_Zero)).')
+    if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
+        raise ValueError('Bitcoin TapTweak complete success/failure contract differs')
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1395,6 +1461,16 @@ def test():
         "schnorr_hash": COQ / "C/jet_secp_schnorr_challenge_hash.v",
         "schnorr_startup": COQ / "C/jet_secp_schnorr_startup.v",
         "schnorr_jet": COQ / "C/jet_secp_bip0340_local.v",
+        "bitcoin_catalog": REPO / "Haskell/Simplicity/Bitcoin/Jets.hs",
+        "bitcoin_ffi": REPO / "Haskell/Simplicity/Bitcoin/FFI/Jets.hs",
+        "bitcoin_library": REPO / "Haskell/Core/Simplicity/Programs/Bitcoin/Lib.hs",
+        "bitcoin_program": REPO / "Haskell/Core/Simplicity/Programs/Bitcoin.hs",
+        "taptweak_literal": COQ / "C/jet_secp_taptweak_literal.v",
+        "taptweak_tag": COQ / "C/jet_secp_taptweak_tag.v",
+        "taptweak_hash": COQ / "C/jet_secp_taptweak_hash.v",
+        "taptweak_ready": COQ / "C/jet_secp_taptweak_writer_state.v",
+        "taptweak_jet": COQ / "C/jet_secp_taptweak_local.v",
+        "assertion_port": COQ / "C/jet_assertion_spec.v",
         "checksig_program": REPO / "Haskell/Core/Simplicity/Programs/CheckSig.hs",
         "checksig_tags": REPO / "Haskell/Core/Simplicity/Tags.hs",
         "checksig_literal": COQ / "C/jet_secp_checksig_literal.v",
@@ -2042,6 +2118,48 @@ def test():
             continue
         raise ValueError('accepted CheckSig source mutation: ' + old)
     print(f'CheckSig canonical tag/hash/composition/complete public contract match; {len(mutations)} targeted mutations rejected')
+
+
+    check_taptweak(s)
+    mutations = [
+        ('bitcoin_catalog', 'SigHashJet (PubKey, Word256) PubKey', 'SigHashJet (PubKey, Word512) PubKey'),
+        ('bitcoin_catalog', 'specificationSigHash BuildTaptweak = Prog.buildTaptweak', 'specificationSigHash BuildTaptweak = Prog.buildTapbranch'),
+        ('bitcoin_library', 'Bitcoin.buildTaptweak Bitcoin.libAssert', 'Bitcoin.buildTaptweak Bitcoin.lib'),
+        ('bitcoin_ffi', 'build_taptweak = unsafeLocalCoreJet c_bitcoin_build_taptweak', 'build_taptweak = unsafeLocalCoreJet c_bitcoin_build_tapbranch'),
+        ('bitcoin_program', 'fieldOrder)) >>> lt256', 'groupOrder)) >>> lt256'),
+        ('bitcoin_program', '2^511 + 1024)) >>> hashBlock >>>', '2^511 + 512)) >>> hashBlock >>>'),
+        ('bitcoin_program', 'groupOrder)) >>> lt256', 'fieldOrder)) >>> lt256'),
+        ('bitcoin_program', 'unit >>> false', 'unit >>> true'),
+        ('bitcoin_program', '>>> gej_ge_add >>> gej_normalize', '>>> gej_add >>> gej_normalize'),
+        ('bitcoin_program', 'fromString "TapTweak"', 'fromString "TapTweak/elements"'),
+        ('bitcoin_program', 'lt256 = lt word256', 'lt256 = le word256'),
+        ('taptweak_literal', 'assertr assertion_cmr_fail0', 'assertr assertion_hash0'),
+        ('taptweak_literal', 'TC.take TC.iden', 'TC.drop TC.iden'),
+        ('taptweak_literal', 'canonical_field_word core', 'canonical_group_word core'),
+        ('taptweak_literal', 'canonical_group_word core', 'canonical_field_word core'),
+        ('taptweak_literal', 'TC.drop (@literal_generate core)', 'TC.take (@literal_generate core)'),
+        ('taptweak_literal', '@Bit.false Ty.Unit core', '@Bit.true Ty.Unit core'),
+        ('taptweak_literal', '(@literal_gej_ge_add core)', '(@literal_gej_add core)'),
+        ('taptweak_hash', '2^511+1024', '2^511+512'),
+        ('taptweak_hash', 'taptweak_iv_word,(pk,h)', 'taptweak_iv_word,(h,pk)'),
+        ('taptweak_tag', '"TapTweak"', '"TapTweak/elements"'),
+        ('taptweak_tag', 'schnorr_startup m /\\taptweak_tag_ok m', 'False'),
+        ('taptweak_ready', 'taptweak_startup m /\\taptweak_dispatch_extent m', 'taptweak_startup m'),
+        ('taptweak_jet', 'memcpy_model ->memset_model ->ctz_model ->', 'memcpy_model ->memset_model ->ctz_model ->False ->'),
+        ('taptweak_jet', 'f_simplicity_bitcoin_build_taptweak', 'f_simplicity_generic_taptweak'),
+        ('taptweak_jet', '(Word 9) (Word 8)', '(Word 8) (Word 8)'),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive Bitcoin TapTweak mutation fixture: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_taptweak(changed)
+        except ValueError:
+            continue
+        raise ValueError('accepted Bitcoin TapTweak source mutation: ' + old)
+    print(f'Bitcoin TapTweak catalog/tag/assertion/complete public contract match; {len(mutations)} targeted mutations rejected')
 
 
 if __name__ == "__main__":
