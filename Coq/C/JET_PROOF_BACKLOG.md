@@ -351,7 +351,14 @@ chains are integrated into `feat/jet-equivalence`; `codex/schnorr-reconstruction
 is now frozen at `93b98930` for a new recursive check of
 `C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return`; its ordinary
 build is complete and the recursive result is **pending**. Do not edit that
-worktree while the check runs. The earlier recursive check at `e71798a6` of
+worktree while the check runs. Main-checkout progress now includes the complete
+original x-only key parser on the public caller's owned 32-byte input and
+64-byte key buffers, for every Word256 key. Its ordinary builds and reviewed
+scoped records pass; this later parser chain is outside that pending snapshot.
+Next compose the original Schnorr verifier's strict R/S parsers and overflow
+guard, its initial pointer/message checks and nine-local allocation/free
+lifecycle, then the public jet readers/caller. Public acceptance is unchanged.
+The earlier recursive check at `e71798a6` of
 `C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/at-completion
 input fingerprints agree (`b02a3e8b659b4032e79b865b6df8e82bb1ed032999f51c1f7d7f8bf7cdfd4f27`);
 the axiom list is contained in the existing expectation, and all three unsafe
@@ -596,6 +603,22 @@ All four complete owned ranges, framing and readonly preservation are kept.
 Its ordinary build and reviewed scoped no-update records pass. Only the
 existing `memcpy_model` premise remains; the original initial clear still
 needs its existing `memset_model` when composing the complete parser.
+The full parser is now compiled in `jet_secp_xonly_parse_start`,
+`jet_secp_xonly_parse_entry`, `jet_secp_xonly_parse_body` and
+`jet_secp_xonly_parse_function.eval_xonly_pubkey_parse_owned`. They execute
+the original pointer checks and 64-byte clear, strict field parse, decompression,
+subgroup check/save, both fresh locals and both frees, retaining all rejection
+branches and exact native coordinates on success. Complete input/output
+ownership, outside framing and readonly preservation are retained. Only the
+existing bounded `memcpy_model` and `memset_model` premises remain. Ordinary
+builds and reviewed scoped no-update records pass. The owned, separate input
+32-byte and output 64-byte ranges are facts supplied by the actual public
+wrapper's fresh local buffers, not added public input restrictions.
+`jet_clight_nonnull_guard` factors the existing generator-wrapper pointer-check
+proof pattern into a small shared Clight lemma for this and the verifier checks.
+It leaves the existing generator modules unchanged. The incidental rebuild of
+`jet_secp_hashgen_outer` and its stale dependencies completed successfully.
+These parser modules are later than the frozen `93b98930` recursive-check inputs.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
