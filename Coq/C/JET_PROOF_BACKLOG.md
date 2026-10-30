@@ -452,9 +452,22 @@ composes the actual 32-byte-message challenge call and that complete suffix
 (statement 8 onward), deriving the challenge scalar using the existing actual
 C SHA chain. It retains `memcpy_model`, `memset_model`, and `ctz_model` explicitly;
 no library linkage discharge is claimed. Ordinary compilation and reviewed
-scoped no-update records pass. Next connect the result to the full canonical
-predicate, then compose signature/key parsing, key-X serialization and the
-outer lifecycle. Keep all preservation attached to the
+scoped no-update records pass.
+`jet_secp_schnorr_checked_return.exec_schnorr_challenge_return_canonical`
+now proves that same original suffix returns the **full canonical BIP340
+boolean**, given the facts established on the successful signature/key parsing
+path. It derives curve validity from successful even-key decompression and
+uses `secp_schnorr_check_predicate`; it does not substitute a mathematical
+signature predicate for the frozen specification. The ordinary build and
+reviewed scoped no-update records pass. This is an internal suffix theorem,
+not a registered public jet. Next compose signature/key parsing, key-X
+serialization and the outer lifecycle. For serialization reuse
+`eval_fe_get_b32_from_storage`; its current frame excludes both source and
+destination regions. Recover source storage from the existing symbolic final
+representation (`HFinal` in `eval_fe_get_b32_from_initial_regions`), and derive
+complete permission preservation from its actual closed helper execution,
+rather than assuming either fact in the caller. The x-only opaque key
+load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
 new coverage is claimed yet.
