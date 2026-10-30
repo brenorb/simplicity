@@ -1076,8 +1076,16 @@ reviewed no-update records, using only memcpy_model and six inherited axioms.
 Reuse `generator_sha_state_layout` for the h->s field, and the existing
 `exec_schnorr_challenge_call` SHA lookup adapter for the two calls; they are
 not in the arithmetic-only secp_pure call table.
-Next establish the actual Bitcoin tag bytes and canonical runtime tag hash,
-then compose the original tag block and the two sha256_hash prefix calls.
+`jet_secp_taptweak_tag` now establishes the exact original eight tag bytes
+and nine-byte global permissions from real program initialization, proves
+separation from owned private allocations and preservation by framing, and
+extends the initialized-state predicate with this writable tag. Its SHA bridge
+reuses the existing streaming/hash-block and byte-word proofs symbolically;
+it equates the original runtime tag hash and doubled-tag compression with
+`Digest.stringHash "TapTweak"` and its canonical tagged IV. Ordinary compilation
+and reviewed no-update records pass; there is no new external-library premise.
+This closes tag initialization/representation only, not the public jet.
+Next compose the original tag block and the two sha256_hash prefix calls.
 The frozen `v_taptweak` global is a writable nine-byte array (eight characters
 plus NUL), not a readonly string; do not assume readonly tag memory. Establish
 its exact initial bytes, bounded permissions and no-Freeable property from

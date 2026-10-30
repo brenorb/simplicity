@@ -1,0 +1,104 @@
+### C.jet_secp_taptweak_tag.taptweak_tag_length
+taptweak_tag_length
+     : @eq nat (@length Integers.Int.int taptweak_tag_bytes) (S (S (S (S (S (S (S (S O))))))))
+### C.jet_secp_taptweak_tag.taptweak_tag_padded_words
+taptweak_tag_padded_words
+     : @eq (list Integers.Int.int)
+         (jet_sha_ctx8_model.be_words
+            (@app Integers.Int.int taptweak_tag_bytes
+               (jet_sha_finalize_exec.sha_pad
+                  (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (SHA256.generate_and_pad
+            (SHA256.str_to_bytes
+               (String.String (Ascii.Ascii false false true false true false true false)
+                  (String.String (Ascii.Ascii true false false false false true true false)
+                     (String.String (Ascii.Ascii false false false false true true true false)
+                        (String.String (Ascii.Ascii false false true false true false true false)
+                           (String.String (Ascii.Ascii true true true false true true true false)
+                              (String.String (Ascii.Ascii true false true false false true true false)
+                                 (String.String (Ascii.Ascii true false false false false true true false)
+                                    (String.String (Ascii.Ascii true true false true false true true false)
+                                       String.EmptyString))))))))))
+### C.jet_secp_taptweak_tag.taptweak_tag_regs
+taptweak_tag_regs
+     : @eq SHA256.registers
+         (SHA256.hash_block jet_sha256_iv_init.sha256_iv_words
+            (jet_sha_ctx8_model.be_words
+               (@app Integers.Int.int taptweak_tag_bytes
+                  (jet_sha_finalize_exec.sha_pad
+                     (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (Digest.hash256_reg taptweak_tag_digest)
+### C.jet_secp_taptweak_tag.taptweak_iv_regs
+taptweak_iv_regs
+     : @eq SHA256.registers
+         (SHA256.hash_block jet_sha256_iv_init.sha256_iv_words
+            (jet_sha_ctx8_model.be_words
+               (@app Integers.Int.int (jet_secp_sha_hash32.secp_hash_bytes (Digest.hash256_reg taptweak_tag_digest))
+                  (jet_secp_sha_hash32.secp_hash_bytes (Digest.hash256_reg taptweak_tag_digest)))))
+         (Digest.hash256_reg taptweak_tag_iv)
+### C.jet_secp_taptweak_tag.taptweak_iv_word_regs
+taptweak_iv_word_regs
+     : @eq (list Integers.Int.int) (jet_sha_ctx8_model.state_regs taptweak_iv_word)
+         (Digest.hash256_reg taptweak_tag_iv)
+### C.jet_secp_taptweak_tag.taptweak_tag_info
+taptweak_tag_info
+     : @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info (Ctypes.fundef Clight.function) Ctypes.type
+            (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.program_of_program Clight.function jets_secp.prog)) taptweak_tag_block)
+         (@Some (AST.globvar Ctypes.type) jets_secp.v_taptweak)
+### C.jet_secp_taptweak_tag.taptweak_tag_symbol
+taptweak_tag_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            jets_secp._taptweak) (@Some Values.block taptweak_tag_block)
+### C.jet_secp_taptweak_tag.taptweak_tag_initial
+taptweak_tag_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       taptweak_tag_ok m
+### C.jet_secp_taptweak_tag.taptweak_tag_owned_separate
+taptweak_tag_owned_separate
+     : forall (m : Memory.Mem.mem) (b : Values.block) (size : BinNums.Z) (_ : taptweak_tag_ok m)
+         (_ : BinInt.Z.lt BinNums.Z0 size) (_ : Memory.Mem.range_perm m b BinNums.Z0 size Memtype.Cur Memtype.Freeable),
+       not (@eq Values.block b taptweak_tag_block)
+### C.jet_secp_taptweak_tag.taptweak_tag_framed
+taptweak_tag_framed
+     : forall (m mf : Memory.Mem.mem) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : taptweak_tag_ok m) (_ : jet_clight_forward.mem_forward m mf) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall pos : BinNums.Z, P taptweak_tag_block pos), taptweak_tag_ok mf
+### C.jet_secp_taptweak_tag.taptweak_startup_initial
+taptweak_startup_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       taptweak_startup m
+### C.jet_secp_taptweak_tag.taptweak_startup_exists
+taptweak_startup_exists
+     : @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                  (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m))
+            (taptweak_startup m))
+### C.jet_secp_taptweak_tag.taptweak_startup_framed
+taptweak_startup_framed
+     : forall (m mf : Memory.Mem.mem) (_ : taptweak_startup m) (_ : jet_clight_forward.mem_forward m mf)
+         (_ : jet_sx_mem.lframe (fun (_ : Values.block) (_ : BinNums.Z) => True) m mf), taptweak_startup mf
+### C.jet_secp_taptweak_tag.taptweak_startup_owned_forward
+taptweak_startup_owned_forward
+     : forall (m mf : Memory.Mem.mem) (slots : list (prod Values.block BinNums.Z)) (_ : taptweak_startup m)
+         (_ : jet_clight_forward.mem_forward m mf)
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi) slots),
+              and (BinInt.Z.lt BinNums.Z0 hi) (Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable))
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 not
+                   (@List.In Values.block b
+                      (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) slots))) m mf),
+       taptweak_startup mf
