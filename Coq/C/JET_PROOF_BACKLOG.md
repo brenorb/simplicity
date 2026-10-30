@@ -386,7 +386,10 @@ closes the pure predicate bridge, not public C execution. Next compose the
 original `secp256k1_schnorrsig_verify` helper and outer jet lifecycle, reusing
 `eval_schnorr_challenge_literal` and `eval_ecmult_general_flag`, the existing
 scalar parser/negation, `eval_gej_set_ge_owned`, normalization and field
-comparison helpers. Preserve their explicit external-library premises.
+comparison helpers. `jet_secp_affine_flag_read.eval_affine_flag_accessor` now
+executes the original affine infinity accessor at arbitrary valid offsets,
+returning the loaded flag with exact memory unchanged. Preserve the callers'
+explicit external-library premises.
 Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
 
