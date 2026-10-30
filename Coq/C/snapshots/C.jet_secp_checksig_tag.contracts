@@ -1,0 +1,47 @@
+### C.jet_secp_checksig_tag.checksig_iv_registers
+checksig_iv_registers
+     : @eq (list Integers.Int.int) checksig_iv_words (Digest.hash256_reg checksig_tag_hash)
+### C.jet_secp_checksig_tag.checksig_tag_info
+checksig_tag_info
+     : @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info (Ctypes.fundef Clight.function) Ctypes.type
+            (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.program_of_program Clight.function jets_secp.prog)) checksig_tag_block)
+         (@Some (AST.globvar Ctypes.type) jets_secp.v_signatureIV)
+### C.jet_secp_checksig_tag.checksig_tag_symbol
+checksig_tag_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+            jets_secp._signatureIV) (@Some Values.block checksig_tag_block)
+### C.jet_secp_checksig_tag.checksig_tag_initial
+checksig_tag_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       checksig_tag_ok m
+### C.jet_secp_checksig_tag.checksig_tag_framed
+checksig_tag_framed
+     : forall (m mf : Memory.Mem.mem) (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : checksig_tag_ok m) (_ : jet_clight_forward.mem_forward m mf) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall pos : BinNums.Z, P checksig_tag_block pos), checksig_tag_ok mf
+### C.jet_secp_checksig_tag.checksig_startup_initial
+checksig_startup_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       checksig_startup m
+### C.jet_secp_checksig_tag.checksig_startup_exists
+checksig_startup_exists
+     : @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                  (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m))
+            (checksig_startup m))
+### C.jet_secp_checksig_tag.checksig_startup_framed
+checksig_startup_framed
+     : forall (m mf : Memory.Mem.mem) (_ : checksig_startup m) (_ : jet_clight_forward.mem_forward m mf)
+         (_ : jet_sx_mem.lframe (fun (_ : Values.block) (_ : BinNums.Z) => True) m mf), checksig_startup mf

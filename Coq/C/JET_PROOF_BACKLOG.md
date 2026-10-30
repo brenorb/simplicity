@@ -350,10 +350,13 @@ Current resume checkpoint: the predicate and original challenge-to-return C
 chains are integrated into `feat/jet-equivalence`. The isolated worktree
 `codex/schnorr-reconstruction` is now frozen at `f3e0f457` while its ordinary
 cache/dependency refresh for `C/jet_secp_bip0340_verifier_return.vo` runs. After
-that build succeeds, run recursive checking with root
-`C.jet_secp_bip0340_verifier_return`, taking before/after fingerprints only
-once compilation is idle. Do not edit/copy caches into that worker while its
-build/check runs. That new recursive result is **pending**, not claimed.
+that build succeeds, advance the idle clean worker to the BIP340 registration
+commit `740a5536`, copy only newly added source-identical object caches,
+and build `C/jet_secp_bip0340_local.vo`. Then take a fingerprint and run
+`JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bip_0340_verify`,
+checking the matching after-fingerprint. This supersedes a separate inner-tail
+kernel run. Do not edit/copy caches while the worker's build/check runs.
+The new full scoped acceptance result is **pending**, not claimed.
 The earlier snapshot at `93b98930`, where recursive checking of
 `C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return` **passed**
 (exit 0). Before/after/at-completion fingerprints agree
@@ -835,6 +838,27 @@ initialization, context copy, one 64-byte message hash and digest serialization
 before reusing the now-proved BIP340 verifier; inspect `jet_sha_tagged_ctx`,
 `jet_sha256_tagged_fields`, existing secp SHA transport and challenge owned
 proofs before developing any duplicate helper. Its input cursor is 1280 bits.
+`jet_secp_checksig_tag` now proves the actual secp `signatureIV` words equal
+the canonical `MerkleRoot.tag (prefix ++ ["Signature"])`. This register
+identity and the actual symbol/variable-info checks are closed. The module
+establishes all eight global loads/readable permissions and readonly bounds
+from Genv.init_mem, packages `checksig_startup` with the existing Schnorr state,
+proves a real initialized memory exists, and preserves it through framed
+forward memory. Ordinary build and reviewed scoped no-update records pass;
+no library premise or public input restriction is added. This is a CheckSig
+prerequisite, not a public jet result, and is newer than the BIP340 candidate
+snapshot intended for the worker.
+Next execute the actual `f_sha256_tagged_init`: it calls memcpy for **32**
+bytes from `signatureIV`, initializes a local 88-byte compound context with
+counter 64, then returns it by CompCert's By_copy assignment (not an external
+88-byte memcpy). Reuse `jet_sha256_tagged_fields` for the field-store prefix,
+`jet_sha256_init_layout` for the complete allocation/copy/free pattern, and the
+existing secp/SHA transport/layout lemmas. Then the CheckSig wrapper copies
+this result to `_ctx`, reads/absorbs its 64-byte message, finalizes, serializes
+32 digest bytes to `_buf`, reads the signature and calls the original Schnorr
+verifier. Its full outer entry has eight locals. Preserve BIP340's already
+reviewed startup definition and frozen targets; add only CheckSig-specific
+proof predicates. Do not silently replace native SHA or its actual caller.
 Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
