@@ -1,5 +1,17 @@
 # Remaining jet proof work
 
+`jet_elements_total_fee_numeric` now identifies the entire canonical fold
+with a CompCert Int64 accumulator, reusing the checked `add_64` value bridge.
+Carry discard is exact modular addition, including overflow; the per-output
+contribution retains the canonical hash test and asset equality. All six
+value/fold lemmas are closed; complete reader semantics uses only inherited
+functional extensionality. Ordinary build, reviewed no-update records,
+scanning and frozen-input checks pass. No cached-table equality, collision
+converse or public jet theorem is assumed. Reproduce its ordinary `.vo`
+target and scoped audits. Next connect the real sumFees recurrence and
+table representation to this numeric fold, retaining the unresolved
+empty-script/hash boundary and explicit memcmp-model limitation.
+
 `jet_elements_fee_key_literal` closes the actual readHash/memory-key adapter:
 the wrapper's 32 comparison bytes are injective in the input Word256 and,
 against a represented asset hash, byte equality (or bytes_cmp = Eq) is exactly

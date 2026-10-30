@@ -1,0 +1,143 @@
+### C.jet_elements_total_fee_numeric.fee_int64_word_toZ
+fee_int64_word_toZ
+     : forall v : Integers.Int64.int,
+       @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) (fee_int64_word v))
+         (Integers.Int64.unsigned v)
+### C.jet_elements_total_fee_numeric.fee_literal_add64
+fee_literal_add64
+     : forall v a : Integers.Int64.int,
+       @eq
+         (prod
+            (prod
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+            (prod
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+         (@snd (sum unit unit)
+            (prod
+               (prod
+                  (prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                  (prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+               (prod
+                  (prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                  (prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+            (@Word.adder (S (S (S (S (S (S O)))))) Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                  (fee_int64_word v) (fee_int64_word a)))) (fee_int64_word (Integers.Int64.add a v))
+### C.jet_elements_total_fee_numeric.fee_literal_zero_int64
+fee_literal_zero_int64
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) jet_elements_total_fee_literal.total_fee_literal_zero
+         (fee_int64_word Integers.Int64.zero)
+### C.jet_elements_total_fee_numeric.fee_literal_step_int64
+fee_literal_step_int64
+     : forall (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (a : Integers.Int64.int)
+         (o : jet_elements_prim.txOutput),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (jet_elements_total_fee_literal.total_fee_literal_step key (fee_int64_word a) o)
+         (fee_int64_word (Integers.Int64.add a (fee_literal_amount key o)))
+### C.jet_elements_total_fee_numeric.fee_literal_fold_int64
+fee_literal_fold_int64
+     : forall (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (outputs : list jet_elements_prim.txOutput) (a : Integers.Int64.int),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (@List.fold_left (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) jet_elements_prim.txOutput
+            (jet_elements_total_fee_literal.total_fee_literal_step key) outputs (fee_int64_word a))
+         (fee_int64_word
+            (@List.fold_left Integers.Int64.int jet_elements_prim.txOutput
+               (fun (total : Integers.Int64.int) (o : jet_elements_prim.txOutput) =>
+                Integers.Int64.add total (fee_literal_amount key o)) outputs a))
+### C.jet_elements_total_fee_numeric.total_fee_literal_result_int64
+total_fee_literal_result_int64
+     : forall (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (environment : jet_elements_prim.Elements.env),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (jet_elements_total_fee_literal.total_fee_literal_result key environment)
+         (fee_int64_word (fee_literal_sum key environment))
+### C.jet_elements_total_fee_numeric.elements_total_fee_uint64_sem
+elements_total_fee_uint64_sem
+     : forall (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+         (@jet_elements_total_fee_literal.elements_total_fee_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) key
+            environment)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (fee_int64_word (fee_literal_sum key environment)))
+### C.jet_elements_total_fee_numeric.fee_int64_word
+fee_int64_word =
+fun v : Integers.Int64.int =>
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.unsigned v)
+     : forall _ : Integers.Int64.int, Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))
+
+Arguments fee_int64_word v
+### C.jet_elements_total_fee_numeric.fee_literal_amount
+fee_literal_amount =
+fun (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (o : jet_elements_prim.txOutput) =>
+match jet_elements_prim.txoAsset o return Integers.Int64.int with
+| jet_elements_prim.Explicit asset =>
+    match jet_elements_prim.txoAmount o return Integers.Int64.int with
+    | jet_elements_prim.Explicit v =>
+        match
+          andb (Bit.toBool (jet_elements_fee_literal.fee_script_hash_test o))
+            (Bit.toBool
+               (@jet_equality_spec.equality_spec (Word.Word (S (S (S (S (S (S (S (S O))))))))) Alg.CoreFunSem
+                  (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) key (Word.from_hash256 asset))))
+          return Integers.Int64.int
+        with
+        | true => v
+        | false => Integers.Int64.zero
+        end
+    | jet_elements_prim.Confidential _ _ => Integers.Int64.zero
+    end
+| jet_elements_prim.Confidential _ _ => Integers.Int64.zero
+end
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : jet_elements_prim.txOutput),
+       Integers.Int64.int
+
+Arguments fee_literal_amount key o
+### C.jet_elements_total_fee_numeric.fee_literal_sum
+fee_literal_sum =
+fun (key : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (environment : jet_elements_prim.Elements.env) =>
+@List.fold_left Integers.Int64.int jet_elements_prim.txOutput
+  (fun (total : Integers.Int64.int) (o : jet_elements_prim.txOutput) =>
+   Integers.Int64.add total (fee_literal_amount key o))
+  (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment)) Integers.Int64.zero
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : jet_elements_prim.Elements.env),
+       Integers.Int64.int
+
+Arguments fee_literal_sum key environment
