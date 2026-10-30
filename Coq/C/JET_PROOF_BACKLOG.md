@@ -363,9 +363,10 @@ The signature-reader prefix and canonical key-load suffix are now composed
 for every Word256 r/s pair, including both range-rejection paths. The original
 initial pointer/message checks and nine-local entry allocations are proved
 separately, and `jet_secp_schnorr_verify_function` now composes the entire
-original inner verifier call with all nine frees. Next use the key-parser
-result in the outer jet and compose its frame readers/caller. Public acceptance
-is unchanged.
+original inner verifier call with all nine frees. Its parser-result adapter
+and the original public call/return tail are now built too. Next compose the
+outer jet's frame readers, key-parse guard and five-local lifecycle. Public
+acceptance is unchanged.
 The earlier recursive check at `e71798a6` of
 `C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/at-completion
 input fingerprints agree (`b02a3e8b659b4032e79b865b6df8e82bb1ed032999f51c1f7d7f8bf7cdfd4f27`);
@@ -716,6 +717,21 @@ the inherited axiom set is unchanged. This remains conditional on the three
 explicit helper models and initialized program globals. The public wrappers,
 input frame readers and x-only-parse guard still require composition, so it
 does not add accepted jet coverage. It is outside the `93b98930` receipt.
+`jet_secp_schnorr_verify_parsed` derives the successful-key bounds and exact
+native-coordinate witness from `xonly_parse_result = 1` and the actual parser's
+`xonly_parsed_result`, then executes the whole original verifier. Its framing
+lemma preserves that parser result across subsequent disjoint frame readers.
+`jet_secp_bip0340_verifier_return` executes the exact public wrapper's final
+call and return (source equality at statement offset 5), using this derived
+function-call result. Ordinary builds and reviewed scoped no-update records
+pass; these additions do not add library premises. Next prove the actual
+wrapper's five fresh locals/source-frame copy, first key read and parse/guard,
+then message/signature readers (retaining parsed-key storage and initialized
+globals), and both early-return/final-return frees. Reuse
+`jet_secp_hash_public_read` for the actual core read8s transport and copied
+source-frame pattern; `word256_serializer_bytes` identifies its byte output
+with the strict parsers' original byte input. All input cursors, crossing cases
+and external framing must remain those of the existing public contracts.
 Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
