@@ -958,12 +958,21 @@ scalar_set_int(1), the in-place ecmult contract, infinity guard and existing
 finite affine conversion, including its local allocations/frees. Reuse
 jet_secp_table_affine_nonzero and the Schnorr multiplier caller's shared-Z
 nonzero argument to discharge the conditional infinity-flag postcondition.
+`jet_secp_eckey_tweak_entry` now establishes the original two-local entry,
+actual statement spine, freshness/ownership, exact PTree free order and cleanup.
+`jet_secp_eckey_tweak_finish` executes the actual infinity guard and both exits:
+infinity returns zero without conversion, while the finite branch runs the
+original affine converter and returns one with the exact literal normalization
+payload. Entry has no library premise; the finish retains ctz_model only.
+Both ordinary builds and reviewed no-update assumption/contract records pass.
+The initialization/in-place multiplication prefix also compiles in scratch;
+its ordinary integration and whole-callee composition are next. This is helper
+progress, not a public TapTweak proof or additional coverage.
 Then compose the byte-scalar overflow guard and x-only tweak/load/save callers,
 and the generic TapTweak SHA/reader/writer lifecycle. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential
-model does not specify every arbitrary external execution. BIP340 is a
-registered candidate awaiting full acceptance; CheckSig remains unregistered.
+model does not specify every arbitrary external execution. BIP340 and CheckSig are registered candidates awaiting full acceptance.
 No new accepted coverage is claimed for these helpers. Reuse the table,
 generator and inverse modules rather than re-proving them.
 
