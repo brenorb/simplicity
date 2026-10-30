@@ -1381,6 +1381,25 @@ conditions. The general memset lemma is closed, the fixed memset wrapper uses
 only external_functions_sem, and the memcpy result has the existing six
 inherited assumptions. No model is discharged or widened by these helpers.
 The ordinary build and reviewed assumption/contract comparisons pass.
+Recursive kernel checking also passed for the integrated linked-program,
+pure SHA transport, initialization and external-storebytes modules and their
+dependencies on the unchanged sources at `9b7e721d`; no type-in-type, unsafe
+fixpoint or assumed-positivity features were reported. The library context
+lists more axioms than individual results use; retain the reviewed per-theorem
+assumption records, which show the AST/composite construction results closed
+and contain no proof-irrelevance dependency. This is a helper check, not
+additional Elements public acceptance.
+The next checked batch adds reusable `jet_sha_context_transport` (context
+lvalues/loads/assignments and the real global-counter overflow statement,
+parameterized by verified expression layouts and a symbol lookup) and
+`jet_sha_global_state` (separation and preservation at arbitrary concrete
+SHA-global blocks). `jet_elements_taptweak_context` discharges every layout and
+symbol interface at the linked ge; its specialized helpers carry no such
+premise. `jet_elements_taptweak_globals` derives the actual dispatch pointer,
+readonly max counter and permission bounds from Genv.init_mem and proves this
+startup state exists. Its preservation/separation aliases reuse the generic
+memory lemmas. All four modules compile and their records use only inherited
+assumptions, with lookup/initialization-check facts closed.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including

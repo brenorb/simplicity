@@ -1,0 +1,12 @@
+### C.jet_sha_global_state.sha_global_state_separate
+sha_global_state_separate
+     : forall (dispatch compression counter : Values.block) (m : Memory.Mem.mem) (b : Values.block)
+         (size : BinNums.Z) (_ : sha_global_state_at dispatch compression counter m) (_ : BinInt.Z.lt BinNums.Z0 size)
+         (_ : Memory.Mem.range_perm m b BinNums.Z0 size Memtype.Cur Memtype.Freeable),
+       and (not (@eq Values.block b dispatch)) (not (@eq Values.block b counter))
+### C.jet_sha_global_state.sha_global_state_preserved
+sha_global_state_preserved
+     : forall (dispatch compression counter : Values.block) (m mf : Memory.Mem.mem)
+         (P : forall (_ : Values.block) (_ : BinNums.Z), Prop) (_ : sha_global_state_at dispatch compression counter m)
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall ofs : BinNums.Z, P dispatch ofs), sha_global_state_at dispatch compression counter mf
