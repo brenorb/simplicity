@@ -1228,7 +1228,16 @@ Its ordinary build and reviewed records pass with the existing three library
 models and eight inherited axioms. The value is still taptweak_output: the
 canonical Simplicity assertion bridge, source binding and public registration
 remain. This C-level theorem is not additional accepted coverage.
-Next finish the canonical assertion-term value bridge and public local contract. Keep taptweak_ready (including
+`jet_secp_taptweak_literal` now faithfully ports the frozen Bitcoin assertion
+term, with all four assertions and the TapTweak tag/padding. Parametricity and
+option semantics compile. `literal_taptweak_matches_output` proves equality
+with taptweak_output for every key/hash pair, using the existing verified
+native-to-generate/add/normalize bridge and bounded normalized X. The final
+bridge uses functional extensionality only; no new assumptions were introduced.
+Ordinary compilation and reviewed scoped records pass. Complete public local
+packaging, canonical-source binding and full acceptance remain; coverage stays
+528/533 until those checks pass.
+Next finish the public local contract and canonical-source binding. Keep taptweak_ready (including
 dispatch extent) at the public boundary and use taptweak_ready_forward around
 existing startup-preserving phases. Reuse the key-phase result for normal parsing and immediate failure.
 For the final writer use secp_write8s_layout to obtain its actual call and
