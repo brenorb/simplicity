@@ -398,9 +398,16 @@ executes the original affine infinity accessor at arbitrary valid offsets,
 returning the loaded flag with exact memory unchanged. Preserve the callers'
 explicit external-library premises. `jet_secp_schnorr_return_control` binds
 the exact original final suffix (normalization, parity, conditional equality,
-return) and composes its actual call executions. These call premises still
-need discharging from the owned fields; next reuse
-`eval_affine_normalized_y_odd` and `eval_field_equal_loose_owned` for that step.
+return) and composes its actual call executions.
+`jet_secp_schnorr_return_owned.exec_schnorr_return_owned` discharges those
+call premises from owned fields using `eval_affine_normalized_y_odd` and
+`eval_field_equal_loose_owned`, with complete freeable ranges, framing and
+readonly preservation. It has no extra library model. The return modules
+have ordinary builds and reviewed records; they are later than the pending
+`8d5ba448` recursive-check inputs. Next compose the actual arithmetic suffix
+(multiplier, affine conversion, infinity branch, this return), then original
+parsing/challenge and the outer jet entry/frees. No public Schnorr proof or
+new coverage is claimed yet.
 Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
 
