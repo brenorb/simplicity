@@ -1471,12 +1471,12 @@ hold in the same Genv.init_mem. Its thirteen reviewed records match with only
 inherited assumptions, lookup facts closed. The old plain-Elements proof files
 are preserved. These facts discharge actual global bytes/extent and separation
 rather than introducing public caller-tag or non-overlap restrictions.
-A read-only Astra Medium review recommends singleton same-memory transport of
-fe_set_b32 as the first arithmetic packet. The prepared source
-`/private/tmp/point-verify-scratch/jet_elements_taptweak_set_b32.v` now compiles
-against current dependencies: lookups and the unchanged fundef_okb checker
-pass, and both the full owned set_b32 result (including rejection's raw limbs)
-and x-only field read are transported. Integrate and audit it next. Generic
+`jet_elements_taptweak_set_b32` now builds in the ordinary graph and its eight
+reviewed assumption/contract records match without update flags. The actual
+source/target lookups and unchanged fundef_okb checker are closed. Same-memory
+transport retains the full owned set_b32 result, including rejection's raw
+limbs, and the x-only field read for every input word. No field-range premise
+or external-helper model was added. Generic
 xfun support already accepts ge; do not reopen owned_b32_run or try to expose
 the entire secp_pure table in this slice. Afterwards, generalize named-call and
 x-only guard rules over ge with concrete lookup facts, and tackle the decoder
