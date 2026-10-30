@@ -1325,7 +1325,7 @@ SC.comp (SC.pair (@literal_bip0340_check (Alg.Assertion.toCore term)) SC.unit)
 
 
 def check_checksig(s):
-    """Bind the new Signature hash/composition port; public C proof is pending."""
+    """Bind the Signature hash/composition and the complete original public C contract."""
     for key, fragment in [
         ('catalog', 'CheckSigVerify :: SignatureJet ((Secp256k1.PubKey, Word512),Secp256k1.Sig) ()'),
         ('catalog', 'specificationSignature CheckSigVerify = CheckSig.checkSigVerify'),
@@ -1361,10 +1361,18 @@ def check_checksig(s):
          '@Simplicity.SHA256.hashBlock Alg.CoreFunSem (@Simplicity.SHA256.hashBlock Alg.CoreFunSem (checksig_iv_word,(ir,h)),checksig_pad_word)'),
         ('checksig_tag', 'checksig_tag_hash', 'MerkleRoot.tag (MerkleRoot.prefix++["Signature"])'),
         ('checksig_tag', 'checksig_iv_word', 'Word.from_hash256 checksig_tag_hash'),
+        ('checksig_tag', 'checksig_startup', r'schnorr_startup m /\checksig_tag_ok m'),
     ]
     for key, name, expected in ports:
         if p.compact(p.definition(s[key], name)) != p.compact(expected):
             raise ValueError('CheckSig literal dependency differs: ' + name)
+    statements = re.findall(r'Theorem checksig_initialized_local_spec\s*:(.*?)\bProof\.', s['checksig_jet'], re.S)
+    expected = ('memcpy_model ->memset_model ->ctz_model -> '
+                'secp_jet_initialized_partial_local_spec checksig_startup f_simplicity_check_sig_verify '
+                'literal_checksig_args Ty.Unit '
+                '(@literal_checksig_verify (Alg.AssertionSem option_Monad_Zero)).')
+    if len(statements) != 1 or p.compact(statements[0]) != p.compact(expected):
+        raise ValueError('CheckSig complete success/failure contract differs')
 
 
 def test():
@@ -1392,6 +1400,7 @@ def test():
         "checksig_literal": COQ / "C/jet_secp_checksig_literal.v",
         "checksig_hash": COQ / "C/jet_secp_checksig_hash.v",
         "checksig_tag": COQ / "C/jet_secp_checksig_tag.v",
+        "checksig_jet": COQ / "C/jet_secp_checksig_local.v",
         "schnorr_digest": REPO / "Haskell/Core/Simplicity/Digest.hs",
         "scale_ffi": REPO / "Haskell/Core/Simplicity/FFI/Jets.hs",
         "scale_ffi_test": REPO / "Haskell/Tests/Simplicity/FFI/Tests.hs",
@@ -2013,6 +2022,11 @@ def test():
         ('checksig_literal', 'Ty.Prod (Ty.Prod (Word 8) (Word 9)) (Word 9)', 'Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 9)'),
         ('checksig_hash', 'checksig_iv_word,(ir,h)', 'checksig_iv_word,(h,ir)'),
         ('checksig_tag', '["Signature"]', '["signature"]'),
+        ('checksig_tag', r'schnorr_startup m /\checksig_tag_ok m', 'False'),
+        ('checksig_jet', 'memcpy_model ->memset_model ->ctz_model ->', 'memcpy_model ->memset_model ->ctz_model ->False ->'),
+        ('checksig_jet', 'f_simplicity_check_sig_verify', 'f_simplicity_bip_0340_verify'),
+        ('checksig_jet', 'literal_checksig_args Ty.Unit', '(Word 8) Ty.Unit'),
+
     ]
     for key in ['checksig_program', 'checksig_hash']:
         pad = '0x8' + '0'*124 + '400'
@@ -2027,7 +2041,7 @@ def test():
         except ValueError:
             continue
         raise ValueError('accepted CheckSig source mutation: ' + old)
-    print(f'CheckSig canonical tag/hash/composition port match (public C contract pending); {len(mutations)} targeted mutations rejected')
+    print(f'CheckSig canonical tag/hash/composition/complete public contract match; {len(mutations)} targeted mutations rejected')
 
 
 if __name__ == "__main__":
