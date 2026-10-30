@@ -1432,18 +1432,23 @@ setup, this loop, the zero tail, return and free. Its postcondition includes
 the actual SHA block result, context pointer, total counter, overflow,
 permissions, caller framing, readonly preservation and startup. All five
 helper records match; the only explicit library premise remains memcpy_model.
-Next complete the u64 length writer and short finalizer, then compose runtime
-tag hashing and the remaining generic/public phases. No full Elements generic
-or public jet is registered yet. A prepared port is at
-`/private/tmp/point-verify-scratch/jet_elements_taptweak_u64_full.v`; it is
-**not checked against the current dependencies**. Its scratch compile stopped
-on old-object inconsistency after the pure module gained its digest serializer.
-Convert its scratch Requires to the ordinary C modules and compile it there;
-do not copy scratch objects or infer success from an older .vo. It keeps the
-existing WriteBE64 source call for its memory properties, then transports just
-the execution into the linked ge. After that, reuse the padding fill/entry/free
-layout from finalize48 when porting the general short finalizer; the pure
-`secp_sha_short_padding` lemma already applies unchanged.
+`jet_elements_taptweak_u64_full` now compiles in the ordinary project:
+the real sha256_u64be allocates its eight-byte local buffer, executes the
+verified WriteBE64 serialization, absorbs the bytes into a 56-byte buffered
+context through the actual full-block call, returns and frees its local.
+The arbitrary-total-counter and initial-56-counter versions preserve all
+memory observations, permissions, caller framing, readonly memory and startup.
+All eight records use only inherited assumptions; the actual byte-absorption
+call keeps memcpy_model explicit. The earlier scratch-object inconsistency is
+resolved by compiling the source in the normal C dependency graph. Do not
+restart that port or copy old scratch .vo files.
+Next integrate the checked short-finalizer source at
+`/private/tmp/point-verify-scratch/jet_elements_taptweak_finalize_short.v`.
+It reuses the existing padding arithmetic lemma and transports the original
+padding-fill statement; entry/free layout, both real calls, return and all
+preservation are proved against the current dependencies. Follow with runtime
+tag hashing and the remaining generic/public phases; no full Elements generic
+or public jet is registered yet.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including
