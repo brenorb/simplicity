@@ -1,0 +1,40 @@
+### C.jet_secp_word_bytes_codec.be_val_bytes_unique
+be_val_bytes_unique
+     : forall (xs ys : list BinNums.Z) (_ : @eq nat (@length BinNums.Z xs) (@length BinNums.Z ys))
+         (_ : @List.Forall BinNums.Z
+                (fun b : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 b)
+                   (BinInt.Z.le b
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                xs)
+         (_ : @List.Forall BinNums.Z
+                (fun b : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 b)
+                   (BinInt.Z.le b
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                ys) (_ : @eq BinNums.Z (jet_secp_fe_math.be_val xs) (jet_secp_fe_math.be_val ys)),
+       @eq (list BinNums.Z) xs ys
+### C.jet_secp_word_bytes_codec.word256_unsigned_bytes_bounds
+word256_unsigned_bytes_bounds
+     : forall w : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @List.Forall BinNums.Z
+         (fun b : BinNums.Z =>
+          and (BinInt.Z.le BinNums.Z0 b)
+            (BinInt.Z.le b
+               (BinNums.Zpos
+                  (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (@List.map Integers.Int.int BinNums.Z Integers.Int.unsigned
+            (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+               (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) w)))
+### C.jet_secp_word_bytes_codec.word256_serializer_bytes
+word256_serializer_bytes
+     : forall w : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (list Integers.Int.int)
+         (@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+            (jet_secp_fe_b32.be_bytes (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) w)))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) w))

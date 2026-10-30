@@ -478,7 +478,26 @@ scoped no-update audits pass. The original b32 module and snapshots are restored
 exactly; the temporary recurrence-closing timeout change is also restored.
 These changes keep the extension additive and avoid invalidating the existing
 checked dependency closure. The superseded central extension and timeout
-experiment remain in local commit history as historical evidence. The x-only opaque key
+experiment remain in local commit history as historical evidence.
+`jet_secp_word_bytes_codec.word256_serializer_bytes` proves the existing C
+serializer's bytes equal the canonical Word256 byte encoding, reusing
+`generator_be_bytes_value` and `word256_bytes_integer`; its three registered
+lemmas are closed. `jet_secp_schnorr_serialize_return` composes the original
+key-X serialization statement with the canonical challenge-to-return theorem
+(statement 7 onward). It derives the challenge buffer bytes, key X storage,
+limb bounds and representation, both input byte ranges, startup state and full
+ownership/frame preservation. The signature/message separation premises here
+are internal local-buffer facts for the outer allocation proof to discharge.
+The ordinary build and reviewed scoped no-update audits pass. These additive
+serializer modules are later than the pending `e71798a6` recursive-check inputs;
+that check does not cover them. Next prove the real opaque x-only key load/save
+chain and signature guards, then the outer lifecycle. `pubkey_load` uses its
+actual `sizeof(storage)==64` branch: memcpy into fresh local storage followed
+by `ge_from_storage`, then the zero-X guard. Reuse
+`eval_ge_from_storage_readonly`, the existing storage value lemmas, and
+`secp_curve_x_nonzero` for successfully decompressed keys. Do not replace this
+opaque native-storage path with the generator's two big-endian byte buffers.
+ The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
