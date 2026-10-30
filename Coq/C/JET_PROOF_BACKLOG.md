@@ -1442,13 +1442,23 @@ All eight records use only inherited assumptions; the actual byte-absorption
 call keeps memcpy_model explicit. The earlier scratch-object inconsistency is
 resolved by compiling the source in the normal C dependency graph. Do not
 restart that port or copy old scratch .vo files.
-Next integrate the checked short-finalizer source at
-`/private/tmp/point-verify-scratch/jet_elements_taptweak_finalize_short.v`.
-It reuses the existing padding arithmetic lemma and transports the original
-padding-fill statement; entry/free layout, both real calls, return and all
-preservation are proved against the current dependencies. Follow with runtime
-tag hashing and the remaining generic/public phases; no full Elements generic
-or public jet is registered yet.
+`jet_elements_taptweak_finalize_short` now also compiles normally. For any
+buffered length below 56 and valid total counter it executes the real padding
+fill, partial absorption, big-endian length/full-block call, return and local
+free, yielding exactly SHA256.hash_block with sha_pad. It preserves all caller
+observations and SHA startup. Its eight reviewed records match; only the
+existing memcpy_model is explicit. Existing pure padding arithmetic is reused,
+not reproved. Next integrate the checked context-copy/initialization and runtime
+short-tag sources in `/private/tmp/point-verify-scratch/`:
+`jet_sha_context_copy_at.v`, `jet_elements_taptweak_init_copy.v`, and
+`jet_elements_taptweak_tag_runtime.v`. The first generalizes the actual 88-byte
+struct assignment over ge with a sizeof fact; the concrete initializer closes
+that fact and the state-field layout, and reuses the owned SHA init call. The
+tag packet composes those actual statements with real absorption/finalization
+for any tag shorter than 56 bytes in the linked ge. Specialize to the Elements
+17-byte tag with the existing `elements_taptweak_tag_regs` equality, then
+continue the generic/public phases. No full Elements generic or public jet is
+registered yet.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including
