@@ -1,0 +1,67 @@
+### C.jet_elements_taptweak_initial_phase.exec_elements_taptweak_initial_phase
+exec_elements_taptweak_initial_phase
+     : forall (_ : jet_memcpy_model.memcpy_model) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (bb bi bo bp bt bh bs bc bc1 br br1 : Values.block)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._tagName__3 le)
+                (@Some Values.val
+                   (Values.Vptr jet_elements_taptweak_runtime_ready.elements_taptweak_runtime_tag_block
+                      Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._tagLen le)
+                (@Some Values.val
+                   (Values.Vlong
+                      (Integers.Int64.repr
+                         (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : @List.NoDup Values.block (jet_secp_taptweak_entry.taptweak_locals bb bi bo bp bt bh bs bc bc1 br br1))
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                       (jet_secp_taptweak_entry.taptweak_storage bb bi bo bp bt bh bs bc bc1 br br1)),
+              Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+         (_ : jet_elements_taptweak_runtime_ready.elements_taptweak_runtime_ready m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge
+               (jet_secp_taptweak_entry.taptweak_env bb bi bo bp bt bh bs bc bc1 br br1) le m
+               jet_secp_taptweak_body_prefix.taptweak_initial_phase Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_uint32_array_init.uint32_array_at mf bt BinNums.Z0
+                  (Digest.hash256_reg jet_elements_taptweak_tag.elements_taptweak_tag_digest))
+               (and
+                  (jet_uint32_array_init.uint32_array_at mf bs BinNums.Z0
+                     (Digest.hash256_reg jet_elements_taptweak_tag.elements_taptweak_tag_iv))
+                  (and
+                     (@eq (option Values.val) (Memory.Mem.load AST.Mptr mf bc1 BinNums.Z0)
+                        (@Some Values.val (Values.Vptr bs Integers.Ptrofs.zero)))
+                     (and
+                        (@eq (option Values.val)
+                           (Memory.Mem.load AST.Mint64 mf bc1
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                           (@Some Values.val
+                              (Values.Vlong
+                                 (Integers.Int64.repr
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                        (and
+                           (@eq (option Values.val)
+                              (Memory.Mem.load AST.Mint8unsigned mf bc1
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                              (@Some Values.val (Values.Vint Integers.Int.zero)))
+                           (and
+                              (forall (b : Values.block) (hi : BinNums.Z)
+                                 (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                                        (jet_secp_taptweak_entry.taptweak_storage bb bi bo bp bt bh bs bc bc1 br br1)),
+                               Memory.Mem.range_perm mf b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+                              (and
+                                 (jet_sx_mem.lframe
+                                    (fun (b : Values.block) (_ : BinNums.Z) =>
+                                     and (not (@eq Values.block b br1))
+                                       (and (not (@eq Values.block b bc))
+                                          (and (not (@eq Values.block b bt))
+                                             (and (not (@eq Values.block b br))
+                                                (and (not (@eq Values.block b bc1)) (not (@eq Values.block b bs)))))))
+                                    m mf)
+                                 (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                                    (jet_elements_taptweak_runtime_ready.elements_taptweak_runtime_ready mf))))))))))

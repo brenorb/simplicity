@@ -1,5 +1,18 @@
 # Remaining jet proof work
 
+The complete frozen Elements public wrapper now builds in ordinary modules:
+`jet_elements_taptweak_{output_prefix,initial_phase,finish,body,function,public_support,public_function}`
+and shared `jet_taptweak_phase_glue_at`. The proof executes the actual 17-byte
+tag/SHA prefix, both reads, parser rejection or native arithmetic, writer, all
+eleven generic frees, by-value source-frame copy and final wrapper free.
+`eval_elements_taptweak_public` covers all Word512 inputs and valid cursors,
+returns the exact literal option result and preserves the output prefix,
+cursor, external loads and actual startup state. Scoped no-update records,
+source scanning and the 283-input frozen-target check pass; six inherited
+assumptions and the three approved helper models remain explicit. The final
+Simplicity bridge and canonical-source check compile/pass privately but are
+not integrated or accepted yet. Public coverage remains 529/533.
+
 The linked native suffix now builds in `jet_elements_taptweak_native` and
 `jet_elements_taptweak_parsed_native`; the parser discharges its curve and
 representation premises. `jet_elements_taptweak_runtime_{ready,write}`
@@ -62,7 +75,7 @@ in the next recursive check. This historical check does not cover later ports.
 Later native/helper ports through the entire frozen Elements wrapper compile
 in scratch. Integrate in the reviewed groups listed by
 `/private/tmp/elements-taptweak-integration-batches.json`, using the private
-integration script; groups 0 through 4 are integrated above. Each remaining group needs
+integration script; groups 0 through 5 are integrated above. Each remaining group needs
 ordinary builds, reviewed type/assumption records, no-update comparisons and
 its own signed atomic commit. The full candidate is still missing its final
 Elements specification bridge, canonical-source binding and public acceptance.
