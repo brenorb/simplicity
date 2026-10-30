@@ -1070,6 +1070,23 @@ calls sha256_fromMidstate(buf,h->s), calls sha256_uchars(ctx,buf,32), then frees
 buf; it does not use a sequence of u32be calls. Reuse the verified secp digest
 and short/full byte-absorption executors to construct this original wrapper.
 Its three TapTweak uses start at buffer lengths 0,32,32 and counters 0,32,96.
+`jet_secp_sha_append32` now composes the existing short/full byte consumers
+for precisely those buffer states. `jet_secp_sha_hash32.eval_secp_sha_hash32`
+constructs the whole original wrapper: local allocation, native midstate
+serialization, native byte absorption and free. It exposes exact SHA state,
+buffer and counter updates, retains source hash words and ownership, frames
+other memory and preserves startup. Both modules build ordinarily and pass
+reviewed no-update records, using only memcpy_model and six inherited axioms.
+Reuse `generator_sha_state_layout` for the h->s field, and the existing
+`exec_schnorr_challenge_call` SHA lookup adapter for the two calls; they are
+not in the arithmetic-only secp_pure call table.
+Next establish the actual Bitcoin tag bytes and canonical runtime tag hash,
+then compose the original tag block and the two sha256_hash prefix calls.
+The frozen `v_taptweak` global is a writable nine-byte array (eight characters
+plus NUL), not a readonly string; do not assume readonly tag memory. Establish
+its exact initial bytes, bounded permissions and no-Freeable property from
+Genv.init_mem, then preserve these by framing. Public output/frame separation
+from this small global must be derived from real layout/capacity facts.
 Keep the local allocation/free and source midstate framing attached. The prior
 seq-u32be suggestion was not grounded in the actual body and is superseded. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
