@@ -417,9 +417,16 @@ jet entry/frees. `literal_affine_scalar_table_nonzero` already discharges the
 conditional output-flag premise of `eval_ecmult_general_flag` for the valid
 parsed affine key. That multiplier theorem returns framing outside its four
 owned argument blocks, not `readonly_preserved` for all intermediate memory.
-Use caller freshness to lift its framing to original public memory, and
-preserve global setup via disjointness from the private blocks; do not assume
-the missing intermediate readonly conclusion. No public Schnorr proof or
+Framing alone has only forward permissions and cannot establish absence of
+`Max Writable`. Thread `mem_forward` from the already-constructed executions,
+combine it with the load frame, and derive global/argument disjointness from
+initial readonly state versus owned writable ranges. The first strengthened
+wrapper, `exec_strauss_general_main_flag_forward`, is compiled; the original
+main-stage theorem types and assumption records remain unchanged as projections.
+Next thread this forward fact through finite and skipped Strauss, generator
+main, the Strauss wrapper and ecmult. Keep all preservation attached to the
+constructed memset witnesses; its existential model does not specify every
+arbitrary external execution. No public Schnorr proof or
 new coverage is claimed yet.
 Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
