@@ -1,0 +1,71 @@
+### C.jet_secp_schnorr_return_control.schnorr_return_source
+schnorr_return_source
+     : @eq Clight.statement
+         (jet_secp_root_chain_owned.root_drop_statements (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+            (Clight.fn_body jets_secp.f_secp256k1_schnorrsig_verify)) schnorr_return_tail
+### C.jet_secp_schnorr_return_control.eval_schnorr_result_address
+eval_schnorr_result_address
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (br : Values.block) (fid : AST.ident) (delta : BinNums.Z)
+         (_ : @List.In (prod AST.ident BinNums.Z) (@pair AST.ident BinNums.Z fid delta)
+                (@cons (prod AST.ident BinNums.Z) (@pair AST.ident BinNums.Z jets_secp._x BinNums.Z0)
+                   (@cons (prod AST.ident BinNums.Z)
+                      (@pair AST.ident BinNums.Z jets_secp._y
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                      (@nil (prod AST.ident BinNums.Z)))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._r e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type br jet_secp_curve_statements.curve_ge_type))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (schnorr_result_address fid)
+         (Values.Vptr br (Integers.Ptrofs.repr delta))
+### C.jet_secp_schnorr_return_control.exec_schnorr_return_from_calls
+exec_schnorr_return_from_calls
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mn mo me : Memory.Mem.mem) (br bx : Values.block) (odd equal : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._r e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type br jet_secp_curve_statements.curve_ge_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._rx e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx jet_secp_curve_statements.curve_fe_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_normalize_var e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_is_odd e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_equal_var e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_normalize_var)
+                (@cons Values.val
+                   (Values.Vptr br
+                      (Integers.Ptrofs.repr
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                   (@nil Values.val)) Events.E0 mn Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mn
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_is_odd)
+                (@cons Values.val
+                   (Values.Vptr br
+                      (Integers.Ptrofs.repr
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                   (@nil Values.val)) Events.E0 mo (Values.Vint (jet_readBit_layout.bit_int odd)))
+         (_ : forall _ : @eq bool odd false,
+              ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mo
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_equal_var)
+                (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 me
+                (Values.Vint (jet_readBit_layout.bit_int equal))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m schnorr_return_tail Events.E0
+         (schnorr_return_temps le odd equal) match odd return Memory.Mem.mem with
+                                             | true => mo
+                                             | false => me
+                                             end
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint (jet_readBit_layout.bit_int (andb (negb odd) equal)))
+                  Ctypesdefs.tint)))

@@ -346,16 +346,23 @@ reaching 526/533 as described above. Reproduce with
 
 ### Schnorr signature callers
 
-Current resume checkpoint: work on `codex/schnorr-reconstruction`, integrating
-into `feat/jet-equivalence`; the earlier worker worktree is archived. Public
+Current resume checkpoint: the predicate chain is integrated into
+`feat/jet-equivalence`; `codex/schnorr-reconstruction` is frozen at `8d5ba448`
+for its recursive check. Continue C caller work in the main checkout. The earlier
+worker worktree is archived. Public
 coverage is still **526/533**. The table/GLV/generator/window-5 chain passed
 recursive kernel checking at **`960a67dc`**, with identical before/after/current
 input fingerprints, an axiom list contained in the existing expectation, and no
 unsafe proof features. Reproduce with the pinned compiler, `ulimit -S -s 65520`,
 and `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
-C.jet_secp_generate_small_group C.jet_secp_wnaf5_reconstruction`. Later Strauss
-and window-binding modules have ordinary builds and reviewed no-update records;
-they are not covered by that historical recursive result.
+C.jet_secp_generate_small_group C.jet_secp_wnaf5_reconstruction`. The full Strauss
+window-binding closure also passed recursive checking at **`2d7ab1f5`**, with
+matching before/after/current fingerprints and the same trust-feature/axiom
+checks. Reproduce with the same flags and root `C.jet_secp_strauss_window_values`.
+The later full Schnorr predicate chain and affine accessor have ordinary builds
+and reviewed no-update records; their recursive check on **`8d5ba448`** is
+pending. Its roots are `C.jet_secp_schnorr_check_predicate
+C.jet_secp_affine_flag_read`; it does not establish public C caller execution.
 
 Both window reconstructions, the original four-stream/129-step group semantics,
 the four scalar Horner folds, and their binding to actual window outputs are
@@ -389,7 +396,11 @@ scalar parser/negation, `eval_gej_set_ge_owned`, normalization and field
 comparison helpers. `jet_secp_affine_flag_read.eval_affine_flag_accessor` now
 executes the original affine infinity accessor at arbitrary valid offsets,
 returning the loaded flag with exact memory unchanged. Preserve the callers'
-explicit external-library premises.
+explicit external-library premises. `jet_secp_schnorr_return_control` binds
+the exact original final suffix (normalization, parity, conditional equality,
+return) and composes its actual call executions. These call premises still
+need discharging from the owned fields; next reuse
+`eval_affine_normalized_y_odd` and `eval_field_equal_loose_owned` for that step.
 Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
 
