@@ -1639,10 +1639,11 @@ only on the existing ctz_model for nonzero arguments. Its execution has the
 same six inherited assumptions; initialization/preservation uses four and
 lookup/layout facts are closed. No new external model is introduced.
 
-Next port the actual beta auxiliary calls and generator digit dispatch to
-these linked symbols/states, then compose the complete ecmult and affine
-inverse paths. Reuse the complete linked scalar split, signed table lookup
-and pure arithmetic transport. The old inverse-loop CountCall and modulus
+The linked beta auxiliary execution is complete below. Integrate the generator
+digit/descending-loop composition already checked in scratch, then connect
+the preparation, scalar/wNAF branches and final correction into the complete
+ecmult and affine inverse paths. Reuse the complete linked scalar split,
+signed table lookup and pure arithmetic transport. The old inverse-loop CountCall and modulus
 predicates still name secp_ge/source blocks: the new target CTZ/metadata
 theorems alone do not establish a linked inverse execution. Derive every
 callee at the target GE before claiming the native tweak or public wrapper.
@@ -1663,10 +1664,20 @@ source table, both state pointers, every caller-owned range, beta state,
 permissions, framing and the existing literal product relation. Both build
 normally, and reviewed theorem/definition records match without update flags,
 with only the six inherited execution assumptions and no library premise.
-The generator lookup/literal bridge, nonzero-digit addition, digit dispatch
-and pair execution compile in scratch; integrate their checked internal-graph
-effects first, then the complete digit pair. No whole ecmult or public call
-is established by these components.
+`jet_elements_taptweak_internal` now proves readonly/permission preservation
+from the actual checked 101-function linked graph, without general external
+call properties. `jet_elements_taptweak_generator_literal` composes the actual
+linked table lookup with the existing all-entry literal/bounds certificates,
+retaining every table and caller-owned range. `jet_elements_taptweak_strauss_transport`
+derives the nine actual allocations and the complete local domain, and
+transports the real double, non-generator point loop and global-Z setup at
+identical memory. Local-domain premises are proved for the actual Strauss
+environment; final callers must discharge them, not expose them publicly.
+All three build normally and their reviewed records match without update
+flags. Execution has only the six inherited assumptions; allocation has four,
+and closure/layout/domain facts are closed. The complete generator digit
+pair, four-stream arithmetic iteration and descending loop compile in scratch;
+integrate them next. No whole ecmult or public call is established yet.
 Reproduce the completed component builds with:
 
 ```sh

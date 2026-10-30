@@ -1,0 +1,127 @@
+### C.jet_elements_taptweak_strauss_transport.elements_taptweak_strauss_statements_checked
+elements_taptweak_strauss_statements_checked
+     : @eq bool
+         (@List.forallb Clight.statement
+            (jet_transport_locals.locals_stmt_okb jet_secp_linkage.secp_ge
+               jet_elements_taptweak_pure.elements_taptweak_ge
+               (@List.map (prod BinNums.positive Clight.function) BinNums.positive
+                  (@fst BinNums.positive Clight.function)
+                  jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers)
+               (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type)
+                  (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf))) elements_taptweak_strauss_statements)
+         true
+### C.jet_elements_taptweak_strauss_transport.elements_taptweak_strauss_vars_checked
+elements_taptweak_strauss_vars_checked
+     : @eq bool
+         (jet_transport.vars_okb jet_secp_linkage.secp_ge jet_elements_taptweak_pure.elements_taptweak_ge
+            (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf)) true
+### C.jet_elements_taptweak_strauss_transport.elements_taptweak_strauss_env_domain
+elements_taptweak_strauss_env_domain
+     : forall bt bz b0 b128 bw0 bw128 bj bn bl : Values.block,
+       jet_transport.edom (jet_secp_generator_entry.generator_local_env bt bz b0 b128 bw0 bw128 bj bn bl)
+         (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf)
+### C.jet_elements_taptweak_strauss_transport.elements_taptweak_strauss_env_bound
+elements_taptweak_strauss_env_bound
+     : forall (bt bz b0 b128 bw0 bw128 bj bn bl : Values.block) (id : AST.ident)
+         (_ : @List.In AST.ident id
+                (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type)
+                   (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf))),
+       @ex Values.block
+         (fun b : Values.block =>
+          @ex Ctypes.type
+            (fun ty : Ctypes.type =>
+             @eq (option (prod Values.block Ctypes.type))
+               (@Maps.PTree.get (prod Values.block Ctypes.type) id
+                  (jet_secp_generator_entry.generator_local_env bt bz b0 b128 bw0 bw128 bj bn bl))
+               (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty))))
+### C.jet_elements_taptweak_strauss_transport.elements_taptweak_strauss_statement_transport
+elements_taptweak_strauss_statement_transport
+     : forall (bt bz b0 b128 bw0 bw128 bj bn bl : Values.block) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (stmt : Clight.statement) (trace : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem)
+         (out : ClightBigstep.outcome) (_ : @List.In Clight.statement stmt elements_taptweak_strauss_statements)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                (jet_secp_generator_entry.generator_local_env bt bz b0 b128 bw0 bw128 bj bn bl) le m stmt trace lef mf
+                out),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge
+         (jet_secp_generator_entry.generator_local_env bt bz b0 b128 bw0 bw128 bj bn bl) le m stmt trace lef mf out
+### C.jet_elements_taptweak_strauss_transport.elements_taptweak_strauss_entry_owned
+elements_taptweak_strauss_entry_owned
+     : forall (m : Memory.Mem.mem) (bs : Values.block) (r a na ng : Values.val),
+       @ex Memory.Mem.mem
+         (fun mi : Memory.Mem.mem =>
+          @ex Values.block
+            (fun bt : Values.block =>
+             @ex Values.block
+               (fun bz : Values.block =>
+                @ex Values.block
+                  (fun b0 : Values.block =>
+                   @ex Values.block
+                     (fun b128 : Values.block =>
+                      @ex Values.block
+                        (fun bw0 : Values.block =>
+                         @ex Values.block
+                           (fun bw128 : Values.block =>
+                            @ex Values.block
+                              (fun bj : Values.block =>
+                               @ex Values.block
+                                 (fun bn : Values.block =>
+                                  @ex Values.block
+                                    (fun bl : Values.block =>
+                                     and
+                                       (Clight.function_entry2 jet_elements_taptweak_pure.elements_taptweak_ge
+                                          jets_secp.f_secp256k1_ecmult_strauss_wnaf
+                                          (@cons Values.val (Values.Vptr bs Integers.Ptrofs.zero)
+                                             (@cons Values.val r
+                                                (@cons Values.val (Values.Vlong Integers.Int64.one)
+                                                   (@cons Values.val a
+                                                      (@cons Values.val na (@cons Values.val ng (...))))))) m
+                                          (jet_secp_generator_entry.generator_local_env bt bz b0 b128 bw0 bw128 bj bn
+                                             bl) (jet_secp_generator_entry.strauss_entry_temps bs r a na ng) mi)
+                                       (and
+                                          (@List.NoDup Values.block
+                                             (@cons Values.block bt
+                                                (@cons Values.block bz
+                                                   (@cons Values.block b0
+                                                      (@cons Values.block b128 (@cons Values.block bw0 (...)))))))
+                                          (and
+                                             (forall (b : Values.block) (_ : Memory.Mem.valid_block m b),
+                                              not
+                                                (@List.In Values.block b
+                                                   (@cons Values.block bt
+                                                      (@cons Values.block bz (@cons Values.block b0 ...)))))
+                                             (and
+                                                (forall (b : Values.block) (hi : BinNums.Z)
+                                                   (_ : @List.In (prod Values.block BinNums.Z)
+                                                          (@pair Values.block BinNums.Z b hi)
+                                                          (jet_secp_generator_entry.generator_local_storage bt bz b0
+                                                             b128 bw0 bw128 bj bn bl)),
+                                                 Memory.Mem.range_perm mi b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+                                                (and
+                                                   (jet_sx_mem.lframe (fun (_ : Values.block) (_ : BinNums.Z) => True)
+                                                      m mi)
+                                                   (and (jet_clight_internal_permissions.keeps_permissions m mi)
+                                                      (jet_clight_internal_preserve.readonly_preserved m mi))))))))))))))))
+### C.jet_elements_taptweak_strauss_transport.elements_taptweak_strauss_bound_statement_transport
+elements_taptweak_strauss_bound_statement_transport
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (stmt : Clight.statement)
+         (trace : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : jet_transport.edom e (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf))
+         (_ : forall (id : AST.ident)
+                (_ : @List.In AST.ident id
+                       (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type)
+                          (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf))),
+              @ex Values.block
+                (fun b : Values.block =>
+                 @ex Ctypes.type
+                   (fun ty : Ctypes.type =>
+                    @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                      (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty)))))
+         (_ : @List.In Clight.statement stmt elements_taptweak_strauss_statements)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m stmt trace lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m stmt trace lef mf out
+### C.jet_elements_taptweak_strauss_transport.elements_taptweak_strauss_statements
+elements_taptweak_strauss_statements =
+@cons Clight.statement jet_secp_generator_loop_control.generator_double_statement
+  (@cons Clight.statement jet_secp_generator_loop_control.generator_nongenerator_statement
+     (@cons Clight.statement jet_secp_generator_globalz_call.generator_globalz_statement (@nil Clight.statement)))
+     : list Clight.statement
