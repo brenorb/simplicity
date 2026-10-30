@@ -986,8 +986,24 @@ ownership, unrelated memory and modinfo; its exact option payload rejects
 out-of-range tweaks or an infinite sum. The ordinary build and reviewed
 no-update records pass for it and its entry/call modules, with only the same
 eight inherited axioms and explicit memset_model/ctz_model premises.
-Next compose the x-only tweak/load/save callers,
-and the generic TapTweak SHA/reader/writer lifecycle. Do not substitute a
+`jet_secp_xonly_tweak_function.eval_xonly_pubkey_tweak_add` now composes the
+whole original x-only tweak wrapper for a represented valid affine source key
+and every 256-bit tweak. It constructs the actual local key allocation,
+executes all three pointer checks, clears the output, loads the native key,
+uses the complete byte-scalar helper, executes both result branches, saves the
+native output only on success and frees the local. Its result is the exact
+option payload above, including field bounds and opaque saved coordinates;
+caller storage, unrelated memory, forward memory and modinfo are retained.
+The ordinary build and reviewed no-update records pass for the entry/start/
+call/function modules; the complete function has only the eight inherited
+axioms and explicit memcpy_model, memset_model and ctz_model premises.
+The source-key curve/coordinate premises are internal obligations supplied by
+the original x-only parser, not added public-jet restrictions. No public
+TapTweak result or additional coverage is claimed.
+Next prove the successful native tweak payload is on curve using the existing
+Strauss group interpretation and normalization lemmas. Then compose the
+remaining x-only from-pubkey/serialize callers, and the generic TapTweak
+SHA/reader/writer lifecycle and canonical program bridge. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential
 model does not specify every arbitrary external execution. BIP340 and CheckSig are registered candidates awaiting full acceptance.

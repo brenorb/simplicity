@@ -1,0 +1,53 @@
+### C.jet_secp_xonly_tweak_calls.exec_xonly_tweak_test
+exec_xonly_tweak_test
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m ml mt : Memory.Mem.mem) (bk bin bb : Values.block) (result : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._pk e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bk jet_secp_curve_statements.curve_ge_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_xonly_pubkey_load e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ec_pubkey_tweak_add_helper e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._internal_pubkey le)
+                (@Some Values.val (Values.Vptr bin Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._tweak32 le)
+                (@Some Values.val (Values.Vptr bb Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_xonly_pubkey_load)
+                (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bin Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 ml
+                (Values.Vint Integers.Int.one))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge ml
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ec_pubkey_tweak_add_helper)
+                (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mt
+                (Values.Vint (jet_readBit_layout.bit_int result))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_xonly_tweak_entry.xonly_tweak_test
+         Events.E0 (xonly_tweak_test_temps le result) mt (xonly_tweak_test_outcome result)
+### C.jet_secp_xonly_tweak_calls.exec_xonly_tweak_finish
+exec_xonly_tweak_finish
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (bk bout : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._pk e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bk jet_secp_curve_statements.curve_ge_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_pubkey_save e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._output_pubkey le)
+                (@Some Values.val (Values.Vptr bout Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_pubkey_save)
+                (@cons Values.val (Values.Vptr bout Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bk Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_xonly_tweak_entry.xonly_tweak_finish
+         Events.E0 le mf
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.one) Ctypesdefs.tint)))

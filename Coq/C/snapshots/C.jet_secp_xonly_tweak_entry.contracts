@@ -1,0 +1,48 @@
+### C.jet_secp_xonly_tweak_entry.xonly_tweak_body_source
+xonly_tweak_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_xonly_pubkey_tweak_add)
+         (jet_secp_statement_prefix.statement_sequence xonly_tweak_start_statements
+            (Clight.Ssequence xonly_tweak_test xonly_tweak_finish))
+### C.jet_secp_xonly_tweak_entry.xonly_tweak_blocks
+xonly_tweak_blocks
+     : forall bk : Values.block,
+       @eq (list (prod (prod Values.block BinNums.Z) BinNums.Z))
+         (Clight.blocks_of_env jet_secp_linkage.secp_ge (xonly_tweak_env bk))
+         (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+            (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bk BinNums.Z0)
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))
+### C.jet_secp_xonly_tweak_entry.xonly_tweak_entry
+xonly_tweak_entry
+     : forall (m : Memory.Mem.mem) (output input bytes : Values.val),
+       @ex Memory.Mem.mem
+         (fun mi : Memory.Mem.mem =>
+          @ex Values.block
+            (fun bk : Values.block =>
+             and
+               (Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_xonly_pubkey_tweak_add
+                  (@cons Values.val output (@cons Values.val input (@cons Values.val bytes (@nil Values.val)))) m
+                  (xonly_tweak_env bk) (xonly_tweak_temps output input bytes) mi)
+               (and (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), not (@eq Values.block b bk))
+                  (and
+                     (Memory.Mem.range_perm mi bk BinNums.Z0
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (and (jet_sx_mem.lframe (fun (_ : Values.block) (_ : BinNums.Z) => True) m mi)
+                        (and (jet_clight_internal_permissions.keeps_permissions m mi)
+                           (jet_clight_internal_preserve.readonly_preserved m mi)))))))
+### C.jet_secp_xonly_tweak_entry.xonly_tweak_free
+xonly_tweak_free
+     : forall (m : Memory.Mem.mem) (bk : Values.block)
+         (_ : Memory.Mem.range_perm m bk BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (Memory.Mem.free_list m (Clight.blocks_of_env jet_secp_linkage.secp_ge (xonly_tweak_env bk)))
+               (@Some Memory.Mem.mem mf))
+            (and (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bk)) m mf)
+               (jet_clight_internal_preserve.readonly_preserved m mf)))
