@@ -1324,6 +1324,49 @@ SC.comp (SC.pair (@literal_bip0340_check (Alg.Assertion.toCore term)) SC.unit)
         raise ValueError('BIP340 complete success/failure contract differs')
 
 
+def check_checksig(s):
+    """Bind the new Signature hash/composition port; public C proof is pending."""
+    for key, fragment in [
+        ('catalog', 'CheckSigVerify :: SignatureJet ((Secp256k1.PubKey, Word512),Secp256k1.Sig) ()'),
+        ('catalog', 'specificationSignature CheckSigVerify = CheckSig.checkSigVerify'),
+        ('scale_ffi', 'check_sig_verify :: ((PubKey, Word512), Sig) -> Maybe ()'),
+        ('scale_ffi', 'check_sig_verify = unsafeLocalCoreJet c_check_sig_verify'),
+        ('scale_ffi', 'foreign import ccall unsafe "" c_check_sig_verify :: Ptr FrameItem -> Ptr FrameItem -> IO CBool'),
+        ('checksig_tags', r'tag = tagIv . intercalate "\US"'),
+        ('checksig_tags', 'prefix = ["Simplicity"]'),
+        ('checksig_tags', 'signatureTag = tag $ prefix ++ ["Signature"]'),
+    ]:
+        p.require(s[key], fragment, 'CheckSig binding')
+    pad = '0x8' + '0'*124 + '400'
+    expected = f"""(scribe iv &&& iden >>> hb)
+ &&& scribe (toWord512 {pad}) >>> hb
+ where
+  iv = toWord256 . integerHash256 . ivHash $ signatureTag
+  hb = hashBlock"""
+    body = re.search(r"\bsigHash\s+Sha256\.Lib\{\.\.\}\s*=(.*?)\nsigHash'\s*::", s['checksig_program'], re.S)
+    if not body or p.compact(body[1]) != p.compact(expected):
+        raise ValueError('canonical Signature hash differs')
+    body = re.search(r"\bcheckSigVerify\s+sha256\s+libsecp256k1\s*=(.*?)\ncheckSigVerify'\s*::", s['checksig_program'], re.S)
+    expected = 'take (oh &&& drop (sigHash sha256)) &&& ih >>> bip_0340_verify libsecp256k1'
+    if not body or p.compact(body[1]) != p.compact(expected):
+        raise ValueError('canonical CheckSig composition differs')
+    ports = [
+        ('checksig_literal', 'literal_checksig_args', 'Ty.Prod (Ty.Prod (Word 8) (Word 9)) (Word 9)'),
+        ('checksig_literal', 'literal_checksig_hash',
+         '(((Alg.scribe checksig_iv_word &&& iden) >>> @Simplicity.SHA256.hashBlock term) &&& Alg.scribe checksig_pad_word) >>> @Simplicity.SHA256.hashBlock term'),
+        ('checksig_literal', 'literal_checksig_verify',
+         'CS.comp (CS.pair (CS.take (CS.pair (CS.take CS.iden) (CS.drop (@literal_checksig_hash (Alg.Assertion.toCore term))))) (CS.drop CS.iden)) (@literal_bip0340_verify term)'),
+        ('checksig_hash', 'checksig_pad_word', '@fromZ (WordToZ 9) ' + pad),
+        ('checksig_hash', 'checksig_hash_word',
+         '@Simplicity.SHA256.hashBlock Alg.CoreFunSem (@Simplicity.SHA256.hashBlock Alg.CoreFunSem (checksig_iv_word,(ir,h)),checksig_pad_word)'),
+        ('checksig_tag', 'checksig_tag_hash', 'MerkleRoot.tag (MerkleRoot.prefix++["Signature"])'),
+        ('checksig_tag', 'checksig_iv_word', 'Word.from_hash256 checksig_tag_hash'),
+    ]
+    for key, name, expected in ports:
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError('CheckSig literal dependency differs: ' + name)
+
+
 def test():
     s = {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1344,6 +1387,11 @@ def test():
         "schnorr_hash": COQ / "C/jet_secp_schnorr_challenge_hash.v",
         "schnorr_startup": COQ / "C/jet_secp_schnorr_startup.v",
         "schnorr_jet": COQ / "C/jet_secp_bip0340_local.v",
+        "checksig_program": REPO / "Haskell/Core/Simplicity/Programs/CheckSig.hs",
+        "checksig_tags": REPO / "Haskell/Core/Simplicity/Tags.hs",
+        "checksig_literal": COQ / "C/jet_secp_checksig_literal.v",
+        "checksig_hash": COQ / "C/jet_secp_checksig_hash.v",
+        "checksig_tag": COQ / "C/jet_secp_checksig_tag.v",
         "schnorr_digest": REPO / "Haskell/Core/Simplicity/Digest.hs",
         "scale_ffi": REPO / "Haskell/Core/Simplicity/FFI/Jets.hs",
         "scale_ffi_test": REPO / "Haskell/Tests/Simplicity/FFI/Tests.hs",
@@ -1950,6 +1998,36 @@ def test():
             continue
         raise ValueError('accepted BIP340 source mutation: ' + old)
     print(f'BIP340 catalog/tag/challenge/assertion/complete public contract match; {len(mutations)} targeted mutations rejected')
+
+
+    check_checksig(s)
+    mutations = [
+        ('catalog', 'specificationSignature CheckSigVerify = CheckSig.checkSigVerify', 'specificationSignature CheckSigVerify = Secp256k1.bip_0340_verify'),
+        ('scale_ffi', 'check_sig_verify = unsafeLocalCoreJet c_check_sig_verify', 'check_sig_verify = unsafeLocalCoreJet c_bip_0340_verify'),
+        ('checksig_tags', 'prefix = ["Simplicity"]', 'prefix = ["simplicity"]'),
+        ('checksig_tags', 'signatureTag = tag $ prefix ++ ["Signature"]', 'signatureTag = tag $ prefix ++ ["signature"]'),
+        ('checksig_tags', r'intercalate "\US"', r'intercalate "\NUL"'),
+        ('checksig_program', 'take (oh &&& drop (sigHash sha256))', 'take (oh &&& drop iden)'),
+        ('checksig_program', 'ivHash $ signatureTag', 'ivHash $ hiddenTag'),
+        ('checksig_literal', 'CS.take CS.iden', 'CS.drop CS.iden'),
+        ('checksig_literal', 'Ty.Prod (Ty.Prod (Word 8) (Word 9)) (Word 9)', 'Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 9)'),
+        ('checksig_hash', 'checksig_iv_word,(ir,h)', 'checksig_iv_word,(h,ir)'),
+        ('checksig_tag', '["Signature"]', '["signature"]'),
+    ]
+    for key in ['checksig_program', 'checksig_hash']:
+        pad = '0x8' + '0'*124 + '400'
+        mutations.append((key, pad, '0x8' + '0'*124 + '200'))
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive CheckSig mutation fixture: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            check_checksig(changed)
+        except ValueError:
+            continue
+        raise ValueError('accepted CheckSig source mutation: ' + old)
+    print(f'CheckSig canonical tag/hash/composition port match (public C contract pending); {len(mutations)} targeted mutations rejected')
 
 
 if __name__ == "__main__":

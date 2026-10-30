@@ -863,7 +863,13 @@ canonical two-block hash (tagged 64-byte prefix, 64-byte message and 1024-bit
 padding length). Its padding/register bridges are closed; execution keeps the
 existing explicit memcpy_model only. Ordinary builds and reviewed no-update
 records pass for both modules. They are caller prerequisites, not additional
-public coverage. Next finish the literal CheckSig composition and the wrapper's
+public coverage. `jet_secp_checksig_literal` now ports the exact frozen
+Programs.CheckSig signature-hash and verifier composition and proves their
+parametricity and option-semantics reduction to the existing BIP340 term.
+All four bridges are closed. Its ordinary build and reviewed no-update records
+pass. The existing source correspondence gate now checks this composition,
+tag, padding, catalog and FFI binding and rejects 13 targeted mutations; it
+explicitly does not claim a public C contract yet. Next compose the wrapper's
 owned context copy, message read, digest serialization, signature read and
 existing Schnorr call. The CheckSig wrapper copies
 this result to `_ctx`, reads/absorbs its 64-byte message, finalizes, serializes
