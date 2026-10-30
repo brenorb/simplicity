@@ -848,12 +848,14 @@ forward memory. Ordinary build and reviewed scoped no-update records pass;
 no library premise or public input restriction is added. This is a CheckSig
 prerequisite, not a public jet result, and is newer than the BIP340 candidate
 snapshot intended for the worker.
-Next execute the actual `f_sha256_tagged_init`: it calls memcpy for **32**
-bytes from `signatureIV`, initializes a local 88-byte compound context with
-counter 64, then returns it by CompCert's By_copy assignment (not an external
-88-byte memcpy). Reuse `jet_sha256_tagged_fields` for the field-store prefix,
-`jet_sha256_init_layout` for the complete allocation/copy/free pattern, and the
-existing secp/SHA transport/layout lemmas. Then the CheckSig wrapper copies
+`jet_secp_tagged_copy` and `jet_secp_tagged_init` now execute the actual
+`f_sha256_tagged_init`, including its bounded 32-byte memcpy, all field stores,
+88-byte By_copy return and compound-local free. The owned contract retains
+both caller regions, external framing and readonly memory. Its only library
+condition is the existing explicit memcpy_model; no new axiom is introduced.
+Both ordinary builds and reviewed scoped assumption/contract records pass.
+Next compose the canonical tag adapter and 64-byte message hash, then the
+CheckSig wrapper copies
 this result to `_ctx`, reads/absorbs its 64-byte message, finalizes, serializes
 32 digest bytes to `_buf`, reads the signature and calls the original Schnorr
 verifier. Its full outer entry has eight locals. Preserve BIP340's already
