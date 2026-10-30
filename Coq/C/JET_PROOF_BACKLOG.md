@@ -1085,6 +1085,11 @@ it equates the original runtime tag hash and doubled-tag compression with
 `Digest.stringHash "TapTweak"` and its canonical tagged IV. Ordinary compilation
 and reviewed no-update records pass; there is no new external-library premise.
 This closes tag initialization/representation only, not the public jet.
+`jet_secp_sha_init_copy.exec_sha_init_copy` now executes original SHA init and
+the normalized 88-byte context copy at arbitrary caller-local identifiers,
+retaining exact initial registers/counter/overflow, ownership and framing.
+It reuses the existing constructor and struct-copy proofs and adds no library
+premise. Ordinary compilation and reviewed no-update records pass.
 Next compose the original tag block and the two sha256_hash prefix calls.
 The frozen `v_taptweak` global is a writable nine-byte array (eight characters
 plus NUL), not a readonly string; do not assume readonly tag memory. Establish
