@@ -9,14 +9,20 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-At the last fully accepted milestone there are 525 equivalence entries (138 with the existing
-explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 7
+At the last fully accepted milestone there are 526 equivalence entries (139 with the existing
+explicit `memcpy_model` premise, 6 with the approved `ctz_model` premise, 8
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-526/533 accepted proof entries, with 7 jets still lacking either accepted result.
-The registered candidate inventory is 528/533, including BIP340 and CheckSig.
-BIP340 full scoped acceptance at 740a5536 is running; CheckSig full scoped
-acceptance is queued. Neither new acceptance is claimed.
+527/533 accepted proof entries, with 6 jets still lacking either accepted result.
+The registered candidate inventory is 528/533, including CheckSig.
+BIP340 passed full scoped acceptance at `740a5536`: recursive kernel checking
+on 1,468 modules, matching reviewed assumptions on 1,358 modules and contracts
+on 1,376 modules, negative tests and all five AST regeneration comparisons.
+The before/after source-and-object fingerprints agree; every source and object
+in its 1,468-module closure also matches the main checkout. Reproduce with
+`JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bip_0340_verify`.
+CheckSig full scoped acceptance at `05e9fc35` is the next verification task;
+it remains a registered candidate until that complete command passes.
 `point_verify_1` passed full scoped acceptance on the exact inputs of
 `0180f32b`: kernel checking on 1,084 modules, matching assumption records on
 1,015 modules and contract records on 1,033 modules, negative tests and all
@@ -349,21 +355,15 @@ reaching 526/533 as described above. Reproduce with
 
 ### Schnorr signature callers
 
-Current resume checkpoint: the predicate and original challenge-to-return C
-chains are integrated into `feat/jet-equivalence`. The isolated worktree
-`codex/schnorr-reconstruction` is now frozen at the BIP340 registration commit
-`740a5536`. The ordinary dependency refresh and the exact public candidate
-build both succeeded. Only nine newly added, source-identical compiled caches
-were copied before that final build; older worker objects were retained.
-The full scoped acceptance command is now running there:
-`JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bip_0340_verify`.
-Before/after source/object fingerprints bracket the run; compare them and the
-final exit status before claiming acceptance. Do not edit/copy caches while the
-worker's check runs. This supersedes a separate inner-tail kernel run.
-The new full scoped acceptance result is **pending**, not claimed. Recursive
-coqchk has passed for all 1468 selected modules; the assumption gate is still
-running (its four child coqc processes were confirmed consuming CPU). The
-contract and AST-regeneration phases plus final fingerprint comparison remain.
+Current resume checkpoint: BIP340 full scoped acceptance **passed** at the exact
+registration commit `740a5536335035cc6120c2d01894453dcdce1abe`, as recorded above.
+The command was `JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bip_0340_verify`.
+The clean `codex/schnorr-reconstruction` verifier was then advanced to CheckSig
+registration commit `05e9fc35`; 17 newly added, source-identical compiled objects
+were copied with preserved mtimes, while all older objects were retained.
+Build `C/jet_secp_checksig_local.vo` before fingerprinting the idle worker and
+running its complete scoped acceptance. Do not edit worker sources or caches
+during that run. Main-checkout TapTweak proof work is independent of it.
 The earlier snapshot at `93b98930`, where recursive checking of
 `C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return` **passed**
 (exit 0). Before/after/at-completion fingerprints agree
@@ -385,10 +385,9 @@ the full scoped acceptance path for the new complete public BIP340 candidate.
 `jet_secp_bip0340_local.bip0340_initialized_local_spec` now builds for every
 input under the explicit memcpy/memset/ctz models. Both key-parser exits, all
 reads, original verifier, five outer frees, and initialized-state preservation
-are composed. Reviewed scoped records pass. It is a **registered candidate, not yet accepted**. Canonical source binding
-and exact multi-model reporting now pass; full scoped acceptance, including
-recursive kernel and AST checks, remains pending.
-Public accepted coverage stays 526/533.
+are composed. Reviewed scoped records pass. It passed full scoped acceptance at `740a5536`; canonical source binding,
+exact multi-model reporting, recursive kernel checking and all AST comparisons
+passed. Public accepted coverage is now 527/533.
 The earlier recursive check at `e71798a6` of
 `C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/at-completion
 input fingerprints agree (`b02a3e8b659b4032e79b865b6df8e82bb1ed032999f51c1f7d7f8bf7cdfd4f27`);
@@ -916,16 +915,13 @@ BIP340. The ordinary build and reviewed no-update assumption/contract records
 pass. The existing canonical source gate now pins the full CheckSig public
 contract and startup definition and rejects 17 targeted mutations.
 The candidate is registered and the complete coverage negative tests pass.
-Registered inventory is **528/533**, while accepted coverage remains **526/533**.
-After the live BIP340 acceptance finishes, inspect its terminal status and
-before/after fingerprints before editing its worker. On success, record that
-exact receipt, then advance the idle clean worker to CheckSig registration
-commit `05e9fc35` and copy only newly added source-identical caches, retaining their
-source/object mtimes and leaving old objects alone. Build
-`C/jet_secp_checksig_local.vo`, fingerprint the idle worker, then run
+Registered inventory is **528/533**, while accepted coverage is **527/533**.
+BIP340 acceptance passed. The now-idle clean verifier is at CheckSig registration
+commit `05e9fc35`, with only new source-identical objects copied, preserving
+mtimes. After its ordinary target build succeeds, fingerprint it and run
 `JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_check_sig_verify`.
-Compare after-fingerprint/status. Do not label either candidate accepted
-before its full scoped command passes.
+Compare after-fingerprint/status. CheckSig remains unaccepted until the full
+scoped command passes.
 
 Next independent target: Bitcoin build_taptweak. Inspection shows that the
 **frozen jets_secp.v already contains both its original public wrapper and
@@ -1091,7 +1087,8 @@ Keep the local allocation/free and source midstate framing attached. The prior
 seq-u32be suggestion was not grounded in the actual body and is superseded. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential
-model does not specify every arbitrary external execution. BIP340 and CheckSig are registered candidates awaiting full acceptance.
+model does not specify every arbitrary external execution. BIP340 passed full acceptance at `740a5536`; CheckSig remains a registered
+candidate awaiting full acceptance.
 No new accepted coverage is claimed for these helpers. Reuse the table,
 generator and inverse modules rather than re-proving them.
 
