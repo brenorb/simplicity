@@ -1611,9 +1611,26 @@ residue bridge for every normalized input word. All twenty-two theorem records
 and four frame definitions have reviewed assumption/contract records that
 match without update flags. Execution adds no library premise or axiom beyond
 the six inherited assumptions; layouts and membership checks are closed.
-The linked beta state compiles in scratch; its integration and the generator
-tables/affine modulus/CTZ interfaces are next. These additions postdate the
-`ca89b2aa` kernel check.
+`jet_elements_taptweak_beta` and `jet_elements_taptweak_generator_globals`
+also build normally, with reviewed records matching without update flags.
+They establish the actual linked beta and both generator tables from
+Genv.init_mem, prove their readonly preservation, and execute the original
+signed table lookup at the linked addresses. Table words remain the original
+initializer words; their existing literal/specification bridges are separate.
+The new closed `elements_taptweak_imported_variable_info` derives linked
+variable information via the proved AST import and Genv.find_def_symbol,
+avoiding full reduction of the 65,536-word initializer at lookup.
+
+The first audit exposed external_functions_properties/inline_assembly_properties
+in the older source table helper's generic forwarding/readback proofs.
+`jet_secp_table_internal` derives the same complete original lookup with the
+same inputs and outputs, using the checked internal call graph instead.
+The linked lookup uses this result; its reviewed assumption record has only
+the six inherited assumptions. Original accepted source helpers are unchanged.
+Initialization/preservation uses only the four inherited memory/logical
+assumptions, and lookup/AST facts are closed. The linked field metadata and
+actual CTZ call compile in scratch; normal integration/audits are next.
+These additions postdate the `ca89b2aa` kernel check.
 The native tweak call and suffix composition, actual linked constant/global
 initialization, outer wrapper and final writer/free composition still remain;
 no whole Elements TapTweak equivalence is claimed.
