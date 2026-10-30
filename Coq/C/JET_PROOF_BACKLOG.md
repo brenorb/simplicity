@@ -1566,10 +1566,25 @@ readonly state. Only the four inherited memory/logical assumptions appear;
 no library model is needed. Entry/free are completed components, not a whole
 public call. These new modules postdate the `ca89b2aa` kernel check.
 
-A read-only Astra Medium review confirms the next native steps: port the real
-opaque-to-local 64-byte load copy, then pubkey_load/xonly_pubkey_load and their
-coordinate wrapper; converter and serializer can reuse that loader, the linked
-save and pure arithmetic transport. Their library calls remain explicit.
+The native loader is now also in ordinary modules:
+`jet_elements_taptweak_load_copy` executes the real 64-byte opaque-to-local
+copy at the actual linked memcpy symbol. `jet_elements_taptweak_load_body`
+transports the pure unpack/zero-test calls at identical memory and retains
+both acceptance outcomes. `jet_elements_taptweak_load_function` derives actual
+entry, all three private allocations/frees, the whole pubkey_load and x-only
+load wrapper, and canonical coordinate readback. Its source-buffer base stays
+general; no curve/input restriction is added to the general loader. All
+sixteen reviewed theorem records match without update flags. Their only
+library premise is the existing memcpy_model, with six inherited execution
+assumptions (layout/lookup facts closed).
+
+A read-only Astra Medium review confirms converter and serializer as the next
+native steps: both can reuse this loader, the linked save and pure arithmetic
+transport. Prepared scratch modules `jet_elements_taptweak_native_pure.v` and
+`jet_elements_taptweak_convert.v` already compile; they contain the even-Y and
+field-to-byte calls, point-free lifecycle and complete null-parity converter.
+Integrate/audit them after the loader; preserve the original null-pointer
+branch. Serializer is being prepared against the same interfaces.
 The ecmult path additionally needs linked state/lookup interfaces for scalar
 split constants (_g1/_g2/_minus_b1/_minus_b2/lambda), beta and both pre_g tables;
 affine finish needs the actual field modulus metadata and existing CTZ model.
