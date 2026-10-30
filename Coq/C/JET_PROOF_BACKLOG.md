@@ -1639,9 +1639,8 @@ only on the existing ctz_model for nonzero arguments. Its execution has the
 same six inherited assumptions; initialization/preservation uses four and
 lookup/layout facts are closed. No new external model is introduced.
 
-The linked beta auxiliary execution is complete below. Integrate the generator
-digit/descending-loop composition already checked in scratch, then connect
-the preparation, scalar/wNAF branches and final correction into the complete
+The linked beta auxiliary and four-stream descending-loop executions are
+complete below. Next connect the preparation, scalar/wNAF branches and final correction into the complete
 ecmult and affine inverse paths. Reuse the complete linked scalar split,
 signed table lookup and pure arithmetic transport. The old inverse-loop CountCall and modulus
 predicates still name secp_ge/source blocks: the new target CTZ/metadata
@@ -1675,13 +1674,38 @@ identical memory. Local-domain premises are proved for the actual Strauss
 environment; final callers must discharge them, not expose them publicly.
 All three build normally and their reviewed records match without update
 flags. Execution has only the six inherited assumptions; allocation has four,
-and closure/layout/domain facts are closed. The complete generator digit
-pair, four-stream arithmetic iteration and descending loop compile in scratch;
-integrate them next. No whole ecmult or public call is established yet.
+and closure/layout/domain facts are closed.
+`jet_elements_taptweak_generator_digit`, `jet_elements_taptweak_generator_dispatch`
+and `jet_elements_taptweak_generator_pair` now derive the real nonzero lookup
+and arbitrary-shared-Z addition, the guard/read/zero-digit branch, and both
+generator dispatches. `jet_elements_taptweak_strauss_iteration` reuses the
+existing complete source double/non-generator execution through the checked
+local transport and composes the actual linked generator pair.
+`jet_elements_taptweak_strauss_loop` derives the complete original descending
+loop for every count up to 129, with all four digit streams, exact existing
+literal recurrence, stored infinity flag, retained tables/denominator,
+permissions, readonly state, framing and final temporaries. The local-domain
+conditions are internal and discharged by the actual-environment lemmas above.
+All five modules build normally and their reviewed assumption/contract records
+match without update flags. Execution has only the six inherited assumptions;
+no library premise or curve/input restriction is added to these loop results.
+They postdate the earlier recursive check and do not add accepted public coverage.
+
+Next reuse the pure wNAF tails instead of porting their arithmetic inductions:
+the original `wnaf_env` has one scalar local. Check same-memory statement
+transport for `wnaf_before_memset` and `wnaf_post_memset`, derive the actual
+linked memset call from the existing memset_model (the real 129-int buffer
+uses 516 bytes), then compose `jet_secp_wnaf_function5` and
+`jet_secp_wnaf_function15` entry/return/free structure. Do not transport the
+entire wNAF function as pure: its real memset must execute at the target GE.
+The actual `generator_final_statement` is also pure and can be transported
+after its own checked statement/layout fact; it is not yet in the three-item
+Strauss statement list. Reuse the original final-flag/nonzero-table bridges
+when composing the real caller. No whole ecmult or public call is established yet.
 Reproduce the completed component builds with:
 
 ```sh
-JET_TARGETS='C/jet_elements_taptweak_entry.vo C/jet_elements_taptweak_hash_phase.vo C/jet_elements_taptweak_serialize.vo C/jet_elements_taptweak_split_function.vo C/jet_elements_taptweak_beta.vo C/jet_elements_taptweak_generator_globals.vo C/jet_elements_taptweak_modinfo.vo C/jet_elements_taptweak_ctz.vo' bash Coq/build-jets.sh -j2
+JET_TARGETS='C/jet_elements_taptweak_entry.vo C/jet_elements_taptweak_hash_phase.vo C/jet_elements_taptweak_serialize.vo C/jet_elements_taptweak_split_function.vo C/jet_elements_taptweak_beta_loop.vo C/jet_elements_taptweak_strauss_transport.vo C/jet_elements_taptweak_strauss_loop.vo C/jet_elements_taptweak_modinfo.vo C/jet_elements_taptweak_ctz.vo' bash Coq/build-jets.sh -j2
 ```
 The native tweak call and suffix composition, actual linked constant/global
 initialization, outer wrapper and final writer/free composition still remain;
