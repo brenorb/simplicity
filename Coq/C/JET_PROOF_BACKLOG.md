@@ -1,5 +1,13 @@
 # Remaining jet proof work
 
+The original linked byte-scalar tweak helper now builds in
+`jet_elements_taptweak_tweak_bytes_{entry,calls,function}`. Both overflow
+short-circuit and native success/failure paths, scalar parsing, actual native
+call, two frees and framing are derived. Reviewed scoped records and their
+no-update comparisons pass, as do scanning and frozen-target checks. The
+complete helper has six inherited assumptions plus approved memset/ctz models.
+This adds no public coverage or fresh recursive-check claim.
+
 The linked native eckey tweak caller now builds in ordinary modules
 `jet_elements_taptweak_eckey_{entry,prepare,finish,function}`. Its actual
 in-place multiplication, infinity guard, finite affine call and both private
@@ -36,7 +44,7 @@ in the next recursive check. This historical check does not cover later ports.
 Later native/helper ports through the entire frozen Elements wrapper compile
 in scratch. Integrate in the reviewed groups listed by
 `/private/tmp/elements-taptweak-integration-batches.json`, using the private
-integration script; groups 0 and 1 are integrated above. Each remaining group needs
+integration script; groups 0 through 2 are integrated above. Each remaining group needs
 ordinary builds, reviewed type/assumption records, no-update comparisons and
 its own signed atomic commit. The full candidate is still missing its final
 Elements specification bridge, canonical-source binding and public acceptance.
