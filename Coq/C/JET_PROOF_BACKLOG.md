@@ -519,6 +519,19 @@ have ordinary builds and reviewed scoped no-update records. They are later than
 the pending `e71798a6` recursive-check inputs. Next compose the caller's key-load
 statement, then prove the actual parser/save path establishes the native key
 representation and close signature guards and the outer lifecycle.
+`jet_secp_schnorr_keyload_return.exec_schnorr_keyload_return_canonical` now
+composes the original opaque-key load, its failure guard and the full canonical
+suffix (statement 6 onward). It derives loaded X/Y storage and bounds, success
+of the key-load guard, startup/global state and all preserved locals from the
+complete loader proof. Its native key coordinate/readability premises remain
+internal obligations for the real parser/save path to establish; no public jet
+is registered from this suffix. The ordinary build and reviewed scoped
+no-update records pass. The existing `memcpy_model`, `memset_model` and
+`ctz_model` premises remain explicit. Next prove native storage packing and the
+actual `ge_to_storage`/`pubkey_save`/x-only parse path, then signature guards and
+the outer lifecycle. Note that the actual `ge_to_storage` allocates two fields,
+copies and normalizes X/Y, and calls `fe_to_storage` twice; reuse the existing
+copy and normalization proofs rather than assuming normalized storage effects.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
