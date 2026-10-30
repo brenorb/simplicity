@@ -9,11 +9,13 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-The inventory currently has 525 equivalence entries (138 with the existing
+At the last fully accepted milestone there are 525 equivalence entries (138 with the existing
 explicit `memcpy_model` premise, 5 with the approved `ctz_model` premise, 7
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-526/533 accepted proof entries, with 7 jets still lacking either result.
+526/533 accepted proof entries, with 7 jets still lacking either accepted result.
+The registered candidate inventory is 527/533, including BIP340; its full
+scoped acceptance at 740a5536 is running and remains unclaimed.
 `point_verify_1` passed full scoped acceptance on the exact inputs of
 `0180f32b`: kernel checking on 1,084 modules, matching assumption records on
 1,015 modules and contract records on 1,033 modules, negative tests and all
@@ -885,9 +887,15 @@ actual absorption, finalization and digest-serialization statements and
 returns the exact canonical message bytes with owned memory, external framing,
 readonly memory and SHA startup preserved. Their ordinary builds and reviewed
 no-update records pass. These execution contracts retain memcpy_model only.
-Next compose context setup, the 64-byte message read and this hashing suffix;
-then the signature read and existing parsed-key Schnorr verifier. The outer
-entry/free lemmas are ready. The initial source-frame copy/key read and key
+`jet_secp_checksig_message.exec_checksig_message_block` now composes that
+entire original message block: canonical tag constructor, actual _ctx copy,
+64-byte read, absorption, finalization and digest serialization. It returns
+canonical message bytes, advances the cursor by 512, retains all eight owned
+local regions and preserves framing/readonly memory/checksig_startup. The
+ordinary build and reviewed scoped no-update assumption/contract records pass;
+only the existing memcpy_model remains explicit. This is not yet the public
+jet theorem. Next compose the signature read and existing parsed-key Schnorr
+verifier with this message block. The outer entry/free lemmas are ready. The initial source-frame copy/key read and key
 parse need adapters to the eight-local environment, reusing the existing
 reader/parser results. Bind the eventual full public contract in the existing
 source gate before registration. Preserve BIP340's already reviewed startup
