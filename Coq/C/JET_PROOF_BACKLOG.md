@@ -497,6 +497,15 @@ by `ge_from_storage`, then the zero-X guard. Reuse
 `eval_ge_from_storage_readonly`, the existing storage value lemmas, and
 `secp_curve_x_nonzero` for successfully decompressed keys. Do not replace this
 opaque native-storage path with the generator's two big-endian byte buffers.
+`jet_secp_pubkey_copy.exec_pubkey_copy` now executes the actual 64-byte
+memcpy statement from an opaque key into local native storage, preserving all
+eight 64-bit words, destination ownership, framing and readonly state. The
+existing bounded `memcpy_model` remains explicit. Its ordinary build and
+reviewed scoped no-update records pass. `jet_secp_field_zero_readonly` executes
+the exact `fe_is_zero` accessor with memory unchanged, and derives its nonzero
+result from nonzero limb value; it does not substitute the normalization-based
+zero helper. Its ordinary build and audits also pass. Compose these with the
+original loader entry, `ge_from_storage`, zero-X guard, and frees next.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
