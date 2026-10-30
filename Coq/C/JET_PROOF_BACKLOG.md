@@ -9,13 +9,20 @@ native observation, or generic external-semantics countermodel is not a
 whole-public divergence proof. Production C, specifications and APIs remain
 fixed; report a proved mismatch rather than correcting either target.
 
-At the last fully accepted milestone there are 527 equivalence entries (140 with the existing
-explicit `memcpy_model` premise, 7 with the approved `ctz_model` premise, 9
+At the last fully accepted milestone there are 528 equivalence entries (141 with the existing
+explicit `memcpy_model` premise, 8 with the approved `ctz_model` premise, 10
 with the approved `memset_model` premise) and one checked whole-public
 refutation, `C.jet_secp_mixed_ex_refutation.gej_ge_add_ex_not_literal_local_spec`:
-528/533 accepted proof entries, with 5 jets still lacking either accepted result.
-The registered candidate inventory is 529/533, including Bitcoin TapTweak
-which still awaits full acceptance.
+529/533 accepted proof entries, with 4 jets still lacking either accepted result.
+The registered inventory is also 529/533. Bitcoin TapTweak passed full scoped
+acceptance at `897ae888caf1e560adec4d51f9ed9823cd70b591`: recursive kernel
+checking on 1,522 modules, matching assumptions on 1,410 modules and contracts
+on 1,430 modules, negative tests and all five AST comparisons. The full
+before/after source-and-object fingerprint agrees, and all 3,044 closure
+source/object files and their available snapshots match the main checkout.
+Reproduce with `JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_build_taptweak`.
+The four remaining public targets are Elements `simplicity_build_taptweak`,
+`simplicity_hash_to_curve`, `simplicity_output_is_fee` and `simplicity_total_fee`.
 BIP340 passed full scoped acceptance at `740a5536`: recursive kernel checking
 on 1,468 modules, matching reviewed assumptions on 1,358 modules and contracts
 on 1,376 modules, negative tests and all five AST regeneration comparisons.
@@ -1243,21 +1250,18 @@ Word512 inputs and general valid frames/cursors. Both success and rejection
 come from actual entry, copy, calls, return and every free. Its ordinary build
 and reviewed assumption/contract records pass with exactly the existing
 memcpy_model, memset_model and ctz_model conditions and eight inherited axioms.
-It is a **registered candidate**, not additional accepted coverage yet.
-The existing `secp-field-integration/check-rescale.py` source gate now binds
+It passed full scoped acceptance at `897ae888` as recorded above; this is
+an accepted whole-public Bitcoin equivalence under those existing models.
+The existing `secp-field-integration/check-rescale.py` source gate binds
 Bitcoin catalog/FFI/library dispatch, the exact buildTaptweak assertion tree,
 tag, padding, literal ports and complete initialized public contract, with
 26 targeted mutations rejected. The coverage parser retains all three helper
-models and checks the exact public boundary. Accepted coverage stays 528/533;
-the registered inventory is 529/533.
-Full scoped acceptance for simplicity_bitcoin_build_taptweak is running at
-`897ae888` in the isolated verifier, on a 1,522-module closure. Static checks
-and the ordinary build passed; recursive kernel checking has begun. Source
-and object fingerprints still agree before the run and after its build.
-Wait for this same run's terminal result rather than restarting it. Afterwards,
-carry its receipt only after before/after fingerprints and main-checkout
-closure files agree. Do not repeat C execution or option-semantics development.
-The Elements wrapper remains separate work; this candidate proves Bitcoin only.
+models and checks the exact public boundary. Both accepted coverage and the
+registered inventory are 529/533. The isolated run exited zero, and its full
+before/after source/object fingerprint is unchanged; every closure source,
+object and available snapshot agrees with the main checkout. Do not repeat
+Bitcoin C execution or option-semantics development. The Elements wrapper
+remains separate work; the accepted theorem proves Bitcoin only.
 
 Elements follow-up (no additional public coverage):
 `jet_secp_taptweak_tag_runtime.exec_taptweak_short_tag` executes the original
