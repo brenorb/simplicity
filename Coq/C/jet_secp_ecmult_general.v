@@ -46,7 +46,7 @@ Require Import C.jet_secp_strauss_general_function C.jet_secp_strauss_general_fi
  C.jet_secp_generator_globals C.jet_secp_generator_pair_general.
 Local Opaque literal_off_curve_linear_combination_1.
 
-Theorem eval_ecmult_general_flag (Model:memset_model)
+Theorem eval_ecmult_general_flag_forward (Model:memset_model)
  (raw ng ax ay az:Ty.tySem (Word 8)) x y z m br bk ba bng :
  (forall h,generator_table_state h m) -> split_constants_ready m -> beta_initialized m ->
  NoDup [br;bk;ba;bng] ->
@@ -75,7 +75,7 @@ Theorem eval_ecmult_general_flag (Model:memset_model)
  (Bit.toBool (@canonical_fe_is_zero Alg.CoreFunSem
    (fst (@literal_scalar_table5 Alg.CoreFunSem ((ax,ay),az))))=false ->
   Mem.load Mint32 mf br 120=Some (Vint (bit_int (Bit.toBool
-   (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz)))))).
+   (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz)))))) /\ mem_forward m mf.
 Proof.
  intros Tables Ready Beta Separate Owned Input InputNG BX BY BZ X Y Z Flag HX HY HZ.
  assert (Valid:forall b,In b [br;bk;ba;bng] -> Mem.valid_block m b).
@@ -92,11 +92,14 @@ Proof.
  pose (le:=ecmult_temps (Vptr br Ptrofs.zero) (Vptr ba Ptrofs.zero)
   (Vptr bk Ptrofs.zero) (Vptr bng Ptrofs.zero)).
  assert (FrameS:lframe (fun _ _=>True) m ms) by (apply lframe_unchanged;exact UnchangedS).
+ assert (ForwardS:mem_forward m ms).
+ { intros block OldValid;split.
+   - eapply Mem.valid_block_unchanged_on;[exact UnchangedS|exact OldValid].
+   - intros pos permission Perm;eapply Mem.perm_unchanged_on_2;
+     [exact UnchangedS|exact I|exact OldValid|exact Perm]. }
  assert (ReadS:readonly_preserved m ms).
- { split.
-   - eapply mem_forward_trans;[eapply clight_entry2_forward;exact Entry|].
-     exact (proj1 (clight_exec_forward secp_ge) _ _ _ _ _ _ _ _ Setup).
-   - eapply Mem.unchanged_on_implies;[exact UnchangedS|intros;exact I]. }
+ { split;[exact ForwardS|].
+   eapply Mem.unchanged_on_implies;[exact UnchangedS|intros;exact I]. }
  assert (TablesS:forall h,generator_table_state h ms) by (eapply generator_tables_readonly;[exact Tables|exact ReadS]).
  assert (ReadyS:split_constants_ready ms) by (eapply split_constants_readonly;[exact Ready|exact ReadS]).
  assert (BetaS:beta_initialized ms) by (eapply beta_initialized_preserved;[exact Beta|exact ReadS]).
@@ -131,9 +134,9 @@ Proof.
  assert (FlagS:Mem.load Mint32 ms ba 120=Some (Vint (bit_int (Bit.toBool
   (@literal_gej_is_infinity Alg.CoreFunSem ((ax,ay),az)))))).
  { rewrite (proj1 FrameS Mint32 ba 120);[exact Flag|apply Valid;clear;cbn [In];tauto|intros;exact I]. }
- destruct (eval_strauss_general_flag Model raw ng ax ay az x y z ms br bk ba bs bp bt bx bng
+ destruct (eval_strauss_general_flag_forward Model raw ng ax ay az x y z ms br bk ba bs bp bt bx bng
   TablesS ReadyS BetaS AllSeparate AllOwned InputS InputNGS BX BY BZ XS YS ZS FlagS HX HY HZ PS PT PX)
-  as (mc & ox & oy & oz & Strauss & XO & YO & ZO & BXO & BYO & BZO & Literal & OwnedC & TablesC & FrameC & ConditionalC).
+  as (mc & ox & oy & oz & Strauss & XO & YO & ZO & BXO & BYO & BZO & Literal & OwnedC & TablesC & FrameC & ConditionalC & ForwardC).
  assert (Call:Clight2.exec_stmt secp_ge e le ms ecmult_strauss_call E0 le mc Out_normal).
  { rewrite ecmult_strauss_call_source;eapply exec_curve_call with
    (vargs:=[Vptr bs Ptrofs.zero;Vptr br Ptrofs.zero;Vlong Int64.one;Vptr ba Ptrofs.zero;
@@ -199,7 +202,47 @@ Proof.
      * unfold e;rewrite ecmult_local_blocks;exact Released.
    + split;[exact XF|];split;[exact YF|];split;[exact ZF|];
      split;[exact BXO|];split;[exact BYO|];split;[exact BZO|];
-     split;[exact Literal|];split;[exact OwnedF|];split;[exact GlobalF|];split;[exact Frame|exact ConditionalF].
+     split;[exact Literal|];split;[exact OwnedF|];split;[exact GlobalF|];split;[exact Frame|];split;[exact ConditionalF|].
+     eapply mem_forward_trans;[exact ForwardS|].
+     eapply mem_forward_trans;[exact ForwardC|eapply freelist_forward;exact Released].
+Qed.
+
+Theorem eval_ecmult_general_flag (Model:memset_model)
+ (raw ng ax ay az:Ty.tySem (Word 8)) x y z m br bk ba bng :
+ (forall h,generator_table_state h m) -> split_constants_ready m -> beta_initialized m ->
+ NoDup [br;bk;ba;bng] ->
+ (forall b hi,In (b,hi) [(br,128);(bk,32);(ba,128);(bng,32)] ->
+  Mem.range_perm m b 0 hi Cur Freeable) ->
+ scalar_at m bk 0 (map Int64.repr (scalar_limbs_of
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem raw)))) ->
+ scalar_at m bng 0 (map Int64.repr (scalar_limbs_of
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem ng)))) ->
+ square_input_bounds x -> square_input_bounds y -> square_input_bounds z ->
+ fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) -> fe_at m ba 80 (words5 z) ->
+ Mem.load Mint32 m ba 120=Some (Vint (bit_int (Bit.toBool
+  (@literal_gej_is_infinity Alg.CoreFunSem ((ax,ay),az))))) ->
+ table_word_literal x ax -> table_word_literal y ay -> table_word_literal z az ->
+ exists mf ox oy oz,
+ Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ecmult)
+  [Vptr br Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr bk Ptrofs.zero;Vptr bng Ptrofs.zero]
+  E0 mf Vundef /\
+ fe_at mf br 0 (words5 ox) /\ fe_at mf br 40 (words5 oy) /\ fe_at mf br 80 (words5 oz) /\
+ square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
+ ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
+  @literal_off_curve_linear_combination_1 Alg.CoreFunSem ((raw,((ax,ay),az)),ng) /\
+ (forall b hi,In (b,hi) [(br,128);(bk,32);(ba,128);(bng,32)] ->
+  Mem.range_perm mf b 0 hi Cur Freeable) /\
+ (forall h,generator_table_state h mf) /\ lframe (fun b _=>~In b [br;bk;ba;bng]) m mf /\
+ (Bit.toBool (@canonical_fe_is_zero Alg.CoreFunSem
+   (fst (@literal_scalar_table5 Alg.CoreFunSem ((ax,ay),az))))=false ->
+  Mem.load Mint32 mf br 120=Some (Vint (bit_int (Bit.toBool
+   (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz)))))).
+Proof.
+ intros Tables Ready Beta Separate Owned Input InputNG BX BY BZ X Y Z Flag HX HY HZ.
+ destruct (eval_ecmult_general_flag_forward Model raw ng ax ay az x y z m br bk ba bng
+  Tables Ready Beta Separate Owned Input InputNG BX BY BZ X Y Z Flag HX HY HZ)
+ as (mf & ox & oy & oz & Run & XO & YO & ZO & BXO & BYO & BZO & Literal & OwnedOut & TablesOut & Frame & Conditional & Forward).
+ exists mf,ox,oy,oz;repeat first [assumption|split].
 Qed.
 
 Theorem eval_ecmult_general (Model:memset_model)

@@ -426,8 +426,11 @@ wrapper, `exec_strauss_general_main_flag_forward`, is compiled; the original
 main-stage theorem types and assumption records remain unchanged as projections.
 The finite and skipped Strauss branches and generator main now also expose
 forward preservation, with their original theorem interfaces and assumptions
-unchanged. Their ordinary builds and scoped audits pass. Next thread this
-forward fact through the Strauss wrapper and ecmult. Keep all preservation attached to the
+unchanged. The whole Strauss and ecmult wrappers now expose the same fact;
+their ordinary builds and scoped no-update audits pass. Setup preservation
+is derived directly from its constructed unchanged memory, without generic
+external-call preservation. Next compose the actual Schnorr multiplier call
+with its conversion and return suffix. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
 new coverage is claimed yet.
