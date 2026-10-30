@@ -348,13 +348,17 @@ reaching 526/533 as described above. Reproduce with
 
 Current resume checkpoint: the predicate and original challenge-to-return C
 chains are integrated into `feat/jet-equivalence`; `codex/schnorr-reconstruction`
-is now frozen at `93b98930` for a new recursive check of
-`C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return`; its ordinary
-build is complete and the recursive result is **pending**. Do not edit that
-worktree while the check runs. Main-checkout progress now includes the complete
+is at `93b98930`, where recursive checking of
+`C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return` **passed**
+(exit 0). Before/after/at-completion fingerprints agree
+(`e1ea2ce84a814efd340e4b56ca2ee06b9de79f8002770a4af92604eb38d68f59`);
+the axiom list matches the existing expectation and all three unsafe-feature
+lists are empty. Reproduce with the pinned compiler, `ulimit -S -s 65520`, and
+`bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o
+C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return`. Main-checkout progress now includes the complete
 original x-only key parser on the public caller's owned 32-byte input and
 64-byte key buffers, for every Word256 key. Its ordinary builds and reviewed
-scoped records pass; this later parser chain is outside that pending snapshot.
+scoped records pass; this later parser chain is outside that checked snapshot.
 Next join the successful signature-reader prefix to the canonical key-load
 suffix, then compose the original initial pointer/message checks, nine-local
 allocation/free lifecycle and public jet readers/caller. The R/S readers and
