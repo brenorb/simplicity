@@ -1,0 +1,167 @@
+### C.jet_elements_taptweak_init_copy.elements_taptweak_sha_context_size
+elements_taptweak_sha_context_size
+     : @eq BinNums.Z
+         (Ctypes.sizeof (Clight.genv_cenv jet_elements_taptweak_pure.elements_taptweak_ge)
+            jet_secp_schnorr_challenge_entry.schnorr_challenge_context_type)
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+### C.jet_elements_taptweak_init_copy.elements_taptweak_sha_state_members
+elements_taptweak_sha_state_members
+     : @eq (option Ctypes.members)
+         (@option_map Ctypes.composite Ctypes.members Ctypes.co_members
+            (@Maps.PTree.get Ctypes.composite jets_secp._sha256_midstate
+               (Clight.genv_cenv jet_elements_taptweak_pure.elements_taptweak_ge)))
+         (@Some (list Ctypes.member)
+            (@cons Ctypes.member
+               (Ctypes.Member_plain jets_secp._s
+                  (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+               (@nil Ctypes.member)))
+### C.jet_elements_taptweak_init_copy.elements_taptweak_sha_state_layout
+elements_taptweak_sha_state_layout
+     : @ex Ctypes.composite
+         (fun co : Ctypes.composite =>
+          and
+            (@eq (option Ctypes.composite)
+               (@Maps.PTree.get Ctypes.composite jets_secp._sha256_midstate
+                  (Clight.genv_cenv jet_elements_taptweak_pure.elements_taptweak_ge)) (@Some Ctypes.composite co))
+            (@eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
+               (Ctypes.field_offset (Clight.genv_cenv jet_elements_taptweak_pure.elements_taptweak_ge) jets_secp._s
+                  (Ctypes.co_members co))
+               (@Errors.OK (prod BinNums.Z Ctypes.bitfield) (@pair BinNums.Z Ctypes.bitfield BinNums.Z0 Ctypes.Full))))
+### C.jet_elements_taptweak_init_copy.eval_elements_taptweak_sha_local_state
+eval_elements_taptweak_sha_local_state
+     : forall (sid : BinNums.positive) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (bs : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) sid e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bs jet_secp_generator_sha_start.generator_sha_state_type))),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         (Clight.Efield (Clight.Evar sid jet_secp_generator_sha_start.generator_sha_state_type) jets_secp._s
+            (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (Values.Vptr bs Integers.Ptrofs.zero)
+### C.jet_elements_taptweak_init_copy.exec_elements_taptweak_sha_init_copy
+exec_elements_taptweak_sha_init_copy
+     : forall (rid cid sid : BinNums.positive) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (br bc bs : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._sha256_init e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) rid e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type br jet_secp_generator_sha_start.generator_sha_ctx_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) cid e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc jet_secp_generator_sha_start.generator_sha_ctx_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) sid e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bs jet_secp_generator_sha_start.generator_sha_state_type)))
+         (_ : @List.NoDup Values.block
+                (@cons Values.block br (@cons Values.block bc (@cons Values.block bs (@nil Values.block)))))
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bc BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bs BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m
+               (jet_secp_sha_init_copy.sha_init_copy_stmt rid cid sid) Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (@eq (option Values.val) (Memory.Mem.load AST.Mptr mf bc BinNums.Z0)
+                  (@Some Values.val (Values.Vptr bs Integers.Ptrofs.zero)))
+               (and
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf bc (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                     (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+                  (and
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint8unsigned mf bc
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (@Some Values.val (Values.Vint Integers.Int.zero)))
+                     (and (jet_uint32_array_init.uint32_array_at mf bs BinNums.Z0 jet_sha256_iv_init.sha256_iv_words)
+                        (and
+                           (Memory.Mem.range_perm mf br BinNums.Z0
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and
+                              (Memory.Mem.range_perm mf bc BinNums.Z0
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                 Memtype.Cur Memtype.Freeable)
+                              (and
+                                 (Memory.Mem.range_perm mf bs BinNums.Z0
+                                    (BinNums.Zpos
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                    Memtype.Cur Memtype.Freeable)
+                                 (and
+                                    (jet_sx_mem.lframe
+                                       (fun (b : Values.block) (_ : BinNums.Z) =>
+                                        and (not (@eq Values.block b br))
+                                          (and (not (@eq Values.block b bc)) (not (@eq Values.block b bs)))) m mf)
+                                    (jet_clight_internal_preserve.readonly_preserved m mf))))))))))
+### C.jet_elements_taptweak_init_copy.exec_elements_taptweak_sha_context_copy
+exec_elements_taptweak_sha_context_copy
+     : forall (dst src : BinNums.positive) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (bc br : Values.block) (out : Values.val)
+         (count : Integers.Int64.int) (overflow : Integers.Int.int)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) dst e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc jet_secp_schnorr_challenge_entry.schnorr_challenge_context_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type br jet_secp_schnorr_challenge_entry.schnorr_challenge_context_type)))
+         (_ : not (@eq Values.block bc br))
+         (_ : Memory.Mem.range_perm m bc BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m br BinNums.Z0) (@Some Values.val out))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m br (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@Some Values.val (Values.Vlong count)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m br
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vint overflow))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m
+               (jet_secp_context_copy.sha_context_copy dst src) Events.E0 le mf ClightBigstep.Out_normal)
+            (and (@eq (option Values.val) (Memory.Mem.load AST.Mptr mf bc BinNums.Z0) (@Some Values.val out))
+               (and
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf bc (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                     (@Some Values.val (Values.Vlong count)))
+                  (and
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint8unsigned mf bc
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (@Some Values.val (Values.Vint overflow)))
+                     (and
+                        (Memory.Mem.range_perm mf bc BinNums.Z0
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (Memory.Mem.range_perm mf br BinNums.Z0
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and
+                              (jet_sx_mem.lframe
+                                 (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b bc)) m mf)
+                              (jet_clight_internal_preserve.readonly_preserved m mf))))))))

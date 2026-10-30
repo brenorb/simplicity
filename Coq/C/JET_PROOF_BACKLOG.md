@@ -1448,17 +1448,26 @@ fill, partial absorption, big-endian length/full-block call, return and local
 free, yielding exactly SHA256.hash_block with sha_pad. It preserves all caller
 observations and SHA startup. Its eight reviewed records match; only the
 existing memcpy_model is explicit. Existing pure padding arithmetic is reused,
-not reproved. Next integrate the checked context-copy/initialization and runtime
-short-tag sources in `/private/tmp/point-verify-scratch/`:
-`jet_sha_context_copy_at.v`, `jet_elements_taptweak_init_copy.v`, and
-`jet_elements_taptweak_tag_runtime.v`. The first generalizes the actual 88-byte
-struct assignment over ge with a sizeof fact; the concrete initializer closes
-that fact and the state-field layout, and reuses the owned SHA init call. The
-tag packet composes those actual statements with real absorption/finalization
-for any tag shorter than 56 bytes in the linked ge. Specialize to the Elements
-17-byte tag with the existing `elements_taptweak_tag_regs` equality, then
-continue the generic/public phases. No full Elements generic or public jet is
-registered yet.
+not reproved. `jet_sha_context_copy_at` now shares the actual 88-byte struct assignment
+across genvs with a sizeof interface. `jet_elements_taptweak_init_copy` closes
+that size and the real midstate-member layout in the linked ge, then composes
+the owned initializer and original normalized context copy at arbitrary caller
+local identifiers. The memory owners, pointer, counter, overflow, IV, framing
+and readonly observations are all retained. `jet_elements_taptweak_tag_runtime`
+now executes the original generic function's first tag-hashing statement for
+every tag shorter than 56 bytes, and specializes it to exactly the canonical
+Digest.stringHash "TapTweak/elements" registers. Actual initialization, copy,
+absorption and finalization calls are composed, with final counter 64, startup
+and tag bytes preserved. All three modules build normally and their eleven
+reviewed records match; only inherited assumptions and the existing explicit
+memcpy_model are used. This is a completed component, not an Elements public
+jet result. Next integrate generic tag-state/framing and concrete linked-startup
+sources checked at `/private/tmp/point-verify-scratch/jet_elements_taptweak_tag_state_at.v`
+and `jet_elements_taptweak_tag_startup.v`, then proceed through the remaining
+key, message-hash, tweak, writer and whole public phases. Those generic tag-state
+lemmas preserve the original plain-Elements proof files, and discharge the
+actual linked program's global bytes/extent rather than introducing a public
+caller-tag premise. No full Elements generic or public jet is registered yet.
 
 Historical Bitcoin composition guidance (now completed above):
 Keep taptweak_ready (including
