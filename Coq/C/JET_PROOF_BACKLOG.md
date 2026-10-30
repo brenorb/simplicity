@@ -360,7 +360,10 @@ The full scoped acceptance command is now running there:
 Before/after source/object fingerprints bracket the run; compare them and the
 final exit status before claiming acceptance. Do not edit/copy caches while the
 worker's check runs. This supersedes a separate inner-tail kernel run.
-The new full scoped acceptance result is **pending**, not claimed.
+The new full scoped acceptance result is **pending**, not claimed. Recursive
+coqchk has passed for all 1468 selected modules; the assumption gate is still
+running (its four child coqc processes were confirmed consuming CPU). The
+contract and AST-regeneration phases plus final fingerprint comparison remain.
 The earlier snapshot at `93b98930`, where recursive checking of
 `C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return` **passed**
 (exit 0). Before/after/at-completion fingerprints agree
@@ -1046,16 +1049,29 @@ from its source coordinates/curve and constructed native output. This supplies
 the serializer's actual premises, without assuming the conversion preserves
 validity. Ordinary build and reviewed no-update records pass; arithmetic
 lemmas use at most the inherited logical axioms and no external-library model.
-Next compose these actual native tweak/from-pubkey/serialize calls and their
-three guards as the original generic TapTweak statement suffix, then its
-SHA/reader/writer lifecycle plus the canonical tagged-hash program and
-source-binding checks. The original generic function's statement indices are:
+`jet_secp_taptweak_native.exec_taptweak_native` now composes the actual
+native tweak/from-pubkey/serialize calls and their three guards from the
+original generic function. It covers all tweak words: overflow/infinite-sum
+failure returns zero immediately; success constructs conversion/serialization
+and produces the exact canonical X bytes. Every subsequent key-validity
+condition is discharged. The suffix retains all four caller-owned buffers,
+external framing, forward memory and modinfo, with the same explicit
+memcpy_model/memset_model/ctz_model premises and eight inherited axioms.
+Ordinary build and reviewed no-update records pass. This is a statement-prefix
+proof before the writer, not the whole public jet or added accepted coverage.
+Next compose the SHA/reader/writer lifecycle plus the canonical tagged-hash
+program and source-binding checks. The original generic function's statement indices are:
 tag block 0, output-init/copy 1, tag hashes 2/3, key-read 4, key-absorb 5,
 parse/guard 6, input-hash read 7, input-hash absorb 8, finalize 9, digest 10,
 tweak/guard 11, from-pubkey/guard 12, serialize/guard 13, writer 14, return 15.
-There is no existing secp SHA hash-word wrapper in the `jet_secp_sha*` modules;
-inspect/reuse `jet_sha_hash_exec` and the actual seq-u32be call framework when
-composing the original `sha256_hash` calls, without substituting uchar calls. Do not substitute a
+There is no existing secp SHA hash-word wrapper in the `jet_secp_sha*` modules.
+The actual `sha256_hash` (C/sha256.h:313; jets_secp.v:5072) allocates buf[32],
+calls sha256_fromMidstate(buf,h->s), calls sha256_uchars(ctx,buf,32), then frees
+buf; it does not use a sequence of u32be calls. Reuse the verified secp digest
+and short/full byte-absorption executors to construct this original wrapper.
+Its three TapTweak uses start at buffer lengths 0,32,32 and counters 0,32,96.
+Keep the local allocation/free and source midstate framing attached. The prior
+seq-u32be suggestion was not grounded in the actual body and is superseded. Do not substitute a
 separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential
 model does not specify every arbitrary external execution. BIP340 and CheckSig are registered candidates awaiting full acceptance.
