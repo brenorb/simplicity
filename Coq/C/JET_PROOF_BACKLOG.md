@@ -1548,12 +1548,33 @@ frame/cursor and SHA state. Its only explicit library premises are the
 existing memcpy_model/memset_model; the assumption records contain only the
 six inherited assumptions. These two modules also postdate the `ca89b2aa`
 recursive kernel run. No scratch module or object is needed for these results.
-Next compose the input-hash read/message SHA phase with the Elements IV and
-linked SHA startup. The old Bitcoin key/hash theorems fix the Bitcoin IV/startup.
-Reuse the completed parser, tag, context prefix and key phase instead of
-restarting them. For generic entry/free, reuse taptweak_entry with
-alloc_variables_transport and a checked vars_okb/layout agreement, as in the
-linked parser entry, rather than duplicating all eleven allocation proofs.
+`jet_elements_taptweak_message_hash` and `jet_elements_taptweak_hash_phase`
+now build normally. The former derives the three real hash/finalize/digest
+calls and their exact two-block Simplicity hash word using the Elements IV.
+The latter composes the actual input-hash read and statement spine, retains
+arbitrary valid cursors, advances by 256 input bits and yields the digest bytes,
+state registers, ownership, framing and startup. Five reviewed theorem records
+and the explicit hash-word definition match without update flags. The
+register bridge is closed; execution uses only the six inherited assumptions
+and existing memcpy_model. These modules postdate the earlier kernel run.
+
+Generic entry/free is prepared in
+`/private/tmp/point-verify-scratch/jet_elements_taptweak_entry.v` and compiles.
+It reuses taptweak_entry with alloc_variables_transport and a closed vars_okb
+check, proves actual linked sizes/freeing order, and retains all eleven owners,
+freshness, framing and readonly state. Integrate and audit it next; do not copy
+its scratch object.
+
+A read-only Astra Medium review confirms the next native steps: port the real
+opaque-to-local 64-byte load copy, then pubkey_load/xonly_pubkey_load and their
+coordinate wrapper; converter and serializer can reuse that loader, the linked
+save and pure arithmetic transport. Their library calls remain explicit.
+The ecmult path additionally needs linked state/lookup interfaces for scalar
+split constants (_g1/_g2/_minus_b1/_minus_b2/lambda), beta and both pre_g tables;
+affine finish needs the actual field modulus metadata and existing CTZ model.
+Source readiness predicates name source blocks and cannot be reused as linked
+initialization facts merely because the initializers match. Reuse the completed
+parser, tag, context prefix, key and message phases instead of restarting them.
 The native tweak/convert/serialize suffix, its actual linked constant/global
 initialization, outer wrapper and final writer/free composition still remain;
 no whole Elements TapTweak equivalence is claimed.
