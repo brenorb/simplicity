@@ -368,8 +368,10 @@ scalar pair and valid affine input. `jet_secp_affine_word_valid` derives finite
 representations from successful decompression and proves equality of normalized
 coordinates for representations of the same point. `jet_secp_linear_check_group`
 identifies the canonical subtraction/infinity predicate with equality of the
-represented group points. Next characterize even decompression (including
-failure), connect the Schnorr predicates, then compose the original C caller.
+represented group points. `jet_secp_even_y_unique` proves normalized even-Y
+uniqueness using the existing field square-root alternative and parity of p-y.
+Next characterize even decompression (including failure), connect the Schnorr
+predicates, then compose the original C caller.
 Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
 
