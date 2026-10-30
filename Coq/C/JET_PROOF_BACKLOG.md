@@ -1149,9 +1149,15 @@ is independent of the globals of the standalone SHA translation unit; ctxi
 from that unit cannot be used unchanged for the secp program. Ordinary build
 and reviewed no-update records pass, with memcpy_model/memset_model explicit
 and the inherited six axioms. This is still an internal phase, not coverage.
-Next compose the input-hash reader/hashing calls, native suffix, writer and
-complete generic/public lifecycle. Reuse this key-phase result for both the
-normal parser path and immediate failure.
+`jet_secp_taptweak_hash_phase.exec_taptweak_hash_phase` now composes the
+original second-input read32s and hash/finalize/digest calls. It produces the
+canonical tweak digest as bytes and state words, keeps the read input hash,
+advances the source cursor and retains owned storage, external framing and
+full initialized state. Ordinary build and reviewed no-update records pass;
+memcpy_model is explicit and only the inherited six axioms remain.
+Next compose the native suffix and writer with the complete generic/public
+lifecycle. Reuse the key-phase result for both the normal parser path and
+immediate failure.
 All original callees and entry/cleanup packets are now available; the remaining
 work includes transporting their representations, ownership and initialized
 state through the full statement sequence, every return branch and frees.
