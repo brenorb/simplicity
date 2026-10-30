@@ -1708,8 +1708,18 @@ readonly state and both full/trimmed literal digit equalities. Both use only
 the existing memset_model and six inherited execution assumptions. Their
 reviewed scoped assumption/contract records match without update flags;
 these are component checks, not fresh recursive or public acceptance.
-Next compose the original caller statements. The real 129-int buffer uses
-516 bytes and stays within the approved memset bound.
+`jet_elements_taptweak_wnaf_call` proves the actual named-call boundary.
+`jet_elements_taptweak_point_wnaf` derives both signed window-5 calls and
+their count stores in the same 1040-byte point-state object, preserving
+each previously written slice. `jet_elements_taptweak_generator_wnaf`
+derives both window-15 calls and maximum-count updates; it retains the
+actual linked generator tables, permissions and readonly state. Both
+callers use the existing memset_model without deferred clear/callee-result
+premises. All three build normally and their reviewed scoped records match
+without update flags; layout/lookup facts are closed and execution retains
+only the six inherited assumptions. Next connect the scalar split and full
+point preparation. The real 129-int buffer uses 516 bytes and stays within
+the approved memset bound.
 The actual `generator_final_statement` is also pure and can be transported
 after its own checked statement/layout fact; it is not yet in the three-item
 Strauss statement list. Reuse the original final-flag/nonzero-table bridges

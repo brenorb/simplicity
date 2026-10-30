@@ -1,0 +1,21 @@
+### C.jet_elements_taptweak_wnaf_call.elements_taptweak_wnaf_lookup
+elements_taptweak_wnaf_lookup
+     : @eq (option Clight.fundef)
+         (jet_secp_linkage.secp_helper_lookup jet_elements_taptweak_pure.elements_taptweak_ge
+            (@pair AST.ident Clight.function jets_secp._secp256k1_ecmult_wnaf jets_secp.f_secp256k1_ecmult_wnaf))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ecmult_wnaf))
+### C.jet_elements_taptweak_wnaf_call.exec_elements_taptweak_wnaf_call
+exec_elements_taptweak_wnaf_call
+     : forall (result : option AST.ident) (args : list Clight.expr) (vargs : list Values.val)
+         (v : Values.val) (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ecmult_wnaf e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : Clight.eval_exprlist jet_elements_taptweak_pure.elements_taptweak_ge e le m args
+                (Ctypes.type_of_params (Clight.fn_params jets_secp.f_secp256k1_ecmult_wnaf)) vargs)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ecmult_wnaf) vargs Events.E0 mf v),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         (jet_secp_curve_statements.curve_call jets_secp._secp256k1_ecmult_wnaf jets_secp.f_secp256k1_ecmult_wnaf
+            result args) Events.E0 (Clight.set_opttemp result v le) mf ClightBigstep.Out_normal
