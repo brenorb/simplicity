@@ -359,10 +359,11 @@ C.jet_secp_pubkey_save_function C.jet_secp_schnorr_keyload_return`. Main-checkou
 original x-only key parser on the public caller's owned 32-byte input and
 64-byte key buffers, for every Word256 key. Its ordinary builds and reviewed
 scoped records pass; this later parser chain is outside that checked snapshot.
-Next join the successful signature-reader prefix to the canonical key-load
-suffix, then compose the original initial pointer/message checks, nine-local
-allocation/free lifecycle and public jet readers/caller. The R/S readers and
-all range/key rejection bridges are now built and have reviewed scoped records. Public acceptance is unchanged.
+The signature-reader prefix and canonical key-load suffix are now composed
+for every Word256 r/s pair, including both range-rejection paths. The original
+initial pointer/message checks and nine-local entry allocations are proved
+separately. Next compose the complete body and allocation/free lifecycle, then
+the public jet readers/caller. Public acceptance is unchanged.
 The earlier recursive check at `e71798a6` of
 `C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/at-completion
 input fingerprints agree (`b02a3e8b659b4032e79b865b6df8e82bb1ed032999f51c1f7d7f8bf7cdfd4f27`);
@@ -687,8 +688,23 @@ private outer-wrapper local. Do not weaken the public external frame. Then
 add the original initial pointer/message checks, nine-local entry/frees and
 the public-wrapper readers/callers. All new signature modules are later than
 the pending frozen `93b98930` recursive-check inputs.
- The x-only opaque key
-load/save calls also still need composition. Keep all preservation attached to the
+
+`jet_secp_schnorr_signature_return` joins actual successful r/s parsing to the
+native-key load, challenge and complete group/check return. It transports the
+key, message, SHA dispatch, readonly globals and ownership through the actual
+parser executions. `jet_secp_schnorr_signature_ranges` adds both original range
+rejections, so its remaining verifier suffix theorem covers **every Word256
+r/s pair** given a successfully parsed key. `jet_secp_schnorr_verify_checks`
+executes the original signature/message/key pointer checks; the message length
+32 is supplied by both public callers. `jet_secp_schnorr_verify_entry`
+constructs the real nine allocations, exact environment, all owned ranges,
+freshness, preservation and the actual PTree-order free list. These are still
+internal theorems: borrowed buffers are the outer caller's distinct fresh
+locals, and the models `memcpy_model`, `memset_model`, `ctz_model` remain
+explicit. Next combine these body stages and all nine frees into the original
+function call; then handle the outer key-parse guard, frame readers and public
+wrapper return. Later modules are outside the `93b98930` kernel receipt.
+Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
 new coverage is claimed yet.

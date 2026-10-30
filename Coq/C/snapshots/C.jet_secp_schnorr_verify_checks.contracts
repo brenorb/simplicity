@@ -1,0 +1,31 @@
+### C.jet_secp_schnorr_verify_checks.schnorr_verify_checks_source
+schnorr_verify_checks_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_schnorrsig_verify)
+         (jet_secp_statement_prefix.statement_sequence schnorr_verify_checks
+            (jet_secp_root_chain_owned.root_drop_statements (S (S (S O)))
+               (Clight.fn_body jets_secp.f_secp256k1_schnorrsig_verify)))
+### C.jet_secp_schnorr_verify_checks.exec_schnorr_verify_message_check
+exec_schnorr_verify_message_check
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : Integers.Ptrofs.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._msg le)
+                (@Some Values.val (Values.Vptr b ofs)))
+         (_ : @eq bool (Memory.Mem.weak_valid_pointer m b (Integers.Ptrofs.unsigned ofs)) true),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m schnorr_verify_message_check Events.E0
+         (schnorr_verify_checked_temps le) m ClightBigstep.Out_normal
+### C.jet_secp_schnorr_verify_checks.exec_schnorr_verify_checks
+exec_schnorr_verify_checks
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bsig bmsg : Values.block)
+         (omsg : Integers.Ptrofs.int) (bkey : Values.block) (okey : Integers.Ptrofs.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._sig64 le)
+                (@Some Values.val (Values.Vptr bsig Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._msg le)
+                (@Some Values.val (Values.Vptr bmsg omsg)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._pubkey le)
+                (@Some Values.val (Values.Vptr bkey okey)))
+         (_ : @eq bool (Memory.Mem.weak_valid_pointer m bsig BinNums.Z0) true)
+         (_ : @eq bool (Memory.Mem.weak_valid_pointer m bmsg (Integers.Ptrofs.unsigned omsg)) true)
+         (_ : @eq bool (Memory.Mem.weak_valid_pointer m bkey (Integers.Ptrofs.unsigned okey)) true),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+         (jet_secp_statement_prefix.statement_sequence schnorr_verify_checks Clight.Sskip) Events.E0
+         (schnorr_verify_checked_temps le) m ClightBigstep.Out_normal
