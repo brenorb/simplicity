@@ -1732,8 +1732,19 @@ callers must derive that from the valid input and discharge the local-domain
 obligations using the actual entry. All three build normally, with reviewed
 scoped records matching without update flags and the same six inherited
 execution assumptions. They have no fresh recursive/public acceptance.
-Next compose finite point/table preprocessing, the generator branch, whole
-Strauss/ecmult and the inverse. No whole ecmult or public call is established yet.
+`jet_elements_taptweak_point_table` now checks the three pure preparation
+phases and derives the actual odd-table/global-Z executions, preserving the
+original literal table and all intermediate memory witnesses.
+`jet_elements_taptweak_point_prepare` composes the finite guard, scalar
+preparation, one-point loop and global-Z call. It retains both digit arrays,
+counts, the exact table/denominator, source coordinates and scalar, initialized
+constants, ownership, framing, readonly state and permissions. Both build
+normally and their reviewed scoped records match without update flags,
+with the same six inherited execution assumptions. Their local-domain
+conditions are internal obligations discharged by the actual entry, and the
+finite/nonzero branch must still be composed with the skipped cases.
+Next compose the arbitrary-count generator branch, whole Strauss/ecmult and
+the inverse. No whole ecmult or public call is established yet.
 Reproduce the completed component builds with:
 
 ```sh

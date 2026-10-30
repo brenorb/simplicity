@@ -1,0 +1,280 @@
+### C.jet_elements_taptweak_point_table.elements_taptweak_preprocess_pure_checked
+elements_taptweak_preprocess_pure_checked
+     : @eq bool
+         (@List.forallb Clight.statement
+            (jet_transport_locals.locals_stmt_okb jet_secp_linkage.secp_ge
+               jet_elements_taptweak_pure.elements_taptweak_ge
+               (@List.map (prod BinNums.positive Clight.function) BinNums.positive
+                  (@fst BinNums.positive Clight.function)
+                  jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers)
+               (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type)
+                  (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf)))
+            elements_taptweak_preprocess_pure_statements) true
+### C.jet_elements_taptweak_point_table.elements_taptweak_has_table_set_globalz
+elements_taptweak_has_table_set_globalz
+     : @List.In (prod AST.ident Clight.function)
+         (@pair AST.ident Clight.function jets_secp._secp256k1_ge_table_set_globalz
+            jets_secp.f_secp256k1_ge_table_set_globalz)
+         jet_elements_taptweak_curve_transport.elements_taptweak_curve_helpers
+### C.jet_elements_taptweak_point_table.elements_taptweak_preprocess_pure_transport
+elements_taptweak_preprocess_pure_transport
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (stmt : Clight.statement)
+         (trace : Events.trace) (lef : Clight.temp_env) (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : jet_transport.edom e (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf))
+         (_ : forall (id : AST.ident)
+                (_ : @List.In AST.ident id
+                       (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type)
+                          (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf))),
+              @ex Values.block
+                (fun b : Values.block =>
+                 @ex Ctypes.type
+                   (fun ty : Ctypes.type =>
+                    @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                      (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty)))))
+         (_ : @List.In Clight.statement stmt elements_taptweak_preprocess_pure_statements)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m stmt trace lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m stmt trace lef mf out
+### C.jet_elements_taptweak_point_table.eval_elements_taptweak_strauss_table_width
+eval_elements_taptweak_strauss_table_width
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_strauss_table_call.strauss_table_width
+         (Values.Vlong (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_elements_taptweak_point_table.eval_elements_taptweak_strauss_globalz_count
+eval_elements_taptweak_strauss_globalz_count
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._no le)
+                (@Some Values.val (Values.Vlong Integers.Int64.one))),
+       Clight.eval_expr jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_generator_globalz_call.generator_globalz_count
+         (Values.Vlong (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_elements_taptweak_point_table.exec_elements_taptweak_strauss_globalz_from_call
+exec_elements_taptweak_strauss_globalz_from_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (bs bt bx : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ge_table_set_globalz e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._state le)
+                (@Some Values.val (Values.Vptr bs Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._no le)
+                (@Some Values.val (Values.Vlong Integers.Int64.one)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mptr m bs (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m bs BinNums.Z0)
+                (@Some Values.val (Values.Vptr bx Integers.Ptrofs.zero)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_taptweak_pure.elements_taptweak_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_ge_table_set_globalz)
+                (@cons Values.val
+                   (Values.Vlong (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                   (@cons Values.val (Values.Vptr bt Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m
+         jet_secp_generator_globalz_call.generator_globalz_statement Events.E0
+         (jet_secp_generator_globalz_call.generator_globalz_call_temps le (Values.Vptr bt Integers.Ptrofs.zero)
+            (Values.Vptr bx Integers.Ptrofs.zero)) mf ClightBigstep.Out_normal
+### C.jet_elements_taptweak_point_table.exec_elements_taptweak_strauss_table_prepare
+exec_elements_taptweak_strauss_table_prepare
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (ba bs bt bx bo bj : Values.block) (x y z : forall _ : nat, Integers.Int64.int)
+         (ax ay az : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_transport.edom e (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf))
+         (_ : forall (id : AST.ident)
+                (_ : @List.In AST.ident id
+                       (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type)
+                          (Clight.fn_vars jets_secp.f_secp256k1_ecmult_strauss_wnaf))),
+              @ex Values.block
+                (fun b : Values.block =>
+                 @ex Ctypes.type
+                   (fun ty : Ctypes.type =>
+                    @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                      (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty)))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._Z e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bo (Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._tmp e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bj (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ecmult_odd_multiples_table e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_ge_table_set_globalz e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr ba Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._np le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._state le)
+                (@Some Values.val (Values.Vptr bs Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._no le)
+                (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mptr m bs (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m bs BinNums.Z0)
+                (@Some Values.val (Values.Vptr bx Integers.Ptrofs.zero)))
+         (_ : jet_secp_square_columns.square_input_bounds x) (_ : jet_secp_square_columns.square_input_bounds y)
+         (_ : jet_secp_square_columns.square_input_bounds z)
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 x))
+         (_ : jet_secp_fe_nv.fe_at m ba
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (jet_secp_multiply_normalize_bridge.words5 y))
+         (_ : jet_secp_fe_nv.fe_at m ba
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (jet_secp_multiply_normalize_bridge.words5 z))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m ba
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                (@Some Values.val (Values.Vint Integers.Int.zero)))
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                       (@cons (prod Values.block BinNums.Z)
+                          (@pair Values.block BinNums.Z bs
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+                          (@cons (prod Values.block BinNums.Z)
+                             (@pair Values.block BinNums.Z ba
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                             (@cons (prod Values.block BinNums.Z)
+                                (@pair Values.block BinNums.Z bj
+                                   (BinNums.Zpos
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                (@cons (prod Values.block BinNums.Z)
+                                   (@pair Values.block BinNums.Z bt
+                                      (BinNums.Zpos
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+                                   (@cons (prod Values.block BinNums.Z)
+                                      (@pair Values.block BinNums.Z bx
+                                         (BinNums.Zpos
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                                      (@cons (prod Values.block BinNums.Z)
+                                         (@pair Values.block BinNums.Z bo
+                                            (BinNums.Zpos
+                                               (BinNums.xO
+                                                  (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                         (@nil (prod Values.block BinNums.Z))))))))),
+              Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+         (_ : @List.NoDup Values.block
+                (@cons Values.block ba
+                   (@cons Values.block bs
+                      (@cons Values.block bt
+                         (@cons Values.block bx (@cons Values.block bo (@cons Values.block bj (@nil Values.block))))))))
+         (_ : jet_secp_odd_table_literal_walk.table_word_literal x ax)
+         (_ : jet_secp_odd_table_literal_walk.table_word_literal y ay)
+         (_ : jet_secp_odd_table_literal_walk.table_word_literal z az)
+         (_ : @eq Integers.Int.int (jet_secp_field_zero_owned.field_zero_result z) Integers.Int.zero),
+       let sf : jet_secp_odd_table_loop.odd_table_state := jet_secp_odd_table_body.odd_table_final_state x y z in
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex (forall (_ : nat) (_ : nat), Integers.Int64.int)
+            (fun xf : forall (_ : nat) (_ : nat), Integers.Int64.int =>
+             @ex (forall (_ : nat) (_ : nat), Integers.Int64.int)
+               (fun yf : forall (_ : nat) (_ : nat), Integers.Int64.int =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_elements_taptweak_pure.elements_taptweak_ge e le m
+                     jet_secp_strauss_table_call.strauss_table_prepare Events.E0
+                     (jet_secp_strauss_table_call.strauss_table_prepare_temps le bt bx) mf ClightBigstep.Out_normal)
+                  (and (jet_secp_globalz_loop.globalz_table_rep mf bt xf yf)
+                     (and (jet_secp_globalz_loop.globalz_table_bounds xf yf)
+                        (and
+                           (forall (k : nat) (_ : lt k (S (S (S (S (S (S (S (S O))))))))),
+                            jet_secp_field_mul_small.mul_small_input_bounds (yf k))
+                           (and
+                              (jet_secp_fe_nv.fe_at mf bo BinNums.Z0
+                                 (jet_secp_multiply_normalize_bridge.words5
+                                    (jet_secp_point_mul_storage.point_mul_words
+                                       (jet_secp_odd_table_loop.odd_table_z sf)
+                                       (jet_secp_double_all_calls.double_output_z_words y z))))
+                              (and
+                                 (jet_secp_square_columns.square_input_bounds
+                                    (jet_secp_point_mul_storage.point_mul_words
+                                       (jet_secp_odd_table_loop.odd_table_z sf)
+                                       (jet_secp_double_all_calls.double_output_z_words y z)))
+                                 (and
+                                    (@eq
+                                       (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (...))))))))))
+                                          (Ty.tySem (jet_secp_scalar_table_literal.literal_table_vector (S (S (S O))))))
+                                       (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (...))))))))))
+                                          (Ty.tySem (jet_secp_scalar_table_literal.literal_table_vector (S (S (S O)))))
+                                          (jet_secp_rescale_literal.rescale_field_output
+                                             (jet_secp_point_mul_storage.point_mul_words
+                                                (jet_secp_odd_table_loop.odd_table_z sf)
+                                                (jet_secp_double_all_calls.double_output_z_words y z)))
+                                          (jet_secp_globalz_pass2.globalz_word_vector
+                                             (jet_secp_globalz_word_walk.globalz_decoded_points xf yf)))
+                                       (@jet_secp_scalar_table_literal.literal_scalar_table5 Alg.CoreFunSem
+                                          (@pair
+                                             (prod (Ty.tySem (Word.Word (S (S (S (S (S (...))))))))
+                                                (Ty.tySem (Word.Word (S (S (S (S (S (...)))))))))
+                                             (Ty.tySem (Word.Word (S (S (S (S (S (S (...)))))))))
+                                             (@pair (Ty.tySem (Word.Word (S (S (S (S (S (...))))))))
+                                                (Ty.tySem (Word.Word (S (S (S (S (S (...)))))))) ax ay) az)))
+                                    (and
+                                       (jet_secp_fe_nv.fe_at mf ba BinNums.Z0
+                                          (jet_secp_multiply_normalize_bridge.words5 x))
+                                       (and
+                                          (jet_secp_fe_nv.fe_at mf ba
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                             (jet_secp_multiply_normalize_bridge.words5 y))
+                                          (and
+                                             (jet_secp_fe_nv.fe_at mf ba
+                                                (BinNums.Zpos
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                                (jet_secp_multiply_normalize_bridge.words5 z))
+                                             (and
+                                                (@eq (option Values.val)
+                                                   (Memory.Mem.load AST.Mint32 mf ba
+                                                      (BinNums.Zpos
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (...)))))))
+                                                   (@Some Values.val (Values.Vint Integers.Int.zero)))
+                                                (and
+                                                   (@eq (option Values.val)
+                                                      (Memory.Mem.load AST.Mptr mf bs
+                                                         (BinNums.Zpos
+                                                            (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                                      (@Some Values.val (Values.Vptr bt Integers.Ptrofs.zero)))
+                                                   (and
+                                                      (@eq (option Values.val)
+                                                         (Memory.Mem.load AST.Mptr mf bs BinNums.Z0)
+                                                         (@Some Values.val (Values.Vptr bx Integers.Ptrofs.zero)))
+                                                      (and
+                                                         (forall (b : Values.block) (hi : BinNums.Z)
+                                                            (_ : @List.In (prod Values.block BinNums.Z)
+                                                                   (@pair Values.block BinNums.Z b hi)
+                                                                   (@cons (prod Values.block BinNums.Z)
+                                                                      (@pair Values.block BinNums.Z bs ...)
+                                                                      (@cons ... ... ...))),
+                                                          Memory.Mem.range_perm mf b BinNums.Z0 hi Memtype.Cur
+                                                            Memtype.Freeable)
+                                                         (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                                                            (and (jet_clight_internal_preserve.readonly_preserved m mf)
+                                                               (and (jet_sx_mem.lframe (...) m mf) (and (...) (...)))))))))))))))))))))
+### C.jet_elements_taptweak_point_table.elements_taptweak_preprocess_pure_statements
+elements_taptweak_preprocess_pure_statements =
+@cons Clight.statement jet_secp_generator_preprocess.generator_preprocess_check
+  (@cons Clight.statement jet_secp_strauss_bits_max.strauss_after_bits_max
+     (@cons Clight.statement jet_secp_strauss_table_call.strauss_table_prepare (@nil Clight.statement)))
+     : list Clight.statement
