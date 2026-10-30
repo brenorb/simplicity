@@ -535,6 +535,16 @@ actual `ge_to_storage`/`pubkey_save`/x-only parse path, then signature guards an
 the outer lifecycle. Note that the actual `ge_to_storage` allocates two fields,
 copies and normalizes X/Y, and calls `fe_to_storage` twice; reuse the existing
 copy and normalization proofs rather than assuming normalized storage effects.
+`jet_secp_storage_pack` now executes the original `fe_to_storage` body.
+`jet_secp_storage_pack_numeric` proves its four 64-bit outputs preserve the
+5x52 numeric value under the canonical limb bounds; all four arithmetic lemmas
+are closed. `jet_secp_storage_pack_owned.eval_fe_to_storage_owned` derives the
+actual call from a represented canonical field and writable aligned 32-byte
+destination, retaining readable output words, exact source limbs, permissions,
+fine framing and readonly preservation. It adds no library premise. Ordinary
+builds and reviewed scoped no-update audits pass. These modules are later than
+the `e71798a6` recursive-check inputs. Next execute both struct copies and
+normalizers in `ge_to_storage`, then compose the two packer calls and frees.
  The x-only opaque key
 load/save calls also still need composition. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every

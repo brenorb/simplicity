@@ -1,0 +1,125 @@
+### C.jet_secp_storage_pack_owned.storage_pack_initial
+storage_pack_initial
+     : forall (value : BinNums.Z) (m : Memory.Mem.mem) (bout : Values.block) (dbase : BinNums.Z)
+         (bin : Values.block) (sbase : BinNums.Z) (_ : not (@eq Values.block bout bin))
+         (_ : BinInt.Z.le BinNums.Z0 dbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) dbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add dbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bout dbase
+                (BinInt.Z.add dbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable)
+         (_ : jet_secp_fe_nv.fe_at m bin sbase
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value))),
+       jet_sx_state.rep (jet_secp_b32_exec.limb_rho value)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bout dbase)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bin sbase)
+               (@nil (prod Values.block BinNums.Z)))) jet_secp_storage_pack.storage_pack_regs m
+### C.jet_secp_storage_pack_owned.storage_pack_final_readable
+storage_pack_final_readable
+     : forall (w : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep w beta jet_secp_storage_pack.storage_pack_out_regs m),
+       jet_secp_storage_unpack.field_storage_readable m (jet_sx_state.blk beta O) (jet_sx_state.bas beta O)
+         (jet_secp_storage_pack.storage_pack_words w)
+### C.jet_secp_storage_pack_owned.storage_pack_allowed
+storage_pack_allowed
+     : jet_clight_internal_frame.allowed_call jet_secp_closed_helpers.secp_closed_helpers
+         (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_to_storage)
+### C.jet_secp_storage_pack_owned.storage_pack_closed
+storage_pack_closed
+     : @eq bool
+         (jet_clight_internal_frame.closed_stmtb jet_secp_closed_helpers.secp_closed_helpers
+            (Clight.fn_body jets_secp.f_secp256k1_fe_to_storage)) true
+### C.jet_secp_storage_pack_owned.storage_pack_final_source
+storage_pack_final_source
+     : forall (value : BinNums.Z) (bout : Values.block) (dbase : BinNums.Z) (bin : Values.block)
+         (sbase : BinNums.Z) (m mf : Memory.Mem.mem)
+         (_ : jet_secp_fe_nv.fe_at m bin sbase
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value)))
+         (_ : jet_clight_internal_permissions.keeps_permissions m mf)
+         (_ : jet_sx_state.rep (jet_secp_b32_exec.limb_rho value)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bout dbase)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bin sbase)
+                      (@nil (prod Values.block BinNums.Z)))) jet_secp_storage_pack.storage_pack_out_regs mf),
+       jet_secp_fe_nv.fe_at mf bin sbase
+         (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value))
+### C.jet_secp_storage_pack_owned.storage_pack_foot_bounds
+storage_pack_foot_bounds
+     : forall (bout : Values.block) (dbase : BinNums.Z) (bin : Values.block) (sbase : BinNums.Z)
+         (b : Values.block) (pos : BinNums.Z)
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bout dbase)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bin sbase)
+                      (@nil (prod Values.block BinNums.Z))))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   jet_secp_storage_pack.storage_pack_regs) b pos),
+       or
+         (and (@eq Values.block b bout)
+            (and (BinInt.Z.le dbase pos)
+               (BinInt.Z.lt pos
+                  (BinInt.Z.add dbase
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (and (@eq Values.block b bin)
+            (and (BinInt.Z.le sbase pos)
+               (BinInt.Z.lt pos
+                  (BinInt.Z.add sbase
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_storage_pack_owned.eval_fe_to_storage_owned
+eval_fe_to_storage_owned
+     : forall (value : BinNums.Z) (m : Memory.Mem.mem) (bout : Values.block) (dbase : BinNums.Z)
+         (bin : Values.block) (sbase : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : not (@eq Values.block bout bin)) (_ : BinInt.Z.le BinNums.Z0 dbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) dbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add dbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bout dbase
+                (BinInt.Z.add dbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : jet_secp_fe_nv.fe_at m bin sbase
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_to_storage)
+               (@cons Values.val (Values.Vptr bout (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bin (Integers.Ptrofs.repr sbase)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_secp_storage_unpack.field_storage_readable mf bout dbase
+                  (jet_secp_storage_pack.storage_pack_words (jet_secp_b32_exec.limb_rho value)))
+               (and
+                  (@eq BinNums.Z
+                     (jet_secp_storage_numeric.field_storage_value
+                        (jet_secp_storage_pack.storage_pack_words (jet_secp_b32_exec.limb_rho value))) value)
+                  (and
+                     (jet_secp_fe_nv.fe_at mf bin sbase
+                        (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                           (jet_secp_fe_math.fe_limbs_of value)))
+                     (and (jet_clight_internal_permissions.keeps_permissions m mf)
+                        (and
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (pos : BinNums.Z) =>
+                               not
+                                 (jet_sx_state.foot
+                                    (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bout dbase)
+                                       (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bin sbase)
+                                          (@nil (prod Values.block BinNums.Z))))
+                                    (@List.map jet_sx_state.region
+                                       (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                       jet_sx_state.rshape jet_secp_storage_pack.storage_pack_regs) b pos)) m mf)
+                           (jet_clight_internal_preserve.readonly_preserved m mf)))))))

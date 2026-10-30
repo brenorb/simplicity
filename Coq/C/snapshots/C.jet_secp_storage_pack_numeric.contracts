@@ -1,0 +1,53 @@
+### C.jet_secp_storage_pack_numeric.storage_shl_unsigned
+storage_shl_unsigned
+     : forall (w : Integers.Int64.int) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.shl w (Integers.Int64.repr k)))
+         (BinInt.Z.mul
+            (BinInt.Z.modulo (Integers.Int64.unsigned w)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinInt.Z.sub
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) k)))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+### C.jet_secp_storage_pack_numeric.storage_pack_join_unsigned
+storage_pack_join_unsigned
+     : forall (a b : Integers.Int64.int) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)),
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.or a (Integers.Int64.shl b (Integers.Int64.repr k))))
+         (BinInt.Z.add (Integers.Int64.unsigned a)
+            (BinInt.Z.mul
+               (BinInt.Z.modulo (Integers.Int64.unsigned b)
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinInt.Z.sub
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) k)))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+### C.jet_secp_storage_pack_numeric.storage_pack_numeric
+storage_pack_numeric
+     : forall (w : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_fe_math.fe_limbs_ok (Integers.Int64.unsigned (w O)) (Integers.Int64.unsigned (w (S O)))
+                (Integers.Int64.unsigned (w (S (S O)))) (Integers.Int64.unsigned (w (S (S (S O)))))
+                (Integers.Int64.unsigned (w (S (S (S (S O))))))),
+       @eq BinNums.Z (jet_secp_storage_numeric.field_storage_value (jet_secp_storage_pack.storage_pack_words w))
+         (jet_secp_multiply_finish_product.radix_value w)
+### C.jet_secp_storage_pack_numeric.storage_pack_canonical
+storage_pack_canonical
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq BinNums.Z
+         (jet_secp_storage_numeric.field_storage_value
+            (jet_secp_storage_pack.storage_pack_words (jet_secp_b32_exec.limb_rho value))) value
