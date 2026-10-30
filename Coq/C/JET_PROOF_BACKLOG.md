@@ -894,8 +894,8 @@ entire original message block: canonical tag constructor, actual _ctx copy,
 canonical message bytes, advances the cursor by 512, retains all eight owned
 local regions and preserves framing/readonly memory/checksig_startup. The
 ordinary build and reviewed scoped no-update assumption/contract records pass;
-only the existing memcpy_model remains explicit. This is not yet the public
-jet theorem. `jet_secp_checksig_public_read` now supplies the real frame copy
+only the existing memcpy_model remains explicit. This helper is not itself
+the public jet theorem. `jet_secp_checksig_public_read` now supplies the real frame copy
 and key read in the eight-local environment. The existing generic key parser
 is reused unchanged. `jet_secp_checksig_verifier_return` supplies the real
 final call using _buf as the message. `jet_secp_checksig_after_parse` composes
@@ -903,7 +903,8 @@ the message block, signature read and verifier, preserving parsed key, owned
 regions and startup. `jet_secp_checksig_function.eval_checksig_public` now
 composes the complete original public C function for every input, including
 both key-parser outcomes and all eight frees. All four ordinary builds and
-reviewed scoped no-update assumption/contract records pass. `jet_secp_checksig_local.checksig_initialized_local_spec` now builds the
+reviewed scoped no-update assumption/contract records pass.
+`jet_secp_checksig_local.checksig_initialized_local_spec` now builds the
 complete public initialized assertion contract for the exact canonical term,
 all 1280-bit inputs, valid cursors/crossings, both parser outcomes and all
 return paths. Its only library conditions are the existing explicit
@@ -915,8 +916,8 @@ The candidate is registered and the complete coverage negative tests pass.
 Registered inventory is **528/533**, while accepted coverage remains **526/533**.
 After the live BIP340 acceptance finishes, inspect its terminal status and
 before/after fingerprints before editing its worker. On success, record that
-exact receipt, then advance the idle clean worker to the CheckSig registration
-commit and copy only newly added source-identical caches, retaining their
+exact receipt, then advance the idle clean worker to CheckSig registration
+commit `05e9fc35` and copy only newly added source-identical caches, retaining their
 source/object mtimes and leaving old objects alone. Build
 `C/jet_secp_checksig_local.vo`, fingerprint the idle worker, then run
 `JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_check_sig_verify`.
@@ -934,6 +935,32 @@ complete ecmult and affine conversion. New work is still needed for the actual
 x-only tweak-add/from-pubkey/serialize control flow and the canonical TapTweak
 hash/program. Elements has a separate wrapper and still needs actual linkage;
 inspect it separately rather than claiming this resolves both programs.
+
+`jet_secp_scalar_set_int_owned` now executes the original scalar initializer
+for every unsigned 32-bit input, exposing its four exact 64-bit limbs, owned
+storage and framing/readonly preservation; the v=1 case supplies TapTweak's
+ordinary-point multiplier. No library model is required.
+The old general ecmult contract required distinct input/output point blocks,
+while the real eckey tweak caller uses ecmult(&pt,&pt,&one,tweak). This is a
+proof-contract gap, not evidence of a C/specification mismatch.
+`jet_secp_strauss_overlap_finite` now reuses the existing point preprocessing
+and main-loop proofs with two separate NoDup lists, permitting identical
+input/output point blocks. `jet_secp_ecmult_overlap_finite` composes the entire
+original ecmult wrapper, its allocations, actual Strauss call and frees under
+that weaker separation condition. This finite nonzero-contribution helper
+keeps the existing memset_model only; the raw scalar must normalize to a
+nonzero value and the input point must be finite. These are intermediate
+premises to discharge from eckey's scalar-one/valid-key inputs, not new public
+jet restrictions. Ordinary builds and reviewed no-update records pass for all
+three modules, with only inherited axioms. No coverage is added by them.
+Next prove the original eckey_pubkey_tweak_add caller: use gej_set_ge,
+scalar_set_int(1), the in-place ecmult contract, infinity guard and existing
+finite affine conversion, including its local allocations/frees. Reuse
+jet_secp_table_affine_nonzero and the Schnorr multiplier caller's shared-Z
+nonzero argument to discharge the conditional infinity-flag postcondition.
+Then compose the byte-scalar overflow guard and x-only tweak/load/save callers,
+and the generic TapTweak SHA/reader/writer lifecycle. Do not substitute a
+separate point temporary in the C execution to avoid its actual alias.
 Keep all preservation attached to constructed memset witnesses: its existential
 model does not specify every arbitrary external execution. BIP340 is a
 registered candidate awaiting full acceptance; CheckSig remains unregistered.
