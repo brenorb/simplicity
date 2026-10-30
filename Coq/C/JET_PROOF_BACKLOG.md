@@ -371,10 +371,14 @@ initial pointer/message checks and nine-local entry allocations are proved
 separately, and `jet_secp_schnorr_verify_function` now composes the entire
 original inner verifier call with all nine frees. Its parser-result adapter
 and the original public call/return tail are now built too. Next compose the
-outer jet's remaining message/signature reads and compose its complete
-lifecycle. The five-local entry/free, copied-source/key-read prefix and both
-key-parse guard outcomes are now built and audited too. Public acceptance is
-unchanged.
+the full scoped acceptance path for the new complete public BIP340 candidate.
+`jet_secp_bip0340_local.bip0340_initialized_local_spec` now builds for every
+input under the explicit memcpy/memset/ctz models. Both key-parser exits, all
+reads, original verifier, five outer frees, and initialized-state preservation
+are composed. Reviewed scoped records pass. It is **unregistered/unaccepted**
+pending the canonical source binding, exact coverage contract/model reporting,
+and full scoped acceptance (including recursive kernel and AST checks).
+Public accepted coverage stays 526/533.
 The earlier recursive check at `e71798a6` of
 `C.jet_secp_schnorr_checked_return` **passed** (exit 0). Before/after/at-completion
 input fingerprints agree (`b02a3e8b659b4032e79b865b6df8e82bb1ed032999f51c1f7d7f8bf7cdfd4f27`);
@@ -772,6 +776,37 @@ no alignment or no-crossing restriction. Ordinary builds and reviewed scoped
 no-update records pass. Next compose these with the original parse guard and
 final verifier-call/return, and all five frees; the old message/signature-read
 work item above is now done.
+`jet_secp_schnorr_startup` establishes the real curve/modulus/SHA globals
+from Genv.init_mem and preserves them through owned-block frames using actual
+permissions and forward memory. `jet_secp_bip0340_after_parse` joins all data
+reads to the original verifier-call/return. `jet_secp_bip0340_function` now
+executes the complete original public wrapper for every pk/msg/r/s, including
+key rejection and all five outer frees. It preserves every originally valid
+memory location and startup state. `jet_secp_bip0340_local` packages its full
+initialized partial contract for `literal_bip0340_verify`; its only extra
+premises are the three already explicit helper models. Ordinary builds and
+reviewed scoped no-update assumption/type audits pass, with the inherited
+axiom set. No public registration or accepted-coverage increment is claimed.
+Next extend the existing `secp-field-integration/check-rescale.py` source
+binding/mutation checks (which already cover point_check_1 and its assertion)
+to pubkey_unpack_neg, signature_unpack, canonical BIP340 challenge/check/assert,
+SignatureJet dispatch, FFI and the exact new startup/public theorem. Audit
+all tag/padding/routing definitions against the active frozen Haskell source.
+The current coverage `library_condition` reports only a single leading model;
+represent **all three** models in this candidate's conditional diagnostics,
+without hiding any premise or treating it as a direct-library proof. Add the
+exact candidate correspondence and negative tests, then full scoped acceptance
+before claiming coverage. Registration metadata must be staged to select the
+candidate with --jets, but is not itself acceptance. Preserve the seven-jet
+remaining accepted count until that check succeeds.
+The worker is still live in its ordinary build at f3e0f457. Once it completes,
+it is more useful to advance the idle clean worker to the new complete public
+candidate and run its full scoped acceptance than to check only the superseded
+inner tail. Do not restart the live build or edit its inputs. Copy only newly
+added source-identical compiled modules after that advance; copying every old
+object with fresh timestamps causes unnecessary dependency rebuilds. Take
+fingerprints only after its build is idle. Its older 93b98930 receipt remains
+valid only for those older exact inputs.
 Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or

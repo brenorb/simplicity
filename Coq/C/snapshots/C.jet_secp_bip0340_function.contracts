@@ -1,0 +1,97 @@
+### C.jet_secp_bip0340_function.bip0340_exec_two_then_last
+bip0340_exec_two_then_last
+     : forall (ge : Clight.genv) (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (a b last : Clight.statement) (li : Clight.temp_env) (mi : Memory.Mem.mem) (lef : Clight.temp_env)
+         (mf : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le m (Clight.Ssequence a b) Events.E0 li mi ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e li mi last Events.E0 lef mf out),
+       ClightBigstep.Clight2.exec_stmt ge e le m (Clight.Ssequence a (Clight.Ssequence b last)) Events.E0 lef mf out
+### C.jet_secp_bip0340_function.bip0340_source_fields_framed
+bip0340_source_fields_framed
+     : forall (m mf : Memory.Mem.mem) (bl bi : Values.block) (edge rc : BinNums.Z)
+         (P : forall (_ : Values.block) (_ : BinNums.Z), Prop)
+         (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc) (_ : jet_sx_mem.lframe P m mf)
+         (_ : forall pos : BinNums.Z, P bl pos), jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge rc
+### C.jet_secp_bip0340_function.bip0340_old_frame
+bip0340_old_frame
+     : forall (m0 m mf : Memory.Mem.mem) (locals : list Values.block)
+         (_ : forall (b : Values.block) (_ : Memory.Mem.valid_block m0 b), not (@List.In Values.block b locals))
+         (_ : jet_sx_mem.lframe (fun (_ : Values.block) (_ : BinNums.Z) => True) m0 m)
+         (_ : jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (@List.In Values.block b locals)) m mf),
+       jet_sx_mem.lframe (fun (_ : Values.block) (_ : BinNums.Z) => True) m0 mf
+### C.jet_secp_bip0340_function.bip0340_parse_zero_outcome
+bip0340_parse_zero_outcome
+     : forall (pk : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : @eq Integers.Int.int (jet_secp_xonly_parse_field.xonly_parse_result pk) Integers.Int.zero),
+       @eq ClightBigstep.outcome (jet_secp_bip0340_public_parse.bip0340_parse_outcome pk)
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.zero) Ctypesdefs.tint)))
+### C.jet_secp_bip0340_function.bip0340_parse_one_outcome
+bip0340_parse_one_outcome
+     : forall (pk : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : @eq Integers.Int.int (jet_secp_xonly_parse_field.xonly_parse_result pk) Integers.Int.one),
+       @eq ClightBigstep.outcome (jet_secp_bip0340_public_parse.bip0340_parse_outcome pk) ClightBigstep.Out_normal
+### C.jet_secp_bip0340_function.eval_bip0340_public
+eval_bip0340_public
+     : forall (_ : jet_memcpy_model.memcpy_model) (_ : jet_memset_model.memset_model) (_ : jet_ctz_model.ctz_model)
+         (pk msg r s : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (v_env : Values.val)
+         (m0 : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (bi : Values.block) (edge cursor : BinNums.Z) (_ : jet_secp_schnorr_startup.schnorr_startup m0)
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m0 bs sbase bi edge cursor)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge cursor
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) pk))
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) msg))
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (@Translate.encode
+                   (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                   (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) r s)))
+         (_ : BinInt.Z.le BinNums.Z0 cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                Integers.Int64.max_unsigned),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m0
+               (@Ctypes.Internal Clight.function jets_secp.f_simplicity_bip_0340_verify)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val v_env (@nil Values.val)))) Events.E0 mf
+               (Values.Vint
+                  (jet_readBit_layout.bit_int
+                     (Bit.toBool
+                        (@jet_secp_schnorr_verify_literal.literal_bip0340_check Alg.CoreFunSem
+                           (@pair
+                              (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                              (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                              (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) pk msg)
+                              (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) r s)))))))
+            (and (jet_sx_mem.lframe (fun (_ : Values.block) (_ : BinNums.Z) => True) m0 mf)
+               (and (jet_clight_forward.mem_forward m0 mf) (jet_secp_schnorr_startup.schnorr_startup mf))))

@@ -1,0 +1,87 @@
+### C.jet_secp_bip0340_after_parse.exec_bip0340_after_parse
+exec_bip0340_after_parse
+     : forall (_ : jet_memcpy_model.memcpy_model) (_ : jet_memset_model.memset_model) (_ : jet_ctz_model.ctz_model)
+         (pk msg r s : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (bl bb bkey bmsg bsig bi : Values.block) (edge cursor : BinNums.Z)
+         (_ : @List.NoDup Values.block (jet_secp_bip0340_public_entry.bip0340_public_locals bl bb bkey bmsg bsig))
+         (_ : not (@eq Values.block bl bi)) (_ : not (@eq Values.block bmsg bi)) (_ : not (@eq Values.block bsig bi))
+         (_ : BinInt.Z.le BinNums.Z0 cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                Integers.Int64.max_unsigned)
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                       (jet_secp_bip0340_public_entry.bip0340_public_storage bl bb bkey bmsg bsig)),
+              Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+         (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : jet_encoding.frame_input_cells_at m bi edge
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) msg))
+         (_ : jet_encoding.frame_input_cells_at m bi edge
+                (BinInt.Z.add cursor
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (@Translate.encode
+                   (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                   (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) r s)))
+         (_ : @eq Integers.Int.int (jet_secp_xonly_parse_field.xonly_parse_result pk) Integers.Int.one)
+         (_ : jet_secp_xonly_parse_field.xonly_parsed_result pk m bkey)
+         (_ : jet_secp_schnorr_startup.schnorr_startup m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex Clight.temp_env
+            (fun lef : Clight.temp_env =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                  (jet_secp_bip0340_public_entry.bip0340_public_env bl bb bkey bmsg bsig) le m
+                  (jet_secp_root_chain_owned.root_drop_statements (S (S (S O)))
+                     (Clight.fn_body jets_secp.f_simplicity_bip_0340_verify)) Events.E0 lef mf
+                  (ClightBigstep.Out_return
+                     (@Some (prod Values.val Ctypes.type)
+                        (@pair Values.val Ctypes.type
+                           (Values.Vint
+                              (jet_readBit_layout.bit_int
+                                 (Bit.toBool
+                                    (@jet_secp_schnorr_verify_literal.literal_bip0340_check Alg.CoreFunSem
+                                       (@pair
+                                          (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (...))))))))))
+                                             (Ty.tySem (Word.Word (S (S (S (S (S (S (S (...)))))))))))
+                                          (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (...))))))))))
+                                             (Ty.tySem (Word.Word (S (S (S (S (S (S (S (...)))))))))))
+                                          (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (...))))))))))
+                                             (Ty.tySem (Word.Word (S (S (S (S (S (S (S (...)))))))))) pk msg)
+                                          (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (...))))))))))
+                                             (Ty.tySem (Word.Word (S (S (S (S (S (S (S (...)))))))))) r s))))))
+                           Ctypesdefs.tint))))
+               (and
+                  (forall (b : Values.block) (hi : BinNums.Z)
+                     (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi)
+                            (jet_secp_bip0340_public_entry.bip0340_public_storage bl bb bkey bmsg bsig)),
+                   Memory.Mem.range_perm mf b BinNums.Z0 hi Memtype.Cur Memtype.Freeable)
+                  (and
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (_ : BinNums.Z) =>
+                         not
+                           (@List.In Values.block b
+                              (jet_secp_bip0340_public_entry.bip0340_public_locals bl bb bkey bmsg bsig))) m mf)
+                     (and (jet_clight_forward.mem_forward m mf) (jet_secp_schnorr_startup.schnorr_startup mf))))))
