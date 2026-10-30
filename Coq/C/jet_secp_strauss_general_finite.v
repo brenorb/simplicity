@@ -64,7 +64,9 @@ Proof.
  change (In hi [128;32;128;24;1040;704;320;32]) in Sizes;cbn [In] in Sizes;intuition lia.
 Qed.
 
-Theorem eval_strauss_general_finite_flag (Model:memset_model)
+Require Import C.jet_clight_forward.
+
+Theorem eval_strauss_general_finite_flag_forward (Model:memset_model)
  (raw ng ax ay az:Ty.tySem (Word 8)) x y z m br bk ba bs bp bt bx bng :
  (forall h,generator_table_state h m) -> split_constants_ready m -> beta_initialized m ->
  NoDup [br;bk;ba;bs;bp;bt;bx;bng] ->
@@ -96,7 +98,7 @@ Theorem eval_strauss_general_finite_flag (Model:memset_model)
  (Bit.toBool (@canonical_fe_is_zero Alg.CoreFunSem
    (fst (@literal_scalar_table5 Alg.CoreFunSem ((ax,ay),az))))=false ->
   Mem.load Mint32 mf br 120=Some (Vint (bit_int (Bit.toBool
-   (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz)))))).
+   (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz)))))) /\ mem_forward m mf.
 Proof.
  intros Tables Ready Beta OuterSeparate Outer Input InputNG Nonzero BX BY BZ X Y Z Flag HX HY HZ Finite PS PT PX.
  assert (OldValid:forall b,In b [br;bk;ba;bs;bp;bt;bx;bng] -> Mem.valid_block m b).
@@ -215,7 +217,7 @@ Proof.
  assert (OuterP:forall b hi,In (b,hi) (strauss_linear_outer_storage br bk ba bs bp bt bx bng) ->
   Mem.range_perm ms b 0 hi Cur Freeable).
  { intros b hi Slot pos P;apply KeepP,KeepI;apply (Outer b hi Slot);exact P. }
- destruct (exec_strauss_general_main_flag Model lp ms bng br bs bp bt bx bd bz b0 b128 bw0 bw128 bj bn bl
+ destruct (exec_strauss_general_main_flag_forward Model lp ms bng br bs bp bt bx bd bz b0 b128 bw0 bw128 bj bn bl
   raw ng ((ax,ay),az) xf yf (beta_aux_values xf)
   (point_mul_words (odd_table_z (odd_table_final_state x y z)) (double_output_z_words y z))
   last1 lastlam digits1 digitslam MainSeparate RP SP NoP BitsP NGP InputNGP
@@ -225,7 +227,7 @@ Proof.
   (OuterP bt 704 ltac:(clear;cbn [strauss_linear_outer_storage In];tauto))
   (OuterP bx 320 ltac:(clear;cbn [strauss_linear_outer_storage In];tauto)) LocalP)
   as (lef & mu & ox & oy & oz & Main & RF & XO & YO & ZO & BXO & BYO & BZO & Literal & FreeRU &
-   FreeTU & FreeXU & LocalU & KeepM & TablesU & FrameM & ConditionalMain).
+   FreeTU & FreeXU & LocalU & KeepM & TablesU & FrameM & ConditionalMain & ForwardMain).
  assert (KeepU:keeps_permissions m mu) by
   (eapply keeps_permissions_trans;[exact KeepI|];eapply keeps_permissions_trans;[exact KeepP|exact KeepM]).
  assert (PrepFrame:lframe
@@ -288,6 +290,10 @@ Proof.
    assert (PrepareAll:Clight2.exec_stmt secp_ge e le mi generator_prepare_non_generator E0 lp ms Out_normal).
    { rewrite generator_prepare_non_generator_source;eapply exec_statement_prefix_then_last;
       [exact Init|apply strauss_prepare_reassociate;exact Prepare]. }
+   assert (Forward:mem_forward m mf).
+   { eapply mem_forward_trans;[exact (proj1 ReadI)|].
+     eapply mem_forward_trans;[exact (proj1 ReadP)|].
+     eapply mem_forward_trans;[exact ForwardMain|eapply freelist_forward;exact Released]. }
    exists mf,ox,oy,oz;split.
    + eapply eval_funcall_internal with (e:=e) (le1:=le) (le2:=lef) (m1:=mi) (m2:=mu) (out:=Out_normal).
      * exact Entry.
@@ -296,7 +302,49 @@ Proof.
      * unfold e;rewrite generator_local_blocks;exact Released.
    + split;[exact XF|];split;[exact YF|];split;[exact ZF|];
      split;[exact BXO|];split;[exact BYO|];split;[exact BZO|];
-     split;[exact Literal|];split;[exact OuterF|];split;[exact TablesF|];split;[exact Frame|exact ConditionalF].
+     split;[exact Literal|];split;[exact OuterF|];split;[exact TablesF|];split;[exact Frame|];split;[exact ConditionalF|exact Forward].
+Qed.
+
+Theorem eval_strauss_general_finite_flag (Model:memset_model)
+ (raw ng ax ay az:Ty.tySem (Word 8)) x y z m br bk ba bs bp bt bx bng :
+ (forall h,generator_table_state h m) -> split_constants_ready m -> beta_initialized m ->
+ NoDup [br;bk;ba;bs;bp;bt;bx;bng] ->
+ (forall b hi,In (b,hi) (strauss_linear_outer_storage br bk ba bs bp bt bx bng) ->
+  Mem.range_perm m b 0 hi Cur Freeable) ->
+ scalar_at m bk 0 (map Int64.repr (scalar_limbs_of
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem raw)))) ->
+ scalar_at m bng 0 (map Int64.repr (scalar_limbs_of
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem ng)))) ->
+ @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem raw)<>0 ->
+ square_input_bounds x -> square_input_bounds y -> square_input_bounds z ->
+ fe_at m ba 0 (words5 x) -> fe_at m ba 40 (words5 y) -> fe_at m ba 80 (words5 z) ->
+ Mem.load Mint32 m ba 120=Some (Vint Int.zero) ->
+ table_word_literal x ax -> table_word_literal y ay -> table_word_literal z az -> field_zero_result z=Int.zero ->
+ Mem.load Mptr m bs 16=Some (Vptr bp Ptrofs.zero) ->
+ Mem.load Mptr m bs 8=Some (Vptr bt Ptrofs.zero) -> Mem.load Mptr m bs 0=Some (Vptr bx Ptrofs.zero) ->
+ exists mf ox oy oz,
+ Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ecmult_strauss_wnaf)
+  [Vptr bs Ptrofs.zero;Vptr br Ptrofs.zero;Vlong Int64.one;Vptr ba Ptrofs.zero;
+   Vptr bk Ptrofs.zero;Vptr bng Ptrofs.zero] E0 mf Vundef /\
+ fe_at mf br 0 (words5 ox) /\ fe_at mf br 40 (words5 oy) /\ fe_at mf br 80 (words5 oz) /\
+ square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
+ ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
+  @literal_strauss_body Alg.CoreFunSem ((raw,((ax,ay),az)),ng) /\
+ (forall b hi,In (b,hi) (strauss_linear_outer_storage br bk ba bs bp bt bx bng) ->
+  Mem.range_perm mf b 0 hi Cur Freeable) /\
+ (forall h,generator_table_state h mf) /\
+ lframe (fun b _=>~In b [br;bk;ba;bs;bp;bt;bx;bng]) m mf /\
+ (Bit.toBool (@canonical_fe_is_zero Alg.CoreFunSem
+   (fst (@literal_scalar_table5 Alg.CoreFunSem ((ax,ay),az))))=false ->
+  Mem.load Mint32 mf br 120=Some (Vint (bit_int (Bit.toBool
+   (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz)))))).
+Proof.
+ intros Tables Ready Beta OuterSeparate Outer Input InputNG Nonzero BX BY BZ X Y Z Flag HX HY HZ Finite PS PT PX.
+ destruct (eval_strauss_general_finite_flag_forward Model raw ng ax ay az x y z m br bk ba bs bp bt bx bng
+  Tables Ready Beta OuterSeparate Outer Input InputNG Nonzero BX BY BZ X Y Z Flag HX HY HZ Finite PS PT PX)
+  as (mf & ox & oy & oz & Exec & XO & YO & ZO & BXO & BYO & BZO & Literal &
+   OuterOut & TablesOut & Frame & Conditional & Forward).
+ exists mf,ox,oy,oz;repeat first [assumption|split].
 Qed.
 
 

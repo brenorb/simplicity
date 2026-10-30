@@ -361,7 +361,8 @@ matching before/after/current fingerprints and the same trust-feature/axiom
 checks. Reproduce with the same flags and root `C.jet_secp_strauss_window_values`.
 The later full Schnorr predicate chain and affine accessor have ordinary builds
 and reviewed no-update records; their recursive check on **`8d5ba448`** is
-pending. Its roots are `C.jet_secp_schnorr_check_predicate
+now passed with matching before/after fingerprints on the frozen worker and
+no unsafe features or additional axioms. Its roots were `C.jet_secp_schnorr_check_predicate
 C.jet_secp_affine_flag_read`; it does not establish public C caller execution.
 
 Both window reconstructions, the original four-stream/129-step group semantics,
@@ -423,8 +424,10 @@ combine it with the load frame, and derive global/argument disjointness from
 initial readonly state versus owned writable ranges. The first strengthened
 wrapper, `exec_strauss_general_main_flag_forward`, is compiled; the original
 main-stage theorem types and assumption records remain unchanged as projections.
-Next thread this forward fact through finite and skipped Strauss, generator
-main, the Strauss wrapper and ecmult. Keep all preservation attached to the
+The finite and skipped Strauss branches and generator main now also expose
+forward preservation, with their original theorem interfaces and assumptions
+unchanged. Their ordinary builds and scoped audits pass. Next thread this
+forward fact through the Strauss wrapper and ecmult. Keep all preservation attached to the
 constructed memset witnesses; its existential model does not specify every
 arbitrary external execution. No public Schnorr proof or
 new coverage is claimed yet.

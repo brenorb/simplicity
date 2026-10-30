@@ -44,7 +44,9 @@ Require Import C.jet_secp_scalar_get_b32_storage C.jet_secp_strauss_skip
 Require Import C.jet_secp_generate_program C.jet_secp_generator_main C.jet_secp_point_set_bit C.jet_secp_strauss_scale_function.
 Local Opaque literal_generate.
 
-Theorem eval_strauss_general_skipped_flag (Model:memset_model) value (ng:Ty.tySem (Word 8)) m br bk ba bs bt bx bng :
+Require Import C.jet_clight_forward.
+
+Theorem eval_strauss_general_skipped_flag_forward (Model:memset_model) value (ng:Ty.tySem (Word 8)) m br bk ba bs bt bx bng :
  (forall h,generator_table_state h m) -> 0<=value<2^256 ->
  scalar_at m bk 0 (map Int64.repr (C.jet_secp_scalar_get_b32_numeric.scalar_limbs_of value)) ->
  (value=0 \/ Mem.load Mint32 m ba 120=Some (Vint Int.one)) ->
@@ -66,7 +68,7 @@ Theorem eval_strauss_general_skipped_flag (Model:memset_model) value (ng:Ty.tySe
  (forall h,generator_table_state h mf) /\
  lframe (fun b _=>b<>br /\ b<>bng) m mf /\
  Mem.load Mint32 mf br 120=Some (Vint (bit_int (Bit.toBool
-  (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz))))).
+  (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz))))) /\ mem_forward m mf.
 Proof.
  intros Tables Range Input Skip PT PX InputNG Different FreeR FreeNG.
  assert (VR:Mem.valid_block m br) by (eapply Mem.perm_valid_block;apply (FreeR 0);clear;lia).
@@ -142,12 +144,12 @@ Proof.
    - exact Union.
    - cbn;lia.
    - intros b;cbn [app In];tauto. }
- destruct (exec_generator_main_stage ls ms ng br bng bd bz b0 b128 bw0 bw128 bj bn bl
+ destruct (exec_generator_main_stage_forward ls ms ng br bng bd bz b0 b128 bw0 bw128 bj bn bl
   MainSep TablesS RS NGS NoS BitsS InputNGS DenominatorS FreeRS FreeNGS OwnedS
   ltac:(intros high ma mm local Alloc OwnedW;exact (generate_memset_steps Model ma mm local
    (if high then b128 else b0) (if high then bw128 else bw0) Alloc OwnedW)))
   as (lef & mu & ox & oy & oz & Main & PRF & X & Y & Z & Flag & FreeRU & FreeNGU &
-   OwnedU & BX & BY & BZ & Literal & FrameM).
+   OwnedU & BX & BY & BZ & Literal & FrameM & ForwardMain).
  assert (TablesU:forall h,generator_table_state h mu).
  { intro h;pose proof (TablesS h) as [Table Bounds];pose proof Table as [Valid _].
    assert (Outside:generator_table_block h<>br /\
@@ -175,7 +177,7 @@ Proof.
    pose proof (generator_table_rep_lframe h ms mu _ Table FrameM ltac:(intro;exact Outside)) as Rep.
    split;[exact Rep|].
    eapply readonly_bounds_transport;[exact Valid|exact Bounds| |exact (proj1 (proj2 Rep))].
-   exact (proj1 (clight_exec_forward secp_ge) _ _ _ _ _ _ _ _ Main). }
+   exact ForwardMain. }
  destruct (free_list_exists
   [(bw128,0,516);(bw0,0,516);(bd,0,88);(bj,0,128);(bz,0,40);(b128,0,32);(b0,0,32);(bn,0,32);(bl,0,32)] mu)
   as (mf & Released & UnchangedF).
@@ -219,6 +221,10 @@ Proof.
      - intros b pos [NotR NotG] Valid;split;[exact Valid|];split;assumption. }
    assert (Prepare:Clight2.exec_stmt secp_ge e le mi generator_prepare_non_generator E0 ls ms Out_normal).
    { rewrite generator_prepare_non_generator_source;eapply exec_statement_prefix_then_last;[exact Init|exact SkipCall]. }
+   assert (Forward:mem_forward m mf).
+   { eapply mem_forward_trans;[exact (proj1 ReadI)|].
+     eapply mem_forward_trans;[exact (proj1 ReadS)|].
+     eapply mem_forward_trans;[exact ForwardMain|eapply freelist_forward;exact Released]. }
    exists mf,ox,oy,oz;split.
    + eapply eval_funcall_internal with (e:=e) (le1:=le) (le2:=lef) (m1:=mi) (m2:=mu) (out:=Out_normal).
      * exact Entry.
@@ -227,7 +233,39 @@ Proof.
      * unfold e;rewrite generator_local_blocks;exact Released.
    + split;[exact XF|];split;[exact YF|];split;[exact ZF|];
      split;[exact BX|];split;[exact BY|];split;[exact BZ|];split;[exact Literal|];
-     split;[exact FreeRF|];split;[exact FreeNGF|];split;[exact TablesF|];split;[exact Frame|exact FlagF].
+     split;[exact FreeRF|];split;[exact FreeNGF|];split;[exact TablesF|];split;[exact Frame|];split;[exact FlagF|exact Forward].
+Qed.
+
+Theorem eval_strauss_general_skipped_flag (Model:memset_model) value (ng:Ty.tySem (Word 8)) m br bk ba bs bt bx bng :
+ (forall h,generator_table_state h m) -> 0<=value<2^256 ->
+ scalar_at m bk 0 (map Int64.repr (C.jet_secp_scalar_get_b32_numeric.scalar_limbs_of value)) ->
+ (value=0 \/ Mem.load Mint32 m ba 120=Some (Vint Int.one)) ->
+ Mem.load Mptr m bs 8=Some (Vptr bt Ptrofs.zero) -> Mem.load Mptr m bs 0=Some (Vptr bx Ptrofs.zero) ->
+ scalar_at m bng 0 (map Int64.repr (C.jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem ng)))) ->
+ br<>bng -> Mem.range_perm m br 0 128 Cur Freeable -> Mem.range_perm m bng 0 32 Cur Freeable ->
+ exists mf ox oy oz,
+ Clight2.eval_funcall secp_ge m (Internal f_secp256k1_ecmult_strauss_wnaf)
+  [Vptr bs Ptrofs.zero;Vptr br Ptrofs.zero;Vlong Int64.one;Vptr ba Ptrofs.zero;
+   Vptr bk Ptrofs.zero;Vptr bng Ptrofs.zero] E0 mf Vundef /\
+ fe_at mf br 0 (words5 ox) /\
+ fe_at mf br 40 (words5 oy) /\
+ fe_at mf br 80 (words5 oz) /\
+ square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
+ ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
+  @literal_generate Alg.CoreFunSem ng /\
+ Mem.range_perm mf br 0 128 Cur Freeable /\ Mem.range_perm mf bng 0 32 Cur Freeable /\
+ (forall h,generator_table_state h mf) /\
+ lframe (fun b _=>b<>br /\ b<>bng) m mf /\
+ Mem.load Mint32 mf br 120=Some (Vint (bit_int (Bit.toBool
+  (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz))))).
+Proof.
+ intros Tables Range Input Skip PT PX InputNG Different FreeR FreeNG.
+ destruct (eval_strauss_general_skipped_flag_forward Model value ng m br bk ba bs bt bx bng
+  Tables Range Input Skip PT PX InputNG Different FreeR FreeNG)
+  as (mf & ox & oy & oz & Exec & XO & YO & ZO & BX & BY & BZ & Literal &
+   FR & FG & TablesOut & Frame & OutputFlag & Forward).
+ exists mf,ox,oy,oz;repeat first [assumption|split].
 Qed.
 
 Theorem eval_strauss_general_skipped (Model:memset_model) value (ng:Ty.tySem (Word 8)) m br bk ba bs bt bx bng :

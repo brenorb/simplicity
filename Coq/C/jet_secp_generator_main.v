@@ -37,7 +37,9 @@ Qed.
 Lemma generator_denominator_one_value : radix_value (point_set_bit_words Datatypes.true) mod feP=1.
 Proof. reflexivity. Qed.
 
-Theorem exec_generator_main_stage le m value bp bng bt bz b0 b128 bw0 bw128 bj bn bl :
+Require Import C.jet_clight_forward C.jet_clight_internal_frame C.jet_secp_closed_helpers C.jet_clight_internal_preserve.
+
+Theorem exec_generator_main_stage_forward le m value bp bng bt bz b0 b128 bw0 bw128 bj bn bl :
   let e:=generator_local_env bt bz b0 b128 bw0 bw128 bj bn bl in
   NoDup [bp;bt;bz;b0;b128;bw0;bw128;bj;bn;bl;bng] ->
   (forall h,generator_table_state h m) ->
@@ -70,7 +72,7 @@ Theorem exec_generator_main_stage le m value bp bng bt bz b0 b128 bw0 bw128 bj b
     square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
     ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
       @literal_generate Alg.CoreFunSem value /\
-    lframe (fun b _=>b<>bp /\ ~In b [bt;bz;b0;b128;bw0;bw128;bj;bn;bl] /\ b<>bng) m mf.
+    lframe (fun b _=>b<>bp /\ ~In b [bt;bz;b0;b128;bw0;bw128;bj;bn;bl] /\ b<>bng) m mf /\ mem_forward m mf.
 Proof.
   cbn zeta;intros Sep Tables PR NG No Bits Input Denominator PF SF Free ZeroSteps.
   set (e:=generator_local_env bt bz b0 b128 bw0 bw128 bj bn bl) in *.
@@ -180,6 +182,21 @@ Proof.
         intros b pos [NotP [Outside NotNG]] Valid;clear -Outside;cbn [In] in Outside;intuition congruence.
       + eapply lframe_implies;[exact FrameP|].
         intros b pos [NotP [Outside NotNG]] Valid;clear -Outside NotP;cbn [In] in Outside;intuition congruence. }
+  assert (ForwardS:mem_forward m ms).
+  { intros block Valid;split.
+    - exact (proj2 (proj2 FrameS) block Valid).
+    - intros pos permission Perm;exact (proj1 (PermS block pos Memtype.Max permission) Perm). }
+  assert (ForwardW:mem_forward ms mw).
+  { intros block Valid;split.
+    - exact (proj2 (proj2 FrameW) block Valid).
+    - intros pos permission Perm;exact (proj1 (PermW block pos Memtype.Max permission Valid) Perm). }
+  assert (ForwardPoint:mem_forward mw mf).
+  { assert (Plain:plain_env e).
+    { unfold e,generator_local_env;repeat (apply plain_set;[|reflexivity]);apply plain_empty. }
+    assert (Closed:closed_stmtb secp_closed_helpers generator_point_stage=true) by (vm_compute;reflexivity).
+    exact (proj1 (secp_closed_stmt_preserved e lw mw generator_point_stage E0 lef mf Out_normal Point Plain Closed)). }
+  assert (Forward:mem_forward m mf) by
+   (eapply mem_forward_trans;[exact ForwardS|eapply mem_forward_trans;[exact ForwardW|exact ForwardPoint]]).
   exists lef,mf,ox,oy,oz;split.
   - unfold generator_main_stage;eapply exec_Sseq_1 with (t1:=E0) (t2:=E0) (le1:=lw) (m1:=mw);[|exact Point].
     rewrite generator_scalar_branch_source;eapply exec_Sifthenelse
@@ -188,5 +205,47 @@ Proof.
   - split;[exact PRF|];split;[exact X|];split;[exact Y|];split;[exact Z|];split;[exact Flag|];
     split;[exact PFF|];split;[exact SFF|];split;[exact FreeF|];split;[exact BX|];split;[exact BY|];split;[exact BZ|];split.
     + exact (eq_trans Literal (eq_sym (literal_generate_value value))).
-    + exact Frame.
+    + split;[exact Frame|exact Forward].
+Qed.
+
+Theorem exec_generator_main_stage le m value bp bng bt bz b0 b128 bw0 bw128 bj bn bl :
+  let e:=generator_local_env bt bz b0 b128 bw0 bw128 bj bn bl in
+  NoDup [bp;bt;bz;b0;b128;bw0;bw128;bj;bn;bl;bng] ->
+  (forall h,generator_table_state h m) ->
+  le!_r=Some (Vptr bp Ptrofs.zero) -> le!_ng=Some (Vptr bng Ptrofs.zero) ->
+  le!_no=Some (Vlong Int64.zero) -> le!_bits=Some (Vint Int.zero) ->
+  scalar_at m bng 0 (map Int64.repr (scalar_limbs_of
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value)))) ->
+  fe_at m bz 0 (words5 (point_set_bit_words Datatypes.true)) ->
+  Mem.range_perm m bp 0 128 Cur Freeable -> Mem.range_perm m bng 0 32 Cur Freeable ->
+  (forall b hi,In (b,hi) (generator_local_storage bt bz b0 b128 bw0 bw128 bj bn bl) ->
+    Mem.range_perm m b 0 hi Cur Freeable) ->
+  (forall (high : bool) ma mi bs,Mem.alloc ma 0 32=(mi,bs) ->
+    Mem.range_perm ma (if high then bw128 else bw0) 0 516 Cur Freeable -> exists mz,
+    let b:=if high then bw128 else bw0 in let ba:=if high then b128 else b0 in
+    Clight2.exec_stmt secp_ge (wnaf_env bs)
+      (wnaf_before_temps (wnaf_entry15_temps b 0 (Vptr ba Ptrofs.zero)))
+      mi wnaf_memset_call E0
+      (wnaf_before_temps (wnaf_entry15_temps b 0 (Vptr ba Ptrofs.zero))) mz Out_normal /\
+    (forall i,0<=i<129 -> Mem.load Mint32 mz b (4*i)=Some (Vint Int.zero)) /\
+    wnaf_memory_effect b mi mz) ->
+  exists lef mf ox oy oz,
+    Clight2.exec_stmt secp_ge e le m generator_main_stage E0 lef mf Out_normal /\
+    lef!_r=Some (Vptr bp Ptrofs.zero) /\
+    fe_at mf bp 0 (words5 ox) /\ fe_at mf bp 40 (words5 oy) /\ fe_at mf bp 80 (words5 oz) /\
+    Mem.load Mint32 mf bp 120=Some (Vint (bit_int (Simplicity.Bit.toBool
+      (@canonical_fe_is_zero Alg.CoreFunSem (rescale_field_output oz))))) /\
+    Mem.range_perm mf bp 0 128 Cur Freeable /\ Mem.range_perm mf bng 0 32 Cur Freeable /\
+    (forall b hi,In (b,hi) (generator_local_storage bt bz b0 b128 bw0 bw128 bj bn bl) ->
+      Mem.range_perm mf b 0 hi Cur Freeable) /\
+    square_input_bounds ox /\ square_input_bounds oy /\ square_input_bounds oz /\
+    ((rescale_field_output ox,rescale_field_output oy),rescale_field_output oz)=
+      @literal_generate Alg.CoreFunSem value /\
+    lframe (fun b _=>b<>bp /\ ~In b [bt;bz;b0;b128;bw0;bw128;bj;bn;bl] /\ b<>bng) m mf.
+Proof.
+ cbn zeta;intros Sep Tables PR NG No Bits Input Denominator PF SF Free ZeroSteps.
+ destruct (exec_generator_main_stage_forward le m value bp bng bt bz b0 b128 bw0 bw128 bj bn bl
+  Sep Tables PR NG No Bits Input Denominator PF SF Free ZeroSteps)
+ as (lef & mf & ox & oy & oz & Run & PRF & X & Y & Z & Flag & PFF & SFF & FreeF & BX & BY & BZ & Literal & Frame & Forward).
+ exists lef,mf,ox,oy,oz;repeat first [assumption|split].
 Qed.
