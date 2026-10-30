@@ -1,5 +1,21 @@
 # Remaining jet proof work
 
+The final Elements implementation-to-Simplicity theorem now builds in
+`jet_elements_taptweak_local.elements_build_taptweak_initialized_local_spec`.
+It uses shared `jet_taptweak_literal_at` (arbitrary tag IV, all assertion
+branches) and `jet_initialized_partial_contract_at` (the unchanged standard
+partial contract indexed by the actual linked GE). Initialized memory exists
+and readiness is preserved. Reviewed scoped records and no-update comparisons,
+proof scanning and frozen-target checks pass. The theorem has the same six
+inherited assumptions and only the three approved library models. Astra
+Medium found no blocking semantic, domain or oracle issue in the bridge; its
+review was static and did not recheck dependencies. The canonical source-gate
+extension privately passes its 24 new negative mutations. Next integrate
+that gate and the exact public registration, then run full scoped acceptance
+without updates. Accepted coverage remains 529/533 until it passes.
+
+## Linked Elements TapTweak integration notes (historical)
+
 The complete frozen Elements public wrapper now builds in ordinary modules:
 `jet_elements_taptweak_{output_prefix,initial_phase,finish,body,function,public_support,public_function}`
 and shared `jet_taptweak_phase_glue_at`. The proof executes the actual 17-byte
