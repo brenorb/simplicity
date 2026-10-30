@@ -366,8 +366,11 @@ composes the actual two-stream generator for every input, including zero.
 `jet_secp_linear_combination_group` combines both top-level branches for every
 scalar pair and valid affine input. `jet_secp_affine_word_valid` derives finite
 representations from successful decompression and proves equality of normalized
-coordinates for representations of the same point. Next connect the final
-Schnorr predicate, then compose the original C caller. Reuse these modules rather than re-proving
+coordinates for representations of the same point. `jet_secp_linear_check_group`
+identifies the canonical subtraction/infinity predicate with equality of the
+represented group points. Next characterize even decompression (including
+failure), connect the Schnorr predicates, then compose the original C caller.
+Reuse these modules rather than re-proving
 the table, generator bases or inverse. No Schnorr jet is registered yet.
 
 The paragraphs below preserve the sequential development history; their
