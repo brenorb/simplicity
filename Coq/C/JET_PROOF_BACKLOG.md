@@ -1,5 +1,38 @@
 # Remaining jet proof work
 
+The actual linked `fe_inv_var` and finite affine conversion now build in the
+ordinary project (`jet_elements_taptweak_inverse_state`,
+`jet_elements_taptweak_fe_inverse_prefix`, `jet_elements_taptweak_fe_inverse_var`,
+`jet_elements_taptweak_affine_finite`). The real copy/normalize/pack/core/unpack
+and cleanup are composed for arbitrary field slices, including in-place Z at
+offset 80 with X/Y preserved. The finite affine call includes both local frees.
+Reviewed scoped records and no-update comparisons pass; execution retains six
+inherited assumptions and the existing ctz_model only. No public coverage is
+added. A second Astra Medium static review of these and the later native scratch
+ports found no address, oracle, alias, overflow/infinity or freeing issue; it
+did not run builds or transitive checks.
+
+Recursive kernel checking completed at exact inputs of
+`a1ec1aea30c19e526577f67a6d1a772e52412881` for
+`C.jet_elements_taptweak_inverse_core` and
+`C.jet_elements_taptweak_ecmult_finite` (1,282 C modules), exit zero.
+Before/after/current fingerprints agree:
+`f5e02c38d47ddc80ac1df13b0c9c285dd21a82ee5779809feacd42fee432c8e7`
+(13,480 inputs). Evidence: `/private/tmp/elements-taptweak-inverse-kernel.*`.
+This run used `-silent` without `-o`, so it emitted no library-wide axiom or
+unsafe-feature summary; do not describe its empty log as such a summary.
+The separately reviewed per-theorem assumption records match. Include `-o`
+in the next recursive check. This historical check does not cover later ports.
+
+Later native/helper ports through the entire frozen Elements wrapper compile
+in scratch. Integrate in the reviewed groups listed by
+`/private/tmp/elements-taptweak-integration-batches.json`, using the private
+integration script; group 0 is integrated above. Each remaining group needs
+ordinary builds, reviewed type/assumption records, no-update comparisons and
+its own signed atomic commit. The full candidate is still missing its final
+Elements specification bridge, canonical-source binding and public acceptance.
+Keep accepted coverage at 529/533 until those pass.
+
 The whole original linked `modinv64_var` call now builds as
 `jet_elements_taptweak_inverse_core.eval_elements_taptweak_field_inv_core`.
 The new normalize/finish/free/loop_finish modules derive normalization using
