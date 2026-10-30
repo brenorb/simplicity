@@ -1772,6 +1772,42 @@ results instead of using general external-call forwarding properties.
 Then connect the inverse and native tweak suffix. The old inverse CountCall
 and modulus predicates still use source addresses and need actual linked
 callees, not an assumed source-to-target oracle.
+
+Continuation checkpoint (ordinary sources through `3e7822a1`): the recursive
+kernel check of `C.jet_elements_taptweak_point_prepare`,
+`C.jet_elements_taptweak_strauss_main`, `C.jet_elements_taptweak_beta_loop`,
+`C.jet_elements_taptweak_modinfo` and `C.jet_elements_taptweak_ctz` is running.
+Its C closure has 1,221 modules. Logs, status, revision and before/after input
+fingerprints are `/private/tmp/elements-taptweak-main-kernel.*`; validate the
+finished result with `/private/tmp/elements-taptweak-kernel-validate.py` from
+the repository root. No pass or public acceptance is claimed while it runs.
+The five signed proof commits from `48be6171` through `3e7822a1` are pushed
+only to the brenorb fork. Keep the checked sources/objects/manifests fixed
+until the checker and fingerprint comparison finish.
+
+Meanwhile five completed scratch modules are ready for ordinary integration
+under `/private/tmp/point-verify-scratch/`:
+`jet_elements_taptweak_strauss_entry.v`,
+`jet_elements_taptweak_strauss_finish_support.v`,
+`jet_elements_taptweak_point_beta.v`,
+`jet_elements_taptweak_strauss_finite.v`, and
+`jet_elements_taptweak_strauss_skip.v`. All compile with the pinned toolchain.
+The finite result derives the whole original finite/nonzero Strauss call,
+the actual nine allocations, initialization, preparation, main phase and
+all nine frees, retaining the original literal result, ownership, frame,
+conditional flag and forwardness, and adding readonly preservation.
+Direct assumption printing shows six inherited execution assumptions and
+the existing memset_model only. The skipped-preprocessing result covers
+zero scalar or input infinity, retains unchanged memory and the same six
+assumptions, but does not establish the whole skipped multiplication call.
+Astra Medium's read-only review of the first four modules found no source
+address leakage, desired-execution hypotheses, dropped preservation/frees or
+false branch coverage; it was not an independent compilation/kernel audit.
+`/private/tmp/integrate_elements_strauss_finite.py` prepares the first four
+modules; also integrate the fifth, list its theorems, build and review scoped
+records, compare without update flags, and make a signed atomic commit.
+Revalidate files/status first. These scratch results add no public coverage
+and are not covered by the running recursive check.
 Reproduce the completed component builds with:
 
 ```sh
