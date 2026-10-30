@@ -1090,7 +1090,14 @@ the normalized 88-byte context copy at arbitrary caller-local identifiers,
 retaining exact initial registers/counter/overflow, ownership and framing.
 It reuses the existing constructor and struct-copy proofs and adds no library
 premise. Ordinary compilation and reviewed no-update records pass.
-Next compose the original tag block and the two sha256_hash prefix calls.
+`jet_secp_taptweak_tag_exec.exec_taptweak_tag` now composes the original
+first statement: SHA initialization and struct copy, the actual eight-byte
+absorption call and finalization. It obtains the canonical tag hash, exact
+counter/pointer/overflow, all three private buffers, external framing and the
+full initialized state. The original source statement is checked by reflexivity.
+Ordinary compilation and reviewed no-update records pass; memcpy_model and
+the inherited eight axioms remain explicit. This is the tag block only.
+Next compose the two sha256_hash prefix calls and their output-context init.
 The frozen `v_taptweak` global is a writable nine-byte array (eight characters
 plus NUL), not a readonly string; do not assume readonly tag memory. Establish
 its exact initial bytes, bounded permissions and no-Freeable property from
