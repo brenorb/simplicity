@@ -1,0 +1,43 @@
+### C.jet_secp_storage_pack.storage_pack_run_eq
+storage_pack_run_eq
+     : @eq (option jet_sx_exec.res) storage_pack_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone storage_pack_state jet_sx_exec.ONormal))
+### C.jet_secp_storage_pack.storage_pack_return
+storage_pack_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps storage_pack_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_storage_pack.storage_pack_output_shape
+storage_pack_output_shape
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs storage_pack_state) storage_pack_out_regs
+### C.jet_secp_storage_pack.storage_pack_output_den
+storage_pack_output_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) storage_pack_out)
+         (@List.map Integers.Int64.int Values.val Values.Vlong
+            (@cons Integers.Int64.int (storage_pack_words rho O)
+               (@cons Integers.Int64.int (storage_pack_words rho (S O))
+                  (@cons Integers.Int64.int (storage_pack_words rho (S (S O)))
+                     (@cons Integers.Int64.int (storage_pack_words rho (S (S (S O)))) (@nil Integers.Int64.int))))))
+### C.jet_secp_storage_pack.eval_storage_pack_symbolic
+eval_storage_pack_symbolic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta storage_pack_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_to_storage)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho beta storage_pack_out_regs mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape storage_pack_regs) b pos)) m mf)))
