@@ -1762,52 +1762,60 @@ assumption/contract records match without update flags, with the same six
 inherited execution assumptions. No whole ecmult or public call is
 established yet.
 
-Next derive `generator_initialize` and its real entry at the linked GE,
-then compose finite and skipped preprocessing, beta/main phases and all
-nine frees into whole Strauss and the four outer ecmult frees. Reuse
-`strauss_entry_and_initialize`'s source allocation witnesses through the
-checked variable layout and transport the pure initialization statement;
-do not redo the allocation/ownership proof. Preserve the new readonly
-results instead of using general external-call forwarding properties.
-Then connect the inverse and native tweak suffix. The old inverse CountCall
-and modulus predicates still use source addresses and need actual linked
-callees, not an assumed source-to-target oracle.
+`jet_elements_taptweak_strauss_entry` now derives the actual linked nine-local
+entry and initialization using the original allocation witnesses.
+`jet_elements_taptweak_strauss_finish_support` proves the linked readonly
+exception list, preparation reassociation and exact free-list layout.
+`jet_elements_taptweak_point_beta` composes finite preprocessing with all
+eight beta products. `jet_elements_taptweak_strauss_finite` derives the whole
+original finite/nonzero Strauss call and all nine frees, retaining the exact
+literal result, ownership, frame, conditional infinity flag and forwardness,
+and adding readonly preservation. The four ordinary builds and reviewed
+scoped assumption/contract comparisons pass without update flags; execution
+has six inherited assumptions and only the existing memset_model premise.
+Astra Medium's read-only review found no source-address leakage, desired
+execution/result hypotheses, dropped preservation/frees or false branch
+coverage. That review did not independently compile or kernel-check them.
+These four modules postdate the recursive check below and add no public coverage.
 
-Continuation checkpoint (ordinary sources through `3e7822a1`): the recursive
-kernel check of `C.jet_elements_taptweak_point_prepare`,
+Recursive component checking passed at exact proof inputs of
+`3e7822a1724f89198af460404c0ec48c8bc6010f`, for roots
+`C.jet_elements_taptweak_point_prepare`,
 `C.jet_elements_taptweak_strauss_main`, `C.jet_elements_taptweak_beta_loop`,
-`C.jet_elements_taptweak_modinfo` and `C.jet_elements_taptweak_ctz` is running.
-Its C closure has 1,221 modules. Logs, status, revision and before/after input
-fingerprints are `/private/tmp/elements-taptweak-main-kernel.*`; validate the
-finished result with `/private/tmp/elements-taptweak-kernel-validate.py` from
-the repository root. No pass or public acceptance is claimed while it runs.
-The five signed proof commits from `48be6171` through `3e7822a1` are pushed
-only to the brenorb fork. Keep the checked sources/objects/manifests fixed
-until the checker and fingerprint comparison finish.
+`C.jet_elements_taptweak_modinfo` and `C.jet_elements_taptweak_ctz`.
+The C closure contains 1,221 modules; coqchk exited zero, with the expected
+library axiom set and no type-in-type, unsafe fixpoints or assumed positivity.
+The before/after input fingerprint agrees:
+`391bc8a936d3c23a399a7075041422d303d79a00a8e4db62b2dbd3424454fcae`
+(13,396 source/object/record/configuration inputs).
+Private evidence is `/private/tmp/elements-taptweak-main-kernel.*`, validated
+by `/private/tmp/elements-taptweak-kernel-validate.py`. This is a historical
+component check of those exact inputs, not public acceptance or a check of
+later-added whole-call modules. No checker from that run remains pending.
 
-Meanwhile five completed scratch modules are ready for ordinary integration
-under `/private/tmp/point-verify-scratch/`:
-`jet_elements_taptweak_strauss_entry.v`,
-`jet_elements_taptweak_strauss_finish_support.v`,
-`jet_elements_taptweak_point_beta.v`,
-`jet_elements_taptweak_strauss_finite.v`, and
-`jet_elements_taptweak_strauss_skip.v`. All compile with the pinned toolchain.
-The finite result derives the whole original finite/nonzero Strauss call,
-the actual nine allocations, initialization, preparation, main phase and
-all nine frees, retaining the original literal result, ownership, frame,
-conditional flag and forwardness, and adding readonly preservation.
-Direct assumption printing shows six inherited execution assumptions and
-the existing memset_model only. The skipped-preprocessing result covers
-zero scalar or input infinity, retains unchanged memory and the same six
-assumptions, but does not establish the whole skipped multiplication call.
-Astra Medium's read-only review of the first four modules found no source
-address leakage, desired-execution hypotheses, dropped preservation/frees or
-false branch coverage; it was not an independent compilation/kernel audit.
-`/private/tmp/integrate_elements_strauss_finite.py` prepares the first four
-modules; also integrate the fifth, list its theorems, build and review scoped
-records, compare without update flags, and make a signed atomic commit.
-Revalidate files/status first. These scratch results add no public coverage
-and are not covered by the running recursive check.
+Next prioritize the actual native tweak route. Inspection of
+`C/secp256k1/eckey_impl.h` confirms it creates a local scalar equal to one
+and executes `secp256k1_ecmult(&pt, &pt, &one, tweak)`. Consequently reuse
+`jet_secp_strauss_overlap_finite` and `jet_secp_ecmult_overlap_finite` for the
+linked program, preserving their permitted input/result alias. Do not impose
+the disjoint-input/result contract of the first finite theorem on that real
+caller. Derive the finite/nonzero conditions from the actual initialized
+one scalar and validated point. Then port the affine inverse/normalization
+and compose the native tweak and public suffix. The old inverse CountCall
+and modulus predicates still use source GE/addresses; derive actual linked
+callees using the existing ctz_model and linked modinfo, not a source-call
+oracle. No whole ecmult or public Elements call is established yet.
+
+Supporting scratch work remains at `/private/tmp/point-verify-scratch/`:
+`jet_elements_taptweak_strauss_skip.v` compiles and derives unchanged-memory
+preprocessing for zero scalar or input infinity, with six inherited assumptions.
+`jet_elements_taptweak_generator_unit_digit.v`,
+`jet_elements_taptweak_generator_unit_iteration.v` and
+`jet_elements_taptweak_generator_unit_loop.v` compile for the generator-only
+route at denominator one, reusing actual linked lookups. They are unregistered
+and not covered by the component kernel check. Broader internal skipped-call
+coverage is not needed before finishing the actual finite tweak route.
+Revalidate scratch files and assumptions before any ordinary integration.
 Reproduce the completed component builds with:
 
 ```sh
