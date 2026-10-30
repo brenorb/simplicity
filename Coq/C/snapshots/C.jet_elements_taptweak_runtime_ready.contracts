@@ -1,0 +1,74 @@
+### C.jet_elements_taptweak_runtime_ready.elements_taptweak_runtime_tag_info
+elements_taptweak_runtime_tag_info
+     : @eq (option (AST.globvar Ctypes.type))
+         (@Globalenvs.Genv.find_var_info (Ctypes.fundef Clight.function) Ctypes.type
+            (@Globalenvs.Genv.globalenv (Ctypes.fundef Clight.function) Ctypes.type
+               (@Ctypes.program_of_program Clight.function
+                  jet_elements_taptweak_program.elements_taptweak_linked_program)) elements_taptweak_runtime_tag_block)
+         (@Some (AST.globvar Ctypes.type) jets_elements.v_taptweak)
+### C.jet_elements_taptweak_runtime_ready.elements_taptweak_dispatch_extent_initial
+elements_taptweak_dispatch_extent_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function
+                      jet_elements_taptweak_program.elements_taptweak_linked_program)) (@Some Memory.Mem.mem m)),
+       elements_taptweak_dispatch_extent m
+### C.jet_elements_taptweak_runtime_ready.elements_taptweak_runtime_ready_initial
+elements_taptweak_runtime_ready_initial
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function
+                      jet_elements_taptweak_program.elements_taptweak_linked_program)) (@Some Memory.Mem.mem m)),
+       elements_taptweak_runtime_ready m
+### C.jet_elements_taptweak_runtime_ready.elements_taptweak_curve_state_readonly
+elements_taptweak_curve_state_readonly
+     : forall (m mf : Memory.Mem.mem) (_ : elements_taptweak_curve_state m)
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf), elements_taptweak_curve_state mf
+### C.jet_elements_taptweak_runtime_ready.elements_taptweak_runtime_ready_owned
+elements_taptweak_runtime_ready_owned
+     : forall (m mf : Memory.Mem.mem) (slots : list (prod Values.block BinNums.Z))
+         (_ : elements_taptweak_runtime_ready m) (_ : jet_clight_internal_preserve.readonly_preserved m mf)
+         (_ : forall (b : Values.block) (hi : BinNums.Z)
+                (_ : @List.In (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b hi) slots),
+              and (BinInt.Z.lt BinNums.Z0 hi) (Memory.Mem.range_perm m b BinNums.Z0 hi Memtype.Cur Memtype.Freeable))
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 not
+                   (@List.In Values.block b
+                      (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) slots))) m mf),
+       elements_taptweak_runtime_ready mf
+### C.jet_elements_taptweak_runtime_ready.elements_taptweak_runtime_tag_block
+elements_taptweak_runtime_tag_block =
+jet_elements_taptweak_globals.elements_taptweak_symbol_block jets_elements._taptweak
+     : Values.block
+### C.jet_elements_taptweak_runtime_ready.elements_taptweak_curve_state
+elements_taptweak_curve_state =
+fun m : Memory.Mem.mem =>
+and (forall high : bool, jet_elements_taptweak_generator_globals.elements_taptweak_generator_table_state high m)
+  (and (jet_elements_taptweak_split_constants.elements_taptweak_split_ready m)
+     (and (jet_elements_taptweak_beta.elements_taptweak_beta_initialized m)
+        (jet_elements_taptweak_modinfo.elements_taptweak_modinfo_fe_state m)))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments elements_taptweak_curve_state m
+### C.jet_elements_taptweak_runtime_ready.elements_taptweak_dispatch_extent
+elements_taptweak_dispatch_extent =
+fun m : Memory.Mem.mem =>
+and (Memory.Mem.valid_block m jet_elements_taptweak_globals.elements_taptweak_sha_dispatch_block)
+  (jet_secp_taptweak_writer_state.block_extent m jet_elements_taptweak_globals.elements_taptweak_sha_dispatch_block
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments elements_taptweak_dispatch_extent m
+### C.jet_elements_taptweak_runtime_ready.elements_taptweak_runtime_ready
+elements_taptweak_runtime_ready =
+fun m : Memory.Mem.mem =>
+and (elements_taptweak_curve_state m)
+  (and (jet_elements_taptweak_globals.elements_taptweak_sha_startup m)
+     (and (jet_elements_taptweak_tag_state_at.elements_taptweak_tag_state_at elements_taptweak_runtime_tag_block m)
+        (elements_taptweak_dispatch_extent m)))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments elements_taptweak_runtime_ready m
