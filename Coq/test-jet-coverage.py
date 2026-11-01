@@ -36,6 +36,12 @@ def main():
     assert coverage.library_condition("ctz_model -> contract") == "ctz_model"
     assert coverage.library_condition("contract") == ""
     assert coverage.condition_models("reported_mismatch") == ()
+    # Open hash properties are parsed as premises but never as library models.
+    hashed = "memcmp_model+empty_script_digest_unique"
+    assert coverage.library_condition("memcmp_model -> empty_script_digest_unique -> contract") == hashed
+    assert coverage.condition_models(hashed) == ("memcmp_model",)
+    assert coverage.condition_properties(hashed) == ("empty_script_digest_unique",)
+    assert coverage.condition_properties("memcpy_model") == ()
     rows = coverage.inventory()
     # Even with a theorem registered for every other row, an input-restricted
     # mismatch theorem must not make the all-input completion gate succeed.
@@ -51,13 +57,20 @@ def main():
     assert coverage.missing_proofs([complete, absent, divergent]) == [absent]
     assert coverage.missing_equivalences([complete, divergent]) == [divergent]
     assert sum(bool(row["divergence_proof"]) for row in rows) == 1
-    assert len(coverage.missing_equivalences(rows)) == 4
-    assert len(coverage.missing_proofs(rows)) == 3
-    # Open-property reductions are listed for visibility but never counted:
-    # each such jet stays a missing proof.
-    open_jets = {"simplicity_output_is_fee", "simplicity_total_fee", "simplicity_hash_to_curve"}
-    assert {name for name, _ in coverage.open_property_reductions(rows)} == open_jets
-    assert {row["function"] for row in coverage.missing_proofs(rows)} == open_jets
+    assert [row["function"] for row in coverage.missing_equivalences(rows)] == ["simplicity_gej_ge_add_ex"]
+    assert coverage.missing_proofs(rows) == []
+    # Entries conditioned on an open SHA-256 property: exactly these, each
+    # with its audited exact reduction and reported predicate mismatch.
+    hash_jets = {"simplicity_output_is_fee": "empty_script_digest_unique",
+                 "simplicity_total_fee": "memcmp_model+empty_script_digest_unique",
+                 "simplicity_hash_to_curve": "memcpy_model+ctz_model+hash_to_curve_accepted_finite"}
+    assert {name for name, _ in coverage.property_conditions(rows)} == set(hash_jets)
+    assert {row["function"]: row["condition"] for row in rows
+            if coverage.condition_properties(row["condition"])} == hash_jets
+    # A conditional entry without its evidence entry is rejected.
+    stray = [{**row, "condition": "empty_script_digest_unique"} if row["function"] == "simplicity_version" else row
+             for row in rows]
+    rejects(lambda: coverage.property_conditions(stray), "without exact-reduction evidence")
     assert coverage.proof_roots(rows, ["simplicity_gej_ge_add_ex"]) == {
         "C.jet_secp_mixed_ex_local", "C.jet_secp_mixed_ex_refutation"}
     assert coverage.proof_roots(rows, ["simplicity_scale"]) == {"C.jet_secp_checked_scale_local"}
@@ -77,12 +90,14 @@ def main():
     assert coverage.proof_roots(rows, ["simplicity_build_taptweak"]) == {"C.jet_elements_taptweak_local"}
     elements_tweak = next(row for row in rows if row["function"] == "simplicity_build_taptweak")
     assert elements_tweak["condition"] == combined
-    assert sum(bool(coverage.condition_models(row["condition"])) for row in rows) == 154
-    assert sum("memcpy_model" in coverage.condition_models(row["condition"]) for row in rows) == 142
-    assert sum("ctz_model" in coverage.condition_models(row["condition"]) for row in rows) == 9
+    assert sum(bool(coverage.condition_models(row["condition"])) for row in rows) == 156
+    assert sum("memcpy_model" in coverage.condition_models(row["condition"]) for row in rows) == 143
+    assert sum("ctz_model" in coverage.condition_models(row["condition"]) for row in rows) == 10
     assert sum("memset_model" in coverage.condition_models(row["condition"]) for row in rows) == 11
-    rejects(lambda: coverage.proof_roots(rows, ["simplicity_hash_to_curve"]),
-            "jets without registered proof entries")
+    assert sum("memcmp_model" in coverage.condition_models(row["condition"]) for row in rows) == 1
+    assert coverage.proof_roots(rows, ["simplicity_hash_to_curve"]) == {"C.jet_secp_hash_to_curve_conditional"}
+    assert coverage.proof_roots(rows, ["simplicity_output_is_fee", "simplicity_total_fee"]) == {
+        "C.jet_elements_fee_conditional"}
     rejects(lambda: coverage.proof_roots(rows, ["simplicity_not_a_jet"]),
             "jets without registered proof entries")
     # Computing indexed hashes and the Elements taproot builders retain

@@ -46,6 +46,30 @@ admitting either property as a premise, needs an explicit policy decision
 (the user declined a SHA empty-preimage premise on 2026-10-27). Details:
 `JET_ELEMENTS_FEE_MISMATCHES.md`, `JET_SECP_HASH_TO_CURVE_MISMATCHES.md`.
 
+## Final three jets: conditional coverage with reported mismatches (2026-11-01)
+
+On 2026-11-01 the user approved counting the three exact reductions above as
+**conditional coverage**: each predicate difference is reported as a mismatch
+(not corrected) and the open property becomes a visible premise of the public
+theorem, never an axiom. Registration is now **533/533** (532 equivalence
+entries, 1 divergence), `jet-coverage.py --require-complete` passes, and the
+three entries are counted and printed separately as conditional on an open
+SHA-256 property:
+
+| Jet | Counted theorem | Premises |
+|---|---|---|
+| `output_is_fee` | `C.jet_elements_fee_conditional.output_is_fee_conditional_local_spec` | `empty_script_digest_unique` |
+| `total_fee` | `C.jet_elements_fee_conditional.total_fee_conditional_local_spec` | `memcmp_model`, `empty_script_digest_unique` |
+| `hash_to_curve` | `C.jet_secp_hash_to_curve_conditional.hash_to_curve_conditional_local_spec` | `memcpy_model`, `ctz_model`, `hash_to_curve_accepted_finite` |
+
+`memcmp_model` (libc `memcmp`, same kind as `memcpy_model`) joins the
+approved library models; it is used only by `total_fee`. The gate
+(`CONDITIONAL_PROPERTY_EVIDENCE`) requires each exact-reduction theorem to be
+publicly audited and each report to name it. Both new modules have the six
+inherited assumptions and pass recursive kernel checks. No full or scoped
+`check-jets.sh --accept` has been run on these inputs, so accepted coverage
+in the sense of the receipt above is still 530/533 until that runs.
+
 ## Linked Elements TapTweak integration notes (historical)
 
 The complete frozen Elements public wrapper now builds in ordinary modules:

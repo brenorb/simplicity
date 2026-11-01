@@ -278,14 +278,22 @@ for stem, offset in [("input_outpoints", 112), ("input_annexes", 272), ("inputs"
 # Explicit external-library models. Each is a named premise about CompCert's
 # abstract external_functions_sem for one libc/compiler call, approved for
 # conditional coverage and counted separately from direct proofs.
-LIBRARY_MODELS = ("memcpy_model", "ctz_model", "memset_model")
+LIBRARY_MODELS = ("memcpy_model", "ctz_model", "memset_model", "memcmp_model")
+
+# Open SHA-256-dependent properties of a jet's own specification. Each jet
+# conditioned on one has a checked exact reduction (agreement everywhere iff
+# the property, or divergence at every counterexample) and a reported predicate
+# mismatch; the property is a visible premise, never an axiom, and is counted
+# separately from the library models. Approved by the user on 2026-11-01.
+OPEN_HASH_PROPERTIES = ("empty_script_digest_unique", "hash_to_curve_accepted_finite")
 
 
 def library_condition(body):
-    """All explicit leading approved library models, in declaration order."""
+    """All explicit leading premises (approved library models, then open hash
+    properties), in declaration order."""
     models = []
     rest = body.lstrip()
-    pattern = r"(" + "|".join(LIBRARY_MODELS) + r")\s*->\s*"
+    pattern = r"(" + "|".join(LIBRARY_MODELS + OPEN_HASH_PROPERTIES) + r")\s*->\s*"
     while match := re.match(pattern, rest):
         models.append(match[1])
         rest = rest[match.end():]
@@ -295,6 +303,11 @@ def library_condition(body):
 def condition_models(condition):
     """Model membership for conditional counts; one jet can use several."""
     return tuple(model for model in condition.split("+") if model in LIBRARY_MODELS)
+
+
+def condition_properties(condition):
+    """Open hash-property premises of a conditional entry."""
+    return tuple(prop for prop in condition.split("+") if prop in OPEN_HASH_PROPERTIES)
 
 
 # Original CTZ-dependent secp callers: full initialized contracts whose only
@@ -386,6 +399,25 @@ RECOVERED_CONTRACTS["simplicity_build_taptweak"] = (
     "(Word 9) (Word 8) (@literal_taptweak_at elements_taptweak_iv_word (Alg.AssertionSem option_Monad_Zero)).")
 
 
+# Canonical contracts conditional on an open SHA-256 property, with every
+# library premise explicit. See CONDITIONAL_PROPERTY_EVIDENCE below.
+RECOVERED_CONTRACTS["simplicity_output_is_fee"] = (
+    "empty_script_digest_unique -> "
+    "application_jet_local_spec_sep f_simplicity_output_is_fee elements_ge Elements.env Word32 "
+    "(Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)) "
+    "(indexed_ptr_rep (fun e => sigTxOut (Elements.envTx e)) processed_fee_rep 248 0 8 704) "
+    "(fun a environment => @elements_output_is_fee_spec (PrimitivePrimSem option_Monad_Zero) a environment).")
+RECOVERED_CONTRACTS["simplicity_total_fee"] = (
+    "memcmp_model -> empty_script_digest_unique -> "
+    "application_jet_local_spec_sep f_simplicity_total_fee elements_ge Elements.env Word256 Word64 "
+    "total_fee_env_rep "
+    "(fun a environment => @elements_total_fee_spec (PrimitivePrimSem option_Monad_Zero) a environment).")
+RECOVERED_CONTRACTS["simplicity_hash_to_curve"] = (
+    "memcpy_model -> ctz_model -> hash_to_curve_accepted_finite -> "
+    "secp_jet_initialized_partial_local_spec hash_ready f_simplicity_hash_to_curve (Word 8) "
+    "(Ty.Prod (Word 8) (Word 8)) (@literal_hash_to_curve (Alg.AssertionSem option_Monad_Zero)).")
+
+
 REPORTED_MISMATCH_CONTRACTS = {
     "simplicity_gej_ge_add_ex": {
         "contract": "secp_jet_local_spec_on (fun a => ~gej_ge_add_ex_ratio_mismatch a) "
@@ -418,55 +450,67 @@ DIVERGENCE_CONTRACTS = {
 }
 
 
-# Exact reductions of a jet's equivalence to one named property that is
-# neither proved nor refuted. They are listed for visibility only: neither an
-# equivalence nor a divergence proof, so they never count toward coverage.
-OPEN_PROPERTY_REDUCTIONS = {
+# Evidence required for every entry conditioned on an open hash property: the
+# checked exact reduction/divergence theorem, the property's definition and the
+# mismatch report naming both. The property is neither proved nor refuted.
+CONDITIONAL_PROPERTY_EVIDENCE = {
     "simplicity_output_is_fee": {
         "module": "C.jet_elements_output_is_fee_compare",
         "theorem": "fee_results_agree_everywhere_iff",
         "property": "empty_script_digest_unique",
         "report": "C/JET_ELEMENTS_FEE_MISMATCHES.md",
+        "summary": "C classifies a fee by an empty script, the specification by the "
+                   "script's SHA-256 digest equal to SHA-256 of the empty string",
     },
     "simplicity_total_fee": {
         "module": "C.jet_elements_total_fee_compare",
         "theorem": "total_fee_results_agree_everywhere_iff",
         "property": "empty_script_digest_unique",
         "report": "C/JET_ELEMENTS_FEE_MISMATCHES.md",
+        "summary": "C sums outputs with an empty script, the specification outputs whose "
+                   "script digest equals SHA-256 of the empty string",
     },
     "simplicity_hash_to_curve": {
         "module": "C.jet_secp_hash_to_curve_reduction",
-        "theorem": "hash_to_curve_initialized_local_spec_if_finite",
+        "theorem": "hash_to_curve_differs_if_infinite",
         "property": "hash_to_curve_accepted_finite",
         "report": "C/JET_SECP_HASH_TO_CURVE_MISMATCHES.md",
+        "summary": "C succeeds when the two SWU points of a key sum to infinity, "
+                   "the specification fails",
     },
 }
 
 
-def open_property_reductions(jets):
-    """Validate the listed reductions; they never change proof counts."""
+def property_conditions(jets):
+    """Validate every hash-property-conditional entry against its evidence."""
     audited = {tuple(row) for row in records(COQ / "C/jet_public_theorems.txt", 2)}
     rows = {row["function"]: row for row in jets}
+    conditioned = {row["function"] for row in jets if condition_properties(row["condition"])}
+    if conditioned != set(CONDITIONAL_PROPERTY_EVIDENCE):
+        raise ValueError("hash-property-conditional entries without exact-reduction evidence: "
+                         + ", ".join(sorted(conditioned ^ set(CONDITIONAL_PROPERTY_EVIDENCE))))
     result = []
-    for name, entry in OPEN_PROPERTY_REDUCTIONS.items():
+    for name, entry in CONDITIONAL_PROPERTY_EVIDENCE.items():
         if name not in rows:
-            raise ValueError(f"open-property reduction for unknown jet: {name}")
-        if rows[name]["proof"] or rows[name].get("divergence_proof"):
-            continue
+            raise ValueError(f"hash-property evidence for unknown jet: {name}")
+        if condition_properties(rows[name]["condition"]) != (entry["property"],):
+            raise ValueError(f"conditional entry does not state its open property: {name}")
         module, theorem = entry["module"], entry["theorem"]
         if (module, theorem) not in audited:
-            raise ValueError(f"open-property reduction not publicly audited: {module}.{theorem}")
+            raise ValueError(f"exact reduction not publicly audited: {module}.{theorem}")
         code = checked_source_code((COQ / (module.replace(".", "/") + ".v")).read_text())
         if not re.search(rf"\b(?:Theorem|Lemma)\s+{re.escape(theorem)}\b", code):
-            raise ValueError(f"open-property reduction theorem missing: {module}.{theorem}")
+            raise ValueError(f"exact reduction theorem missing: {module}.{theorem}")
         if not re.search(rf"\bDefinition\s+{re.escape(entry['property'])}\b", code + "".join(
                 checked_source_code(path.read_text()) for path in (COQ / "C").glob("jet_*.v")
                 if entry["property"] in path.read_text())):
             raise ValueError(f"open property is not a definition: {entry['property']}")
-        if f"{module.rsplit('.', 1)[1]}" not in (COQ / entry["report"]).read_text():
-            raise ValueError(f"open-property reduction not documented in {entry['report']}: {name}")
+        report = (COQ / entry["report"]).read_text()
+        if f"{module}.{theorem}" not in report or rows[name]["proof"] not in report:
+            raise ValueError(f"conditional entry and its evidence not documented in {entry['report']}: {name}")
         result.append((name, entry))
     return result
+
 
 def records(path, fields):
     result = []
@@ -770,6 +814,7 @@ def main():
     args = parser.parse_args()
     try:
         jets = inventory()
+        property_conditions(jets)
     except (ValueError, OSError) as error:
         sys.exit(str(error))
     if args.csv:
@@ -784,22 +829,30 @@ def main():
             conditional = sum(bool(condition_models(row["condition"])) for row in rows)
             reported = sum(row["condition"] == "reported_mismatch" for row in rows)
             divergent = sum(bool(row["divergence_proof"]) for row in rows)
+            hashed = sum(bool(condition_properties(row["condition"])) for row in rows)
             print(f"{family}: {direct} proof entries without an extra library premise; "
-                  f"{conditional} conditional; {divergent} divergence; "
+                  f"{conditional} conditional; {hashed} on an open SHA-256 property; {divergent} divergence; "
                   f"{reported} restricted equivalence; {len(rows)} declared")
         missing = len(missing_proofs(jets))
         missing_equivalence = len(missing_equivalences(jets))
         divergent = sum(bool(row["divergence_proof"]) for row in jets)
         conditional = sum(bool(condition_models(row["condition"])) for row in jets)
+        hash_conditional = [row for row in jets if condition_properties(row["condition"])
+                            and not condition_models(row["condition"])]
+        by_property = {prop: sum(prop in condition_properties(row["condition"]) for row in jets)
+                       for prop in OPEN_HASH_PROPERTIES}
         by_model = {model: sum(model in condition_models(row["condition"]) for row in jets) for model in LIBRARY_MODELS}
         reported = [row for row in jets if row["condition"] == "reported_mismatch"]
         unregistered = sum(not row["registrations"] for row in jets)
         print(f"total: {len(jets) - missing}/{len(jets)}; remaining: {missing}; unregistered declarations: {unregistered}")
         print(f"Equivalence entries: {len(jets) - missing_equivalence}; divergence proofs: {divergent}.")
-        print(f"Of the equivalence entries: {len(jets) - missing_equivalence - conditional} without an extra library premise, "
+        print(f"Of the equivalence entries: {len(jets) - missing_equivalence - conditional - len(hash_conditional)} without an extra premise, "
               f"{conditional} conditional on an explicit library model ("
               + ", ".join(f"{n} {m}" for m, n in by_model.items())
-              + "; model-use counts overlap for multi-model jets; library/compiler implementations not proved).")
+              + "; model-use counts overlap for multi-model jets; library/compiler implementations not proved), "
+              f"{len(hash_conditional)} conditional only on an open SHA-256 property.")
+        print("Conditional on an open SHA-256 property (neither proved nor refuted; predicate mismatch reported, not corrected): "
+              + ", ".join(f"{n} {p}" for p, n in by_property.items()) + ".")
         print(f"Separately: {len(reported)} proved only outside a reported specification mismatch; "
               "restricted equivalence alone does not count toward proof completion.")
         for row in jets:
@@ -809,9 +862,9 @@ def main():
             entry = REPORTED_MISMATCH_CONTRACTS[row["function"]]
             print(f"REPORTED mismatch (not corrected): {row['function']}: {entry['summary']}; "
                   f"literal contract {row['proof']} excludes exactly that set ({entry['report']})")
-        for name, entry in open_property_reductions(jets):
-            print(f"OPEN property reduction (not counted): {name}: {entry['module']}.{entry['theorem']} "
-                  f"reduces equivalence to {entry['property']}, neither proved nor refuted ({entry['report']})")
+        for name, entry in property_conditions(jets):
+            print(f"CONDITIONAL on {entry['property']} (mismatch reported, not corrected): {name}: "
+                  f"{entry['summary']}; exact reduction {entry['module']}.{entry['theorem']} ({entry['report']})")
         print("Scope: public jet declarations in all three C headers. Proof validity requires check-jets.sh.")
     if args.require_complete and missing_proofs(jets):
         sys.exit("Every-jet proof coverage is incomplete: declared C jets lack final equivalence or divergence proofs.")

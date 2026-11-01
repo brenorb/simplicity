@@ -1,11 +1,19 @@
 # Elements fee-classification proof boundary
 
-**Current status (2026-11-01):** both fee jets have checked exact reductions:
-each meets its canonical specification on every environment **iff**
+**Current status (2026-11-01, latest):** **reported predicate mismatch**
+(not corrected) and **conditional coverage**. C classifies a fee output by an
+empty script; the canonical programs classify it by the script's SHA-256
+digest being the empty-string digest. Both fee jets are counted as proved
+*conditional on* the open SHA-256 property `empty_script_digest_unique`, a
+visible premise of their public theorems (never an axiom), with user approval
+on 2026-11-01. Coverage 533/533. See "Mismatch report and conditional
+coverage" at the end.
+
+Earlier on 2026-11-01: both fee jets had checked exact reductions: each meets
+its canonical specification on every environment **iff**
 `empty_script_digest_unique` holds, and any counterexample script yields a
-concrete diverging environment. The property itself is open, so neither jet
-is counted (coverage 530/533). See the two dated sections at the end; the
-historical record below is unchanged.
+concrete diverging environment. The property is open, so neither jet was
+counted then (coverage 530/533). The historical record below is unchanged.
 
 Status at `d057851f`: **unresolved equivalence obligation, not a demonstrated
 wrong result or a proved specification/implementation mismatch**. No target
@@ -333,3 +341,59 @@ As for `output_is_fee`, the open property is neither proved nor refuted, so
 `simplicity_total_fee` stays unregistered. Kernel checks of
 `C.jet_elements_total_fee_compare` passed; reproduce with the commands
 above, substituting the module names.
+
+### Mismatch report and conditional coverage (2026-11-01)
+
+**Affected jets:** `simplicity_output_is_fee`, `simplicity_total_fee`
+(Elements). Production C, the Haskell programs, the Coq specification and
+generation settings are unchanged; no correction is made here.
+
+**Expected (specification):** `outputIsFee` (Transaction.hs:130) sets the
+fee bit when the asset and amount are explicit and
+`OutputScriptHash == bsHash mempty`; `totalFee` (Transaction.hs:133) sums the
+explicit amounts of such outputs with the requested asset.
+
+**Implemented (C):** `isFee` (elementsJets.c:164) and the `sumFees` table
+built in `env.c` test the stored `emptyScript` flag, set by `copyOutput`
+(env.c:248) from script length zero.
+
+**Consequence, formally proved:** the two predicates are different
+definitions. The results differ exactly at an output whose script is
+nonempty and whose SHA-256 digest is the empty-string digest:
+`C.jet_elements_output_is_fee_compare.fee_results_agree_everywhere_iff` and
+`C.jet_elements_total_fee_compare.total_fee_results_agree_everywhere_iff`
+prove agreement on every environment **iff** `empty_script_digest_unique`,
+and `fee_witness_env` turns any such script into a concrete diverging
+environment. No such script is known; finding one is a SHA-256 second
+preimage of the empty-string digest. There is **no native observation** of a
+divergence, and none is claimed.
+
+**Counted theorems** (`C/jet_elements_fee_conditional.v`), each stating every
+premise in its type:
+
+- `C.jet_elements_fee_conditional.output_is_fee_conditional_local_spec`:
+  `empty_script_digest_unique -> application_jet_local_spec_sep
+  f_simplicity_output_is_fee ... elements_output_is_fee_spec`.
+- `C.jet_elements_fee_conditional.total_fee_conditional_local_spec`:
+  `memcmp_model -> empty_script_digest_unique -> application_jet_local_spec_sep
+  f_simplicity_total_fee ... elements_total_fee_spec`. `memcmp_model` is the
+  explicit libc model already used by the lookup proofs, the same kind of
+  premise as `memcpy_model`.
+
+`jet-coverage.py` counts these as conditional on an open SHA-256 property,
+separately from the library models, and requires the exact-reduction theorems
+above and this report. Resolving the mismatch (aligning the C predicate with
+the specification, or the specification with C) is a target change that needs
+separate approval; until then the premise stays visible.
+
+Verification limits: the property is neither proved nor refuted; the
+environment builder (`env.c`) is unverified, as for every cached Elements
+field; receipts are valid only for the exact checked inputs. Reproduce from
+`Coq/`:
+
+```sh
+bash build-jets.sh --coqc C/jet_elements_fee_conditional.v
+ulimit -S -s 65520
+bash build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_fee_conditional
+python3 jet-coverage.py
+```

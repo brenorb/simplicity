@@ -1,9 +1,17 @@
 # hash_to_curve: open infinity-path equivalence question
 
-**Current status (2026-11-01):** checked exact reduction in
+**Current status (2026-11-01, latest):** **reported predicate mismatch**
+(not corrected) and **conditional coverage**. C does not reject a key whose
+two SWU points sum to infinity; the specification fails there. The jet is
+counted as proved *conditional on* the open SHA-256-dependent property
+`hash_to_curve_accepted_finite`, a visible premise of its public theorem
+(never an axiom), with user approval on 2026-11-01. Coverage 533/533. See
+"Mismatch report and conditional coverage" at the end.
+
+Earlier on 2026-11-01: checked exact reduction in
 `C.jet_secp_hash_to_curve_reduction` (see the dated section at the end). The
 jet meets its frozen specification iff `hash_to_curve_accepted_finite`; that
-property is open, so the jet is not counted (coverage 530/533). The record
+property is open, so the jet was not counted then (coverage 530/533). The record
 below is unchanged.
 
 Status: **source-review question, not a demonstrated public mismatch**.
@@ -206,3 +214,56 @@ digests of each key and is neither proved nor refuted here, so this is not an
 equivalence or a divergence proof. `jet-coverage.py` lists it as an open
 property reduction that does not count. The recursive kernel check of
 `C.jet_secp_hash_to_curve_reduction` passed on the commit that added it.
+
+## Mismatch report and conditional coverage (2026-11-01)
+
+**Affected jet:** `simplicity_hash_to_curve` (secp256k1). Production C, the
+Haskell specification, the Coq specification and generation settings are
+unchanged; no correction is made here.
+
+**Expected (specification):** `hash_to_curve = assert hash_to_curve_core`
+(LibSecp256k1.hs:729--742,836--837) fails when either digest is not a field
+element **or** the sum of the two SWU points is infinity (`gej_normalize`
+returns the failure alternative for Z = 0).
+
+**Implemented (C):** `generator_generate` (generator_impl.h:205--253) returns
+the conjunction of the two digest acceptance flags only; an infinity sum is
+converted, saved and written as the zero coordinate pair, and the public jet
+returns success.
+
+**Consequence, formally proved:**
+`C.jet_secp_hash_to_curve_reduction.hash_to_curve_differs_if_infinite` shows
+that at any key with two accepted digests and a failing specification, the
+original public call returns success while the specification's return is
+failure. `hash_return_agreement_iff` gives pointwise agreement exactly off
+such keys. No such key is known: it requires the two SHA-256-derived points
+to cancel, an event of probability about 2^-254 per key under a random-oracle
+heuristic. There is **no native observation** of a divergence, and none is
+claimed.
+
+**Counted theorem** (`C/jet_secp_hash_to_curve_conditional.v`), stating every
+premise in its type:
+
+- `C.jet_secp_hash_to_curve_conditional.hash_to_curve_conditional_local_spec`:
+  `memcpy_model -> ctz_model -> hash_to_curve_accepted_finite ->
+  secp_jet_initialized_partial_local_spec hash_ready f_simplicity_hash_to_curve
+  ... literal_hash_to_curve`, with `hash_ready_initial` deriving the startup
+  state from `Genv.init_mem`.
+
+The premise is specific: it is not collision resistance of SHA-256, but the
+statement that no key with two accepted digests maps to cancelling points.
+`jet-coverage.py` counts the entry as conditional on an open SHA-256 property,
+separately from the library models, and requires the divergence theorem above
+and this report. Resolving the mismatch (an infinity rejection in C, or
+dropping the failure in the specification) is a target change that needs
+separate approval.
+
+Verification limits: the property is neither proved nor refuted; receipts are
+valid only for the exact checked inputs. Reproduce from `Coq/`:
+
+```sh
+bash build-jets.sh --coqc C/jet_secp_hash_to_curve_conditional.v
+ulimit -S -s 65520
+bash build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_hash_to_curve_conditional
+python3 jet-coverage.py
+```
