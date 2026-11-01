@@ -294,3 +294,35 @@ bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements
 ```
 
 The kernel check above passed on the commit that added these modules.
+
+### total_fee: exact reduction to the same SHA-256 property (2026-11-01)
+
+`C/jet_elements_total_fee_spec.v` transcribes the canonical `totalFee`
+program (Transaction.hs:133) with the existing literal `for_while_program`
+port and the accepted `total_adder` (`add word64 >>> ih`), and proves
+`elements_total_fee_sem`: the result is, modulo 2^64, the sum of the explicit
+amounts of outputs whose canonical `outputIsFee` bit is set and whose explicit
+asset equals the input (`canonical_total_fee`).
+
+`C/jet_elements_total_fee_compare.v`:
+
+- `elements_total_fee_c_contract` (explicit existing `memcmp_model`) puts the
+  complete original wrapper theorem `eval_total_fee_stored_table` into the
+  standard `application_jet_local_spec_sep` contract. Its environment relation
+  `total_fee_env_rep` states the meaning of the builder's cache: a uniquely
+  sorted stored table whose lookup, for each 256-bit asset read by the jet,
+  is the modulo-2^64 sum over outputs that the C builder's `isFee` classifies
+  as fees (`processed_fee_bit`: actual script emptiness). As for every other
+  cached Elements field, `elements/env.c` is not itself verified.
+- `total_fee_results_agree_everywhere_iff`: the C result agrees with the
+  canonical program on every environment **iff** `empty_script_digest_unique`.
+  The forward direction uses the same one-output witness environment
+  (amount 1, explicit asset): any nonempty supported script with the
+  empty-string digest gives canonical total 1 and C total 0 there.
+- `elements_total_fee_local_spec_if_digest_unique`: the standard jet contract
+  against the canonical program with that property as an explicit hypothesis.
+
+As for `output_is_fee`, the open property is neither proved nor refuted, so
+`simplicity_total_fee` stays unregistered. Kernel checks of
+`C.jet_elements_total_fee_compare` passed; reproduce with the commands
+above, substituting the module names.
