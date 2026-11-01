@@ -14,20 +14,37 @@ The existing canonical-source gate now checks the Elements instance and
 rejects 24 targeted mutations. Astra Medium's bounded static review found no
 blocking bridge issue; it did not perform the transitive kernel check.
 
-Registration is now 530/533; **accepted coverage remains 529/533** pending:
+Registration is 530/533 and **accepted coverage is 530/533**. The scoped
+acceptance `JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_build_taptweak`
+passed on the exact committed inputs of `249a2acf` (Oct 30, run by
+`/private/tmp/run-elements-taptweak-acceptance.sh`, exit status 0): build,
+recursive kernel check on the 1,665-module closure, assumption records on 1,552
+modules and contract records on 1,573 modules, negative tests, the four
+canonical-source mutation gates and all five AST comparisons. The
+source/object fingerprint was identical before and after the run
+(`dcdb9b27...`, 13,599 files). This receipt is valid only for those inputs;
+later edits need their own checks.
 
-```sh
-JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_build_taptweak
-```
+## Remaining three jets: exact reductions to open properties (2026-11-01)
 
-Run it on the final committed inputs without update flags. The closure has
-1,665 C modules. Private runner `/private/tmp/run-elements-taptweak-acceptance.sh`
-captures the exact revision, source/object/dependency fingerprints, exit code
-and log at `/private/tmp/elements-taptweak-acceptance.*`. Do not edit formal
-inputs during the run or reuse a historical receipt for these newer ports.
-After success, update this checkpoint and continue `hash_to_curve` and the two
-fee jets. Preserve the remaining return/infinity and empty-script/hash
-obligations; do not assume them away or count restricted helper results.
+`hash_to_curve`, `output_is_fee` and `total_fee` now each have a checked
+theorem reducing whole-jet equivalence **exactly** to one named property that
+is neither proved nor refuted, plus the matching divergence construction:
+
+| Jet | Reduction theorem | Open property |
+|---|---|---|
+| `output_is_fee` | `C.jet_elements_output_is_fee_compare.fee_results_agree_everywhere_iff` | `empty_script_digest_unique`: no nonempty supported script has the empty-string SHA-256 digest |
+| `total_fee` | `C.jet_elements_total_fee_compare.total_fee_results_agree_everywhere_iff` | same |
+| `hash_to_curve` | `C.jet_secp_hash_to_curve_reduction.hash_to_curve_initialized_local_spec_if_finite` (with `hash_to_curve_differs_if_infinite`) | `hash_to_curve_accepted_finite`: no key whose two generator digests are field elements maps to an infinite point sum |
+
+Each property is a statement about SHA-256 outputs. Proving it would need an
+argument about SHA-256 preimages no one has; refuting it needs an explicit
+preimage witness no one has. So these are neither equivalence nor divergence
+proofs and do not count: `jet-coverage.py` lists them as "OPEN property
+reduction (not counted)" and coverage stays 530/533. Counting them, or
+admitting either property as a premise, needs an explicit policy decision
+(the user declined a SHA empty-preimage premise on 2026-10-27). Details:
+`JET_ELEMENTS_FEE_MISMATCHES.md`, `JET_SECP_HASH_TO_CURVE_MISMATCHES.md`.
 
 ## Linked Elements TapTweak integration notes (historical)
 

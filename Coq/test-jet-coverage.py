@@ -53,6 +53,11 @@ def main():
     assert sum(bool(row["divergence_proof"]) for row in rows) == 1
     assert len(coverage.missing_equivalences(rows)) == 4
     assert len(coverage.missing_proofs(rows)) == 3
+    # Open-property reductions are listed for visibility but never counted:
+    # each such jet stays a missing proof.
+    open_jets = {"simplicity_output_is_fee", "simplicity_total_fee", "simplicity_hash_to_curve"}
+    assert {name for name, _ in coverage.open_property_reductions(rows)} == open_jets
+    assert {row["function"] for row in coverage.missing_proofs(rows)} == open_jets
     assert coverage.proof_roots(rows, ["simplicity_gej_ge_add_ex"]) == {
         "C.jet_secp_mixed_ex_local", "C.jet_secp_mixed_ex_refutation"}
     assert coverage.proof_roots(rows, ["simplicity_scale"]) == {"C.jet_secp_checked_scale_local"}

@@ -1,5 +1,12 @@
 # Elements fee-classification proof boundary
 
+**Current status (2026-11-01):** both fee jets have checked exact reductions:
+each meets its canonical specification on every environment **iff**
+`empty_script_digest_unique` holds, and any counterexample script yields a
+concrete diverging environment. The property itself is open, so neither jet
+is counted (coverage 530/533). See the two dated sections at the end; the
+historical record below is unchanged.
+
 Status at `d057851f`: **unresolved equivalence obligation, not a demonstrated
 wrong result or a proved specification/implementation mismatch**. No target
 source, API contract or generation setting has been changed.

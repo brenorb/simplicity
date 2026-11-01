@@ -1,5 +1,11 @@
 # hash_to_curve: open infinity-path equivalence question
 
+**Current status (2026-11-01):** checked exact reduction in
+`C.jet_secp_hash_to_curve_reduction` (see the dated section at the end). The
+jet meets its frozen specification iff `hash_to_curve_accepted_finite`; that
+property is open, so the jet is not counted (coverage 530/533). The record
+below is unchanged.
+
 Status: **source-review question, not a demonstrated public mismatch**.
 No concrete 32-byte key, native wrong-result reproduction, or whole-public
 Coq counterexample is available. Do not count this as a divergence proof.
@@ -167,3 +173,36 @@ Worst case **if reachable**: the public jet could report success with a
 coordinate pair where its Simplicity specification fails. No exploit,
 transaction effect, likelihood or consensus impact has been established.
 Keep `simplicity_hash_to_curve` unresolved while proving independent stages.
+
+## Exact reduction in the standard public contract (2026-11-01)
+
+`C/jet_secp_hash_to_curve_reduction.v` builds on
+`eval_hash_to_curve_compared`, with the existing explicit `memcpy_model` and
+`ctz_model` premises and no other premise beyond the six inherited
+assumptions:
+
+- `hash_ready` collects the startup state the call needs (SHA globals, SWU
+  constants, both generator SHA prefix states, 8-byte dispatch-cell extent);
+  `hash_ready_initial` proves it holds in the frozen program's initial memory,
+  and `hash_to_curve_public_compared` proves it is preserved by the call.
+- `hash_to_curve_public_compared`: for every represented 256-bit key, the
+  original public call returns `cmov_int (hash_accepted key)` (both digests
+  are field elements), and that return equals the specification's partial
+  return **iff** `hash_accepted key = true ->
+  literal_hash_to_curve key <> None`. On success the output cells are the
+  specification's value; all other memory is framed.
+- `hash_to_curve_initialized_local_spec_if_finite`: the standard
+  `secp_jet_initialized_partial_local_spec` contract against
+  `literal_hash_to_curve`, with `hash_to_curve_accepted_finite`
+  (`forall key, hash_accepted key = true -> literal_hash_to_curve key <> None`)
+  as an explicit hypothesis, not an axiom.
+- `hash_to_curve_differs_if_infinite`: at any key with accepted digests and
+  failing specification, the proved original call returns success (`1`) while
+  the specification's partial return is failure (`0`).
+
+`hash_to_curve_accepted_finite` says that no 256-bit key has two field-element
+digests whose SWU points sum to infinity. That depends on the two SHA-256
+digests of each key and is neither proved nor refuted here, so this is not an
+equivalence or a divergence proof. `jet-coverage.py` lists it as an open
+property reduction that does not count. The recursive kernel check of
+`C.jet_secp_hash_to_curve_reduction` passed on the commit that added it.

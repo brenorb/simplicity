@@ -418,6 +418,56 @@ DIVERGENCE_CONTRACTS = {
 }
 
 
+# Exact reductions of a jet's equivalence to one named property that is
+# neither proved nor refuted. They are listed for visibility only: neither an
+# equivalence nor a divergence proof, so they never count toward coverage.
+OPEN_PROPERTY_REDUCTIONS = {
+    "simplicity_output_is_fee": {
+        "module": "C.jet_elements_output_is_fee_compare",
+        "theorem": "fee_results_agree_everywhere_iff",
+        "property": "empty_script_digest_unique",
+        "report": "C/JET_ELEMENTS_FEE_MISMATCHES.md",
+    },
+    "simplicity_total_fee": {
+        "module": "C.jet_elements_total_fee_compare",
+        "theorem": "total_fee_results_agree_everywhere_iff",
+        "property": "empty_script_digest_unique",
+        "report": "C/JET_ELEMENTS_FEE_MISMATCHES.md",
+    },
+    "simplicity_hash_to_curve": {
+        "module": "C.jet_secp_hash_to_curve_reduction",
+        "theorem": "hash_to_curve_initialized_local_spec_if_finite",
+        "property": "hash_to_curve_accepted_finite",
+        "report": "C/JET_SECP_HASH_TO_CURVE_MISMATCHES.md",
+    },
+}
+
+
+def open_property_reductions(jets):
+    """Validate the listed reductions; they never change proof counts."""
+    audited = {tuple(row) for row in records(COQ / "C/jet_public_theorems.txt", 2)}
+    rows = {row["function"]: row for row in jets}
+    result = []
+    for name, entry in OPEN_PROPERTY_REDUCTIONS.items():
+        if name not in rows:
+            raise ValueError(f"open-property reduction for unknown jet: {name}")
+        if rows[name]["proof"] or rows[name].get("divergence_proof"):
+            continue
+        module, theorem = entry["module"], entry["theorem"]
+        if (module, theorem) not in audited:
+            raise ValueError(f"open-property reduction not publicly audited: {module}.{theorem}")
+        code = checked_source_code((COQ / (module.replace(".", "/") + ".v")).read_text())
+        if not re.search(rf"\b(?:Theorem|Lemma)\s+{re.escape(theorem)}\b", code):
+            raise ValueError(f"open-property reduction theorem missing: {module}.{theorem}")
+        if not re.search(rf"\bDefinition\s+{re.escape(entry['property'])}\b", code + "".join(
+                checked_source_code(path.read_text()) for path in (COQ / "C").glob("jet_*.v")
+                if entry["property"] in path.read_text())):
+            raise ValueError(f"open property is not a definition: {entry['property']}")
+        if f"{module.rsplit('.', 1)[1]}" not in (COQ / entry["report"]).read_text():
+            raise ValueError(f"open-property reduction not documented in {entry['report']}: {name}")
+        result.append((name, entry))
+    return result
+
 def records(path, fields):
     result = []
     for number, line in enumerate(path.read_text().splitlines(), 1):
@@ -759,6 +809,9 @@ def main():
             entry = REPORTED_MISMATCH_CONTRACTS[row["function"]]
             print(f"REPORTED mismatch (not corrected): {row['function']}: {entry['summary']}; "
                   f"literal contract {row['proof']} excludes exactly that set ({entry['report']})")
+        for name, entry in open_property_reductions(jets):
+            print(f"OPEN property reduction (not counted): {name}: {entry['module']}.{entry['theorem']} "
+                  f"reduces equivalence to {entry['property']}, neither proved nor refuted ({entry['report']})")
         print("Scope: public jet declarations in all three C headers. Proof validity requires check-jets.sh.")
     if args.require_complete and missing_proofs(jets):
         sys.exit("Every-jet proof coverage is incomplete: declared C jets lack final equivalence or divergence proofs.")
