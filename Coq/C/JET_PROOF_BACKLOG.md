@@ -66,9 +66,17 @@ SHA-256 property:
 approved library models; it is used only by `total_fee`. The gate
 (`CONDITIONAL_PROPERTY_EVIDENCE`) requires each exact-reduction theorem to be
 publicly audited and each report to name it. Both new modules have the six
-inherited assumptions and pass recursive kernel checks. No full or scoped
-`check-jets.sh --accept` has been run on these inputs, so accepted coverage
-in the sense of the receipt above is still 530/533 until that runs.
+inherited assumptions and pass recursive kernel checks.
+
+**Accepted coverage is 533/533.** The scoped acceptance
+`JOBS=4 bash Coq/check-jets.sh --accept --jets=simplicity_output_is_fee,simplicity_total_fee,simplicity_hash_to_curve`
+passed on the exact committed inputs of `e637599e` (2026-11-01, exit status 0):
+build, recursive kernel check on the 1,448-module closure, assumption records
+on 1,330 modules and contract records on 1,354 modules, negative tests, the
+canonical-source mutation gates and all five AST comparisons. The
+source/object fingerprint was identical before and after the run
+(`5c53e1b2...`, 13,627 files). Together with the earlier receipts this covers
+every registered jet; each receipt is valid only for its exact inputs.
 
 ## Linked Elements TapTweak integration notes (historical)
 
