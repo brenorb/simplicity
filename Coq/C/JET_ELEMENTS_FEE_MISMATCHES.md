@@ -253,3 +253,44 @@ exclude a legitimate script, substitute the C classifier for the canonical
 program, or count these intermediate execution contracts as accepted jets.
 Any target correction requires separate explicit approval. Continue unrelated
 proofs while preserving this boundary.
+
+### output_is_fee: exact reduction to one SHA-256 property (2026-11-01)
+
+`C/jet_elements_output_is_fee_spec.v` transcribes the canonical
+`outputIsFee` program (Transaction.hs:130) over the Elements primitives,
+reusing `elements_output_amount_spec`, the shared `Programs.Generic.eq`
+port `equality_spec` and `Alg.scribe`; `emptyHash` is
+`from_hash256 (byteStringHash [])`. `elements_output_is_fee_sem` gives its
+value on every environment (`canonical_fee_result`).
+
+`C/jet_elements_output_is_fee_compare.v` compares it with the complete
+original C call (`elements_output_fee_flag_contract`), with no premise beyond
+that contract's six inherited assumptions:
+
+- `fee_bits_agree_iff` / `fee_results_agree_iff`: the C and canonical
+  results agree exactly off `fee_collision_at`, i.e. they differ only at an
+  output with explicit asset, explicit amount and a **nonempty** script whose
+  digest equals the empty-string digest.
+- `fee_witness_differs`: any such script yields a concrete one-input,
+  one-output environment (`fee_witness_env`) where the proved C result differs
+  from the canonical result.
+- `fee_results_agree_everywhere_iff`: C agrees with the specification on every
+  environment **iff** `empty_script_digest_unique`
+  (`forall s, Zlength s < 2^32 -> byteStringHash s = byteStringHash [] -> s = []`).
+- `elements_output_is_fee_local_spec_if_digest_unique`: the standard jet
+  contract against the canonical program, with that property as an explicit
+  hypothesis (not an axiom; `Print Assumptions` shows only the inherited six).
+
+Neither the property nor its negation is proved: that would require ruling
+out, or exhibiting, a nonempty SHA-256 preimage of the empty-string digest.
+This is therefore neither an equivalence nor a divergence proof, and
+`simplicity_output_is_fee` stays unregistered (coverage 530/533). Reproduce:
+
+```sh
+bash Coq/build-jets.sh --coqc Coq/C/jet_elements_output_is_fee_spec.v   # from Coq/
+bash Coq/build-jets.sh --coqc Coq/C/jet_elements_output_is_fee_compare.v
+ulimit -S -s 65520
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_elements_output_is_fee_compare
+```
+
+The kernel check above passed on the commit that added these modules.

@@ -1,0 +1,280 @@
+### C.jet_elements_output_is_fee_compare.canonical_digest_bit_iff
+canonical_digest_bit_iff
+     : forall s : jet_elements_prim.script,
+       iff
+         (@eq bool
+            (Bit.toBool
+               (@jet_equality_spec.equality_spec (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  Alg.CoreFunSem
+                  (@pair (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                     (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                     (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Word.from_hash256 (Digest.byteStringHash s)))
+                     (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        jet_elements_output_is_fee_spec.elements_empty_hash)))) true)
+         (@eq Digest.hash256 (Digest.byteStringHash s) (Digest.byteStringHash (@nil Integers.Byte.int)))
+### C.jet_elements_output_is_fee_compare.prefix_one_asset
+prefix_one_asset
+     : forall c : jet_elements_prim.assetWith unit,
+       @eq bool (Integers.Int.eq Integers.Int.one (@jet_elements_asset_jets.conf_prefix Digest.hash256 c))
+         (@jet_elements_output_is_fee_spec.fee_explicit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+            (jet_elements_asset_jets.encode_asset c))
+### C.jet_elements_output_is_fee_compare.prefix_one_amount
+prefix_one_amount
+     : forall c : jet_elements_prim.amountWith unit,
+       @eq bool (Integers.Int.eq Integers.Int.one (@jet_elements_asset_jets.conf_prefix Integers.Int64.int c))
+         (@jet_elements_output_is_fee_spec.fee_explicit (Word.Word (S (S (S (S (S (S O)))))))
+            (jet_elements_amount_jets.encode_amount c))
+### C.jet_elements_output_is_fee_compare.processed_fee_bit_explicit
+processed_fee_bit_explicit
+     : forall o : jet_elements_prim.txOutput,
+       @eq bool (jet_elements_fee_flag_caller.processed_fee_bit o)
+         (andb
+            (andb (jet_elements_fee_flag_caller.processed_fee_empty o)
+               (@jet_elements_output_is_fee_spec.fee_explicit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                  (jet_elements_asset_jets.encode_asset
+                     (@jet_elements_prim.clearPrf (list Integers.Byte.int) Digest.hash256
+                        (jet_elements_prim.txoAsset o)))))
+            (@jet_elements_output_is_fee_spec.fee_explicit (Word.Word (S (S (S (S (S (S O)))))))
+               (jet_elements_amount_jets.encode_amount
+                  (@jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int
+                     (jet_elements_prim.txoAmount o)))))
+### C.jet_elements_output_is_fee_compare.fee_bits_agree_iff
+fee_bits_agree_iff
+     : forall o : jet_elements_prim.txOutput,
+       iff
+         (@eq bool (jet_elements_fee_flag_caller.processed_fee_bit o)
+            (jet_elements_output_is_fee_spec.canonical_fee_bit o)) (not (fee_digest_collision o))
+### C.jet_elements_output_is_fee_compare.some_inj
+@some_inj
+     : forall (A : Type) (x y : A) (_ : @eq (option A) (@Some A x) (@Some A y)), @eq A x y
+### C.jet_elements_output_is_fee_compare.fee_results_agree_iff
+fee_results_agree_iff
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       iff
+         (@eq (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)))
+            (jet_elements_fee_flag_caller.processed_fee_result a environment)
+            (jet_elements_output_is_fee_spec.canonical_fee_result a environment))
+         (not (fee_collision_at a environment))
+### C.jet_elements_output_is_fee_compare.fee_witness_index_nat
+fee_witness_index_nat
+     : @eq nat (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) fee_witness_index)) O
+### C.jet_elements_output_is_fee_compare.fee_witness_differs
+fee_witness_differs
+     : forall (s : jet_elements_prim.script)
+         (Hs : BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int s) Integers.Int.modulus)
+         (_ : not (@eq jet_elements_prim.script s (@nil Integers.Byte.int)))
+         (_ : @eq Digest.hash256 (Digest.byteStringHash s) (Digest.byteStringHash (@nil Integers.Byte.int))),
+       not
+         (@eq (option (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))))
+            (@Some (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)))
+               (jet_elements_fee_flag_caller.processed_fee_result fee_witness_index (fee_witness_env s Hs)))
+            (@jet_elements_output_is_fee_spec.elements_output_is_fee_spec
+               (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+               fee_witness_index (fee_witness_env s Hs)))
+### C.jet_elements_output_is_fee_compare.fee_results_agree_everywhere_iff
+fee_results_agree_everywhere_iff
+     : iff
+         (forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+          @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))))
+            (@Some (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)))
+               (jet_elements_fee_flag_caller.processed_fee_result a environment))
+            (@jet_elements_output_is_fee_spec.elements_output_is_fee_spec
+               (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+               environment)) empty_script_digest_unique
+### C.jet_elements_output_is_fee_compare.elements_output_is_fee_canonical_comparison
+elements_output_is_fee_canonical_comparison
+     : and
+         (jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_output_is_fee
+            jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))
+            (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment
+               jet_elements_prim.txOutput
+               (fun e : jet_elements_prim.Elements.environment =>
+                jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+               jet_elements_fee_flag_caller.processed_fee_rep
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+               BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+            (fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+             @Some (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)))
+               (jet_elements_fee_flag_caller.processed_fee_result a environment)))
+         (forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+          iff
+            (@eq (option (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))))
+               (@Some (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)))
+                  (jet_elements_fee_flag_caller.processed_fee_result a environment))
+               (@jet_elements_output_is_fee_spec.elements_output_is_fee_spec
+                  (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+                  environment)) (not (fee_collision_at a environment)))
+### C.jet_elements_output_is_fee_compare.elements_output_is_fee_local_spec_if_digest_unique
+elements_output_is_fee_local_spec_if_digest_unique
+     : forall _ : empty_script_digest_unique,
+       jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_output_is_fee
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))
+         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.txOutput
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+            jet_elements_fee_flag_caller.processed_fee_rep
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+          @jet_elements_output_is_fee_spec.elements_output_is_fee_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_elements_output_is_fee_compare.empty_script_digest_unique
+empty_script_digest_unique =
+forall (s : jet_elements_prim.script)
+  (_ : BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int s) Integers.Int.modulus)
+  (_ : @eq Digest.hash256 (Digest.byteStringHash s) (Digest.byteStringHash (@nil Integers.Byte.int))),
+@eq jet_elements_prim.script s (@nil Integers.Byte.int)
+     : Prop
+### C.jet_elements_output_is_fee_compare.fee_digest_collision
+fee_digest_collision =
+fun o : jet_elements_prim.txOutput =>
+and
+  (@eq bool
+     (@jet_elements_output_is_fee_spec.fee_explicit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+        (jet_elements_asset_jets.encode_asset
+           (@jet_elements_prim.clearPrf (list Integers.Byte.int) Digest.hash256 (jet_elements_prim.txoAsset o)))) true)
+  (and
+     (@eq bool
+        (@jet_elements_output_is_fee_spec.fee_explicit (Word.Word (S (S (S (S (S (S O)))))))
+           (jet_elements_amount_jets.encode_amount
+              (@jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int (jet_elements_prim.txoAmount o))))
+        true)
+     (and (not (@eq jet_elements_prim.script (jet_elements_prim.txoScript o) (@nil Integers.Byte.int)))
+        (@eq Digest.hash256 (Digest.byteStringHash (jet_elements_prim.txoScript o))
+           (Digest.byteStringHash (@nil Integers.Byte.int)))))
+     : forall _ : jet_elements_prim.txOutput, Prop
+
+Arguments fee_digest_collision o
+### C.jet_elements_output_is_fee_compare.fee_collision_at
+fee_collision_at =
+fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+match
+  @List.nth_error jet_elements_prim.txOutput
+    (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment))
+    (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) a)) return Prop
+with
+| Some o => fee_digest_collision o
+| None => False
+end
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env), Prop
+
+Arguments fee_collision_at a environment
+### C.jet_elements_output_is_fee_compare.fee_witness_input
+fee_witness_input =
+let h0 : Digest.hash256 := Digest.byteStringHash (@nil Integers.Byte.int) in
+jet_elements_prim.Build_sigTxInput (@None Digest.hash256) (jet_elements_prim.Build_outpoint h0 Integers.Int.zero)
+  (jet_elements_prim.Build_utxo (@jet_elements_prim.Explicit unit Digest.hash256 h0)
+     (@jet_elements_prim.Explicit unit Integers.Int64.int Integers.Int64.zero) (@nil Integers.Byte.int)
+     (@eq_refl comparison Lt
+      :
+      BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int (@nil Integers.Byte.int)) Integers.Int.modulus))
+  Integers.Int.zero (@None jet_elements_prim.issuance) (@None (list Integers.Byte.int)) (@nil Integers.Byte.int)
+  (@eq_refl comparison Lt
+   :
+   BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int (@nil Integers.Byte.int)) Integers.Int.modulus)
+     : jet_elements_prim.sigTxInput
+### C.jet_elements_output_is_fee_compare.fee_witness_output
+fee_witness_output =
+fun (s : jet_elements_prim.script) (Hs : BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int s) Integers.Int.modulus)
+=>
+let h0 : Digest.hash256 := Digest.byteStringHash (@nil Integers.Byte.int) in
+jet_elements_prim.Build_txOutput (@jet_elements_prim.Explicit (list Integers.Byte.int) Digest.hash256 h0)
+  (@jet_elements_prim.Explicit (list Integers.Byte.int) Integers.Int64.int Integers.Int64.one)
+  (@None jet_elements_prim.nonce) s Hs
+     : forall (s : jet_elements_prim.script)
+         (_ : BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int s) Integers.Int.modulus), jet_elements_prim.txOutput
+
+Arguments fee_witness_output s Hs
+### C.jet_elements_output_is_fee_compare.fee_witness_tx
+fee_witness_tx =
+fun (s : jet_elements_prim.script) (Hs : BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int s) Integers.Int.modulus)
+=>
+let h0 : Digest.hash256 := Digest.byteStringHash (@nil Integers.Byte.int) in
+jet_elements_prim.Build_sigTx Integers.Int.zero
+  (@cons jet_elements_prim.sigTxInput fee_witness_input (@nil jet_elements_prim.sigTxInput))
+  (@cons jet_elements_prim.txOutput (fee_witness_output s Hs) (@nil jet_elements_prim.txOutput)) Integers.Int.zero
+  (@conj (@eq comparison Lt Lt) (@eq comparison Lt Lt) (@eq_refl comparison Lt) (@eq_refl comparison Lt)
+   :
+   and
+     (BinInt.Z.lt BinNums.Z0
+        (@Zcomplements.Zlength jet_elements_prim.sigTxInput
+           (@cons jet_elements_prim.sigTxInput fee_witness_input (@nil jet_elements_prim.sigTxInput))))
+     (BinInt.Z.lt
+        (@Zcomplements.Zlength jet_elements_prim.sigTxInput
+           (@cons jet_elements_prim.sigTxInput fee_witness_input (@nil jet_elements_prim.sigTxInput)))
+        Integers.Int.modulus))
+  (@conj (forall _ : @eq comparison Lt Gt, False) (@eq comparison Lt Lt)
+     (fun H : @eq comparison Lt Gt =>
+      let H0 : False :=
+        @eq_ind comparison Lt
+          (fun e : comparison => match e return Prop with
+                                 | Eq => False
+                                 | Lt => True
+                                 | Gt => False
+                                 end) I Gt H in
+      False_ind False H0) (@eq_refl comparison Lt)
+   :
+   and
+     (BinInt.Z.le BinNums.Z0
+        (@Zcomplements.Zlength jet_elements_prim.txOutput
+           (@cons jet_elements_prim.txOutput (fee_witness_output s Hs) (@nil jet_elements_prim.txOutput))))
+     (BinInt.Z.lt
+        (@Zcomplements.Zlength jet_elements_prim.txOutput
+           (@cons jet_elements_prim.txOutput (fee_witness_output s Hs) (@nil jet_elements_prim.txOutput)))
+        Integers.Int.modulus))
+     : forall (s : jet_elements_prim.script)
+         (_ : BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int s) Integers.Int.modulus), jet_elements_prim.sigTx
+
+Arguments fee_witness_tx s Hs
+### C.jet_elements_output_is_fee_compare.fee_witness_env
+fee_witness_env =
+fun (s : jet_elements_prim.script) (Hs : BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int s) Integers.Int.modulus)
+=>
+let h0 : Digest.hash256 := Digest.byteStringHash (@nil Integers.Byte.int) in
+jet_elements_prim.Elements.Build_environment (fee_witness_tx s Hs) O
+  (jet_elements_prim.Build_tapEnv Integers.Byte.zero h0 (@nil Digest.hash256) h0) h0
+  (le_n (S O) : lt O (@length jet_elements_prim.sigTxInput (jet_elements_prim.sigTxIn (fee_witness_tx s Hs))))
+  (@eq_refl comparison Lt
+   :
+   BinInt.Z.lt (BinInt.Z.of_nat O)
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))))))))
+     : forall (s : jet_elements_prim.script)
+         (_ : BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int s) Integers.Int.modulus),
+       jet_elements_prim.Elements.env
+
+Arguments fee_witness_env s Hs
+### C.jet_elements_output_is_fee_compare.fee_witness_index
+fee_witness_index =
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) BinNums.Z0
+     : Ty.tySem (Word.Word (S (S (S (S (S O))))))
