@@ -9,7 +9,8 @@ Require Import C.jet_sx_known.
 Require Import C.jet_secp_multiply_run_run.
 Import ListNotations.
 Local Open Scope Z_scope.
-Set Default Timeout 10.
+(* The symbolic run below takes about 10s by itself; leave headroom for slower machines. *)
+Set Default Timeout 60.
 Definition scalar_de62_regs :=
  [mkreg (u64_cells 0 [XLv 0;XLv 1;XLv 2;XLv 3;XLv 4]) true (Some 40);
   mkreg (u64_cells 0 [XLv 5;XLv 6;XLv 7;XLv 8;XLv 9]) true (Some 40);
