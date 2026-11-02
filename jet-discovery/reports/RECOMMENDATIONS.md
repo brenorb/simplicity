@@ -242,8 +242,12 @@ Excluded:
 
 ## Reproduction
 
-All in `jet-discovery/`. Expected results: all 25 programs pass, 8 tests pass. The in-tree C suite was also run
-on an archive of this commit (`make check` in C/): 98 successes, 0 failures.
+All in `jet-discovery/`. Expected results: all 25 programs pass, 8 tests pass.
+
+The existing in-tree suites also pass unchanged on this commit:
+- C: `make check` on an archive of `C/`: 98 successes, 0 failures.
+- Haskell: `Simplicity:test:testsuite`, through a scratch cabal project with tests enabled and
+  `--quickcheck-tests=20`: all 3,252 tests passed.
 
 ```bash
 nix-shell --run 'cabal build all'
