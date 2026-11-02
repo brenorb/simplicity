@@ -63,7 +63,7 @@ ssStep i ss = (unit >>> scribe (w32 (toInteger i)) >>> primitive Prim.InputScrip
         &&& ((take nonEmpty &&& iioh >>> or oh ih) &&& (iiih &&& oh >>> ctxAddVarString511))
         >>> ih
   nonEmpty = buf511Len >>> some16
-  some16 = iden &&& scribe (w16 0) >>> eq >>> not iden
+  some16 = iden &&& konst (w16 0) >>> eq >>> not iden
 
 -- | BIP 341 @sha_outputs@ (= BIP 119's outputs hash) from witness-supplied output scripts.
 shaOutputs :: (Assert term, Primitive term, Witness term) => [Buffer511 Word8] -> term () Word256

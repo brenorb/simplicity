@@ -9,6 +9,7 @@ module JetDiscovery.Corpus.CovenantMisc
   ( entries
   , apoMode
   , ccvOutputKey
+  , embedDataT
   ) where
 
 import Prelude hiding (drop, take, not, and, or)
@@ -88,12 +89,14 @@ pairCommitRef a b = hashToBytes (taggedSha256 "PairCommit" (ser a <> ser b))
 
 -- | Output key for naked key @pk@, data @d@ and taptree root @r@: input ((pk, d), r).
 ccvOutputKey :: Assert term => term ((Word256, Word256), Word256) Word256
-ccvOutputKey = (take embed &&& ih) >>> BLib.buildTaptweak
+ccvOutputKey = (take embedDataT &&& ih) >>> BLib.buildTaptweak
+
+-- | BIP 443 @tweak_embed_data(pk, d)@ for 32-byte data: x(lift_x(pk) + sha256(pk || d) G).
+embedDataT :: Assert term => term (Word256, Word256) Word256
+embedDataT = (t >>> Secp.generate) &&& liftX >>> Secp.gej_ge_add >>> Secp.gej_normalize >>> verify >>> oh
  where
-  -- tweak_embed_data(pk, d): lift_x(pk) + sha256(pk || d) G
   t = ((unit >>> ctx8Init) &&& oh >>> ctx8Add32) &&& ih >>> ctx8Add32 >>> ctx8Finalize >>> Secp.scalar_normalize
   liftX = (false &&& oh) >>> Secp.decompress >>> verify
-  embed = (t >>> Secp.generate) &&& liftX >>> Secp.gej_ge_add >>> Secp.gej_normalize >>> verify >>> oh
 
 -- | CCV in CHECK_OUTPUT mode for one input: input (((index, (pk, d)), r)).
 ccvCheckOutput :: (Assert term, Primitive term) => term ((Word32, (Word256, Word256)), Word256) ()

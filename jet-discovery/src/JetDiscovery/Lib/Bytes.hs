@@ -6,7 +6,7 @@
 -- jet specifications, so 'jetSubst' finds the jets inside them.
 module JetDiscovery.Lib.Bytes
   ( bswap16, bswap32, bswap64
-  , isSome, failure
+  , isSome, failure, konst
   , buf511Len, buf63Len
   , ctxAddCompactSize511
   , ctxAddVarString511
@@ -38,6 +38,12 @@ bswap32 = drop bswap16 &&& take bswap16
 
 bswap64 :: Core term => term Word64 Word64
 bswap64 = drop bswap32 &&& take bswap32
+
+-- | A constant.  Always written as @unit >>> scribe c@: the constant-word jets
+-- only apply to constants whose input type is @()@, and a 256-bit constant
+-- built from combinators at another input type costs tens of WU.
+konst :: (Core term, TyC a, TyC b) => b -> term a b
+konst c = unit >>> scribe c
 
 -- | 1 when the optional value is present.
 isSome :: (Core term, TyC a) => term (S a) Bit
@@ -77,10 +83,10 @@ buf63Len = ((false &&& false) &&& (f5 &&& f4)) &&& ((f3 &&& f2) &&& (f1 &&& f0))
 
 -- | Append a Bitcoin CompactSize encoding of a length below 512.
 ctxAddCompactSize511 :: Assert term => term (Ctx8, Word16) Ctx8
-ctxAddCompactSize511 = (drop (iden &&& scribe (toWord16 253) >>> Arith.lt word16)) &&& iden >>> cond small big
+ctxAddCompactSize511 = (drop (iden &&& konst (toWord16 253) >>> Arith.lt word16)) &&& iden >>> cond small big
  where
   small = oh &&& iih >>> ctx8Add1
-  big = ((oh &&& scribe (toWord8 0xfd)) >>> ctx8Add1) &&& drop bswap16 >>> ctx8Add2
+  big = ((oh &&& konst (toWord8 0xfd)) >>> ctx8Add1) &&& drop bswap16 >>> ctx8Add2
 
 -- | Append a CompactSize length prefix followed by the bytes of the buffer (Bitcoin's @ser_string@).
 ctxAddVarString511 :: Assert term => term (Ctx8, Buffer511 Word8) Ctx8

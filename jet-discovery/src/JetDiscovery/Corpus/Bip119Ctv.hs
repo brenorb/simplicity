@@ -13,6 +13,8 @@
 --   same strength.
 module JetDiscovery.Corpus.Bip119Ctv
   ( entries
+  , ctvNativeTemplate
+  , ctvNativeRef
   ) where
 
 import Prelude hiding (drop, take, not, and, or)
@@ -62,7 +64,11 @@ ctvExact h scriptSigs scripts = (template &&& witness h >>> eq >>> verify)
 
 -- | A Simplicity-native template hash over the same fields, using existing hash jets.
 ctvNative :: (Assert term, Primitive term, Witness term) => Word256 -> term () ()
-ctvNative h = (template &&& witness h >>> eq >>> verify)
+ctvNative h = (ctvNativeTemplate &&& witness h >>> eq >>> verify)
+
+-- | The native template hash of the current input's transaction.
+ctvNativeTemplate :: (Assert term, Primitive term) => term () Word256
+ctvNativeTemplate = template
  where
   template = ctx8Init
          >>> ctxWith (primitive Prim.Version) ctx8Add4

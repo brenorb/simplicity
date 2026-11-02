@@ -10,6 +10,7 @@ import qualified JetDiscovery.Corpus.Bip348Csfs as Csfs
 import qualified JetDiscovery.Corpus.Bip119Ctv as Ctv
 import qualified JetDiscovery.Corpus.Bip446TemplateHash as TemplateHash
 import qualified JetDiscovery.Corpus.CovenantMisc as CovenantMisc
+import qualified JetDiscovery.Corpus.Apps as Apps
 
 corpus :: IO [Entry]
 corpus = concat <$> sequence
@@ -18,4 +19,5 @@ corpus = concat <$> sequence
   , Ctv.entries
   , TemplateHash.entries
   , pure CovenantMisc.entries
+  , pure Apps.entries
   ]
