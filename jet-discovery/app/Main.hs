@@ -11,6 +11,8 @@ import System.Directory (createDirectoryIfMissing)
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
 import System.IO (hFlush, stdout)
+import System.CPUTime (getCPUTime)
+import Control.Exception (evaluate)
 
 import JetDiscovery.Corpus (corpus)
 import JetDiscovery.Profile (NodeInfo(..), prettyTy)
@@ -25,11 +27,12 @@ main = do
     [] -> runAll
     ["run"] -> runAll
     ["profile", i] -> profileOne i
+    ["time", i] -> timeOne i
     _ -> putStrLn "usage: jet-discovery [run | profile <id>]"
 
 runAll :: IO ()
 runAll = do
-  rs <- mapM runOne corpus
+  rs <- mapM runOne =<< corpus
   createDirectoryIfMissing True "reports/data"
   writeFile "reports/data/corpus-results.tsv" (resultsTsv rs)
   writeFile "reports/corpus-results.md" (header ++ resultsMarkdown rs)
@@ -48,9 +51,9 @@ runAll = do
 
 runOne :: Entry -> IO EntryResult
 runOne e = do
-  putStr (entryId e ++ " ... ") >> hFlush stdout
-  let r = runEntry e
-      m = erMeasure r
+  r <- runEntryIO e
+  let m = erMeasure r
+  putStr (entryId e ++ " ... ")
   when (mProfileTotal m /= mCost m) $
     putStr ("[profile mismatch " ++ show (mProfileTotal m) ++ " vs " ++ show (mCost m) ++ "] ")
   forM_ (erVectors r) $ \v -> unless (vrOk v) $ putStr ("[vector failed: " ++ vrName v ++ " (" ++ vrNote v ++ ")] ")
@@ -58,7 +61,7 @@ runOne e = do
   return r
 
 profileOne :: String -> IO ()
-profileOne i = case [ e | e <- corpus, entryId e == i ] of
+profileOne i = corpus >>= \c -> case [ e | e <- c, entryId e == i ] of
   [e] -> do
     let m = erMeasure (runEntry e)
         total = mCost m
@@ -67,4 +70,20 @@ profileOne i = case [ e | e <- corpus, entryId e == i ] of
     forM_ top $ \n -> putStrLn $ concat
       [ pct (niMult n * niTotal n) total, "\t", wu (niTotal n), " WU x", show (niMult n), "\t", niKind n, " : "
       , prettyTy (niSrc n), " -> ", prettyTy (niTgt n) ]
+  _ -> putStrLn "unknown id"
+
+-- | Time each measurement phase of one entry (diagnostics).
+timeOne :: String -> IO ()
+timeOne i = corpus >>= \c -> case [ e | e <- c, entryId e == i ] of
+  [Entry _ _ _ _ _ _ prog (v:_)] -> do
+    let m = measure (prog (vecWitness v))
+        t l a = do { s0 <- getCPUTime; _ <- evaluate a; s1 <- getCPUTime
+                   ; putStrLn (l ++ ": " ++ show (fromIntegral (s1 - s0) / 1e12 :: Double) ++ "s") }
+    t "cmr" (mCmr m `seq` ())
+    t "cost" (mCost m)
+    t "baseline" (mCostBase m)
+    t "whatif" (mCostWhatIf m)
+    t "bits" (mProgBits m + mWitBits m)
+    t "profile" (mProfileTotal m)
+    t "one vector" (length (filter vrOk (runVectors prog (mCmr m) [v])))
   _ -> putStrLn "unknown id"

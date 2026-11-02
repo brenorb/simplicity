@@ -8,11 +8,19 @@ module JetDiscovery.Run
   , runVectors
   , EntryResult(..)
   , runEntry
+  , runEntryIO
+  , runVector
+  , parallelIO
   , jetName
   , budgetMax
   , witnessBudgetModel
   ) where
 
+import Control.Concurrent (forkIO, getNumCapabilities)
+import Control.Concurrent.MVar (newEmptyMVar, putMVar, takeMVar)
+import Control.Concurrent.QSem (newQSem, waitQSem, signalQSem)
+import Control.Exception (SomeException, bracket_, evaluate, throwIO, try)
+import Control.Monad (forM)
 import Data.List (sortBy)
 import qualified Data.Map.Strict as Map
 import Data.Ord (comparing, Down(..))
@@ -102,29 +110,58 @@ data VectorResult = VectorResult
   , vrNote :: String
   }
 
--- | Run every test vector with 'Jets.fastEval'.  Also checks that the CMR does not depend on the witness.
-runVectors :: (w -> Prog) -> Hash256 -> [Vector w] -> [VectorResult]
-runVectors prog cmr0 = map run1
+-- | Run one test vector with 'Jets.fastEval'.  Also checks that the CMR does not depend on the witness.
+runVector :: (w -> Prog) -> Hash256 -> Vector w -> VectorResult
+runVector prog cmr0 (Vector nm env w ex) =
+  case env cmr of
+    Nothing -> VectorResult nm ex False "environment construction failed"
+    Just e ->
+      -- Execute the jet-substituted program: that is the program a spender would publish,
+      -- and jet substitution changes the CMRs that 'disconnect' commits to.
+      let accepted = Jets.fastEval (unwrap wrapped) e () == Just ()
+          ok = (ex == Accept) == accepted && cmr == cmr0
+          note | cmr /= cmr0 = "CMR depends on witness"
+               | otherwise = if accepted then "accepted" else "rejected"
+      in VectorResult nm ex ok note
  where
-  run1 (Vector nm env w ex) =
-    case env cmr of
-      Nothing -> VectorResult nm ex False "environment construction failed"
-      Just e ->
-        -- Execute the jet-substituted program: that is the program a spender would publish,
-        -- and jet substitution changes the CMRs that 'disconnect' commits to.
-        let accepted = Jets.fastEval (unwrap (Jets.jetSubst (unProg (prog w)))) e () == Just ()
-            ok = (ex == Accept) == accepted && cmr == cmr0
-            note | cmr /= cmr0 = "CMR depends on witness"
-                 | otherwise = if accepted then "accepted" else "rejected"
-        in VectorResult nm ex ok note
-   where
-    cmr = commitmentRoot (unwrap (Jets.jetSubst (unProg (prog w))) :: CommitmentRoot () ())
+  -- One traversal of the full (unjetted) term per vector, shared by the CMR check and execution.
+  wrapped = Jets.jetSubst (unProg (prog w))
+  cmr = commitmentRoot (unwrap wrapped :: CommitmentRoot () ())
+
+runVectors :: (w -> Prog) -> Hash256 -> [Vector w] -> [VectorResult]
+runVectors prog cmr0 = map (runVector prog cmr0)
 
 data EntryResult = EntryResult
   { erEntry :: Entry
   , erMeasure :: Measurement
   , erVectors :: [VectorResult]
   }
+
+-- | Measure an entry (using its first vector's witness) and run all its vectors, in parallel.
+runEntryIO :: Entry -> IO EntryResult
+runEntryIO e@(Entry _ _ _ _ _ _ prog vecs) = do
+  let m = case vecs of
+            (v:_) -> measure (prog (vecWitness v))
+            [] -> error "runEntry: entry has no vectors"
+      forceM = [ () <$ evaluate (mCmr m), () <$ evaluate (mCost m), () <$ evaluate (mCostBase m)
+               , () <$ evaluate (mCostWhatIf m), () <$ evaluate (mProgBits m + mWitBits m)
+               , () <$ evaluate (mProfileTotal m), () <$ evaluate (length (mWhatIfJets m)) ]
+  _ <- parallelIO forceM
+  vs <- parallelIO [ evaluate (forceVR (runVector prog (mCmr m) v)) | v <- vecs ]
+  return (EntryResult e m vs)
+ where
+  forceVR r = vrOk r `seq` length (vrNote r) `seq` r
+
+-- | Run actions concurrently (bounded by the number of capabilities) and collect results in order.
+parallelIO :: [IO a] -> IO [a]
+parallelIO acts = do
+  n <- getNumCapabilities
+  sem <- newQSem (max 1 n)
+  vars <- forM acts $ \a -> do
+    v <- newEmptyMVar
+    _ <- forkIO $ bracket_ (waitQSem sem) (signalQSem sem) (try a >>= putMVar v)
+    return v
+  forM vars $ \v -> takeMVar v >>= either (\ex -> throwIO (ex :: SomeException)) return
 
 -- | Measure an entry (using its first vector's witness) and run all its vectors.
 runEntry :: Entry -> EntryResult
