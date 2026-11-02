@@ -14,6 +14,9 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.List as L
 import qualified Data.Vector as V
+import qualified Data.Word as DW
+import Simplicity.Digest (Hash256)
+import Simplicity.Bitcoin.Primitive (PrimEnv)
 
 import Simplicity.Term.Core
 import Simplicity.Programs.Bit
@@ -24,6 +27,12 @@ import qualified Simplicity.Bitcoin.Primitive as Prim
 import qualified Simplicity.Bitcoin.Programs.Transaction.Lib as Tx
 import Simplicity.Bitcoin.DataTypes
 import Simplicity.Ty.Word
+import qualified Simplicity.Programs.LibSecp256k1.Lib as Secp
+import qualified Simplicity.Bitcoin.Jets as Jets
+import Simplicity.LibSecp256k1.Schnorr (PubKey(..), Sig(..))
+import JetDiscovery.Corpus.Baseline (signMsg)
+import JetDiscovery.Run (progCmr)
+import qualified JetDiscovery.Ref.Bip340 as Ref
 
 import JetDiscovery.Lib.Bytes
 import JetDiscovery.Lib.TxSer
@@ -32,7 +41,16 @@ import JetDiscovery.Types
 
 -- | hash_TemplateHash(nVersion || nLockTime || sha_sequences || sha_outputs || annex_present || input_index [|| sha_annex]) == h
 templateHash :: (Assert term, Primitive term, Witness term) => Word256 -> [Buffer511 Word8] -> Buffer511 Word8 -> term () ()
-templateHash h scripts annex = template &&& witness h >>> eq >>> verify
+templateHash h scripts annex = templateTerm scripts annex &&& witness h >>> eq >>> verify
+
+-- | BIP 448 LN-Symmetry update: OP_TEMPLATEHASH OP_INTERNALKEY OP_CHECKSIGFROMSTACK, i.e. a
+-- signature by the taproot internal key on the template hash (rebindable to any prevout).
+lnSymmetryUpdate :: (Assert term, Primitive term, Witness term) => [Buffer511 Word8] -> Buffer511 Word8 -> (Word256, Word256) -> term () ()
+lnSymmetryUpdate scripts annex sig = ((primitive Prim.InternalKey &&& templateTerm scripts annex) &&& witness sig) >>> Secp.bip_0340_verify
+
+-- | The BIP 446 template hash of the current input's transaction.
+templateTerm :: (Assert term, Primitive term, Witness term) => [Buffer511 Word8] -> Buffer511 Word8 -> term () Word256
+templateTerm scripts annex = template
  where
   template = ctx8InitTag "TemplateHash"
          >>> ctxWith (primitive Prim.Version) ctxAddLE32
@@ -86,11 +104,29 @@ loadVectors = do
     (a, []) -> [a]
     (a, _:r) -> a : splitC r
 
+pad :: Int -> [BS.ByteString] -> [Buffer511 Word8]
+pad n xs = map buffer511FromBytes (L.take n (xs ++ repeat BS.empty))
+
+lsSk :: Integer
+lsSk = 0xC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B14E5C9
+
+lsScript :: BS.ByteString
+lsScript = unhex "5120" <> BS.replicate 32 0x3c
+
+lsEnv :: Outpoint -> DW.Word64 -> Hash256 -> Maybe PrimEnv
+lsEnv op v = mkEnv (mkTx 2 [mkInput op 100000 mempty 0xfffffffd] [mkOutput v lsScript] 0) 0
+                   (\c -> (defaultTap c) { tapInternalKey = PubKey (fromInteger (Ref.pubkeyOf lsSk)) })
+
+lsSig :: (Word256, Word256)
+lsSig = case lsEnv (dummyOutpoint 0) 90000 cmr >>= \e -> Jets.fastEval (templateTerm (pad maxOuts [lsScript]) (buffer511FromBytes BS.empty)) e () of
+  Just h -> let Sig r s = signMsg lsSk (w256ToBytes h) in (toWord256 (toInteger r), toWord256 (toInteger s))
+  Nothing -> error "lsSig"
+ where cmr = progCmr (Prog (lnSymmetryUpdate (pad maxOuts [lsScript]) (buffer511FromBytes BS.empty) (toWord256 0, toWord256 0)))
+
 entries :: IO [Entry]
 entries = do
   vs <- loadVectors
-  let pad n xs = map buffer511FromBytes (L.take n (xs ++ repeat BS.empty))
-      vec v = Vector ("basics.json: " ++ tvComment v) (mkEnv (tvTx v) (fromIntegral (tvIx v)) defaultTap)
+  let vec v = Vector ("basics.json: " ++ tvComment v) (mkEnv (tvTx v) (fromIntegral (tvIx v)) defaultTap)
                      (w256FromBytes (tvHash v), (pad maxOuts (tvScripts v), buffer511FromBytes (tvAnnex v)))
                      (if tvValid v then Accept else Reject)
   return
@@ -105,5 +141,19 @@ entries = do
                            , "the committed hash is a witness operand (in a real script it is a constant)" ]
       , entryProgram = \(h, (scs, annex)) -> Prog (templateHash h scs annex)
       , entryVectors = map vec vs
+      }
+    , Entry
+      { entryId = "bip448-lnsymmetry-update"
+      , entryTitle = "LN-Symmetry update spend: internal-key signature on the BIP 446 template hash"
+      , entrySpec = "BIP 448 (vendor-specs/bips/bip-0448.md): OP_TEMPLATEHASH + OP_CHECKSIGFROMSTACK + OP_INTERNALKEY"
+      , entryCategory = CovenantBip
+      , entryVectorSource = Derived "BIP 340 signatures on the template hash evaluated in each environment"
+      , entryAssumptions = [ "single output, no annex; output scripts are witness bytes as for bip446-templatehash-exact" ]
+      , entryProgram = \(scs, sig) -> Prog (lnSymmetryUpdate (pad maxOuts scs) (buffer511FromBytes BS.empty) sig)
+      , entryVectors =
+          [ Vector "update signed by the channel key" (lsEnv (dummyOutpoint 0) 90000) ([lsScript], lsSig) Accept
+          , Vector "same signature rebinds to another channel state's outpoint" (lsEnv (Outpoint (hashFromInteger 0xfeed) 1) 90000) ([lsScript], lsSig) Accept
+          , Vector "different settlement output" (lsEnv (dummyOutpoint 0) 80000) ([lsScript], lsSig) Reject
+          ]
       }
     ]
