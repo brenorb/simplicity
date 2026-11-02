@@ -19,4 +19,6 @@ Low: a range check against p, similar to the proven `fe_normalize`/`fe_is_zero` 
 A variable-length `bip_0340_verify` (a message buffer instead of a 32-byte message) would make both unpack jets unnecessary for CSFS.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `bip348-csfs`: matched ×1 (static multiplicity); program cost 408.282 WU → 87.927 WU with all candidates (4.6×).
+
+Test: the specification is the library's own function; `bip348-csfs` runs it on all 19 BIP 340 vectors, including invalid keys (rows 5, 14) and out-of-range signatures (rows 11-13).

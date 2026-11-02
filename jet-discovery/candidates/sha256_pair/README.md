@@ -19,4 +19,6 @@ Low. It is a composition of proven jets (`sha256_ctx_8_init`, `add_64`, `finaliz
 Today it is three jets plus plumbing; a "hash two 32-byte nodes" jet with a tag or sort option would also serve BIP 341 TapBranch-style trees.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `app-merkle-key`: matched ×16 (static multiplicity); program cost 240.730 WU → 174.650 WU with all candidates (1.4×).
+
+Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

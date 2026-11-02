@@ -19,4 +19,6 @@ Low to medium.
 `full_multiply_128` (with addends) would compose better.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `xchain-uniswap-v2-amount-out`: matched ×4 (static multiplicity); program cost 1410.366 WU → 25.288 WU with all candidates (55.8×).
+
+Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

@@ -19,4 +19,9 @@ Low to medium. The closest proven jets are the Bitcoin transaction-hash and tota
 (a) A raw-bytes primitive (`output_script(i)` returning bytes). This breaks Simplicity's design of bounded, typed values: script lengths are unbounded. (b) Re-serializing from witness bytes, as the corpus does today: correct, but 50-100x more expensive in the static bound, because every buffer slot is priced at its maximum size. (c) Simplicity-native template hashes (`bip119-ctv-native`): cheap and as strong, but not hash-compatible with the BIPs.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `bip119-ctv-exact`: measured 3737.013 WU → stand-in variant 54.490 WU (68.6×).
+- `bip446-templatehash-exact`: measured 1937.256 WU → stand-in variant 57.289 WU (33.8×).
+- `bip448-lnsymmetry-update` (1987.336 WU) spends 1935.7 WU (99.4%) inside the same template-hash sub-DAG as `bip446-templatehash-exact` (reports/subdags.md, shape table), so it gains the same factor.
+- Mining: the witness-checked `sha_outputs` re-serialization is the largest sub-DAG shared across programs (1634 WU per instance in 3 programs; the per-output step 101 WU x 45).
+
+Test: there is no Simplicity specification to test (see Specification); the witness-checked re-serializations that define the expected values pass the BIP 119 (100 transactions) and BIP 446 (19 cases) upstream vectors.

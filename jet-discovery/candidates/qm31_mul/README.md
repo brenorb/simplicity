@@ -19,4 +19,7 @@ Low to medium: small integer arithmetic.
 Only `m31_mul`: QM31 then costs 16 jet calls plus plumbing.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `stark-qm31-mul`: matched ×1 (static multiplicity); program cost 245.781 WU → 5.805 WU with all candidates (42.3×).
+- `stark-fri-fold`: matched ×1 (static multiplicity); program cost 346.899 WU → 66.671 WU with all candidates (5.2×).
+
+Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

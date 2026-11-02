@@ -19,4 +19,7 @@ Medium to high. It is a new permutation, but a regular one: fixed rounds of 64-b
 Keeping it in Simplicity costs about 240 WU per round.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `xchain-keccak256`: matched ×1 (static multiplicity); program cost 5775.502 WU → 24.296 WU with all candidates (237.7×).
+- Mining: one Keccak round (`W2048 -> W2048`, 237.5 WU) x24 is 98.7% of `xchain-keccak256`.
+
+Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

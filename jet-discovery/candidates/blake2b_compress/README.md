@@ -19,4 +19,7 @@ Medium, like BLAKE2s with 64-bit words.
 EIP-152 exposes the round count as an input; a jet could too.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `xchain-blake2b-compress`: matched ×1 (static multiplicity); program cost 4641.718 WU → 11.381 WU with all candidates (407.8×).
+- Mining: BLAKE2b's G function (38.5 WU) x96 is 79.6% of `xchain-blake2b-compress`.
+
+Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

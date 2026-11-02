@@ -19,4 +19,8 @@ Low. It is a 32x32 multiply and a Mersenne fold; the u64/u128 oracle approach us
 An M31 add/sub/inverse family; inversion is measured at about 700 WU in Simplicity.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `stark-m31-mul`: matched ×1 (static multiplicity); program cost 11.744 WU → 1.681 WU with all candidates (7.0×).
+- `stark-m31-inv`: matched ×61 (static multiplicity); program cost 697.571 WU → 83.728 WU with all candidates (8.3×).
+- `stark-fri-fold`: matched ×4 (static multiplicity); program cost 346.899 WU → 66.671 WU with all candidates (5.2×).
+
+Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

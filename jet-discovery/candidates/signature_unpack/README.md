@@ -19,4 +19,6 @@ Low.
 See `pubkey_unpack_neg`.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `bip348-csfs`: matched ×1 (static multiplicity); program cost 408.282 WU → 87.927 WU with all candidates (4.6×).
+
+Test: the specification is the library's own function; `bip348-csfs` runs it on all 19 BIP 340 vectors, including invalid keys (rows 5, 14) and out-of-range signatures (rows 11-13).

@@ -19,4 +19,6 @@ Medium: u128 oracles exist (fe_multiply branch); division needs a quotient/remai
 An unnormalized `div_mod_128_64`: the existing one requires a normalized divisor (`reports/mismatches.md` #3).
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `xchain-uniswap-v2-amount-out`: matched ×1 (static multiplicity); program cost 1410.366 WU → 25.288 WU with all candidates (55.8×).
+
+Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

@@ -19,4 +19,6 @@ Medium. The structure is close to the proven SHA-256 compression: 32-bit add/xor
 A BLAKE3-specific compression jet would serve BLAKE3 directly. The final-block flag should become an input.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `xchain-blake2s-compress`: matched ×1 (static multiplicity); program cost 3256.768 WU → 4.330 WU with all candidates (752.1×).
+
+Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

@@ -19,4 +19,7 @@ Medium. It composes the already proven SHA-256 compression with a data-dependent
 (a) A single tweakable-hash jet (one F call, 1 compression): it removes the context-threading cost but keeps 15 conditional steps per chain in the static bound. (b) A monolithic `shrincs_verify` jet: the largest saving, but tied to one draft scheme. (c) Keeping chains in Simplicity: about 225 WU per chain in the static bound.
 
 ## Corpus evidence
-<!-- EVIDENCE -->
+- `pq-shrincs-stateful`: matched ×32 (static multiplicity); program cost 8039.435 WU → 1199.307 WU with all candidates (6.7×).
+- Mining: the chain sub-DAG (225.3 WU per instance, x32) is the top shape in reports/subdags.md, 21.3% of the whole corpus bound and 89.7% of `pq-shrincs-stateful`. The single F step (12.3 WU, x448 in the bound) is next.
+
+Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).
