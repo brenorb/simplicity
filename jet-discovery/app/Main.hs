@@ -15,6 +15,12 @@ import System.CPUTime (getCPUTime)
 import Control.Exception (evaluate)
 
 import JetDiscovery.Corpus (corpus)
+import JetDiscovery.Corpus.Hashes (debugBlake2s)
+import qualified Simplicity.Bitcoin.Jets as Jets
+import Simplicity.Ty.Word (fromWord32)
+import Numeric (showHex)
+import JetDiscovery.Tx (mkEnv, mkTx, mkInput, mkOutput, dummyOutpoint, defaultTap)
+import Simplicity.Digest (hash0)
 import JetDiscovery.Profile (NodeInfo(..), prettyTy)
 import JetDiscovery.Report
 import JetDiscovery.Run
@@ -29,6 +35,7 @@ main = do
     ["run", prefix] -> runSome prefix
     ["profile", i] -> profileOne i
     ["time", i] -> timeOne i
+    ["debug-blake", n] -> debugBlake (read n)
     _ -> putStrLn "usage: jet-discovery [run | profile <id>]"
 
 runAll :: IO ()
@@ -97,3 +104,11 @@ timeOne i = corpus >>= \c -> case [ e | e <- c, entryId e == i ] of
     t "profile" (mProfileTotal m)
     t "one vector" (length (filter vrOk (runVectors prog (mCmr m) [v])))
   _ -> putStrLn "unknown id"
+
+debugBlake :: Int -> IO ()
+debugBlake n = do
+  let Just env = mkEnv (mkTx 2 [mkInput (dummyOutpoint 0) 1000 mempty 0] [mkOutput 900 mempty] 0) 0 defaultTap hash0
+      flat ((((a,b),(c,d)),((e,f),(g,h))),(((i,j),(k,l)),((m,n'),(o,p)))) = [a,b,c,d,e,f,g,h,i,j,k,l,m,n',o,p]
+  case Jets.fastEval (debugBlake2s n) env () of
+    Just v -> putStrLn (unwords [ showHex (fromWord32 x) "" | x <- flat v ])
+    Nothing -> putStrLn "failed"

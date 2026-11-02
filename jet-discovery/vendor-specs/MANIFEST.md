@@ -40,3 +40,9 @@ the upstream test vectors are published only as SHA-256 fingerprints (`*.csv.fp`
 | `shrincs/gen_test_vectors.py` | `gen_test_vectors.py` | `b69fc91bf1eae6fe…` |
 | `shrincs/test_vectors_keygen.csv.fp` | `test_vectors/keygen.csv.fp` | `d5bec2685ef89f73…` |
 | `shrincs/test_vectors_signatures_valid.csv.fp` | `test_vectors/signatures_valid.csv.fp` | `81b3444eb39171e7…` |
+
+## RFCs
+
+| file | source | license | sha256 |
+| --- | --- | --- | --- |
+| `rfc/rfc7693.txt` | https://www.rfc-editor.org/rfc/rfc7693.txt (fetched 2026-11-02) | IETF Trust (informational RFC) | `c943754888364fe2…` |

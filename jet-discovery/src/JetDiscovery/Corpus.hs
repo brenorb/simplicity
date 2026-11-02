@@ -12,6 +12,7 @@ import qualified JetDiscovery.Corpus.Bip446TemplateHash as TemplateHash
 import qualified JetDiscovery.Corpus.CovenantMisc as CovenantMisc
 import qualified JetDiscovery.Corpus.Apps as Apps
 import qualified JetDiscovery.Corpus.Shrincs as Shrincs
+import qualified JetDiscovery.Corpus.Hashes as Hashes
 
 corpus :: IO [Entry]
 corpus = concat <$> sequence
@@ -22,4 +23,5 @@ corpus = concat <$> sequence
   , pure CovenantMisc.entries
   , pure Apps.entries
   , pure Shrincs.entries
+  , pure Hashes.entries
   ]
