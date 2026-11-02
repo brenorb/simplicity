@@ -7,9 +7,11 @@ module JetDiscovery.Corpus
 import JetDiscovery.Types (Entry)
 import qualified JetDiscovery.Corpus.Baseline as Baseline
 import qualified JetDiscovery.Corpus.Bip348Csfs as Csfs
+import qualified JetDiscovery.Corpus.Bip119Ctv as Ctv
 
 corpus :: IO [Entry]
 corpus = concat <$> sequence
   [ pure Baseline.entries
   , Csfs.entries
+  , Ctv.entries
   ]
