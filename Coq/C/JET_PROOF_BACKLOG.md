@@ -78,6 +78,49 @@ source/object fingerprint was identical before and after the run
 (`5c53e1b2...`, 13,627 files). Together with the earlier receipts this covers
 every registered jet; each receipt is valid only for its exact inputs.
 
+## Library models: formally independent of the fixed target (2026-11-01)
+
+Goal: discharge `memcpy_model`, `memset_model`, `memcmp_model` and
+`ctz_model` so the 156 conditional entries become unconditional. Result: none
+of the four can be proved, and none can be refuted, from the fixed target.
+This is a formal result, not a missing proof.
+
+Why: all four calls reach `Events.external_functions_sem`, an uninterpreted
+CompCert `Parameter`. libc `memcpy`/`memset`/`memcmp` are `EF_external`;
+`__builtin_ctzl` is not a CompCert 3.14 builtin
+(`jet_secp_ctz_semantics_gap.production_ctzl_is_abstract_external`). The only
+thing CompCert states about the parameter is `external_functions_properties`
+(every instance satisfies `extcall_properties`).
+
+| Direction | Theorem | Assumptions |
+|---|---|---|
+| not provable | `C.jet_library_model_independence.{memcpy,memset,memcmp,ctz}_model_not_derivable` | none (memcmp: the four inherited classical axioms) |
+| not refutable | `C.jet_memcmp_model_consistent.library_models_consistent_with_memcmp` (extends `C.jet_library_models_consistent.library_models_consistent`) | the four inherited classical axioms |
+
+- *Not provable*: for each model, the never-returning semantics `no_behaviour`
+  satisfies CompCert's whole interface and makes the model false, so no model
+  follows from the interface for every interpretation of the parameter.
+- *Not refutable*: one interpretation of every external function meets the
+  whole interface and makes all four models true at once. New here: a libc
+  `memcmp` semantics with full `extcall_properties` (extensions, injections,
+  determinism).
+
+Consequence for the 156 conditional jet entries: under the never-returning
+interpretation each affected C function cannot return, and under the
+consistent one the existing conditional proofs give equivalence. So neither
+an unconditional equivalence nor a divergence proof exists inside the fixed
+target. Removing the premises needs a change that requires explicit approval,
+e.g. fixing the semantics of these externals (linking verified C
+implementations, as the uncounted linked-memcpy result `331818aa` did, or
+choosing a different CompCert configuration).
+
+Verification limits: the step from "false for some interpretation of the
+parameter" to "not provable" is the standard metatheoretic argument that a
+proof using an opaque `Parameter` only through its axioms can be abstracted
+over it. Coq does not check that step. Nothing here says anything about any
+real libc or compiler. Both modules pass the kernel check; their assumption
+and contract records are in `C/snapshots/`. They change no coverage counts.
+
 ## Linked Elements TapTweak integration notes (historical)
 
 The complete frozen Elements public wrapper now builds in ordinary modules:
