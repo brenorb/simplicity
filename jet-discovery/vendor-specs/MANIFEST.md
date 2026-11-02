@@ -26,3 +26,17 @@ Each local filename is the upstream path with `/` replaced by `_`.
 | `bips/bip-0446_README.md` | `bip-0446/README.md` | CC0-1.0 | `6763c67fb46b4e46…` |
 | `bips/bip-0446_basics.json` | `bip-0446/basics.json` | CC0-1.0 | `19cd88462784a67e…` |
 | `bips/bip-0448.md` | `bip-0448.md` | CC0-1.0 | `3b3addc6fe73f66c…` |
+
+## SHRINCS/shrincs-bip
+
+Source: https://github.com/SHRINCS/shrincs-bip at commit `4fe68e3a68fd58be6b0e19436ff6fb7a3357a291` (fetched 2026-11-02).
+License: CC0-1.0 or MIT (per SHRINCS.md).  `gen_test_vectors.py` is kept as documentation only and is never executed;
+the upstream test vectors are published only as SHA-256 fingerprints (`*.csv.fp`).
+
+| file | upstream path | sha256 |
+| --- | --- | --- |
+| `shrincs/README.md` | `README.md` | `8bb74f013a0d97e8…` |
+| `shrincs/SHRINCS.md` | `SHRINCS.md` | `7dcd7031e1985fa9…` |
+| `shrincs/gen_test_vectors.py` | `gen_test_vectors.py` | `b69fc91bf1eae6fe…` |
+| `shrincs/test_vectors_keygen.csv.fp` | `test_vectors/keygen.csv.fp` | `d5bec2685ef89f73…` |
+| `shrincs/test_vectors_signatures_valid.csv.fp` | `test_vectors/signatures_valid.csv.fp` | `81b3444eb39171e7…` |
