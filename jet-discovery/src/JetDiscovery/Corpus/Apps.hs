@@ -40,6 +40,7 @@ import JetDiscovery.Corpus.Baseline (signMsg, signSigAll, sigAllMessage)
 import JetDiscovery.Corpus.Bip119Ctv (ctvNativeTemplate, ctvNativeRef)
 import JetDiscovery.Corpus.CovenantMisc (embedDataT)
 import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.Kernels (sha256Pair)
 import JetDiscovery.Run (progCmr)
 import JetDiscovery.Tx
 import JetDiscovery.Types
@@ -130,7 +131,7 @@ merkleDepth = 16
 merkleKey :: (Simplicity term, Primitive term) => Word256 -> (Word256, (SigW, [(Bit, Word256)])) -> term () ()
 merkleKey root (pk, (sig, path)) = (rootOk &&& sigOk) >>> unit
  where
-  hashPair = (unit >>> ctx8Init) &&& iden >>> ctx8Add64 >>> ctx8Finalize
+  hashPair = sha256Pair
   -- level step: given the current node, combine with the witness sibling on the side given by the bit
   step (d, sib) = witness (d, sib) &&& iden >>> (ooh &&& (oih &&& ih)) >>> cond (hashPair) (ih &&& oh >>> hashPair)
   rootOk = witness pk >>> foldr (\x k -> step x >>> k) iden path >>> (iden &&& konst root) >>> eq >>> verify

@@ -7,7 +7,7 @@
 -- * Keccak-f[1600] and Keccak-256 (Ethereum's hash).
 module JetDiscovery.Corpus.Hashes
   ( entries
-  , debugBlake2s
+  , blake2F, blake2s, blake2b, keccakF, Blake
   ) where
 
 import Prelude hiding (drop, take, not, and, or, Word)
@@ -93,14 +93,10 @@ sigma =
   , [6,15,14,9,11,3,0,8,12,2,13,7,1,4,10,5]
   , [10,2,8,4,7,6,1,5,15,11,9,14,3,12,13,0] ]
 
--- | BLAKE2 compression F(h, m, t, f=final) compared with the expected h'.
--- Witness: h (8 words), m (16 words), t (2 words), expected (8 words).
-blake2Compress :: forall term a w. (Assert term, Witness term, TyC a) => Blake w a -> ([a], [a], (a, a), [a]) -> term () ()
-blake2Compress b w = fst (blake2Parts b w)
-
--- | (the full check, the state after n rounds) -- the second is for debugging.
-blake2Parts :: forall term a w. (Assert term, Witness term, TyC a) => Blake w a -> ([a], [a], (a, a), [a]) -> (term () (), Int -> term () (Vector16 a))
-blake2Parts b (hw, mw, (t0, t1), expected) = (v0 >>> rounds >>> finalOk, \n -> v0 >>> foldr (\r k -> round_ r >>> k) iden [0 .. n - 1])
+-- | BLAKE2 compression F(h, m, t, f = final) as a pure function:
+-- input ((h, m), (t0, t1)), output h'.
+blake2F :: forall term a w. (Assert term, TyC a) => Blake w a -> term ((Vector8 a, Vector16 a), (a, a)) (Vector8 a)
+blake2F b = iden &&& (v0 &&& oih >>> rounds) >>> mk8 [ xor' (xor' (take (take (take (at8 i))) &&& drop (at16 i)) &&& drop (at16 (i + 8))) | i <- [0 .. 7] ]
  where
   w = bWord b
   (r1, r2, r3, r4) = bRot b
@@ -114,36 +110,53 @@ blake2Parts b (hw, mw, (t0, t1), expected) = (v0 >>> rounds >>> finalOk, \n -> v
   kw n = konst (toWord w n)
   iv = bIV b
   allOnes = 2 ^ bBits b - 1
-  v0 :: term () (Vector16 a)
-  v0 = mk16 ([ witness x | x <- hw ] ++ map kw (L.take 4 iv)
-             ++ [ xor' (kw (iv !! 4) &&& witness t0), xor' (kw (iv !! 5) &&& witness t1)
-                , kw ((iv !! 6) `Bits.xor` allOnes), kw (iv !! 7) ])
-  -- the G function on (a, (b, (c, d))) with message words x, y
-  gq :: a -> a -> term (a, (a, (a, a))) (a, (a, (a, a)))
-  gq x y = stepA (witness x) >>> stepD r1 >>> stepC >>> stepB r2 >>> stepA (witness y) >>> stepD r3 >>> stepC >>> stepB r4
+  -- initial state from ((h, m), (t0, t1))
+  v0 = mk16 ([ take (take (at8 i)) | i <- [0 .. 7] ] ++ map kw (L.take 4 iv)
+             ++ [ xor' (kw (iv !! 4) &&& ioh), xor' (kw (iv !! 5) &&& iih), kw ((iv !! 6) `Bits.xor` allOnes), kw (iv !! 7) ])
+  -- G on ((a, (b, (c, d))), (x, y))
+  gF :: term ((a, (a, (a, a))), (a, a)) (a, (a, (a, a)))
+  gF = setA (add' (add' (pA &&& pB) &&& ioh)) >>> setD r1 >>> setC >>> setB r2
+   >>> setA (add' (add' (pA &&& pB) &&& iih)) >>> setD r3 >>> setC >>> setB r4 >>> oh
    where
-    stepA m = add' (add' (oh &&& ioh) &&& m) &&& ih
-    stepD r = oh &&& (ioh &&& (iioh &&& (xor' (iiih &&& oh) >>> rotr r)))
-    stepC = oh &&& (ioh &&& (add' (iioh &&& iiih) &&& iiih))
-    stepB r = oh &&& ((xor' (ioh &&& iioh) >>> rotr r) &&& iih)
-  -- one half round: four independent G calls on the given lanes, then reassemble
-  half :: [[Int]] -> [(a, a)] -> term (Vector16 a) (Vector16 a)
-  half lanes ms = gs >>> mk16 [ placeOf l | l <- [0 .. 15] ]
+    pA = take oh
+    pB = take ioh
+    pC = take iioh
+    pD = take iiih
+    setA f = (f &&& take ih) &&& ih
+    setD r = (take oh &&& (take ioh &&& (take iioh &&& (xor' (pD &&& pA) >>> rotr r)))) &&& ih
+    setC = (take oh &&& (take ioh &&& (add' (pC &&& pD) &&& take iiih))) &&& ih
+    setB r = (take oh &&& ((xor' (pB &&& pC) >>> rotr r) &&& take iih)) &&& ih
+  -- half round on (v, m)
+  half :: [[Int]] -> [(Int, Int)] -> term (Vector16 a, Vector16 a) (Vector16 a, Vector16 a)
+  half lanes ms = (gs &&& ih) >>> (take (mk16 [ placeOf l | l <- [0 .. 15] ]) &&& ih)
    where
-    gOf ([a', b', c', d'], (x, y)) = (at16 a' &&& (at16 b' &&& (at16 c' &&& at16 d'))) >>> gq x y
+    gOf ([a', b', c', d'], (x, y)) = (take (at16 a' &&& (at16 b' &&& (at16 c' &&& at16 d'))) &&& drop (at16 x &&& at16 y)) >>> gF
     gOf _ = error "blake2: lanes"
     [g0, g1, g2, g3] = map gOf (zip lanes ms)
     gs = g0 &&& (g1 &&& (g2 &&& g3))
     placeOf l = case [ (j, k) | (j, ls) <- zip [0 ..] lanes, (k, l') <- zip [0 ..] ls, l' == l ] of
       [(j, k)] -> q4 j (q4 k iden)
       _ -> error "blake2: lane"
-  round_ r = half [[0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15]] [ (mw !! (s !! (2 * i)), mw !! (s !! (2 * i + 1))) | i <- [0 .. 3] ]
-         >>> half [[0,5,10,15],[1,6,11,12],[2,7,8,13],[3,4,9,14]] [ (mw !! (s !! (2 * i)), mw !! (s !! (2 * i + 1))) | i <- [4 .. 7] ]
+  round_ r = half [[0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15]] [ (s !! (2 * i), s !! (2 * i + 1)) | i <- [0 .. 3] ]
+         >>> half [[0,5,10,15],[1,6,11,12],[2,7,8,13],[3,4,9,14]] [ (s !! (2 * i), s !! (2 * i + 1)) | i <- [4 .. 7] ]
    where s = sigma !! (r `mod` 10)
-  rounds = foldr (\r k -> round_ r >>> k) iden [0 .. bRounds b - 1]
-  -- h'[i] = h[i] ^ v[i] ^ v[i+8] must equal the expected word
-  finalOk = foldr1 (\x y -> (x &&& y) >>> unit)
-              [ ((xor' (xor' (witness (hw !! i) &&& at16 i) &&& at16 (i + 8))) &&& witness (expected !! i)) >>> eq >>> verify | i <- [0 .. 7] ]
+  rounds = foldr (\r k -> round_ r >>> k) iden [0 .. bRounds b - 1] >>> oh
+
+at8 :: (Core term, TyC a) => Int -> term (Vector8 a) a
+at8 i = pick (testBit i 2) (pick (testBit i 1) (pick (testBit i 0) iden))
+
+mk8 :: (Core term, TyC i, TyC a) => [term i a] -> term i (Vector8 a)
+mk8 [a, b, c, d, e, f, g, h] = ((a &&& b) &&& (c &&& d)) &&& ((e &&& f) &&& (g &&& h))
+mk8 _ = error "mk8"
+
+-- | The corpus program: F(h, m, t) equals the expected h' (all witness data).
+blake2Compress :: forall term a w. (Assert term, Witness term, TyC a) => Blake w a -> ([a], [a], (a, a), [a]) -> term () ()
+blake2Compress b (hw, mw, t, expected) =
+  (witness ((mk8v hw, mk16v mw), t) >>> blake2F b) &&& witness (mk8v expected) >>> eq >>> verify
+ where
+  mk8v [a, b', c, d, e, f, g, h] = ((a, b'), (c, d)) `seq` (((a, b'), (c, d)), ((e, f), (g, h)))
+  mk8v _ = error "mk8v"
+  mk16v xs = (mk8v (L.take 8 xs), mk8v (L.drop 8 xs))
 
 -- Keccak ------------------------------------------------------------------------
 
@@ -266,8 +279,3 @@ blakeEntry eid title b n digestHex param toW = Entry
   digest = unhex (filter (/= ' ') digestHex)
   expected = map toW (leWords n digest)
 
-debugBlake2s :: (Assert term, Witness term) => Int -> term () (Vector16 Word32)
-debugBlake2s n = snd (blake2Parts blake2s (h0, m, (toWord32 3, toWord32 0), replicate 8 (toWord32 0))) n
- where
-  h0 = map toWord32 (((head (bIV blake2s)) `Bits.xor` 0x01010020) : L.drop 1 (bIV blake2s))
-  m = map toWord32 (leWords 4 (BSC.pack "abc" <> BS.replicate 61 0))

@@ -34,6 +34,7 @@ import Simplicity.Ty.Word
 
 import JetDiscovery.Corpus.Apps (sigMsg)
 import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.Kernels (wotsChain)
 import JetDiscovery.Lib.TxSer (ctxWith)
 import JetDiscovery.Run (progCmr)
 import JetDiscovery.Tx
@@ -120,13 +121,9 @@ shrincsStateful sw = checks &&& (rootOk &&& sumOk) >>> unit
   sumOk = hashed >>> (foldl (\acc k -> acc &&& (nibble k >>> nib8 >>> (konst (w8 0) &&& iden)) >>> Arith.add word16 >>> ih)
                             (konst (w16 0)) [0 .. 31]
                      &&& konst (w16 (toInteger Ref.constantSum))) >>> eq >>> verify
-  -- One chain: input (chain context, (start index, node)).  15 conditional F steps.
-  step :: Int -> term (Ctx8, (Word4, Word128)) (Ctx8, (Word4, Word128))
-  step j = oh &&& (ioh &&& (((ioh >>> nib8) &&& k8 (toInteger j) >>> Arith.le word8) &&& iden >>> cond f iih))
-   where f = (oh &&& konst (w32 (toInteger j)) >>> ctx8Add4) &&& iih >>> ctx8Add16 >>> ctx8Finalize >>> oh
   chain :: Int -> Word128 -> term (Ctx8, Word128) Word128
   chain i c = ((oh &&& konst (w32 (toInteger i)) >>> ctx8Add4) &&& ((ih >>> nibble i) &&& witness c))
-          >>> foldr (\j k -> step j >>> k) iden [0 .. 14] >>> iih
+          >>> wotsChain
   pre16 :: term () Ctx8
   pre16 = prefix (toInteger 16) >>> ctxWith (konst (w32 0)) ctx8Add4
   tips :: term () Word4096

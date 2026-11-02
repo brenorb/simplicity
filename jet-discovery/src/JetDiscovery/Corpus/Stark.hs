@@ -8,6 +8,7 @@
 module JetDiscovery.Corpus.Stark
   ( entries
   , m31Mul, qm31Mul, friFold
+  , hMul, hQMul, p31, toQ
   ) where
 
 import Prelude hiding (drop, take, not, and, or, subtract)
