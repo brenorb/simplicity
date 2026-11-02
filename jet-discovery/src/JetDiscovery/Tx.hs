@@ -9,7 +9,7 @@ module JetDiscovery.Tx
     -- * Building transactions
   , dummyOutpoint, mkInput, mkOutput, mkTx, defaultTap, mkEnv
     -- * Raw transactions
-  , RawTx(..), RawIn(..), RawOut(..), parseRawTx, rawToSigTx
+  , RawTx(..), RawIn(..), RawOut(..), parseRawTx, rawToSigTx, parseTxOut, taprootAnnex
   , putCompactSize
   ) where
 
@@ -99,7 +99,9 @@ mkEnv tx ix tap cmr = primEnv tx ix (tap cmr)
 
 data RawIn = RawIn { riOutpoint :: Outpoint, riScriptSig :: BS.ByteString, riSequence :: Word32 } deriving Show
 data RawOut = RawOut { roValue :: Word64, roScript :: BS.ByteString } deriving Show
-data RawTx = RawTx { rtVersion :: Word32, rtIns :: [RawIn], rtOuts :: [RawOut], rtLock :: Word32 } deriving Show
+data RawTx = RawTx { rtVersion :: Word32, rtIns :: [RawIn], rtOuts :: [RawOut], rtLock :: Word32
+                   , rtWitness :: [[BS.ByteString]]  -- ^ one witness stack per input (empty lists for legacy transactions)
+                   } deriving Show
 
 getCompactSize :: Get Word64
 getCompactSize = do
@@ -137,16 +139,29 @@ parseRawTx = runGet $ do
     return (RawIn (Outpoint (hashFromBytes (BS.reverse h)) i) ss sq)
   nOut <- getCompactSize
   outs <- replicateM (fromIntegral nOut) $ RawOut <$> getWord64le <*> getVarBytes
-  when segwit $ mapM_ (const $ do { n <- getCompactSize; replicateM (fromIntegral n) getVarBytes }) ins
+  wit <- if segwit then mapM (const $ do { n <- getCompactSize; replicateM (fromIntegral n) getVarBytes }) ins
+                   else return (map (const []) ins)
   lock <- getWord32le
   r <- remaining
   when (r /= 0) (fail "trailing bytes")
-  return (RawTx ver ins outs lock)
+  return (RawTx ver ins outs lock wit)
 
 -- | Convert a raw transaction to a 'SigTx'.  Spent outputs are not part of a
 -- raw transaction, so each input spends a dummy 0-value output with an empty script.
 rawToSigTx :: RawTx -> SigTx
-rawToSigTx (RawTx ver ins outs lock) = mkTx ver (map inp ins) (map out outs) lock
+rawToSigTx (RawTx ver ins outs lock _) = mkTx ver (map inp ins) (map out outs) lock
  where
   inp (RawIn op ss sq) = (mkInput op 0 BSL.empty sq) { sigTxiScriptSig = BSL.fromStrict ss }
   out (RawOut v s) = mkOutput v s
+
+-- | Parse a serialized @CTxOut@ (value, script).
+parseTxOut :: BS.ByteString -> Either String TxOutput
+parseTxOut = runGet $ do
+  v <- getWord64le
+  s <- getVarBytes
+  return (TxOutput v (BSL.fromStrict s))
+
+-- | The BIP 341 annex of a witness stack, if present (last element starting with 0x50, with at least two elements).
+taprootAnnex :: [BS.ByteString] -> Maybe BS.ByteString
+taprootAnnex stack | length stack >= 2, Just (0x50, _) <- BS.uncons (last stack) = Just (last stack)
+                   | otherwise = Nothing

@@ -13,7 +13,6 @@
 --   same strength.
 module JetDiscovery.Corpus.Bip119Ctv
   ( entries
-  , maxIns, maxOuts
   ) where
 
 import Prelude hiding (drop, take, not, and, or)
@@ -37,55 +36,17 @@ import Simplicity.Bitcoin.DataTypes
 import Simplicity.Ty.Word
 
 import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.TxSer
 import JetDiscovery.Tx
 import JetDiscovery.Types
-
-maxIns, maxOuts :: Int
-maxIns = 16
-maxOuts = 16
-
--- | Thread a SHA-256 context through @t@: @ctxWith t step@ appends @t@'s output with @step@.
-ctxWith :: (Core term, TyC x) => term () x -> term (Ctx8, x) Ctx8 -> term Ctx8 Ctx8
-ctxWith t step = iden &&& (unit >>> t) >>> step
-
--- | Process output @i@ given its script bytes as witness: check the script
--- hash and append @value_le64 || ser_string(script)@.
-outStep :: (Assert term, Primitive term, Witness term) => Int -> Buffer511 Word8 -> term Ctx8 Ctx8
-outStep i script = (unit >>> scribe (w32 (toInteger i)) >>> primitive Prim.OutputValue) &&& iden >>> match ih present
- where
-  -- input (Word64 value, Ctx8)
-  present = (unit >>> witness script) &&& iden >>> checked
-  -- input (Buffer511, (Word64, Ctx8))
-  checked = (take sha256Buffer511 &&& (unit >>> scribe (w32 (toInteger i)) >>> primitive Prim.OutputScriptHash >>> verify) >>> eq >>> verify)
-        &&& ((drop (ih &&& oh >>> ctxAddLE64)) &&& oh >>> ctxAddVarString511)
-        >>> ih
-
--- | Process input @i@: append its LE sequence number to the sequences context.
-seqStep :: (Assert term, Primitive term) => Int -> term Ctx8 Ctx8
-seqStep i = (unit >>> scribe (w32 (toInteger i)) >>> primitive Prim.InputSequence) &&& iden >>> match ih (ih &&& oh >>> ctxAddLE32)
-
--- | Process input @i@'s scriptSig (witness bytes): check its hash, append
--- @ser_string(scriptSig)@, and record whether it is non-empty.
--- State: (any non-empty so far, context).
-ssStep :: (Assert term, Primitive term, Witness term) => Int -> Buffer511 Word8 -> term (Bit, Ctx8) (Bit, Ctx8)
-ssStep i ss = (unit >>> scribe (w32 (toInteger i)) >>> primitive Prim.InputScriptSigHash) &&& iden >>> match ih present
- where
-  -- input (Word256 expected hash, (Bit, Ctx8))
-  present = (unit >>> witness ss) &&& iden >>> checked
-  -- input (Buffer511, (Word256, (Bit, Ctx8)))
-  checked = (take sha256Buffer511 &&& ioh >>> eq >>> verify)
-        &&& ((take nonEmpty &&& iioh >>> or oh ih) &&& (iiih &&& oh >>> ctxAddVarString511))
-        >>> ih
-  nonEmpty = buf511Len >>> some16
-  some16 = iden &&& scribe (w16 0) >>> eq >>> not iden
 
 -- | DefaultCheckTemplateVerifyHash of the current input, compared to @h@.
 ctvExact :: (Assert term, Primitive term, Witness term) => Word256 -> [Buffer511 Word8] -> [Buffer511 Word8] -> term () ()
 ctvExact h scriptSigs scripts = (template &&& witness h >>> eq >>> verify)
  where
   ssState = (false &&& ctx8Init) >>> foldr (\(i, s) k -> ssStep i s >>> k) iden (zip [0 ..] scriptSigs)
-  seqHash = ctx8Init >>> foldr (\i k -> seqStep i >>> k) iden [0 .. maxIns - 1] >>> ctx8Finalize
-  outHash = ctx8Init >>> foldr (\(i, s) k -> outStep i s >>> k) iden (zip [0 ..] scripts) >>> ctx8Finalize
+  seqHash = shaSequences
+  outHash = shaOutputs scripts
   -- if any scriptSig is non-empty, append sha256(serialized scriptSigs)
   addSS = iden &&& (unit >>> ssState) >>> (ioh &&& (oh &&& drop (drop ctx8Finalize))) >>> cond (ctx8Add32) oh
   template = ctx8Init
