@@ -13,6 +13,8 @@ import qualified JetDiscovery.Corpus.CovenantMisc as CovenantMisc
 import qualified JetDiscovery.Corpus.Apps as Apps
 import qualified JetDiscovery.Corpus.Shrincs as Shrincs
 import qualified JetDiscovery.Corpus.Hashes as Hashes
+import qualified JetDiscovery.Corpus.Stark as Stark
+import qualified JetDiscovery.Corpus.DeFi as DeFi
 
 corpus :: IO [Entry]
 corpus = concat <$> sequence
@@ -24,4 +26,6 @@ corpus = concat <$> sequence
   , pure Apps.entries
   , pure Shrincs.entries
   , pure Hashes.entries
+  , pure Stark.entries
+  , pure DeFi.entries
   ]

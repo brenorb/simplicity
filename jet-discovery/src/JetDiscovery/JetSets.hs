@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, RankNTypes, ScopedTypeVariables, TypeFamilies, UndecidableInstances #-}
+{-# LANGUAGE GADTs, RankNTypes, ScopedTypeVariables, TypeFamilies, UndecidableInstances, KindSignatures #-}
 -- | Alternative jet sets used for measurement.
 --
 -- * 'PrimOnly': only the jets that wrap transaction primitives (plus constant
@@ -13,7 +13,12 @@ module JetDiscovery.JetSets
   , Candidate(..)
   , SomeCandidate(..)
   , candidateRegistry
+  , Ablate(..), AblationPolicy(..), NoSecpCurve, NoSecp, NoSha256
+  , secpCurveJet, secpJet, sha256Jet
   ) where
+
+import Data.List (isPrefixOf)
+import Data.Proxy (Proxy(..))
 
 import qualified Data.Map as Map
 
@@ -81,3 +86,43 @@ candidateRegistry cs = Map.fromList [ (identityHash (imr c), sc) | sc@(SomeCandi
  where
   imr :: (TyC a, TyC b) => Candidate a b -> IdentityRoot a b
   imr (Candidate _ _ spec) = spec
+
+-- Ablations ---------------------------------------------------------------------
+
+-- | Jet families, by display name.
+secpCurveJet, secpJet, sha256Jet :: String -> Bool
+secpCurveJet n = any (`isPrefixOf` n)
+  [ "Gej", "Ge", "Generate", "Scale", "LinearCombination", "LinearVerify", "PointVerify", "Decompress"
+  , "Swu", "HashToCurve", "Bip0340", "CheckSig", "BuildTaptweak" ]
+secpJet n = secpCurveJet n || "Fe" `isPrefixOf` n || "Scalar" `isPrefixOf` n
+sha256Jet n = "Sha256" `isPrefixOf` n
+
+-- | Policies naming the jets an ablated set drops.
+class AblationPolicy p where
+  policyName :: Proxy p -> String
+  drops :: Proxy p -> String -> Bool
+
+data NoSecpCurve
+data NoSecp
+data NoSha256
+instance AblationPolicy NoSecpCurve where { policyName _ = "no-secp-curve"; drops _ = secpCurveJet }
+instance AblationPolicy NoSecp where { policyName _ = "no-secp"; drops _ = secpJet }
+instance AblationPolicy NoSha256 where { policyName _ = "no-sha256"; drops _ = sha256Jet }
+
+-- | All existing Bitcoin jets except those the policy drops.
+newtype Ablate p a b = Ablate (Jets.JetType a b)
+
+ablateName :: Jets.JetType a b -> String
+ablateName (Jets.ConstWordJet _) = "ConstWord"
+ablateName j = last (words (filter (`notElem` "()") (show j)))
+
+instance AblationPolicy p => JT.JetType (Ablate p) where
+  type MatcherInfo (Ablate p) = JT.MatcherInfo Jets.JetType
+  specification (Ablate j) = JT.specification j
+  implementation (Ablate j) = JT.implementation j
+  matcher m = do
+    j <- JT.matcher m
+    if drops (Proxy :: Proxy p) (ablateName j) then Nothing else Just (Ablate j)
+  getJetBit abort next = someArrowMap Ablate <$> JT.getJetBit abort next
+  putJetBit (Ablate j) = JT.putJetBit j
+  jetCost (Ablate j) = JT.jetCost j

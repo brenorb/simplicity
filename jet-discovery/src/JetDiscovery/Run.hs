@@ -36,7 +36,7 @@ import qualified Simplicity.Bitcoin.Jets as Jets
 import Simplicity.Bitcoin.Jets (unwrap)
 
 import JetDiscovery.Cost (TermWeight, milliWeigh)
-import JetDiscovery.JetSets (PrimOnly(..))
+import JetDiscovery.JetSets (PrimOnly(..), Ablate, NoSecpCurve, NoSecp, NoSha256, secpCurveJet, secpJet, sha256Jet)
 import JetDiscovery.Profile (NodeInfo(..), profile)
 import JetDiscovery.Types
 import JetDiscovery.Tx (hashToInteger)
@@ -65,6 +65,7 @@ data Measurement = Measurement
   , mProfile    :: [NodeInfo]  -- ^ profile of the jetted DAG
   , mWhatIfJets :: [(String, Integer)]  -- ^ candidates matched, with multiplicity
   , mProfileTotal :: Integer  -- ^ consistency check: must equal 'mCost'
+  , mAblations :: [(String, Integer)]  -- ^ milliWU with a jet family removed (only when the program uses that family)
   }
 
 -- | Display name of a jet, e.g. @Sha256Block@.
@@ -89,6 +90,7 @@ measure (Prog t) = Measurement
   , mWhatIfJets = Map.toList $ Map.fromListWith (+)
       [ (niKind ni, niMult ni) | ni <- whatIfProf, take 9 (niKind ni) == "jet:cand:" ]
   , mProfileTotal = sum [ niMult ni * niSelf ni | ni <- prof ]
+  , mAblations = [ (n, c) | (n, used, c) <- ablations, used ]
   }
  where
   (progBits, witBits) = Jets.putTermLengthCode t
@@ -97,6 +99,12 @@ measure (Prog t) = Measurement
   constValue :: Jets.JetType a b -> Maybe Word64
   constValue j@(Jets.ConstWordJet _) = Just (fromIntegral (length (show j)) * 1000003 + fromIntegral (sum (map fromEnum (show j))))
   constValue _ = Nothing
+  usesFamily f = any (\ni -> take 4 (niKind ni) == "jet:" && f (drop 4 (niKind ni))) prof
+  ablations =
+    [ ("no-secp-curve", usesFamily secpCurveJet, milliWeigh (unwrap (Dag.jetSubst (t :: Dag.JetDag (Ablate NoSecpCurve) () ())) :: TermWeight () ()))
+    , ("no-secp", usesFamily secpJet, milliWeigh (unwrap (Dag.jetSubst (t :: Dag.JetDag (Ablate NoSecp) () ())) :: TermWeight () ()))
+    , ("no-sha256", usesFamily sha256Jet, milliWeigh (unwrap (Dag.jetSubst (t :: Dag.JetDag (Ablate NoSha256) () ())) :: TermWeight () ()))
+    ]
   whatIfDag = t :: Dag.JetDag WhatIf () ()
   whatIfProf = profile whatIfName (\j -> milliWeight (JT.jetCost j)) (const Nothing) (Dag.jetDag whatIfDag)
   whatIfName :: WhatIf a b -> String
@@ -146,6 +154,7 @@ runEntryIO e@(Entry _ _ _ _ _ _ prog vecs) = do
       forceM = [ () <$ evaluate (mCmr m), () <$ evaluate (mCost m), () <$ evaluate (mCostBase m)
                , () <$ evaluate (mCostWhatIf m), () <$ evaluate (mProgBits m + mWitBits m)
                , () <$ evaluate (mProfileTotal m), () <$ evaluate (length (mWhatIfJets m)) ]
+               ++ [ () <$ evaluate c | (_, c) <- mAblations m ]
   _ <- parallelIO forceM
   vs <- parallelIO [ evaluate (forceVR (runVector prog (mCmr m) v)) | v <- vecs ]
   return (EntryResult e m vs)
