@@ -8,6 +8,7 @@ module JetDiscovery.Ref.Bip340
   ( p, n, Pt, gPt, pointAdd, pointMul, liftX, xOnly, hasEvenY
   , pubkeyOf, sign, verify, intFromBytes, bytesFromInt
   , taggedHash
+  , taprootTweak, embedData, nums
   ) where
 
 import qualified Data.ByteString as BS
@@ -110,3 +111,17 @@ verify pk msg sig
  where
   r = intFromBytes (BS.take 32 sig)
   s = intFromBytes (BS.drop 32 sig)
+
+-- | BIP 341 NUMS point x-coordinate.
+nums :: Integer
+nums = 0x50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0
+
+-- | BIP 341 @taproot_tweak_pubkey@: x-only output key for internal key @pk@ and Merkle root @h@ (32 bytes).
+taprootTweak :: Integer -> BS.ByteString -> Integer
+taprootTweak pk h = xOnly (pointAdd (liftX pk) (pointMul gPt t))
+ where t = intFromBytes (taggedHash "TapTweak" (bytesFromInt pk <> h)) `mod` n
+
+-- | BIP 443 @tweak_embed_data@ (non-empty data): x-only key @lift_x(pk) + sha256(pk || data) G@.
+embedData :: Integer -> BS.ByteString -> Integer
+embedData pk dat = xOnly (pointAdd (liftX pk) (pointMul gPt t))
+ where t = intFromBytes (hashToBytes (sha256 (bytesFromInt pk <> dat))) `mod` n
