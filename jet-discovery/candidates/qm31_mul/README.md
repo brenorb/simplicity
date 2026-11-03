@@ -7,7 +7,7 @@
 `JetDiscovery.Corpus.Stark.qm31Mul`, with u^2 = 2 + i and i^2 = -1.
 
 ## Cost (ESTIMATE)
-ESTIMATE: `FeMultiply` = 0.407 WU (16 small-limb products and reductions).
+ESTIMATE: `FeMultiply` = 0.813 WU (16 small-limb products and reductions).
 
 ## Generality
 Circle STARK verification (FRI folding, DEEP quotients, OODS evaluations).
@@ -21,5 +21,6 @@ Only `m31_mul`: QM31 then costs 16 jet calls plus plumbing.
 ## Corpus evidence
 - `stark-qm31-mul`: matched ×1 (static multiplicity); program cost 245.781 WU → 5.805 WU with all candidates (42.3×).
 - `stark-fri-fold`: matched ×1 (static multiplicity); program cost 346.899 WU → 66.671 WU with all candidates (5.2×).
+- `stark-fri-verifier`: matched ×18 (static multiplicity); program cost 9423.309 WU → 2742.125 WU with all candidates (3.4×).
 
 Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

@@ -7,7 +7,7 @@ Corpus-driven discovery of missing Bitcoin Simplicity jets (goal: [GOAL.md](GOAL
   [reports/subdags.md](reports/subdags.md), [reports/ablations.md](reports/ablations.md),
   [reports/mismatches.md](reports/mismatches.md).
 - **Method:** [reports/METHOD.md](reports/METHOD.md).
-- **Corpus:** [corpus/README.md](corpus/README.md) (25 programs; sources in `src/JetDiscovery/Corpus/`).
+- **Corpus:** [corpus/README.md](corpus/README.md) (49 programs; sources in `src/JetDiscovery/Corpus/`).
 - **Candidates:** [candidates/](candidates/) (one README per candidate jet).
 - **Vendored specs and vectors:** [vendor-specs/MANIFEST.md](vendor-specs/MANIFEST.md).
 

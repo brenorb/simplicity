@@ -7,7 +7,7 @@
 `JetDiscovery.Corpus.Hashes.keccakF`: 24 rounds of theta, rho, pi, chi, iota; passes the Keccak-256 known answers for "" and "abc".
 
 ## Cost (ESTIMATE)
-ESTIMATE: 2 x `Sha256Block` = 0.765 WU. Software Keccak-f[1600] takes roughly twice a SHA-256 compression without hardware acceleration.
+ESTIMATE: 2 x `Sha256Block` = 1.530 WU. Software Keccak-f[1600] takes roughly twice a SHA-256 compression without hardware acceleration.
 
 ## Generality
 Primitive for Ethereum interoperability (Keccak-256 addresses, storage proofs, bridge light clients), SHA-3/SHAKE (FIPS 202) and some STARK hash choices.

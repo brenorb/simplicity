@@ -7,7 +7,7 @@
 The library's `Simplicity.Programs.LibSecp256k1.signature_unpack` (r < p, s < n).
 
 ## Cost (ESTIMATE)
-ESTIMATE: `FeNormalize` + `ScalarNormalize` = 0.578 WU.
+ESTIMATE: `FeNormalize` + `ScalarNormalize` = 1.156 WU.
 
 ## Generality
 As for `pubkey_unpack_neg`.

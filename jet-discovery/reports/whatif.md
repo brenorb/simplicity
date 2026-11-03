@@ -6,16 +6,25 @@ specification with a jet priced at its ESTIMATE cost (JetDiscovery.Candidates.Re
 | id | cost (WU) | what-if cost (WU, ESTIMATE) | saving | candidates matched (multiplicity in the static bound) |
 | --- | ---: | ---: | ---: | --- |
 | `bip348-csfs` | 408.282 | 87.927 | 4.6× | pubkey_unpack_neg ×1, signature_unpack ×1 |
+| `bip441-bignum-modmul` | 3808.209 | 15.269 | 249.4× | div_mod_512 ×1, multiply_256 ×1 |
 | `app-merkle-key` | 240.730 | 174.650 | 1.4× | sha256_pair ×16 |
+| `xchain-ripemd160` | 2469.559 | 14.139 | 174.7× | ripemd160_compress ×1 |
+| `app-htlc-hash160` | 2546.490 | 91.070 | 28.0× | ripemd160_compress ×1 |
 | `pq-shrincs-stateful` | 8039.435 | 1199.307 | 6.7× | sha256_wots_chain_16 ×32 |
+| `pq-shrincs-stateless` | 58344.501 | 20937.551 | 2.8× | sha256_wots_chain_16 ×175 |
 | `xchain-blake2s-compress` | 3256.768 | 4.330 | 752.1× | blake2s_compress ×1 |
 | `xchain-blake2b-compress` | 4641.718 | 11.381 | 407.8× | blake2b_compress ×1 |
 | `xchain-keccak256` | 5775.502 | 24.296 | 237.7× | keccak_f1600 ×1 |
+| `xchain-p256-ecdsa` | 8860683.872 | 702329.516 | 12.6× | div_mod_512 ×3, multiply_256 ×3, p256_fe_multiply ×7686 |
+| `xchain-sha512` | 5454.166 | 17.797 | 306.5× | sha512_compress ×1 |
+| `xchain-ed25519` | 2925312.642 | 557349.793 | 5.2× | div_mod_512 ×1, ed25519_fe_multiply ×5835, sha512_compress ×1 |
 | `stark-m31-mul` | 11.744 | 1.681 | 7.0× | m31_mul ×1 |
 | `stark-m31-inv` | 697.571 | 83.728 | 8.3× | m31_mul ×61 |
 | `stark-qm31-mul` | 245.781 | 5.805 | 42.3× | qm31_mul ×1 |
 | `stark-fri-fold` | 346.899 | 66.671 | 5.2× | m31_mul ×4, qm31_mul ×1 |
+| `stark-fri-verifier` | 9423.309 | 2742.125 | 3.4× | m31_mul ×192, qm31_mul ×18, sha256_pair ×104 |
 | `xchain-uniswap-v2-amount-out` | 1410.366 | 25.288 | 55.8× | div_mod_256 ×1, multiply_128 ×4 |
+| `ethsol-lending-liquidation` | 138.722 | 122.918 | 1.1× | multiply_128 ×1 |
 
 ## Stand-in variants (cost only, never executed)
 

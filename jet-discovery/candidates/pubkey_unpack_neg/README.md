@@ -7,7 +7,7 @@
 The library's own `Simplicity.Programs.LibSecp256k1.pubkey_unpack_neg` (used inside `bip_0340_check`).
 
 ## Cost (ESTIMATE)
-ESTIMATE: `FeNormalize` = 0.328 WU (a range check plus a negation).
+ESTIMATE: `FeNormalize` = 0.656 WU (a range check plus a negation).
 
 ## Generality
 Any signature check not built as `bip_0340_verify`: variable-length CSFS (BIP 348), adaptor signatures, MuSig2 and FROST partial checks, oracle attestations.

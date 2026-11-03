@@ -7,7 +7,7 @@
 `JetDiscovery.Corpus.Hashes.blake2F blake2b`; passes RFC 7693 Appendix A.
 
 ## Cost (ESTIMATE)
-ESTIMATE: 1.5 x `Sha256Block` = 0.574 WU (128-byte blocks, 64-bit words, 12 rounds).
+ESTIMATE: 1.5 x `Sha256Block` = 1.147 WU (128-byte blocks, 64-bit words, 12 rounds).
 
 ## Generality
 Zcash (Equihash, BLAKE2b personalization), Ethereum EIP-152 interoperability, Argon2.

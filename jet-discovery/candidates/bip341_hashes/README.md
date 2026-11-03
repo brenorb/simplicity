@@ -7,7 +7,7 @@
 Each is the corresponding BIP 341 (or BIP 119) hash of the transaction, as Bitcoin Core's `PrecomputedTransactionData` already computes it. The definitions need raw output scripts and scriptSigs, which no Bitcoin Simplicity primitive exposes, so there is no Simplicity reference expression. The closest executable references are the witness-checked re-serializations in `src/JetDiscovery/Lib/TxSer.hs` (`shaOutputs`, `shaSequences`) and `Corpus/Bip446TemplateHash.hs`, which pass the upstream BIP 119 and BIP 446 vectors.
 
 ## Cost (ESTIMATE)
-ESTIMATE: priced like the existing precomputed transaction-hash jets (`outputs_hash` = 0.059 WU, `input_sequences_hash`, `input_script_sigs_hash`): the value is computed once per transaction and read by the jet. What-if costs come from cost-only stand-in variants (`src/JetDiscovery/Candidates/Variants.hs`).
+ESTIMATE: priced like the existing precomputed transaction-hash jets (`outputs_hash` = 0.117 WU, `input_sequences_hash`, `input_script_sigs_hash`): the value is computed once per transaction and read by the jet. What-if costs come from cost-only stand-in variants (`src/JetDiscovery/Candidates/Variants.hs`).
 
 ## Generality
 Primitive. One family serves BIP 119 CTV, BIP 446 TEMPLATEHASH, BIP 448 (LN-Symmetry), BIP 346 TXHASH, BIP 118 APO-exact digests and any BIP 341-compatible signature hash computed in Simplicity.

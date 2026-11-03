@@ -7,7 +7,7 @@
 `JetDiscovery.Corpus.Hashes.blake2F blake2s`; passes the RFC 7693 Appendix B vector.
 
 ## Cost (ESTIMATE)
-ESTIMATE: `Sha256Block` = 0.383 WU (similar work per 64-byte block).
+ESTIMATE: `Sha256Block` = 0.765 WU (similar work per 64-byte block).
 
 ## Generality
 BLAKE2s, and BLAKE3 (same G function, 7 rounds, different flags); STARK commitment hashes (Stwo uses BLAKE2s).

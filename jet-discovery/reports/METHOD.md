@@ -106,8 +106,10 @@ worst case of those bounds, whatever the actual transaction looks like.
     Those variants are measured but never executed.
 
 **Unit.** Costs are in weight units (WU).  `Simplicity.Bitcoin.Benchmarks`
-scales jet benchmarks so that `CheckSigVerify` costs 50 WU, and every
-combinator adds 0.1 WU of overhead.
+scales jet benchmarks so that `CheckSigVerify` costs 50 WU (after a 0.5
+batch-verification adjustment that applies to the signature-verification jets
+only), and every combinator adds 0.1 WU of overhead.  Candidate ESTIMATEs use
+the same `cost` function.
 
 ## Budget (open question)
 
@@ -177,8 +179,12 @@ SHA-256 fingerprints.  The vectors here come from a Haskell transcription of
 the spec's Python, so a misreading shared by the transcription and the program
 would not be caught.
 
-**The STARK and P-256 costs are partly extrapolated.**
-- The STARK costs are measured per kernel and multiplied by operation counts.
-- The P-256 costs use secp256k1 code as a structural proxy.
+**Full-size STARK costs are extrapolated.** A complete circle-FRI verifier is
+measured at toy parameters (2^8 domain, 6 folds, 3 queries); full-size costs
+scale its per-query-layer cost to 30 queries and 20 layers and are labelled
+ESTIMATE.  Trace and composition openings and the DEEP quotient are not
+included.
 
-Both are labelled ESTIMATE.
+**Non-native curves use witness hints.** The P-256 and ed25519 programs take
+s⁻¹ mod n and decompression x-coordinates as witness and check them, as a
+compiler targeting Simplicity would.  Computing them in-script would cost more.

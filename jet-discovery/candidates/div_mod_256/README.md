@@ -7,7 +7,7 @@
 The library's `Simplicity.Programs.Arith.div_mod word256`.
 
 ## Cost (ESTIMATE)
-ESTIMATE: 4 x `DivMod128_64` = 0.338 WU.
+ESTIMATE: 4 x `DivMod128_64` = 0.676 WU.
 
 ## Generality
 Fixed-point and AMM arithmetic, big-number arithmetic (the Great Script Restoration's use cases), modular reductions for non-native fields.

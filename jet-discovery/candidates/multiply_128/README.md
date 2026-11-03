@@ -7,7 +7,7 @@
 The library's `Simplicity.Programs.Arith.multiply word128`.
 
 ## Cost (ESTIMATE)
-ESTIMATE: 4 x `Multiply64` = 0.145 WU.
+ESTIMATE: 4 x `Multiply64` = 0.288 WU.
 
 ## Generality
 As for `div_mod_256`.
@@ -20,5 +20,6 @@ Low to medium.
 
 ## Corpus evidence
 - `xchain-uniswap-v2-amount-out`: matched ×4 (static multiplicity); program cost 1410.366 WU → 25.288 WU with all candidates (55.8×).
+- `ethsol-lending-liquidation`: matched ×1; program cost 138.722 WU → 122.918 WU (1.1×).
 
 Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

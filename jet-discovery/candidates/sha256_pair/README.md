@@ -7,7 +7,7 @@
 `JetDiscovery.Lib.Kernels.sha256Pair`: one Merkle-node hash (OP_CAT + OP_SHA256 in Script).
 
 ## Cost (ESTIMATE)
-ESTIMATE: 2 x `Sha256Block` = 0.765 WU.
+ESTIMATE: 2 x `Sha256Block` = 1.530 WU.
 
 ## Generality
 Merkle paths (tree signatures, STARK commitments, BitVM, any SHA-256 Merkle tree).
@@ -20,5 +20,6 @@ Today it is three jets plus plumbing; a "hash two 32-byte nodes" jet with a tag 
 
 ## Corpus evidence
 - `app-merkle-key`: matched ×16 (static multiplicity); program cost 240.730 WU → 174.650 WU with all candidates (1.4×).
+- `stark-fri-verifier`: matched ×104 (Merkle openings), alongside the M31/QM31 candidates.
 
 Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).
