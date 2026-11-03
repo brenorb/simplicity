@@ -27,6 +27,21 @@ Each local filename is the upstream path with `/` replaced by `_`.
 | `bips/bip-0446_basics.json` | `bip-0446/basics.json` | CC0-1.0 | `19cd88462784a67e…` |
 | `bips/bip-0448.md` | `bip-0448.md` | CC0-1.0 | `3b3addc6fe73f66c…` |
 
+Fetched 2026-11-03 at bitcoin/bips commit `ada341963ab3916e74c98e6de4ba48babc024a75`:
+
+| file | upstream path | license | sha256 |
+| --- | --- | --- | --- |
+| `bips/bip-0098.mediawiki` | `bip-0098.mediawiki` | CC-BY-SA-4.0 | `88e278277090e4b6…` |
+| `bips/bip-0116.mediawiki` | `bip-0116.mediawiki` | CC-BY-SA-4.0 | `56c5e89285d773fc…` |
+| `bips/bip-0117.mediawiki` | `bip-0117.mediawiki` | CC-BY-SA-4.0 | `6d01347ede4db133…` |
+| `bips/bip-0360.mediawiki` | `bip-0360.mediawiki` | BSD-3-Clause | `988957d7373b3779…` |
+| `bips/bip-0440.mediawiki` | `bip-0440.mediawiki` | BSD-3-Clause | `85e45b233d45bf21…` |
+| `bips/bip-0441.mediawiki` | `bip-0441.mediawiki` | BSD-3-Clause | `6150cfc30776276b…` |
+| `bips/bip-0449.md` | `bip-0449.md` | BSD-3-Clause | `a62ca765f6a37e21…` |
+| `bips/bip-0327.mediawiki` | `bip-0327.mediawiki` | BSD-3-Clause | `918555f9d67bf4c1…` |
+| `bips/bip-0327_vectors_key_agg_vectors.json` | `bip-0327/vectors/key_agg_vectors.json` | BSD-3-Clause | `03c02a97e4ef3f2e…` |
+| `bips/bip-0346_ref-impl_src_main.rs` | `bip-0346/ref-impl/src/main.rs` | BSD-3-Clause (BIP 346); read as data and transcribed, never compiled | `92608ad4e0d32e33…` |
+
 ## SHRINCS/shrincs-bip
 
 Source: https://github.com/SHRINCS/shrincs-bip at commit `4fe68e3a68fd58be6b0e19436ff6fb7a3357a291` (fetched 2026-11-02).
@@ -46,3 +61,5 @@ the upstream test vectors are published only as SHA-256 fingerprints (`*.csv.fp`
 | file | source | license | sha256 |
 | --- | --- | --- | --- |
 | `rfc/rfc7693.txt` | https://www.rfc-editor.org/rfc/rfc7693.txt (fetched 2026-11-02) | IETF Trust (informational RFC) | `c943754888364fe2…` |
+| `rfc/rfc6979.txt` | https://www.rfc-editor.org/rfc/rfc6979.txt (fetched 2026-11-03) | IETF Trust (informational RFC) | `456e8f17558fdbd2…` |
+| `rfc/rfc8032.txt` | https://www.rfc-editor.org/rfc/rfc8032.txt (fetched 2026-11-03) | IETF Trust (informational RFC) | `ed63657ff3893012…` |

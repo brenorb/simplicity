@@ -17,13 +17,16 @@ import Prelude hiding (drop, take)
 import qualified Simplicity.Programs.Arith as Arith
 import qualified Simplicity.Programs.LibSecp256k1.Lib as Secp
 import Simplicity.Bitcoin.Benchmarks (cost)
-import Simplicity.Ty.Word (word128, word256)
+import Simplicity.Ty.Word (word128, word256, word512)
 import Simplicity.Weight (Weight)
 
 import JetDiscovery.JetSets (Candidate(..), SomeCandidate(..))
 import JetDiscovery.Lib.Kernels (sha256Pair, wotsChain)
 import qualified JetDiscovery.Corpus.Hashes as Hashes
 import qualified JetDiscovery.Corpus.Stark as Stark
+import qualified JetDiscovery.Lib.Ripemd160 as Ripemd
+import qualified JetDiscovery.Corpus.Ed25519 as Ed25519
+import qualified JetDiscovery.Corpus.P256 as P256
 
 data CandidateInfo = CandidateInfo
   { ciName :: String
@@ -45,6 +48,12 @@ candidateInfo =
   , CandidateInfo "signature_unpack" (cost "FeNormalize" + cost "ScalarNormalize") "FeNormalize + ScalarNormalize: range checks on r and s"
   , CandidateInfo "div_mod_256" (4 * cost "DivMod128_64") "4 x DivMod128_64: schoolbook 256-bit division by 64-bit limbs"
   , CandidateInfo "multiply_128" (4 * cost "Multiply64") "4 x Multiply64: four 64x64 products"
+  , CandidateInfo "multiply_256" (16 * cost "Multiply64") "16 x Multiply64: sixteen 64x64 products (schoolbook 256x256)"
+  , CandidateInfo "div_mod_512" (16 * cost "DivMod128_64") "16 x DivMod128_64: schoolbook 512-by-256-bit division with 64-bit limbs (4x div_mod_256's estimate)"
+  , CandidateInfo "ripemd160_compress" (cost "Sha256Block") "Sha256Block: RIPEMD-160 and SHA-256 compression cost about the same in software"
+  , CandidateInfo "sha512_compress" (1.5 * cost "Sha256Block") "1.5 x Sha256Block: SHA-512 compresses 128 bytes with 64-bit words (as blake2b_compress)"
+  , CandidateInfo "p256_fe_multiply" (1.5 * cost "FeMultiply") "1.5 x FeMultiply: a P-256 field multiply with Solinas reduction is somewhat slower than libsecp256k1's"
+  , CandidateInfo "ed25519_fe_multiply" (cost "FeMultiply") "FeMultiply: 2^255-19 reduction is as cheap as secp256k1's (fold by 38)"
   ]
 
 costOf :: String -> Weight
@@ -63,4 +72,10 @@ candidates =
   , SomeCandidate (Candidate "signature_unpack" (costOf "signature_unpack") Secp.signature_unpack)
   , SomeCandidate (Candidate "div_mod_256" (costOf "div_mod_256") (Arith.div_mod word256))
   , SomeCandidate (Candidate "multiply_128" (costOf "multiply_128") (Arith.multiply word128))
+  , SomeCandidate (Candidate "multiply_256" (costOf "multiply_256") (Arith.multiply word256))
+  , SomeCandidate (Candidate "div_mod_512" (costOf "div_mod_512") (Arith.div_mod word512))
+  , SomeCandidate (Candidate "ripemd160_compress" (costOf "ripemd160_compress") Ripemd.ripemd160Compress)
+  , SomeCandidate (Candidate "sha512_compress" (costOf "sha512_compress") Ed25519.sha512Compress)
+  , SomeCandidate (Candidate "p256_fe_multiply" (costOf "p256_fe_multiply") P256.mulmod)
+  , SomeCandidate (Candidate "ed25519_fe_multiply" (costOf "ed25519_fe_multiply") Ed25519.mulmod)
   ]

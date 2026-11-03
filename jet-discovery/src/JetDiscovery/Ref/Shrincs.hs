@@ -15,6 +15,7 @@ module JetDiscovery.Ref.Shrincs
   , wotsChainIter, wotsPkFromSig
   , fxmssPkFromSig, verifyStateful
   , StatefulSig(..), signStateful, sigBytes
+  , adrs, be, tweak, sha, zeros
   ) where
 
 import qualified Data.ByteString as BS
