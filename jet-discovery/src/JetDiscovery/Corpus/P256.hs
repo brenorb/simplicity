@@ -11,6 +11,7 @@
 module JetDiscovery.Corpus.P256
   ( entries
   , pP256, nP256, mulmod, addmod, submod, dblJ, maddJ, mulmodN, addAffine, ecdsaXCoordinate
+  , VerifyInput, ecdsaP256T
   ) where
 
 import Prelude hiding (drop, take, not, and, or, subtract)
@@ -251,7 +252,7 @@ entries =
     , entryVectorSource = Upstream "vendor-specs/rfc/rfc6979.txt A.2.5: SHA-256 signatures of \"sample\" and \"test\", plus 3 negative vectors"
     , entryAssumptions = [ "the message hash z, public key Q, signature (r, s) and the hint w = s^-1 mod n are witness operands"
                          , "canonical public coordinates; complete equality/opposite/infinity handling in the joint scalar loop" ]
-    , entryProgram = \(q, (zz, (rs, wh))) -> Prog (ecdsaP256 (pt q, (toWord256 zz, ((toWord256 (fst rs), toWord256 (snd rs)), toWord256 wh))))
+    , entryProgram = prepareInput . encodeInput
     , entryVectors =
         [ Vector "RFC 6979 P-256, SHA-256, \"sample\"" env (vec "sample" sampleRS) Accept
         , Vector "RFC 6979 P-256, SHA-256, \"test\"" env (vec "test" testRS) Accept
@@ -276,3 +277,5 @@ entries =
   inv x = powModN x (nP256 - 2) nP256
   vec m (r', s') = ((ux, uy), (hashOf m, ((r', s'), inv s')))
   pt (x, y) = (toWord256 x, toWord256 y)
+  prepareInput=boundProgram ecdsaP256T
+  encodeInput (q,(zz,(rs,wh)))=(pt q,(toWord256 zz,((toWord256 (fst rs),toWord256 (snd rs)),toWord256 wh)))

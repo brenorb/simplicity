@@ -11,6 +11,7 @@ import qualified JetDiscovery.Corpus.BN254 as BN254
 import qualified JetDiscovery.Corpus.ScriptProposals as ScriptProposals
 import qualified JetDiscovery.Corpus.BitcoinExpansion as BitcoinExpansion
 import qualified JetDiscovery.Corpus.BitcoinGrowth as BitcoinGrowth
+import qualified JetDiscovery.Corpus.BitcoinGrowth2 as BitcoinGrowth2
 import qualified JetDiscovery.Corpus.Xmss as Xmss
 import qualified JetDiscovery.Corpus.Bip360P2mr as Bip360P2mr
 import qualified JetDiscovery.Corpus.ContractMath as ContractMath
@@ -71,6 +72,7 @@ corpus = concat <$> sequence
   , pure Xmss.entries
   , pure BitcoinExpansion.entries
   , BitcoinGrowth.entries
+  , BitcoinGrowth2.entries
   , pure ScriptProposals.entries
   , pure FibonacciStark.entries
   , pure ContractExpansion.entries

@@ -1,6 +1,8 @@
 -- | Inventory only: evaluate no proof, vector, cost or Simplicity expression.
--- Run after building the current library:
--- cabal exec -- runghc tools/CorpusMetadata.hs > reports/data/corpus-metadata.tsv
+-- Prefer the built executable's identical metadata command, avoiding GHCi's
+-- Backpack dep_map panic on GHC9.8.4:
+-- cabal run -v0 exe:jet-discovery -- metadata > dist-newstyle/corpus-metadata.tsv
+-- Move the temporary file into reports/data only after successful completion.
 module Main where
 import JetDiscovery.Corpus (corpus)
 import JetDiscovery.Types

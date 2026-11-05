@@ -5,7 +5,7 @@
 module Main (main) where
 
 import Control.Monad (forM_, unless, when)
-import Data.List (sortBy)
+import Data.List (sortBy, intercalate)
 import Data.IORef (newIORef,writeIORef,readIORef)
 import Data.Ord (comparing, Down(..))
 import System.Directory (createDirectoryIfMissing)
@@ -43,13 +43,26 @@ main = do
     ["profile", i] -> profileOne i
     ["time", i] -> timeOne i
     ["index"] -> writeIndex
+    ["metadata"] -> writeMetadata
     ["stark-reference"] -> do
       putStrLn "generating and checking full-size Fibonacci STARK reference proof"
       hFlush stdout
       ok <- evaluate (FS.verify FS.realistic (FS.prove FS.realistic))
       print ok
       unless ok exitFailure
-    _ -> putStrLn "usage: jet-discovery [run [prefix] | verify <prefix> | profile <id> | time <id> | index | stark-reference]"
+    _ -> putStrLn "usage: jet-discovery [run [prefix] | verify <prefix> | profile <id> | time <id> | index | metadata | stark-reference]"
+
+-- Inventory only: force no Simplicity expression, cost or proof. Keeping this
+-- in the ordinary executable avoids separate GHCi/Backpack package loading.
+writeMetadata :: IO ()
+writeMetadata = do
+  es <- corpus
+  putStrLn "id\ttitle\tcategory\tspec\tvector_source\tvectors\tassumptions"
+  forM_ es $ \(Entry ident title spec category source assumptions _ vectors) ->
+    putStrLn (intercalate "\t" (map clean [ident,title,show category,spec,show source,
+      show (length vectors),intercalate "; " assumptions]))
+ where
+  clean = map (\c -> if c `elem` "\t\r\n" then ' ' else c)
 
 -- | Write corpus/README.md: one section per program (spec, vectors, assumptions, module).
 writeIndex :: IO ()
@@ -157,8 +170,7 @@ verifySome prefix = do
   forM_ entries $ \e@(Entry _ _ _ _ _ _ program vectors) -> do
     putStrLn ("verifying "++entryId e)
     let cmr=case vectors of v:_ -> progCmr (program (vecWitness v)); [] -> error "entry has no vectors"
-    forM_ vectors $ \v -> do
-      let result=runVector program cmr v
+    forM_ (runVectors program cmr vectors) $ \result -> do
       ok<-evaluate (vrOk result)
       putStrLn (entryId e++" / "++vrName result++": "++(if ok then "PASS" else "FAIL")++" ("++vrNote result++")")
       unless ok (writeIORef failed True)

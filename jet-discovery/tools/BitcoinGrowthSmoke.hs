@@ -17,10 +17,9 @@ check (Entry ident _ _ _ _ _ make vectors)=do
  results<-mapM (\(Vector name env w expected)->do
    let p=make w
        same=progCmr p==baseline
-       accepted=case p of
-         Prog term->case env baseline of
-           Nothing->False
-           Just pe->J.fastEval(J.unwrap(J.jetSubst term))pe()==Just()
+       accepted=case env baseline of
+         Nothing->False
+         Just pe->J.fastEval(J.unwrap(J.jetSubst (unProg p)))pe()==Just()
        ok=same&&accepted==(expected==Accept)
    _<-evaluate ok
    putStrLn("  "++name++" same_cmr="++show same++" accepts="++show accepted++" expected="++show expected++" pass="++show ok)

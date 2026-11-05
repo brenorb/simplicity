@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes, ScopedTypeVariables #-}
 -- | Checks that each candidate jet's Simplicity specification (a corpus
 -- kernel) agrees with an independent Haskell reference, and that the
 -- BIP 340 reference signer reproduces the official test vectors.
@@ -26,6 +27,8 @@ import qualified Simplicity.Programs.LibSecp256k1.Lib as Secp
 import Simplicity.Programs.Sha256.Lib
 import qualified Simplicity.Bitcoin.Jets as Jets
 import Simplicity.Bitcoin.Primitive (PrimEnv)
+import qualified Simplicity.Bitcoin.Primitive as Prim
+import qualified Simplicity.Bitcoin.Term as Term
 import Simplicity.Digest (hash0)
 import qualified Simplicity.Ty.Word as W
 
@@ -46,8 +49,8 @@ import qualified Data.ByteString.Char8 as BSC8
 import qualified JetDiscovery.Regression.WitnessState as WitnessState
 import qualified JetDiscovery.Corpus.Eprint as Eprint
 import qualified JetDiscovery.Corpus.Lms as Lms
-import JetDiscovery.Types (Prog(..), Entry(..), Vector(..), Expect(..), Category(..), VectorSource(..))
-import JetDiscovery.Run (progCmr, runVectors, vrOk, measure, Measurement(..), runEntry, erMeasure)
+import JetDiscovery.Types (Prog(..), boundProgram, boundView, BoundView(..), boundEligible, Entry(..), Vector(..), Expect(..), Category(..), VectorSource(..))
+import JetDiscovery.Run (progCmr, runVector, runVectors, vrOk, vrNote, measure, Measurement(..), runEntry, erMeasure)
 import JetDiscovery.Profile (niCmr)
 import JetDiscovery.Report (assumedWitnessStackBytes)
 import JetDiscovery.Mine (mine,Group(..))
@@ -76,7 +79,8 @@ rands seed = tail (iterate (\x -> (x * 6364136223846793005 + 1442695040888963407
 
 main :: IO ()
 main = defaultMain $ testGroup "jet-discovery"
-  [ testGroup "full STARK reference"
+  [ preparedTests
+  , testGroup "full STARK reference"
       [ testCase "FFT matches direct polynomial evaluation" $ do
           let cs=V.fromList (map FS.base [3,5,7,11,13,17,19,23])
               evals=FS.lde 4 FS.coset cs
@@ -322,6 +326,67 @@ main = defaultMain $ testGroup "jet-discovery"
   pairs _ = []
   chunks n xs = let (a, b) = splitAt n xs in a : chunks n b
 
+-- Prepared execution must retain canonical source, environment and CMR
+-- behavior even when witness types are partially erased or kernels change.
+preparedTests :: TestTree
+preparedTests = testGroup "prepared bound kernel"
+  [ testCase "projection and branches agree with canonical full substitution" $ do
+      let kernel :: Term.Simplicity term => term (W.Word8,W.Word1024) ()
+          kernel=Core.oh >>> ((iden &&& konst (w8 0)) >>> eq >>> verify)
+          prepared=boundProgram kernel
+          raw value=Prog (witness value >>> kernel)
+          values=[(w8 0,W.toWord W.word1024 1),(w8 1,W.toWord W.word1024 2)]
+          vectors=zipWith (\value expected->Vector (show expected) (const (Just env)) value expected) values [Accept,Reject]
+          cmr=progCmr (raw (head values))
+      map (progCmr.prepared) values @?= map (progCmr.raw) values
+      map vrOk (runVectors prepared cmr vectors) @?= [True,True]
+      map vrOk (runVectors prepared cmr vectors) @?= map (vrOk.runVector prepared cmr) vectors
+      let (p0,w0)=Jets.putTermLengthCode (unProg (raw (head values)))
+          (p1,w1)=Jets.putTermLengthCode (unProg (prepared (head values)))
+      (p1,w1) @?= (p0,w0)
+      mCost (measure (prepared (head values))) @?= mCost (measure (raw (head values)))
+      let branch :: Term.Simplicity term => term (Either W.Word8 W.Word8) ()
+          branch=Core.copair ((iden &&& konst (w8 0)) >>> eq >>> verify) ((iden &&& konst (w8 1)) >>> eq >>> verify)
+          bp=boundProgram branch
+          vs=[Vector "left" (const (Just env)) (Left (w8 0)) Accept,Vector "right" (const (Just env)) (Right (w8 1)) Accept,Vector "wrong" (const (Just env)) (Right (w8 0)) Reject]
+      map vrOk (runVectors bp (progCmr (bp (Left (w8 0)))) vs) @?= [True,True,True]
+      assertBool "both branches really use prepared evaluation" (all (L.isSuffixOf "(prepared kernel)".vrNote) (runVectors bp (progCmr (bp (Left (w8 0)))) vs))
+  , testCase "script CMR primitive receives the whole program environment" $ do
+      let kernel :: (Term.Simplicity term,Term.Primitive term) => term W.Word256 ()
+          kernel=(iden &&& (unit >>> Term.primitive Prim.ScriptCMR)) >>> eq >>> verify
+          p=boundProgram kernel
+          cmr=progCmr (p (W.toWord256 0))
+          vector value expected=Vector "script root" (mkEnv (mkTx 2 [mkInput (dummyOutpoint 0) 1000 mempty 0] [mkOutput 900 mempty] 0) 0 defaultTap) value expected
+          vs=[vector (W.toWord256 (hashToInteger cmr)) Accept,vector (W.toWord256 0) Reject]
+      map vrOk (runVectors p cmr vs) @?= [True,True]
+      map vrOk (runVectors p cmr vs) @?= map (vrOk.runVector p cmr) vs
+      assertBool "environment case really uses prepared evaluation" (all (L.isSuffixOf "(prepared kernel)".vrNote) (runVectors p cmr vs))
+  , testCase "source changes and unsafe extensions take canonical fallback" $ do
+      let zero :: Term.Simplicity term => term W.Word8 ()
+          zero=(iden &&& konst (w8 0)) >>> eq >>> verify
+          one :: Term.Simplicity term => term W.Word8 ()
+          one=(iden &&& konst (w8 1)) >>> eq >>> verify
+          changed flag=(if flag then boundProgram one else boundProgram zero) (w8 0)
+          vs=[Vector "original" (const (Just env)) False Accept,Vector "changed" (const (Just env)) True Reject]
+          cmr=progCmr (changed False)
+      map vrOk (runVectors changed cmr vs) @?= [True,False]
+      map vrOk (runVectors changed cmr vs) @?= map (vrOk.runVector changed cmr) vs
+      let changedType flag=if flag
+            then boundProgram ((iden &&& konst (W.toWord16 0)) >>> eq >>> verify) (W.toWord16 0)
+            else boundProgram zero (w8 0)
+          tc=progCmr (changedType False)
+          tvs=[Vector "byte" (const (Just env)) False Accept,Vector "word" (const (Just env)) True Accept]
+      map vrOk (runVectors changedType tc tvs) @?= [True,False]
+      map vrOk (runVectors changedType tc tvs) @?= map (vrOk.runVector changedType tc) tvs
+      let internal :: Term.Simplicity term => term W.Word8 ()
+          internal=witness (w8 0) >>> zero
+          delegated :: Term.Simplicity term => term W.Word8 ()
+          delegated=Core.disconnect (unit &&& unit) unit >>> unit
+          eligible p=case boundView p of Just (BoundView k _)->boundEligible k; Nothing->True
+      map eligible [boundProgram internal (w8 0),boundProgram delegated (w8 0)] @?= [False,False]
+      mapM_ (\make->let c=progCmr (make (w8 0)); v=Vector "fallback" (const (Just env)) (w8 0) Accept in
+        map vrOk (runVectors make c [v]) @?= [vrOk (runVector make c v)]) [boundProgram internal,boundProgram delegated]
+  ]
 -- BIP 340 vectors ----------------------------------------------------------------
 
 bip340Tests :: TestTree

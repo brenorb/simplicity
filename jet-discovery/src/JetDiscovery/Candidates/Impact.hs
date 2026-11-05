@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds,GADTs,KindSignatures,ScopedTypeVariables,TypeFamilies,UndecidableInstances #-}
+{-# LANGUAGE DataKinds,GADTs,KindSignatures,RankNTypes,ScopedTypeVariables,TypeFamilies,UndecidableInstances #-}
 -- | Single-candidate counterfactuals. Reconstruct from the shared overlay DAG,
 -- expand every other candidate, then rerun full program type inference.
 -- Fixed per-jet deltas are insufficient when a removed jet frees type widths.
@@ -20,6 +20,7 @@ import JetDiscovery.Candidates.Registry (candidates,candidateInfo,ciName)
 import JetDiscovery.WhatIf (WhatIf(..))
 import JetDiscovery.Profile (profile,niTotal,niKind,niMult)
 import JetDiscovery.Types (Prog(..))
+import qualified Simplicity.Bitcoin.Term as Term
 
 newtype Only (name :: Symbol) a b=Only (WhatIf a b)
 instance KnownSymbol name => J.JetType (Only name) where
@@ -91,7 +92,10 @@ isolatedCosts nativeCost direct dag=[(name,if S.member name affected then scenar
 -- Independent whole-program route for regression tests, without starting
 -- from any combined overlay or using the dependency shortcut.
 directIsolatedCost :: String -> Prog -> Integer
-directIsolatedCost name (Prog p)=case someSymbolVal name of SomeSymbol proxy->forName proxy
+directIsolatedCost name program=directTerm name (unProg program)
+
+directTerm :: String -> (forall term. (Term.Simplicity term,Term.Primitive term) => term () ()) -> Integer
+directTerm name p=case someSymbolVal name of SomeSymbol proxy->forName proxy
  where
   forName :: forall name. KnownSymbol name => Proxy name -> Integer
   forName _=milliWeigh (B.unwrap (D.jetSubst (p :: D.JetDag (Only name) () ())) :: TermWeight () ())

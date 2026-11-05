@@ -26,10 +26,12 @@ import qualified Simplicity.Ty as Ty
 import qualified Data.Map.Strict as Map
 import Data.Ord (comparing, Down(..))
 import Data.Word (Word64)
+import Data.Type.Equality ((:~:)(Refl))
 
 import Simplicity.Digest (Hash256)
 import Simplicity.MerkleRoot (CommitmentRoot, commitmentRoot)
 import Simplicity.Ty (SomeArrow(..))
+import qualified Simplicity.Bitcoin.Term as Term
 import Simplicity.Weight (milliWeight)
 import qualified Simplicity.Bitcoin.Dag as Dag
 import qualified Simplicity.Bitcoin.Inference as Inference
@@ -81,10 +83,13 @@ jetName j = last (words (filter (`notElem` "()") (show j)))
 
 -- | CMR of the jet-substituted program (the CMR committed to in the taproot leaf).
 progCmr :: Prog -> Hash256
-progCmr (Prog t) = commitmentRoot (unwrap (Jets.jetSubst t) :: CommitmentRoot () ())
+progCmr p = commitmentRoot (unwrap (Jets.jetSubst (unProg p)) :: CommitmentRoot () ())
 
 measure :: Prog -> Measurement
-measure (Prog t) = Measurement
+measure p = measureTerm (unProg p)
+
+measureTerm :: (forall term. (Term.Simplicity term, Term.Primitive term) => term () ()) -> Measurement
+measureTerm t = Measurement
   { mCmr = commitmentRoot (unwrap jetted :: CommitmentRoot () ())
   , mCost = nativeCost
   , mCostBase = primitiveCost dag
@@ -151,7 +156,46 @@ runVector prog cmr0 (Vector nm env w ex) =
   cmr = commitmentRoot (unwrap wrapped :: CommitmentRoot () ())
 
 runVectors :: (w -> Prog) -> Hash256 -> [Vector w] -> [VectorResult]
-runVectors prog cmr0 = map (runVector prog cmr0)
+runVectors prog cmr0 vectors = case vectors of
+  [] -> []
+  v:_ -> case boundView (prog (vecWitness v)) of
+    Just (BoundView kernel _) | boundEligible kernel ->
+      let prepared = prepareKernel kernel
+      in map (runPrepared prepared) vectors
+    _ -> map (runVector prog cmr0) vectors
+ where
+  fallback = runVector prog cmr0
+  runPrepared (Prepared inputType fingerprint bodyRoot bodyEval) v@(Vector nm env w ex) =
+    case boundView (prog w) of
+      Just (BoundView kernel value)
+        | boundEligible kernel, boundFingerprint kernel == fingerprint ->
+          case Ty.equalTyReflect inputType (valueType value) of
+            Just Refl ->
+              let cmr = commitmentRoot (Term.witness value Term.>>> bodyRoot :: CommitmentRoot () ())
+              in if cmr /= cmr0 then fallback v else case env cmr of
+                Nothing -> VectorResult nm ex False "environment construction failed"
+                Just e ->
+                  let accepted = Jets.fastEval bodyEval e value == Just ()
+                  in VectorResult nm ex ((ex == Accept) == accepted)
+                       (if accepted then "accepted (prepared kernel)" else "rejected (prepared kernel)")
+            Nothing -> fallback v
+      _ -> fallback v
+  valueType :: Ty.TyC a => a -> Ty.TyReflect a
+  valueType _ = Ty.reify
+
+-- Compile only the closed kernel, once per batch. Types and raw AMR identify
+-- the exact source for every vector. A full canonical whole-program CMR is
+-- supplied by the caller, and the composition root is checked per vector.
+-- In particular an unused input can be erased differently by standalone type
+-- inference; any resulting jet-root difference takes the canonical fallback.
+data Prepared = forall a. Ty.TyC a => Prepared
+  (Ty.TyReflect a) Hash256 (CommitmentRoot a ()) (Jets.FastEval Jets.JetType a ())
+
+prepareKernel :: forall a. Ty.TyC a => BoundKernel a -> Prepared
+prepareKernel kernel = Prepared Ty.reify (boundFingerprint kernel)
+  (unwrap wrapped) (unwrap wrapped)
+ where
+  wrapped = Jets.jetSubst (boundTerm kernel)
 
 data EntryResult = EntryResult
   { erEntry :: Entry
@@ -176,7 +220,7 @@ runEntryIO e@(Entry _ _ _ _ _ _ prog vecs) = do
                , evaluate forceProfile ]
                ++ [ () <$ evaluate c | (_, c) <- mAblations m ]
   _ <- parallelIO forceM
-  vs <- parallelIO [ evaluate (forceVR (runVector prog (mCmr m) v)) | v <- vecs ]
+  vs <- parallelIO [ evaluate (forceVR r) | r <- runVectors prog (mCmr m) vecs ]
   return (EntryResult e m vs)
  where
   forceVR r = vrOk r `seq` length (vrNote r) `seq` r

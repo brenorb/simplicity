@@ -29,6 +29,19 @@ Other commands:
 - `stark-reference` generates and checks the full-size Haskell proof without constructing a Simplicity DAG.
 - `profile <id>` prints a program's most expensive sub-DAGs.
 - `time <id>` times the measurement phases.
+- `metadata` exports every registered entry's complete metadata as TSV without
+  constructing proofs or Simplicity terms; `index` regenerates the corpus index.
+  Write metadata to a temporary file and move it after a successful exit.
+
+Eligible single-witness entries use [prepared kernels](PREPARED-KERNELS.md) for
+batch functional evaluation. Every vector still checks its exact typed source
+fingerprint and composed jetted CMR; internal witnesses/delegation or mismatches
+take the canonical whole-program path. Static analysis and serialization always
+consume the complete original expression. The result note identifies actual
+prepared evaluation. `tools/run_recorded.py NAME -- COMMAND ARGS...` freezes a
+local executable and preserves output, source hashes and actual exit status for
+long validation jobs; source hashes describe the launch checkout, not compiler
+attestation.
 
 The toolchain comes from `jet-discovery/shell.nix`.  It uses the GHC package
 set of the in-tree `../default.nix`, plus `cabal-install`.  The in-tree

@@ -2,7 +2,7 @@
 
 Corpus-driven discovery of missing Bitcoin Simplicity jets (goal: [GOAL.md](GOAL.md)).
 
-**Work in progress:** the registry has 108 rows in 104 distinct groups. [Same-CMR witness aliasing](reports/WITNESS-DATAFLOW.md) invalidated several earlier expressions and their recommendation evidence. Their dataflow is repaired; complete fresh measurements remain required. The toy FRI prototype is retired. The corrected full-size STARK accepts its honest proof at 1,497,462.342 WU; complete corpus metrics are pending. See [current validation evidence](reports/CURRENT-VALIDATION.md).
+**Work in progress:** the registry has 110 rows in 106 distinct groups. [Same-CMR witness aliasing](reports/WITNESS-DATAFLOW.md) invalidated several earlier expressions and their recommendation evidence. Their dataflow is repaired; complete fresh measurements remain required. The toy FRI prototype is retired. The corrected full-size STARK accepts its honest proof at 1,497,462.342 WU; complete corpus metrics are pending. See [current validation evidence](reports/CURRENT-VALIDATION.md).
 
 - **Results:** [reports/RECOMMENDATIONS.md](reports/RECOMMENDATIONS.md) (ranked candidates, per-BIP verdicts),
   [reports/corpus-results.md](reports/corpus-results.md), [reports/whatif.md](reports/whatif.md),
@@ -10,7 +10,7 @@ Corpus-driven discovery of missing Bitcoin Simplicity jets (goal: [GOAL.md](GOAL
   [reports/mismatches.md](reports/mismatches.md).
 - **Source inventories:** [all open softfork BIPs and proposals](reports/BIP-INVENTORY.md), [eprint scan](reports/eprint-scan.md), [Ethereum/Solana demand](reports/contract-inventory.md), [period rankings and access gaps](reports/PERIOD-RANKINGS.md).
 - **New experiments:** [full Fibonacci STARK](reports/FIBONACCI-STARK.md), [STARK resource diagnostics](reports/STARK-DIAGNOSTICS.md), [BN254/Groth16 cost model](reports/bn254-groth16.md), [timed-signature implementation gap](reports/timed-signatures.md).
-- **Standard and application coverage:** [FIPS205 SLH-DSA baseline](reports/SLH-DSA-BASELINE.md), [EVICT, BIP322 and SPV applications](reports/BITCOIN-GROWTH.md).
+- **Standard and application coverage:** [FIPS205 SLH-DSA baseline](reports/SLH-DSA-BASELINE.md), [EVICT, BIP322 and SPV applications](reports/BITCOIN-GROWTH.md), [silent payments and BIP127 reserve client](reports/BITCOIN-GROWTH2.md).
 - **Method:** [reports/METHOD.md](reports/METHOD.md).
 - **Corpus:** [corpus/README.md](corpus/README.md), with [explicit coverage and counting](reports/coverage-and-costs.md). The committed result tables still describe the earlier 49-row run while the expanded corpus is being verified. Sources live in `src/JetDiscovery/Corpus/`.
 - **Candidates:** [candidates/](candidates/) (one README per candidate jet).
