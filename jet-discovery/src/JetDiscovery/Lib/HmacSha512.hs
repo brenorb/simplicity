@@ -1,7 +1,8 @@
-{-# LANGUAGE RankNTypes,ScopedTypeVariables #-}
+{-# LANGUAGE GADTs,RankNTypes,ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fsimpl-tick-factor=1000 -funfolding-case-threshold=1 -funfolding-case-scaling=5 #-}
 -- | RFC2104 HMAC-SHA512 for the exact BIP32 CKDpub input format.
 -- A32-byte key and37-byte data enter once; no witnessed midstates/digests.
-module JetDiscovery.Lib.HmacSha512 (hmac37,HmacInput) where
+module JetDiscovery.Lib.HmacSha512 (hmac37,HmacInput,hmac36x32,Key36) where
 
 import Prelude hiding (drop,take)
 import qualified Prelude as P
@@ -67,3 +68,28 @@ hmac37=(iden&&&take(keyState 0x36))>>>
  ((oh>>>oh)&&&((ih&&&(oh>>>drop messageBlock))>>>compression))>>>
  ((take(keyState 0x5c))&&&(ih&&&konst(toWord word512(2^(511::Int)+1536))))>>>
  compression
+
+-- | Raw36-byte key, not a numeric outpoint: the last Word32 supplies exactly
+-- its four big-endian bytes. A Bitcoin numeric index must be byte-swapped by
+-- the caller before entering this byte-oriented interface.
+type Key36=(Word256,Word32)
+key36State :: Simplicity t => Integer -> t Key36 Word512
+key36State padByte=(iv&&&(block>>>xorPad))>>>compression
+ where
+  block=pack vector128[at i|i<-[0..127]]
+  at i | i<32=take(byte256 i)
+       | i<36=drop(byte32(i-32))
+       | otherwise=konst(w8 0)
+  mask=padByte*P.sum[256^i|i<-[0..127::Int]]
+  xorPad=(iden&&&konst(toWord word1024 mask))>>>W.bitwise_xor word1024
+
+-- | RFC2104 HMAC-SHA512 with key36/data32, the deployed BIP47 notification
+-- mask shape. All data enters once; no witnessed digest or key state.
+hmac36x32 :: Simplicity t => t(Key36,Word256)Word512
+hmac36x32=(iden&&&take(key36State 0x36))>>>
+ ((oh>>>oh)&&&((ih&&&(oh>>>ih>>>dataBlock))>>>compression))>>>
+ ((take(key36State 0x5c))&&&(ih&&&konst(toWord word512(2^(511::Int)+1536))))>>>
+ compression
+ where
+  -- Inner message is128-byte ipad plus32-byte data:160*8=1280 bits.
+  dataBlock=(iden&&&konst(w256(2^(255::Int))))&&&(konst(w256 0)&&&konst(w256 1280))

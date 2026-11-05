@@ -58,3 +58,23 @@ failure remains separate. These are derived vectors, not RFC4231 KATs.
 `tools/generate_hmac37_vectors.py` and its separate derived manifest pin
 that packet. The helper validates hashing only; BIP32 prefix/index/point and
 wallet policy belong to its caller. It earns no additional corpus group.
+
+
+`hmac36x32` is a separate byte-oriented sibling for exactly36-byte keys and
+32-byte data. It preserves all four SHA512 compressions and checks no Bitcoin
+index policy. The final key Word32 supplies its raw four big-endian bytes;
+a numeric Bitcoin outpoint index is byte-swapped at the caller boundary.
+All25 actual Simplicity controls pass at one canonical CMR: the exact full
+published BIP47 mask,20 independent stdlib-derived byte/width cases and4
+changed-key/data/digest negatives. Exit0,254.328seconds,8GiB cap; exact
+source/input/binary/log hashes are in
+`data/hmac36x32-published-and-derived-vectors.{txt,json}`. The source's local
+GHC simplifier allowances are compilation settings, not changed semantics.
+The existing hmac37 body is unchanged. No extra corpus group is earned.
+
+The BIP47 sender/receiver prose disagrees about HMAC key/data order. The
+complete published mask and two pinned primary implementations agree on
+key=raw outpoint36, data=ECDH-x32; the literal reversed interpretation fails
+the published vector. Both full outputs and source file/line evidence are
+preserved in [BIP47-MISMATCH.md](BIP47-MISMATCH.md). This helper does not
+claim a complete BIP47 notification/payment verifier or onchain privacy.
