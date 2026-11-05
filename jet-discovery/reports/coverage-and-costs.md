@@ -15,7 +15,7 @@ Classification means complete within the stated leaf/verifier interface and boun
 | full_spend_condition | 85 |
 | protocol_component | 19 |
 
-Runner artifact has 49 rows; 48 recorded passing rows intersect the current registry. Missing current IDs: 107; obsolete result IDs: 1; changed vector counts: 10. **Snapshot status: UNVERIFIED / FULL RE-RUN REQUIRED**.
+Runner artifact has 49 rows; 48 recorded passing rows intersect the current registry. Missing current IDs: 107; obsolete result IDs: 1; changed vector counts: 11. **Snapshot status: UNVERIFIED / FULL RE-RUN REQUIRED**.
 
 PENDING means no verified current measurement is shown. After a successful full run, regenerate metadata and this report using the same frozen executable. Source hashes below pin the inputs to this join.
 
@@ -58,7 +58,7 @@ The retired FRI fragment is not the full STARK verifier and is not counted along
 | `tluv-remove-leaf`; protocol_component; group `tluv-remove-leaf` | TAPLEAF_UPDATE_VERIFY: remove the current leaf and add a key to the internal key; Taproot update component does not check amount preservation. Assumptions: this input's taproot path has 1 to 8 levels; the output at the same index must re-create it; key update by point addition of a spender-given x-only key (even y, a witness operand); amounts not checked | tluv-remove-leaf: PENDING | tluv-remove-leaf: PENDING | tluv-remove-leaf: PENDING; PENDING |
 | `app-htlc`; full_spend_condition; group `app-htlc` | Hash time-locked contract (claim with preimage, refund after a height); Scope is exactly the metadata assumptions; a bounded spend leaf/verifier is not an end-to-end deployed protocol. Assumptions: SHA-256 payment hash of a 32-byte preimage; absolute block-height timeout | app-htlc: PENDING | app-htlc: PENDING | app-htlc: PENDING; PENDING |
 | `app-multisig-2of3`; full_spend_condition; group `app-multisig-2of3` | 2-of-3 BIP 340 multisig over sig_all_hash; Scope is exactly the metadata assumptions; a bounded spend leaf/verifier is not an end-to-end deployed protocol. Assumptions: three keys; each signature slot optional | app-multisig-2of3: PENDING | app-multisig-2of3: PENDING | app-multisig-2of3: PENDING; PENDING |
-| `app-vault`; full_spend_condition; group `app-vault` | Vault: delayed withdrawal to a committed template, or immediate recovery; Scope is exactly the metadata assumptions; a bounded spend leaf/verifier is not an end-to-end deployed protocol. Assumptions: the withdrawal template is committed in the input's internal key (tweak_embed_data(NUMS, T)); relative delay of 144 blocks; recovery output is output 0 | app-vault: PENDING | app-vault: PENDING | app-vault: PENDING; PENDING |
+| `app-vault`; full_spend_condition; group `app-vault` | Vault: delayed withdrawal to a committed template, or immediate recovery; Complete bounded single-input recovery/delayed withdrawal leaf: actual full-value recovery to output 0 and native template plus relative delay for withdrawal. No fee sponsorship or general BIP345 opcode semantics. Assumptions: the withdrawal template is committed in the input's internal key (tweak_embed_data(NUMS, T)); relative delay of 144 blocks; recovery spends one vault input; actual output 0 must carry its full amount and match the recovery script; immediate recovery uses no input value for fees; no batching, fee sponsorship or relay-policy claim | app-vault: PENDING | app-vault: PENDING | app-vault: PENDING; PENDING |
 | `app-dlc-cfd`; full_spend_condition; group `app-dlc-cfd` | Oracle-settled contract for difference (DLC-style, 64-bit payout arithmetic); Scope is exactly the metadata assumptions; a bounded spend leaf/verifier is not an end-to-end deployed protocol. Assumptions: oracle signs hash_Simplicity/DLC/Attestation(event_id \|\| price_be64); the input holds total; fixed long/short recipient scripts are committed in this leaf; payout to output 0 is min(total, total * price / (2 * strike)); output 1 gets the rest | app-dlc-cfd: PENDING | app-dlc-cfd: PENDING | app-dlc-cfd: PENDING; PENDING |
 | `app-merkle-key`; full_spend_condition; group `app-merkle-key` | Merkle tree of keys (depth 16): prove membership, then sign; Scope is exactly the metadata assumptions; a bounded spend leaf/verifier is not an end-to-end deployed protocol. Assumptions: fixed depth 16 (65536 leaves); leaf = x-only public key; SHA-256 of the 64-byte concatenation | app-merkle-key: PENDING | app-merkle-key: PENDING | app-merkle-key: PENDING; PENDING |
 | `xchain-ripemd160`; arithmetic_or_hash_kernel; group `xchain-ripemd160` | RIPEMD-160 compression of a one-block message; Reusable component or kernel; retained as evidence, not counted as a full application. Assumptions: message of at most 55 bytes (one padded block); block and expected digest are witness operands | xchain-ripemd160: PENDING | xchain-ripemd160: PENDING | xchain-ripemd160: PENDING; PENDING |
@@ -678,9 +678,9 @@ python3 tools/coverage_report.py --runner <same-frozen-runner>
 
 | input | SHA-256 |
 | --- | --- |
-| `reports/data/corpus-metadata.tsv` | `f54b48a78a7983c2e931d2743186ed7195aebdb40cbe7ff737e9ed78fba9cf85` |
+| `reports/data/corpus-metadata.tsv` | `eacf99a45711801df7d9ecb4e1729b2c94a816ddc0a06688dd220937ab83842c` |
 | `reports/data/corpus-results.tsv` | `7f28eeb7ab4cd626c5046f7d97c2bb7ddb59090bccd2cd6102404041497e4420` |
-| `reports/data/corpus-classification.json` | `257e9bb1902cd587fd55e447b75eb2bcf575ae4bf0b76c946b6d69328568458c` |
+| `reports/data/corpus-classification.json` | `a95cd5942bb5a30e7e83046c9fa14f4ac9d2dae8196aabf4c826464d7513a431` |
 | `reports/data/bip-program-map.json` | `2b91037857e91b6545a0aba80e3a558394e564f1da60e39ba1b3910c486aa06a` |
 | `reports/data/unnumbered-proposal-map.json` | `eaae7de6aa3aa251c26015967dda06844b384d7a109482b9cb364cee79f88157` |
 | `vendor-specs/bip-inventory/proposals/sources.json` | `3d1ee4552cd7b5bc889515408aab8574c6d7c3eb870f82feceed5816e7039f1e` |

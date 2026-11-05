@@ -34,7 +34,7 @@ import qualified Simplicity.Bitcoin.Programs.Transaction.Lib as Tx
 import Simplicity.Bitcoin.DataTypes
 import qualified Simplicity.Bitcoin.Jets as Jets
 import Simplicity.Bitcoin.Jets (unwrap)
-import Simplicity.LibSecp256k1.Schnorr (Sig(..), PubKey(..))
+import Simplicity.LibSecp256k1.Schnorr (Sig(..))
 import Simplicity.Ty.Word
 
 import JetDiscovery.Corpus.Baseline (signMsg, signSigAll, sigAllMessage)
@@ -42,6 +42,7 @@ import JetDiscovery.Corpus.Bip119Ctv (ctvNativeTemplate, ctvNativeRef)
 import JetDiscovery.Corpus.CovenantMisc (embedDataT)
 import JetDiscovery.Lib.Bytes
 import JetDiscovery.Lib.Kernels (sha256Pair)
+import JetDiscovery.Lib.State (stateScript, stateTap)
 import JetDiscovery.Run (progCmr)
 import JetDiscovery.Tx
 import JetDiscovery.Types
@@ -90,7 +91,8 @@ multisig2of3 pks sigs = sigMsg >>> (slot 0 &&& (slot 1 &&& slot 2)) >>> maj >>> 
 
 -- | Withdraw: the input's internal key commits to a native template hash T
 -- (key = tweak_embed_data(NUMS, T)), a relative delay has passed, and the
--- spending transaction matches T.  Recover: output 0 pays the recovery script.
+-- spending transaction matches T. Recover: one input and output 0 pays its
+-- entire value to the recovery script. Batch recovery is a separate profile.
 vault :: (Simplicity term, Primitive term) => Word256 -> DW.Word16 -> Either Word256 () -> term () ()
 vault recoverHash delay w = witness w &&& unit >>> match withdraw recover
  where
@@ -98,7 +100,11 @@ vault recoverHash delay w = witness w &&& unit >>> match withdraw recover
   keyOk = (unit >>> primitive Prim.InternalKey) &&& ((konst (w256 Ref.nums) &&& oh) >>> embedDataT) >>> eq >>> verify
   delayOk = unit >>> scribe (w16 (toInteger delay)) >>> TL.checkLockDistance
   tplOk = (unit >>> ctvNativeTemplate) &&& oh >>> eq >>> verify
-  recover = (unit >>> scribe (w32 0) >>> primitive Prim.OutputScriptHash >>> verify) &&& konst recoverHash >>> eq >>> verify
+  recover = unit >>> (single &&& (destination &&& amount)) >>> unit
+  single = (Tx.numInputs &&& konst (w32 1)) >>> eq >>> verify
+  destination = (konst (w32 0) >>> primitive Prim.OutputScriptHash >>> verify) &&& konst recoverHash >>> eq >>> verify
+  amount = (Tx.currentValue &&& (konst (w32 0) >>> primitive Prim.OutputValue >>> verify))
+           >>> Arith.le word64 >>> verify
 
 -- DLC contract for difference -------------------------------------------------
 
@@ -205,16 +211,20 @@ entries =
     , entryTitle = "Vault: delayed withdrawal to a committed template, or immediate recovery"
     , entrySpec = "BIP 345 OP_VAULT use case, built from BIP 443-style data tweaks and a native template hash"
     , entryCategory = BitcoinApp
-    , entryVectorSource = Derived "internal keys from Ref.embedData; template hashes from the native CTV reference"
+    , entryVectorSource = Derived "Native CTV reference and actual P2TR funding scripts; recovery value and input-count boundaries"
     , entryAssumptions = [ "the withdrawal template is committed in the input's internal key (tweak_embed_data(NUMS, T))"
-                         , "relative delay of " ++ show vaultDelay ++ " blocks; recovery output is output 0" ]
+                         , "relative delay of " ++ show vaultDelay ++ " blocks"
+                         , "recovery spends one vault input; actual output 0 must carry its full amount and match the recovery script"
+                         , "immediate recovery uses no input value for fees; no batching, fee sponsorship or relay-policy claim" ]
     , entryProgram = vaultProg
     , entryVectors =
         [ Vector "withdraw after the delay" (vaultEnv vaultDelay) (Left (vaultT vaultDelay)) Accept
         , Vector "withdraw before the delay" (vaultEnv (vaultDelay - 1)) (Left (vaultT (vaultDelay - 1))) Reject
         , Vector "withdraw to a different template" (vaultEnv vaultDelay) (Left (w256 99)) Reject
-        , Vector "recover to the recovery script" recoverEnv (Right ()) Accept
-        , Vector "recover to another script" (vaultEnv vaultDelay) (Right ()) Reject
+        , Vector "recover full value to the recovery script" (recoverEnv 1 100000 recoveryScript) (Right ()) Accept
+        , Vector "recover to another script at full value" (recoverEnv 1 100000 (p2wpkh 3)) (Right ()) Reject
+        , Vector "recover cannot divert one satoshi" (recoverEnv 1 99999 recoveryScript) (Right ()) Reject
+        , Vector "recover cannot claim the same output for two vault inputs" (recoverEnv 2 100000 recoveryScript) (Right ()) Reject
         ]
     }
   , Entry
@@ -271,9 +281,14 @@ entries =
   vaultProg w = Prog (vault (w256FromBytes (hashToBytes (sha256 recoveryScript))) vaultDelay w)
   vaultTx d = simpleTx 2 0 (fromIntegral d) [(99000, p2wpkh 3)]
   vaultT d = w256FromBytes (hashToBytes (ctvNativeRef (vaultTx d) 0))
-  vaultTap d c = (defaultTap c) { tapInternalKey = PubKey (fromInteger (Ref.embedData Ref.nums (w256ToBytes (vaultT d)))) }
-  vaultEnv d = mkEnv (vaultTx d) 0 (vaultTap d)
-  recoverEnv = mkEnv (simpleTx 2 0 0xffffffff [(99000, recoveryScript)]) 0 defaultTap
+  vaultState d = w256ToBytes (vaultT d)
+  vaultInput c d i sq = mkInput (dummyOutpoint i) 100000 (BSL.fromStrict (stateScript c (vaultState d))) sq
+  vaultEnv d c =
+    mkEnv (mkTx 2 [vaultInput c d 0 (fromIntegral d)] [mkOutput 99000 (p2wpkh 3)] 0)
+          0 (\root -> stateTap root (vaultState d)) c
+  recoverEnv n value target c =
+    mkEnv (mkTx 2 [vaultInput c vaultDelay i 0xffffffff | i <- [0 .. n-1]] [mkOutput value target] 0)
+          0 (\root -> stateTap root (vaultState vaultDelay)) c
   -- CFD
   cfdTotal = 1000000 :: DW.Word64
   cfdStrike = 50000 :: DW.Word64

@@ -2,7 +2,8 @@
 -- mode and BIP 345's batched triggers keep state across the inputs of a
 -- transaction.  A Simplicity program runs per input with no shared state, so
 -- each input re-scans all inputs: here, the sum of the values of every input
--- locked by the same script as this one (a bounded loop over 16 inputs).
+-- locked by the same script as this one. The sum checks the 16-input limit
+-- before scanning.
 module JetDiscovery.Corpus.Aggregate
   ( entries
   , sameScriptInputSum
@@ -33,9 +34,12 @@ import qualified JetDiscovery.Ref.Bip340 as Ref
 maxIns :: Int
 maxIns = 16
 
--- | Sum of the values of all inputs whose script hash equals this input's (overflow fails).
+-- | Sum every input value with the current script hash, rejecting an
+-- out-of-range input count or arithmetic overflow.
 sameScriptInputSum :: (Assert term, Primitive term) => term () Word64
-sameScriptInputSum = konst (w64 0) >>> foldr (\j k -> step j >>> k) iden [0 .. maxIns - 1]
+sameScriptInputSum =
+  (Tx.numInputs &&& konst (w32 (toInteger maxIns))) >>> Arith.le word32 >>> verify
+  >>> konst (w64 0) >>> foldr (\j k -> step j >>> k) iden [0 .. maxIns - 1]
  where
   step j = (iden &&& (konst (w32 (toInteger j)) >>> primitive Prim.InputScriptHash)) >>> (ih &&& oh) >>> match ih present
    where
