@@ -36,6 +36,8 @@ import qualified JetDiscovery.Corpus.NativeOcr as NativeOcr
 import qualified JetDiscovery.Corpus.NativeBatchOrders as NativeBatchOrders
 import qualified JetDiscovery.Corpus.StablePool as StablePool
 import qualified JetDiscovery.Corpus.WeightedPool as WeightedPool
+import qualified JetDiscovery.Corpus.NativePmmPool as NativePmmPool
+import qualified JetDiscovery.Corpus.NativeLmsrMarket as NativeLmsrMarket
 import qualified JetDiscovery.Corpus.MlDsaNtt as MlDsaNtt
 import qualified JetDiscovery.Lib.HdWallet as HdWallet
 import qualified JetDiscovery.Corpus.Xmss as Xmss
@@ -127,6 +129,8 @@ corpus = concat <$> sequence
   , pure NativeBatchOrders.entries
   , pure StablePool.entries
   , pure WeightedPool.entries
+  , pure NativePmmPool.entries
+  , pure NativeLmsrMarket.entries
   , pure EprintExpansion.entries
   , pure FairSwap.entries
   , pure BN254.entries

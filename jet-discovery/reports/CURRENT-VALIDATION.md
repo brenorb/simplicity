@@ -1,7 +1,7 @@
 # Current validation checkpoint
 
-The source milestone contains149 registered rows,145 distinct counting groups
-and102 complete bounded spend/verifier groups. It does **not** meet the150-group
+The source milestone contains151 registered rows,147 distinct counting groups
+and104 complete bounded spend/verifier groups. It does **not** meet the150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
 missing cost, profile, serialization or ablation numbers.
@@ -23,6 +23,7 @@ missing cost, profile, serialization or ablation numbers.
 | Maker Clipper partial liquidation | All 51 native transaction vectors, 112 price and 248 fill checks, and 16 accepted wire/funding controls pass; [scope](CLIPPER-LIQUIDATION.md) | Fresh shared metrics; exact bounded whole-RAY quote and signed valuation, no current-time or Vat claim |
 | Native mutual cover | All 63 policy, solvency, claim outcome and payout vectors pass; [scope](NEXUS-MUTUAL-NATIVE.md) | Fresh shared metrics; bounded fixed assessor, distinct accepted/draw/denied deposit treatment |
 | Native Uniswap V2 fee-on pool | All 32 lifecycle vectors and 34 floor-square-root cases pass; [scope](UNISWAP-V2-POOL.md) | Fresh shared metrics; bounded two-class native coupon ledger and exact fee minting |
+| DODO private pool and LMSR market | All 31 PMM and 38 LMSR lifecycle vectors pass; [DODO](DODO-VALIDATION.md), [LMSR](LMSR-MATH-VALIDATION.md) | Fresh shared metrics; fixed bounded reserve/claim, price and funding policies explicit |
 | StableSwap and weighted pools | All 23 three-class StableSwap and 18 two-class weighted lifecycle vectors pass; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; fixed native rates, rounding and liquidity bounds, no foreign asset-ledger equivalence |
 | CoW batch settlement | All 20 complete native signed-order, settlement and accounting vectors pass; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; bounded two-order native claim ledger, no foreign interactions or expiry |
 | Indexed loan and OCR report consumer | All 20 indexed lending and 11 fixed-config OCR vectors pass; independent canonical roots and exact source snapshots; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; native rate/height authority and OCR freshness limits explicit |

@@ -1,0 +1,119 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+-- | Exact selected upper-bound paths of Gnosis Fixed192x64Math3.0.0-alpha.3,
+-- at pinned ead0a32b. Polynomial coefficients/error and log64-step rounding are
+-- preserved. pow2 takes nonnegative exponents below192*2^64; log takes x>=2^64.
+module JetDiscovery.Lib.Fixed192Bounded where
+import Prelude hiding (drop,take,not,and,or)
+import qualified Prelude as H
+import qualified Data.List as List
+import Data.Bits (shiftL,shiftR)
+import Simplicity.Term.Core hiding (one)
+import Simplicity.Programs.Bit
+import Simplicity.Programs.Generic (eq)
+import qualified Simplicity.Programs.Arith as A
+import qualified Simplicity.Programs.Word as W
+import qualified Simplicity.Bitcoin.Jets as J
+import Simplicity.Bitcoin.Term (Simplicity)
+import Simplicity.Ty.Word
+import JetDiscovery.Lib.Bytes
+import qualified JetDiscovery.Lib.StableMath as S
+import qualified JetDiscovery.Lib.LogExpBounded as L
+
+one :: Integer
+one=2^64
+max256 :: Integer
+max256=2^256-1
+coefficients :: [(Integer,Int)]
+coefficients=[(0xb17217f7d1cf79ab,64),(0xf5fdeffc162c7543,66),(0xe35846b82505fc59,68),(0x9d955b7dd273b94e,70),(0xaec3ff3c53398883,73),(0xa184897c363c3b7a,76),(0xffe5fe2c45863435,80),(0xb160111d2e411fec,83),(0xda929e9caf3e1ed2,87),(0xf267a8ac5c764fb7,91),(0xf465639a8dd92607,95),(0xe1deb287e14c2f15,99),(0xc0b0c98b3687cb14,103),(0x98a4b26ac3c54b9f,107),(0xe1b7421d82010f33,112),(0x9c744d73cfc59c91,116),(0xcc2225a0e12d3eab,121),(0xfb8bb5eda1b4aeb9,126)]
+k64 :: (Core t,TyC a) => Integer -> t a Word64
+k64=konst . w64
+k256 :: (Core t,TyC a) => Integer -> t a Word256
+k256=konst . w256
+select p a b=(p&&&iden)>>>cond a b
+same a b=(a&&&b)>>>eq>>>verify
+add256 a b=(a&&&b)>>>A.add word256>>>((oh>>>not iden>>>verify)&&&ih)>>>ih
+sub64 a b=(a&&&b)>>>A.subtract word64>>>((oh>>>not iden>>>verify)&&&ih)>>>ih
+narrow8 :: Core t => t Word64 Word8
+narrow8=drop (drop (drop iden))
+narrow16 :: Core t => t Word64 Word16
+narrow16=drop (drop iden)
+left256 amount value=((amount>>>narrow8)&&&value)>>>W.left_shift word8 word256
+right256 amount value=((amount>>>narrow16)&&&value)>>>W.right_shift word16 word256
+polyRef :: Assert t => t Word64 Word256
+polyRef=(iden&&&(iden&&&k256 (one*one)))>>>List.foldl' (>>>) iden (map step coefficients)>>>iih
+ where
+  -- fraction and current fractional power stay Word64. Their product's high
+  -- half is exactly floor(zpow*z/ONE), as in the source's signed positive path.
+  step (coefficient,bits)=(iden&&&term)>>>(take oh&&&(nextPower&&&add256 (take iih) ih))
+   where
+    term=(L.ks 0&&&(((ioh&&&k64 coefficient)>>>A.multiply word64)>>>W.shift_const_by false word128 (64-bits)))
+    nextPower=(take oh&&&take ioh)>>>A.multiply word64>>>oh
+
+pow2UpperRef :: Assert t => t Word128 Word256
+pow2UpperRef=(((oh&&&k64 192)>>>A.lt word64>>>verify)&&&iden)>>>drop ((iden&&&(ih>>>polyRef))>>>select ((take oh&&&k64 64)>>>A.le word64) leftCase rightCase)
+ where
+  -- Domain=(exponent,(positive polynomial result)). Exponent high64 is its
+  -- integer part and low64 its fraction, so no div/rem approximation is used.
+  leftAmount=sub64 (take oh) (k64 64)
+  leftCase=(iden&&&leftAmount)>>>select fits sumUpper (k256 max256)
+   where
+    fits=(right256 (sub64 (k64 256) ih) (take ih)&&&k256 0)>>>eq
+    lower=left256 ih (take ih)
+    errorTerm=left256 ih (k256 (8*one))
+    sumUpper=(lower&&&errorTerm)>>>A.add word256>>>(oh&&&ih)>>>cond (k256 max256) iden
+  rightAmount=sub64 (k64 64) (take oh)
+  rightCase=(iden&&&rightAmount)>>>add256 (right256 ih (take ih)) (add256 (right256 ih (k256 (8*one))) (k256 1))
+powWrapped :: J.WrappedSimplicity Word128 Word256
+powWrapped=J.jetSubst pow2UpperRef
+{-# NOINLINE powWrapped #-}
+pow2Upper :: Simplicity t => t Word128 Word256
+pow2Upper=J.unwrap powWrapped
+
+-- Source floorLog2 has a binary search; this equivalent fixed8-step leading-bit
+-- search returns the exact same integer floor for the admitted x>=ONE domain.
+rawFloor :: Assert t => t Word256 Word64
+rawFloor=(iden&&&k64 0)>>>List.foldl' (>>>) iden (map step [128,64,32,16,8,4,2,1])>>>ih
+ where
+  step bits=select ((konst (w16 bits)&&&oh)>>>W.right_shift word16 word256>>>(iden&&&k256 0)>>>eq) iden (((konst (w16 bits)&&&oh)>>>W.right_shift word16 word256)&&&add64 ih (k64 bits))
+  add64 a b=(a&&&b)>>>A.add word64>>>((oh>>>not iden>>>verify)&&&ih)>>>ih
+log2UpperRef :: Assert t => t Word256 Word128
+log2UpperRef=(((k256 one&&&iden)>>>A.le word256>>>verify)&&&iden)>>>drop ((iden&&&(rawFloor>>>sub64 iden (k64 64)))>>>start>>>loops>>>L.add oh (L.ks 4))
+ where
+  normalized=(right256 ih oh)>>>((same oh (L.ks 0))&&&ih)>>>ih
+  start=(ih&&&k64 0)&&&normalized
+  -- State=(lower,y), both Word128. y is in[ONE,2*ONE); each source square
+  -- uses its full256-bit product before dropping the low64 fractional bits.
+  square=(ih&&&ih)>>>A.multiply word128>>>W.shift_const_by false word256 (-64)>>>((same oh (L.ks 0))&&&ih)>>>ih
+  update bits=(iden&&&square)>>>select ((L.ks (2*one)&&&ih)>>>A.le word128) (L.add (take oh) (L.ks (one `shiftR`bits))&&&(ih>>>W.shift_const_by false word128 (-1))) (take oh&&&ih)
+  step bits=select ((ih&&&L.ks one)>>>eq) iden (update bits)
+  loops=List.foldl' (>>>) iden (map step [1..64])
+logWrapped :: J.WrappedSimplicity Word256 Word128
+logWrapped=J.jetSubst log2UpperRef
+{-# NOINLINE logWrapped #-}
+log2Upper :: Simplicity t => t Word256 Word128
+log2Upper=J.unwrap logWrapped
+
+pow2UpperInteger :: Integer -> Integer
+pow2UpperInteger x
+ |x<0||x>=192*one=error "nonnegative pow2 exponent below192"
+ |shift>=0=if result `shiftR`(256-shift)/=0 then max256 else min max256 ((result `shiftL`shift)+(8*one `shiftL`shift))
+ |otherwise=(result `shiftR`(-shift))+(8*one `shiftR`(-shift))+1
+ where
+  shift=fromInteger (x `div`one)-64
+  z=x `mod`one
+  (_,result)=H.foldl step (z,one*one) coefficients
+  step (power,total) (coefficient,bits)=(power*z `div`one,total+(coefficient*power `shiftR`(bits-64)))
+log2UpperInteger :: Integer -> Integer
+log2UpperInteger x
+ |x<one=error "binaryLog argument belowONE"
+ |otherwise=lower+4
+ where
+  raw=H.last [i|i<-[64..255],2^i<=x]
+  shift=raw-64
+  start=(toInteger shift*one,x `shiftR`shift)
+  (lower,_)=H.foldl step start [1..64]
+  step state@(lower,y) bits
+   |y==one=state
+   |y2>=2*one=(lower+(one `shiftR`bits),y2 `div`2)
+   |otherwise=(lower,y2)
+   where y2=y*y `div`one

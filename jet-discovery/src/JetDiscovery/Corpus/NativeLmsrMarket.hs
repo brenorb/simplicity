@@ -1,0 +1,190 @@
+{-# LANGUAGE RankNTypes,ScopedTypeVariables #-}
+-- | Fully funded two-outcome native conditional market, with exact source LMSR
+-- complete-set trade economics. Full application vectors are required for credit.
+module JetDiscovery.Corpus.NativeLmsrMarket where
+import Prelude hiding (drop,take,not,and,or)
+import qualified Prelude as H
+import qualified Data.ByteString as BS
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import qualified Simplicity.Programs.Arith as A
+import qualified Simplicity.Bitcoin.Jets as J
+import Simplicity.Bitcoin.Term (Simplicity,Primitive)
+import Simplicity.Ty.Word hiding (Vector)
+import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.ClaimLedger
+import qualified JetDiscovery.Lib.LmsrCost as L
+import qualified JetDiscovery.Lib.LogExpBounded as F
+import qualified JetDiscovery.Lib.StableMath as S
+import qualified JetDiscovery.Corpus.ContractGrowth as G
+import qualified JetDiscovery.Ref.Bip340 as R
+import JetDiscovery.Types
+import Simplicity.Digest (Hash256)
+import JetDiscovery.Tx (hashFromInteger)
+
+-- Offchain fixture only, independently derived from the complete typed kernel.
+-- The priority driver compares actual canonical CMR before every vector batch.
+lmsrFixtureCmr :: Hash256
+lmsrFixtureCmr=hashFromInteger 0xa4557e5a38ff0203771f2a32dde61294f8a8825b79efc1caaa5daf90626c5b1c
+
+feeScale :: Integer
+feeScale=10^18
+-- A native fixed-condition configuration digest, not a foreign CTF collection ID.
+questionBytes=R.bytesFromInt 0x20261105
+conditionBytes=R.taggedHash "JetDiscovery/LMSR/Condition" (R.bytesFromInt (R.pubkeyOf (G.keys H.!!3))<>questionBytes<>BS.singleton 2)
+conditionWords=[R.intFromBytes (BS.take 8 (BS.drop (8*i) conditionBytes))|i<-[0..3]]
+type SettlementInput=(L.Input,Word64)
+type Settlement=(L.Output,(Word64,L.Output)) -- net outcome cost,fee,actual cash
+settlementRef :: Simplicity t => t SettlementInput Settlement
+settlementRef=(((ih&&&k feeScale)>>>A.le word64>>>verify)&&&iden)>>>drop ((iden&&&take L.cost)>>>(iden&&&fee)>>>(take ih&&&(ih&&&cash)))
+ where
+  fee=F.divide (S.mul (F.u64 iih) (F.u64 (take ih))) (F.ks feeScale)>>>S.narrow
+  cash=L.plus ((take ih>>>oh)&&&F.u64 (take ih>>>ih)) (false&&&F.u64 ih)>>>(oh&&&(ih>>>S.narrow))
+settlementWrapped :: J.WrappedSimplicity SettlementInput Settlement
+settlementWrapped=J.jetSubst settlementRef
+{-# NOINLINE settlementWrapped #-}
+settlement :: Simplicity t => t SettlementInput Settlement
+settlement=J.unwrap settlementWrapped
+positive a=(false&&&F.u64 a)
+adjust a delta=L.plus (positive a) delta>>>L.positiveMagnitude>>>S.narrow
+largest a b=select ((a&&&b)>>>A.lt word64) b a
+
+validMarket :: Assert t => t Ledger ()
+validMarket=allChecks [same (field 1) (sumT (map field [3,4,7])),same (field 2) (sumT (map field [5,6,8])),le (field 11) (k 2),le (field 12) (k 1),le (field 13) (k 1),le (field 15) (k feeScale),le (add liability (field 9)) (field 0),allChecks [same (field (16+i)) (k word)|(i,word)<-zip [0..3] conditionWords],allChecks [same (field i) (k 0)|i<-[20..31]],select (is (field 12) (k 0)) (allChecks [same (field 13) (k 0),same (field 1) (field 2)]) (same (field 11) (k 2)),select (is (field 11) (k 2)) (allChecks [same (field 7) (k 0),same (field 8) (k 0)]) unit,select (is (field 10) (k 0)) empty funded,select (is (field 11) (k 0)) (nonzero (field 10)) unit]
+ where
+  liability=select (is (field 12) (k 0)) (largest (field 1) (field 2)) (select (is (field 13) (k 0)) (field 1) (field 2))
+  -- Zero pricing funding is allowed only while paused/closed; outstanding
+  -- complete-set claims and fees still require their independent full backing.
+  empty=le (k 1) (field 11)
+  funded=allChecks [le (k 1000) (field 10),le (field 10) (k (10^6)),le (field 7) cap,le (field 8) cap]
+  cap=S.mul (F.u64 (field 10)) (F.ks 10)>>>S.narrow
+
+lmsrT :: (Simplicity t,Primitive t) => CT t
+lmsrT=allChecks [base,old>>>validMarket,new>>>validMarket,choose [(0,funding True),(1,funding False),(2,phase 0 1),(3,phase 1 0),(4,feeChange),(5,trade),(6,close),(7,withdrawFees),(8,transferPosition),(9,resolve),(10,redeem)]]
+ where
+  owner=allChecks [same actor (k 0),sigAt 0 0]
+  funding increase=allChecks [owner,same (o 11) (k 1),same (o 12) (k 0),nonzero amount,changes [(0,operation (o 0) amount),(1,operation (o 1) amount),(2,operation (o 2) amount),(7,operation (o 7) amount),(8,operation (o 8) amount),(10,operation (o 10) amount),nonce],if increase then deposit amount else withdraw amount (destination 0)]
+   where operation=if increase then add else sub
+  phase from to=allChecks [owner,same (o 11) (k from),same (o 12) (k 0),changes [(11,k to),nonce],noCash]
+  feeChange=allChecks [owner,same (o 11) (k 1),same (o 12) (k 0),changes [(15,amount),nonce],noCash]
+  flag i=is (aux i) (k 1)
+  orderA=flag 0&&&amount
+  orderB=flag 2&&&aux 1
+  costInput=o 10&&&((o 7&&&o 8)&&&(orderA&&&orderB))
+  trade=(iden&&&((costInput&&&o 15)>>>settlement))>>>tradeChecks
+  tradeChecks=allChecks [take actorSig,same (take (o 11)) (k 0),same (take (o 12)) (k 0),le (take (aux 0)) (k 1),le (take (aux 2)) (k 1),le (take (aux 4)) (k 1),nonzero (add (take amount) (take (aux 1))),limitCheck,cashCheck,allChecks [same (take (n i)) (maybe (take (o i)) id (lookup i updates))|i<-[0..31]]]
+   where
+    costSign=drop ooh;costMag=drop oih;fee=drop ioh
+    net=drop iih
+    netSign=net>>>oh;netMag=net>>>ih
+    costSigned=costSign&&&F.u64 costMag
+    netSigned=netSign&&&F.u64 netMag
+    quantity isB=(take (flag (if isB then 2 else 0)))&&&F.u64 (take (if isB then aux 1 else amount))
+    pool isB=adjust (take (o (if isB then 8 else 7))) (L.minus costSigned (quantity isB))
+    user isB=adjust (take (userBalance isB o)) (quantity isB)
+    accountP a b=select (is (take actor) (k 0)) a b
+    userChanges isB=if isB then [(5,accountP (user True) (take (o 5))),(6,accountP (take (o 6)) (user True))] else [(3,accountP (user False) (take (o 3))),(4,accountP (take (o 4)) (user False))]
+    updates=[(0,adjust (take (o 0)) netSigned),(1,adjust (take (o 1)) costSigned),(2,adjust (take (o 2)) costSigned),(7,pool False),(8,pool True),(9,add (take (o 9)) fee),(14,add (take (o 14)) (k 1))]++userChanges False++userChanges True
+    limitSigned=take (flag 4)&&&F.u64 (take (aux 3))
+    limitCheck=select (is (take (aux 3)) (k 0)) unit ((netSigned&&&limitSigned)>>>L.signedLE>>>verify)
+    cashCheck=select (is netMag (k 0)) (take noCash) (select netSign (allChecks [outCount 2,inputFund (k 0),take continuation,same (outVal 1) netMag,same (outScript 1) (take actorDestination)]) (allChecks [outCount 1,inputFund netMag,take continuation]))
+  close=allChecks [owner,lt (o 11) (k 2),same (o 12) (k 0),changes [(3,add (o 3) (o 7)),(5,add (o 5) (o 8)),(7,k 0),(8,k 0),(11,k 2),nonce],noCash]
+  withdrawFees=allChecks [owner,same amount (o 9),nonzero amount,changes [(0,sub (o 0) amount),(9,k 0),nonce],withdraw amount (destination 0)]
+  transferPosition=allChecks [actorSig,lt (aux 0) (k 2),nonzero amount,changes ([nonce]++selectChanges False++selectChanges True),noCash]
+   where
+    selectChanges isB=let { selected=is (aux 0) (k (if isB then 1 else 0));a=if isB then 5 else 3;b=a+1 } in [(a,select selected (account (sub (o a) amount) (add (o a) amount)) (o a)),(b,select selected (account (add (o b) amount) (sub (o b) amount)) (o b))]
+  resolve=allChecks [sigAt 3 0,same (o 11) (k 2),same (o 12) (k 0),lt (aux 0) (k 2),changes [(12,k 1),(13,aux 0),nonce],noCash]
+  balance=select (is (aux 0) (k 0)) (userBalance False o) (userBalance True o)
+  winner=is (aux 0) (o 13)
+  payout=select winner balance (k 0)
+  redeem=allChecks [actorSig,same (o 12) (k 1),lt (aux 0) (k 2),nonzero balance,changes ([nonce,(0,sub (o 0) payout),(1,select (is (aux 0) (k 0)) (sub (o 1) balance) (o 1)),(2,select (is (aux 0) (k 1)) (sub (o 2) balance) (o 2))]++[(3,select (and (is (aux 0) (k 0)) (is actor (k 0))) (k 0) (o 3)),(4,select (and (is (aux 0) (k 0)) (is actor (k 1))) (k 0) (o 4)),(5,select (and (is (aux 0) (k 1)) (is actor (k 0))) (k 0) (o 5)),(6,select (and (is (aux 0) (k 1)) (is actor (k 1))) (k 0) (o 6))]),select winner (withdraw payout actorDestination) noCash]
+
+step state xs=update state ((14,state H.!!14+1):xs)
+tradeReference state who qa qb=(new,cost,fee,cash)
+ where
+  cost=L.costInteger (state H.!!10) (state H.!!7) (state H.!!8) qa qb
+  fee=abs cost*(state H.!!15) `div`feeScale
+  cash=cost+fee
+  adjustField i d=(i,state H.!!i+d)
+  new=step state [adjustField 0 cash,adjustField 1 cost,adjustField 2 cost,adjustField 7 (cost-qa),adjustField 8 (cost-qb),adjustField 9 fee,adjustField (3+who) qa,adjustField (5+who) qb]
+tradeExtras qa qb limit=[if qa<0 then 1 else 0,abs qb,if qb<0 then 1 else 0,abs limit,if limit<0 then 1 else 0]
+
+lmsrEntry=Entry "app-lmsr-prediction-market" "Native two-outcome LMSR prediction market" "Pinned Gnosis LMSRMarketMaker/MarketMaker and Fixed192x64Math alpha.3; source net cost and complete-set trade/fee rules" BitcoinApp
+ (Derived "Independent Integer source cost, fees and ledger transitions; actual native funding, scripts, payouts and positive/negative guarded vectors")
+ ["one initialized state lineage; two fixed position owners, owner0 administers pool, oracle key4404 signs actual resolution; fixed native condition digest = taggedSHA256(oracle x-only key || question32 || 02), committed as four words, not a foreign BN254 collection ID or global token registry", "complete-set funding/mint/merge with two mutually exclusive outcomes; before resolution actual native collateral covers max(totalA,totalB)+fees; after resolution it covers remaining winning claims+fees; all pool and owner liabilities committed", "source UpperBound cost/EXP_LIMIT and exact signed rounding, both signed outcome quantities, source proportional fee and collateral limit; funding1000..1e6 while active, inventories<=10*funding and each absolute quantity<=funding; rate0..1e18; no zero-quantity trade", "owner pause/resume/fund/withdraw/change-fee/close; close transfers all inventory to owner, then oracle resolves once; users transfer or burn full chosen positions, winning burns pay exact BTC and losing burns pay zero; fee withdrawal pays owner", "one aggregate witness, actual input0, separate1000-sat fee input,10000-sat carrier excluded from assets; actual physical funding/payout and complete same-leaf continuation; no foreign callbacks, marginal-price UI or current-time claim"]
+ (boundProgram lmsrT . encode) vectors
+ where
+  subvention=1000000
+  feeRate=10^16
+  genesis=update [] ([(11,1),(15,feeRate)]++zip [16..19] conditionWords)
+  funded=step genesis [(0,subvention),(1,subvention),(2,subvention),(7,subvention),(8,subvention),(10,subvention)]
+  running=step funded [(11,0)]
+  paused=step running [(11,1)]
+  repriced=step paused [(15,2*feeRate)]
+  withdrawn=step funded [(0,999000),(1,999000),(2,999000),(7,999000),(8,999000),(10,999000)]
+  emptyAgain=step funded [(0,0),(1,0),(2,0),(7,0),(8,0),(10,0)]
+  closedEmpty=step emptyAgain [(11,2)]
+  (bought,buyCost,buyFee,buyCash)=tradeReference running 1 10000 0
+  (sold,_,_,sellCash)=tradeReference bought 1 (-4000) 0
+  (boughtBoth,_,_,_)=tradeReference running 0 6000 10000
+  moved=step bought [(3,3000),(4,7000)]
+  feesPaid=step bought [(0,bought H.!!0-buyFee),(9,0)]
+  closed=step bought [(3,bought H.!!7),(5,bought H.!!8),(7,0),(8,0),(11,2)]
+  resolvedA=step closed [(12,1),(13,0)]
+  resolvedB=step closed [(12,1),(13,1)]
+  redeemedA=step resolvedA [(0,resolvedA H.!!0-10000),(1,resolvedA H.!!1-10000),(4,0)]
+  burnedLoserA=step resolvedB [(1,resolvedB H.!!1-10000),(4,0)]
+  burnedLoserB=step resolvedA [(2,0),(5,0)]
+  ownerPayout=redeemedA H.!!3
+  ownerRedeemed=step redeemedA [(0,redeemedA H.!!0-ownerPayout),(1,0),(3,0)]
+  finalFees=step ownerRedeemed [(0,0),(9,0)]
+  cheapBuy=update bought [(i,bought H.!!i-1)|i<-[0,1,2,7,8]]
+  overpaidSell=update sold [(i,sold H.!!i-1)|i<-[0,1,2,7,8]]
+  inflatedOwner=update bought [(4,bought H.!!4+1),(7,bought H.!!7-1)]
+  overchargedFee=update bought [(0,bought H.!!0+1),(9,buyFee+1)]
+  underbacked=update funded [(0,subvention-1)]
+  underbackedWinner=update burnedLoserB [(0,burnedLoserB H.!!1+burnedLoserB H.!!9-1)]
+  badCondition=update funded [(16,(funded H.!!16+1) `mod`2^64)]
+  v=vectorBound lmsrFixtureCmr
+  go name mode a b who q extra signer input payout expectation=v name lmsrT mode a b who q extra [signer] input payout 0 expectation
+  tradeVector name old who qa qb limit=let (new,_,_,cash)=tradeReference old who qa qb in go name 5 old new (toInteger who) (abs qa) (tradeExtras qa qb limit) who (max 0 cash) (if cash<0 then Just (who,negate cash) else Nothing) Accept
+  vectors=[
+   go "actual subsidy splits one BTC collateral unit into each mutually exclusive outcome" 0 genesis funded 0 subvention [] 0 subvention Nothing Accept,
+   go "fully backed funding below sum of outcomes is valid" 3 funded running 0 0 [] 0 0 Nothing Accept,
+   go "owner partial funding merge burns both reserves and pays actual BTC" 1 funded withdrawn 0 1000 [] 0 0 (Just (0,1000)) Accept,
+   go "owner fully merges untraded funding and restores zero pricing funding" 1 funded emptyAgain 0 subvention [] 0 0 (Just (0,subvention)) Accept,
+   go "owner can safely close an empty paused market" 6 emptyAgain closedEmpty 0 0 [] 0 0 Nothing Accept,
+   go "owner pauses active market" 2 running paused 0 0 [] 0 0 Nothing Accept,
+   go "fee changes only in paused authorized state" 4 paused repriced 0 (2*feeRate) [] 0 0 Nothing Accept,
+   tradeVector "signed outcomeA buy pays source cost plus exact floor fee" running 1 10000 0 buyCash,
+   tradeVector "signed outcomeA sale merges complete sets and pays exact net refund" bought 1 (-4000) 0 sellCash,
+   tradeVector "one trade buys both outcome quantities" running 0 6000 10000 0,
+   tradeVector "one trade sells A and buys B using one shared cost" boughtBoth 0 (-2000) 3000 0,
+   go "owned outcome position transfer preserves both supplies" 8 bought moved 1 3000 [0] 1 0 Nothing Accept,
+   go "fee withdrawal pays only owner and preserves outcome backing" 7 bought feesPaid 0 buyFee [] 0 0 (Just (0,buyFee)) Accept,
+   go "closing moves all market inventory to owner positions" 6 bought closed 0 0 [] 0 0 Nothing Accept,
+   go "oracle resolves condition to outcomeA once" 9 closed resolvedA 0 0 [0] 3 0 Nothing Accept,
+   go "oracle can instead resolve to outcomeB" 9 closed resolvedB 0 0 [1] 3 0 Nothing Accept,
+   go "winning holder burns all selected balance and receives exact BTC" 10 resolvedA redeemedA 1 0 [0] 1 0 (Just (1,10000)) Accept,
+   go "losing holder burns with no BTC payout" 10 resolvedB burnedLoserA 1 0 [0] 1 0 Nothing Accept,
+   go "losing B supply can burn while winning A remains fully funded" 10 resolvedA burnedLoserB 0 0 [1] 0 0 Nothing Accept,
+   go "remaining winning owner positions redeem; losing supply does not remain a liability" 10 redeemedA ownerRedeemed 0 0 [0] 0 0 (Just (0,ownerPayout)) Accept,
+   go "final owner fee payout leaves zero native liabilities" 7 ownerRedeemed finalFees 0 buyFee [] 0 0 (Just (0,buyFee)) Accept,
+   go "actual initial subsidy shortfall rejected" 0 genesis funded 0 subvention [] 0 (subvention-1) Nothing Reject,
+   go "underbacked complete-set inventory rejected" 3 underbacked (step underbacked [(11,0)]) 0 0 [] 0 0 Nothing Reject,
+   go "zero losing supply cannot hide underbacked winning liabilities" 8 underbackedWinner (step underbackedWinner [(3,underbackedWinner H.!!3+1),(4,9999)]) 1 1 [0] 1 0 Nothing Reject,
+   go "alternate condition digest in funded state rejected" 3 badCondition (step badCondition [(11,0)]) 0 0 [] 0 0 Nothing Reject,
+   go "source buy cannot round down even if fabricated transition remains solvent" 5 running cheapBuy 1 10000 (tradeExtras 10000 0 0) 1 (buyCash-1) Nothing Reject,
+   go "source sale cannot overpay even if fabricated transition remains solvent" 5 bought overpaidSell 1 4000 (tradeExtras (-4000) 0 0) 1 0 (Just (1,1-sellCash)) Reject,
+   go "one extra outcome credit cannot be taken from pool" 5 running inflatedOwner 1 10000 (tradeExtras 10000 0 0) 1 buyCash Nothing Reject,
+   go "fee rounding cannot overcharge one satoshi" 5 running overchargedFee 1 10000 (tradeExtras 10000 0 0) 1 (buyCash+1) Nothing Reject,
+   go "positive collateral limit rejects excessive buy payment" 5 running bought 1 10000 (tradeExtras 10000 0 (buyCash-1)) 1 buyCash Nothing Reject,
+   go "negative collateral limit requires the minimum refund" 5 bought sold 1 4000 (tradeExtras (-4000) 0 (sellCash-1)) 1 0 (Just (1,negate sellCash)) Reject,
+   go "paused market cannot trade" 5 funded (step funded [(0,funded H.!!0+buyCash),(1,subvention+buyCost),(2,subvention+buyCost),(4,10000),(7,subvention+buyCost-10000),(8,subvention+buyCost),(9,buyFee)]) 1 10000 (tradeExtras 10000 0 0) 1 buyCash Nothing Reject,
+   go "nonowner cannot change fees" 4 paused repriced 0 (2*feeRate) [] 1 0 Nothing Reject,
+   go "nonoracle cannot fabricate resolution" 9 closed resolvedA 0 0 [0] 2 0 Nothing Reject,
+   go "even oracle cannot resolve same condition twice" 9 resolvedA (step resolvedA [(13,1)]) 0 0 [1] 3 0 Nothing Reject,
+   go "burned winning position cannot be redeemed twice" 10 redeemedA (step redeemedA []) 1 0 [0] 1 0 Nothing Reject,
+   go "re-signed winning claim cannot redirect actual recipient" 10 resolvedA redeemedA 1 0 [0] 1 0 (Just (0,10000)) Reject,
+   go "re-signed fee withdrawal cannot redirect actual recipient" 7 bought feesPaid 0 buyFee [] 0 0 (Just (1,buyFee)) Reject]
+entries=[lmsrEntry]
