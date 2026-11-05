@@ -81,7 +81,11 @@ row; use the same order on resume. A new full cohort refuses an existing
 checkpoint namespace for that fingerprint. Preserve an earlier namespace
 separately if intentionally remeasuring; an explicit resume reuses only its
 recorded, hash-checked results. Every new full-cohort child must log exactly
-one passing outcome per registered vector. Heap size
+one passing outcome per registered vector. Full-run inputs must be tracked
+and match `HEAD`; the cohort records the start commit. The final audit checks
+for identical commitment roots across groups. The only reviewed exception is
+the deliberately disconnected default versus APO sighash pair documented in
+[DISCONNECTED-SIGHASH.md](DISCONNECTED-SIGHASH.md). Heap size
 is a runtime resource cap, not a changed mathematical parameter.
 
 Checkpoints live under `dist-newstyle/jet-discovery-results/<fingerprint>/`.

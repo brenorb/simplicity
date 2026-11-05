@@ -54,6 +54,19 @@ def main():
         parser.error('label must be a simple basename')
     if not re.fullmatch(r'[1-9][0-9]*[MG]',args.heap):
         parser.error('heap must be an RTS size such as64G')
+    complete=args.only is None
+    source_commit=None
+    if complete:
+        source_paths=['src','app','vendor-specs','corpus/bips','../Haskell','../C',
+                      'jet-discovery.cabal','cabal.project','../Simplicity.cabal']
+        tracked=subprocess.run(['git','diff','--quiet','HEAD','--',*source_paths],cwd=ROOT)
+        others=subprocess.check_output(['git','ls-files','--others','-z','--',*source_paths],cwd=ROOT).decode().split('\0')
+        unmanaged=[name for name in others if name and not
+                   (set(Path(name).parts)&{'.git','__pycache__','dist-newstyle'} or
+                    name.endswith(('.o','.hi','.dyn_o','.dyn_hi','.DS_Store')))]
+        if tracked.returncode or unmanaged:
+            raise SystemExit('full cohort requires committed fingerprint inputs; untracked: '+', '.join(unmanaged))
+        source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     original=args.runner.resolve()
     if not original.is_file():
         parser.error('runner executable is missing')
@@ -92,7 +105,6 @@ def main():
         targets=[i for i in ids if i not in last]+args.last
     if len(targets)!=len(set(targets)) or not set(targets)<=set(ids):
         raise SystemExit('every selected exact ID must occur once in the complete registry')
-    complete=args.only is None
     counts={r['id']:int(r['vectors']) for r in rows}
     checkpoint_dir=ROOT/'dist-newstyle/jet-discovery-results'/fingerprint
     if complete and not args.resume and any(checkpoint_dir.glob('*.snapshot')):
@@ -114,7 +126,7 @@ def main():
         record={'started_utc':utc(),'original_runner':str(original),'runner':str(runner),
                 'runner_sha256':binary_hash,'fingerprint':fingerprint,
                 'coordinator_sha256':sha(Path(__file__)),'build_guard':'runner mtime >= registered sources/settings; not compiler attestation',
-                'complete_registry':complete,'registry_rows':len(ids),'targets':targets,
+                'complete_registry':complete,'source_commit_at_start':source_commit,'registry_rows':len(ids),'targets':targets,
                 'metadata_sha256':hashlib.sha256(metadata.encode()).hexdigest(),
                 'attempts':[],'complete':False}
         (directory/'registry.tsv').write_text(metadata)

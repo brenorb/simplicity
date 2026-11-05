@@ -70,6 +70,26 @@ def main():
     groups={classes[i]['count_group'] for i in ids}
     full={classes[i]['count_group'] for i in ids if classes[i]['kind'].startswith('full_')}
     require(len(groups)>=150 and len(full)*2>len(groups),'Insufficient distinct or full groups')
+    cmr_groups=collections.defaultdict(set)
+    for r in rows:
+        cmr_groups[r['cmr']].add(classes[r['id']]['count_group'])
+    conflicts={cmr:sorted(gs) for cmr,gs in cmr_groups.items() if len(gs)>1}
+    if conflicts:
+        # The default and APO entries use the same outer checkSigVerify' leaf
+        # but different disconnected modes. The standalone proof hashes each
+        # witness-free mode and tests actual response to an outpoint mutation.
+        modes=json.loads((DATA/'disconnected-sighash-identities.json').read_text())
+        log=ROOT/modes['log']
+        require(modes['exit_status']==0 and sha(log)==modes['log_sha256'],'Disconnected-mode probe is missing')
+        for name in ['src/JetDiscovery/Corpus/Baseline.hs','src/JetDiscovery/Corpus/CovenantMisc.hs',
+                     'tools/DisconnectedSighashProbe.hs']:
+            require(sha(ROOT/name)==modes['source_sha256'][name],'Disconnected-mode source changed: '+name)
+        fields=dict(line.split('=',1) for line in log.read_text().splitlines()[:4])
+        require(fields['actual_outpoint_mutation_distinguishes_modes']=='True' and
+                fields['sig_all_mode_identity']!=fields['apo_mode_identity'],
+                'Disconnected-mode proof does not establish distinct behavior')
+        allowed={fields['outer_CMR'].removeprefix('0x'):['baseline-p2pk-sigall','bip118-apo']}
+        require(conflicts==allowed,'Unreviewed exact CMR reused across groups: '+json.dumps(conflicts))
 
     harness=json.loads(args.harness.read_text())
     harness_log=ROOT/harness['log']
@@ -90,6 +110,10 @@ def main():
     require(git('remote','get-url','fork')=='https://github.com/brenorb/simplicity.git','Unexpected fork remote')
     changed=git('diff','master','--name-only').splitlines()
     require(changed and all(name.startswith('jet-discovery/') for name in changed),'Diff extends beyond jet-discovery')
+    freeze=cohort['source_commit_at_start']
+    require(not git('diff',freeze,'--name-only','--','src','app','vendor-specs','corpus/bips',
+                    'cabal.project','jet-discovery.cabal','../C','../Haskell','../Simplicity.cabal'),
+            'Tracked fingerprint inputs differ from the start commit')
     require(git('rev-parse','HEAD:C')==upstream['c_tree'] and git('rev-parse','HEAD:Haskell')==upstream['haskell_tree'],
             'Upstream suite source trees changed')
     require(upstream['test_filter']=='none' and 'default' in upstream['quickcheck_cases'],'Upstream filters changed')
