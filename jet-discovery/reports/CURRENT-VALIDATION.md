@@ -1,7 +1,7 @@
 # Current validation checkpoint
 
-The source milestone contains151 registered rows,147 distinct counting groups
-and104 complete bounded spend/verifier groups. It does **not** meet the150-group
+The source milestone contains 151 registered rows, 146 distinct counting groups
+and 104 complete bounded spend/verifier groups. It does **not** meet the 150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
 missing cost, profile, serialization or ablation numbers.
