@@ -23,6 +23,7 @@ import Simplicity.Weight (Weight)
 import JetDiscovery.JetSets (Candidate(..), SomeCandidate(..))
 import JetDiscovery.Lib.Kernels (sha256Pair, wotsChain)
 import qualified JetDiscovery.Corpus.Hashes as Hashes
+import qualified JetDiscovery.Corpus.Blake3 as Blake3
 import qualified JetDiscovery.Corpus.Stark as Stark
 import qualified JetDiscovery.Lib.Ripemd160 as Ripemd
 import qualified JetDiscovery.Corpus.Ed25519 as Ed25519
@@ -48,6 +49,7 @@ candidateInfo =
   , CandidateInfo "m31_mul" (2 * cost "FullMultiply32") "2 x FullMultiply32: one 32x32 multiply plus a Mersenne fold of similar cost"
   , CandidateInfo "qm31_mul" (cost "FeMultiply") "FeMultiply: 16 small-limb products and reductions, comparable to a 10x26-bit-limb secp256k1 field multiply"
   , CandidateInfo "keccak_f1600" (2 * cost "Sha256Block") "2 x Sha256Block: software Keccak-f[1600] takes roughly twice a SHA-256 compression"
+  , CandidateInfo "blake3_compress_cv" (0.7 * cost "Sha256Block") "ESTIMATE: 7/10 of the BLAKE2s compression analogue (Sha256Block), scaled by 7 vs 10 rounds; no BLAKE3 C benchmark"
   , CandidateInfo "blake2s_compress" (cost "Sha256Block") "Sha256Block: BLAKE2s compression and SHA-256 compression cost about the same in software"
   , CandidateInfo "blake2b_compress" (1.5 * cost "Sha256Block") "1.5 x Sha256Block: BLAKE2b compresses 128 bytes with 64-bit words"
   , CandidateInfo "sha256_wots_chain_16" (15 * cost "Sha256Block") "15 x Sha256Block: a Winternitz chain is at most 15 compressions (the jet is priced at its worst case)"
@@ -77,6 +79,7 @@ candidates =
   , SomeCandidate (Candidate "m31_mul" (costOf "m31_mul") Stark.m31Mul)
   , SomeCandidate (Candidate "qm31_mul" (costOf "qm31_mul") Stark.qm31Mul)
   , SomeCandidate (Candidate "keccak_f1600" (costOf "keccak_f1600") Hashes.keccakF)
+  , SomeCandidate (Candidate "blake3_compress_cv" (costOf "blake3_compress_cv") Blake3.compressChainingSpec)
   , SomeCandidate (Candidate "blake2s_compress" (costOf "blake2s_compress") (Hashes.blake2F Hashes.blake2s))
   , SomeCandidate (Candidate "blake2b_compress" (costOf "blake2b_compress") (Hashes.blake2F Hashes.blake2b))
   , SomeCandidate (Candidate "sha256_wots_chain_16" (costOf "sha256_wots_chain_16") wotsChain)

@@ -38,6 +38,8 @@ import qualified Simplicity.Ty.Word as W
 import JetDiscovery.Lib.Bytes (konst, w8, w32, w64, w256FromBytes, w256ToBytes)
 import JetDiscovery.Lib.Kernels (sha256Pair, wotsChain)
 import qualified JetDiscovery.Corpus.Hashes as Hashes
+import qualified JetDiscovery.Corpus.Blake3 as Blake3
+import qualified JetDiscovery.Ref.Blake3 as Blake3Ref
 import qualified JetDiscovery.Corpus.Stark as Stark
 import qualified JetDiscovery.Lib.KoalaBear as KoalaBear
 import qualified JetDiscovery.Ref.KoalaBear as KoalaBearRef
@@ -316,6 +318,20 @@ main = defaultMain $ testGroup "jet-discovery"
         let st = take 25 (map fromInteger (rands 4)) :: [Word64]
             toV ls = vec32 (map (W.toWord64 . toInteger) (ls ++ replicate 7 0))
         fmap (map (fromInteger . W.fromWord64) . take 25 . unvec32) (run Hashes.keccakF (toV st)) @?= Just (keccakRef st)
+    , testCase "blake3_compress_cv total words against independent compression" $ do
+        let v8 = vec8 . map (W.toWord32 . toInteger)
+            inputs = [ (Blake3Ref.iv, replicate 16 0, 0, 0, 11)
+                     , (Blake3Ref.iv, [0..15], 1, 64, 2)
+                     , ([1..8], replicate 16 maxBound, maxBound, 63, 0)
+                     , (replicate 8 maxBound, reverse [17..32], 2^32+1, maxBound, maxBound)
+                     , (replicate 8 0, [0..15], 0, 64, 12)
+                     ]
+        mapM_ (\(cv, msg, counter, blockLen, flags) -> do
+          let simInput = (v8 cv, ((v8 (take 8 msg), v8 (drop 8 msg)),
+                                (W.toWord64 (toInteger counter),
+                                 (W.toWord32 (toInteger blockLen), W.toWord32 (toInteger flags)))))
+              answer = fmap (map (fromInteger . W.fromWord32) . unvec8) (run Blake3.compressChainingSpec simInput)
+          answer @?= Just (take 8 (Blake3Ref.compress cv msg counter blockLen flags))) inputs
     , testCase "blake2s_compress" $ do
         let hs = map fromInteger (take 8 (rands 5)) :: [Word32]
             ms = map fromInteger (take 16 (rands 6)) :: [Word32]

@@ -298,7 +298,7 @@ The final isolated-scenario ranking is reproduced with
 `python3 tools/rank_candidates.py --runner <same-frozen-full-run-executable>`.
 The executable's `fingerprint` command must match the successful full run's
 `data/run-fingerprint.txt`; missing, partial or stale output is rejected.
-Its `candidates` command supplies all22 frontend prices and their exact
+Its `candidates` command supplies all 23 frontend prices and their exact
 benchmark-analogue methods. Registry/vector/classification coverage and every
 cell of the isolated candidate matrix are checked before writing anything.
 
