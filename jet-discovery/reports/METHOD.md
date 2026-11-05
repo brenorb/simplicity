@@ -356,6 +356,14 @@ compiler targeting Simplicity would.  Computing them in-script would cost more.
 
 ## Source coverage and counting
 
+Regenerate [all per-source comparisons](coverage-and-costs.md) with
+`python3 tools/coverage_report.py --runner <same-frozen-full-run-executable>`.
+The explicit runner must reproduce the complete analysis fingerprint and the
+exported metadata; every result/vector count and client/budget row is checked
+before publication. With no runner, the inventory and verdicts are still
+available but show costs as pending. Numbered and unnumbered proposal rows
+are available separately in [bip-verdicts.md](bip-verdicts.md).
+
 The BIP inventory inspects every nonterminal softfork row at its pinned
 revision, including exclusions. The eprint log is complete for the stated
 metadata queries, with automated and individually reviewed verdicts kept
