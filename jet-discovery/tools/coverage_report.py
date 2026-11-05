@@ -90,7 +90,7 @@ def classify_contract(dataset,r):
         if label in ['PumpSwap AMM','Meteora DAMM v2']:
             return ['xchain-uniswap-v2-amount-out','xchain-fullmath-muldiv'],'PROXY_AMM_ARITHMETIC','AMM arithmetic proxy only; source-specific reserves, fees, invariant and asset/output transition are not ported.'
         if label=='Pump.fun':
-            return [],'UNIMPLEMENTED_BONDING_CURVE','Bonding-curve transition and explicit asset conservation model not implemented; no Uniswap proxy is silently substituted.'
+            return ['app-virtual-reserve-launch'],'SOURCE_DERIVED_NATIVE_LAUNCH','Bounded Pump.fun exact-inventory launch with source virtual reserve pricing, real BTC-backed vouchers, terminal sellout and exact permissionless native migration handoff. Does not port the SPL mint, variable fees or subsequent PumpSwap pool.'
         if label=='SPL Associated Token Account':
             return [],'NOT_DIRECTLY_APPLICABLE','Solana-specific account-address derivation; Bitcoin output ownership is different. No full port is claimed.'
         if label=='SPL Token-2022':

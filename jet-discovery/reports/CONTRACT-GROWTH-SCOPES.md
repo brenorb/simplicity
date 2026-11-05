@@ -98,3 +98,10 @@ have direct serialized-state deployments without pretending that two independent
 Bitcoin assets already exist. The other profiles require deeper arithmetic or full collateralized claim machinery.
 All nineteen have guarded vector evidence. The recommendations require fresh
 measurements from the whole registered corpus.
+
+A separately validated ranked source is the
+[Pump.fun native launch](PUMP-LAUNCH-NATIVE.md). It passes 48 complete
+transaction vectors. Its synthetic pricing liquidity, finite sellout and
+permissionless terminal migration distinguish it from a recurring pool with
+LP shares. The native handoff pays a fixed output and preserves already
+backed holder claims; the later PumpSwap pool remains outside this profile.
