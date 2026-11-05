@@ -1,7 +1,7 @@
 # Current validation checkpoint
 
-The source milestone contains129 registered rows,125 distinct counting groups
-and84 complete bounded spend/verifier groups. It does **not** meet the150-group
+The source milestone contains131 registered rows,127 distinct counting groups
+and85 complete bounded spend/verifier groups. It does **not** meet the150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
 missing cost, profile, serialization or ablation numbers.
@@ -14,6 +14,8 @@ missing cost, profile, serialization or ablation numbers.
 | Numeric DLC, BOLT12 and Ark clients | Complete15 numeric DLC,14 signed invoice and14 current Bark hArk certificate vectors pass; canonical wire/C checks cover all DLC/Ark environments; [DLC](NUMERIC-DLC.md), [BOLT12](BOLT12-INVOICE.md), [Ark](ARK-REFRESH-SCOPE.md) | Fresh metrics; no onchain-feasibility credit for client verifiers |
 | BIP157/158 client | All10 official filter rows reconstructed and queried;52 actual source/boundary checks plus9 complete same-CMR vectors pass; [scope](COMPACT-FILTERS.md) | Fresh metrics; trusted checkpoint/completeness and false positives explicit |
 | BIP152 client | All13 direct and13 prepared same-CMR vectors pass, plus12 independent wire/reference checks; [scope](COMPACT-BLOCK.md) | Fresh metrics; bounded two-transaction legacy block; full consensus/finality external |
+| Native BIP32 wallet | All9 source/derivation/boundary controls and11 full native vectors pass; [scope](HD-WALLET.md) | Fresh shared metrics; unchanged hmac37 body with additive later helpers explicit |
+| Full degree256 NTT | All15 full polynomial/direction/canonicality vectors pass; original source restored byte-for-byte after failed retention experiments; [restoration](data/ntt-original-restored.json) | Component only; complete final measurements run in its own process |
 | New native contract adaptations | Eight complete groups /84 vectors pass: vault/share ledger, asynchronous claims, ascending/sealed auctions, Squads, Permit2, compressed asset transfer and13of19 guardian bridge; [validation](CONTRACT-GROWTH-VALIDATION.md) | Fresh shared cost/profile run; other drafts receive zero credit |
 | Transport primitives | SipHash74, ChaCha20 block12 and Poly1305 MAC30 vectors pass; all named published sets covered; [scope](TRANSPORT-CRYPTO.md) | Three component families; fresh metrics |
 | WebAuthn | All17 enrolled counter-wallet vectors pass the full P-256/assertion/state/payment expression; [scope](CRYPTO-FAMILIES.md) | Fresh metrics; enrollment/browser trust explicit |
@@ -27,7 +29,7 @@ missing cost, profile, serialization or ablation numbers.
 | P-256 | All8 actual prepared-kernel vectors pass in3689.202seconds; RFC6979 positives and wrong message/key/scalar, r+n carry and canonical-key controls; [record](data/p256-prepared-vectors.json) | Fresh shared cost/profile run |
 | TXHASH | All150 upstream successful selectors plus derived wrong-hash negative pass after canonical raw-outpoint repair, at one jetted CMR; [record](data/txhash-canonical-wire-vectors.json) | Fresh shared cost/profile run; malformed selector decoding remains host-only |
 | Older settlement/guard repairs | DLC settlement11, Merkle-key4, Uniswap-v2 kernel10, P2MR7 and modular multiplication6 pass | All389 CTV,19 template/annex and32 upstream P2MR vectors also pass; fresh shared metrics remain |
-| Full custom STARK | Honest full-size proof accepts at1,497,462.342WU; five small-parameter dataflow cases pass; [diagnostics](STARK-DIAGNOSTICS.md) | Full-size8-vector set and complete measurement/report fields |
+| Full custom STARK | All8 full-size vectors and all analysis fields pass; native1,497,462.342WU; combined overlay252,144.216WU ESTIMATE; [complete snapshot](data/stark-full-pre-final-measurements.json) | Final frozen whole-corpus run; this pre-final binary has21 candidate frontends |
 | Analysis | Full41-test suite passes907.54s; prepared-path3, candidate-recognition and canonical wire regressions pass; [record](data/harness-canonical-current41.json) | Complete larger-corpus run remains |
 | Upstream | Unchanged C suite98/98 and Haskell suite3252/3252 pass; default100 QuickCheck cases, no filter; [completion](data/upstream-validation-status.json) | No further upstream source changes are planned |
 
@@ -43,7 +45,7 @@ The complete full-STARK resource diagnostic exited successfully in2313.146s;
 it timed construction/cost/overlay/profile but did not print the resulting
 values or assert its honest outcome, and omitted ablations. It is resource
 evidence, not a substitute for the earlier honest-acceptance measurement or
-the complete8-vector/current analysis run, which is now in progress.
+the now-completed8-vector/complete analysis run. That later run exits0 in3839.262s and preserves every result in data/stark-full-pre-final-measurements.json; it remains pre-final whole-corpus evidence.
 
 The earlier root BIP cohort is preserved in
 data/root-corpus-repair-vectors-status.json. That driver captured only its

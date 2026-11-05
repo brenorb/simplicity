@@ -2,7 +2,7 @@
 
 Corpus-driven discovery of missing Bitcoin Simplicity jets (goal: [GOAL.md](GOAL.md)).
 
-**Work in progress:** the registry has129 rows in125 distinct groups, including84 full bounded spend/verifier groups. [Same-CMR witness aliasing](reports/WITNESS-DATAFLOW.md) and a [local outpoint byte-order error](reports/OUTPOINT-BYTEORDER.md) invalidated earlier evidence. Their local repairs pass the documented regressions; complete fresh measurements remain required. The corrected full-size STARK accepts its honest proof at1,497,462.342WU; complete corpus metrics are pending. See [current validation evidence](reports/CURRENT-VALIDATION.md).
+**Work in progress:** the registry has131 rows in127 distinct groups, including85 full bounded spend/verifier groups. [Same-CMR witness aliasing](reports/WITNESS-DATAFLOW.md) and a [local outpoint byte-order error](reports/OUTPOINT-BYTEORDER.md) invalidated earlier evidence. Their local repairs pass the documented regressions; complete fresh measurements remain required. The corrected full-size STARK accepts its honest proof at1,497,462.342WU; complete corpus metrics are pending. See [current validation evidence](reports/CURRENT-VALIDATION.md).
 
 - **Results:** [reports/RECOMMENDATIONS.md](reports/RECOMMENDATIONS.md) (ranked candidates, per-BIP verdicts),
   [reports/corpus-results.md](reports/corpus-results.md), [reports/whatif.md](reports/whatif.md),
@@ -20,8 +20,16 @@ Corpus-driven discovery of missing Bitcoin Simplicity jets (goal: [GOAL.md](GOAL
 Everything lives in this directory; no existing file in the repository is changed ([CHANGES_TO_EXISTING.md](CHANGES_TO_EXISTING.md)).
 
 ```bash
-nix-shell --run 'cabal run -v0 exe:jet-discovery -- run'
+nix-shell --run 'cabal build all test:tests'
+nix-shell --run 'cabal list-bin exe:jet-discovery'
 ```
+
+Use the printed executable path with
+`python3 tools/run_isolated.py --runner <path> --label <cohort> --heap 64G`.
+Freeze source/spec/vector files until the cohort finishes. It runs every
+exact ID in its own process, then strictly aggregates all verified profiles.
+`--resume` preserves the same fingerprint/path; a development `--only` run
+supplies no complete-corpus claim. See [METHOD](reports/METHOD.md).
 
 ```bash
 nix-shell --run 'cabal test test:tests --test-show-details=direct --test-option=--num-threads=1 --test-option=+RTS --test-option=-N1 --test-option=-M16G --test-option=-RTS'

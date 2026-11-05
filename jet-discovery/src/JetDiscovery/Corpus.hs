@@ -20,6 +20,8 @@ import qualified JetDiscovery.Corpus.Shake256 as Shake256
 import qualified JetDiscovery.Corpus.ContractGrowth as ContractGrowth
 import qualified JetDiscovery.Corpus.ContractMessageApps as ContractMessageApps
 import qualified JetDiscovery.Corpus.ContractBridge as ContractBridge
+import qualified JetDiscovery.Corpus.MlDsaNtt as MlDsaNtt
+import qualified JetDiscovery.Lib.HdWallet as HdWallet
 import qualified JetDiscovery.Corpus.Xmss as Xmss
 import qualified JetDiscovery.Corpus.Bip360P2mr as Bip360P2mr
 import qualified JetDiscovery.Corpus.ContractMath as ContractMath
@@ -82,10 +84,12 @@ corpus = concat <$> sequence
   , BitcoinGrowth.entries
   , BitcoinGrowth2.entries
   , BitcoinClients.entries
+  , fmap (:[]) HdWallet.entry
   , TransportCrypto.entries
   , pure WebAuthn.entries
   , pure Poseidon2.entries
   , Shake256.entries
+  , pure MlDsaNtt.entries
   , pure ScriptProposals.entries
   , pure FibonacciStark.entries
   , pure ContractExpansion.entries
