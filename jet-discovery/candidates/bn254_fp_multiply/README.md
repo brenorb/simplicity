@@ -25,7 +25,7 @@ feasibility. The normal tests compare the expression to Haskell Integer
 multiplication and modular reduction. All 12 corpus vectors pass, including
 zero, maximal canonical operands, a 253-bit carry case and incorrect-result
 rejection. See [measurements and extrapolation](../../reports/bn254-groth16.md)
-for the complete measured scope. Corpus-wide impact remains pending.
+for the complete measured scope. The complete run reports whole-corpus impact separately.
 
 BN254 is useful beyond one opcode: Groth16 bridge verifiers, pairing relations,
 G2 arithmetic and proof systems used by BitVM bridges. This reverses the earlier

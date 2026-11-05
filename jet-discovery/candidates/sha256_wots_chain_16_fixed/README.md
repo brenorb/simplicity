@@ -49,9 +49,9 @@ start and a chain node that enters once. Its five layers have 35 chains each:
 **175 source-level calls**, each with at most 15 hash steps. This is an expected
 structural multiplicity; actual matcher occurrences, WU, what-if savings and
 budget feasibility must be taken from the fresh runner/mining artifacts.
-Those rows are pending, and old costs for the repaired verifier are invalid.
-The full repaired verifier's seven vectors pass; this is separate from the
-pending fresh cost measurement.
+Historical costs for the unbound verifier do not apply to the repaired rows.
+The full repaired verifier's seven standalone vectors pass. The complete
+run reports its cost and candidate impact separately.
 
 The standard `pq-slh-dsa-sha2-128s` baseline uses the same kernel in seven
 35-chain layers, or **245 source-level calls**. It belongs to the same hash-family

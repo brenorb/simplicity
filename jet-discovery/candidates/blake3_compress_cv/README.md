@@ -26,8 +26,8 @@ order; byte serialization is outside this arrow.
   and CPU acceleration. The current registry rounds this analogue to **0.535 WU (ESTIMATE)**.
 - Demand: this expression is used by the bounded unkeyed BLAKE3-256 hash, with a Bitcoin dispute path evidenced by the pinned
   [BitVM BLAKE3 source](../../vendor-specs/crypto-families/bitvm-blake3.rs.txt).
-  Exact corpus matches, per-program isolated savings and budget effects are
-  pending the fresh corpus run. All 22 native hash vectors pass, including
+  The complete corpus run records matches, per-program isolated savings
+  and budget effects. All 22 standalone native hash vectors pass, including
   all 19 supported official cases; see [validation](../../reports/CRYPTO-FAMILIES.md).
   This candidate adds no corpus group.
 - Burden: medium. C needs 16 local state words, fixed add/XOR/rotate operations,

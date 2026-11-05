@@ -1,14 +1,18 @@
 # Full Fibonacci STARK experiment
 
-**Corrected full-size honest verification measured.** The earlier checked-hint expression
-was vulnerable to same-CMR witness splitting. Its 1,416,983.723 WU result is a
-historical consistency-schema benchmark, not a sound full-verifier cost.
-The corrected verifier authenticates shared context reopenings and binds
-every per-stage proof input through dataflow. The corrected expression costs
-**1,497,462.342 WU** under the existing Bitcoin jets and accepts its honest
-full-size proof. Full corpus negative vectors and reporting metrics remain
-pending. See [STARK-DIAGNOSTICS.md](STARK-DIAGNOSTICS.md) for exact evidence and
-[WITNESS-DATAFLOW.md](WITNESS-DATAFLOW.md) for the repair.
+**The corrected full-size verifier passed all eight proof vectors and cost
+1,497,462.342 WU under existing Bitcoin jets.** It accepts the honest proof
+and rejects all seven adversarial proofs under one commitment. The
+[complete standalone diagnostic](data/stark-full-pre-final-measurements.json)
+also records its primitive-only cost, overlays, ablations, encoding sizes
+and profile. It predates the full registry freeze. Use the final corpus
+fingerprint for cross-program and recommendation comparisons.
+
+The earlier 1,416,983.723 WU expression allowed same-CMR witness splitting
+and supplies no current verifier cost. The corrected expression binds
+every per-stage proof input and authenticates shared context reopenings.
+See [STARK-DIAGNOSTICS.md](STARK-DIAGNOSTICS.md) and
+[WITNESS-DATAFLOW.md](WITNESS-DATAFLOW.md) for the exact evidence and repair.
 
 This experiment measures the whole verification path, including the parts
 omitted by `stark-fri-verifier`. It is a custom, non-zero-knowledge research

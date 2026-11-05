@@ -1,29 +1,25 @@
-# Candidate: `bip341_hashes` — BIP 341 precomputed transaction hashes
+# Cost-only concept: BIP 341 precomputed transaction hashes
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
+The study prices a stand-in for this family. It has no executable candidate
+arrow, exact DAG occurrence count, or recommendation score. The measured
+template programs and separate stand-in bounds are in
+[what-if analysis](../../reports/whatif.md).
 
-## Type signature
-`bip341_sha_outputs`, `bip341_sha_sequences`, `bip341_sha_prevouts`, `bip341_sha_amounts`, `bip341_sha_scriptpubkeys`: `1 -> Word256`; `bip341_current_sha_annex`: `1 -> S Word256`; for BIP 119, `bip119_sha_scriptsigs`: `1 -> S Word256` (none when every scriptSig is empty)
+The proposed accessors would return BIP 341's SHA-256 hashes of serialized
+outputs, sequences, previous outpoints, amounts, scriptPubKeys and the
+current annex. A separate BIP 119 accessor would return the optional
+scriptSig hash. The transaction environment exposes several native hashes
+but lacks raw script bytes for the byte-compatible calculations. The
+stand-in treats the transaction-wide work as precomputed and prices
+access like the existing transaction-hash jets. This is an **ESTIMATE**.
+Its C implementation, caching effects and cost are unmeasured.
 
-## Specification
-Each is the corresponding BIP 341 (or BIP 119) hash of the transaction, as Bitcoin Core's `PrecomputedTransactionData` already computes it. The definitions need raw output scripts and scriptSigs, which no Bitcoin Simplicity primitive exposes, so there is no Simplicity reference expression. The closest executable references are the witness-checked re-serializations in `src/JetDiscovery/Lib/TxSer.hs` (`shaOutputs`, `shaSequences`) and `Corpus/Bip446TemplateHash.hs`, which pass the upstream BIP 119 and BIP 446 vectors.
-
-## Cost (ESTIMATE)
-ESTIMATE: priced like the existing precomputed transaction-hash jets (`outputs_hash` = 0.117 WU, `input_sequences_hash`, `input_script_sigs_hash`): the value is computed once per transaction and read by the jet. What-if costs come from cost-only stand-in variants (`src/JetDiscovery/Candidates/Variants.hs`).
-
-## Generality
-Primitive. One family serves BIP 119 CTV, BIP 446 TEMPLATEHASH, BIP 448 (LN-Symmetry), BIP 346 TXHASH, BIP 118 APO-exact digests and any BIP 341-compatible signature hash computed in Simplicity.
-
-## Verification burden (judgement, by analogy with jets proven on `feat/jet-equivalence`)
-Low to medium. The closest proven jets are the Bitcoin transaction-hash and totals jets on the totals branch (`outputs_hash`-style hashing over the txEnv, with the reusable SHA-256 streaming lemmas). The new work is computing BIP 341 serializations in `C/bitcoin/txEnv.c` and proving them against a Haskell specification over raw scripts; the C side needs the raw scripts in the txEnv, which Bitcoin Core has.
-
-## Alternatives considered
-(a) A raw-bytes primitive (`output_script(i)` returning bytes). This breaks Simplicity's design of bounded, typed values: script lengths are unbounded. (b) Re-serializing from witness bytes, as the corpus does today: correct, but 50-100x more expensive in the static bound, because every buffer slot is priced at its maximum size. (c) Simplicity-native template hashes (`bip119-ctv-native`): cheap and as strong, but not hash-compatible with the BIPs.
-
-## Corpus evidence
-- `bip119-ctv-exact`: measured 3737.013 WU → stand-in variant 54.490 WU (68.6×).
-- `bip446-templatehash-exact`: measured 1937.256 WU → stand-in variant 57.289 WU (33.8×).
-- `bip448-lnsymmetry-update` (1987.336 WU) spends 1935.7 WU (99.4%) inside the same template-hash sub-DAG as `bip446-templatehash-exact` (reports/subdags.md, shape table), so it gains the same factor.
-- Mining: the witness-checked `sha_outputs` re-serialization is the largest sub-DAG shared across programs (1634 WU per instance in 3 programs; the per-output step 101 WU x 45).
-
-Test: there is no Simplicity specification to test (see Specification); the witness-checked re-serializations that define the expected values pass the BIP 119 (100 transactions) and BIP 446 (19 cases) upstream vectors.
+The byte-exact BIP 119 and BIP 446 corpus programs reconstruct serialization
+from checked raw-script witnesses. They have independently inventoried
+upstream vectors; their verdicts and exact scope are in
+[the BIP table](../../reports/bip-verdicts.md). The native CTV variant
+commits to the same transaction fields using the existing native hashes,
+with a different wire digest. When exact BIP wire compatibility matters,
+a transaction-environment accessor would also require a C/Haskell
+serialization equivalence proof. A native output covenant can use
+the existing hashes where compatibility is unnecessary.
