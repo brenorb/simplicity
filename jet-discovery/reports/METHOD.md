@@ -66,6 +66,17 @@ retained as build diagnostics, not passing upstream tests.
 
 ## Long-run checkpoints and resource use
 
+The runner logs every measurement phase and every actual vector outcome.
+Before evaluating vectors it fully forces the saved profile's hashes, shape,
+costs, multiplicities, node counts and types; the compact record can then
+release the typed source DAG instead of retaining lazy field closures until
+checkpoint serialization. This changes evaluation order, not the expression
+or cost formulas. The complete ChaCha20 check
+`data/chacha-complete-analysis-progress.{txt,json}` preserves all12 passes
+and the identical canonical CMR,2,258,812milliWU native bound and5,773total
+program+witness bits from the earlier diagnostic. Both runs remain
+pre-final evidence; neither supplies fresh whole-corpus coverage.
+
 `run` and `run <prefix>` save plain-data measurement/profile checkpoints under
 `dist-newstyle/jet-discovery-results/` after each program. A completed row can
 be reused only when its fingerprint matches all current local sources,

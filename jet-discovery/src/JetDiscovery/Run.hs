@@ -27,6 +27,7 @@ import qualified Data.Map.Strict as Map
 import Data.Ord (comparing, Down(..))
 import Data.Word (Word64)
 import Data.Type.Equality ((:~:)(Refl))
+import System.IO (hFlush,stdout)
 
 import Simplicity.Digest (Hash256)
 import Simplicity.MerkleRoot (CommitmentRoot, commitmentRoot)
@@ -214,21 +215,39 @@ runEntryIO e@(Entry _ _ _ _ _ _ prog vecs) = do
       -- are requested after a second interpretation has already been built.
       forceWhatIf = mCostWhatIf m `seq` forcePairs (mWhatIfJets m) `seq`
         foldl' (\() (name,(cost,count))->forceText name `seq` cost `seq` count `seq` ()) () (mCandidateCosts m)
-      forceProfile = mProfileTotal m `seq` foldl' (\() n -> forceNode n) () (mProfile m)
-      forceM = [ () <$ evaluate (mCmr m), () <$ evaluate (mCost m), () <$ evaluate (mCostBase m)
-               , evaluate forceWhatIf, () <$ evaluate (mProgBits m + mWitBits m)
-               , evaluate forceProfile ]
-               ++ [ () <$ evaluate c | (_, c) <- mAblations m ]
-  _ <- parallelIO forceM
-  vs <- parallelIO [ evaluate (forceVR r) | r <- runVectors prog (mCmr m) vecs ]
+      forceProfile = mNodes m `seq` mProfileTotal m `seq` foldl' (\() n -> forceNode n) () (mProfile m)
+      forceM = [ ("jetted CMR",() <$ evaluate (hashToInteger (mCmr m)))
+               , ("native bound",() <$ evaluate (mCost m))
+               , ("primitive-only bound",() <$ evaluate (mCostBase m))
+               , ("combined and isolated candidate scenarios",evaluate forceWhatIf)
+               , ("program and witness serialization",() <$ evaluate (mProgBits m + mWitBits m))
+               , ("profile",evaluate forceProfile) ]
+               ++ [ ("ablation "++name,() <$ evaluate c) | (name,c) <- mAblations m ]
+      progress message=putStrLn(entryId e++" / "++message)>>hFlush stdout
+      phase (name,action)=do
+        progress(name++": started")
+        action
+        progress(name++": completed")
+      vector r=do
+        progress(vrName r++": evaluating")
+        result<-evaluate(forceVR r)
+        progress(vrName result++": "++(if vrOk result then "PASS" else "FAIL")++" ("++vrNote result++")")
+        return result
+  _ <- parallelIO (map phase forceM)
+  vs <- parallelIO [ vector r | r <- runVectors prog (mCmr m) vecs ]
   return (EntryResult e m vs)
  where
-  forceVR r = vrOk r `seq` length (vrNote r) `seq` r
+  forceVR r = vrOk r `seq` forceText (vrName r) `seq` forceText (vrNote r) `seq` r
   forceText = foldl' (\() c -> fromEnum c `seq` ()) ()
   forcePairs = foldl' (\() (name,n) -> forceText name `seq` n `seq` ()) ()
   forceType = Ty.memoCataTy (\f -> case f of
     Ty.One -> (); Ty.Sum a b -> a `seq` b `seq` (); Ty.Prod a b -> a `seq` b `seq` ())
-  forceNode n = niCmr n `seq` forceText (niKind n) `seq`
+  -- Force every saved field before retaining the compact record. Leaving
+  -- shape/total/node-count thunks here can pin the entire typed source DAG
+  -- until checkpoint serialization, after all vectors have run.
+  forceNode n = niIndex n `seq` niHash n `seq` hashToInteger (niCmr n) `seq`
+    niShape n `seq` forceText (niKind n) `seq` niSelf n `seq` niTotal n `seq`
+    niMult n `seq` niNodes n `seq`
     forceType (niSrc n) `seq` forceType (niTgt n) `seq` ()
 
 -- | Run actions concurrently (bounded by the number of capabilities) and collect results in order.
