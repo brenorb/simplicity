@@ -20,6 +20,7 @@ import qualified JetDiscovery.Corpus.Poseidon2 as Poseidon2
 import qualified JetDiscovery.Corpus.Shake256 as Shake256
 import qualified JetDiscovery.Corpus.ContractGrowth as ContractGrowth
 import qualified JetDiscovery.Corpus.CumulativeSplitter as CumulativeSplitter
+import qualified JetDiscovery.Corpus.SablierStream as SablierStream
 import qualified JetDiscovery.Corpus.ContractMessageApps as ContractMessageApps
 import qualified JetDiscovery.Corpus.ContractBridge as ContractBridge
 import qualified JetDiscovery.Corpus.ClaimProtocols as ClaimProtocols
@@ -100,6 +101,7 @@ corpus = concat <$> sequence
   , pure ContractExpansion.entries
   , pure ContractGrowth.entries
   , pure CumulativeSplitter.entries
+  , pure [SablierStream.entry]
   , pure ContractMessageApps.entries
   , pure ContractBridge.entries
   , pure ClaimProtocols.entries
