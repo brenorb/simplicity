@@ -36,6 +36,7 @@ import JetDiscovery.Corpus.Apps (sigMsg)
 import JetDiscovery.Lib.Bytes
 import JetDiscovery.Lib.Kernels (wotsChain)
 import JetDiscovery.Lib.TxSer (ctxWith)
+import JetDiscovery.Lib.HashSigWitness (pair8,pair32,fieldItems)
 import JetDiscovery.Run (progCmr)
 import JetDiscovery.Tx
 import JetDiscovery.Types
@@ -83,78 +84,69 @@ tree32 ts = p16 (L.take 16 ts) &&& p16 (L.drop 16 ts)
 
 data SW = SW { swPkSeed :: Word128, swSlRoot :: Word128, swSfRoot :: Word128, swR :: Word128, swH :: Word8, swIdx :: Word64, swCounter :: Word16, swChains :: [Word128], swAuth :: [Word128] }
 
--- | SHRINCS stateful verification of sig_all_hash.  The 48-byte public key
--- (pk_seed, sl_root, sf_root) is a witness operand, so one program (one CMR)
--- serves every test key; a real script would fix it.
-shrincsStateful :: forall term. (Simplicity term, Primitive term) => SW -> term () ()
-shrincsStateful sw = checks &&& (rootOk &&& sumOk) >>> unit
+type SFHeader=(Word128,(Word128,(Word128,Word128)))
+type SFInput=(SFHeader,(Word8,(Word64,Word16)))
+
+-- Bind the multiply-used seed/roots/R/height/index/counter header once.
+-- Each independent chain/path value enters at its single consuming stage.
+shrincsStateful :: forall term. (Simplicity term,Primitive term) => SW -> term () ()
+shrincsStateful sw
+ | length (swChains sw)/=32 || length (swAuth sw)/=maxDepth=error "SHRINCS stateful proof dimensions"
+ | otherwise=witness packed >>> statefulT sw
  where
-  pkSeedT, slRootT, sfRootT :: forall a. TyC a => term a Word128
-  pkSeedT = witness (swPkSeed sw)
-  slRootT = witness (swSlRoot sw)
-  sfRootT = witness (swSfRoot sw)
-  h :: forall a. TyC a => term a Word8
-  h = witness (swH sw)
-  idx :: forall a. TyC a => term a Word64
-  idx = witness (swIdx sw)
+  packed=((swPkSeed sw,(swSlRoot sw,(swSfRoot sw,swR sw))),(swH sw,(swIdx sw,swCounter sw)))
+
+appendT :: (Assert term,TyC a,TyC b) => term a b -> term (Ctx8,b) Ctx8 -> term (a,Ctx8) (a,Ctx8)
+appendT f jet=oh &&& ((ih &&& (oh >>> f)) >>> jet)
+hashStart :: (Assert term,TyC a) => term a (a,Ctx8)
+hashStart=iden &&& (unit >>> ctx8Init)
+hashEnd :: (Assert term,TyC a) => term (a,Ctx8) Word256
+hashEnd=drop ctx8Finalize
+
+statefulT :: forall term. (Simplicity term,Primitive term) => SW -> term SFInput ()
+statefulT sw=checks &&& (rootOk &&& sumOk) >>> unit
+ where
+  pkSeedT=oh >>> oh
+  slRootT=oh >>> ih >>> oh
+  sfRootT=oh >>> ih >>> ih >>> oh
+  randomizer=oh >>> ih >>> ih >>> ih
+  h=ih >>> oh
+  idx=ih >>> ih >>> oh
+  counter=ih >>> ih >>> ih
+  chainValue i=witness (swChains sw!!i)
+  authValue i=witness (swAuth sw!!i)
   k8 :: forall a. TyC a => Integer -> term a Word8
-  k8 = konst . w8
-  -- context after absorbing the padded pk_seed block
-  mid :: term () Ctx8
-  mid = ctx8Init &&& ((pkSeedT &&& konst (toWord128 0)) &&& konst (w256 0)) >>> ctx8Add64
-  -- mid || height || index || type
-  prefix :: Integer -> term () Ctx8
-  prefix ty = mid >>> ctxWith h ctx8Add1 >>> ctxWith idx ctx8Add8 >>> ctxWith (k8 ty) ctx8Add1
-  -- H_msg_sf over the bound message 0x00 || 0x00 || sl_root || sig_all_hash
-  inner = ctx8Init >>> ctxWith (witness (swR sw)) ctx8Add16 >>> ctxWith pkSeedT ctx8Add16
-      >>> ctxWith sfRootT ctx8Add16 >>> ctxWith h ctx8Add1 >>> ctxWith idx ctx8Add8
-      >>> ctxWith (konst (w16 0)) ctx8Add2 >>> ctxWith slRootT ctx8Add16 >>> ctxWith sigMsg ctx8Add32
-      >>> ctx8Finalize
-  digest = ctx8Init >>> ctxWith (witness (swR sw)) ctx8Add16 >>> ctxWith pkSeedT ctx8Add16
-       >>> ctxWith inner ctx8Add32 >>> ctxWith h ctx8Add1 >>> ctxWith idx ctx8Add8 >>> ctx8Finalize
-  -- H_grind: the first 10 ADRS bytes, the digest, 4 zero bytes and the counter
-  hashed :: term () Word128
-  hashed = prefix 22 >>> ctxWith digest ctx8Add32 >>> ctxWith (konst (w32 0)) ctx8Add4
-       >>> ctxWith (witness (swCounter sw)) ctx8Add2 >>> ctx8Finalize >>> oh
-  -- the 32 nibbles must sum to WOTS_C_CONSTANT_SUM
-  sumOk :: term () ()
-  sumOk = hashed >>> (foldl (\acc k -> acc &&& (nibble k >>> nib8 >>> (konst (w8 0) &&& iden)) >>> Arith.add word16 >>> ih)
-                            (konst (w16 0)) [0 .. 31]
-                     &&& konst (w16 (toInteger Ref.constantSum))) >>> eq >>> verify
-  chain :: Int -> Word128 -> term (Ctx8, Word128) Word128
-  chain i c = ((oh &&& konst (w32 (toInteger i)) >>> ctx8Add4) &&& ((ih >>> nibble i) &&& witness c))
-          >>> wotsChain
-  pre16 :: term () Ctx8
-  pre16 = prefix (toInteger 16) >>> ctxWith (konst (w32 0)) ctx8Add4
-  tips :: term () Word4096
-  tips = (pre16 &&& hashed) >>> tree32 [ chain i c | (i, c) <- zip [0 ..] (swChains sw) ]
-  leafPk :: term () Word128
-  leafPk = prefix 17 >>> ctxWith (konst (w64 0)) ctx8Add8 >>> ctxWith (konst (w32 0)) ctx8Add4
-       >>> ctxWith tips ctx8Add512 >>> ctx8Finalize >>> oh
-  -- FXMSS path level k (applied only while k < depth, i.e. height + k <= 254)
-  level :: Int -> Word128 -> term Word128 Word128
-  level k sib = ((unit >>> h) &&& k8 (254 - toInteger k) >>> Arith.le word8) &&& iden >>> cond hk iden
+  k8=konst.w8
+  mid :: term SFInput Ctx8
+  mid=((unit >>> ctx8Init) &&& ((pkSeedT &&& konst (toWord128 0)) &&& konst (w256 0))) >>> ctx8Add64
+  prefix ty=(iden &&& mid) >>> appendT h ctx8Add1 >>> appendT idx ctx8Add8 >>> appendT (k8 ty) ctx8Add1
+  inner=hashStart >>> appendT randomizer ctx8Add16 >>> appendT pkSeedT ctx8Add16 >>> appendT sfRootT ctx8Add16
+        >>> appendT h ctx8Add1 >>> appendT idx ctx8Add8 >>> appendT (konst (w16 0)) ctx8Add2 >>> appendT slRootT ctx8Add16 >>> appendT (unit >>> sigMsg) ctx8Add32 >>> hashEnd
+  digest=hashStart >>> appendT randomizer ctx8Add16 >>> appendT pkSeedT ctx8Add16 >>> appendT inner ctx8Add32
+         >>> appendT h ctx8Add1 >>> appendT idx ctx8Add8 >>> hashEnd
+  hashed=prefix 22 >>> appendT digest ctx8Add32 >>> appendT (konst (w32 0)) ctx8Add4 >>> appendT counter ctx8Add2 >>> hashEnd >>> oh
+  sumOk=hashed >>> (foldl (\acc k -> acc &&& (nibble k >>> nib8 >>> (konst (w8 0) &&& iden)) >>> Arith.add word16 >>> ih) (konst (w16 0)) [0..31] &&& konst (w16 (toInteger Ref.constantSum))) >>> eq >>> verify
+  pre16=prefix 16 >>> appendT (konst (w32 0)) ctx8Add4 >>> ih
+  chain i=(((pre16 &&& konst (w32 (toInteger i))) >>> ctx8Add4) &&& ((hashed >>> nibble i) &&& chainValue i)) >>> wotsChain
+  tips=tree32 [chain i | i<-[0..31]]
+  leafPk=prefix 17 >>> appendT (konst (w64 0)) ctx8Add8 >>> appendT (konst (w32 0)) ctx8Add4 >>> appendT tips ctx8Add512 >>> hashEnd >>> oh
+  root=(iden &&& leafPk) >>> L.foldl' (>>>) iden [level k | k<-[0..maxDepth-1]] >>> ih
+  level :: Int -> term (SFInput,Word128) (SFInput,Word128)
+  level k=(((oh >>> h) &&& k8 (254-toInteger k)) >>> Arith.le word8) &&& iden >>> cond (oh &&& hk) iden
    where
-    parentH = h &&& k8 (toInteger k + 1) >>> Arith.add word8 >>> ih
-    parentI = k8 (toInteger k + 1) &&& idx >>> Word.right_shift word8 word64
-    ordered = ((unit >>> idx >>> bit64 k) &&& (iden &&& witness sib)) >>> cond (ih &&& oh) iden
-    hk = (unit >>> prefixH) &&& ordered >>> ctx8Add32 >>> ctx8Finalize >>> oh
-    prefixH = mid >>> ctxWith parentH ctx8Add1 >>> ctxWith parentI ctx8Add8 >>> ctxWith (k8 18) ctx8Add1
-          >>> ctxWith (konst (w64 0)) ctx8Add8 >>> ctxWith (konst (w32 0)) ctx8Add4
-  root :: term () Word128
-  root = leafPk >>> foldr (\(k, s) acc -> level k s >>> acc) iden (zip [0 ..] (swAuth sw))
-  rootOk :: term () ()
-  rootOk = root &&& sfRootT >>> eq >>> verify
-  -- depth <= maxDepth, and leaf_index < 2^depth
-  depthOk = k8 (255 - toInteger maxDepth) &&& h >>> Arith.le word8 >>> verify
-  indexBound = idx &&& konst (w64 (2 ^ maxDepth)) >>> Arith.lt word64 >>> verify
-  indexBits :: term () ()
-  indexBits = foldr (\k acc -> (bitOk k &&& acc) >>> unit) unit [0 .. maxDepth - 1]
-  bitOk :: Int -> term () ()
-  bitOk k = (idx >>> bit64 k) &&& unit >>> cond (h &&& k8 (254 - toInteger k) >>> Arith.le word8 >>> verify) unit
-  statefulOk = h &&& k8 254 >>> Arith.le word8 >>> verify
-  checks :: term () ()
-  checks = ((statefulOk &&& depthOk) &&& (indexBound &&& indexBits)) >>> unit
+    parentH=((oh >>> h) &&& k8 (toInteger k+1)) >>> Arith.add word8 >>> ih
+    parentI=(k8 (toInteger k+1) &&& (oh >>> idx)) >>> Word.right_shift word8 word64
+    ordered=(((oh >>> idx >>> bit64 k)) &&& (ih &&& (oh >>> authValue k))) >>> cond (ih &&& oh) iden
+    prefixH=(iden &&& (oh >>> mid)) >>> appendT parentH ctx8Add1 >>> appendT parentI ctx8Add8 >>> appendT (k8 18) ctx8Add1
+            >>> appendT (konst (w64 0)) ctx8Add8 >>> appendT (konst (w32 0)) ctx8Add4
+    hk=prefixH >>> appendT ordered ctx8Add32 >>> hashEnd >>> oh
+  rootOk=(root &&& sfRootT) >>> eq >>> verify
+  depthOk=(k8 (255-toInteger maxDepth) &&& h) >>> Arith.le word8 >>> verify
+  indexBound=(idx &&& konst (w64 (2^maxDepth))) >>> Arith.lt word64 >>> verify
+  indexBits=foldr (\k acc -> (bitOk k &&& acc) >>> unit) unit [0..maxDepth-1]
+  bitOk k=((idx >>> bit64 k) &&& iden) >>> cond ((h &&& k8 (254-toInteger k)) >>> Arith.le word8 >>> verify) unit
+  statefulOk=(h &&& k8 254) >>> Arith.le word8 >>> verify
+  checks=((statefulOk &&& depthOk) &&& (indexBound &&& indexBits)) >>> unit
 
 -- Vectors ----------------------------------------------------------------------
 
@@ -172,9 +164,11 @@ entries =
     , entryProgram = \sw -> Prog (shrincsStateful sw)
     , entryVectors =
         [ Vector ("valid, leaf depth " ++ show d ++ ", index " ++ show i ++ refNote d i) env (swOf d i) Accept | (d, i) <- cases ] ++
-        [ Vector "corrupted chain value" env ((swOf 4 5) { swChains = w128 0 : L.drop 1 (swChains (swOf 4 5)) }) Reject
-        , Vector "wrong grinding counter" env ((swOf 4 5) { swCounter = w16 (toInteger (fromWord16 (swCounter (swOf 4 5))) + 1) }) Reject
-        , Vector "wrong authentication path node" env ((swOf 8 200) { swAuth = w128 1 : L.drop 1 (swAuth (swOf 8 200)) }) Reject
+        [ Vector "same-CMR corrupted chain value" env ((swOf 4 5) { swChains = w128 0 : L.drop 1 (swChains (swOf 4 5)) }) Reject
+        , Vector "same-CMR wrong grinding counter" env ((swOf 4 5) { swCounter = w16 (toInteger (fromWord16 (swCounter (swOf 4 5))) + 1) }) Reject
+        , Vector "same-CMR wrong authentication path node" env ((swOf 8 200) { swAuth = w128 1 : L.drop 1 (swAuth (swOf 8 200)) }) Reject
+        , Vector "same-CMR seed header splice" env ((swOf 4 5) {swPkSeed=w128 0}) Reject
+        , Vector "same-CMR randomizer header splice" env ((swOf 4 5) {swR=w128 0}) Reject
         , Vector "signature for another transaction" env2 (swOf 1 0) Reject
         , Vector "leaf index too large for its depth" env ((swOf 4 5) { swIdx = w64 21 }) Reject
         ]

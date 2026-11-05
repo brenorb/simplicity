@@ -62,9 +62,13 @@ templateTerm scripts annex = template
   addIndex = ctxWith (primitive Prim.CurrentIndex) ctxAddLE32
   noAnnex = ih >>> ctxWith (scribe (w8 0)) ctx8Add1 >>> addIndex
   -- input (Word256 annex hash as Simplicity defines it: sha256(annex), Ctx8)
-  withAnnex = (((unit >>> witness annex >>> sha256Buffer511) &&& oh >>> eq >>> verify) &&& ih) >>> ih
-          >>> ctxWith (scribe (w8 1)) ctx8Add1 >>> addIndex
-          >>> ctxWith ((ctx8Init &&& witness annex) >>> ctxAddVarString511 >>> ctx8Finalize) ctx8Add32
+  -- Bind the annex once. The raw-hash check and BIP341 reserialization
+  -- must use projections of that same input, not copied witness nodes.
+  withAnnex = (witness annex &&& iden) >>> (rawHashOk &&& appendAnnex) >>> ih
+  rawHashOk = (take sha256Buffer511 &&& ioh) >>> eq >>> verify
+  baseContext = iih >>> ctxWith (scribe (w8 1)) ctx8Add1 >>> addIndex
+  bipAnnexHash = ((unit >>> ctx8Init) &&& oh) >>> ctxAddVarString511 >>> ctx8Finalize
+  appendAnnex = (baseContext &&& bipAnnexHash) >>> ctx8Add32
 
 data TVec = TVec { tvTx :: SigTx, tvIx :: Int, tvHash :: BS.ByteString, tvScripts :: [BS.ByteString], tvAnnex :: BS.ByteString
                  , tvValid :: Bool, tvComment :: String }

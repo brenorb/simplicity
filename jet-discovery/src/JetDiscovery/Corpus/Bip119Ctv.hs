@@ -23,6 +23,7 @@ import qualified Data.ByteString.Lazy as BSL
 import qualified Data.List as L
 import qualified Data.Vector as V
 import Data.Serialize (runPutLazy, putWord32be, put)
+import Control.Monad (unless)
 import qualified Data.Word as DW
 
 import Simplicity.Digest (Hash256, bslHash)
@@ -98,8 +99,13 @@ data CtvVec = CtvVec { cvTxNo :: Int, cvTx :: RawTx, cvIx :: DW.Word32, cvHash :
 loadVectors :: IO [CtvVec]
 loadVectors = do
   s <- readFile "vendor-specs/bips/bip-0119_vectors_ctvhash.json"
+  let records = parseCtvJson s
+  unless (all (\(_, ixs, hs) -> length ixs == length hs) records) $
+    ioError (userError "BIP119 vector index/hash array length mismatch")
+  unless (all (\(txHex, _, _) -> case parseRawTx (unhex txHex) of { Right _ -> True; Left _ -> False }) records) $
+    ioError (userError "BIP119 upstream transaction failed to parse")
   return [ CtvVec n tx ix (unhex h)
-         | (n, (txHex, ixs, hs)) <- zip [0 ..] (parseCtvJson s)
+         | (n, (txHex, ixs, hs)) <- zip [0 ..] records
          , Right tx <- [parseRawTx (unhex txHex)]
          , (ix, h) <- zip ixs hs
          , fromIntegral ix < length (rtIns tx) ]
@@ -142,10 +148,9 @@ fits v = length (rtIns tx) <= maxIns && length (rtOuts tx) <= maxOuts
 
 entries :: IO [Entry]
 entries = do
-  vs <- filter fits <$> loadVectors
-  -- One spend index per transaction keeps the run time reasonable; 100 transactions.
-  let firstPerTx = L.nubBy (\a b -> cvTxNo a == cvTxNo b) vs
-      envOf v = mkEnv (rawToSigTx (cvTx v)) (cvIx v) defaultTap
+  vs <- loadVectors
+  unless (all fits vs) $ ioError (userError "BIP119 upstream vector exceeds the declared Simplicity bounds")
+  let envOf v = mkEnv (rawToSigTx (cvTx v)) (cvIx v) defaultTap
       flipBit w = w256FromBytes (BS.pack (let (b:bs) = BS.unpack (w256ToBytes w) in (b + 1) : bs))
       exactVec v = Vector ("ctvhash.json tx with " ++ show (length (rtIns (cvTx v))) ++ " inputs, " ++ show (length (rtOuts (cvTx v))) ++ " outputs, index " ++ show (cvIx v))
                           (envOf v) (exactWitness v) Accept
@@ -165,14 +170,14 @@ entries = do
       , entryTitle = "OP_CHECKTEMPLATEVERIFY, bit-for-bit BIP 119 template hash"
       , entrySpec = "BIP 119 DefaultCheckTemplateVerifyHash (vendor-specs/bips/bip-0119.mediawiki)"
       , entryCategory = CovenantBip
-      , entryVectorSource = Upstream ("vendor-specs/bips/bip-0119_vectors_ctvhash.json: " ++ show (length firstPerTx)
-                                       ++ " transactions (first in-range spend index each), plus 2 negative vectors")
+      , entryVectorSource = Upstream ("vendor-specs/bips/bip-0119_vectors_ctvhash.json: all " ++ show (length vs)
+                                       ++ " in-range transaction/spend-index pairs, plus 2 negative vectors")
       , entryAssumptions = [ "at most " ++ show maxIns ++ " inputs and " ++ show maxOuts ++ " outputs (loops unrolled to these bounds)"
                            , "output scripts and scriptSigs of at most 511 bytes, supplied as witness bytes"
                            , "the template hash is a witness operand (in a real covenant it is a constant)"
                            , "ctvhash.json spend indices beyond the input count are skipped: Simplicity's current_index is always a real input" ]
       , entryProgram = \(h, (ss, scs)) -> Prog (ctvExact h ss scs)
-      , entryVectors = map exactVec firstPerTx ++ [badHash (head firstPerTx), badScript (head firstPerTx)]
+      , entryVectors = map exactVec vs ++ [badHash (head vs), badScript (head vs)]
       }
     , Entry
       { entryId = "bip119-ctv-native"
@@ -182,6 +187,6 @@ entries = do
       , entryVectorSource = Derived "transactions from bip-0119_vectors_ctvhash.json; expected hashes from a Haskell reference over Simplicity.Bitcoin.DataTypes"
       , entryAssumptions = ["the template hash is a witness operand (in a real covenant it is a constant)"]
       , entryProgram = \h -> Prog (ctvNative h)
-      , entryVectors = map nativeVec firstPerTx ++ [nativeBad (head firstPerTx)]
+      , entryVectors = map nativeVec vs ++ [nativeBad (head vs)]
       }
     ]

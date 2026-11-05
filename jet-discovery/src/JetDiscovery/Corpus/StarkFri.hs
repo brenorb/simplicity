@@ -1,5 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
--- | A complete circle-FRI low-degree test verifier over M31 with SHA-256
+-- | HISTORICAL UNSOUND PROTOTYPE: removed from the active corpus after the
+-- same-CMR witness-aliasing audit (reports/WITNESS-DATAFLOW.md). Repeated
+-- witness nodes do not bind one logical field. Do not use as a verifier.
+--
+-- A complete circle-FRI low-degree test verifier over M31 with SHA-256
 -- Merkle commitments and Fiat-Shamir, verifying real proofs from
 -- "JetDiscovery.Ref.CircleFri" (domain 2^8, blowup 4, 6 folds to a constant,
 -- 3 queries).  FRI is the bulk of a STARK verifier; the rest (trace and

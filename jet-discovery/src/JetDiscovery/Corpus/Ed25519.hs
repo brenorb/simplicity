@@ -7,7 +7,7 @@
 -- witness hints checked against the curve equation and the sign bit.
 module JetDiscovery.Corpus.Ed25519
   ( entries
-  , sha512Compress
+  , sha512Padding, sha512Compress
   , mulmod
   ) where
 
@@ -199,43 +199,65 @@ bit256 :: Core term => Int -> term Word256 Bit
 bit256 i = pick (testBit q 7) (pick (testBit q 6) (pick (testBit q 5) (pick (testBit q 4) (pick (testBit q 3) (pick (testBit q 2) (pick (testBit q 1) (pick (testBit q 0) iden)))))))
  where q = 255 - i
 
--- | Ed25519 verification.  Witness: (block, (xR, (xA, S))): the single SHA-512 block holding
--- R || A || M (|M| <= 15) and its padding, the decompression hints, and S.
-ed25519Verify :: forall term. (Assert term, Witness term) => (Vector16 Word64, (Word256, (Word256, Word256))) -> term () ()
-ed25519Verify (blkv, (xrv, (xav, sv))) = checks &&& (scalars >>> loop >>> final) >>> unit
+-- Canonical SHA512 padding for R32 || A32 || message[0..15]. The supplied
+-- compression block must actually encode a message in this interface.
+sha512Padding :: forall term. Assert term => term (Vector16 Word64) ()
+sha512Padding=(bounds &&& L.foldl' (\acc i -> (acc &&& byteCheck i) >>> unit) unit [0..15 :: Int]) >>> unit
  where
-  blk :: forall a. TyC a => term a (Vector16 Word64)
-  blk = witness blkv
-  xR, xA, s :: forall a. TyC a => term a Word256
-  xR = witness xrv
-  xA = witness xav
-  s = witness sv
-  rEnc, aEnc :: forall a. TyC a => term a Word256
-  rEnc = blk >>> take oh    -- the first four 64-bit words (32 bytes)
-  aEnc = blk >>> take ih
-  yR, yA :: forall a. TyC a => term a (Word256, Bit)
-  yR = rEnc >>> decodeY
-  yA = aEnc >>> decodeY
-  checks = (((xR &&& yR) >>> onCurve) &&& ((xA &&& yA) >>> onCurve)) &&& ((s &&& kw l25519 >>> Arith.subtract word256) >>> oh >>> verify) >>> unit
-  -- k = SHA-512(R || A || M) as a little-endian integer, mod L
-  hashLE = (sha512IVT &&& blk) >>> sha512Compress >>> rev512
-  k = (hashLE &&& (kw 0 &&& kw l25519)) >>> Arith.div_mod word512 >>> ih >>> ih
-  -- -A precomputed: (y + x, (y - x, -2 d x y))
-  aNeg = (yA >>> oh) &&& xA >>> (add2 oh ih &&& (sub2 oh ih &&& sub2 (kw 0) (mul2 (kw (2 * d25519 `mod` p25519)) (mul2 ih oh))))
-  bPre :: forall a. TyC a => term a Pre
-  bPre = kw ((by25519 - bx25519) `mod` p25519) &&& (kw ((by25519 + bx25519) `mod` p25519) &&& kw (2 * d25519 * bx25519 * by25519 `mod` p25519))
-  -- state ((S, k), (-A precomputed, acc)); acc starts at the identity (0, 1, 1, 0)
-  scalars = (s &&& k) &&& (aNeg &&& ((kw 0 &&& kw 1) &&& (kw 1 &&& kw 0)))
-  -- step: acc := 2 acc; + (-A) if bit i of k; + B if bit i of S.  On X = (state, doubled acc).
-  step i = oh &&& (drop oh &&& ((iden &&& (drop ih >>> dblE)) >>> acc3))
+  length128=drop (drop ih)
+  length64=length128 >>> ih
+  msgLength=(length64 &&& konst (toWord64 512)) >>> Arith.subtract word64 >>> ih
+            >>> Word.shift_const_by false word64 (-3) >>> drop (drop (drop iden))
+  payload=drop (take oh)
+  byteAt i=pick (testBit i 3) (pick (testBit i 2) (pick (testBit i 1) (pick (testBit i 0) iden)))
+  zero128 t=(t &&& konst (toWord128 0)) >>> eq >>> verify
+  bounds=((zero128 (drop (take ih)) &&& zero128 (drop (drop oh))) &&&
+    (((length128 >>> oh) &&& konst (toWord64 0) >>> eq >>> verify) &&&
+    (((konst (toWord64 512) &&& length64) >>> Arith.le word64 >>> verify) &&&
+     (((length64 &&& konst (toWord64 632)) >>> Arith.le word64 >>> verify) &&&
+      ((((length64 &&& konst (toWord64 7)) >>> Word.bitwise_and word64) &&& konst (toWord64 0)) >>> eq >>> verify))))) >>> unit
+  byteCheck i=((msgLength &&& konst (toWord8 (toInteger i))) >>> Arith.le word8) &&& iden >>> cond padded unit
    where
-    bitS = take (take (take (bit256 i)))
-    bitK = take (take (drop (bit256 i)))
-    acc2 = (bitK &&& (ih &&& take (drop oh))) >>> cond maddE oh
-    acc3 = (bitS &&& (acc2 &&& bPre)) >>> cond maddE oh
-  loop = L.foldl' (\acc i -> acc >>> step i) iden [252, 251 .. 0] >>> drop ih
-  -- the result equals R: X = xR Z and Y = yR Z
-  final = (((ooh &&& mul2 xR ioh) >>> eq >>> verify) &&& ((oih &&& mul2 (yR >>> oh) ioh) >>> eq >>> verify)) >>> unit
+    expected=(((msgLength &&& konst (toWord8 (toInteger i))) >>> eq) &&& unit) >>> cond (konst (toWord8 128)) (konst (toWord8 0))
+    padded=((payload >>> byteAt i) &&& expected) >>> eq >>> verify
+
+type VerifyInput=(Vector16 Word64,(Word256,(Word256,Word256)))
+
+-- | All encoded points, the message block, scalar and decompression hints
+-- enter once. Pure projections bind the curve, hash and scalar-loop checks.
+ed25519Verify :: forall term. (Assert term, Witness term) => VerifyInput -> term () ()
+ed25519Verify input=witness input >>> (checks &&& ((rPoint &&& scalars) >>> (oh &&& drop loop) >>> final)) >>> unit
+ where
+  blk :: term VerifyInput (Vector16 Word64)
+  blk=oh
+  xR=ioh
+  xA=drop (drop oh)
+  s=drop (drop ih)
+  rEnc=blk >>> take oh
+  aEnc=blk >>> take ih
+  yR=rEnc >>> decodeY
+  yA=aEnc >>> decodeY
+  checks=(((blk >>> sha512Padding) &&& ((xR &&& yR) >>> onCurve)) &&&
+          (((xA &&& yA) >>> onCurve) &&& ((s &&& kw l25519 >>> Arith.subtract word256) >>> oh >>> verify))) >>> unit
+  hashLE=(sha512IVT &&& blk) >>> sha512Compress >>> rev512
+  k=(hashLE &&& (kw 0 &&& kw l25519)) >>> Arith.div_mod word512 >>> ih >>> ih
+  aNeg=(yA >>> oh) &&& xA >>> (add2 oh ih &&& (sub2 oh ih &&& sub2 (kw 0) (mul2 (kw (2*d25519 `mod`p25519)) (mul2 ih oh))))
+  bPre :: forall a. TyC a => term a Pre
+  bPre=kw ((by25519-bx25519) `mod`p25519) &&& (kw ((by25519+bx25519) `mod`p25519) &&& kw (2*d25519*bx25519*by25519 `mod`p25519))
+  scalars=(s &&& k) &&& (aNeg &&& ((kw 0 &&& kw 1) &&& (kw 1 &&& kw 0)))
+  step i=oh &&& (drop oh &&& ((iden &&& (drop ih >>> dblE)) >>> acc3))
+   where
+    bitS=take (take (take (bit256 i)))
+    bitK=take (take (drop (bit256 i)))
+    acc2=(bitK &&& (ih &&& take (drop oh))) >>> cond maddE oh
+    acc3=(bitS &&& (acc2 &&& bPre)) >>> cond maddE oh
+  loop=L.foldl' (\acc i -> acc >>> step i) iden [252,251..0] >>> drop ih
+  rPoint=xR &&& (yR >>> oh)
+  final=((actualX &&& mul2 ooh actualZ) >>> eq >>> verify) &&&
+        ((actualY &&& mul2 oih actualZ) >>> eq >>> verify) >>> unit
+  actualX=drop (take oh)
+  actualY=drop (take ih)
+  actualZ=drop (drop oh)
 
 -- Vectors -------------------------------------------------------------------------------
 

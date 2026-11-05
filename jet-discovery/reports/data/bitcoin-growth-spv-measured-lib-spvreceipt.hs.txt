@@ -1,0 +1,217 @@
+{-# LANGUAGE RankNTypes,ScopedTypeVariables #-}
+-- | A complete bounded payment receipt under a trusted Bitcoin best-chain tip.
+-- This proves inclusion and authenticates the actual native payout. It does not
+-- select a globally best chain or replace full Bitcoin consensus validation.
+module JetDiscovery.Lib.SpvReceipt(entry,receipt,compactTarget) where
+import Prelude hiding(drop,take,not,and,or)
+import qualified Prelude as P
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.List as L
+import qualified Data.Bits as Bits
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import Simplicity.Programs.Generic(eq)
+import qualified Simplicity.Programs.Arith as A
+import qualified Simplicity.Programs.Word as W
+import Simplicity.Programs.Sha256.Lib
+import qualified Simplicity.Programs.LibSecp256k1.Lib as S
+import Simplicity.Bitcoin.Term(Simplicity,Primitive,primitive)
+import qualified Simplicity.Bitcoin.Primitive as Prim
+import qualified Simplicity.Bitcoin.Programs.Transaction.Lib as Tx
+import Simplicity.Ty.Word hiding(Vector)
+import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.TxSer(ctxWith)
+import JetDiscovery.Lib.Kernels(sha256Pair)
+import JetDiscovery.Tx
+import JetDiscovery.Types
+import qualified JetDiscovery.Ref.Bip340 as R
+import qualified JetDiscovery.Ref.BitcoinSpv as Ref
+
+type GE=(Word256,Word256)
+type Header=(Word32,(Word256,(Word256,(Word32,(Word32,Word32)))))
+type Triple=(Header,(Header,Header))
+type Output=(Word64,GE)
+type PaymentInput=((Word256,Word32),Buffer511 Word8)
+type Payment=(PaymentInput,(Output,Output))
+type Proof=(Triple,(Payment,Word256))
+type HeaderEvidence=((Word256,(Word256,Word256)),((Word256,Word256),(Word256,(Word32,(Word32,Word32)))))
+type Evidence=(HeaderEvidence,((Word256,Output),Word256))
+
+same :: (Assert t,TyC a,TyC b) => t a b -> t a b -> t a ()
+same a b=(a&&&b)>>>eq>>>verify
+start :: (Assert t,TyC a) => t a (a,Ctx8)
+start=iden&&&(unit>>>ctx8Init)
+append :: (Assert t,TyC a,TyC b) => t a b -> t(Ctx8,b)Ctx8 -> t(a,Ctx8)(a,Ctx8)
+append f jet=oh&&&((ih&&&(oh>>>f))>>>jet)
+sha32 :: Assert t => t Word256 Word256
+sha32=((unit>>>ctx8Init)&&&iden)>>>ctx8Add32>>>ctx8Finalize
+to256 :: Core t => t Word32 Word256
+to256=konst(toWord128 0)&&&(konst(w64 0)&&&(konst(w32 0)&&&iden))
+bswap128 :: Core t => t Word128 Word128
+bswap128=(ih>>>bswap64)&&&(oh>>>bswap64)
+bswap256 :: Core t => t Word256 Word256
+bswap256=(ih>>>bswap128)&&&(oh>>>bswap128)
+
+-- Decode positive, nonzero, canonical Bitcoin nBits up to the mainnet powLimit.
+-- Exponents >29 cannot yield a canonical target <= mainnet's powLimit. Each
+-- branch performs the actual fixed-width shift; no target is accepted as a hint.
+compactTarget :: forall t. Assert t => t Word32 Word256
+compactTarget=((range&&&L.foldr branch failure[1..29])>>>ih)
+ >>>(((iden&&&konst(w256 Ref.powLimit))>>>A.le word256>>>verify)&&&iden)>>>ih
+ where
+  exponent :: t Word32 Word8
+  exponent=ooh
+  mantissa :: t Word32 Word32
+  mantissa=(konst(w8 0)&&&oih)&&&ih
+  range :: t Word32 ()
+  range=((mantissa&&&konst(w32 0x800000))>>>A.lt word32)>>>verify
+  branch :: Integer -> t Word32 Word256 -> t Word32 Word256
+  branch n rest=((exponent&&&konst(w8 n))>>>eq)&&&iden>>>cond (chosen n) rest
+  chosen :: Integer -> t Word32 Word256
+  chosen n=(canonical n&&&(mantissa>>>to256>>>W.shift_const_by false word256(fromInteger(8*(n-3)))))>>>ih
+  canonical :: Integer -> t Word32 ()
+  canonical 1=(((mantissa>>>ih)&&&konst(w16 0))>>>eq>>>verify)
+    &&&((konst(w32 0x10000)&&&mantissa)>>>A.le word32>>>verify)>>>unit
+  canonical 2=(((mantissa>>>iih)&&&konst(w8 0))>>>eq>>>verify)
+    &&&((konst(w32 0x8000)&&&mantissa)>>>A.le word32>>>verify)>>>unit
+  canonical _=(konst(w32 0x8000)&&&mantissa)>>>A.le word32>>>verify
+
+bitsH :: Core t => t Header Word32
+bitsH=ih>>>ih>>>ih>>>ih>>>oh
+previousH :: Core t => t Header Word256
+previousH=ioh
+merkleH :: Core t => t Header Word256
+merkleH=iioh
+headerHash :: forall t. Assert t => t Header Word256
+headerHash=start>>>append oh ctxAddLE32>>>append previousH ctx8Add32>>>append merkleH ctx8Add32
+ >>>append (ih>>>ih>>>ih>>>oh) ctxAddLE32>>>append bitsH ctxAddLE32
+ >>>append (ih>>>ih>>>ih>>>ih>>>ih) ctxAddLE32>>>ih>>>ctx8Finalize>>>sha32
+headerEvidence :: forall t. Assert t => t Triple HeaderEvidence
+headerEvidence=((h 0>>>headerHash)&&&((h 1>>>headerHash)&&&(h 2>>>headerHash)))
+ &&&(((h 1>>>previousH)&&&(h 2>>>previousH))
+ &&&((h 1>>>merkleH)&&&((h 0>>>bitsH)&&&((h 1>>>bitsH)&&&(h 2>>>bitsH)))))
+ where
+  h :: Int -> t Triple Header
+  h 0=oh
+  h 1=ioh
+  h _=iih
+
+-- Fixed template: v1, one legacy input, sequence=FFFFFFFF, two P2PK outputs,
+-- locktime=0. All remaining transaction bytes are witnessed once and serialized.
+outpointContext :: Assert t => t(Word256,Word32)Ctx8
+outpointContext=(((unit>>>ctx8Init>>>ctxWith(konst(w32 1))ctxAddLE32>>>ctxWith(konst(w8 1))ctx8Add1)&&&oh)>>>ctx8Add32)
+ &&&ih>>>ctxAddLE32
+inputContext :: Assert t => t PaymentInput Ctx8
+inputContext=((oh>>>outpointContext)&&&ih)>>>ctxAddVarString511
+ >>>ctxWith(konst(w32 0xffffffff))ctxAddLE32>>>ctxWith(konst(w8 2))ctx8Add1
+appendOutput :: Assert t => t(Ctx8,Output)Ctx8
+appendOutput=(((oh&&&ioh)>>>ctxAddLE64
+ >>>ctxWith(konst(w16 0x4341))ctx8Add2>>>ctxWith(konst(w8 4))ctx8Add1)&&&iih)
+ >>>ctx8Add64>>>ctxWith(konst(w8 0xac))ctx8Add1
+paymentHash :: Assert t => t Payment Word256
+paymentHash=((oh>>>inputContext)&&&ih)
+ >>>(((oh&&&ioh)>>>appendOutput)&&&iih)>>>appendOutput
+ >>>ctxWith(konst(w32 0))ctxAddLE32>>>ctx8Finalize>>>sha32
+paymentEvidence :: Assert t => t Payment(Word256,Output)
+paymentEvidence=paymentHash&&&ioh
+
+receipt :: (Simplicity t,Primitive t) => Word256 -> Word256 -> Proof -> t()()
+receipt checkpoint trustedTip proof=witness proof
+ >>>((oh>>>headerEvidence)&&&((ioh>>>paymentEvidence)&&&iih))>>>receiptT checkpoint trustedTip
+receiptT :: forall t. (Simplicity t,Primitive t) => Word256 -> Word256 -> t Evidence()
+receiptT checkpoint trustedTip=(anchors&&&links&&&difficulty&&&work 0&&&work 1&&&work 2&&&merkle&&&payee&&&native)>>>unit
+ where
+  hashes :: t Evidence(Word256,(Word256,Word256))
+  hashes=oh>>>oh
+  digest :: Int -> t Evidence Word256
+  digest 0=hashes>>>oh
+  digest 1=hashes>>>ioh
+  digest _=hashes>>>iih
+  bits :: Int -> t Evidence Word32
+  bits 0=oh>>>ih>>>ih>>>ih>>>oh
+  bits 1=oh>>>ih>>>ih>>>ih>>>ioh
+  bits _=oh>>>ih>>>ih>>>ih>>>iih
+  target :: t Evidence Word256
+  target=bits 0>>>compactTarget
+  anchors :: t Evidence()
+  anchors=(same(digest 0)(konst checkpoint)&&&same(digest 2)(konst trustedTip))>>>unit
+  links :: t Evidence()
+  links=(same(digest 0)(oh>>>ih>>>oh>>>oh)&&&same(digest 1)(oh>>>ih>>>oh>>>ih))>>>unit
+  difficulty :: t Evidence()
+  difficulty=(same(bits 0)(bits 1)&&&same(bits 1)(bits 2))>>>unit
+  work :: Int -> t Evidence()
+  work i=((digest i>>>bswap256)&&&target)>>>A.le word256>>>verify
+  txid :: t Evidence Word256
+  txid=ih>>>oh>>>oh
+  merkle :: t Evidence()
+  merkle=same (((iih&&&txid)>>>sha256Pair)>>>sha32)(oh>>>ih>>>ih>>>oh)
+  value :: t Evidence Word64
+  value=ih>>>oh>>>ih>>>oh
+  key :: t Evidence GE
+  key=ih>>>oh>>>ih>>>ih
+  payee :: t Evidence()
+  payee=(((key>>>oh)&&&konst(w256 R.p))>>>A.lt word256>>>verify)
+    &&&(((key>>>ih)&&&konst(w256 R.p))>>>A.lt word256>>>verify)
+    &&&(key>>>S.ge_is_on_curve>>>verify)
+    &&&((konst(w64 0)&&&value)>>>A.lt word64>>>verify)>>>unit
+  outValue :: t Evidence Word64
+  outValue=konst(w32 0)>>>primitive Prim.OutputValue>>>verify
+  scriptHash :: t Word256 Word256
+  scriptHash=(((unit>>>ctx8Init)&&&konst(w16 0x5120)>>>ctx8Add2)&&&iden)>>>ctx8Add32>>>ctx8Finalize
+  sumFee :: t Evidence Word64
+  sumFee=(value&&&konst(w64 1000))>>>A.add word64>>>((oh>>>not iden>>>verify)&&&ih)>>>ih
+  native :: t Evidence()
+  native=(same(unit>>>Tx.numInputs)(konst(w32 1))&&&same(unit>>>Tx.numOutputs)(konst(w32 1))
+   &&&same outValue value&&&same(unit>>>Tx.currentValue)sumFee
+   &&&same(konst(w32 0)>>>primitive Prim.OutputScriptHash>>>verify)(key>>>oh>>>scriptHash))>>>unit
+
+toWords :: Ref.Proof -> Proof
+toWords((a,(b,c)),(payment,sibling))=((header a,(header b,header c)),(pay payment,w256FromBytes sibling))
+ where
+  header(v,(prev,(root,(time,(bits,nonce)))))=(w32 v,(w256FromBytes prev,(w256FromBytes root,(w32 time,(w32 bits,w32 nonce)))))
+  pay(((prev,index),script),((a,(ax,ay)),(b,(bx,by))))=
+   (((w256FromBytes prev,w32 index),buffer511FromBytes script),((w64 a,(w256 ax,w256 ay)),(w64 b,(w256 bx,w256 by))))
+
+entry :: IO Entry
+entry=do
+ proof@((h0,(h1,h2)),(payment,sibling))<-Ref.fixture
+ let checkpoint=Ref.headerHash h0;trustedTip=Ref.headerHash h2
+     ((_,_),((amount,(keyx,_)),_))=payment
+     p2tr x=unhex "5120"<>R.bytesFromInt x
+     env value payout outs=mkEnv(mkTx 2[mkInput(dummyOutpoint 0)(fromInteger value)(BL.fromStrict(p2tr R.nums))0xfffffffe]
+       ([mkOutput(fromInteger payout)(p2tr keyx)]++outs)0)0 defaultTap
+     goodEnv=env(amount+1000)amount[]
+     badPayEnv=mkEnv(mkTx 2[mkInput(dummyOutpoint 0)(fromInteger(amount+1000))(BL.fromStrict(p2tr R.nums))0xfffffffe]
+       [mkOutput(fromInteger amount)(p2tr(R.pubkeyOf 77))]0)0 defaultTap
+     setBits bits(v,(prev,(root,(time,(_,nonce)))))=(v,(prev,(root,(time,(bits,nonce)))))
+     badPrev(v,(_,rest))=(v,(B.replicate 32 0,rest))
+     badNonce(v,(prev,(root,(time,(bits,nonce)))))=(v,(prev,(root,(time,(bits,nonce+1)))))
+     badValue(((prev,index),script),((a,k),rest))=(((prev,index),script),((a+1,k),rest))
+     changeHeader f=((f h0,(h1,h2)),(payment,sibling))
+     wrongMerkle=((h0,(h1,h2)),(payment,B.map(`Bits.xor`1)sibling))
+     vectors=[Vector "real block170 payment and three authenticated PoW headers" goodEnv(toWords proof)Accept,
+       Vector "broken previous-header link" goodEnv(toWords((h0,(badPrev h1,h2)),(payment,sibling)))Reject,
+       Vector "invalid header nonce" goodEnv(toWords(changeHeader badNonce))Reject,
+       Vector "negative compact target" goodEnv(toWords(changeHeader(setBits 0x1d80ffff)))Reject,
+       Vector "zero compact target" goodEnv(toWords(changeHeader(setBits 0)))Reject,
+       Vector "overflowing compact exponent" goodEnv(toWords(changeHeader(setBits 0x2300ffff)))Reject,
+       Vector "noncanonical compact target" goodEnv(toWords(changeHeader(setBits 0x1e0000ff)))Reject,
+       Vector "wrong transaction Merkle sibling" goodEnv(toWords wrongMerkle)Reject,
+       Vector "changed actual payment output amount" goodEnv(toWords((h0,(h1,h2)),(badValue payment,sibling)))Reject,
+       Vector "native payout diverted from proved payee" badPayEnv(toWords proof)Reject,
+       Vector "native payout underpays proved amount" (env(amount+1000)(amount-1)[])(toWords proof)Reject,
+       Vector "native collateral conservation violated" (env(amount+999)amount[])(toWords proof)Reject,
+       Vector "extra native output" (env(amount+1001)amount[mkOutput 1 B.empty])(toWords proof)Reject]
+ if P.not(Ref.verify checkpoint trustedTip proof)then error "SPV reference fixture failed" else return(Entry
+  "app-bitcoin-spv-payment-receipt" "Bitcoin SPV payment receipt with canonical PoW headers, actual transaction binding and native beneficiary payout"
+  "Bitcoin SPV/BIP37 Merkle inclusion; pinned Bitcoin Core PoW arithmetic; vendor-specs/spv and bitcoin-growth/spv-receipt-coverage.json"
+  BitcoinApp(Upstream "Bitcoin mainnet blocks169/170/171 and complete raw block170; first non-coinbase payment, both transactions parsed")
+  ["Exactly three headers: trusted checkpoint169, payment header170, trusted best-chain tip171; trusted anchors are program constants, never proof hints",
+   "Every 80-byte header is actually double-SHA256 hashed; hashes satisfy decoded canonical positive nBits <= mainnet powLimit and both links; no retarget within this fixed epoch",
+   "Trusted best-chain selection and full Bitcoin consensus validation are outside this predicate; three difficulty-one headers alone do not establish global chain security or confirmation security",
+   "Exactly two transaction leaves at payment block and fixed right-hand payment position; legacy v1 one-input/two-uncompressed-P2PK-output transaction, scriptSig<=511 bytes, sequenceFFFFFFFF and locktime0",
+   "Every actual transaction byte is constructed in Simplicity, not a witness-only txid; actual output0 amount and key are used in both Merkle authentication and native payout",
+   "Native covenant has one input/output, pays the proved beneficiary via x-only P2TR and preserves the proved amount with exactly1000 satoshi fee; each funding UTXO is a single-use claim",
+   "No full BIP37 network partial-tree wire decoder, arbitrary transaction parser, retarget validation or fork-choice implementation is claimed"]
+  (\w->Prog(receipt(w256FromBytes checkpoint)(w256FromBytes trustedTip)w))vectors)

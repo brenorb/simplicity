@@ -3,8 +3,8 @@
 --
 -- Each node of each program's profile ("JetDiscovery.Profile") contributes
 -- @mult * total@ milliWU to its program's static bound.  Nodes are grouped
--- across programs by structural hash ('niHash': exact, including constant
--- values) or by shape ('niShape': constant word values ignored, so for
+-- across programs by actual commitment Merkle root ('niCmr') or by shape
+-- ('niShape': constant word values ignored, so for
 -- example SHRINCS's F calls for different chain and hash indices coincide).
 --
 -- Only repeated nodes (multiplicity >= 2 in some program, or present in >= 2
@@ -25,12 +25,14 @@ import Numeric (showHex, showFFloat)
 
 import JetDiscovery.Profile (NodeInfo(..), prettyTy)
 import JetDiscovery.Run
+import JetDiscovery.Tx (hex, hashToBytes)
 import JetDiscovery.Types
 
 data Group = Group
-  { gKey :: Word64
+  { gKey :: String
+  , gCmr :: String
   , gKind :: String
-  , gSig :: String               -- ^ type signature
+  , gSig :: [String]               -- ^ type signature
   , gPerInstance :: Integer      -- ^ milliWU static bound of one instance (largest seen)
   , gOccurrences :: Integer      -- ^ sum of multiplicities over the corpus
   , gPrograms :: [(String, Integer, Integer)]  -- ^ (program id, multiplicity, milliWU spent inside this sub-DAG)
@@ -39,22 +41,26 @@ data Group = Group
   , gNodes :: Int
   }
 
--- | Group by exact hash (@False@) or by shape (@True@).
+-- | Group by exact CMR (@False@) or by shape (@True@).
 mine :: Bool -> [EntryResult] -> [Group]
-mine byShape rs = sortBy (comparing (Down . gTotal)) (filter interesting (Map.elems groups))
+mine byShape rs = sortBy (comparing (Down . gTotal)) (filter interesting (map finish (Map.elems groups)))
  where
-  key ni = if byShape then niShape ni else niHash ni
+  rootCosts=Map.fromList [(entryId (erEntry r),mCost (erMeasure r))|r<-rs]
+  -- A CMR can appear at several type instantiations in the same program.
+  -- Compute the maximum share after those rows' contributions are combined.
+  finish g=g {gMaxShare=maximum (0:[fromInteger total/fromInteger (max 1 (rootCosts Map.! pid))|(pid,_,total)<-gPrograms g])}
+  key ni = if byShape then showHex (niShape ni) "" else hex (hashToBytes (niCmr ni))
   rows = [ (key ni, (entryId (erEntry r), mCost (erMeasure r), ni))
          | r <- rs, ni <- mProfile (erMeasure r), niMult ni > 0, niTotal ni >= 1000 ]  -- >= 1 WU per instance
   groups = Map.fromListWith merge [ (k, single k pid root ni) | (k, (pid, root, ni)) <- rows ]
   single k pid root ni = Group
-    { gKey = k, gKind = niKind ni, gSig = prettyTy (niSrc ni) ++ " -> " ++ prettyTy (niTgt ni)
+    { gKey = k, gCmr = hex (hashToBytes (niCmr ni)), gKind = niKind ni, gSig = [prettyTy (niSrc ni) ++ " -> " ++ prettyTy (niTgt ni)]
     , gPerInstance = niTotal ni, gOccurrences = niMult ni
     , gPrograms = [(pid, niMult ni, niMult ni * niTotal ni)]
     , gTotal = niMult ni * niTotal ni
     , gMaxShare = fromInteger (niMult ni * niTotal ni) / fromInteger (max 1 root)
     , gNodes = niNodes ni }
-  merge a b = a { gPerInstance = max (gPerInstance a) (gPerInstance b)
+  merge a b = a { gSig = nub (gSig a++gSig b), gPerInstance = max (gPerInstance a) (gPerInstance b)
                 , gOccurrences = gOccurrences a + gOccurrences b
                 , gPrograms = mergeProgs (gPrograms a ++ gPrograms b)
                 , gTotal = gTotal a + gTotal b
@@ -71,9 +77,9 @@ wu m = showFFloat (Just 3) (fromInteger m / 1000 :: Double) ""
 
 groupsMarkdown :: Integer -> Int -> [Group] -> String
 groupsMarkdown corpusTotal n gs = unlines $
-  [ "| rank | sub-DAG id | root combinator | type signature | WU per instance | occurrences | programs | total WU | corpus share | max single-program share |"
-  , "| ---: | --- | --- | --- | ---: | ---: | --- | ---: | ---: | ---: |" ] ++
-  [ "| " ++ show i ++ " | `" ++ showHex (gKey g) "" ++ "` | " ++ gKind g ++ " | `" ++ clip 90 (gSig g) ++ "` | " ++ wu (gPerInstance g)
+  [ "| rank | sub-DAG id | CMR (representative for shape groups) | root combinator | type signature | WU per instance | occurrences | programs | total WU | corpus share | max single-program share |"
+  , "| ---: | --- | --- | --- | --- | ---: | ---: | --- | ---: | ---: | ---: |" ] ++
+  [ "| " ++ show i ++ " | `" ++ gKey g ++ "` | `" ++ gCmr g ++ "` | " ++ gKind g ++ " | `" ++ intercalate " \\| " (gSig g) ++ "` | " ++ wu (gPerInstance g)
     ++ " | " ++ show (gOccurrences g) ++ " | " ++ intercalate ", " [ p ++ " ×" ++ show m | (p, m, _) <- gPrograms g ]
     ++ " | " ++ wu (gTotal g) ++ " | " ++ pctD (fromInteger (gTotal g) / fromInteger (max 1 corpusTotal)) ++ " | " ++ pctD (gMaxShare g) ++ " |"
   | (i, g) <- zip [1 :: Int ..] (take n gs) ]
@@ -83,7 +89,7 @@ groupsMarkdown corpusTotal n gs = unlines $
 
 groupsTsv :: [Group] -> String
 groupsTsv gs = unlines $
-  intercalate "\t" ["id","kind","signature","per_instance_mwu","occurrences","programs","total_mwu","max_share"] :
-  [ intercalate "\t" [ showHex (gKey g) "", gKind g, gSig g, show (gPerInstance g), show (gOccurrences g)
+  intercalate "\t" ["id","cmr","kind","signature","per_instance_mwu","occurrences","programs","total_mwu","max_share"] :
+  [ intercalate "\t" [ gKey g, gCmr g, gKind g, intercalate " | " (gSig g), show (gPerInstance g), show (gOccurrences g)
                      , intercalate ";" [ p ++ ":" ++ show m | (p, m, _) <- gPrograms g ], show (gTotal g), show (gMaxShare g) ]
   | g <- gs ]

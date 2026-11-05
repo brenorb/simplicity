@@ -10,7 +10,7 @@
 --   x(R) = r is checked projectively (X = r Z^2), so no inversion runs.
 module JetDiscovery.Corpus.P256
   ( entries
-  , pP256, nP256, mulmod, addmod, submod, dblJ, maddJ, mulmodN
+  , pP256, nP256, mulmod, addmod, submod, dblJ, maddJ, mulmodN, addAffine, ecdsaXCoordinate
   ) where
 
 import Prelude hiding (drop, take, not, and, or, subtract)
@@ -23,6 +23,8 @@ import Simplicity.Term.Core
 import Simplicity.Programs.Bit
 import Simplicity.Programs.Generic (eq)
 import qualified Simplicity.Programs.Arith as Arith
+import qualified Simplicity.Bitcoin.Jets as Jets
+import Simplicity.Bitcoin.Term (Simplicity)
 import Simplicity.Ty.Word
 
 import JetDiscovery.Lib.Bytes
@@ -166,29 +168,71 @@ curveOk = (lhs &&& rhs) >>> eq >>> verify
   lhs = ih >>> sq
   rhs = add2 (sub2 (mul2 (oh >>> sq) oh) (oh >>> x3')) (kw bP256)
 
--- | ECDSA-P256 verification of hash z.  Witness: (Q, (z, ((r, s), w))) with w = s^-1 mod n.
-ecdsaP256 :: forall term. (Assert term, Witness term) => (Aff, (Word256, ((Word256, Word256), Word256))) -> term () ()
-ecdsaP256 (qv, (zv, ((rv, sv), wv))) = checks &&& (scalars >>> loop >>> final) >>> unit
+-- | Complete affine-to-Jacobian addition. The flag denotes infinity.
+-- Equality and opposite-point cases are handled before the mixed formula.
+addAffine :: forall term. Assert term => term (Aff,(Bit,J)) (Bit,J)
+addAffine=(ioh &&& iden) >>> cond fromInfinity nonInfinity
  where
-  qT :: forall a. TyC a => term a Aff
-  qT = witness qv
-  r, s, w :: forall a. TyC a => term a Word256
-  r = witness rv
-  s = witness sv
-  w = witness wv
-  inRange x = ((x &&& kw 0 >>> eq >>> not iden >>> verify) &&& ((x &&& kw nP256 >>> Arith.subtract word256) >>> oh >>> verify)) >>> unit
-  checks = (((qT >>> curveOk) &&& inRange r) &&& (inRange s &&& ((((s &&& w) >>> mulmodN) &&& kw 1) >>> eq >>> verify))) >>> unit
-  scalars = (((witness zv &&& w) >>> mulmodN) &&& ((r &&& w) >>> mulmodN)) &&& (true &&& ((kw 0 &&& kw 0) &&& kw 0))
-  gT :: forall a. TyC a => term a Aff
-  gT = kw gxP256 &&& kw gyP256
-  addPt :: (forall a. TyC a => term a Aff) -> term (Bit, J) (Bit, J)
-  addPt pt = cond (false &&& (pt &&& kw 1)) (false &&& ((iden &&& pt) >>> maddJ))
-  step i = oh &&& (((take (take (bit256 i))) &&& (((take (drop (bit256 i))) &&& (drop (oh &&& drop dblJ))) >>> cond (addPt qT) iden)) >>> cond (addPt gT) iden)
-  loop = L.foldl' (\acc i -> acc >>> step i) iden [255, 254 .. 0] >>> ih
-  -- R is not infinity, and X = r Z^2 or (r + n < p and X = (r + n) Z^2)
-  final = ((oh >>> not iden >>> verify) &&& (ih >>> xOk)) >>> unit
-  xOk = (iden &&& (ih >>> sq)) >>> ((take (take oh) &&& (r &&& ih >>> mulmod) >>> eq) &&& (rnOk)) >>> or oh ih >>> verify
-  rnOk = ((r &&& kw nP256 >>> Arith.add word256) &&& iden) >>> ((take ih &&& kw pP256 >>> Arith.subtract word256 >>> oh) &&& ((drop (take (take oh)) &&& (take ih &&& drop ih >>> mulmod)) >>> eq)) >>> and oh ih
+  fromInfinity=false &&& (oh &&& kw 1)
+  z2=iih >>> ih >>> sq
+  z3=mul2 z2 (iih >>> ih)
+  sameX=(iih >>> take oh) &&& mul2 ooh z2 >>> eq
+  sameY=(iih >>> take ih) &&& mul2 oih z3 >>> eq
+  nonInfinity=(sameX &&& iden) >>> cond equalX ordinary
+  equalX=(sameY &&& iden) >>> cond (false &&& (iih >>> dblJ)) (true &&& ((kw 0 &&& kw 0) &&& kw 0))
+  ordinary=false &&& ((iih &&& oh) >>> maddJ)
+
+-- Projective ECDSA x-coordinate check, with a non-wrapping r+n case.
+ecdsaXCoordinate :: Assert term => term (Word256,(Word256,Word256)) Bit
+ecdsaXCoordinate=or first second
+ where
+  z2=(iih &&& iih) >>> mulmod
+  first=(ioh &&& ((oh &&& z2) >>> mulmod)) >>> eq
+  rPlusN=(oh &&& kw nP256) >>> Arith.add word256
+  second=and (rPlusN >>> oh >>> not iden)
+    (and (((rPlusN >>> ih) &&& kw pP256) >>> Arith.lt word256)
+         ((ioh &&& (((rPlusN >>> ih) &&& z2) >>> mulmod)) >>> eq))
+
+type VerifyInput=(Aff,(Word256,((Word256,Word256),Word256)))
+type VerifySaved=(Word256,(Word256,Word256))
+type VerifyState=((Aff,VerifySaved),(Bit,J))
+
+-- | Every public operand and inversion hint enters once. All checks and the
+-- scalar loop use projections of that same dataflow input.
+ecdsaP256 :: forall term. Simplicity term => VerifyInput -> term () ()
+ecdsaP256 input=witness input >>> Jets.unwrap verifierWrapped
+{-# NOINLINE verifierWrapped #-}
+verifierWrapped :: Jets.WrappedSimplicity VerifyInput ()
+verifierWrapped=Jets.jetSubst ecdsaP256T
+ecdsaP256T :: forall term. Assert term => term VerifyInput ()
+ecdsaP256T=(checks &&& (prepare >>> loop >>> final)) >>> unit
+ where
+  qT :: term VerifyInput Aff
+  qT=oh
+  r=drop (drop ooh)
+  s=drop (drop oih)
+  w=drop (drop ih)
+  inRange x=((x &&& kw 0 >>> eq >>> not iden >>> verify) &&& ((x &&& kw nP256 >>> Arith.subtract word256) >>> oh >>> verify)) >>> unit
+  coordinate x=(x &&& kw pP256) >>> Arith.lt word256 >>> verify
+  checks=((qT >>> curveOk) &&& ((coordinate (qT >>> oh) &&& coordinate (qT >>> ih)) &&&
+          (inRange r &&& (inRange s &&& ((((s &&& w) >>> mulmodN) &&& kw 1) >>> eq >>> verify))))) >>> unit
+  u1=(ioh &&& w) >>> mulmodN
+  u2=(r &&& w) >>> mulmodN
+  prepare=(qT &&& (r &&& (u1 &&& u2))) &&& (true &&& ((kw 0 &&& kw 0) &&& kw 0))
+  save :: term VerifyState (Aff,VerifySaved)
+  save=oh
+  bitU1 i=take (drop (drop oh)) >>> bit256 i
+  bitU2 i=take (drop (drop ih)) >>> bit256 i
+  doubled=save &&& (drop (oh &&& drop dblJ))
+  addQ=save &&& ((ooh &&& ih) >>> addAffine)
+  addG=save &&& (((kw gxP256 &&& kw gyP256) &&& ih) >>> addAffine)
+  step i=doubled >>> ((bitU2 i &&& iden) >>> cond addQ iden) >>> ((bitU1 i &&& iden) >>> cond addG iden)
+  loop=L.foldl' (\acc i -> acc >>> step i) iden [255,254..0]
+  rSaved :: term VerifyState Word256
+  rSaved=take (drop oh)
+  xActual=drop (drop (take oh))
+  zActual=drop (drop ih)
+  final=((ioh >>> not iden >>> verify) &&& ((rSaved &&& (xActual &&& zActual)) >>> ecdsaXCoordinate >>> verify)) >>> unit
 
 -- Haskell reference ---------------------------------------------------------------
 
@@ -206,20 +250,26 @@ entries =
     , entryCategory = CrossChain
     , entryVectorSource = Upstream "vendor-specs/rfc/rfc6979.txt A.2.5: SHA-256 signatures of \"sample\" and \"test\", plus 3 negative vectors"
     , entryAssumptions = [ "the message hash z, public key Q, signature (r, s) and the hint w = s^-1 mod n are witness operands"
-                         , "Jacobian formulas assume no exceptional additions (probability negligible for honest inputs)" ]
+                         , "canonical public coordinates; complete equality/opposite/infinity handling in the joint scalar loop" ]
     , entryProgram = \(q, (zz, (rs, wh))) -> Prog (ecdsaP256 (pt q, (toWord256 zz, ((toWord256 (fst rs), toWord256 (snd rs)), toWord256 wh))))
     , entryVectors =
         [ Vector "RFC 6979 P-256, SHA-256, \"sample\"" env (vec "sample" sampleRS) Accept
         , Vector "RFC 6979 P-256, SHA-256, \"test\"" env (vec "test" testRS) Accept
         , Vector "signature of \"sample\" on \"test\"" env (let (q, (_, rest)) = vec "sample" sampleRS in (q, (hashOf "test", rest))) Reject
         , Vector "s changed" env (let (q, (zz, ((r', s'), _))) = vec "sample" sampleRS in (q, (zz, ((r', s' + 1), inv (s' + 1))))) Reject
-        , Vector "public key not on the curve" env (let (_, rest) = vec "sample" sampleRS in ((ux, uy + 1), rest)) Reject ]
+        , Vector "public key not on the curve" env (let (_, rest) = vec "sample" sampleRS in ((ux, uy + 1), rest)) Reject
+        , Vector "small-key zero-digest ECDSA relation" env (smallKey,(0,((smallX,smallX),inv smallX))) Accept
+        , Vector "r+n carry must not create a false ECDSA accept" env (smallKey,(0,((wrappedR,wrappedR),inv wrappedR))) Reject
+        , Vector "noncanonical public x coordinate" env ((smallX+pP256,smallY),(0,((smallX,smallX),inv smallX))) Reject ]
     }
   ]
  where
   env = mkEnv (mkTx 2 [mkInput (dummyOutpoint 0) 1000 mempty 0] [mkOutput 900 mempty] 0) 0 defaultTap
   ux = 0x60FED4BA255A9D31C961EB74C6356D68C049B8923B61FA6CE669622E60F29FB6
   uy = 0x7903FE1008B8BC99A41AE9E95628BC64F2F1B20C2D7E9F5177A3C294D4462299
+  (smallX,smallY)=head [(x,y) | x<-[1..100],let rhs=(x*x*x-3*x+bP256) `mod`pP256,let y=powModN rhs ((pP256+1) `div`4) pP256,y*y `mod`pP256==rhs]
+  smallKey=(smallX,smallY)
+  wrappedR=smallX+2^(256::Int)-nP256
   sampleRS = (0xEFD48B2AACB6A8FD1140DD9CD45E81D69D2C877B56AAF991C34D0EA84EAF3716, 0xF7CB1C942D657C41D436C7A1B6E29F65F3E900DBB9AFF4064DC4AB2F843ACDA8)
   testRS = (0xF1ABB023518351CD71D881567B1EA663ED3EFCF6C5132B354F28D3B0B7D38367, 0x019F4113742A2B14BD25926B49C649155F267E60D3814B4C0CC84250E46F0083)
   hashOf m = BS.foldl' (\a b -> a * 256 + toInteger b) 0 (hashToBytes (sha256 (BSC.pack m)))

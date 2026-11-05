@@ -9,9 +9,9 @@
 -- The TxFieldSelector is decoded in Haskell (in a script it is usually a
 -- constant), into flags and two 16-bit selection masks (BIP 346 requires
 -- strictly increasing indices, so a mask is exact).  The program then hashes
--- the selected fields with the introspection jets.  Selectors that ask for
--- tapscript-only fields (control block, spent script, last OP_CODESEPARATOR
--- position) do not apply to a Simplicity spend and are skipped.
+-- the selected fields with the introspection jets. Tapscript-only context
+-- fields are supplied as witness operands; their authenticity is outside
+-- this encoding. All upstream vectors are run, with no silent filtering.
 module JetDiscovery.Corpus.Bip346Txhash
   ( entries
   ) where
@@ -25,6 +25,7 @@ import qualified Data.Vector as V
 import qualified Data.Word as DW
 import Data.Serialize (runPut, Put)
 import qualified Data.Serialize
+import Control.Monad (unless)
 
 import Simplicity.Term.Core
 import Simplicity.Programs.Bit
@@ -74,47 +75,62 @@ emptyHash = 0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 -- | The tapscript context of the current input, as operands: (sha256(control block), (sha256(leaf version || ser_string(script)), last OP_CODESEPARATOR position)).
 type TapCtx = (Word256, (Word256, Word32))
 
-txHashProg :: forall term. (Assert term, Primitive term, Witness term) => ((Buffer63 Word8, ((Word8, Word8), ((Bit, Word16), (Bit, Word16)))), TapCtx) -> Word256 -> term () ()
-txHashProg ((ctl, ((g, io), ((ci, mi), (co, mo)))), (cbH, (ssH, csPos))) expected = template &&& witness expected >>> eq >>> verify
+type Selector = (Buffer63 Word8, ((Word8, Word8), ((Bit, Word16), (Bit, Word16))))
+type HashArgs = (Selector, TapCtx)
+
+-- Each selector, mask, and context operand is a single dataflow input. CMR
+-- does not require separate witness nodes with equal Haskell values to agree.
+txHashProg :: forall term. (Assert term, Primitive term, Witness term) => HashArgs -> Word256 -> term () ()
+txHashProg args expected = witness (args,expected) >>> ((take template &&& ih) >>> eq >>> verify)
  where
-  gb k = witness g >>> bit8 k
-  fb k = witness io >>> bit8 k
-  -- add sha256(items of the selected in/outputs) to the context, when the flag is set and the selection is not empty
-  field :: term () Bit -> term () Word16 -> (Int -> term Ctx8 Ctx8) -> term Ctx8 Ctx8
-  field flag mask item = when' (and flag nonEmpty) (ctxWith sub ctx8Add32)
+  ctlT :: term HashArgs (Buffer63 Word8)
+  ctlT=take oh
+  gb k=take (drop ooh) >>> bit8 k
+  fb k=take (drop oih) >>> bit8 k
+  ciT=take (drop (drop (take oh)))
+  miT=take (drop (drop (take ih)))
+  coT=take (drop (drop (drop oh)))
+  moT=take (drop (drop (drop ih)))
+  append :: forall x. TyC x => term HashArgs x -> term (Ctx8,x) Ctx8 -> term (Ctx8,HashArgs) (Ctx8,HashArgs)
+  append field step=((oh &&& drop field) >>> step) &&& ih
+  conditional test body=(drop test &&& iden) >>> cond body iden
+  start :: term HashArgs (Ctx8,HashArgs)
+  start=(unit >>> ctx8Init) &&& iden
+  field :: term HashArgs Bit -> term HashArgs Word16 -> (Int -> term Ctx8 Ctx8) -> term (Ctx8,HashArgs) (Ctx8,HashArgs)
+  field flag mask item=conditional (and flag nonEmpty) (append sub ctx8Add32)
    where
-    nonEmpty = mask >>> (iden &&& konst (w16 0) >>> eq) >>> not iden
-    sub = ctx8Init >>> foldr (\j k -> when' (mask >>> bit16 j) (item j) >>> k) iden [0 .. maxItems - 1] >>> ctx8Finalize
-  inp j p = konst (w32 (toInteger j)) >>> primitive p
-  -- each item: the input/output exists when it is selected (BIP 346 validates the indices)
-  prevoutItem j = (iden &&& (unit >>> inp j Prim.InputPrevOutpoint >>> verify)) >>> ((oh &&& drop (take rev256) >>> ctx8Add32) &&& iih) >>> ctxAddLE32
-  seqItem j = ctxWith (inp j Prim.InputSequence >>> verify) ctxAddLE32
-  ssItem j = ctxWith (inp j Prim.InputScriptSigHash >>> verify) ctx8Add32
-  spkItem j = ctxWith (inp j Prim.InputScriptHash >>> verify) ctx8Add32
-  valItem j = ctxWith (inp j Prim.InputValue >>> verify) ctxAddLE64
-  annexItem j = ctxWith (((inp j Prim.InputAnnexHash >>> verify) &&& unit) >>> match (konst (toWord256 emptyHash)) oh) ctx8Add32
-  outSpk j = ctxWith (inp j Prim.OutputScriptHash >>> verify) ctx8Add32
-  outVal j = ctxWith (inp j Prim.OutputValue >>> verify) ctxAddLE64
-  template = ctx8Init
-         >>> when' (gb 7) (ctxWith (witness ctl) (ctx8AddBuffer buffer63))
-         >>> when' (gb 0) (ctxWith (primitive Prim.Version) ctxAddLE32)
-         >>> when' (gb 1) (ctxWith (primitive Prim.LockTime) ctxAddLE32)
-         >>> when' (gb 2) (ctxWith (primitive Prim.CurrentIndex) ctxAddLE32)
-         >>> when' (gb 3) (ctxWith (witness cbH) ctx8Add32)
-         >>> when' (gb 4) (ctxWith (witness ssH) ctx8Add32)
-         >>> when' (gb 5) (ctxWith (witness csPos) ctxAddLE32)
-         >>> when' (gb 6) (ctxWith ((Tx.currentAnnexHash &&& unit) >>> match (konst (toWord256 emptyHash)) oh) ctx8Add32)
-         >>> when' (witness ci) (ctxWith Tx.numInputs ctxAddLE32)
-         >>> field (fb 0) (witness mi) prevoutItem
-         >>> field (fb 1) (witness mi) seqItem
-         >>> field (fb 2) (witness mi) ssItem
-         >>> field (fb 3) (witness mi) spkItem
-         >>> field (fb 4) (witness mi) valItem
-         >>> field (fb 5) (witness mi) annexItem
-         >>> when' (witness co) (ctxWith Tx.numOutputs ctxAddLE32)
-         >>> field (fb 6) (witness mo) outSpk
-         >>> field (fb 7) (witness mo) outVal
-         >>> ctx8Finalize
+    nonEmpty=mask >>> (iden &&& konst (w16 0) >>> eq) >>> not iden
+    sub=start >>> foldr (\j rest -> conditional (mask >>> bit16 j) (take (item j) &&& ih) >>> rest) iden [0..maxItems-1] >>> oh >>> ctx8Finalize
+  inp j p=konst (w32 (toInteger j)) >>> primitive p
+  prevoutItem j=(iden &&& (unit >>> inp j Prim.InputPrevOutpoint >>> verify)) >>> ((oh &&& drop (take rev256) >>> ctx8Add32) &&& iih) >>> ctxAddLE32
+  seqItem j=ctxWith (inp j Prim.InputSequence >>> verify) ctxAddLE32
+  ssItem j=ctxWith (inp j Prim.InputScriptSigHash >>> verify) ctx8Add32
+  spkItem j=ctxWith (inp j Prim.InputScriptHash >>> verify) ctx8Add32
+  valItem j=ctxWith (inp j Prim.InputValue >>> verify) ctxAddLE64
+  annexItem j=ctxWith (((inp j Prim.InputAnnexHash >>> verify) &&& unit) >>> match (konst (toWord256 emptyHash)) oh) ctx8Add32
+  outSpk j=ctxWith (inp j Prim.OutputScriptHash >>> verify) ctx8Add32
+  outVal j=ctxWith (inp j Prim.OutputValue >>> verify) ctxAddLE64
+  template :: term HashArgs Word256
+  template=start
+    >>> conditional (gb 7) (append ctlT (ctx8AddBuffer buffer63))
+    >>> conditional (gb 0) (append (unit >>> primitive Prim.Version) ctxAddLE32)
+    >>> conditional (gb 1) (append (unit >>> primitive Prim.LockTime) ctxAddLE32)
+    >>> conditional (gb 2) (append (unit >>> primitive Prim.CurrentIndex) ctxAddLE32)
+    >>> conditional (gb 3) (append (drop oh) ctx8Add32)
+    >>> conditional (gb 4) (append (drop ioh) ctx8Add32)
+    >>> conditional (gb 5) (append (drop iih) ctxAddLE32)
+    >>> conditional (gb 6) (append ((unit >>> Tx.currentAnnexHash) &&& unit >>> match (konst (toWord256 emptyHash)) oh) ctx8Add32)
+    >>> conditional ciT (append (unit >>> Tx.numInputs) ctxAddLE32)
+    >>> field (fb 0) miT prevoutItem
+    >>> field (fb 1) miT seqItem
+    >>> field (fb 2) miT ssItem
+    >>> field (fb 3) miT spkItem
+    >>> field (fb 4) miT valItem
+    >>> field (fb 5) miT annexItem
+    >>> conditional coT (append (unit >>> Tx.numOutputs) ctxAddLE32)
+    >>> field (fb 6) moT outSpk
+    >>> field (fb 7) moT outVal
+    >>> oh >>> ctx8Finalize
 
 -- Selector decoding (transcribed from vendor-specs/bips/bip-0346_ref-impl_src_main.rs) ------------
 
@@ -160,6 +176,8 @@ parseSel first rest nItems cur
 
 decode :: BS.ByteString -> Int -> Int -> Int -> Maybe Sel
 decode txfs0 nIn nOut cur = do
+  if nIn > maxItems || nOut > maxItems || nIn <= 0 || cur < 0 || cur >= nIn
+    then Nothing else Just ()
   bytes <- case BS.unpack txfs0 of
     [] -> Just [0x07, 0xc6, 0xbf, 0xbf]  -- TXFS_SPECIAL_TEMPLATE
     [t] -> convertShort t
@@ -171,6 +189,26 @@ decode txfs0 nIn nOut cur = do
   if null rest3 == False then Nothing else Just
     (if global .&. 0x80 /= 0 then BS.pack bytes else BS.empty, (global, inout), ((ci, mask ins), (co, mask outs)))
  where mask = foldr (\i m -> m .|. (1 `shiftL` i)) 0
+
+-- These malformed cases exercise the Haskell selector decoder, not the
+-- Simplicity expression (which accepts an already-decoded selector).
+-- The upstream JSON contains 150 successful hash cases and no invalid cases.
+selectorDecoderChecks :: [(String, Bool)]
+selectorDecoderChecks =
+  [ (name, decode (BS.pack bytes) 4 3 cur == Nothing)
+  | (name, bytes, cur) <-
+      [ ("invalid short input mode", [0x02], 0)
+      , ("invalid short output mode", [0x08], 0)
+      , ("missing second leading byte", [0,0,0x20], 0)
+      , ("missing individual index", [0,0,0x41], 0)
+      , ("duplicate individual indices", [0,0,0x42,0,0], 0)
+      , ("descending individual indices", [0,0,0x42,1,0], 0)
+      , ("individual index beyond input count", [0,0,0x41,4], 0)
+      , ("relative index before first input", [0,0,0x61,0x7f], 0)
+      , ("leading selection beyond input count", [0,0,5], 0)
+      , ("unexpected trailing bytes", [0,0,0,0,0], 0)
+      , ("current output absent", [0,0,0,0x40], 3)
+      ] ]
 
 -- Vectors ---------------------------------------------------------------------------
 
@@ -196,7 +234,6 @@ entries = do
                 , let cs = if csRaw == "null" then 0xffffffff else read csRaw :: Integer
                 , Just sel <- [decode (unhex (field' "txfs" o)) nIn nOut cur] ]
       usable = decoded
-      skipped = length vecs - length usable
       -- tapscript context of input cur from its witness: [..., script, control block (, annex)]
       tapCtx cur cs = let w = rtWitness raw !! cur
                           w' = maybe w (const (L.init w)) (taprootAnnex w)
@@ -213,14 +250,18 @@ entries = do
       neg = case usable of
         ((i, cur, (sel, cs), h):_) -> [Vector "wrong expected hash" (mkEnv sigTx (fromIntegral cur) defaultTap) ((toW sel, tapCtx cur cs), w256 1) Reject]
         [] -> []
+  unless (length decoded == length vecs) $
+    ioError (userError "BIP346 selector decoder rejected an upstream success vector")
+  unless (all snd selectorDecoderChecks) $
+    ioError (userError ("BIP346 malformed selector accepted: " ++ unwords [n | (n, ok) <- selectorDecoderChecks, ok == False]))
   return
     [ Entry
       { entryId = "bip346-txhash"
       , entryTitle = "OP_TXHASH with decoded TxFieldSelectors"
       , entrySpec = "BIP 346 (vendor-specs/bips/bip-0346.md); hashing order transcribed from its reference implementation"
       , entryCategory = CovenantBip
-      , entryVectorSource = Upstream ("vendor-specs/bips/bip-0346_ref-impl_txhash_vectors.json: " ++ show (length usable) ++ " of " ++ show (length vecs)
-                                      ++ " vectors (" ++ show skipped ++ " rejected by the selector decoder as invalid)")
+      , entryVectorSource = Upstream ("vendor-specs/bips/bip-0346_ref-impl_txhash_vectors.json: all " ++ show (length usable)
+                                      ++ " hash vectors, plus one derived wrong-hash vector; 11 derived malformed selectors checked by the Haskell decoder when loading")
       , entryAssumptions = [ "the selector is decoded off-chain into flags and two 16-bit selection masks (at most 16 inputs and outputs)"
                            , "the tapscript-context fields (control block hash, spent script hash, OP_CODESEPARATOR position) are witness operands computed from each vector's witness: a Simplicity spend has no tapscript"
                            , "the selector and the expected hash are witness operands" ]

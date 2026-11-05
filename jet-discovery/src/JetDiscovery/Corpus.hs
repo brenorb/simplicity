@@ -4,6 +4,21 @@ module JetDiscovery.Corpus
   ( corpus
   ) where
 
+import qualified JetDiscovery.Corpus.FibonacciStark as FibonacciStark
+import qualified JetDiscovery.Corpus.ContractExpansion as ContractExpansion
+import qualified JetDiscovery.Corpus.EprintExpansion as EprintExpansion
+import qualified JetDiscovery.Corpus.BN254 as BN254
+import qualified JetDiscovery.Corpus.ScriptProposals as ScriptProposals
+import qualified JetDiscovery.Corpus.BitcoinExpansion as BitcoinExpansion
+import qualified JetDiscovery.Corpus.BitcoinGrowth as BitcoinGrowth
+import qualified JetDiscovery.Corpus.Xmss as Xmss
+import qualified JetDiscovery.Corpus.Bip360P2mr as Bip360P2mr
+import qualified JetDiscovery.Corpus.ContractMath as ContractMath
+import qualified JetDiscovery.Corpus.Lms as Lms
+import qualified JetDiscovery.Corpus.FinancialApps as FinancialApps
+import qualified JetDiscovery.Corpus.StatefulApps as StatefulApps
+import qualified JetDiscovery.Corpus.ProposalApps as ProposalApps
+import qualified JetDiscovery.Corpus.StateMachines as StateMachines
 import JetDiscovery.Types (Entry)
 import qualified JetDiscovery.Corpus.Baseline as Baseline
 import qualified JetDiscovery.Corpus.Bip348Csfs as Csfs
@@ -20,6 +35,7 @@ import qualified JetDiscovery.Corpus.Ripemd as Ripemd
 import qualified JetDiscovery.Corpus.Aggregate as Aggregate
 import qualified JetDiscovery.Corpus.Bip346Txhash as Txhash
 import qualified JetDiscovery.Corpus.ShrincsStateless as ShrincsStateless
+import qualified JetDiscovery.Corpus.SlhDsaStandard as SlhDsaStandard
 import qualified JetDiscovery.Corpus.StarkFri as StarkFri
 import qualified JetDiscovery.Corpus.P256 as P256
 import qualified JetDiscovery.Corpus.Ed25519 as Ed25519
@@ -40,11 +56,26 @@ corpus = concat <$> sequence
   , pure Aggregate.entries
   , pure Shrincs.entries
   , pure ShrincsStateless.entries
+  , pure SlhDsaStandard.entries
   , pure Hashes.entries
   , pure P256.entries
   , pure Ed25519.entries
   , pure Stark.entries
-  , pure StarkFri.entries
+  , pure StateMachines.entries
+  , pure ProposalApps.entries
+  , pure StatefulApps.entries
+  , pure Lms.entries
+  , pure FinancialApps.entries
+  , pure ContractMath.entries
+  , Bip360P2mr.entries
+  , pure Xmss.entries
+  , pure BitcoinExpansion.entries
+  , BitcoinGrowth.entries
+  , pure ScriptProposals.entries
+  , pure FibonacciStark.entries
+  , pure ContractExpansion.entries
+  , pure EprintExpansion.entries
+  , pure BN254.entries
   , pure DeFi.entries
   , Eprint.entries
   , pure EthSol.entries

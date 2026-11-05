@@ -32,11 +32,18 @@ import Data.Word (Word64)
 import qualified Simplicity.Ty as Ty
 import Simplicity.Ty (Ty, TyF(..), SomeArrow(..), reifyArrow, unreflect, memoCataTy)
 import Simplicity.BitMachine.Ty (bitSize)
+import Simplicity.Digest (Hash256, ivHash, compress, compressHalf)
+import Simplicity.Tags (commitmentTag)
+import Simplicity.MerkleRoot (commitmentRoot)
+import qualified Simplicity.Bitcoin.Term as Term
+import qualified Simplicity.Bitcoin.JetType as JT
+import Simplicity.Weight (milliWeight)
 import Simplicity.Bitcoin.Inference (TermF(..))
 
 data NodeInfo = NodeInfo
   { niIndex :: !Int
   , niHash  :: !Word64   -- ^ structural hash including constant values and types
+  , niCmr :: Hash256 -- ^ real commitment Merkle root of this sub-DAG
   , niShape :: !Word64   -- ^ structural hash ignoring constant word values
   , niKind  :: String    -- ^ combinator name, or @jet:<name>@
   , niSrc   :: Ty
@@ -89,7 +96,7 @@ prettyTy t = snd (memoCataTy f t)
 -- | Profile a DAG as produced by 'Simplicity.Bitcoin.Dag.jetDag'.
 -- @name@ and @cost@ give a jet's display name and its cost in milliWU.
 -- @constValue@ returns a hash of a jet's constant payload (for constant-word jets), if any.
-profile :: forall f jt w. Foldable f
+profile :: forall f jt w. (Foldable f, JT.JetType jt)
         => (forall a b. (Ty.TyC a, Ty.TyC b) => jt a b -> String)
         -> (forall a b. (Ty.TyC a, Ty.TyC b) => jt a b -> Integer)
         -> (forall a b. (Ty.TyC a, Ty.TyC b) => jt a b -> Maybe Word64)
@@ -155,7 +162,29 @@ profile name cost constValue dag = V.toList infos
           _ -> forM_ cs $ \c -> MV.modify m (+ mi) c
     V.freeze m
   total (_, _, _, _, _, _, t, _, _, _) = t
-  infos = V.imap (\i (h, s, k, a, b, w, t, _, _, nn) -> NodeInfo i h s k a b w t (mults V.! i) nn) base
+  -- These are the exact in-tree CommitmentRoot rules (MerkleRoot.Impl),
+  -- applied to the already jetted DAG. Hidden nodes already carry their
+  -- committed child root; disconnect commits only to its first child.
+  cmrs = V.generate len cmrAt
+  cmrAt i = case nodes V.! i of
+    Iden _ -> leafC "iden"
+    Unit _ -> leafC "unit"
+    Injl _ _ _ t -> unary "injl" t
+    Injr _ _ _ t -> unary "injr" t
+    Take _ _ _ t -> unary "take" t
+    Drop _ _ _ t -> unary "drop" t
+    Comp _ _ _ a b -> binary "comp" a b
+    Case _ _ _ _ a b -> binary "case" a b
+    Pair _ _ _ a b -> binary "pair" a b
+    Disconnect _ _ _ _ a _ -> unary "disconnect" a
+    Witness _ _ _ -> leafC "witness"
+    Hidden h -> h
+    Jet (SomeArrow j) -> commitmentRoot (Term.jet (JT.jetCost j) (JT.specification j))
+   where
+    leafC tag = ivHash (commitmentTag tag)
+    unary tag t = ivHash (compressHalf (commitmentTag tag) (cmrs V.! child i t))
+    binary tag a b = ivHash (compress (commitmentTag tag) (cmrs V.! child i a, cmrs V.! child i b))
+  infos = V.imap (\i (h, s, k, a, b, w, t, _, _, nn) -> NodeInfo i h (cmrs V.! i) s k a b w t (mults V.! i) nn) base
 
 oneTy :: Ty
 oneTy = Ty.one

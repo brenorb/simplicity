@@ -8,11 +8,15 @@ module JetDiscovery.Report
   , whatIfMarkdown
   , ablationMarkdown
   , witnessStackBytes
+  , assumedWitnessStackBytes
+  , candidateImpactMarkdown
+  , candidateImpactTsv
   ) where
 
 import Data.List (intercalate)
 import Numeric (showFFloat, showEFloat)
 
+import JetDiscovery.Profile (niCmr)
 import JetDiscovery.Run
 import JetDiscovery.Types
 import JetDiscovery.Tx (hex, hashToBytes)
@@ -26,13 +30,26 @@ pct a b | b == 0 = "-"
         | otherwise = showFFloat (Just 2) (100 * fromInteger a / fromInteger b :: Double) "%"
 
 vectorsOk :: EntryResult -> Bool
-vectorsOk = all vrOk . erVectors
+vectorsOk r = all vrOk (erVectors r) && mProfileTotal m == mCost m &&
+  not (null (mProfile m)) && niCmr (last (mProfile m)) == mCmr m
+ where m = erMeasure r
 
--- | Estimated witness stack bytes for a script-path spend: program, witness,
--- CMR (32), control block (33 for a single leaf), plus 4 length prefix bytes.
+-- | Hypothetical four-element script-path stack: program, witness, CMR (32),
+-- control block (33 for a single leaf). Includes CompactSize count/lengths.
+-- This is an explicit budget scenario, not a Bitcoin integration rule.
 witnessStackBytes :: Measurement -> Integer
-witnessStackBytes m = bytes (mProgBits m) + bytes (mWitBits m) + 32 + 33 + 4
+witnessStackBytes m = assumedWitnessStackBytes [bytes (mProgBits m),bytes (mWitBits m),32,33]
  where bytes b = (toInteger b + 7) `div` 8
+
+assumedWitnessStackBytes :: [Integer] -> Integer
+assumedWitnessStackBytes sizes = compactSize (toInteger (length sizes)) + sum [compactSize n+n | n<-sizes]
+ where
+  compactSize n | n<0=error "negative witness element length"
+                | n<253=1
+                | n<=65535=3
+                | n<=4294967295=5
+                | n<=18446744073709551615=9
+                | otherwise=error "witness element exceeds CompactSize"
 
 resultsMarkdown :: [EntryResult] -> String
 resultsMarkdown rs = unlines $
@@ -52,7 +69,7 @@ resultsMarkdown rs = unlines $
              ++ " | " ++ pct (mCost m) (budgetMax * 1000)
              ++ " | " ++ show ((mProgBits m + 7) `div` 8) ++ " | " ++ show ((mWitBits m + 7) `div` 8)
              ++ " | " ++ show budget
-             ++ " | " ++ (if mCost m <= budget * 1000 then "yes" else "no (+" ++ wu (mCost m - budget * 1000) ++ " WU padding)")
+             ++ " | " ++ (if mCost m <= budget * 1000 then "yes" else "no (" ++ wu (mCost m - budget * 1000) ++ " WU deficit)")
              ++ " |"
   ratio a b | b == 0 = "-"
             | otherwise = let x = fromInteger a / fromInteger b :: Double in if x < 1e6 then showFFloat (Just 1) x "×" else showEFloat (Just 1) x "×"
@@ -66,6 +83,21 @@ resultsTsv rs = unlines $
                      , show (mCost m), show (mCostBase m), show (mCostWhatIf m)
                      , show (mProgBits m), show (mWitBits m), show (mNodes m), hex (hashToBytes (mCmr m)) ]
   | r <- rs, let e = erEntry r; m = erMeasure r; vs = erVectors r ]
+
+-- | One-candidate-at-a-time counterfactuals, including nested matches and
+-- worst-branch changes. Different rows are alternatives and are not additive.
+candidateImpactMarkdown :: [EntryResult] -> String
+candidateImpactMarkdown rs=unlines $
+  ["| program | candidate | isolated occurrences | current WU | isolated WU (ESTIMATE) | WU saved | fits fixed hypothetical budget, before / after |",
+   "| --- | --- | ---: | ---: | ---: | ---: | --- |"]++
+  ["| `"++entryId (erEntry r)++"` | ["++name++"](../candidates/"++name++"/README.md) | "++show count++" | "++wu (mCost m)++" | "++wu after++" | "++wu (mCost m-after)++" | "++fits (mCost m)++" / "++fits after++" |"
+  |r<-rs,let m=erMeasure r,(name,(after,count))<-mCandidateCosts m,count>0,
+   let fits cost=if cost<=1000*witnessBudgetModel (witnessStackBytes m) then "yes" else "no"]
+
+candidateImpactTsv :: [EntryResult] -> String
+candidateImpactTsv rs=unlines $ intercalate "\t" ["program","candidate","occurrences","current_mwu","isolated_mwu_estimate","saving_mwu","assumed_budget_wu"]:
+  [intercalate "\t" [entryId (erEntry r),name,show count,show (mCost m),show after,show (mCost m-after),show (witnessBudgetModel (witnessStackBytes m))]
+  |r<-rs,let m=erMeasure r,(name,(after,count))<-mCandidateCosts m]
 
 -- | Per-program what-if: which candidates matched (with multiplicity) and the new bound.
 whatIfMarkdown :: [EntryResult] -> String

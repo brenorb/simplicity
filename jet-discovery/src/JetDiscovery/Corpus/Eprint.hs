@@ -7,7 +7,7 @@
 -- * a 4-key Schnorr ring signature (AOS; proof of reserves without revealing which key);
 -- * a Chaum-Pedersen DLEQ proof, as used by Cashu ecash (NUT-12).
 module JetDiscovery.Corpus.Eprint
-  ( entries
+  ( entries, adaptorT, ringT, dleqT, encodingProbes
   ) where
 
 import Prelude hiding (drop, take, not, and, or)
@@ -41,87 +41,105 @@ normalize :: Assert term => term (GE, Word256) GE
 normalize = Secp.gej_normalize >>> verify
 
 liftX :: Assert term => term Word256 GE
-liftX = (false &&& iden) >>> Secp.decompress >>> verify
+liftX = (canonicalField &&& iden) >>> ih >>> (false &&& iden) >>> Secp.decompress >>> verify
 
 onCurve :: Assert term => term GE ()
-onCurve = Secp.ge_is_on_curve >>> verify
+onCurve = ((oh >>> canonicalField) &&& ((ih >>> canonicalField) &&& (Secp.ge_is_on_curve >>> verify))) >>> unit
 
--- Adaptor signatures --------------------------------------------------------------------
+canonicalField :: Assert term => term Word256 ()
+canonicalField=(iden &&& kw Ref.p) >>> Arith.lt word256 >>> verify
+canonicalScalar :: Assert term => term Word256 ()
+canonicalScalar=(iden &&& kw Ref.n) >>> Arith.lt word256 >>> verify
 
--- | Pre-signature (R', s') for adaptor point T under key P on message m:
--- R = R' + T has even y, e = hash_BIP0340/challenge(x(R) || P || m), and s' G = R' + e P.
-adaptorVerify :: forall term. (Assert term, Witness term) => ((Word256, Word256), ((GE, GE), Word256)) -> term () ()
-adaptorVerify ((pv, mv), ((r'v, tv), s'v)) = ((r' >>> onCurve) &&& (t >>> onCurve)) &&& (evenR &&& lin) >>> unit
+-- All multiply-used proof/key fields enter through one structured witness.
+-- Context helpers preserve the bound input value, never re-witness fields.
+appendT :: (Assert term,TyC a,TyC b) => term a b -> term (Ctx8,b) Ctx8 -> term (a,Ctx8) (a,Ctx8)
+appendT f jet=oh &&& ((ih &&& (oh >>> f)) >>> jet)
+startHash :: (Assert term,TyC a) => String -> term a (a,Ctx8)
+startHash tag=iden &&& (unit >>> if null tag then ctx8Init else ctx8InitTag tag)
+endHash :: (Assert term,TyC a) => term (a,Ctx8) Word256
+endHash=drop ctx8Finalize
+
+-- Adaptor signatures ---------------------------------------------------------
+type AdaptorInput=((Word256,Word256),((GE,GE),Word256))
+adaptorVerify :: (Assert term,Witness term) => AdaptorInput -> term () ()
+adaptorVerify w=witness w >>> adaptorT
+adaptorT :: forall term. Assert term => term AdaptorInput ()
+adaptorT=((pk >>> canonicalField) &&& ((response >>> canonicalScalar) &&& (((r' >>> onCurve) &&& (t >>> onCurve)) &&& (evenR &&& lin)))) >>> unit
  where
-  r', t :: forall a. TyC a => term a GE
-  r' = witness r'v
-  t = witness tv
-  rPt :: term () GE
-  rPt = (toGEJ r' &&& t) >>> Secp.gej_ge_add >>> normalize
-  evenR = rPt >>> ih >>> Secp.fe_is_odd >>> not iden >>> verify
-  e = ((((unit >>> ctx8InitTag "BIP0340/challenge") &&& (rPt >>> oh) >>> ctx8Add32) &&& witness pv >>> ctx8Add32) &&& witness mv >>> ctx8Add32) >>> ctx8Finalize >>> Secp.scalar_normalize
-  lin = ((((e >>> Secp.scalar_negate) &&& (witness pv >>> liftX)) &&& witness s'v) &&& r') >>> Secp.linear_verify_1
+  pk=ooh;message=oih
+  r'=ih >>> oh >>> oh
+  t=ih >>> oh >>> ih
+  response=ih >>> ih
+  rPt=(toGEJ r' &&& t) >>> Secp.gej_ge_add >>> normalize
+  evenR=rPt >>> ih >>> Secp.fe_is_odd >>> not iden >>> verify
+  e=startHash "BIP0340/challenge" >>> appendT (rPt >>> oh) ctx8Add32 >>> appendT pk ctx8Add32 >>> appendT message ctx8Add32 >>> endHash >>> Secp.scalar_normalize
+  lin=((((e >>> Secp.scalar_negate) &&& (pk >>> liftX)) &&& response) &&& r') >>> Secp.linear_verify_1
 
--- MuSig2 KeyAgg --------------------------------------------------------------------------
-
-type CKey = (Word8, Word256)   -- compressed key: (prefix, x)
-
--- | x(Q) for Q = sum a_i P_i (BIP 327 KeyAgg, three keys).
-keyAgg3 :: forall term. (Assert term, Witness term) => ([CKey], Word256) -> term () ()
-keyAgg3 (ks, expected) = (valid &&& ((qx &&& witness expected) >>> eq >>> verify)) >>> unit
+-- MuSig2 KeyAgg --------------------------------------------------------------
+type CKey=(Word8,Word256)
+type KeyAggInput=((CKey,(CKey,CKey)),Word256)
+keyAgg3 :: (Assert term,Witness term) => ([CKey],Word256) -> term () ()
+keyAgg3 ([a,b,c],expected)=witness ((a,(b,c)),expected) >>> keyAggT
+keyAgg3 _=error "KeyAgg3: expected3keys"
+keyAggT :: forall term. Assert term => term KeyAggInput ()
+keyAggT=(valid &&& ((qx &&& ih) >>> eq >>> verify)) >>> unit
  where
-  k :: Int -> (forall a. TyC a => term a CKey)
-  k i = witness (ks !! i)
-  keyAdd :: Int -> term Ctx8 Ctx8
-  keyAdd i = ctxWith (k i >>> oh) ctx8Add1 >>> ctxWith (k i >>> ih) ctx8Add32
-  -- L = hash_KeyAgg list(pk1 || pk2 || pk3)
-  lHash :: term () Word256
-  lHash = (unit >>> ctx8InitTag "KeyAgg list") >>> keyAdd 0 >>> keyAdd 1 >>> keyAdd 2 >>> ctx8Finalize
-  same :: Int -> Int -> term () Bit
-  same i j = and (((k i >>> oh) &&& (k j >>> oh)) >>> eq) (((k i >>> ih) &&& (k j >>> ih)) >>> eq)
-  -- GetSecondKey: pk_i gets coefficient 1 iff it equals the first key differing from pk1
-  isSecond :: Int -> term () Bit
-  isSecond 0 = false
-  isSecond 1 = not (same 1 0)
-  isSecond _ = (same 1 0 &&& unit) >>> cond (not (same 2 0)) (same 2 1)
-  coeff :: Int -> term () Word256
-  coeff i = (isSecond i &&& unit) >>> cond (kw 1)
-              (((unit >>> ctx8InitTag "KeyAgg coefficient") >>> ctxWith lHash ctx8Add32 >>> keyAdd i >>> ctx8Finalize) >>> Secp.scalar_normalize)
-  point :: Int -> term () GE
-  point i = (((k i >>> oh) &&& konst (w8 3) >>> eq) &&& (k i >>> ih)) >>> Secp.decompress >>> verify
-  scaled :: Int -> term () (GE, Word256)
-  scaled i = (coeff i &&& toGEJ (point i)) >>> Secp.scale
-  qx = ((scaled 0 &&& scaled 1) >>> Secp.gej_add) &&& scaled 2 >>> Secp.gej_add >>> normalize >>> oh
-  -- prefix 2 or 3, and x below the field size
-  validKey :: Int -> term () ()
-  validKey i = (or (((k i >>> oh) &&& konst (w8 2)) >>> eq) (((k i >>> oh) &&& konst (w8 3)) >>> eq) >>> verify)
-               &&& (((k i >>> ih) &&& kw Ref.p >>> Arith.subtract word256) >>> oh >>> verify) >>> unit
-  valid = (validKey 0 &&& (validKey 1 &&& validKey 2)) >>> unit
+  k :: Int -> term KeyAggInput CKey
+  k 0=oh >>> oh
+  k 1=oh >>> ih >>> oh
+  k 2=oh >>> ih >>> ih
+  k _=error "KeyAgg index"
+  keyAdd i=appendT (k i >>> oh) ctx8Add1 >>> appendT (k i >>> ih) ctx8Add32
+  lHash=startHash "KeyAgg list" >>> keyAdd 0 >>> keyAdd 1 >>> keyAdd 2 >>> endHash
+  same i j=and (((k i >>> oh) &&& (k j >>> oh)) >>> eq) (((k i >>> ih) &&& (k j >>> ih)) >>> eq)
+  isSecond 0=false
+  isSecond 1=not (same 1 0)
+  isSecond _=(same 1 0 &&& iden) >>> cond (not (same 2 0)) (same 2 1)
+  coeff i=(isSecond i &&& iden) >>> cond (kw 1)
+          ((startHash "KeyAgg coefficient" >>> appendT lHash ctx8Add32 >>> keyAdd i >>> endHash) >>> Secp.scalar_normalize)
+  point i=(((k i >>> oh) &&& konst (w8 3) >>> eq) &&& (k i >>> ih)) >>> Secp.decompress >>> verify
+  scaled i=(coeff i &&& toGEJ (point i)) >>> Secp.scale
+  qx=((scaled 0 &&& scaled 1) >>> Secp.gej_add) &&& scaled 2 >>> Secp.gej_add >>> normalize >>> oh
+  validKey i=(or (((k i >>> oh) &&& konst (w8 2)) >>> eq) (((k i >>> oh) &&& konst (w8 3)) >>> eq) >>> verify)
+             &&& (((k i >>> ih) &&& kw Ref.p >>> Arith.subtract word256) >>> oh >>> verify) >>> unit
+  valid=(validKey 0 &&& (validKey 1 &&& validKey 2)) >>> unit
 
--- Ring signature ----------------------------------------------------------------------------
-
--- | AOS ring signature over keys P_0..P_3 on m: R_i = s_i G - e_i P_i, e_{i+1} = H(m || R_i), e_4 = e_0.
-ringVerify :: forall term. (Assert term, Witness term) => (([Word256], Word256), (Word256, [Word256])) -> term () ()
-ringVerify ((pks, mv), (e0v, ss)) = (L.foldl' (\acc i -> acc >>> link i) (witness e0v) [0 .. 3] &&& witness e0v) >>> eq >>> verify
+-- AOS ring signature ---------------------------------------------------------
+type RingInput=((Vector4 Word256,Word256),(Word256,Vector4 Word256))
+ringVerify :: (Assert term,Witness term) => (([Word256],Word256),(Word256,[Word256])) -> term () ()
+ringVerify (([p0,p1,p2,p3],m),(e,[s0,s1,s2,s3]))=witness ((((p0,p1),(p2,p3)),m),(e,((s0,s1),(s2,s3)))) >>> ringT
+ringVerify _=error "Ring: expected4keys/responses"
+ringT :: forall term. Assert term => term RingInput ()
+ringT=(canonical &&& cycleCheck) >>> unit
  where
-  link i = (((Secp.scalar_negate &&& (unit >>> witness (pks !! i) >>> liftX >>> toGEJ iden)) &&& (unit >>> witness (ss !! i))) >>> Secp.linear_combination_1 >>> normalize)
-           >>> ((((unit >>> ctx8Init) &&& (unit >>> witness mv) >>> ctx8Add32) &&& iden >>> ctx8Add64) >>> ctx8Finalize >>> Secp.scalar_normalize)
+  canonical=((ih >>> oh >>> canonicalScalar) &&& L.foldl' (\acc i -> (acc &&& ((oh >>> oh >>> item i >>> canonicalField) &&& (ih >>> ih >>> item i >>> canonicalScalar))) >>> unit) unit [0..3]) >>> unit
+  cycleCheck=(iden &&& (ih >>> oh)) >>> L.foldl' (>>>) iden [link i | i<-[0..3]] >>> ((ih &&& (oh >>> ih >>> oh)) >>> eq >>> verify)
+  -- State(bound entire input,current challenge).
+  key i=oh >>> oh >>> oh >>> item i
+  response i=oh >>> ih >>> ih >>> item i
+  message=oh >>> oh >>> ih
+  item 0=ooh;item 1=oih;item 2=ioh;item _=iih
+  link i=oh &&& next
+   where
+    nonce=(((ih >>> Secp.scalar_negate) &&& (key i >>> liftX >>> toGEJ iden)) &&& response i) >>> Secp.linear_combination_1 >>> normalize
+    next=startHash "" >>> appendT message ctx8Add32 >>> appendT nonce ctx8Add64 >>> endHash >>> Secp.scalar_normalize
 
--- DLEQ ------------------------------------------------------------------------------------
-
--- | Chaum-Pedersen proof (e, s) that log_G(A) = log_B(C): R1 = s G - e A, R2 = s B - e C, e = H(R1 || R2 || A || C).
-dleqVerify :: forall term. (Assert term, Witness term) => ((GE, (GE, GE)), (Word256, Word256)) -> term () ()
-dleqVerify ((av, (bv, cv)), (ev, sv)) = ((onCurve' a &&& (onCurve' b &&& onCurve' c)) &&& ((eT &&& witness ev) >>> eq >>> verify)) >>> unit
+-- Chaum-Pedersen DLEQ --------------------------------------------------------
+type DleqInput=((GE,(GE,GE)),(Word256,Word256))
+dleqVerify :: (Assert term,Witness term) => DleqInput -> term () ()
+dleqVerify w=witness w >>> dleqT
+dleqT :: forall term. Assert term => term DleqInput ()
+dleqT=(((ih >>> oh >>> canonicalScalar) &&& (response >>> canonicalScalar)) &&& (((a >>> onCurve) &&& ((b >>> onCurve) &&& (c >>> onCurve))) &&& ((eT &&& (ih >>> oh)) >>> eq >>> verify))) >>> unit
  where
-  a, b, c :: forall x. TyC x => term x GE
-  a = witness av
-  b = witness bv
-  c = witness cv
-  onCurve' t = t >>> onCurve
-  negE = witness ev >>> Secp.scalar_negate
-  r1 = ((negE &&& toGEJ a) &&& witness sv) >>> Secp.linear_combination_1 >>> normalize
-  r2 = ((witness sv &&& toGEJ b) >>> Secp.scale) &&& ((negE &&& toGEJ c) >>> Secp.scale) >>> Secp.gej_add >>> normalize
-  eT = (ctx8Init >>> ctxWith r1 ctx8Add64 >>> ctxWith r2 ctx8Add64 >>> ctxWith a ctx8Add64 >>> ctxWith c ctx8Add64) >>> ctx8Finalize >>> Secp.scalar_normalize
+  a=oh >>> oh
+  b=oh >>> ih >>> oh
+  c=oh >>> ih >>> ih
+  response=ih >>> ih
+  negE=ih >>> oh >>> Secp.scalar_negate
+  r1=((negE &&& toGEJ a) &&& response) >>> Secp.linear_combination_1 >>> normalize
+  r2=((response &&& toGEJ b) >>> Secp.scale) &&& ((negE &&& toGEJ c) >>> Secp.scale) >>> Secp.gej_add >>> normalize
+  eT=startHash "" >>> appendT r1 ctx8Add64 >>> appendT r2 ctx8Add64 >>> appendT a ctx8Add64 >>> appendT c ctx8Add64 >>> endHash >>> Secp.scalar_normalize
 
 -- Vectors ---------------------------------------------------------------------------------
 
@@ -158,12 +176,12 @@ entries = do
       , entrySpec = "Schnorr adaptor signatures as used for PTLCs/DLCs (e.g. secp256k1-zkp's schnorr adaptor module)"
       , entryCategory = Eprint
       , entryVectorSource = Derived "pre-signatures from Ref.Bip340 point arithmetic; the adapted signature also passes Ref.Bip340.verify"
-      , entryAssumptions = ["key, message, R', T and s' are witness operands"]
+      , entryAssumptions = ["key, message, R', T and s' are witness operands", "canonical x-only key and affine coordinates <p; response s'<n; derived challenge reduced mod n"]
       , entryProgram = \w -> Prog (adaptorVerify w)
       , entryVectors =
           [ Vector ("valid pre-signature" ++ adaptorNote) env adaptorW Accept
-          , Vector "pre-signature for another message" env (let ((p, _), r) = adaptorW in ((p, toWord256 5), r)) Reject
-          , Vector "wrong adaptor point" env (let (pm, ((r', _), s')) = adaptorW in (pm, ((r', ptW (Ref.pointMul Ref.gPt 78)), s'))) Reject ]
+          , Vector "same-CMR pre-signature for another message" env (let ((p, _), r) = adaptorW in ((p, toWord256 5), r)) Reject
+          , Vector "same-CMR wrong adaptor point" env (let (pm, ((r', _), s')) = adaptorW in (pm, ((r', ptW (Ref.pointMul Ref.gPt 78)), s'))) Reject ]
       }
     , Entry
       { entryId = "eprint-musig2-keyagg"
@@ -181,11 +199,11 @@ entries = do
       , entrySpec = "Abe-Ohkubo-Suzuki ring signatures over secp256k1 (e.g. proof of reserves without revealing the key)"
       , entryCategory = Eprint
       , entryVectorSource = Derived "ring signatures from a Haskell AOS signer over Ref.Bip340 point arithmetic"
-      , entryAssumptions = ["ring of 4 x-only keys (even y); e_{i+1} = sha256(m || x(R_i) || y(R_i)) mod n"]
+      , entryAssumptions = ["ring of 4 canonical x-only keys <p (even y); e_{i+1} = sha256(m || x(R_i) || y(R_i)) mod n", "initial challenge and all four response scalars must be <n"]
       , entryProgram = \w -> Prog (ringVerify w)
       , entryVectors =
           [ Vector "valid ring signature (signer index 2)" env ringW Accept
-          , Vector "ring signature on another message" env (let ((ps, _), sg) = ringW in ((ps, toWord256 9), sg)) Reject ]
+          , Vector "same-CMR ring signature on another message" env (let ((ps, _), sg) = ringW in ((ps, toWord256 9), sg)) Reject ]
       }
     , Entry
       { entryId = "eprint-dleq-cashu"
@@ -193,11 +211,11 @@ entries = do
       , entrySpec = "Chaum-Pedersen discrete-log equality; Cashu NUT-12 blind-signature DLEQ"
       , entryCategory = Eprint
       , entryVectorSource = Derived "proofs from Ref.Bip340 point arithmetic"
-      , entryAssumptions = ["transcript: sha256(R1 || R2 || A || C) over 64-byte affine points (NUT-12 hashes hex encodings)"]
+      , entryAssumptions = ["transcript: sha256(R1 || R2 || A || C) over 64-byte affine points (NUT-12 hashes hex encodings)", "canonical affine coordinates <p and challenge/response scalars <n; custom transcript challenge reduced mod n"]
       , entryProgram = \w -> Prog (dleqVerify w)
       , entryVectors =
           [ Vector "valid DLEQ proof" env dleqW Accept
-          , Vector "C from a different secret" env (let ((a, (b, _)), es) = dleqW in ((a, (b, ptW (Ref.pointMul (Just bPt) 12345))), es)) Reject ]
+          , Vector "same-CMR C from a different secret" env (let ((a, (b, _)), es) = dleqW in ((a, (b, ptW (Ref.pointMul (Just bPt) 12345))), es)) Reject ]
       }
     ]
  where
@@ -260,3 +278,62 @@ entries = do
     (a, []) | not' (pat `L.isInfixOf` str) -> [a]
     (a, r) -> a : splitOn pat r
   not' b = if b then False else True
+
+encPt (Just(x,y))=(toWord256 x,toWord256 y)
+encPt Nothing=error "infinity"
+encHashNum=Ref.intFromBytes.hashToBytes.sha256
+encSer (Just(x,y))=Ref.bytesFromInt x<>Ref.bytesFromInt y
+encSer Nothing=error "infinity"
+
+encSmall=Ref.liftX 1
+
+-- A valid encAdaptor relation with s'=1 and a encSmall-x public key. T is derived
+-- from the relation; verifier does not demand knowledge of the encAdaptor log.
+encAdaptor rawPk s=Prog (witness w >>> adaptorT)
+ where
+  m=0x991
+  e=Ref.intFromBytes (Ref.taggedHash "BIP0340/challenge" (Ref.bytesFromInt (Ref.pubkeyOf 1)<>Ref.bytesFromInt rawPk<>Ref.bytesFromInt m)) `mod`Ref.n
+  rp=Ref.pointAdd Ref.gPt (Ref.pointMul encSmall (Ref.n-e))
+  t=Ref.pointAdd Ref.gPt (Ref.pointMul rp (Ref.n-1))
+  w=((toWord256 rawPk,toWord256 m),((encPt rp,encPt t),toWord256 s))
+
+-- a=1, B=C=lift_x(1). B is not in the challenge transcript, so replacing B.x
+-- by p+1 leaves a valid old relation. C encoding changes are rehashed exactly.
+encDleq badB badC=Prog (witness w >>> dleqT)
+ where
+  rr=12345
+  a=Ref.gPt;b=encSmall;c=encSmall
+  Just(cx,cy)=c
+  cw=if badC then (toWord256 (cx+Ref.p),toWord256 cy) else encPt c
+  bw=if badB then (toWord256 (cx+Ref.p),toWord256 cy) else encPt b
+  r1=Ref.pointMul Ref.gPt rr;r2=Ref.pointMul b rr
+  e=encHashNum (encSer r1<>encSer r2<>encSer a<>Ref.bytesFromInt (fromWord256(fst cw))<>Ref.bytesFromInt(fromWord256(snd cw))) `mod`Ref.n
+  s=(rr+e) `mod`Ref.n
+  w=((encPt a,(bw,cw)),(toWord256 e,toWord256 s))
+
+encRing badKey badScalar=Prog (witness w >>> ringT)
+ where
+  sks=[1,222,333,444]
+  evenSk sk=let Just(_,y)=Ref.pointMul Ref.gPt sk in if even y then sk else Ref.n-sk
+  ds=map evenSk sks
+  pks=[1,Ref.pubkeyOf(ds!!1),Ref.pubkeyOf(ds!!2),Ref.pubkeyOf(ds!!3)]
+  msg=0x991
+  h q=encHashNum (Ref.bytesFromInt msg<>encSer q) `mod`Ref.n
+  nonce i s e=Ref.pointAdd (Ref.pointMul Ref.gPt s) (Ref.pointMul (Ref.liftX(pks!!i)) (Ref.n-e))
+  k=5555;e3=h(Ref.pointMul Ref.gPt k);e0=h(nonce 3 9004 e3);e1=h(nonce 0 1 e0);e2=h(nonce 1 9002 e1)
+  s2=(k+e2*(ds!!2)) `mod`Ref.n
+  ps=map toWord256 (if badKey then (Ref.p+1):tail pks else pks)
+  ss=map toWord256 [if badScalar then Ref.n+1 else 1,9002,s2,9004]
+  w=((((ps!!0,ps!!1),(ps!!2,ps!!3)),toWord256 msg),(toWord256 e0,((ss!!0,ss!!1),(ss!!2,ss!!3))))
+
+
+-- Actual before/after regression fixtures: each pair has an identical CMR.
+-- The malformed encoding satisfies the raw group equations but must reject.
+encodingProbes :: [(String,Prog,Prog)]
+encodingProbes=
+ [ ("adaptor s+n",encAdaptor 1 1,encAdaptor 1 (Ref.n+1))
+ , ("adaptor noncanonical public key",encAdaptor 1 1,encAdaptor (Ref.p+1) 1)
+ , ("DLEQ noncanonical B",encDleq False False,encDleq True False)
+ , ("DLEQ noncanonical C",encDleq False False,encDleq False True)
+ , ("ring noncanonical key",encRing False False,encRing True False)
+ , ("ring s+n",encRing False False,encRing False True)]

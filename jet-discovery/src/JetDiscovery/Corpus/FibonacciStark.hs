@@ -1,0 +1,280 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+-- | Fibonacci STARK verifier with explicit witness dataflow. Global proof
+-- fields enter once. Query stages reopen an authenticated context and use
+-- each reopened tuple, opening pair and reciprocal through projections.
+module JetDiscovery.Corpus.FibonacciStark (entries, verifier, verifierWithContext) where
+
+import Prelude hiding (drop,take,not,and,or)
+import qualified Data.List as L
+import qualified Data.ByteString as B
+import Data.Bits (testBit)
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import Simplicity.Programs.Generic (eq)
+import qualified Simplicity.Programs.Arith as A
+import qualified Simplicity.Programs.Word as W
+import Simplicity.Programs.Sha256.Lib
+import Simplicity.Ty.Word
+import JetDiscovery.Corpus.Stark (QM31, toQ, qm31Add, qm31Sub, qm31Mul, m31Fix, p31)
+import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.Kernels (sha256Pair)
+import JetDiscovery.Tx
+import JetDiscovery.Types
+import qualified JetDiscovery.Ref.FibonacciStark as R
+import qualified JetDiscovery.Ref.StarkContext as C
+
+type V4 a=((a,a),(a,a))
+type V16 a=V4(V4 a)
+type Q4=V4 QM31
+type PairQ=(QM31,QM31)
+type TripleQ=(QM31,(QM31,QM31))
+-- ((trace root, composition root), (FRI roots, (OOD answers, (AIR quotients, final))))
+type Global=((Word256,Word256),(V16 Word256,(Q4,(Q4,QM31))))
+-- Authenticated-context root and the actual transcript-derived query seed.
+type E=(Word256,Word256)
+type QueryState=(E,QM31)
+-- ((trace root, composition root), ((z,rho), OOD answers))
+type Initial=((Word256,Word256),((QM31,QM31),Q4))
+-- (FRI root, (beta, final FRI constant))
+type Layer=(Word256,(QM31,QM31))
+type InitContext=(QueryState,Initial)
+type TraceState=(InitContext,PairQ)
+type InitState=(TraceState,PairQ)
+type DeepState=(InitState,TripleQ)
+type PairState=(QueryState,PairQ)
+type ExpectedState=(QueryState,QM31)
+type LayerState=(PairState,Layer)
+type FoldState=(LayerState,QM31)
+
+pick :: (Core t,TyC x,TyC c) => Bool -> t x c -> t(x,x)c
+pick True=drop
+pick False=take
+at4 :: (Core t,TyC a,TyC b) => Int -> t a b -> t(V4 a)b
+at4 i=pick(testBit i 1).pick(testBit i 0)
+at16 :: (Core t,TyC a,TyC b) => Int -> t a b -> t(V16 a)b
+at16 i=at4(i `div` 4).at4(i `mod` 4)
+bit32 :: Core t => Int -> t Word32 Bit
+bit32 k=pick(testBit i 4)(pick(testBit i 3)(pick(testBit i 2)(pick(testBit i 1)(pick(testBit i 0)iden)))) where i=31-k
+pack4 [a,b,c,d]=((a,b),(c,d))
+pack4 _=error "pack4"
+pack16 xs=pack4(map pack4 [L.take 4(L.drop k xs)|k<-[0,4,8,12]])
+
+verifier :: (Assert t,Witness t) => R.Parameters -> R.Proof -> t () ()
+verifier p pr=verifierWithContext p pr (snd(C.context p pr))
+
+verifierWithContext :: forall t. (Assert t,Witness t) => R.Parameters -> R.Proof -> C.Certificates -> t () ()
+verifierWithContext p pr certs
+ | nf<=15 && R.wireEncodable p pr && C.wireEncodable p certs =
+     prepare >>> L.foldl' (\acc k->(acc&&&query k(R.queries pr!!k))>>>unit) unit [0..R.queryCount p-1]
+ | otherwise=error "FibonacciStark: proof/context does not match fixed-width witness schema"
+ where
+  nf=R.traceLog p; n=R.domainLog p
+  g=R.generator nf; gi=R.inv g
+  qAddT,qSubT,qMulT :: t PairQ QM31
+  qAddT=qm31Add; qSubT=qm31Sub; qMulT=qm31Mul
+  qSquareT :: t QM31 QM31
+  qSquareT=(iden&&&iden)>>>qMulT
+  qPowT k=L.foldl' (\acc _->acc>>>qSquareT) iden [1..k]
+  hash16T :: t Word128 Word256
+  hash16T=(unit>>>ctx8Init)&&&iden>>>ctx8Add16>>>ctx8Finalize
+  hashPairT :: t(Word256,Word256)Word256
+  hashPairT=sha256Pair
+  contextParent :: t(Word256,Word256)Word256
+  contextParent=(((unit>>>ctx8Init)&&&konst(w8 1)>>>ctx8Add1)&&&oh>>>ctx8Add32)&&&ih>>>ctx8Add32>>>ctx8Finalize
+  alphaT :: t Word256 QM31
+  alphaT=oh>>>((oh>>>pair)&&&(ih>>>pair))
+   where
+    pair=(oh>>>word)&&&(ih>>>word)
+    word=(iden&&&konst(w32 p31))>>>W.bitwise_and word32>>>m31Fix
+  canonicalT :: t QM31 ()
+  canonicalT=(check ooh&&&(check oih&&&(check ioh&&&check iih)))>>>unit
+   where check x=(x&&&konst(w32 p31))>>>A.lt word32>>>verify
+  pairCanonical :: t PairQ ()
+  pairCanonical=(take canonicalT&&&drop canonicalT)>>>unit
+  qOne :: forall a. TyC a=>t a QM31
+  qOne=konst(toQ R.one)
+  qConst :: forall a. TyC a=>R.Q->t a QM31
+  qConst=konst.toQ
+  plus,minus,times :: forall a. TyC a=>t a QM31->t a QM31->t a QM31
+  plus x y=(x&&&y)>>>qAddT
+  minus x y=(x&&&y)>>>qSubT
+  times x y=(x&&&y)>>>qMulT
+  equalQ :: forall a. TyC a=>t a QM31->t a QM31->t a ()
+  equalQ x y=(x&&&y)>>>eq>>>verify
+  equalH :: forall a. TyC a=>t a Word256->t a Word256->t a ()
+  equalH x y=(x&&&y)>>>eq>>>verify
+  keep :: forall a. TyC a=>t a ()->t a a
+  keep check=(check&&&iden)>>>ih
+  combine :: forall a. TyC a=>t a QM31->[t a QM31]->t a QM31
+  combine challenge ts=L.foldr1 plus(zipWith times(iterate(times challenge)qOne)ts)
+  q4val=pack4.map toQ
+  rootVal=w256FromBytes
+  globalVal=((rootVal(R.traceRoot pr),rootVal(R.compositionRoot pr)),
+    (pack16(L.take 16(map rootVal(R.friRoots pr)++repeat(w256 0))),
+     (q4val(R.ood pr),(q4val(R.airQuotients pr),toQ(R.finalValue pr)))))
+  initialVal v=((rootVal(C.initialTraceRoot v),rootVal(C.initialCompositionRoot v)),
+    ((toQ(C.initialZ v),toQ(C.initialRho v)),q4val(C.initialOod v)))
+  layerVal v=(rootVal(C.layerRoot v),(toQ(C.layerBeta v),toQ(C.layerFinal v)))
+  pairVal(a,b)=(toQ a,toQ b)
+  tripleVal(a,b,c)=(toQ a,(toQ b,toQ c))
+  -- Every one of these accessors reads the single Global input, never a
+  -- separate witness occurrence.
+  tr,cr :: t Global Word256
+  tr=take(take iden);cr=take(drop iden)
+  fr :: Int->t Global Word256
+  fr l=drop(take(at16 l iden))
+  oz,aq :: Int->t Global QM31
+  oz i=drop(drop(take(at4 i iden)))
+  aq i=drop(drop(drop(take(at4 i iden))))
+  fv :: t Global QM31
+  fv=drop(drop(drop(drop iden)))
+  ht,hc,ho :: t Global Word256
+  ht=(konst(rootVal(R.statement p))&&&tr)>>>hashPairT
+  hc=(ht&&&cr)>>>hashPairT
+  ho=L.foldl' (\ctx i->(ctx&&&oz i)>>>ctx8Add16) ((unit>>>ctx8Init)&&&hc>>>ctx8Add32) [0..3]>>>ctx8Finalize
+  hfs :: [t Global Word256]
+  hfs=tail(L.scanl' (\h l->(h&&&fr l)>>>hashPairT) ho [0..nf-1])
+  z,a,rho :: t Global QM31
+  z=hc>>>alphaT;a=ht>>>alphaT;rho=ho>>>alphaT
+  beta l=hfs!!l>>>alphaT
+  seed :: t Global Word256
+  seed=(((unit>>>ctx8Init)&&&hfs!!(nf-1)>>>ctx8Add32)&&&fv>>>ctx8Add16)>>>ctx8Finalize
+  air :: t Global ()
+  air=(outside&&&(canon&&&(transition&&&(b0&&&(b1&&&(bl&&&composition))))))>>>unit
+   where
+    outside=((z>>>ih)&&&konst(w64 0))>>>eq>>>not iden>>>verify
+    canon=L.foldl' (\acc i->(acc&&&(oz i>>>canonicalT)&&&(aq i>>>canonicalT))>>>unit) (fv>>>canonicalT) [0..3]
+    numerator=minus(minus(oz 2)(oz 1))(oz 0)
+    factors=times(minus z(qConst gi))(minus z(qConst(R.mul gi gi)))
+    transition=equalQ(times numerator factors)(times(aq 0)(minus(z>>>qPowT nf)qOne))
+    b0=equalQ(times(aq 1)(minus z qOne))(minus(oz 0)qOne)
+    b1=equalQ(times(aq 2)(minus z(qConst g)))(minus(oz 0)qOne)
+    bl=equalQ(times(aq 3)(minus z(qConst gi)))(minus(oz 0)(qConst(R.base(last(R.fib(2^nf))))))
+    composition=equalQ(oz 3)(combine a(map aq[0..3]))
+  initialPayload :: t Global Initial
+  initialPayload=(tr&&&cr)&&&((z&&&rho)&&&drop(drop(take iden)))
+  layerPayload :: Int->t Global Layer
+  layerPayload l=fr l&&&(beta l&&&fv)
+  initialHash :: t Initial Word256
+  initialHash=L.foldl' (\ctx f->(ctx&&&f)>>>ctx8Add16)
+    (((prefix 0&&&take(take iden)>>>ctx8Add32)&&&take(drop iden)>>>ctx8Add32)
+      &&&drop(take(take iden))>>>ctx8Add16)
+    [drop(take(drop iden)),drop(drop(at4 0 iden)),drop(drop(at4 1 iden)),drop(drop(at4 2 iden)),drop(drop(at4 3 iden))]>>>ctx8Finalize
+  prefix :: forall a. TyC a=>Int->t a Ctx8
+  prefix i=(unit>>>ctx8Init)&&&konst(w16(toInteger i))>>>ctx8Add2
+  layerHash :: Int->t Layer Word256
+  layerHash i=(((prefix i&&&oh>>>ctx8Add32)&&&ioh>>>ctx8Add16)&&&iih>>>ctx8Add16)>>>ctx8Finalize
+  contextRoot :: t Global Word256
+  contextRoot=packTerms leaves>>>hash16Tree
+   where
+    leaves=(initialPayload>>>initialHash):[if i<=nf then layerPayload(i-1)>>>layerHash i else konst(rootVal(C.leaf i B.empty))|i<-[1..15]]
+    four [x0,x1,x2,x3]=(x0&&&x1)&&&(x2&&&x3)
+    four _=error "four"
+    packTerms xs=four[four(L.take 4(L.drop k xs))|k<-[0,4,8,12]]
+    h2=contextParent
+    h4=(take h2&&&drop h2)>>>contextParent
+    h8=(take h4&&&drop h4)>>>contextParent
+    hash16Tree=(take h8&&&drop h8)>>>contextParent
+  prepare :: t () E
+  prepare=witness globalVal>>>((air&&&(contextRoot&&&seed))>>>ih)
+  indexFor :: Int->t E Word32
+  indexFor k=((((unit>>>ctx8Init)&&&ih>>>ctx8Add32)&&&konst(w32(toInteger k))>>>ctx8Add4)>>>ctx8Finalize>>>oooh)
+             &&&konst(w32(2^(n-1)-1))>>>W.bitwise_and word32
+  authContext :: forall x. TyC x=>Int->[B.ByteString]->t x Word256->t x Word256->t x ()
+  authContext index path leafHash expected=equalH node expected
+   where node=L.foldl' (\h(j,sib)->(if testBit index j then witness(rootVal sib)&&&h else h&&&witness(rootVal sib))>>>contextParent) leafHash(zip[0..3]path)
+  authOpening :: forall x. TyC x=>Int->[B.ByteString]->t x Word32->t x Word256->t x Word256->t x ()
+  authOpening depth path qi leafHash expected=equalH node expected
+   where node=L.foldl' (\h(j,sib)->((qi>>>bit32 j)&&&(h&&&witness(rootVal sib)))>>>cond(ih&&&oh)iden>>>hashPairT) leafHash(zip[0..depth-2]path)
+  pairHash :: t PairQ Word256
+  pairHash=(take hash16T&&&drop hash16T)>>>hashPairT
+  query :: Int->R.FriQuery->t E ()
+  query k qp=(iden&&&x0)>>>initial>>>runLayer 0>>>L.foldl' (\acc l->acc>>>nextLayer l) iden [1..nf-1]>>>unit
+   where
+    qi=indexFor k
+    x0 :: t E QM31
+    x0=(iden&&&qConst R.coset)>>>L.foldl' (\acc b->acc>>>step b) iden [0..n-2]>>>ih
+     where step b=oh&&&((take(qi>>>bit32 b)&&&ih)>>>cond(times iden(qConst(R.pow(R.generator n)(2^b))))iden)
+    -- Authenticate one Initial reopening, then read trace/composition opening
+    -- pairs once each and retain them through authentication and DEEP use.
+    initial :: t QueryState PairState
+    initial=(iden&&&witness(initialVal(C.certificateValue(C.initialCertificate certs))))
+      >>>keep(authContext 0(C.certificatePath(C.initialCertificate certs))(drop initialHash)(take(take(take iden))))
+      >>>traceStep>>>compositionStep>>>(take(take(take iden))&&&(deep 0&&&deep 1))
+    traceStep :: t InitContext TraceState
+    traceStep=(iden&&&witness(pairVal(R.values(R.traceOpening qp))))>>>keep
+      ((drop pairCanonical&&&authOpening n(R.siblings(R.traceOpening qp))(take(take(take qi)))(drop pairHash)(take(drop(take(take iden)))))>>>unit)
+    compositionStep :: t TraceState InitState
+    compositionStep=(iden&&&witness(pairVal(R.values(R.compositionOpening qp))))>>>keep
+      ((drop pairCanonical&&&authOpening n(R.siblings(R.compositionOpening qp))(take(take(take(take qi))))(drop pairHash)(take(take(drop(take(drop iden))))))>>>unit)
+    deep :: Int->t InitState QM31
+    deep side=(iden&&&witness(tripleVal(R.deepInverses qp!!side)))>>>((checks&&&batch)>>>ih)
+     where
+      valueSide 0=take iden;valueSide _=drop iden
+      tx=take(take(drop(valueSide side)))
+      cx=take(drop(valueSide side))
+      actualX=take(take(take(take(drop iden))))
+      x=if side==0 then actualX else minus(qConst R.zero)actualX
+      iz=take(take(take(drop(drop(take(take iden))))))
+      irho=take(take(take(drop(drop(take(drop iden))))))
+      oo i=take(take(take(drop(drop(drop(at4 i iden))))))
+      iv0=drop(take iden);iv1=drop(drop(take iden));iv2=drop(drop(drop iden))
+      ivs=[iv0,iv1,iv2]
+      points=[iz,times(qConst g)iz,times(qConst(R.mul g g))iz]
+      checks=L.foldl' (\acc(v,z0)->(acc&&&(v>>>canonicalT)&&&equalQ(times(minus x z0)v)qOne)>>>unit) unit(zip ivs points)
+      batch=combine irho [times(minus tx(oo 0))iv0,times(minus tx(oo 1))iv1,times(minus tx(oo 2))iv2,times(minus cx(oo 3))iv0]
+    runLayer :: Int->t PairState ExpectedState
+    runLayer l=(iden&&&witness(layerVal(C.certificateValue(C.layerCertificates certs!!l))))
+      >>>keep(authContext(l+1)(C.certificatePath(C.layerCertificates certs!!l))(drop(layerHash(l+1)))(take(take(take(take iden)))))
+      >>>keep((take(drop pairCanonical)&&&authOpening(n-l)(R.siblings(R.friOpenings qp!!l))(take(take(take qi)))(take(drop pairHash))(drop(take iden)))>>>unit)
+      >>>(iden&&&witness(toQ(R.friInverses qp!!l)))>>>((checks&&&result)>>>ih)
+     where
+      av=take(take(drop(take iden)));bv=take(take(drop(drop iden)))
+      xi=drop iden
+      x=take(take(take(drop iden)))
+      betaValue=take(drop(drop(take iden)))
+      finalValue=take(drop(drop(drop iden)))
+      folded=times(qConst(R.base((p31+1) `div` 2)))(plus(plus av bv)(times betaValue(times(minus av bv)xi)))
+      checks=((xi>>>canonicalT)&&&(equalQ(times x xi)qOne&&&(if l==nf-1 then equalQ folded finalValue else unit)))>>>unit
+      square=times x x
+      nextX=if l==nf-1 then qConst R.zero else (take(take(take(take(qi>>>bit32(n-l-2)))))&&&square)>>>cond(minus(qConst R.zero)iden)iden
+      result=(take(take(take(take iden)))&&&nextX)&&&folded
+    nextLayer :: Int->t ExpectedState ExpectedState
+    nextLayer l=(iden&&&witness(pairVal(R.values(R.friOpenings qp!!l))))>>>keep incoming>>>(take(take iden)&&&ih)>>>runLayer l
+     where
+      selected=(take(take(take(qi>>>bit32(n-l-1))))&&&ih)>>>cond ih oh
+      incoming=equalQ selected(take(drop iden))
+
+entries :: [Entry]
+entries=[entry R.realistic]
+ where
+  entry p=Entry
+    { entryId="stark-fibonacci-full"
+    , entryTitle="Fibonacci STARK: checked AIR/DEEP/FRI with authenticated witness dataflow"
+    , entrySpec="DEEP-FRI (ePrint2019/336), Fibonacci AIR; local protocol in reports/FIBONACCI-STARK.md and authenticated compiler context in reports/WITNESS-DATAFLOW.md"
+    , entryCategory=Stark
+    , entryVectorSource=Derived "Haskell FFT prover; honest proof, altered AIR/openings/FRI, and independently modified authenticated-context reopenings"
+    , entryAssumptions=["1024 trace rows;65536-point CM31 coset;48 Fiat-Shamir draws;QM31 challenges;ten FRI folds", "custom research protocol, not zero knowledge or Stone/Stwo wire format; no proved security-bit claim", "global proof tuple enters once; each reopened context, opening pair and reciprocal tuple enters once and is used through data projections", "SHA256 domain-separated16-leaf context tree binds per-stage reopenings; first FRI pair is computed from DEEP rather than separately witnessed"]
+    , entryProgram = \(pr,cs)->Prog(verifierWithContext p pr cs)
+    , entryVectors=[v "honest generated proof" honest Accept,
+       v "changed OOD trace answer" (honest{R.ood=R.add R.one(head(R.ood honest)):tail(R.ood honest)}) Reject,
+       v "changed final constant" (honest{R.finalValue=R.add R.one(R.finalValue honest)}) Reject,
+       v "noncanonical trace field" badCanonical Reject,
+       v "altered trace authentication sibling" badPath Reject,
+       v "incorrect DEEP inverse" badInverse Reject,
+       Vector "independent initial context z splice" env(honest,badInitial)Reject,
+       Vector "independent FRI beta context splice" env(honest,badLayer)Reject]
+    }
+   where
+    honest=R.prove p
+    certs=snd(C.context p honest)
+    v name pr ex=Vector name env(pr,snd(C.context p pr))ex
+    q=head(R.queries honest);op=R.traceOpening q;(_,b)=R.values op
+    badCanonical=honest{R.queries=q{R.traceOpening=op{R.values=(((p31,0),(0,0)),b)}}:tail(R.queries honest)}
+    badPath=honest{R.queries=q{R.traceOpening=op{R.siblings=R.sha(head(R.siblings op)):tail(R.siblings op)}}:tail(R.queries honest)}
+    badInverse=honest{R.queries=q{R.deepInverses=(R.zero,R.zero,R.zero):tail(R.deepInverses q)}:tail(R.queries honest)}
+    ic=C.initialCertificate certs;iv=C.certificateValue ic
+    badInitial=certs{C.initialCertificate=ic{C.certificateValue=iv{C.initialZ=R.add R.one(C.initialZ iv)}}}
+    lc=head(C.layerCertificates certs);lv=C.certificateValue lc
+    badLayer=certs{C.layerCertificates=lc{C.certificateValue=lv{C.layerBeta=R.add R.one(C.layerBeta lv)}}:tail(C.layerCertificates certs)}
+  env=mkEnv(mkTx 2[mkInput(dummyOutpoint 0)1000 mempty 0][mkOutput 900 mempty]0)0 defaultTap

@@ -1,5 +1,8 @@
 # Recommendations: missing Bitcoin Simplicity jets
 
+**Historical results — invalidated pending witness-dataflow repair.** The same-CMR witness-aliasing audit found that several verifiers checked independent copies of fields that were intended to be identical. These costs describe those earlier expressions, and their schema-level vector passes do not establish sound verification. Do not treat affected rows or the resulting rankings as current recommendations. See [WITNESS-DATAFLOW.md](WITNESS-DATAFLOW.md); corrected programs and full report regeneration are in progress.
+
+
 Evidence-based recommendations from 49 tested corpus programs (reports/corpus-results.md, corpus/README.md).
 Every program passes all its vectors: 605 vectors, 343 of them in programs whose vectors come from upstream
 test-vector files (BIPs, RFCs). Method: reports/METHOD.md.

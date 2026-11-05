@@ -20,10 +20,13 @@ import JetDiscovery.Types
 -- | amountOut = (in * 997 * reserveOut) / (reserveIn * 1000 + in * 997).
 -- Input ((in, (reserveIn, reserveOut)), expected).
 getAmountOut :: Assert term => term ((Word128, (Word128, Word128)), Word128) ()
-getAmountOut = (take amountOut &&& ih) >>> eq >>> verify
+getAmountOut = (take validInput &&& ((take amountOut &&& ih) >>> eq >>> verify)) >>> unit
  where
   k :: (Core term, TyC i) => Integer -> term i Word128
   k = konst . toWord128
+  inRange p = ((k 0 &&& p) >>> Arith.lt word128 >>> verify)
+           &&& ((p &&& k (2^112)) >>> Arith.lt word128 >>> verify) >>> unit
+  validInput = (inRange oh &&& (inRange ioh &&& inRange iih)) >>> unit
   low = ih  -- low half of a double-width product (no overflow for 112-bit operands)
   inFee = (oh &&& k 997) >>> Arith.multiply word128 >>> low
   num = (inFee &&& iih) >>> Arith.multiply word128
@@ -45,7 +48,12 @@ entries =
     , entryProgram = \((i, (a, b)), o) -> Prog (witness ((toWord128 i, (toWord128 a, toWord128 b)), toWord128 o) >>> getAmountOut)
     , entryVectors =
         [ Vector ("in " ++ show i ++ ", reserves " ++ show (a, b)) env ((i, (a, b)), ref i a b) Accept | (i, a, b) <- cases ] ++
-        [ Vector "output one unit too large" env ((10 ^ 18, (10 ^ 21, 2 * 10 ^ 9)), ref (10 ^ 18) (10 ^ 21) (2 * 10 ^ 9) + 1) Reject ]
+        [ Vector "output one unit too large" env ((10 ^ 18, (10 ^ 21, 2 * 10 ^ 9)), ref (10 ^ 18) (10 ^ 21) (2 * 10 ^ 9) + 1) Reject
+        , Vector "zero input" env ((0,(1000,1000)),0) Reject
+        , Vector "zero input reserve" env ((1,(0,1000)),1000) Reject
+        , Vector "zero output reserve" env ((1,(1000,0)),0) Reject
+        , Vector "input outside bounded width" env ((2^112,(1000,1000)),ref (2^112) 1000 1000) Reject
+        , Vector "reserve outside bounded width" env ((1,(2^112,1000)),ref 1 (2^112) 1000) Reject ]
     }
   ]
  where

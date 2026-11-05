@@ -4,6 +4,11 @@
 module Main (main) where
 
 
+import Control.Exception (bracket)
+import Data.Maybe (isNothing)
+import System.IO (openTempFile,hClose)
+import System.Directory (getTemporaryDirectory,removeFile,removeDirectoryRecursive)
+import JetDiscovery.Snapshot (saveResult,loadResult)
 import Data.Bits (xor, (.&.), complement, rotateL, rotateR, shiftL, shiftR)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
@@ -12,8 +17,12 @@ import qualified Data.List as L
 import Test.Tasty (defaultMain, testGroup, TestTree)
 import Test.Tasty.HUnit (testCase, (@?=), assertBool)
 
-import Simplicity.Term.Core ((>>>), (&&&), iden)
+import Simplicity.Term.Core ((>>>), (&&&), iden, unit, witness)
+import qualified Simplicity.Term.Core as Core
+import Simplicity.Programs.Generic (eq)
+import Simplicity.Programs.Bit (verify,cond)
 import qualified Simplicity.Programs.Arith as Arith
+import qualified Simplicity.Programs.LibSecp256k1.Lib as Secp
 import Simplicity.Programs.Sha256.Lib
 import qualified Simplicity.Bitcoin.Jets as Jets
 import Simplicity.Bitcoin.Primitive (PrimEnv)
@@ -26,11 +35,33 @@ import qualified JetDiscovery.Corpus.Hashes as Hashes
 import qualified JetDiscovery.Corpus.Stark as Stark
 import qualified JetDiscovery.Ref.Bip340 as Bip340
 import qualified JetDiscovery.Ref.Shrincs as Shrincs
+import qualified JetDiscovery.Ref.ShrincsHash as ShrincsHashRef
+import qualified JetDiscovery.Ref.SlhDsaStandard as StandardSlh
+import qualified JetDiscovery.Lib.ShrincsHash as ShrincsHash
 import qualified JetDiscovery.Corpus.P256 as P256
 import qualified JetDiscovery.Corpus.Ripemd as Ripemd
 import qualified JetDiscovery.Lib.Ripemd160 as Rmd
 import qualified JetDiscovery.Corpus.Ed25519 as Ed
 import qualified Data.ByteString.Char8 as BSC8
+import qualified JetDiscovery.Regression.WitnessState as WitnessState
+import qualified JetDiscovery.Corpus.Eprint as Eprint
+import qualified JetDiscovery.Corpus.Lms as Lms
+import JetDiscovery.Types (Prog(..), Entry(..), Vector(..), Expect(..), Category(..), VectorSource(..))
+import JetDiscovery.Run (progCmr, runVectors, vrOk, measure, Measurement(..), runEntry, erMeasure)
+import JetDiscovery.Profile (niCmr)
+import JetDiscovery.Report (assumedWitnessStackBytes)
+import JetDiscovery.Mine (mine,Group(..))
+import JetDiscovery.Candidates.Impact (directIsolatedCost)
+import JetDiscovery.Reprice (primitiveCost,restrictedCost)
+import JetDiscovery.JetSets (PrimOnly, Ablate, NoSecpCurve, NoSecp, NoSha256)
+import qualified Simplicity.Bitcoin.Dag as Dag
+import JetDiscovery.WhatIf (WhatIf)
+import JetDiscovery.Cost (TermWeight,milliWeigh)
+import qualified JetDiscovery.Corpus.BN254 as BN
+import qualified JetDiscovery.Corpus.ContractExpansion as Contract
+import qualified JetDiscovery.Ref.Keccak as Keccak
+import qualified JetDiscovery.Ref.FibonacciStark as FS
+import qualified Data.Vector as V
 import JetDiscovery.Tx
 
 env :: PrimEnv
@@ -45,7 +76,160 @@ rands seed = tail (iterate (\x -> (x * 6364136223846793005 + 1442695040888963407
 
 main :: IO ()
 main = defaultMain $ testGroup "jet-discovery"
-  [ bip340Tests
+  [ testGroup "full STARK reference"
+      [ testCase "FFT matches direct polynomial evaluation" $ do
+          let cs=V.fromList (map FS.base [3,5,7,11,13,17,19,23])
+              evals=FS.lde 4 FS.coset cs
+          V.toList evals @?= [FS.evaluatePoly cs (FS.mul FS.coset (FS.pow (FS.generator 4) j)) | j<-[0..15]]
+      , testCase "generated AIR/DEEP/FRI proof and tampered proofs" $ do
+          let p=FS.small; pr=FS.prove p
+          assertBool "honest proof" (FS.verify p pr)
+          assertBool "truncated proof" (not (FS.verify p (pr {FS.queries=[]})))
+          assertBool "short root" (not (FS.verify p (pr {FS.traceRoot=BS.empty})))
+          assertBool "integer narrowing prohibited" (not (FS.wireEncodable p (pr {FS.ood=((2^32,0),(0,0)):tail (FS.ood pr)})))
+          assertBool "altered OOD" (not (FS.verify p (pr {FS.ood=FS.one:tail (FS.ood pr)})))
+          assertBool "altered final constant" (not (FS.verify p (pr {FS.finalValue=FS.add FS.one (FS.finalValue pr)})))
+      ]
+  , testCase "same-CMR witness splitting is not logical aliasing" $ do
+      let legacy x y=Prog (((witness (w8 x) &&& konst (w8 0)) >>> eq >>> verify) &&& ((witness (w8 y) &&& konst (w8 1)) >>> eq >>> verify) >>> unit)
+          fixed x=Prog (witness (w8 x) >>> (((iden &&& konst (w8 0)) >>> eq >>> verify) &&& ((iden &&& konst (w8 1)) >>> eq >>> verify)) >>> unit)
+          ev p=Jets.fastEval (Jets.unwrap (Jets.jetSubst (unProg p))) env ()
+      progCmr (legacy 0 0) @?= progCmr (legacy 0 1)
+      ev (legacy 0 0) @?= Nothing
+      ev (legacy 0 1) @?= Just ()
+      ev (fixed 0) @?= Nothing
+      ev (fixed 1) @?= Nothing
+  , testCase "published scalar and point encodings are canonical" $ do
+      let ev p=Jets.fastEval (Jets.unwrap (Jets.jetSubst (unProg p))) env ()
+      mapM_ (\(name,good,bad) -> do
+        progCmr good @?= progCmr bad
+        assertBool (name++" valid control") (ev good==Just ())
+        assertBool (name++" noncanonical encoding") (ev bad==Nothing)) Eprint.encodingProbes
+  , testCase "actual state update rejects witness-alias attack" $
+      mapM_ (\(name,ok)->assertBool name ok) WitnessState.stateAliasChecks
+  , testCase "Ed25519 SHA512 block padding is canonical" $ do
+      let block n=BS.replicate 64 0<>BS.replicate n 7<>BS.singleton 128<>BS.replicate (47-n) 0<>BS.drop 16 (Bip340.bytesFromInt (512+8*toInteger n))
+          value bs=W.toWord W.word1024 (Bip340.intFromBytes bs)
+      mapM_ (\n->run Ed.sha512Padding (value (block n)) @?= Just ()) [0,1,15]
+      run Ed.sha512Padding (value (BS.take 65 (block 0)<>BS.singleton 1<>BS.drop 66 (block 0))) @?= Nothing
+      run Ed.sha512Padding (value (BS.take 112 (block 0)<>BS.drop 16 (Bip340.bytesFromInt 513))) @?= Nothing
+  , testCase "profile CMR matches library commitment rules" $ do
+      let program=Prog ((witness (w256FromBytes (BS.replicate 32 0)) &&& konst (w256FromBytes (BS.replicate 32 1))) >>> sha256Pair >>> unit)
+          m=measure program
+      niCmr (last (mProfile m)) @?= mCmr m
+      mProfileTotal m @?= mCost m
+      mCostWhatIf m @?= milliWeigh (Jets.unwrap (Dag.jetSubst (unProg program :: Dag.JetDag WhatIf () ())) :: TermWeight () ())
+      let (encoded,witnessData)=Jets.putTermLengthCode (unProg program)
+      mProgBits m @?= length encoded
+      mWitBits m @?= length witnessData
+  , testCase "measurement checkpoint round-trip and stale-input rejection" $ do
+      let acquire = do
+            tmp<-getTemporaryDirectory
+            (dir,handle)<-openTempFile tmp "jet-discovery-checkpoint"
+            hClose handle
+            removeFile dir
+            return dir
+      bracket acquire removeDirectoryRecursive $ \dir -> do
+        let program=Prog (((witness (w256FromBytes (BS.replicate 32 0))) &&& konst (w256FromBytes (BS.replicate 32 1))) >>> sha256Pair >>> unit)
+            entry=Entry "checkpoint-unit" "checkpoint fixture" "library SHA256" BitcoinApp (Derived "local fixture") [] (const program) [Vector "honest" (const (Just env)) () Accept]
+            result=runEntry entry
+        saveResult dir "current-inputs" result
+        loaded<-loadResult dir "current-inputs" entry
+        case loaded of
+          Nothing -> assertBool "missing round-trip" False
+          Just r -> do
+            mCmr (erMeasure r) @?= mCmr (erMeasure result)
+            mCost (erMeasure r) @?= mCost (erMeasure result)
+            mCandidateCosts (erMeasure r) @?= mCandidateCosts (erMeasure result)
+            map niCmr (mProfile (erMeasure r)) @?= map niCmr (mProfile (erMeasure result))
+        stale<-loadResult dir "changed-inputs" entry
+        assertBool "stale inputs cannot reuse a measurement" (isNothing stale)
+  , testCase "assumed witness budget uses CompactSize boundaries" $ do
+      assumedWitnessStackBytes [] @?= 1
+      map assumedWitnessStackBytes [[252],[253],[65535],[65536],[4294967296]] @?= [254,257,65539,65542,4294967306]
+      assumedWitnessStackBytes (replicate 253 0) @?= 256
+  , testCase "CMR mining combines type instantiations before computing share" $ do
+      let p=Prog ((((witness (W.toWord W.word1024 0) &&& konst (W.toWord W.word1024 1)) >>> eq >>> verify) &&&
+                   ((witness (W.toWord W.word1024 0,W.toWord W.word1024 0) &&& konst (W.toWord W.word1024 1,W.toWord W.word1024 1)) >>> eq >>> verify)) >>> unit)
+          e=Entry "mining-types" "typed witness fixture" "local fixture" BitcoinApp (Derived "local fixture") [] (const p) [Vector "reject" (const (Just env)) () Reject]
+          result=runEntry e
+          [g]=filter ((=="witness").gKind) (mine False [result])
+      gOccurrences g @?= 2
+      length (gSig g) @?= 2
+      gMaxShare g @?= fromInteger (gTotal g)/fromInteger (mCost (erMeasure result))
+  , testCase "isolated candidate costs match independent substitution" $ do
+      let rec=Prog (witness (W.toWord256 123,(W.toWord256 456,(W.toWord256 789,Left ()))) >>> Contract.ecRecover >>> unit)
+          branch=Prog ((witness (Left () :: Either () ()) &&& unit) >>> cond
+            (konst (W.toWord512 1) >>> sha256Pair >>> unit)
+            (witness (W.toWord256 123,(W.toWord256 456,(W.toWord256 789,Left ()))) >>> Contract.ecRecover >>> unit))
+          padded=Prog (witness (vec32 (map W.toWord64 [0..31])) >>> Hashes.keccakF >>> unit)
+          check p name=do
+            let Just (cost,count)=lookup name (mCandidateCosts (measure p))
+            cost @?= directIsolatedCost name p
+            assertBool "nonnegative static multiplicity" (count>=0)
+      mapM_ (check rec) ["ecrecover","keccak_f1600","sha256_pair"]
+      mapM_ (check branch) ["ecrecover","keccak_f1600","sha256_pair"]
+      mapM_ (check padded) ["keccak_f1600","sha256_pair"]
+      let Just (_,nested)=lookup "keccak_f1600" (mCandidateCosts (measure rec))
+      nested @?= 1
+  , testCase "restricted jet costs match independent substitution" $ do
+      let sha=Prog (witness (W.toWord512 1) >>> sha256Pair >>> unit)
+          curve=Prog (witness ((W.toWord256 1,W.toWord256 2),W.toWord256 1) >>> Secp.gej_double >>> unit)
+          branch=Prog ((witness (Left () :: Either () ()) &&& unit) >>> cond
+            (witness (W.toWord512 1) >>> sha256Pair >>> unit)
+            (witness ((W.toWord256 1,W.toWord256 2),W.toWord256 1) >>> Secp.gej_double >>> unit))
+          projection=Prog (((witness (W.toWord64 1) >>> Core.drop iden) &&& konst (W.toWord32 1)) >>> eq >>> verify)
+          check p=do
+            let dag=Dag.jetDag (unProg p :: Dag.JetDag Jets.JetType () ())
+            primitiveCost dag @?= milliWeigh (Jets.unwrap (Dag.jetSubst (unProg p :: Dag.JetDag PrimOnly () ())) :: TermWeight () ())
+            restrictedCost "no-secp-curve" dag @?= milliWeigh (Jets.unwrap (Dag.jetSubst (unProg p :: Dag.JetDag (Ablate NoSecpCurve) () ())) :: TermWeight () ())
+            restrictedCost "no-secp" dag @?= milliWeigh (Jets.unwrap (Dag.jetSubst (unProg p :: Dag.JetDag (Ablate NoSecp) () ())) :: TermWeight () ())
+            restrictedCost "no-sha256" dag @?= milliWeigh (Jets.unwrap (Dag.jetSubst (unProg p :: Dag.JetDag (Ablate NoSha256) () ())) :: TermWeight () ())
+      mapM_ check [sha,curve,branch,projection]
+  , testCase "standard SLH-DSA reference covers every supported NIST case" $ do
+      contents<-readFile "vendor-specs/slhdsa/acvp-supported.tsv"
+      let split s=case break (=='\t') s of (a,[])->[a];(a,_:rest)->a:split rest
+          rows=map split (tail (lines contents))
+      length rows @?= 28
+      length (L.nub [(g,c)|[g,c,_,_,_,_]<-rows]) @?= 28
+      mapM_ (\row->case row of
+        [g,c,key,message,signature,expected]->do
+          let pk=unhex key
+              actual=case StandardSlh.parseSignature (unhex signature) of
+                Nothing->False
+                Just sig->StandardSlh.verifyInternal (BS.take 16 pk) (BS.drop 16 pk) (unhex message) sig
+          BS.length pk @?= 32
+          assertBool "invalid expected-result flag" (expected `elem` ["true","false"])
+          assertBool ("NIST group/case "++g++"/"++c) (actual==(expected=="true"))
+        _->assertBool "invalid standard ACVP TSV schema" False) rows
+  , testCase "RFC8554 upstream LMS certificate" $ do
+      Entry _ _ _ _ _ _ program vectors <- Lms.upstreamCertificate
+      let cmr=progCmr (program (vecWitness (head vectors)))
+      assertBool "upstream LMS certificate and corruption" (all vrOk (runVectors program cmr vectors))
+  , testCase "Keccak-256 canonical digests" $ do
+      Keccak.keccak256 BS.empty @?= unhex "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      Keccak.keccak256 (BSC.pack "abc") @?= unhex "4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45"
+  , testCase "BN254 candidate matches Integer reference" $ do
+      let p=BN.pBN254
+          xs=[(0,0),(1,p-1),(p-1,p-1),(2^253,2^253),(123456789,987654321)]
+      mapM_ (\(a,b) -> fmap W.fromWord256 (run BN.fpMul (W.toWord256 a,W.toWord256 b)) @?= Just (a*b `mod`p)) xs
+  , testCase "ECDSA and ecrecover candidates match Integer reference" $ do
+      let sk=42; z=123456; k=17
+          Just (qx,qy)=Bip340.pointMul Bip340.gPt sk
+          Just (rx,ry)=Bip340.pointMul Bip340.gPt k
+          r=rx `mod`Bip340.n
+          pm _ 0=1
+          pm b e | even e=let v=pm b (e `div`2) in v*v `mod`Bip340.n
+                 | otherwise=b*pm b (e-1) `mod`Bip340.n
+          sig=(z+r*sk)*pm k (Bip340.n-2) `mod`Bip340.n
+          input=(((W.toWord256 qx,W.toWord256 qy),W.toWord256 z),(W.toWord256 r,W.toWord256 sig))
+          rec zz=(W.toWord256 zz,(W.toWord256 r,(W.toWord256 sig,if odd ry then Right () else Left ())))
+          address=Bip340.intFromBytes (Keccak.keccak256 (Bip340.bytesFromInt qx<>Bip340.bytesFromInt qy)) `mod`2^160
+      run Contract.ecdsaVerify input @?= Just ()
+      run Contract.ecdsaVerify (((W.toWord256 qx,W.toWord256 qy),W.toWord256 (z+1)),(W.toWord256 r,W.toWord256 sig)) @?= Nothing
+      fmap W.fromWord256 (run Contract.ecRecover (rec z)) @?= Just address
+      assertBool "changed recovery digest" (fmap W.fromWord256 (run Contract.ecRecover (rec (z+1))) /= Just address)
+  , bip340Tests
   , p256Tests
   , testCase "RIPEMD-160 reference reproduces the published digests" $ do
       Ripemd.ripemd160Ref BS.empty @?= unhex "9c1185a5c5e9fc54612808977ee8f548b2258d31"
@@ -73,6 +257,20 @@ main = defaultMain $ testGroup "jet-discovery"
         mapM_ (\start -> fmap (\w -> BS.drop 16 (Bip340.bytesFromInt (W.fromWord128 w)))
                               (run wotsChain (ctx, (W.toWord4 (toInteger start), W.toWord128 (Bip340.intFromBytes node))))
                          @?= Just (Shrincs.wotsChainIter node start 15 pkSeed (fromInteger h) idx chain)) [0, 1, 7, 15]
+    , testCase "sha256_wots_chain_16_fixed" $ do
+        let bytes128 w=BS.drop 16 (Bip340.bytesFromInt (W.fromWord128 w))
+            check state fields@(layer,tree,domain,keypair,chain) start node=do
+              let Just prefix=ShrincsHashRef.encodePrefix fields
+                  input=(w256FromBytes state,(((W.toWord8 layer,W.toWord64 tree),(W.toWord8 domain,(W.toWord32 keypair,W.toWord32 chain))),(W.toWord4 (toInteger start),W.toWord128 (Bip340.intFromBytes node))))
+              fmap bytes128 (run ShrincsHash.chainRef input) @?= ShrincsHashRef.chainSpec state prefix start node
+              fmap bytes128 (run ShrincsHash.chain input) @?= ShrincsHashRef.chainSpec state prefix start node
+        mapM_ (\(seed,fields,start,node)->do
+          let Just state=ShrincsHashRef.seedStateSpec seed
+          fmap w256ToBytes (run ShrincsHash.seedState (W.toWord128 (Bip340.intFromBytes seed))) @?= Just state
+          check state fields start node) ShrincsHashRef.seededCases
+        mapM_ (\start->check (BS.pack [0..31]) (255,2^64-1,16,2^32-1,2^32-1) start (BS.pack [0..15])) [0,7,15]
+        let program=Prog (witness (w256FromBytes (BS.pack [0..31]),(((W.toWord8 1,W.toWord64 2),(W.toWord8 0,(W.toWord32 3,W.toWord32 4))),(W.toWord4 7,W.toWord128 5))) >>> ShrincsHash.chain >>> unit)
+        lookup "jet:cand:sha256_wots_chain_16_fixed" (mWhatIfJets (measure program)) @?= Just 1
     , testCase "keccak_f1600" $ do
         let st = take 25 (map fromInteger (rands 4)) :: [Word64]
             toV ls = vec32 (map (W.toWord64 . toInteger) (ls ++ replicate 7 0))
@@ -204,6 +402,17 @@ p256Tests = testGroup "P-256 Simplicity arithmetic agrees with Integer arithmeti
   , testCase "addmod and submod" $ mapM_ (\(a, b) -> do
         fmap W.fromWord256 (run P256.addmod (W.toWord256 a, W.toWord256 b)) @?= Just ((a + b) `mod` p)
         fmap W.fromWord256 (run P256.submod (W.toWord256 a, W.toWord256 b)) @?= Just ((a - b) `mod` p)) xs
+  , testCase "ECDSA x-coordinate never wraps r+n" $ do
+        let n=P256.nP256
+            cases=[(1,1,1,True),(1,n+1,1,True),(2^256-n+1,1,1,False),(1,2,1,False),(7,63,3,True)]
+        mapM_ (\(r,x,z,ok) -> run P256.ecdsaXCoordinate (W.toWord256 r,(W.toWord256 x,W.toWord256 z)) @?= Just (if ok then Right () else Left ())) cases
+  , testCase "complete P-256 additions handle equality, opposites and infinity" $ do
+        let q=(W.toWord256 gx,W.toWord256 gy)
+            minusQ=(W.toWord256 gx,W.toWord256 (p-gy))
+            j=toJ ((gx,gy),1)
+        fmap (\(flag,v)->(flag,affine (fromJ v))) (run P256.addAffine (q,(Left (),j))) @?= Just (Left (),affine (dblRef (gx,gy)))
+        fmap fst (run P256.addAffine (minusQ,(Left (),j))) @?= Just (Right ())
+        fmap (\(flag,v)->(flag,affine (fromJ v))) (run P256.addAffine (q,(Right (),toJ ((0,0),0)))) @?= Just (Left (), (gx,gy))
   , testCase "dblJ and maddJ" $ do
         let j = ((gx, gy), 1)
             Just d = run P256.dblJ (toJ j)

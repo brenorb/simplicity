@@ -108,7 +108,7 @@ subCmr sub = hashToBytes (commitmentRoot' (unwrap (Jets.jetSubst sub)))
 p2mrOutput :: (Assert term, Primitive term, Witness term) => Word256 -> [Maybe BS.ByteString] -> term () ()
 p2mrOutput leafCmr path = scriptHash &&& (konst (w32 0) >>> primitive Prim.OutputScriptHash >>> verify) >>> eq >>> verify
  where
-  leaf = konst leafCmr >>> BLib.buildTapleafSimplicity
+  leaf = witness leafCmr >>> BLib.buildTapleafSimplicity
   step lvl = witness (maybe (Left ()) (Right . w32of) lvl) &&& iden >>> match ih (BLib.buildTapbranch)
   root = leaf >>> foldr (\lvl k -> step lvl >>> k) iden path
   scriptHash = ((unit >>> ctx8Init) &&& konst (w16 0x5220) >>> ctx8Add2) &&& root >>> ctx8Add32 >>> ctx8Finalize
@@ -123,7 +123,9 @@ tapbranchRef a b = hashToBytes (taggedSha256 "TapBranch" (if a < b then a <> b e
 
 -- | (a * b) mod m for 256-bit operands (OP_MUL / OP_MOD on restored big numbers).
 modMul256 :: Assert term => term ((Word256, Word256), (Word256, Word256)) ()
-modMul256 = (((ooh &&& oih >>> Arith.multiply word256) &&& (konst (toWord256 0) &&& ioh) >>> Arith.div_mod word512 >>> ih >>> ih) &&& iih) >>> eq >>> verify
+modMul256 = ((konst (toWord256 0) &&& ioh) >>> Arith.lt word256 >>> verify) &&& remainderOk >>> unit
+ where
+  remainderOk = (((ooh &&& oih >>> Arith.multiply word256) &&& (konst (toWord256 0) &&& ioh) >>> Arith.div_mod word512 >>> ih >>> ih) &&& iih) >>> eq >>> verify
 -- input ((a, b), (m, expected)); the product (Word512) is divided by (0, m); the remainder's low half is the result
 
 -- BIP 449 --------------------------------------------------------------------------
@@ -203,6 +205,7 @@ entries = do
       , entryVectors =
           [ Vector ("depth " ++ show d) (p2mrEnv (p2mrRoot p)) (leafCmr, padN 8 p) Accept | d <- [0, 1, 3, 8], let p = p2mrPath d ] ++
           [ Vector "output commits to another tree" (p2mrEnv (BS.replicate 32 7)) (leafCmr, padN 8 (p2mrPath 3)) Reject
+          , Vector "different leaf CMR at the same output" (p2mrEnv (p2mrRoot (p2mrPath 3))) (BS.replicate 32 7, padN 8 (p2mrPath 3)) Reject
           , Vector "P2TR instead of P2MR" (\c -> mkEnv (mkTx 2 [mkInput (dummyOutpoint 0) 1000 mempty 0] [mkOutput 900 (unhex "5120" <> p2mrRoot (p2mrPath 3))] 0) 0 defaultTap c) (leafCmr, padN 8 (p2mrPath 3)) Reject ]
       }
     , Entry
@@ -215,7 +218,8 @@ entries = do
       , entryProgram = \((a, b), (m, r)) -> Prog (witness ((toWord256 a, toWord256 b), (toWord256 m, toWord256 r)) >>> modMul256)
       , entryVectors =
           [ Vector ("case " ++ show i) anyEnv ((a, b), (m, a * b `mod` m)) Accept | (i, (a, b, m)) <- zip [1 :: Int ..] mmCases ] ++
-          [ Vector "wrong remainder" anyEnv ((5, 7), (11, 3)) Reject ]
+          [ Vector "wrong remainder" anyEnv ((5, 7), (11, 3)) Reject
+          , Vector "zero modulus" anyEnv ((5, 7), (0, 35)) Reject ]
       }
     , Entry
       { entryId = "bip449-tweakadd"

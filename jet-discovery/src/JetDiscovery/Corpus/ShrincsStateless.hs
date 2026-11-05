@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, GADTs #-}
 -- | SHRINCS stateless signature verification (the SLH-DSA path of
 -- vendor-specs/shrincs/SHRINCS.md: FORS with k = 10, a = 13, then a 5-layer
 -- hypertree of WOTS-TW + XMSS with h' = 9), on sig_all_hash with an empty
@@ -9,7 +9,7 @@
 -- to the chain index.  Values used more than once (digest, tree and leaf
 -- indices, checksum, chain tips) are computed once and carried as data.
 module JetDiscovery.Corpus.ShrincsStateless
-  ( entries
+  ( entries, directWotsChain
   ) where
 
 import Prelude hiding (drop, take, not, and, or)
@@ -30,7 +30,8 @@ import qualified Simplicity.Bitcoin.Programs.SigHash.Lib as SigHash
 import Simplicity.Ty.Word
 
 import JetDiscovery.Lib.Bytes
-import JetDiscovery.Lib.Kernels (wotsChain, nibble8)
+import JetDiscovery.Lib.Kernels (nibble8)
+import qualified JetDiscovery.Lib.ShrincsHash as ShrincsHash
 import JetDiscovery.Run (progCmr)
 import JetDiscovery.Tx
 import JetDiscovery.Types
@@ -57,8 +58,8 @@ add :: (Core term, TyC s, TyC x) => term s x -> term (Ctx8, x) Ctx8 -> term (Ctx
 add f jet = ((oh &&& drop f) >>> jet) &&& ih
 
 -- | Start from a context computed without input, thread the additions, finalize and truncate to 16 bytes.
-hash16 :: (Assert term, TyC s) => term () Ctx8 -> term (Ctx8, s) (Ctx8, s) -> term s Word128
-hash16 start steps = ((unit >>> start) &&& iden) >>> steps >>> oh >>> ctx8Finalize >>> oh
+hash16 :: (Assert term, TyC s) => term s Ctx8 -> term (Ctx8, s) (Ctx8, s) -> term s Word128
+hash16 start steps = (start &&& iden) >>> steps >>> oh >>> ctx8Finalize >>> oh
 
 kw8 :: (Core term, TyC s) => Integer -> term s Word8
 kw8 = konst . w8
@@ -81,95 +82,121 @@ data SW = SW
   , swLayers :: [([Word128], [Word128])]           -- ^ 5 x (35 chains, 9 auth)
   }
 
-type I0 = (Word256, (Word64, Word64))    -- (digest, (tree index, leaf index))
-type LS = (Word128, (Word64, Word64))     -- (message, (tree, leaf)) for a hypertree layer
+type SSHeader=(Word128,(Word128,(Word128,Word128)))
+type SSInput=SSHeader
+type I0=(SSInput,(Word256,(Word64,Word64)))
+type LS=(SSInput,(Word128,(Word64,Word64)))
 
-shrincsStateless :: forall term. (Simplicity term, Primitive term) => SW -> term () ()
-shrincsStateless sw = (digest >>> (iden &&& (treeIdx &&& leafIdx)) >>> (forsPk &&& ih) >>> hypertree >>> oh) &&& slRootT >>> eq >>> verify
+packSS :: SW -> SSInput
+packSS sw
+ | length (swFors sw)/=10 || any ((/=13).length.snd) (swFors sw) || length (swLayers sw)/=5 || any (\(c,a)->length c/=35||length a/=9) (swLayers sw)=error "SHRINCS stateless proof dimensions"
+ | otherwise=(pkSeed,(slRoot,(sfRoot,swR sw)))
+ where (pkSeed,(slRoot,sfRoot))=swPk sw
+
+pkSeedT :: Core term => term SSInput Word128
+pkSeedT=oh
+slRootT :: Core term => term SSInput Word128
+slRootT=ih >>> oh
+sfRootT :: Core term => term SSInput Word128
+sfRootT=ih >>> ih >>> oh
+randomizerT :: Core term => term SSInput Word128
+randomizerT=ih >>> ih >>> ih
+seedMid :: Assert term => term Word128 Ctx8
+seedMid=((unit >>> ctx8Init) &&& ((iden &&& konst (toWord128 0)) &&& konst (toWord256 0))) >>> ctx8Add64
+
+-- The pure shared kernel accepts a seeded compression state and the exact
+--18-byte address prefix. This wrapper supplies the stateless type0 address.
+type DirectWotsInput=((Word128,(Word8,Word64)),((Word32,Word32),(Word4,Word128)))
+directWotsChain :: forall term. Simplicity term => term DirectWotsInput Word128
+directWotsChain=((ooh >>> ShrincsHash.seedState) &&& ((oih &&& (kw8 0 &&& ioh)) &&& iih)) >>> ShrincsHash.chain
+
+appendT :: (Assert term,TyC a,TyC b) => term a b -> term (Ctx8,b) Ctx8 -> term (a,Ctx8) (a,Ctx8)
+appendT f jet=oh &&& ((ih &&& (oh >>> f)) >>> jet)
+startHash :: (Assert term,TyC a) => term a (a,Ctx8)
+startHash=iden &&& (unit >>> ctx8Init)
+endHash :: (Assert term,TyC a) => term (a,Ctx8) Word256
+endHash=drop ctx8Finalize
+
+-- Bind the multiply-used header once and retain it as data. Each independent
+-- proof word enters once at its consuming stage; checked/derived values never
+-- return through witness. This keeps the carried state small and binding sound.
+shrincsStateless :: forall term. (Simplicity term,Primitive term) => SW -> term () ()
+shrincsStateless sw=witness (packSS sw) >>> statelessT sw
+statelessT :: forall term. (Simplicity term,Primitive term) => SW -> term SSInput ()
+statelessT sw=(computedRoot &&& slRootT) >>> eq >>> verify
  where
-  (pkSeedV, (slRootV, sfRootV)) = swPk sw
-  pkSeedT, slRootT, sfRootT :: forall a. TyC a => term a Word128
-  pkSeedT = witness pkSeedV
-  slRootT = witness slRootV
-  sfRootT = witness sfRootV
-  mid :: term () Ctx8
-  mid = ctx8Init &&& ((pkSeedT &&& konst (toWord128 0)) &&& konst (toWord256 0)) >>> ctx8Add64
-  ctxW :: TyC x => term () x -> term (Ctx8, x) Ctx8 -> term Ctx8 Ctx8
-  ctxW t jet = iden &&& (unit >>> t) >>> jet
-  -- H_msg_sl(R, pk_seed, sl_root, 0x00 0x00 || sf_root || sig_all_hash)
-  msg = unwrap (Jets.jetSubst SigHash.sigAllHash)
-  inner = ctx8Init >>> ctxW (witness (swR sw)) ctx8Add16 >>> ctxW pkSeedT ctx8Add16 >>> ctxW slRootT ctx8Add16
-      >>> ctxW (konst (w16 0)) ctx8Add2 >>> ctxW sfRootT ctx8Add16 >>> ctxW msg ctx8Add32 >>> ctx8Finalize
-  digest :: term () Word256
-  digest = ctx8Init >>> ctxW (witness (swR sw)) ctx8Add16 >>> ctxW pkSeedT ctx8Add16 >>> ctxW inner ctx8Add32
-       >>> ctxW (konst (w32 0)) ctx8Add4 >>> ctx8Finalize
-  -- bits [256 - s - w, 256 - s) of the digest as a 64-bit word
+  -- All360independent proof words are consumed at exactly one stage each:
+  --140FORS fields, then5*(35chain+9path). Header values are pure projections.
+  proofWords=concat [p:a|(p,a)<-swFors sw]++concat [c++a|(c,a)<-swLayers sw]
+  proofAt :: forall a. TyC a => Int -> term a Word128
+  proofAt i | i>=0 && i<360=witness (proofWords!!i)
+            | otherwise=error "SHRINCS stateless proof index"
+  msg=unit >>> unwrap (Jets.jetSubst SigHash.sigAllHash)
+  inner=startHash >>> appendT randomizerT ctx8Add16 >>> appendT pkSeedT ctx8Add16 >>> appendT slRootT ctx8Add16
+        >>> appendT (konst (w16 0)) ctx8Add2 >>> appendT sfRootT ctx8Add16 >>> appendT msg ctx8Add32 >>> endHash
+  digest=startHash >>> appendT randomizerT ctx8Add16 >>> appendT pkSeedT ctx8Add16 >>> appendT inner ctx8Add32
+         >>> appendT (konst (w32 0)) ctx8Add4 >>> endHash
   field :: Int -> Integer -> term Word256 Word64
-  field s w = (Word.shift_const_by false word256 (negate s) >>> drop ih) &&& kw64 (2 ^ w - 1) >>> Word.bitwise_and word64
-  treeIdx = field (256 - 176) 36
-  leafIdx = field (256 - 192) 9
-  -- FORS ------------------------------------------------------------------------------
+  field s w=(Word.shift_const_by false word256 (negate s) >>> drop ih) &&& kw64 (2^w-1) >>> Word.bitwise_and word64
+  treeIdx=field (256-176) 36
+  leafIdx=field (256-192) 9
+  input0=(iden &&& digest) >>> (oh &&& (ih &&& ((ih >>> treeIdx) &&& (ih >>> leafIdx))))
+  computedRoot=input0 >>> (oh &&& (forsPk &&& (ih >>> ih))) >>> hypertree >>> ih >>> oh
+  -- FORS: bound input + digest/tree/leaf remain together at each stage.
   forsPk :: term I0 Word128
-  forsPk = (iden &&& roots) >>> hash16 mid
-             (add (kw8 0) ctx8Add1 >>> add (take ioh) ctx8Add8 >>> add (kw8 4) ctx8Add1 >>> add (take (iih >>> low32)) ctx8Add4
-              >>> add (kw64 0) ctx8Add8 >>> add (drop oh) ctx8Add128 >>> add (drop ih) ctx8Add32)
+  forsPk=(iden &&& roots) >>> hash16 (take (oh >>> pkSeedT >>> seedMid))
+          (add (kw8 0) ctx8Add1 >>> add (take (ih >>> ioh)) ctx8Add8 >>> add (kw8 4) ctx8Add1 >>> add (take (ih >>> iih >>> low32)) ctx8Add4
+           >>> add (kw64 0) ctx8Add8 >>> add (drop oh) ctx8Add128 >>> add (drop ih) ctx8Add32)
    where
-    roots = rootTree [ forsTree i (swFors sw !! i) | i <- [0 .. 9] ]
-    rootTree [a, b, c, d, e, f, g, h, i, j] = (((a &&& b) &&& (c &&& d)) &&& ((e &&& f) &&& (g &&& h))) &&& (i &&& j)
-    rootTree _ = error "fors roots"
-  -- one FORS tree: input I0; state (node, (I0, tree index of the leaf))
-  forsTree :: Int -> (Word128, [Word128]) -> term I0 Word128
-  forsTree i (pre, auth) = (iden &&& ti) >>> (leaf &&& iden) >>> L.foldl' (\acc (j, sib) -> acc >>> (level j sib &&& ih)) iden (zip [0 ..] auth) >>> oh
+    roots=rootTree [forsTree i|i<-[0..9]]
+    rootTree [a,b,c,d,e,f,g,h,i,j]=(((a&&&b)&&&(c&&&d))&&&((e&&&f)&&&(g&&&h)))&&&(i&&&j)
+    rootTree _=error "FORS roots"
+  forsTree :: Int -> term I0 Word128
+  forsTree i=(iden &&& ti) >>> (leaf &&& iden) >>> L.foldl' (>>>) iden [level j &&& ih|j<-[0..12]] >>> oh
    where
-    ti = (field (256 - 13 * (i + 1)) 13 `onDigest` ()) &&& kw64 (toInteger i * 8192) >>> Arith.add word64 >>> ih
-    onDigest f () = take f
-    common = add (kw8 0) ctx8Add1 >>> add (take ioh) ctx8Add8 >>> add (kw8 3) ctx8Add1 >>> add (take (iih >>> low32)) ctx8Add4
-    -- leaf: F(ForsTree(0, tree, leaf, 0, ti), preimage); input (I0, ti)
-    leaf = hash16 mid (common >>> add (kw32 0) ctx8Add4 >>> add (ih >>> low32) ctx8Add4 >>> add (unit >>> witness pre) ctx8Add16)
-    -- level j: H(ForsTree(0, tree, leaf, j + 1, ti >> (j + 1)), ordered pair); input (node, (I0, ti))
-    level j sib = hash16 mid (add (drop (take ioh)) ctx8Add8 `after` add (kw8 0) ctx8Add1
-                    >>> add (kw8 3) ctx8Add1 >>> add (drop (take (iih >>> low32))) ctx8Add4 >>> add (kw32 (toInteger j + 1)) ctx8Add4
-                    >>> add (drop (ih >>> shr (j + 1) >>> low32)) ctx8Add4
-                    >>> add (ordered (drop (ih >>> bit64 j)) oh (unit >>> witness sib)) ctx8Add32)
-    after b a = a >>> b
-  -- Hypertree -------------------------------------------------------------------------
+    ti=((ih >>> oh >>> field (256-13*(i+1)) 13) &&& kw64 (toInteger i*8192)) >>> Arith.add word64 >>> ih
+    common=add (kw8 0) ctx8Add1 >>> add (take (ih >>> ioh)) ctx8Add8 >>> add (kw8 3) ctx8Add1 >>> add (take (ih >>> iih >>> low32)) ctx8Add4
+    leaf=hash16 (take (oh >>> pkSeedT >>> seedMid)) (common >>> add (kw32 0) ctx8Add4 >>> add (ih >>> low32) ctx8Add4 >>> add (take (oh >>> proofAt (14*i))) ctx8Add16)
+    level j=hash16 (drop (take (oh >>> pkSeedT >>> seedMid)))
+      (add (kw8 0) ctx8Add1 >>> add (drop (take (ih >>> ioh))) ctx8Add8 >>> add (kw8 3) ctx8Add1
+       >>> add (drop (take (ih >>> iih >>> low32))) ctx8Add4 >>> add (kw32 (toInteger j+1)) ctx8Add4
+       >>> add (drop (ih >>> shr (j+1) >>> low32)) ctx8Add4
+       >>> add (ordered (drop (ih >>> bit64 j)) oh (drop (take (oh >>> proofAt (14*i+1+j))))) ctx8Add32)
+  -- Hypertree: all layers consume the same bound proof, with message/tree/leaf
+  -- values passed through unary stages rather than reconstructed by witness.
   hypertree :: term LS LS
-  hypertree = L.foldl' (\acc (j, l) -> acc >>> layer j l) iden (zip [0 ..] (swLayers sw))
-  layer :: Int -> ([Word128], [Word128]) -> term LS LS
-  layer j (chains, auth) = (((iden &&& checksum) >>> wotsPk) &&& iden)
-                       >>> L.foldl' (\acc (k, sib) -> acc >>> (xmssLevel k sib &&& ih)) iden (zip [0 ..] auth)
-                       >>> (oh &&& ((drop (ioh >>> shr 9)) &&& (drop ioh &&& kw64 511 >>> Word.bitwise_and word64)))
+  hypertree=L.foldl' (>>>) iden [layer j|j<-[0..4]]
+  layer :: Int -> term LS LS
+  layer j=(((iden &&& checksum) >>> wotsPk) &&& iden)
+          >>> L.foldl' (>>>) iden [xmssLevel k &&& ih|k<-[0..8]]
+          >>> (drop oh &&& (oh &&& ((drop (ih >>> ioh >>> shr 9)) &&& ((drop (ih >>> ioh) &&& kw64 511) >>> Word.bitwise_and word64))))
    where
-    lj = toInteger j
-    -- checksum = 480 - sum of the 32 message nibbles; input S
+    lj=toInteger j
+    base=140+44*j
     checksum :: term LS Word16
-    checksum = kw16 480 &&& L.foldl' (\acc k -> (acc &&& (oh >>> nibble k >>> nibble8 >>> (kw8 0 &&& iden))) >>> Arith.add word16 >>> ih) (kw16 0) [0 .. 31]
-               >>> Arith.subtract word16 >>> ih
-    kw16 :: TyC s => Integer -> term s Word16
-    kw16 = konst . w16
-    -- start index of chain i; input (S, checksum)
-    start :: Int -> term (LS, Word16) Word4
-    start i | i < 32 = take (oh >>> nibble i)
-            | i == 32 = drop (take ih)
-            | i == 33 = drop (drop oh)
-            | otherwise = drop (drop ih)
-    chain :: Int -> Word128 -> term (LS, Word16) Word128
-    chain i c = (pre &&& (start i &&& (unit >>> witness c))) >>> wotsChain
-     where pre = ((unit >>> mid) &&& iden) >>> (add (kw8 lj) ctx8Add1 >>> add (take ioh) ctx8Add8 >>> add (kw8 0) ctx8Add1
-                   >>> add (take (iih >>> low32)) ctx8Add4 >>> add (kw32 (toInteger i)) ctx8Add4) >>> oh
-    tips :: term (LS, Word16) (Word4096, (Word256, Word128))
-    tips = tree32 [ chain i c | (i, c) <- zip [0 .. 31] chains ] &&& ((chain 32 (chains !! 32) &&& chain 33 (chains !! 33)) &&& chain 34 (chains !! 34))
-    -- T_sl(WotsTwPk(j, tree, leaf), tips); input (S, checksum)
-    wotsPk :: term (LS, Word16) Word128
-    wotsPk = (iden &&& tips) >>> hash16 mid
-               (add (kw8 lj) ctx8Add1 >>> add (take (take ioh)) ctx8Add8 >>> add (kw8 1) ctx8Add1 >>> add (take (take (iih >>> low32))) ctx8Add4
-                >>> add (kw64 0) ctx8Add8 >>> add (drop oh) ctx8Add512 >>> add (drop ioh) ctx8Add32 >>> add (drop iih) ctx8Add16)
-    -- XMSS level k: H(XmssTree(j, tree, k + 1, leaf >> (k + 1)), ordered pair); state (node, S)
-    xmssLevel :: Int -> Word128 -> term (Word128, LS) Word128
-    xmssLevel k sib = hash16 mid
-      (add (kw8 lj) ctx8Add1 >>> add (drop ioh) ctx8Add8 >>> add (kw8 2) ctx8Add1 >>> add (kw32 0) ctx8Add4
-       >>> add (kw32 (toInteger k + 1)) ctx8Add4 >>> add (drop (iih >>> shr (k + 1) >>> low32)) ctx8Add4
-       >>> add (ordered (drop (iih >>> bit64 k)) oh (unit >>> witness sib)) ctx8Add32)
+    checksum=(kw16 480 &&& L.foldl' (\acc k -> (acc &&& (ih >>> oh >>> nibble k >>> nibble8 >>> (kw8 0 &&& iden))) >>> Arith.add word16 >>> ih) (kw16 0) [0..31]) >>> Arith.subtract word16 >>> ih
+    kw16 :: TyC a => Integer -> term a Word16
+    kw16=konst.w16
+    start :: Int -> term (LS,Word16) Word4
+    start i | i<32=take (ih >>> oh >>> nibble i)
+            | i==32=drop (take ih)
+            | i==33=drop (drop oh)
+            | otherwise=drop (drop ih)
+    chain :: Int -> term (LS,Word16) Word128
+    chain i=(((take (oh >>> pkSeedT) &&& (kw8 lj &&& take (ih >>> ioh))) &&&
+              ((take (ih >>> iih >>> low32) &&& kw32 (toInteger i)) &&&
+               (start i &&& take (oh >>> proofAt (base+i)))))) >>> directWotsChain
+    tips :: term (LS,Word16) (Word4096,(Word256,Word128))
+    tips=tree32 [chain i|i<-[0..31]] &&& ((chain 32 &&& chain 33) &&& chain 34)
+    wotsPk :: term (LS,Word16) Word128
+    wotsPk=(iden &&& tips) >>> hash16 (take (take (oh >>> pkSeedT >>> seedMid)))
+      (add (kw8 lj) ctx8Add1 >>> add (take (take (ih >>> ioh))) ctx8Add8 >>> add (kw8 1) ctx8Add1 >>> add (take (take (ih >>> iih >>> low32))) ctx8Add4
+       >>> add (kw64 0) ctx8Add8 >>> add (drop oh) ctx8Add512 >>> add (drop ioh) ctx8Add32 >>> add (drop iih) ctx8Add16)
+    xmssLevel :: Int -> term (Word128,LS) Word128
+    xmssLevel k=hash16 (drop (oh >>> pkSeedT >>> seedMid))
+      (add (kw8 lj) ctx8Add1 >>> add (drop (ih >>> ioh)) ctx8Add8 >>> add (kw8 2) ctx8Add1 >>> add (kw32 0) ctx8Add4
+       >>> add (kw32 (toInteger k+1)) ctx8Add4 >>> add (drop (ih >>> iih >>> shr (k+1) >>> low32)) ctx8Add4
+       >>> add (ordered (drop (ih >>> iih >>> bit64 k)) oh (drop (oh >>> proofAt (base+35+k)))) ctx8Add32)
 
 tree32 :: (Core term, TyC a) => [term a Word128] -> term a Word4096
 tree32 ts = p16 (L.take 16 ts) &&& p16 (L.drop 16 ts)
@@ -196,6 +223,9 @@ entries =
         [ Vector ("valid stateless signature" ++ refNote) env swValid Accept
         , Vector "corrupted FORS preimage" env (swValid { swFors = (toWord128 0, snd (head (swFors swValid))) : L.drop 1 (swFors swValid) }) Reject
         , Vector "corrupted top-layer chain" env (swValid { swLayers = L.take 4 (swLayers swValid) ++ [ (toWord128 1 : L.drop 1 (fst (last (swLayers swValid))), snd (last (swLayers swValid))) ] }) Reject
+        , Vector "same-CMR seed/header splice" env (swValid {swPk=(toWord128 0,(fst (snd (swPk swValid)),snd (snd (swPk swValid))))}) Reject
+        , Vector "same-CMR randomizer splice" env (swValid {swR=toWord128 0}) Reject
+        , Vector "same-CMR claimed root splice" env (swValid {swPk=(fst (swPk swValid),(toWord128 0,snd (snd (swPk swValid))))}) Reject
         , Vector "signature for another transaction" env2 swValid Reject ]
     }
   ]

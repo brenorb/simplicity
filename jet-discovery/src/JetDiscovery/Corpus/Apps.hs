@@ -30,6 +30,7 @@ import qualified Simplicity.Bitcoin.Primitive as Prim
 import Simplicity.Bitcoin.Primitive (PrimEnv)
 import qualified Simplicity.Bitcoin.Programs.SigHash.Lib as SigHash
 import qualified Simplicity.Bitcoin.Programs.TimeLock as TL
+import qualified Simplicity.Bitcoin.Programs.Transaction.Lib as Tx
 import Simplicity.Bitcoin.DataTypes
 import qualified Simplicity.Bitcoin.Jets as Jets
 import Simplicity.Bitcoin.Jets (unwrap)
@@ -103,8 +104,8 @@ vault recoverHash delay w = witness w &&& unit >>> match withdraw recover
 
 -- | The oracle signs hash_DLC(event_id || price); output 0 receives
 -- min(total, total * price / (2 * strike)) and output 1 the rest.
-cfd :: (Simplicity term, Primitive term) => Word256 -> Word256 -> DW.Word64 -> DW.Word64 -> (Word64, SigW) -> term () ()
-cfd oracle eventId total strike w = witness w >>> (sigOk &&& payoutOk) >>> unit
+cfd :: (Simplicity term, Primitive term) => Word256 -> Word256 -> Word256 -> Word256 -> DW.Word64 -> DW.Word64 -> (Word64, SigW) -> term () ()
+cfd oracle eventId longScript shortScript total strike w = witness w >>> (sigOk &&& (payoutOk &&& (unit >>> collateralOk))) >>> unit
  where
   attestation = ((unit >>> ctx8InitTag "Simplicity/DLC/Attestation") &&& konst eventId >>> ctx8Add32) &&& oh >>> ctx8Add8 >>> ctx8Finalize
   sigOk = checkSigWith oracle attestation ih
@@ -112,10 +113,13 @@ cfd oracle eventId total strike w = witness w >>> (sigOk &&& payoutOk) >>> unit
   -- shift the 128-bit dividend and the constant divisor left by the divisor's leading zeros.
   divisor = 2 * toInteger strike
   k = length (takeWhile (< 2 ^ (63 :: Int)) (iterate (* 2) divisor))
-  shiftedDividend = (konst (w64 (toInteger total)) &&& oh >>> Arith.multiply word64) >>> shift_const_by false word128 k
+  clampedPrice = (oh &&& konst (w64 divisor)) >>> Arith.min word64
+  shiftedDividend = (konst (w64 (toInteger total)) &&& clampedPrice >>> Arith.multiply word64) >>> shift_const_by false word128 k
   long = (shiftedDividend &&& konst (w64 (divisor * 2 ^ k)) >>> Arith.div2n1n word64 >>> oh)
      &&& konst (w64 (toInteger total)) >>> Arith.min word64
-  payoutOk = long >>> (out0 &&& out1) >>> unit
+  scriptOk i expected = ((konst (w32 i) >>> primitive Prim.OutputScriptHash >>> verify) &&& konst expected) >>> eq >>> verify
+  collateralOk = (Tx.currentValue &&& konst (w64 (toInteger total))) >>> eq >>> verify
+  payoutOk = long >>> (out0 &&& (out1 &&& (unit >>> (scriptOk 0 longScript &&& scriptOk 1 shortScript)))) >>> unit
   out0 = iden &&& (unit >>> scribe (w32 0) >>> primitive Prim.OutputValue >>> verify) >>> eq >>> verify
   out1 = (konst (w64 (toInteger total)) &&& iden >>> Arith.subtract word64 >>> ih) &&& (unit >>> scribe (w32 1) >>> primitive Prim.OutputValue >>> verify) >>> eq >>> verify
 
@@ -129,13 +133,13 @@ merkleDepth = 16
 
 -- | pk is a leaf of the depth-16 SHA-256 Merkle tree with root @root@, and pk signs sig_all_hash.
 merkleKey :: (Simplicity term, Primitive term) => Word256 -> (Word256, (SigW, [(Bit, Word256)])) -> term () ()
-merkleKey root (pk, (sig, path)) = (rootOk &&& sigOk) >>> unit
+merkleKey root (pk, (sig, path)) = witness (pk,sig) >>> (rootOk &&& sigOk) >>> unit
  where
   hashPair = sha256Pair
   -- level step: given the current node, combine with the witness sibling on the side given by the bit
   step (d, sib) = witness (d, sib) &&& iden >>> (ooh &&& (oih &&& ih)) >>> cond (hashPair) (ih &&& oh >>> hashPair)
-  rootOk = witness pk >>> foldr (\x k -> step x >>> k) iden path >>> (iden &&& konst root) >>> eq >>> verify
-  sigOk = (witness pk &&& sigMsg) &&& witness sig >>> Secp.bip_0340_verify
+  rootOk = oh >>> foldr (\x k -> step x >>> k) iden path >>> (iden &&& konst root) >>> eq >>> verify
+  sigOk = (oh &&& (unit >>> sigMsg)) &&& ih >>> Secp.bip_0340_verify
 
 merkleRef :: BS.ByteString -> [(Bool, BS.ByteString)] -> BS.ByteString
 merkleRef = L.foldl' (\cur (d, sib) -> hashToBytes (sha256 (if d then sib <> cur else cur <> sib)))
@@ -220,12 +224,16 @@ entries =
     , entryCategory = BitcoinApp
     , entryVectorSource = Derived "oracle attestations made with JetDiscovery.Ref.Bip340; payouts from a Haskell reference"
     , entryAssumptions = [ "oracle signs hash_Simplicity/DLC/Attestation(event_id || price_be64)"
+                         , "the input holds total; fixed long/short recipient scripts are committed in this leaf"
                          , "payout to output 0 is min(total, total * price / (2 * strike)); output 1 gets the rest" ]
     , entryProgram = cfdProg
     , entryVectors =
-        [ Vector ("settle at price " ++ show p) (cfdEnv p) (w64 (toInteger p), attest p) Accept | p <- [30000, 50000, 70000, 150000] ] ++
+        [ Vector ("settle at price " ++ show p) (cfdEnv p) (w64 (toInteger p), attest p) Accept | p <- [0,30000, 50000, 70000, 150000,maxBound] ] ++
         [ Vector "attestation for a different price" (cfdEnv 50000) (w64 50000, attest 50001) Reject
-        , Vector "payout does not match the price" (cfdEnvRaw 50000 (cfdRef cfdTotal cfdStrike 50000 + 1)) (w64 50000, attest 50000) Reject ]
+        , Vector "payout does not match the price" (cfdEnvRaw 50000 (cfdRef cfdTotal cfdStrike 50000 + 1)) (w64 50000, attest 50000) Reject
+        , Vector "payout to a different long recipient" (cfdEnvWith cfdTotal 500000 (p2wpkh 8) (p2wpkh 5)) (w64 50000,attest 50000) Reject
+        , Vector "payout to a different short recipient" (cfdEnvWith cfdTotal 500000 (p2wpkh 4) (p2wpkh 8)) (w64 50000,attest 50000) Reject
+        , Vector "incorrect collateral statement" (cfdEnvWith (cfdTotal-1) 500000 (p2wpkh 4) (p2wpkh 5)) (w64 50000,attest 50000) Reject ]
     }
   , Entry
     { entryId = "app-merkle-key"
@@ -239,6 +247,7 @@ entries =
         [ Vector "member signs" mkEnv' (mkW skA mkPath) Accept
         , Vector "wrong sibling" mkEnv' (mkW skA (let ((d, _):r) = mkPath in (d, BS.replicate 32 0) : r)) Reject
         , Vector "non-member key" mkEnv' (mkW skB mkPath) Reject
+        , Vector "member path with a nonmember's signature" mkEnv' (pkOf skA,(signFor skB mkCmr mkEnv',snd (snd (mkW skA mkPath)))) Reject
         ]
     }
   ]
@@ -269,10 +278,11 @@ entries =
   cfdTotal = 1000000 :: DW.Word64
   cfdStrike = 50000 :: DW.Word64
   eventId = BS.replicate 32 0xee
-  cfdProg w = Prog (cfd (pkOf skO) (w256FromBytes eventId) cfdTotal cfdStrike w)
+  cfdProg w = Prog (cfd (pkOf skO) (w256FromBytes eventId) (w256FromBytes (hashToBytes (sha256 (p2wpkh 4)))) (w256FromBytes (hashToBytes (sha256 (p2wpkh 5)))) cfdTotal cfdStrike w)
   attestMsg p = hashToBytes (taggedSha256 "Simplicity/DLC/Attestation" (eventId <> runPut (putWord64be p)))
   attest p = sigW (signMsg skO (attestMsg p))
-  cfdEnvRaw p long = mkEnv (simpleTx 2 0 0xffffffff [(long, p2wpkh 4), (cfdTotal - long, p2wpkh 5)]) 0 defaultTap
+  cfdEnvWith collateral long longS shortS = mkEnv (mkTx 2 [mkInput (dummyOutpoint 0) collateral mempty 0xffffffff] [mkOutput long longS,mkOutput (cfdTotal-long) shortS] 0) 0 defaultTap
+  cfdEnvRaw p long = cfdEnvWith cfdTotal long (p2wpkh 4) (p2wpkh 5)
   cfdEnv p = cfdEnvRaw p (cfdRef cfdTotal cfdStrike p)
   -- Merkle
   mkPath = [ (odd i, BS.replicate 32 (fromIntegral i)) | i <- [1 .. merkleDepth] ]
