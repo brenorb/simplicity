@@ -1,0 +1,90 @@
+{-# LANGUAGE RankNTypes,ScopedTypeVariables #-}
+-- | Fixed80/20 weighted pool over fully BTC-backed native claims. The bounded
+-- interface includes both swap kinds, taxable LP joins, proportional exits,
+-- LP transfer and the complete claim issuance/transfer/native-burn lifecycle.
+module JetDiscovery.Corpus.WeightedPool where
+import Prelude hiding (drop,take,not,and,or)
+import qualified Prelude as H
+import Simplicity.Term.Core
+import Simplicity.Bitcoin.Term (Simplicity,Primitive)
+import Simplicity.Programs.Bit
+import qualified Simplicity.Bitcoin.Jets as J
+import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.ClaimLedger
+import qualified JetDiscovery.Corpus.ContractGrowth as G
+import qualified JetDiscovery.Lib.WeightedMath as W
+import JetDiscovery.Types
+import Simplicity.Digest (Hash256)
+import JetDiscovery.Tx (hashFromInteger)
+
+-- Offchain fixture only, independently extracted from the unchanged exact
+-- typed program. Actual whole-program and per-vector CMR checks remain active.
+weightedFixtureCmr :: Hash256
+weightedFixtureCmr=hashFromInteger 0xc1e2e389aa16c4d0c020ab4c33217701602304e191ac080739537fa49a0bef8c
+
+validWeightedT :: Assert t => t Ledger ()
+validWeightedT=allChecks [validClaims field,same (field 9) (k 0),same (field 10) (k 0),same (field 15) (k 0),allChecks [same (field i) (k 0)|i<-[16..31]],select (is (field 11) (k 0)) (allChecks [same (field 7) (k 0),same (field 8) (k 0)]) (allChecks [nonzero (field i)&&&le (field i) (k (10^9))>>>unit|i<-[7,8]])]
+changesW source target xs=allChecks [same (target i) (maybe (source i) id (lookup i xs))|i<-[0..31]]
+weightedT :: (Simplicity t,Primitive t) => CT t
+weightedT=allChecks [base,old>>>validWeightedT,new>>>validWeightedT,choose (claimBranches++[(16,swap False),(17,swap True),(18,join),(19,exit),(20,transferLp)])]
+ where
+  qs i=take (o i);qn i=take (n i)
+  qAccount a b=select (is (take actor) (k 0)) a b
+  direction=is (take (aux 0)) (k 0)
+  swap exactOut=(allChecks [actorSig,nonzero amount,nonzero (o 11)]&&&iden)>>>drop ((iden&&&quote)>>>allChecks [nonzero ioh,nonzero iih,if exactOut then le ioh (take (aux 1)) else le (take (aux 1)) iih,changesW qs qn [(14,add (qs 14) (k 1)),(3,qAccount updatedA0 (qs 3)),(4,qAccount (qs 4) updatedA1),(5,qAccount updatedB0 (qs 5)),(6,qAccount (qs 6) updatedB1),(7,select direction (add (qs 7) ioh) (sub (qs 7) iih)),(8,select direction (sub (qs 8) iih) (add (qs 8) ioh))],take noCash])
+   where
+    quote=((o 7&&&o 8)&&&(aux 0&&&amount))>>>J.unwrap (if exactOut then W.swapOutWrapped else W.swapInWrapped)
+    updateA balance=select direction (sub balance ioh) (add balance iih)
+    updateB balance=select direction (add balance iih) (sub balance ioh)
+    updatedA0=updateA (qs 3);updatedA1=updateA (qs 4);updatedB0=updateB (qs 5);updatedB1=updateB (qs 6)
+  joinQuote=((o 7&&&o 8)&&&((aux 0&&&aux 1)&&&o 11))>>>J.unwrap W.joinWrapped
+  join=(allChecks [actorSig,select (is (o 11) (k 0)) unit (allChecks [le (aux 0) (G.floorRatio (o 7) (k 3) (k 10)),le (aux 1) (G.floorRatio (o 8) (k 3) (k 10))])]&&&iden)>>>drop ((iden&&&joinQuote)>>>allChecks [nonzero ih,le (take (aux 2)) ih,changesW qs qn [(14,add (qs 14) (k 1)),(3,qAccount (sub (qs 3) (take (aux 0))) (qs 3)),(4,qAccount (qs 4) (sub (qs 4) (take (aux 0)))),(5,qAccount (sub (qs 5) (take (aux 1))) (qs 5)),(6,qAccount (qs 6) (sub (qs 6) (take (aux 1)))),(7,add (qs 7) (take (aux 0))),(8,add (qs 8) (take (aux 1))),(11,add (qs 11) ih),(12,qAccount (add (qs 12) ih) (qs 12)),(13,qAccount (qs 13) (add (qs 13) ih))],take noCash])
+  exitQuote=G.floorRatio (o 7) amount (o 11)&&&G.floorRatio (o 8) amount (o 11)
+  exit=(allChecks [actorSig,nonzero amount,le amount (account (o 12) (o 13))]&&&iden)>>>drop ((iden&&&exitQuote)>>>allChecks [le (take (aux 0)) ioh,le (take (aux 1)) iih,changesW qs qn [(14,add (qs 14) (k 1)),(3,qAccount (add (qs 3) ioh) (qs 3)),(4,qAccount (qs 4) (add (qs 4) ioh)),(5,qAccount (add (qs 5) iih) (qs 5)),(6,qAccount (qs 6) (add (qs 6) iih)),(7,sub (qs 7) ioh),(8,sub (qs 8) iih),(11,sub (qs 11) (take amount)),(12,qAccount (sub (qs 12) (take amount)) (qs 12)),(13,qAccount (qs 13) (sub (qs 13) (take amount)))],take noCash])
+  transferLp=allChecks [actorSig,nonzero amount,changes [nonce,(12,account (sub (o 12) amount) (add (o 12) amount)),(13,account (add (o 13) amount) (sub (o 13) amount))],noCash]
+weightedEntry=entry "app-weighted-pool-transition" "Native80/20 weighted pool with exact source fixed-point rounding" "Balancer WeightedMath/FixedPoint/LogExpMath; pinned source"
+ ["two BTC-backed native claims with distinct fixed lower maturities; all users, supplies, reserves and LP ownership committed; fee retained in reserves belongs to LPs; no external ERC20/Vault storage", "fixed80/20 weights and0.3% swap fee; exact-in/out source power envelope and30% net-in/out ratios, checked arithmetic, positive reserves<=1e9; join deposits restricted to30% per reserve after initialization", "source taxable/non-taxable LP join fee rounding, exact selected LogExpMath decomposition and ln36 path; native initialization mints2*weighted invariant with no foreign minimum locked BPT; proportional LP exit/transfer only, foreign single-coin exits and protocol fee governance unsupported"] weightedT vectors
+ where
+  initial=update [] [(0,4000000),(1,2000000),(2,2000000),(3,1000000),(4,1000000),(5,1000000),(6,1000000)]
+  step state xs=update state ((14,state H.!!14+1):xs)
+  joinRef state who a b=step state [(3+who,state H.!!(3+who)-a),(5+who,state H.!!(5+who)-b),(7,state H.!!7+a),(8,state H.!!8+b),(11,state H.!!11+mint),(12+who,state H.!!(12+who)+mint)]
+   where mint=W.joinInteger (state H.!!7) (state H.!!8) a b (state H.!!11)
+  swapRef exactOut state who direction amount=step state [(inputField,state H.!!inputField-input),(outputField,state H.!!outputField+output),(inputReserve,state H.!!inputReserve+input),(outputReserve,state H.!!outputReserve-output)]
+   where
+    (input,output)=(if exactOut then W.swapOutInteger else W.swapInInteger) (state H.!!7) (state H.!!8) direction amount
+    inputField=(if direction==0 then 3 else 5)+who;outputField=(if direction==0 then 5 else 3)+who
+    inputReserve=if direction==0 then 7 else 8;outputReserve=if direction==0 then 8 else 7
+  exitRef state who shares=step state [(3+who,state H.!!(3+who)+a),(5+who,state H.!!(5+who)+b),(7,state H.!!7-a),(8,state H.!!8-b),(11,state H.!!11-shares),(12+who,state H.!!(12+who)-shares)]
+   where a=state H.!!7*shares `div`(state H.!!11);b=state H.!!8*shares `div`(state H.!!11)
+  joined=joinRef initial 0 500000 500000
+  imbalanced=joinRef joined 1 100000 0
+  exactIn=swapRef False imbalanced 1 0 10000
+  reverseIn=swapRef False imbalanced 1 1 10000
+  exactOut=swapRef True imbalanced 1 0 20000
+  reverseOut=swapRef True imbalanced 1 1 20000
+  exited=exitRef exactIn 0 100000
+  cleared=exitRef joined 0 (joined H.!!11)
+  moved=step exactIn [(12,exactIn H.!!12-1000),(13,exactIn H.!!13+1000)]
+  issueA=step initial [(0,4000500),(1,2000500),(3,1000500)]
+  burnB=step initial [(0,3999500),(2,1999500),(6,999500)]
+  v=vectorBound weightedFixtureCmr
+  go label action a b who quantity aux signer funding payout height expected=v label weightedT action a b who quantity aux [signer] funding payout height expected
+  vectors=[go "initial weighted invariant mints native LP" 18 initial joined 0 0 [500000,500000,1] 0 0 Nothing 0 Accept,
+   go "one-sided join charges only taxable amount" 18 joined imbalanced 1 0 [100000,0,1] 1 0 Nothing 0 Accept,
+   go "exact-in A swap executes exponent4" 16 imbalanced exactIn 1 10000 [0,1] 1 0 Nothing 0 Accept,
+   go "exact-in B swap executes exponent one-quarter" 16 imbalanced reverseIn 1 10000 [1,1] 1 0 Nothing 0 Accept,
+   go "exact-out B swap ceilings net input and fee" 17 imbalanced exactOut 1 20000 [0,1000000] 1 0 Nothing 0 Accept,
+   go "exact-out A swap uses opposite weighted power" 17 imbalanced reverseOut 1 20000 [1,1000000] 1 0 Nothing 0 Accept,
+   go "LP exit returns proportional claim ownership" 19 exactIn exited 0 100000 [0,0] 0 0 Nothing 0 Accept,
+   go "all initial LP can safely empty reserves" 19 joined cleared 0 (joined H.!!11) [0,0] 0 0 Nothing 0 Accept,
+   go "LP transfer changes reserve ownership" 20 exactIn moved 0 1000 [] 0 0 Nothing 0 Accept,
+   go "claim issuance adds actual native collateral" 0 initial issueA 0 500 [] 0 500 Nothing 0 Accept,
+   go "claim burn consumes owned B and pays native" 5 initial burnB 1 500 [] 1 0 (Just (1,500)) 900000 Accept,
+   go "LP mint cannot inflate one share" 18 joined (update imbalanced [(11,imbalanced H.!!11+1),(13,imbalanced H.!!13+1)]) 1 0 [100000,0,1] 1 0 Nothing 0 Reject,
+   go "swap cannot inflate the computed output quote" 16 imbalanced (update exactIn [(6,exactIn H.!!6+1),(8,exactIn H.!!8-1)]) 1 10000 [0,1] 1 0 Nothing 0 Reject,
+   go "native minimum swap output enforced" 16 imbalanced exactIn 1 10000 [0,1000000] 1 0 Nothing 0 Reject,
+   go "exact-out maximum input enforced" 17 imbalanced exactOut 1 20000 [0,1] 1 0 Nothing 0 Reject,
+   go "net-in maximum ratio enforced" 16 imbalanced exactIn 1 300000 [0,1] 1 0 Nothing 0 Reject,
+   go "wrong LP owner cannot withdraw" 19 exactIn exited 0 100000 [0,0] 1 0 Nothing 0 Reject,
+   go "B burn cannot redirect native payout" 5 initial burnB 1 500 [] 1 0 (Just (0,500)) 900000 Reject]
+entries=[weightedEntry]

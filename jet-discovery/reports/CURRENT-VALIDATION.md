@@ -1,7 +1,7 @@
 # Current validation checkpoint
 
-The source milestone contains142 registered rows,138 distinct counting groups
-and95 complete bounded spend/verifier groups. It does **not** meet the150-group
+The source milestone contains144 registered rows,140 distinct counting groups
+and97 complete bounded spend/verifier groups. It does **not** meet the150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
 missing cost, profile, serialization or ablation numbers.
@@ -19,9 +19,10 @@ missing cost, profile, serialization or ablation numbers.
 | Optimistic assertion bonds | All 42 native UMA lifecycle vectors, 41 rounding checks, and all 11 linked wire/C/Haskell/CSV positives pass; [scope](UMA-BOND.md) | Fresh shared metrics; fixed arbitrator and deadline race explicit |
 | Funded Sablier cliff stream | All 38 native lifecycle vectors, 59 schedule checks and all 13 accepted wire/C/Haskell/ancestry controls pass; [scope](SABLIER-STREAM.md) | Fresh shared metrics; native signed cancellation valuation and freshness trust |
 | Cumulative pull payments | All 28 native vectors pass, including genuine two-input payout control, lifetime rounding and actual continuation; [scope](CUMULATIVE-SPLITTER.md) | Fresh shared metrics; one native BTC lineage and immutable payees |
+| StableSwap and weighted pools | All 23 three-class StableSwap and 18 two-class weighted lifecycle vectors pass; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; fixed native rates, rounding and liquidity bounds, no foreign asset-ledger equivalence |
 | CoW batch settlement | All 20 complete native signed-order, settlement and accounting vectors pass; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; bounded two-order native claim ledger, no foreign interactions or expiry |
 | Indexed loan and OCR report consumer | All 20 indexed lending and 11 fixed-config OCR vectors pass; independent canonical roots and exact source snapshots; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; native rate/height authority and OCR freshness limits explicit |
-| Conditional positions | Complete29 native vectors pass plus independent focused layout/accounting review; [validation](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; remaining two compact drafts remain uncounted |
+| Conditional positions | Complete29 native vectors pass plus independent focused layout/accounting review; [validation](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; all six compact cohorts now pass separately |
 | Native BIP32 wallet | All9 source/derivation/boundary controls and11 full native vectors pass; [scope](HD-WALLET.md) | Fresh shared metrics; unchanged hmac37 body with additive later helpers explicit |
 | FairSwap file-sale escrow | All 24 actual native vectors pass under one canonical CMR, including the two-input payout regression; [scope and evidence](FAIRSWAP-NATIVE-SCOPE.md) | Fresh shared metrics; native CSV lower bounds and deadline races explicit |
 | Bounded BLAKE3-256 | All 22 actual native vectors pass, including all 19 supported official unkeyed cases and three negatives; [scope](CRYPTO-FAMILIES.md) | One hash component, not a full application; fresh exact overlay match counts pending |
