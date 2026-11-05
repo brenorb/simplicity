@@ -1,6 +1,6 @@
 # Current validation checkpoint
 
-The source milestone contains 154 registered rows, 147 distinct counting groups
+The source milestone contains 155 registered rows, 148 distinct counting groups
 and 106 complete bounded spend/verifier groups. It does **not** meet the 150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
@@ -48,6 +48,7 @@ missing cost, profile, serialization or ablation numbers.
 | Ed25519 | All6 bound transaction-independent RFC/corruption vectors pass; [status](data/ed25519-bound-vectors-status.json) | Fresh shared cost/profile run |
 | P-256 | All8 actual prepared-kernel vectors pass in3689.202seconds; RFC6979 positives and wrong message/key/scalar, r+n carry and canonical-key controls; [record](data/p256-prepared-vectors.json) | Fresh shared cost/profile run |
 | TXHASH | All150 upstream successful selectors plus derived wrong-hash negative pass after canonical raw-outpoint repair, at one jetted CMR; [record](data/txhash-canonical-wire-vectors.json) | Fresh shared cost/profile run; malformed selector decoding remains host-only |
+| Direct BIP347 OP_CAT | All 342 actual same-CMR vectors pass, including all 295 upstream value projections and 47 derived boundaries/negatives; [scope](BIP347-OP-CAT.md) | Standalone bounded component; fresh shared metrics; Script activation, stack underflow and policy are external |
 | Older settlement/guard repairs | DLC settlement11, Merkle-key4, Uniswap-v2 kernel10, P2MR7 and modular multiplication6 pass | All389 CTV,19 template/annex and32 upstream P2MR vectors also pass; fresh shared metrics remain |
 | Full custom STARK | All8 full-size vectors and all analysis fields pass; native1,497,462.342WU; combined overlay252,144.216WU ESTIMATE; [complete snapshot](data/stark-full-pre-final-measurements.json) | Final frozen whole-corpus run; this pre-final binary has21 candidate frontends |
 | Analysis | Full42-test suite passes816.99s; prepared-path3, candidate-recognition and canonical wire regressions pass; [record](data/harness-isolated-backend-current42.json) | Complete larger-corpus run remains |

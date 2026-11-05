@@ -1,0 +1,180 @@
+{-# LANGUAGE GADTs #-}
+{-# OPTIONS_GHC -fsimpl-tick-factor=1000 -funfolding-case-threshold=1 -funfolding-case-scaling=5 #-}
+-- | BIP347 concatenation over exactly two canonically encoded stack elements.
+-- Keep GHC from expanding the deeply balanced product dictionaries. This
+-- does not affect the Simplicity expression, which is still jet substituted.
+module JetDiscovery.Corpus.Bip347Cat (entry, catValue, encode, decode) where
+
+import Prelude hiding (drop, take)
+import qualified Data.ByteString as BS
+import Data.Bits (shiftL, shiftR, (.|.), (.&.))
+import Data.List (foldl')
+import qualified Simplicity.Bitcoin.Jets as J
+import Simplicity.Bitcoin.Term (Simplicity)
+import qualified Simplicity.Programs.Arith as A
+import Simplicity.Programs.Bit (cond, false, verify)
+import Simplicity.Programs.Generic (eq)
+import qualified Simplicity.Programs.Word as W
+import Simplicity.Term.Core
+import Simplicity.Ty.Word hiding (Vector)
+import qualified Simplicity.Ty.Word as Ty
+import JetDiscovery.Lib.Bytes (konst, w8, w16)
+import qualified JetDiscovery.Ref.OpCat as R
+import JetDiscovery.Tx (defaultTap, dummyOutpoint, mkEnv, mkInput, mkOutput, mkTx, unhex)
+import JetDiscovery.Types
+
+-- Byte i in stack order occupies bits 8*i through 8*i+7, starting at the
+-- least-significant byte. Bits past the declared byte length must be zero.
+type Storage = (Word4096, Word4096)
+type Element = (Word16, Storage)
+type Claim = ((Element, Element), Element)
+
+bytes :: Ty.Vector Word8 Storage
+bytes = vector1024
+
+bits :: Ty.Word Storage
+bits = DoubleV word4096
+
+maxLength :: (Core t, TyC a) => t a Word16
+maxLength = konst (w16 (toInteger R.elementLimit))
+
+-- The checked length needs only its ten low bits. Each selected stage is a
+-- zero-filled constant shift on the balanced byte vector.
+shiftBytes :: Core t => Int -> t Element Storage
+shiftBytes direction = foldl' (>>>) iden (map stage [1,2,4,8,16,32,64,128,256,512]) >>> ih
+ where
+  stage distance = oh &&&
+    (selected &&& ih >>> cond (W.shift_const_by (konst (w8 0)) bytes (direction * distance)) iden)
+   where
+    mask = konst (w16 (toInteger distance))
+    selected = (((oh &&& mask) >>> W.bitwise_and word16) &&& mask) >>> eq
+
+{-# NOINLINE eq256 #-}
+eq256 :: J.WrappedSimplicity (Word256, Word256) Bit
+eq256 = J.jetSubst eq
+
+{-# NOINLINE or64 #-}
+or64 :: J.WrappedSimplicity (Word64, Word64) Word64
+or64 = J.jetSubst (W.bitwise_or word64)
+
+equalWords :: (Simplicity t, TyC a) => Ty.Vector Word256 a -> t (a,a) Bit
+equalWords SingleV = J.unwrap eq256
+equalWords (DoubleV v) = ((ooh &&& ioh >>> recur) &&& (oih &&& iih)) >>> cond recur false
+ where recur = equalWords v
+
+orWords :: (Simplicity t, TyC a) => Ty.Vector Word64 a -> t (a,a) a
+orWords SingleV = J.unwrap or64
+orWords (DoubleV v) = (ooh &&& ioh >>> recur) &&& (oih &&& iih >>> recur)
+ where recur = orWords v
+
+equalStorage :: Simplicity t => t (Storage,Storage) Bit
+equalStorage = equalWords vector32
+
+canonical :: Simplicity t => t Element ()
+canonical = ((oh &&& maxLength) >>> A.le word16 >>> verify) &&& iden >>> ih
+  >>> (shiftBytes (-1) &&& (unit >>> W.low bits)) >>> equalStorage >>> verify
+
+-- Checked inputs carry only declared bytes. A valid result length is <= 520,
+-- so the shift retains all right operand bytes in the 1024-byte storage.
+-- The left operand has no occupied bytes at or above its declared length.
+catValue :: Simplicity t => t (Element, Element) Element
+catValue = ((take canonical &&& drop canonical) &&& iden) >>> ih
+  >>> ((ooh &&& ioh >>> A.add word16 >>> ih) &&& iden)
+  >>> (((oh &&& maxLength) >>> A.le word16 >>> verify) &&& iden) >>> ih
+  >>> (oh &&& ((ioh >>> ih) &&& ((ioh >>> oh) &&& (iih >>> ih) >>> shiftBytes 1) >>> orWords vector128))
+
+kernel :: Simplicity t => t Claim ()
+kernel = ((oh >>> catValue) &&& ih)
+  >>> ((ooh &&& ioh >>> eq >>> verify) &&& (oih &&& iih >>> equalStorage >>> verify)) >>> unit
+
+encode :: BS.ByteString -> Element
+encode bs
+  | BS.length bs > 1024 = error "CAT fixture exceeds storage"
+  | otherwise = (w16 (toInteger (BS.length bs)), toWord bits packed)
+ where
+  packed = BS.foldr (\b a -> fromIntegral b .|. (a `shiftL` 8)) 0 bs
+
+decode :: Element -> Maybe BS.ByteString
+decode (len, payload)
+  | size > R.elementLimit || packed `shiftR` (8 * size) /= 0 = Nothing
+  | otherwise = Just (BS.pack [fromInteger ((packed `shiftR` (8*i)) .&. 255) | i <- [0..size-1]])
+ where
+  size = fromInteger (fromWord16 len)
+  packed = fromWord bits payload
+
+parseVector :: String -> Vector Claim
+parseVector row = case fields row of
+  [name, lhs, rhs, result, outcome]
+    | outcome == "accept" || outcome == "reject" ->
+        let left = unhex lhs
+            right = unhex rhs
+            claimed = unhex result
+            expected = if outcome == "accept" then Accept else Reject
+        in if (R.cat left right == Just claimed) /= (expected == Accept)
+           then error ("BIP347 source/reference mismatch: " ++ name)
+           else vector name (encode left, encode right) (encode claimed) expected
+  _ -> error "invalid BIP347 relation vector row"
+ where
+  fields s = case break (=='\t') s of
+    (part, []) -> [part]
+    (part, _:rest) -> part : fields rest
+
+vector :: String -> (Element, Element) -> Element -> Expect -> Vector Claim
+vector name operands claim expected = Vector name env (operands, claim) expected
+ where
+  env = mkEnv (mkTx 2 [mkInput (dummyOutpoint 347) 2000 mempty 0xfffffffe]
+                [mkOutput 1000 (unhex "51")] 0) 0 defaultTap
+
+fixture :: Int -> Int -> BS.ByteString
+fixture salt size = BS.pack [fromIntegral (i * 73 + salt) | i <- [0..size-1]]
+
+derivedVectors :: [Vector Claim]
+derivedVectors = [ordinary l r | (l,r) <- sizes] ++ adversarial
+ where
+  sizes = [(0,0),(0,1),(1,0),(0,255),(255,0),(1,255),(255,1),(0,256),(256,0),
+           (255,255),(255,256),(256,255),(256,256),(0,511),(511,0),
+           (0,512),(512,0),(511,1),(1,511),(255,264),(264,255),
+           (0,519),(519,0),(519,1),(1,519),(512,8),(8,512),(511,9),(9,511),
+           (0,520),(520,0),(260,260),(520,1),(1,520),(256,265),(521,0),(0,521)]
+  ordinary leftLen rightLen = vector
+    ("derived lengths " ++ show leftLen ++ "+" ++ show rightLen)
+    (encode left, encode right) (encode (maybe BS.empty id result))
+    (maybe Reject (const Accept) result)
+   where
+    left = fixture 23 leftLen
+    right = fixture 197 rightLen
+    result = R.cat left right
+  a = unhex "00ff8000"
+  b = unhex "ff00007e"
+  joined = maybe (error "fixture length") id (R.cat a b)
+  mutate size i bs = (w16 size, toWord bits (packed .|. (1 `shiftL` (8*i))))
+   where packed = fromWord bits (snd (encode bs))
+  falseClaim name left right result = vector name (left, right) result Reject
+  adversarial =
+    [ vector "zero and high-bit bytes are ordinary data" (encode a, encode b) (encode joined) Accept
+    , falseClaim "reversed operands" (encode a) (encode b) (encode (BS.append b a))
+    , falseClaim "wrong result byte with correct length" (encode a) (encode b) (encode (unhex "01ff8000ff00007e"))
+    , falseClaim "wrong result length with identical payload" (encode a) (encode b) (w16 7, snd (encode joined))
+    , falseClaim "hidden left tail at declared length" (mutate 4 4 a) (encode b) (encode joined)
+    , falseClaim "hidden right tail at final capacity byte" (encode a) (mutate 4 1023 b) (encode joined)
+    , falseClaim "hidden result tail at declared length" (encode a) (encode b) (mutate 8 8 joined)
+    , falseClaim "empty input must have zero storage" (mutate 0 0 BS.empty) (encode b) (encode b)
+    , falseClaim "length high bits may not wrap to zero" (w16 65535, snd (encode BS.empty)) (encode b) (encode b)
+    , falseClaim "result length above 520" (encode a) (encode b) (w16 521, snd (encode joined))
+    ]
+
+entry :: IO Entry
+entry = do
+  contents <- readFile "vendor-specs/bip347-cat/relation-vectors.tsv"
+  let expectedHeader = "name\tleft_hex\tright_hex\tresult_hex\texpected"
+      upstream = case lines contents of
+        h:rows | h == expectedHeader && not (null rows) -> map parseVector rows
+        _ -> error "invalid BIP347 relation vector file"
+  pure $ Entry "bip347-op-cat" "BIP347 OP_CAT byte relation through 520 bytes"
+    "BIP347 Specification, pinned Bitcoin Core PR #29247 script-test vectors" CovenantBip
+    (Upstream "vendor-specs/bip347-cat/relation-vectors.tsv, projected CAT steps and derived boundary/malformed encodings")
+    [ "Two already supplied Script elements, with 0..520 bytes per element and a maximum of 520 result bytes."
+    , "One bound witness holds both operands and the expected result. A 1024-byte balanced word holds each value with an explicit length and zero unused bytes."
+    , "Models the CAT value relation. Tapscript stack underflow, activation, surrounding opcodes and policy are outside this typed interface."
+    ]
+    (boundProgram kernel) (upstream ++ derivedVectors)

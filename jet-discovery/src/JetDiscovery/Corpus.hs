@@ -54,6 +54,7 @@ import qualified JetDiscovery.Corpus.StateMachines as StateMachines
 import JetDiscovery.Types (Entry)
 import qualified JetDiscovery.Corpus.Baseline as Baseline
 import qualified JetDiscovery.Corpus.Bip348Csfs as Csfs
+import qualified JetDiscovery.Corpus.Bip347Cat as Bip347Cat
 import qualified JetDiscovery.Corpus.Bip119Ctv as Ctv
 import qualified JetDiscovery.Corpus.Bip446TemplateHash as TemplateHash
 import qualified JetDiscovery.Corpus.CovenantMisc as CovenantMisc
@@ -81,6 +82,7 @@ corpus = concat <$> sequence
   , Ctv.entries
   , TemplateHash.entries
   , Txhash.entries
+  , fmap (:[]) Bip347Cat.entry
   , pure CovenantMisc.entries
   , MoreBips.entries
   , pure Apps.entries
