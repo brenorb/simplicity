@@ -41,7 +41,9 @@ def main():
     if not frozen.exists():
         shutil.copy2(executable, frozen)
     paths = [p for base in ["src", "app", "test"] for p in (ROOT / base).rglob("*.hs")]
+    paths += [p for p in (ROOT / "tools").rglob("*") if p.suffix in {".hs", ".py"}]
     paths += [ROOT / p for p in ["jet-discovery.cabal", "cabal.project", "tools/run_recorded.py"]]
+    inputs = sorted(p for p in (ROOT / "vendor-specs").rglob("*") if p.is_file())
     record = {
         "command": command,
         "cwd": str(ROOT),
@@ -49,7 +51,8 @@ def main():
         "executable": str(executable),
         "executable_sha256": binary_hash,
         "frozen_executable": str(frozen.relative_to(ROOT)),
-        "source_sha256": {str(p.relative_to(ROOT)): digest(p) for p in sorted(paths)},
+        "source_sha256": {str(p.relative_to(ROOT)): digest(p) for p in sorted(set(paths))},
+        "input_sha256": {str(p.relative_to(ROOT)): digest(p) for p in inputs},
         "log": str(log.relative_to(ROOT)),
         "exit_status": None,
     }

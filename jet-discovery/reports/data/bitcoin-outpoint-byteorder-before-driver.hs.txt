@@ -1,0 +1,43 @@
+-- Diagnostic only: compare actual C/Haskell primitives with a known raw wire.
+module Main where
+import Control.Monad(unless)
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Vector as V
+import Data.Serialize(runPut)
+import Simplicity.Bitcoin.DataTypes
+import qualified Simplicity.Bitcoin.Primitive as Prim
+import qualified Simplicity.Bitcoin.FFI.Jets as C
+import Simplicity.Ty.Word
+import JetDiscovery.Tx
+import JetDiscovery.Lib.Bytes(w32,w256ToBytes)
+import qualified JetDiscovery.Ref.BitcoinWire as DisplayBridge
+import System.Exit(exitFailure)
+assert label ok=do putStrLn(label++"="++show ok);unless ok exitFailure
+showOp value=case value of
+ Just(Right(h,i))->hex(w256ToBytes h)++":"++show(fromWord32 i)
+ _->show "failed"
+main=do
+ let hash=B.pack[0..31]
+     op=Outpoint(hashFromBytes hash)0x01020304
+     canonical=mkTx 2[mkInput op 1000 BL.empty 0xfffffffe][mkOutput 999(unhex "51")]0
+     raw=runPut(putNoWitnessTx canonical)
+ parsed<-either fail return(parseRawTx raw)
+ let local=rawToSigTx parsed
+     root=hashFromInteger 1
+     environment tx=case mkEnv tx 0 defaultTap root of Just e->e;_->error "byteorder environment"
+     haskell tx=Prim.primSem Prim.InputPrevOutpoint(toWord32 0)(environment tx)
+     cjet tx=C.input_prev_outpoint(environment tx)(toWord32 0)
+     bytes value=case value of Just(Right(h,_))->w256ToBytes h;_->B.empty
+ putStrLn("raw_wire_hash="++hex hash)
+ putStrLn("canonical_Haskell="++showOp(haskell canonical))
+ putStrLn("canonical_C_jet="++showOp(cjet canonical))
+ putStrLn("local_parsed_Haskell="++showOp(haskell local))
+ putStrLn("local_parsed_C_jet="++showOp(cjet local))
+ assert "canonical primitive preserves exact raw32 bytes"(bytes(haskell canonical)==hash&&bytes(cjet canonical)==hash)
+ assert "same SigTx yields equal C and Haskell bytes"(bytes(haskell canonical)==bytes(cjet canonical)&&bytes(haskell local)==bytes(cjet local))
+ assert "local parser reverses actual wire primitive value"(bytes(haskell local)==B.reverse hash&&bytes(haskell local)/=hash)
+ assert "local parser breaks base canonical wire roundtrip"(runPut(putNoWitnessTx local)/=raw)
+ assert "display bridge only repairs serialization not C primitive"(DisplayBridge.noWitnessTx local==raw&&bytes(cjet local)==B.reverse hash)
+ putStrLn("canonical_wire="++hex raw)
+ putStrLn("local_base_roundtrip="++hex(runPut(putNoWitnessTx local)))

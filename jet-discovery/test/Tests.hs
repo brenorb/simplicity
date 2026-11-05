@@ -13,6 +13,8 @@ import JetDiscovery.Snapshot (saveResult,loadResult)
 import Data.Bits (xor, (.&.), complement, rotateL, rotateR, shiftL, shiftR)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
+import qualified Data.ByteString.Lazy as BSL
+import Data.Serialize (runPutLazy)
 import Data.Word (Word32, Word64)
 import qualified Data.List as L
 import Test.Tasty (defaultMain, testGroup, TestTree)
@@ -29,6 +31,7 @@ import qualified Simplicity.Bitcoin.Jets as Jets
 import Simplicity.Bitcoin.Primitive (PrimEnv)
 import qualified Simplicity.Bitcoin.Primitive as Prim
 import qualified Simplicity.Bitcoin.Term as Term
+import Simplicity.Bitcoin.DataTypes (SigTx(..), SigTxInput(..), Outpoint(..), putNoWitnessTx)
 import Simplicity.Digest (hash0)
 import qualified Simplicity.Ty.Word as W
 
@@ -80,6 +83,17 @@ rands seed = tail (iterate (\x -> (x * 6364136223846793005 + 1442695040888963407
 main :: IO ()
 main = defaultMain $ testGroup "jet-discovery"
   [ preparedTests
+  , testCase "Bitcoin wire outpoints preserve primitive and serializer byte order" $ do
+      let wireHash=BS.pack [0..31]
+          raw=unhex "0200000001"<>wireHash<>unhex "010000000078563412016400000000000000015100000000"
+          Right parsed=parseRawTx raw
+          tx=rawToSigTx parsed
+          Outpoint h index=sigTxiPreviousOutpoint(V.head(sigTxIn tx))
+          Just environment=mkEnv tx 0 defaultTap hash0
+      hashToBytes h @?= wireHash
+      index @?= 1
+      BSL.toStrict(runPutLazy(putNoWitnessTx tx)) @?= raw
+      Prim.primSem Prim.InputPrevOutpoint (w32 0) environment @?= Just(Right(w256FromBytes wireHash,w32 1))
   , testGroup "full STARK reference"
       [ testCase "FFT matches direct polynomial evaluation" $ do
           let cs=V.fromList (map FS.base [3,5,7,11,13,17,19,23])
@@ -176,6 +190,15 @@ main = defaultMain $ testGroup "jet-discovery"
       mapM_ (check padded) ["keccak_f1600","sha256_pair"]
       let Just (_,nested)=lookup "keccak_f1600" (mCandidateCosts (measure rec))
       nested @?= 1
+  , testCase "prejetted helpers retain hypothetical candidate matches" $ do
+      let raw=Prog (witness (W.toWord512 1)>>>sha256Pair>>>unit)
+          cached=Prog (witness (W.toWord512 1)>>>Jets.unwrap (Jets.jetSubst sha256Pair)>>>unit)
+          a=measure raw;b=measure cached
+      mCmr a @?= mCmr b
+      mCost a @?= mCost b
+      mCostWhatIf a @?= mCostWhatIf b
+      lookup "sha256_pair" (mCandidateCosts a) @?= lookup "sha256_pair" (mCandidateCosts b)
+      assertBool "candidate survives prepared native helper" (maybe False ((>0).snd) (lookup "sha256_pair" (mCandidateCosts b)))
   , testCase "restricted jet costs match independent substitution" $ do
       let sha=Prog (witness (W.toWord512 1) >>> sha256Pair >>> unit)
           curve=Prog (witness ((W.toWord256 1,W.toWord256 2),W.toWord256 1) >>> Secp.gej_double >>> unit)

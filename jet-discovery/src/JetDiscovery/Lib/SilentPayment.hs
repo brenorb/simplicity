@@ -152,10 +152,6 @@ scriptSigHash=(iden&&&(unit>>>ctx8Init>>>ctxWith(konst(w8 71))ctx8Add1))
  >>>append (konst(w16 0x0121))ctx8Add2>>>append ioh ctx8Add1>>>append iih ctx8Add32>>>ih>>>ctx8Finalize
 p2trHash :: Assert t => t Word256 Word256
 p2trHash=(((unit>>>ctx8Init)&&&konst(w16 0x5120)>>>ctx8Add2)&&&iden)>>>ctx8Add32>>>ctx8Finalize
-bswap128 :: Core t => t Word128 Word128
-bswap128=(ih>>>bswap64)&&&(oh>>>bswap64)
-bswap256 :: Core t => t Word256 Word256
-bswap256=(ih>>>bswap128)&&&(oh>>>bswap128)
 
 silent :: (Simplicity t,Primitive t) => GE -> GE -> Proof -> t()()
 silent scan spend proof=witness proof>>>silentKernel scan spend
@@ -177,7 +173,7 @@ silentKernel scan spend=(provenance&&&proof&&&native)>>>unit
   outpoint :: Int -> t Proof(Word256,Word32)
   outpoint i=konst(w32(toInteger i))>>>primitive Prim.InputPrevOutpoint>>>verify
   wire :: Int -> t Proof(Word256,Word32)
-  wire i=(outpoint i>>>oh>>>bswap256)&&&(outpoint i>>>ih)
+  wire i=outpoint i
   smallest :: t Proof(Word256,Word32)
   smallest=choose&&&iden>>>cond(wire 0)(wire 1)
    where
@@ -241,7 +237,7 @@ entry=return(Entry "app-silent-payment-output-covenant"
   outputSecret=case fundingSecret internal(tap cmr)of Just s->s;_->error "silent-payment Taproot setup"
   legacyPoint=R.pointMul R.gPt legacy
   legacyScript=Ref.p2pkhScript legacyPoint
-  wire(Outpoint h i)=B.reverse(hashToBytes h)<>Wire.le32(toInteger i)
+  wire(Outpoint h i)=hashToBytes h<>Wire.le32(toInteger i)
   p2tr x=unhex "5120"<>R.bytesFromInt x
   make op0 op1 override payout=
    let outpoints=[wire op0,wire op1]

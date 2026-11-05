@@ -58,13 +58,6 @@ bit8 k = pick (testBit p 2) (pick (testBit p 1) (pick (testBit p 0) iden)) where
 bit16 :: Core term => Int -> term Word16 Bit
 bit16 k = pick (testBit p 3) (pick (testBit p 2) (pick (testBit p 1) (pick (testBit p 0) iden))) where p = 15 - k
 
--- | Reverse the bytes of a 256-bit word (txids are hashed in wire order).
-rev256 :: Core term => term Word256 Word256
-rev256 = drop r128 &&& take r128
- where
-  r128 = drop r64 &&& take r64
-  r64 = drop bswap32 &&& take bswap32
-
 -- | If bit b holds, apply t to the context.
 when' :: (Core term, TyC c) => term () Bit -> term c c -> term c c
 when' b t = (unit >>> b) &&& iden >>> cond t iden
@@ -81,7 +74,10 @@ type HashArgs = (Selector, TapCtx)
 -- Each selector, mask, and context operand is a single dataflow input. CMR
 -- does not require separate witness nodes with equal Haskell values to agree.
 txHashProg :: forall term. (Assert term, Primitive term, Witness term) => HashArgs -> Word256 -> term () ()
-txHashProg args expected = witness (args,expected) >>> ((take template &&& ih) >>> eq >>> verify)
+txHashProg args expected = witness (args,expected) >>> txHashKernel
+
+txHashKernel :: forall term. (Assert term, Primitive term) => term (HashArgs,Word256) ()
+txHashKernel = (take template &&& ih) >>> eq >>> verify
  where
   ctlT :: term HashArgs (Buffer63 Word8)
   ctlT=take oh
@@ -102,7 +98,7 @@ txHashProg args expected = witness (args,expected) >>> ((take template &&& ih) >
     nonEmpty=mask >>> (iden &&& konst (w16 0) >>> eq) >>> not iden
     sub=start >>> foldr (\j rest -> conditional (mask >>> bit16 j) (take (item j) &&& ih) >>> rest) iden [0..maxItems-1] >>> oh >>> ctx8Finalize
   inp j p=konst (w32 (toInteger j)) >>> primitive p
-  prevoutItem j=(iden &&& (unit >>> inp j Prim.InputPrevOutpoint >>> verify)) >>> ((oh &&& drop (take rev256) >>> ctx8Add32) &&& iih) >>> ctxAddLE32
+  prevoutItem j=(iden &&& (unit >>> inp j Prim.InputPrevOutpoint >>> verify)) >>> ((oh &&& ioh >>> ctx8Add32) &&& iih) >>> ctxAddLE32
   seqItem j=ctxWith (inp j Prim.InputSequence >>> verify) ctxAddLE32
   ssItem j=ctxWith (inp j Prim.InputScriptSigHash >>> verify) ctx8Add32
   spkItem j=ctxWith (inp j Prim.InputScriptHash >>> verify) ctx8Add32
@@ -265,7 +261,7 @@ entries = do
       , entryAssumptions = [ "the selector is decoded off-chain into flags and two 16-bit selection masks (at most 16 inputs and outputs)"
                            , "the tapscript-context fields (control block hash, spent script hash, OP_CODESEPARATOR position) are witness operands computed from each vector's witness: a Simplicity spend has no tapscript"
                            , "the selector and the expected hash are witness operands" ]
-      , entryProgram = \(sel, h) -> Prog (txHashProg sel h)
+      , entryProgram = boundProgram txHashKernel
       , entryVectors = map vec usable ++ neg
       }
     ]

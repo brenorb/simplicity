@@ -12,7 +12,7 @@ import JetDiscovery.Ref.BitcoinGrowth(le32,le64)
 import qualified JetDiscovery.Ref.Bip340 as R
 
 commitment message=hashToBytes(sha256(C.pack "Proof-of-Reserves: "<>message))
-outpoint(Outpoint txid index)=B.reverse(hashToBytes txid)<>le32(toInteger index)
+outpoint(Outpoint txid index)=hashToBytes txid<>le32(toInteger index)
 string bytes=runPut(putCompactSize(fromIntegral(B.length bytes)))<>bytes
 script=BL.toStrict.sigTxiScript
 sha=hashToBytes.sha256

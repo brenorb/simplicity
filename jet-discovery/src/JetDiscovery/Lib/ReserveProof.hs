@@ -46,10 +46,6 @@ scriptHash :: (Assert t,Primitive t,TyC a) => Integer -> t a Word256
 scriptHash i=konst(w32 i)>>>primitive Prim.InputScriptHash>>>verify
 outputValue :: (Assert t,Primitive t,TyC a) => t a Word64
 outputValue=konst(w32 0)>>>primitive Prim.OutputValue>>>verify
-bswap128 :: Core t => t Word128 Word128
-bswap128=(ih>>>bswap64)&&&(oh>>>bswap64)
-bswap256 :: Core t => t Word256 Word256
-bswap256=(ih>>>bswap128)&&&(oh>>>bswap128)
 appendConst :: Assert t => B.ByteString -> t Ctx8 Ctx8
 appendConst bytes|B.null bytes=iden
  |otherwise=piece n(B.take n bytes)>>>appendConst(B.drop n bytes)
@@ -74,7 +70,7 @@ commitment=((unit>>>ctx8Init>>>appendConst(C.pack "Proof-of-Reserves: "))&&&iden
 prevoutsHash :: (Assert t,Primitive t) => t()Word256
 prevoutsHash=ctx8Init>>>L.foldr(>>>)iden[step i|i<-[0..2]]>>>ctx8Finalize
  where
-  step i=ctxWith(outpoint i>>>oh>>>bswap256)ctx8Add32>>>ctxWith(outpoint i>>>ih)ctxAddLE32
+  step i=ctxWith(outpoint i>>>oh)ctx8Add32>>>ctxWith(outpoint i>>>ih)ctxAddLE32
 amountsHash :: (Assert t,Primitive t) => t()Word256
 amountsHash=ctx8Init>>>L.foldr(>>>)iden[ctxWith(value i)ctxAddLE64|i<-[0..2]]>>>ctx8Finalize
 scriptsHash :: Assert t => t(Word256,Word256)Word256
@@ -107,7 +103,7 @@ preflight expected=(same oh(konst expected)&&&shape&&&commit&&&utxos&&&total&&&u
       &&&same(konst(w32 i)>>>primitive Prim.InputScriptSigHash>>>verify)(konst(w256FromBytes(hashToBytes(sha256 B.empty))))
       &&&same(konst(w32 i)>>>primitive Prim.InputAnnexHash>>>verify)(konst(Left()))&&&rest)>>>unit)unit[0..2])>>>unit
   commit :: t ReserveInput()
-  commit=(same(outpoint 0>>>oh)(oh>>>bswap256)&&&same(outpoint 0>>>ih)(konst(w32 0))
+  commit=(same(outpoint 0>>>oh)oh&&&same(outpoint 0>>>ih)(konst(w32 0))
    &&&same(value 0)(konst(w64 0))&&&same(scriptHash 0)(konst(w256FromBytes(hashToBytes(sha256(unhex "51"))))))>>>unit
   utxos :: t ReserveInput()
   utxos=(same(scriptHash 1)(iooh>>>p2trHash)&&&same(scriptHash 2)(iioh>>>p2trHash)
@@ -142,7 +138,7 @@ entry=return(Entry "app-reserve-ownership-and-sum" "BIP127 client-mode two-reser
   pk i=EC.pubkeyOf(keys P.!!i)
   p2tr x=unhex "5120"<>EC.bytesFromInt x
   make commitmentBytes duplicate delta nonempty=
-   let op=Outpoint(hashFromBytes(B.reverse commitmentBytes))0
+   let op=Outpoint(hashFromBytes commitmentBytes)0
        a=mkInput(dummyOutpoint 1)50000(BL.fromStrict(p2tr(pk 0)))0xffffffff
        b=if duplicate then a else mkInput(dummyOutpoint 2)60000(BL.fromStrict(p2tr(pk 1)))0xffffffff
        total=if duplicate then 100000 else 110000

@@ -135,8 +135,9 @@ parseRawTx = runGet $ do
     i <- getWord32le
     ss <- getVarBytes
     sq <- getWord32le
-    -- Outpoint hashes are stored in internal (little endian) byte order on the wire.
-    return (RawIn (Outpoint (hashFromBytes (BS.reverse h)) i) ss sq)
+    -- Preserve the raw32 bytes. This is the in-tree Serialize Outpoint and
+    -- Bitcoin primitive API convention; explorer display strings reverse them.
+    return (RawIn (Outpoint (hashFromBytes h) i) ss sq)
   nOut <- getCompactSize
   outs <- replicateM (fromIntegral nOut) $ RawOut <$> getWord64le <*> getVarBytes
   wit <- if segwit then mapM (const $ do { n <- getCompactSize; replicateM (fromIntegral n) getVarBytes }) ins
