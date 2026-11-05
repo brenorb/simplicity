@@ -1,0 +1,121 @@
+---
+title: "DLMM Developer Guide"
+sidebarTitle: "Overview"
+description: "Learn how to build DLMM integrations with the lb_clmm program, TypeScript SDK, Rust guides, Data API, commands, and release notes."
+llmsDescription: "Explains the DLMM Developer Guide as the integration entry point for Meteora DLMM. Covers integration resources, program accounts, instructions, events, errors, @meteora-ag/dlmm TypeScript SDK, Rust library and CPI guides, Data API reference, changelog, program IDs, commands, stay-updated resources, and public repository paths for builders."
+---
+
+DLMM is Meteora's high-performance concentrated liquidity product on Solana. To learn more about DLMM such as LP strategy concepts, and economic explanations, you can read the following documentations.
+
+<CardGroup cols={2}>
+  <Card title="Learn more about DLMM" icon="book-open" iconType="solid" href="/core-products/dlmm/what-is-dlmm">
+    Overview of DLMM, strategies, dynamic positions, limit orders, rewards, and fee concepts.
+  </Card>
+  <Card title="DLMM Formulas" icon="calculator" iconType="solid" href="/core-products/dlmm/formulas">
+    Formulas and definitions for price, liquidity, fee, and impermanent loss concepts.
+  </Card>
+</CardGroup>
+
+## Integration
+
+<CardGroup cols={2}>
+  <Card
+    title="Program Accounts"
+    icon="table-cells"
+    iconType="solid"
+    href="/developer-guides/dlmm/program/accounts"
+  >
+    Account model for pools, bin arrays, positions, limit orders, oracles, presets, and operators.
+  </Card>
+  <Card
+    title="Program Instructions"
+    icon="list"
+    iconType="solid"
+    href="/developer-guides/dlmm/program/instructions"
+  >
+    Instruction families for pool creation, liquidity, swaps, rewards, limit orders, and admin flows.
+  </Card>
+    <Card 
+      title="Program Events" 
+      icon="list" 
+      iconType="solid" 
+      href="/developer-guides/dlmm/program/events"
+    >
+      Event-CPI payloads for pools, positions, liquidity, swaps, fees, rewards, rebalance, and limit order flows.
+  </Card>
+  <Card
+    title="Program Errors"
+    icon="triangle-exclamation"
+    iconType="solid"
+    href="/developer-guides/dlmm/program/errors"
+  >
+    Anchor custom error codes, enum names, messages, and instruction error mapping.
+  </Card>
+  <Card
+    title="TypeScript SDK"
+    icon="code"
+    iconType="solid"
+    href="/developer-guides/dlmm/typescript-sdk/getting-started"
+  >
+    TypeScript SDK for interacting with all instructions on DLMM.
+  </Card>
+  <Card
+    title="Rust Integration"
+    icon="terminal"
+    iconType="solid"
+    href="/developer-guides/dlmm/rust-integration/library"
+  >
+    Rust integration with DLMM through CPI and the commons library.
+  </Card>
+</CardGroup>
+<CardGroup cols={1}>
+  <Card
+    title="DLMM APIs"
+    icon="database"
+    iconType="solid"
+    href="/developer-guides/dlmm/api-reference/overview"
+  >
+    Indexed read-only pool, portfolio, wallet, position, OHLCV, stats, and limit order data.
+  </Card>
+</CardGroup>
+
+## Program IDs
+
+The `lb_clmm` program ID is the same on mainnet and devnet:
+
+| Network | Program ID |
+| --- | --- |
+| Mainnet Beta | `LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo` |
+| Devnet | `LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo` |
+
+<CardGroup cols={2}>
+  <Card title="DLMM IDL" icon="file-code" iconType="solid" href="https://github.com/MeteoraAg/dlmm-sdk/blob/main/idls/dlmm.json">
+    Anchor IDL for the deployed `lb_clmm` program.
+  </Card>
+  <Card title="DLMM SDK" icon="github" iconType="solid" href="https://github.com/MeteoraAg/dlmm-sdk">
+    SDK for interacting with all instructions on DLMM.
+  </Card>
+</CardGroup>
+
+<Note>
+  The `lb_clmm` on-chain program source is not open sourced. Public developer integration should rely on the published IDL, the official TypeScript SDK, on-chain account data, and the DLMM Data API. If you have any questions, please reach out to us on [Discord](https://discord.gg/meteora).
+</Note>
+
+## Commands 
+
+| Task | Command |
+| --- | --- |
+| Build SDK | `cd ts-client && pnpm install && pnpm run build` |
+| Run SDK unit tests | `cd ts-client && pnpm run unit-test` |
+| Run commons quote tests | `cargo t -p commons --test '*'` |
+| Inspect CLI commands | `cargo build && target/debug/cli --help` |
+
+Some end-to-end SDK tests may depend on local validator fixtures or program builds that are not part of the public `lb_clmm` source release. Prefer devnet scripts and transaction simulation for public integration testing.
+
+## Stay Updated
+
+<CardGroup cols={1}>
+  <Card title="DLMM Changelog" icon="newspaper" iconType="solid" href="/developer-guides/dlmm/changelog">
+    Program, SDK, CLI, and commons changes for integration planning.
+  </Card>
+</CardGroup>

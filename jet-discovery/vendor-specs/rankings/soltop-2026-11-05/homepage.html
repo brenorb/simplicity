@@ -1,0 +1,1098 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Soltop — Real-time Solana Program Analytics</title>
+    <meta
+      name="description"
+      content="Open-source analytics platform providing real-time insights into Solana program behavior, compute usage, and on-chain performance."
+    />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/landing-v2.css" />
+    <!-- Cloudflare Web Analytics -->
+    <script
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js?token=1ff4de1c0b8d41f18abfa5a2c1b52d66"
+    ></script>
+  </head>
+  <body>
+    <!-- ============ Navigation — Floating pill ============ -->
+    <nav class="v2-nav">
+      <div class="v2-nav-inner">
+        <a href="/" class="v2-nav-logo">
+          <img src="public/logo.png" alt="Soltop" />
+        </a>
+
+        <div class="v2-nav-links" id="v2-nav-links">
+          <a href="#features">Features</a>
+          <a href="#audience">Use Cases</a>
+          <a href="#opensource">Open Source</a>
+          <a href="#validator">Validator</a>
+          <a href="#snapshots">Snapshots</a>
+          <a href="dashboard.html" class="v2-nav-cta">Open Dashboard</a>
+        </div>
+
+        <button class="v2-nav-toggle" id="v2-nav-toggle" aria-label="Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ============ Hero — One clear message ============ -->
+    <section class="v2-hero">
+      <div class="v2-hero-content">
+        <div class="v2-hero-pill">
+          <span class="dot"></span>
+          Open Source &middot; Live Data
+        </div>
+
+        <h1>See how Solana<br />programs <em>actually behave</em></h1>
+
+        <p class="v2-hero-sub">
+          Real-time compute analytics, failure pattern detection, and program
+          performance benchmarking &mdash; all open source, all public.
+        </p>
+
+        <div class="v2-hero-actions">
+          <a href="dashboard.html" class="v2-btn-primary">
+            Open Dashboard
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
+          <a
+            href="https://github.com/soltop-app/soltop-oss"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="v2-btn-ghost"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path
+                d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+              />
+            </svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Dashboard Preview — Show don't tell ============ -->
+    <div class="v2-preview">
+      <div class="v2-preview-frame">
+        <div class="v2-preview-bar">
+          <span class="v2-preview-dot"></span>
+          <span class="v2-preview-dot"></span>
+          <span class="v2-preview-dot"></span>
+          <span class="v2-preview-url">soltop.sh/dashboard</span>
+        </div>
+        <div class="v2-preview-body">
+          <div class="v2-mock-row">
+            <div class="v2-mock-card">
+              <div class="v2-mock-label">CU Usage</div>
+              <div class="v2-mock-value green" id="v2-cu">--</div>
+            </div>
+            <div class="v2-mock-card">
+              <div class="v2-mock-label">Transactions</div>
+              <div class="v2-mock-value cyan" id="v2-tx">--</div>
+            </div>
+            <div class="v2-mock-card">
+              <div class="v2-mock-label">Success Rate</div>
+              <div class="v2-mock-value amber" id="v2-sr">--</div>
+            </div>
+          </div>
+          <div class="v2-mock-chart">
+            <div class="v2-mock-label">
+              Transactions &amp; Success Rate — Last 1h
+              <span
+                style="
+                  margin-left: 10px;
+                  font-family: var(--font-mono, monospace);
+                  font-size: 9px;
+                  color: #00ff41;
+                "
+                >&#9644; TX</span
+              >
+              <span
+                style="
+                  margin-left: 6px;
+                  font-family: var(--font-mono, monospace);
+                  font-size: 9px;
+                  color: #5eead4;
+                "
+                >&#9644; SR%</span
+              >
+            </div>
+            <div class="v2-mock-chart-line">
+              <svg viewBox="0 0 800 100" preserveAspectRatio="none" fill="none">
+                <defs>
+                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(0,255,65,0.3)" />
+                    <stop offset="100%" stop-color="rgba(0,255,65,0)" />
+                  </linearGradient>
+                </defs>
+                <path id="v2-chart-fill" fill="url(#chartGrad)" />
+                <path
+                  id="v2-chart-line"
+                  stroke="#00ff41"
+                  stroke-width="2"
+                  fill="none"
+                />
+                <path
+                  id="v2-chart-sr"
+                  stroke="#5eead4"
+                  stroke-width="1.5"
+                  fill="none"
+                  opacity="0.8"
+                />
+                <path
+                  d="M0,80 C50,75 100,60 150,65 C200,70 250,40 300,35 C350,30 400,50 450,45 C500,40 550,20 600,25 C650,30 700,15 750,20 L800,10 L800,100 L0,100Z"
+                  fill="url(#chartGrad)"
+                />
+                <path
+                  d="M0,80 C50,75 100,60 150,65 C200,70 250,40 300,35 C350,30 400,50 450,45 C500,40 550,20 600,25 C650,30 700,15 750,20 L800,10"
+                  stroke="#00ff41"
+                  stroke-width="2"
+                  fill="none"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ Live Metrics Ribbon ============ -->
+    <section class="v2-metrics">
+      <div class="v2-metrics-inner">
+        <div class="v2-metrics-tag">
+          <span class="live"></span>
+          Live
+        </div>
+        <div class="v2-metric">
+          <span class="v2-metric-val" id="v2-live-cu">--</span>
+          <span class="v2-metric-lbl">CU Usage</span>
+        </div>
+        <div class="v2-metric">
+          <span class="v2-metric-val" id="v2-live-tx">--</span>
+          <span class="v2-metric-lbl">TX Count</span>
+        </div>
+        <div class="v2-metric">
+          <span class="v2-metric-val" id="v2-live-sr">--</span>
+          <span class="v2-metric-lbl">Success Rate</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Features — Bento Grid ============ -->
+    <section class="v2-section v2-section--center" id="features">
+      <div class="v2-section-inner">
+        <div class="v2-section-tag">Features</div>
+        <h2 class="v2-section-heading">
+          Everything you need to understand Solana program behavior
+        </h2>
+        <p class="v2-section-desc">
+          From real-time compute tracking to failure analysis, Soltop surfaces
+          the insights that matter.
+        </p>
+
+        <div class="v2-bento v2-stagger">
+          <div class="v2-bento-card v2-reveal">
+            <div class="v2-bento-icon green">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="3" y1="9" x2="21" y2="9" />
+                <line x1="9" y1="21" x2="9" y2="9" />
+              </svg>
+            </div>
+            <h3>Compute Analytics</h3>
+            <p>
+              Track CU consumption across every program in real time. See
+              trends, find heavy consumers, and monitor allocation efficiency at
+              the slot level.
+            </p>
+          </div>
+
+          <div class="v2-bento-card v2-reveal">
+            <div class="v2-bento-icon cyan">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <h3>Failure Patterns</h3>
+            <p>
+              Detect error trends and failure modes during congestion. Identify
+              which programs degrade under load and which transaction types are
+              hit hardest.
+            </p>
+          </div>
+
+          <div class="v2-bento-card v2-reveal">
+            <div class="v2-bento-icon amber">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+            </div>
+            <h3>Program Benchmarks</h3>
+            <p>
+              Compare success rates and CU efficiency across programs. Drill
+              into individual dashboards with co-program analysis and fee impact
+              breakdowns.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Audience — Who is it for ============ -->
+    <section class="v2-section v2-audience" id="audience">
+      <div class="v2-section-inner">
+        <div class="v2-section-tag">Use Cases</div>
+        <h2 class="v2-section-heading">
+          Built for everyone in the Solana ecosystem
+        </h2>
+        <p class="v2-section-desc">
+          Whether you ship code, run infrastructure, or study networks &mdash;
+          Soltop gives you clarity.
+        </p>
+
+        <div class="v2-audience-grid v2-stagger">
+          <div class="v2-audience-card v2-reveal">
+            <div class="v2-audience-num">01</div>
+            <h3>Builders</h3>
+            <p>
+              See exactly how your program uses compute, spot inefficiencies in
+              real time, and track success rates across transaction types.
+              Monitor how your code interacts with other programs on-chain.
+            </p>
+          </div>
+
+          <div class="v2-audience-card v2-reveal">
+            <div class="v2-audience-num">02</div>
+            <h3>Validators</h3>
+            <p>
+              Understand which programs drive resource consumption during peak
+              load. Analyze block composition, identify programs affecting
+              network health, and plan capacity accordingly.
+            </p>
+          </div>
+
+          <div class="v2-audience-card v2-reveal">
+            <div class="v2-audience-num">03</div>
+            <h3>Researchers</h3>
+            <p>
+              Access structured on-chain analytics through a public API. Study
+              program behavior patterns, congestion dynamics, and compute
+              economics across the entire Solana network.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Open Source ============ -->
+    <section class="v2-section v2-section--center v2-oss" id="opensource">
+      <div class="v2-section-inner">
+        <div class="v2-section-tag">Open Source</div>
+        <h2 class="v2-section-heading">Transparent by design</h2>
+        <p class="v2-section-desc">
+          On-chain analytics should be as open as the blockchain itself. Inspect
+          every line, self-host it, or contribute.
+        </p>
+
+        <div class="v2-oss-badges">
+          <span class="v2-oss-badge highlight">Open Source</span>
+          <span class="v2-oss-badge">MIT License</span>
+          <span class="v2-oss-badge">Public API</span>
+          <span class="v2-oss-badge">Self-hostable</span>
+        </div>
+
+        <div class="v2-oss-actions">
+          <a
+            href="https://github.com/soltop-app/soltop-oss"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="v2-btn-primary"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path
+                d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+              />
+            </svg>
+            Star on GitHub
+          </a>
+          <a href="api-docs.html" class="v2-btn-ghost"> API Documentation </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Validator ============ -->
+    <section class="v2-section v2-infra-section" id="validator">
+      <div class="v2-section-inner v2-infra-inner">
+        <div class="v2-infra-text">
+          <div class="v2-section-tag">Infrastructure</div>
+          <h2 class="v2-section-heading">
+            Built from the infrastructure layer
+          </h2>
+          <p class="v2-section-desc">
+            Soltop is developed alongside an actively operated Solana validator.
+            Running infrastructure lets us observe network behavior, transaction
+            patterns, and performance issues first-hand — insights that directly
+            shape the tools we build.
+          </p>
+        </div>
+        <div class="v2-infra-card">
+          <div class="v2-infra-card-header">
+            <span class="v2-infra-dot v2-infra-dot--live"></span>
+            <span>soltop-validator</span>
+            <span id="val-epoch" class="v2-infra-card-epoch"></span>
+          </div>
+          <div class="v2-infra-card-row">
+            <span class="v2-infra-card-label">Network</span>
+            <span class="v2-infra-card-value">Solana Mainnet</span>
+          </div>
+          <div class="v2-infra-card-row">
+            <span class="v2-infra-card-label">Status</span>
+            <span class="v2-infra-card-value v2-infra-active">Active</span>
+          </div>
+          <div class="v2-infra-card-row">
+            <span class="v2-infra-card-label">Uptime</span>
+            <span id="val-uptime" class="v2-infra-card-value">—</span>
+          </div>
+          <div class="v2-infra-card-row">
+            <span class="v2-infra-card-label">Vote success</span>
+            <span id="val-vote" class="v2-infra-card-value">—</span>
+          </div>
+          <div class="v2-infra-card-row">
+            <span class="v2-infra-card-label">Skip rate</span>
+            <span id="val-skip" class="v2-infra-card-value">—</span>
+          </div>
+          <div class="v2-infra-card-row">
+            <span class="v2-infra-card-label">APY (w/ Jito)</span>
+            <span id="val-apy" class="v2-infra-card-value v2-infra-active"
+              >—</span
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Snapshots ============ -->
+    <section class="v2-section v2-snapshots-section" id="snapshots">
+      <div class="v2-section-inner">
+        <div class="v2-section-tag">Community Goods</div>
+        <h2 class="v2-section-heading">Public Snapshots</h2>
+        <p class="v2-section-desc">
+          Free Solana snapshots served by the Soltop validator. Bootstrap your
+          node in minutes &mdash; no syncing from genesis required.
+        </p>
+
+        <div class="v2-snapshot-grid v2-stagger">
+          <!-- Full snapshot -->
+          <div class="v2-snapshot-card v2-reveal" id="snap-full">
+            <div class="v2-snapshot-card-header">
+              <div class="v2-bento-icon green">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="21 8 21 21 3 21 3 8" />
+                  <rect x="1" y="3" width="22" height="5" />
+                  <line x1="10" y1="12" x2="14" y2="12" />
+                </svg>
+              </div>
+              <span class="v2-snapshot-badge green">Full</span>
+            </div>
+            <div class="v2-snapshot-slot">
+              <div class="v2-mock-label">Slot</div>
+              <div class="v2-snapshot-slot-val" id="snap-full-slot">—</div>
+            </div>
+            <div class="v2-snapshot-meta">
+              <div class="v2-snapshot-meta-row">
+                <span class="v2-snapshot-meta-key">Time</span>
+                <span class="v2-snapshot-meta-val" id="snap-full-time">—</span>
+              </div>
+              <div class="v2-snapshot-meta-row">
+                <span class="v2-snapshot-meta-key">Last Updated</span>
+                <span class="v2-snapshot-meta-val accent" id="snap-full-ago"
+                  >—</span
+                >
+              </div>
+            </div>
+            <div class="v2-snapshot-cmd">
+              <code id="snap-full-cmd"
+                >aria2c -x8 -s8 -d /mnt/snapshots
+                https://snapshots.soltop.dev/latest</code
+              >
+              <button
+                class="v2-snapshot-copy"
+                title="Copy command"
+                onclick="copyCmd('snap-full-cmd', this)"
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path
+                    d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Incremental snapshot -->
+          <div class="v2-snapshot-card v2-reveal" id="snap-inc">
+            <div class="v2-snapshot-card-header">
+              <div class="v2-bento-icon cyan">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="23 4 23 10 17 10" />
+                  <polyline points="1 20 1 14 7 14" />
+                  <path
+                    d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+                  />
+                </svg>
+              </div>
+              <span class="v2-snapshot-badge cyan">Incremental</span>
+            </div>
+            <div class="v2-snapshot-slot">
+              <div class="v2-mock-label">Slot</div>
+              <div class="v2-snapshot-slot-val" id="snap-inc-slot">—</div>
+            </div>
+            <div class="v2-snapshot-meta">
+              <div class="v2-snapshot-meta-row">
+                <span class="v2-snapshot-meta-key">Base Slot</span>
+                <span class="v2-snapshot-meta-val" id="snap-inc-base">—</span>
+              </div>
+              <div class="v2-snapshot-meta-row">
+                <span class="v2-snapshot-meta-key">Time</span>
+                <span class="v2-snapshot-meta-val" id="snap-inc-time">—</span>
+              </div>
+              <div class="v2-snapshot-meta-row">
+                <span class="v2-snapshot-meta-key">Last Updated</span>
+                <span class="v2-snapshot-meta-val accent" id="snap-inc-ago"
+                  >—</span
+                >
+              </div>
+            </div>
+            <div class="v2-snapshot-cmd">
+              <code id="snap-inc-cmd"
+                >aria2c -x8 -s8 -d /mnt/snapshots
+                https://snapshots.soltop.dev/latest-incremental</code
+              >
+              <button
+                class="v2-snapshot-copy"
+                title="Copy command"
+                onclick="copyCmd('snap-inc-cmd', this)"
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path
+                    d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CTA Banner ============ -->
+    <section class="v2-section" style="padding-bottom: 0">
+      <div class="v2-cta-banner">
+        <div class="v2-cta-banner-inner">
+          <h2>Start exploring Solana programs</h2>
+          <p>
+            No signup required. Open the public dashboard and see what's
+            happening on-chain right now.
+          </p>
+          <div class="v2-cta-actions">
+            <a href="dashboard.html" class="v2-btn-primary">
+              Open Dashboard
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+
+          <!-- Newsletter -->
+          <div
+            class="v2-newsletter"
+            style="
+              margin-top: 48px;
+              padding-top: 40px;
+              border-top: 1px solid var(--border-subtle);
+            "
+          >
+            <p
+              style="font-size: 14px; color: var(--text-2); margin-bottom: 16px"
+            >
+              Get weekly insights on top programs, network health, and
+              performance trends.
+            </p>
+            <form
+              id="v2-newsletter-form"
+              class="v2-newsletter-form"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                max-width: 440px;
+                margin: 0 auto;
+                flex-wrap: wrap;
+              "
+            >
+              <input
+                type="email"
+                id="v2-newsletter-email"
+                placeholder="you@example.com"
+                required
+                style="
+                  flex: 1;
+                  min-width: 200px;
+                  padding: 12px 16px;
+                  background: var(--bg-0);
+                  border: 1px solid var(--border-medium);
+                  border-radius: var(--radius-pill);
+                  color: var(--text-0);
+                  font-family: var(--font-display);
+                  font-size: 14px;
+                  outline: none;
+                  transition: border-color 0.2s ease;
+                "
+                onfocus="this.style.borderColor = 'var(--accent)'"
+                onblur="this.style.borderColor = 'var(--border-medium)'"
+              />
+              <button
+                type="submit"
+                class="v2-btn-primary"
+                style="padding: 12px 24px; font-size: 13px; white-space: nowrap"
+              >
+                Subscribe
+              </button>
+            </form>
+            <p
+              id="v2-newsletter-msg"
+              style="
+                font-size: 13px;
+                margin-top: 12px;
+                min-height: 20px;
+                font-family: var(--font-mono);
+                letter-spacing: 0.3px;
+              "
+            ></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Footer ============ -->
+    <footer class="v2-footer">
+      <div class="v2-footer-inner">
+        <div class="v2-footer-left">
+          <img src="public/logo.png" alt="Soltop" />
+          <span>Built for the Solana ecosystem</span>
+        </div>
+        <div class="v2-footer-links">
+          <a href="dashboard.html">Dashboard</a>
+          <a href="api-docs.html">API Docs</a>
+          <a
+            href="https://github.com/soltop-app/soltop-oss"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub</a
+          >
+        </div>
+      </div>
+    </footer>
+
+    <!-- ============ Color Switcher (hidden — uncomment to re-enable) ============ -->
+    <!--
+    <div id="color-switcher" style="
+      position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999;
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(15,15,18,0.85); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 100px;
+      padding: 8px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #a1a1aa;
+    ">
+      <span style="margin-right: 4px;">Accent:</span>
+      <button onclick="setAccent('neon')" id="sw-neon" style="width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:#00ff41;cursor:pointer;" title="Neon"></button>
+      <button onclick="setAccent('electric')" id="sw-electric" style="width:28px;height:28px;border-radius:50%;border:2px solid transparent;background:#39ff14;cursor:pointer;" title="Electric"></button>
+      <button onclick="setAccent('phosphor')" id="sw-phosphor" style="width:28px;height:28px;border-radius:50%;border:2px solid transparent;background:#33ff77;cursor:pointer;" title="Phosphor"></button>
+      <span id="sw-label" style="margin-left:6px;color:#71717a;min-width:90px;">Current: Neon</span>
+    </div>
+    -->
+
+    <!-- ============ Script ============ -->
+    <script>
+      const API_BASE = "https://api-dev.soltop.sh";
+
+      /* --- Mock data fallback --- */
+      const MOCK = { cu: 847200000, tx: 3247, sr: 94.2 };
+
+      function fmtCU(v) {
+        if (!v) return "--";
+        if (v >= 1e9) return (v / 1e9).toFixed(1) + "B";
+        if (v >= 1e6) return (v / 1e6).toFixed(1) + "M";
+        if (v >= 1e3) return (v / 1e3).toFixed(0) + "K";
+        return v.toString();
+      }
+
+      function fmtNum(v) {
+        return v == null ? "--" : v.toLocaleString();
+      }
+
+      async function fetchStats() {
+        try {
+          const res = await fetch(API_BASE + "/api/timeseries", {
+            headers: { "Content-Type": "application/json" },
+          });
+          if (!res.ok) return null;
+          const data = await res.json();
+          if (!data || !data.length) return null;
+          const latest = data.sort(
+            (a, b) => new Date(b.bucket_8s) - new Date(a.bucket_8s),
+          )[0];
+          return {
+            cu: parseInt(latest.total_cu),
+            tx: parseInt(latest.total_tx),
+            sr: latest.success_rate * 100,
+          };
+        } catch {
+          return null;
+        }
+      }
+
+      async function fetchAndRenderChart() {
+        try {
+          const res = await fetch(API_BASE + "/api/timeseries", {
+            headers: { "Content-Type": "application/json" },
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!data || !data.length) return;
+
+          const sorted = data
+            .sort((a, b) => new Date(a.bucket_8s) - new Date(b.bucket_8s))
+            .slice(-450);
+
+          const W = 800,
+            H = 100,
+            PAD = 6;
+          const txValues = sorted.map((d) => parseInt(d.total_tx));
+          const minTx = Math.min(...txValues);
+          const maxTx = Math.max(...txValues);
+          const range = maxTx - minTx || 1;
+          const n = sorted.length;
+
+          const txPoints = sorted.map((d, i) => {
+            const x = (i / (n - 1)) * W;
+            const y =
+              PAD +
+              (1 - (parseInt(d.total_tx) - minTx) / range) * (H - PAD * 2);
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+          });
+
+          const srPoints = sorted.map((d, i) => {
+            const x = (i / (n - 1)) * W;
+            const y = PAD + (1 - parseFloat(d.success_rate)) * (H - PAD * 2);
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+          });
+
+          const linePath = "M" + txPoints.join(" L");
+          const fillPath = linePath + ` L${W},${H} L0,${H}Z`;
+          const srPath = "M" + srPoints.join(" L");
+
+          const lineEl = document.getElementById("v2-chart-line");
+          const fillEl = document.getElementById("v2-chart-fill");
+          const srEl = document.getElementById("v2-chart-sr");
+          if (lineEl) lineEl.setAttribute("d", linePath);
+          if (fillEl) fillEl.setAttribute("d", fillPath);
+          if (srEl) srEl.setAttribute("d", srPath);
+        } catch {
+          /* silently keep previous state */
+        }
+      }
+
+      function updateDOM(m) {
+        if (!m) return;
+        const ids = [
+          ["v2-cu", fmtCU(m.cu)],
+          ["v2-tx", fmtNum(m.tx)],
+          ["v2-sr", m.sr.toFixed(1) + "%"],
+          ["v2-live-cu", fmtCU(m.cu)],
+          ["v2-live-tx", fmtNum(m.tx)],
+          ["v2-live-sr", m.sr.toFixed(1) + "%"],
+        ];
+        ids.forEach(([id, val]) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val;
+        });
+      }
+
+      /* --- Color Switcher --- */
+      const THEMES = {
+        neon: { accent: "#00ff41", label: "Neon", rgb: "0,255,65" },
+        electric: { accent: "#39ff14", label: "Electric", rgb: "57,255,20" },
+        phosphor: { accent: "#33ff77", label: "Phosphor", rgb: "51,255,119" },
+      };
+
+      function setAccent(key) {
+        const t = THEMES[key];
+        if (!t) return;
+        const r = document.documentElement;
+        r.style.setProperty("--accent", t.accent);
+        r.style.setProperty("--accent-soft", `rgba(${t.rgb}, 0.12)`);
+        r.style.setProperty("--accent-border", `rgba(${t.rgb}, 0.2)`);
+        r.style.setProperty("--accent-glow", `rgba(${t.rgb}, 0.08)`);
+
+        // Update chart SVG colors
+        const stops = document.querySelectorAll("#chartGrad stop");
+        if (stops.length >= 2) {
+          stops[0].setAttribute("stop-color", `rgba(${t.rgb}, 0.3)`);
+          stops[1].setAttribute("stop-color", `rgba(${t.rgb}, 0)`);
+        }
+        const chartLine = document.querySelector(
+          ".v2-mock-chart-line path:last-child",
+        );
+        if (chartLine) chartLine.setAttribute("stroke", t.accent);
+
+        // Update button ring
+        document
+          .querySelectorAll("#color-switcher button")
+          .forEach((b) => (b.style.borderColor = "transparent"));
+        const active = document.getElementById("sw-" + key);
+        if (active) active.style.borderColor = "#fff";
+
+        document.getElementById("sw-label").textContent = "Current: " + t.label;
+      }
+
+      /* --- Scroll reveal --- */
+      function initReveal() {
+        const els = document.querySelectorAll(".v2-reveal");
+        if ("IntersectionObserver" in window) {
+          const obs = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((e) => {
+                if (e.isIntersecting) {
+                  e.target.classList.add("visible");
+                  obs.unobserve(e.target);
+                }
+              });
+            },
+            { threshold: 0.12, rootMargin: "0px 0px -30px 0px" },
+          );
+          els.forEach((el) => obs.observe(el));
+        } else {
+          els.forEach((el) => el.classList.add("visible"));
+        }
+      }
+
+      /* --- Mobile nav --- */
+      function initNav() {
+        const btn = document.getElementById("v2-nav-toggle");
+        const links = document.getElementById("v2-nav-links");
+        if (btn && links) {
+          btn.addEventListener("click", () => links.classList.toggle("open"));
+          links
+            .querySelectorAll("a")
+            .forEach((a) =>
+              a.addEventListener("click", () => links.classList.remove("open")),
+            );
+        }
+      }
+
+      /* --- Newsletter --- */
+      function initNewsletter() {
+        const form = document.getElementById("v2-newsletter-form");
+        if (!form) return;
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const email = document.getElementById("v2-newsletter-email").value;
+          const msg = document.getElementById("v2-newsletter-msg");
+          const btn = form.querySelector("button");
+          const origText = btn.textContent;
+
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            msg.textContent = "Please enter a valid email.";
+            msg.style.color = "#f87171";
+            return;
+          }
+
+          btn.textContent = "Sending...";
+          btn.disabled = true;
+
+          try {
+            const fd = new FormData();
+            fd.append("email", email);
+            fd.append("_subject", "New Newsletter Subscription (Landing)");
+
+            const res = await fetch("https://formspree.io/f/mqalvdlb", {
+              method: "POST",
+              body: fd,
+              headers: { Accept: "application/json" },
+            });
+
+            if (res.ok) {
+              msg.textContent = "You're in! Check your inbox.";
+              msg.style.color = "var(--accent)";
+              form.reset();
+            } else {
+              throw new Error("Failed");
+            }
+          } catch {
+            msg.textContent = "Something went wrong. Please try again.";
+            msg.style.color = "#f87171";
+          } finally {
+            btn.textContent = origText;
+            btn.disabled = false;
+          }
+        });
+      }
+
+      /* --- Snapshots --- */
+      function fmtSlot(v) {
+        return v == null ? "—" : Number(v).toLocaleString();
+      }
+
+      function fmtUTC(dateStr) {
+        if (!dateStr) return "—";
+        const d = new Date(dateStr);
+        const hh = d.getUTCHours().toString().padStart(2, "0");
+        const mm = d.getUTCMinutes().toString().padStart(2, "0");
+        return hh + ":" + mm + " UTC";
+      }
+
+      function timeAgo(dateStr) {
+        if (!dateStr) return "—";
+        // Hardcode snapshot to last :00 or :30 of the hour
+        const now = new Date();
+        const mins = now.getMinutes();
+        const lastSnapTime = new Date(now);
+
+        if (mins < 30) {
+          // Last snapshot was at :00 of previous hour
+          lastSnapTime.setHours(lastSnapTime.getHours() - 1, 0, 0, 0);
+        } else {
+          // Last snapshot was at :30 of current hour
+          lastSnapTime.setMinutes(30, 0, 0);
+        }
+
+        const diff = Date.now() - lastSnapTime.getTime();
+        const mins_ago = Math.floor(diff / 60000);
+        if (mins_ago < 1) return "just now";
+        if (mins_ago < 60) return mins_ago + "m ago";
+        const hrs = Math.floor(mins_ago / 60);
+        if (hrs < 24) return hrs + "h ago";
+        return Math.floor(hrs / 24) + "d ago";
+      }
+
+      function setEl(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      }
+
+      function copyCmd(id, btn) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        navigator.clipboard.writeText(el.textContent).then(() => {
+          const orig = btn.innerHTML;
+          btn.innerHTML =
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+          btn.style.color = "var(--accent)";
+          setTimeout(() => {
+            btn.innerHTML = orig;
+            btn.style.color = "";
+          }, 1800);
+        });
+      }
+
+      async function fetchSnapshots() {
+        try {
+          const res = await fetch("https://snapshots.soltop.dev/index.json");
+          if (!res.ok) return;
+          const data = await res.json();
+
+          const full = data.full;
+          if (full) {
+            setEl("snap-full-slot", fmtSlot(full.slot));
+            setEl("snap-full-time", fmtUTC(full.updated_at));
+            setEl("snap-full-ago", timeAgo(full.updated_at));
+          }
+
+          const inc = data.incremental;
+          if (inc) {
+            setEl("snap-inc-slot", fmtSlot(inc.slot));
+            setEl("snap-inc-base", fmtSlot(inc.base_slot));
+            setEl("snap-inc-time", fmtUTC(inc.updated_at));
+            setEl("snap-inc-ago", timeAgo(inc.updated_at));
+          }
+        } catch (e) {
+          console.warn(
+            "[Soltop] Snapshots fetch failed — likely missing CORS header on snapshots.soltop.dev:",
+            e.message,
+          );
+        }
+      }
+
+      /* --- Init --- */
+      document.addEventListener("DOMContentLoaded", async () => {
+        initNav();
+        initReveal();
+        initNewsletter();
+        fetchSnapshots();
+
+        // Always show mock data immediately
+        updateDOM(MOCK);
+
+        // Then try live data — overwrite if successful
+        const stats = await fetchStats();
+        if (stats) updateDOM(stats);
+
+        // Render real transaction chart
+        fetchAndRenderChart();
+
+        setInterval(async () => {
+          const s = await fetchStats();
+          if (s) updateDOM(s);
+          fetchAndRenderChart();
+        }, 30000);
+      });
+    </script>
+    <script>
+      (async function loadValidatorStats() {
+        const IDENTITY = "sfvTq7ojrEc5WdXcHijz676eX1pc5MgoLxbkYSdRDAB";
+
+        function set(id, text) {
+          const el = document.getElementById(id);
+          if (el) el.textContent = text;
+        }
+
+        try {
+          const res = await fetch(
+            `https://api.trillium.so/validator_rewards/${IDENTITY}`,
+          );
+          if (!res.ok) return;
+          const data = await res.json();
+          const d = Array.isArray(data) ? data[0] : data;
+          if (!d || d.error) return;
+
+          set(
+            "val-uptime",
+            d.sw_uptime != null ? d.sw_uptime.toFixed(1) + "%" : "—",
+          );
+          set(
+            "val-vote",
+            d.sw_vote_success != null
+              ? d.sw_vote_success.toFixed(2) + "%"
+              : "—",
+          );
+          set(
+            "val-skip",
+            d.sw_wiz_skip_rate != null
+              ? d.sw_wiz_skip_rate.toFixed(2) + "%"
+              : "—",
+          );
+          set(
+            "val-apy",
+            d.sw_total_apy != null ? d.sw_total_apy.toFixed(2) + "%" : "—",
+          );
+
+          if (d.epoch != null) {
+            set("val-epoch", `epoch #${d.epoch}`);
+          }
+        } catch (e) {
+          // Silently fall back — static "—" placeholders remain
+        }
+      })();
+    </script>
+  </body>
+</html>

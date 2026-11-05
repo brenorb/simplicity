@@ -112,7 +112,7 @@ def main():
     reviewed = json.loads((REPORTS / 'eprint-reviewed.json').read_text())
     with (REPORTS / 'eprint-scan.tsv').open('w') as out:
         fields = ['id', 'title', 'authors', 'updated', 'category', 'queries', 'verdict', 'reason', 'abstract', 'url', 'reviewed_verdict', 'programs', 'reviewed_reason']
-        writer = csv.DictWriter(out, fields, delimiter='\t')
+        writer = csv.DictWriter(out, fields, delimiter='\t',lineterminator='\n',quoting=csv.QUOTE_ALL)
         writer.writeheader()
         for pid in sorted(aggregate, key=lambda p: tuple(map(int, p.split('/'))), reverse=True):
             r = aggregate[pid]

@@ -1,0 +1,728 @@
+openapi: 3.0.3
+info:
+  title: Soltop Analytics API
+  description: |
+    Public analytics endpoints for Solana program statistics, validator rankings,
+    and network metrics.
+
+    **Authentication is optional.** Every endpoint works with no key at the
+    anonymous tier (30 requests/minute per IP). Sending an API key raises you to
+    your key's tier — pass it as `Authorization: Bearer sk_live_…`. See the
+    Authentication & rate limits section on the docs page for tiers, limits, and
+    response headers.
+  version: 0.6.0
+  contact:
+    name: Soltop
+    url: https://soltop.sh
+
+servers:
+  - url: https://api.soltop.sh
+    description: Production
+
+# Auth is OPTIONAL: `{}` allows anonymous access, bearerAuth raises the tier.
+security:
+  - {}
+  - bearerAuth: []
+
+paths:
+  /api/summary:
+    get:
+      summary: Dashboard summary stats (24h)
+      description: Aggregate compute unit usage, active program count, and average success rate over the last 24 hours.
+      tags: [Analytics]
+      responses:
+        "200":
+          description: Summary statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Summary"
+              example:
+                total_cu_24h: "1842937461923"
+                active_programs_24h: "3847"
+                avg_success_rate_24h: 87.42
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/summary/by-client:
+    get:
+      summary: Summary by validator client
+      description: Aggregate metrics grouped by validator client type (Agave, Jito, Frankendancer) over the last 24 hours.
+      tags: [Analytics]
+      responses:
+        "200":
+          description: Metrics grouped by client type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  by_client:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ClientMetrics"
+              example:
+                by_client:
+                  - client_type: "Jito"
+                    calls: 4521000
+                    successes: 3980000
+                    success_rate: 0.88
+                    total_cu: 982374612
+                    avg_cu: 217
+                    program_count: 1204
+                  - client_type: "Agave"
+                    calls: 3200000
+                    successes: 2816000
+                    success_rate: 0.88
+                    total_cu: 712000000
+                    avg_cu: 222
+                    program_count: 1150
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/top-programs:
+    get:
+      summary: Top 20 programs by compute units (24h)
+      description: Returns the 20 programs with the highest total compute unit consumption in the last 24 hours.
+      tags: [Analytics]
+      responses:
+        "200":
+          description: Array of top programs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopProgram"
+              example:
+                - program_id: "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+                  total_cu_consumed: "52847392100"
+                  transaction_count: "14203847"
+                  avg_cu_per_transaction: "3720.5"
+                  success_rate: 91.3
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/efficiency-rankings:
+    get:
+      summary: Program efficiency rankings (24h)
+      description: |
+        Returns the 10 most efficient and 10 least efficient programs by a composite
+        efficiency score (CU per success, success rate, volume). Only includes programs
+        with >= 1,000 transactions in the last 24 hours.
+      tags: [Analytics]
+      responses:
+        "200":
+          description: Array of ranked programs (efficient + inefficient)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EfficiencyRanking"
+              example:
+                - program_id: "ComputeBudget111111111111111111111111111111"
+                  volume: "42000000"
+                  efficiency_score: 12.5
+                  cu_per_success: "150.2"
+                  success_rate: 99.8
+                  volume_group: 7
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/timeseries:
+    get:
+      summary: Network timeseries data (8-second buckets, 24h)
+      description: Time-bucketed compute unit usage, transaction count, and success rate for the entire network over the last 24 hours.
+      tags: [Analytics]
+      responses:
+        "200":
+          description: Array of time buckets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeseriesBucket"
+              example:
+                - bucket_8s: "2026-06-03 14:00:00"
+                  total_cu: "12847392"
+                  total_tx: "34521"
+                  success_rate: 0.89
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/program/{programId}:
+    get:
+      summary: Program-specific timeseries (40-second buckets)
+      description: Compute unit and transaction timeseries for a specific program, in 40-second buckets.
+      tags: [Program]
+      parameters:
+        - $ref: "#/components/parameters/programId"
+      responses:
+        "200":
+          description: Array of program time buckets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProgramTimeBucket"
+              example:
+                - bucket_time: "2026-06-03 14:00:00"
+                  program_id: "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+                  total_cu: "5200000"
+                  tx_count: "14200"
+                  success_count: "12800"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/program/dashboard/{programId}:
+    get:
+      summary: Program dashboard (24h aggregated)
+      description: |
+        Comprehensive program metrics for the last 24 hours: fee breakdown (SOL),
+        execution stats, success rate, and top 5 co-programs.
+      tags: [Program]
+      parameters:
+        - $ref: "#/components/parameters/programId"
+      responses:
+        "200":
+          description: Program dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgramDashboard"
+              example:
+                program_id: "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+                top_coprograms:
+                  programs: ["TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"]
+                  calls: [8420000]
+                  success_rates: [0.94]
+                fees:
+                  total_failed_sol: 0.042
+                  failed_priority_sol: 0.018
+                  total_success_sol: 12.5
+                  success_priority_sol: 8.3
+                execution:
+                  avg_programs_per_tx: 4.2
+                  avg_slot_position: 128.5
+                summary:
+                  total_transactions: "14203847"
+                  total_calls: "18400000"
+                  success_rate: 0.91
+        "404":
+          description: Program not found or no data in last 24h
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/program/dashboard/{programId}/by-client:
+    get:
+      summary: Program metrics by validator client (24h)
+      description: Program-specific metrics grouped by validator client type over the last 24 hours.
+      tags: [Program]
+      parameters:
+        - $ref: "#/components/parameters/programId"
+      responses:
+        "200":
+          description: Program metrics by client
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  program_id:
+                    type: string
+                  by_client:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProgramClientMetrics"
+              example:
+                program_id: "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+                by_client:
+                  - client_type: "Jito"
+                    calls: 2100000
+                    successes: 1900000
+                    success_rate: 0.905
+                    total_cu: 482000000
+                    avg_cu: 230
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/validator-ranking:
+    get:
+      summary: Public validator leaderboard
+      description: |
+        Aggregated validator ranking with MEV wallet concentration scores.
+        Supports period selection and pagination. No authentication required.
+      tags: [Validators]
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: ["24h", "3d", "7d", "14d", "30d"]
+            default: "7d"
+          description: Time period for aggregation
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+          description: Number of validators to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Pagination offset
+        - name: sfdp_only
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Filter to SFDP-approved validators only
+      responses:
+        "200":
+          description: Validator ranking list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidatorRankingResponse"
+              example:
+                success: true
+                data:
+                  period: "7d"
+                  computed_at: "2026-06-03T12:00:00Z"
+                  total: 120
+                  returned: 50
+                  offset: 0
+                  limit: 50
+                  validators:
+                    - pubkey: "Awes4Tr6TX8JDzEhCZY2QVNimT6iD1zWHzf1vNyGvpLM"
+                      name: "Staking Facilities"
+                      client: "jito"
+                      commission: 5
+                      active_stake_sol: 500000
+                      is_sfdp: true
+                      concentration_score: 0.85
+                      validator_slots: 1200
+                      top_wallets:
+                        - address: "abc123..."
+                          validator_slot_count: 300
+                          slot_pct: 25.0
+                timestamp: "2026-06-03T12:00:00Z"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/validator-ranking/{pubkey}:
+    get:
+      summary: Per-validator daily history
+      description: |
+        Daily concentration score and top wallets for a specific validator
+        over a given date range.
+      tags: [Validators]
+      parameters:
+        - name: pubkey
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Validator public key (base58)
+        - name: days
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 30
+            default: 7
+          description: Number of days of history
+      responses:
+        "200":
+          description: Validator daily history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidatorHistoryResponse"
+              example:
+                success: true
+                data:
+                  pubkey: "Awes4Tr6TX8JDzEhCZY2QVNimT6iD1zWHzf1vNyGvpLM"
+                  name: "Staking Facilities"
+                  days_available: 7
+                  days_requested: 7
+                  days:
+                    - date: "2026-06-02"
+                      validator_slots: 180
+                      concentration_score: 0.82
+                      top_wallets:
+                        - address: "abc123..."
+                          validator_slot_count: 45
+                          slot_pct: 25.0
+                timestamp: "2026-06-03T12:00:00Z"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: sk_live
+      description: |
+        API key passed as `Authorization: Bearer sk_live_…`. Optional — omit it
+        to use the anonymous tier (30 req/min per IP). A present-but-invalid or
+        expired key returns 401. Partner keys are issued by Soltop; free keys are
+        self-minted in the dashboard.
+
+  parameters:
+    programId:
+      name: programId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Solana program address (base58)
+
+  schemas:
+    Summary:
+      type: object
+      properties:
+        total_cu_24h:
+          type: string
+          description: Total compute units consumed in the last 24 hours
+        active_programs_24h:
+          type: string
+          description: Number of unique programs active in the last 24 hours
+        avg_success_rate_24h:
+          type: number
+          nullable: true
+          description: Average success rate (0-100) across all programs
+
+    ClientMetrics:
+      type: object
+      properties:
+        client_type:
+          type: string
+          description: Validator client type (Agave, Jito, Frankendancer, etc.)
+        calls:
+          type: integer
+        successes:
+          type: integer
+        success_rate:
+          type: number
+        total_cu:
+          type: integer
+        avg_cu:
+          type: integer
+        program_count:
+          type: integer
+
+    TopProgram:
+      type: object
+      properties:
+        program_id:
+          type: string
+        total_cu_consumed:
+          type: string
+        transaction_count:
+          type: string
+        avg_cu_per_transaction:
+          type: string
+        success_rate:
+          type: number
+
+    EfficiencyRanking:
+      type: object
+      properties:
+        program_id:
+          type: string
+        volume:
+          type: string
+        efficiency_score:
+          type: number
+        cu_per_success:
+          type: string
+        success_rate:
+          type: number
+        volume_group:
+          type: integer
+
+    TimeseriesBucket:
+      type: object
+      properties:
+        bucket_8s:
+          type: string
+          format: date-time
+        total_cu:
+          type: string
+        total_tx:
+          type: string
+        success_rate:
+          type: number
+
+    ProgramTimeBucket:
+      type: object
+      properties:
+        bucket_time:
+          type: string
+          format: date-time
+        program_id:
+          type: string
+        total_cu:
+          type: string
+        tx_count:
+          type: string
+        success_count:
+          type: string
+
+    ProgramDashboard:
+      type: object
+      properties:
+        program_id:
+          type: string
+        top_coprograms:
+          type: object
+          properties:
+            programs:
+              type: array
+              items:
+                type: string
+            calls:
+              type: array
+              items:
+                type: integer
+            success_rates:
+              type: array
+              items:
+                type: number
+        fees:
+          type: object
+          properties:
+            total_failed_sol:
+              type: number
+            failed_priority_sol:
+              type: number
+            total_success_sol:
+              type: number
+            success_priority_sol:
+              type: number
+        execution:
+          type: object
+          properties:
+            avg_programs_per_tx:
+              type: number
+            avg_slot_position:
+              type: number
+        summary:
+          type: object
+          properties:
+            total_transactions:
+              type: string
+            total_calls:
+              type: string
+            success_rate:
+              type: number
+
+    ProgramClientMetrics:
+      type: object
+      properties:
+        client_type:
+          type: string
+        calls:
+          type: integer
+        successes:
+          type: integer
+        success_rate:
+          type: number
+        total_cu:
+          type: integer
+        avg_cu:
+          type: integer
+
+    ValidatorRankingResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            period:
+              type: string
+            computed_at:
+              type: string
+            total:
+              type: integer
+            returned:
+              type: integer
+            offset:
+              type: integer
+            limit:
+              type: integer
+            validators:
+              type: array
+              items:
+                $ref: "#/components/schemas/ValidatorRanking"
+        timestamp:
+          type: string
+
+    ValidatorRanking:
+      type: object
+      properties:
+        pubkey:
+          type: string
+        name:
+          type: string
+          nullable: true
+        client:
+          type: string
+          nullable: true
+        client_version:
+          type: string
+          nullable: true
+        commission:
+          type: integer
+          nullable: true
+        mev_commission:
+          type: integer
+          nullable: true
+        active_stake_sol:
+          type: number
+          nullable: true
+        is_sfdp:
+          type: boolean
+        skip_rate:
+          type: number
+          nullable: true
+        validator_slots:
+          type: integer
+        concentration_score:
+          type: number
+        top_wallets:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopWallet"
+
+    ValidatorHistoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            pubkey:
+              type: string
+            name:
+              type: string
+              nullable: true
+            days_available:
+              type: integer
+            days_requested:
+              type: integer
+            days:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                  validator_slots:
+                    type: integer
+                  concentration_score:
+                    type: number
+                  top_wallets:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TopWallet"
+        timestamp:
+          type: string
+
+    TopWallet:
+      type: object
+      properties:
+        address:
+          type: string
+        validator_slot_count:
+          type: integer
+        slot_pct:
+          type: number
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+  responses:
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "Failed to fetch data"
+    RateLimited:
+      description: |
+        Rate limit exceeded for the request's tier (anonymous 30/min, free
+        120/min, partner 3000/min — per fixed 60s window).
+        A `Retry-After` header (seconds) is also returned.
+      headers:
+        Retry-After:
+          description: Seconds until the current window resets.
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              tier:
+                type: string
+                description: The tier the request resolved to.
+              limit:
+                type: integer
+                description: The tier's request ceiling for the window.
+              window:
+                type: string
+                description: The rate-limit window (e.g. "1m").
+              retry_after_seconds:
+                type: integer
+                description: Seconds until the window resets.
+          example:
+            error: "Rate limit exceeded"
+            tier: "partner"
+            limit: 3000
+            window: "1m"
+            retry_after_seconds: 42

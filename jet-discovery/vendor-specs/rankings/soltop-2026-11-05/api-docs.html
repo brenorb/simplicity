@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Soltop Analytics API — Documentation</title>
+    <meta name="description" content="Public Analytics API reference for the Soltop Solana monitoring platform." />
+    <link rel="icon" type="image/x-icon" href="../favicon.ico" />
+    <!-- js-yaml CDN — single dependency for YAML parsing, no build step -->
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="docs-layout">
+      <!-- Sidebar -->
+      <nav class="docs-sidebar" aria-label="API navigation">
+        <div class="sidebar-logo">
+          <a href="../">← soltop</a>
+        </div>
+        <!-- Static getting-started links (endpoint groups injected below) -->
+        <div class="sidebar-group">
+          <div class="sidebar-tag">Getting started</div>
+          <ul>
+            <li><a href="#authentication">Authentication &amp; rate limits</a></li>
+          </ul>
+        </div>
+        <!-- populated by renderer.js -->
+        <div id="docs-sidebar"></div>
+      </nav>
+
+      <!-- Main content -->
+      <main class="docs-content">
+        <!-- API Header -->
+        <header class="docs-header">
+          <h1 id="api-title">API Reference</h1>
+          <span class="api-version" id="api-version"></span>
+          <p class="api-description" id="api-description"></p>
+          <div class="api-base-url-row">
+            Base URL: <code id="api-base-url">https://api.soltop.sh</code>
+          </div>
+        </header>
+
+        <!-- Authentication & rate limits -->
+        <section class="auth-section" id="authentication">
+          <h2 class="auth-heading">Authentication &amp; rate limits</h2>
+          <p class="auth-intro">
+            <strong>Authentication is optional.</strong> Every endpoint works with
+            no key at the anonymous tier. Sending an API key raises you to your
+            key's tier and gives you a private per-key budget. Pass the key as a
+            bearer token on any <code>/api/*</code> request:
+          </p>
+
+          <pre class="code-block"><code>curl https://api.soltop.sh/api/summary \
+  -H "Authorization: Bearer sk_live_your_key_here"</code></pre>
+
+          <h3 class="auth-subheading">Tiers</h3>
+          <p class="auth-note">
+            Limits are per fixed 60-second window. Anonymous traffic is bucketed by
+            client IP; keyed traffic gets its own per-key budget (not shared with
+            anonymous IP traffic).
+          </p>
+          <table class="params-table auth-table">
+            <thead>
+              <tr><th>Tier</th><th>Limit</th><th>Bucketed by</th><th>How to get it</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="param-name">anonymous</td><td>30&nbsp;req/min</td><td>client IP</td><td>no key required</td></tr>
+              <tr><td class="param-name">free</td><td>120&nbsp;req/min</td><td>API key</td><td>self-mint in the dashboard</td></tr>
+              <tr><td class="param-name">partner</td><td>3,000&nbsp;req/min</td><td>API key</td><td>issued by Soltop</td></tr>
+            </tbody>
+          </table>
+
+          <h3 class="auth-subheading">Response headers</h3>
+          <p class="auth-note">Every <code>/api/*</code> response carries:</p>
+          <table class="params-table auth-table">
+            <thead><tr><th>Header</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td class="param-name">X-API-Tier</td><td>the tier your request resolved to (<code>anonymous</code>, <code>free</code>, <code>partner</code>, …)</td></tr>
+              <tr><td class="param-name">RateLimit-Limit</td><td>your tier's request ceiling for the window</td></tr>
+              <tr><td class="param-name">RateLimit-Remaining</td><td>requests left in the current window</td></tr>
+              <tr><td class="param-name">RateLimit-Reset</td><td><strong>absolute Unix epoch seconds</strong> when the window resets (not seconds-remaining)</td></tr>
+            </tbody>
+          </table>
+
+          <h3 class="auth-subheading">Errors</h3>
+          <table class="params-table auth-table">
+            <thead><tr><th>Status</th><th>When</th><th>Body</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="status-badge status-4xx">429</span></td>
+                <td>over your window limit. Also sends a <code>Retry-After: &lt;seconds&gt;</code> header.</td>
+                <td><code>{ "error": "Rate limit exceeded", "tier": "partner", "limit": 3000, "window": "1m", "retry_after_seconds": &lt;n&gt; }</code></td>
+              </tr>
+              <tr>
+                <td><span class="status-badge status-4xx">401</span></td>
+                <td>a key was sent but is invalid or expired (a <em>missing</em> key is not an error — it's anonymous).</td>
+                <td><code>{ "error": "Invalid API key" }</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="auth-note">
+            Need a higher tier or MEV Analysis API access? Reach us on
+            <a href="https://discord.gg/hWSPzy8USS" style="color:#00ff00">Discord</a>.
+          </p>
+        </section>
+
+        <!-- Loading state -->
+        <div id="docs-loading" class="docs-loading">Loading spec</div>
+
+        <!-- Error state -->
+        <div id="docs-error" class="docs-error" style="display:none">
+          <strong>Failed to load API spec</strong><br />
+          <span class="error-message"></span>
+        </div>
+
+        <!-- Endpoint cards injected here by renderer.js -->
+        <div id="docs-main"></div>
+      </main>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
