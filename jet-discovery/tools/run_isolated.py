@@ -93,6 +93,10 @@ def main():
     if len(targets)!=len(set(targets)) or not set(targets)<=set(ids):
         raise SystemExit('every selected exact ID must occur once in the complete registry')
     complete=args.only is None
+    counts={r['id']:int(r['vectors']) for r in rows}
+    checkpoint_dir=ROOT/'dist-newstyle/jet-discovery-results'/fingerprint
+    if complete and not args.resume and any(checkpoint_dir.glob('*.snapshot')):
+        raise SystemExit('fresh full cohort requires an empty checkpoint namespace for this fingerprint')
     directory=ROOT/'reports/data'/('isolated-'+args.label)
     directory.mkdir(parents=True,exist_ok=True)
     status=directory/'manifest.json'
@@ -138,7 +142,13 @@ def main():
         if result.returncode:
             raise SystemExit(ident+': failed; exact log '+str(log))
         if verb=='run-one':
-            checkpoint=ROOT/'dist-newstyle/jet-discovery-results'/fingerprint/(ident+'.snapshot')
+            if complete:
+                pattern=re.compile(re.escape(ident)+r' / .*: PASS \([^\n]*\)')
+                passes=sum(pattern.fullmatch(line) is not None for line in log.read_text().splitlines())
+                if passes!=counts[ident]:
+                    raise SystemExit(ident+': expected fresh per-vector execution, found '+str(passes)+' PASS lines')
+                item['fresh_vector_passes']=passes
+            checkpoint=checkpoint_dir/(ident+'.snapshot')
             item['checkpoint_sha256']=sha(checkpoint)
         atomic(status,record)
         print(ident+': passed, '+str(round(item['elapsed_seconds'],3))+'seconds',flush=True)
@@ -152,6 +162,14 @@ def main():
                 raise SystemExit('previous successful checkpoint changed/missing: '+ident)
             print(ident+': preserved successful checkpoint',flush=True)
             continue
+        if complete and checkpoint.exists():
+            # A crash after child completion but before status publication can
+            # leave an unclaimed result. Preserve it, then run that entry anew.
+            orphan=checkpoint_dir/('unclaimed-'+args.label)
+            orphan.mkdir(exist_ok=True)
+            preserved=orphan/(ident+'-'+str(time.time_ns())+'.snapshot')
+            checkpoint.rename(preserved)
+            print(ident+': preserved unclaimed result; measuring again',flush=True)
         launch(ident,'run-one')
     if complete:
         # Every exact ID must already have a successful fingerprint-bound
@@ -161,7 +179,8 @@ def main():
         if not marker.is_file() or marker.read_text().strip()!=fingerprint:
             raise SystemExit('strict aggregation did not publish this cohort fingerprint')
         published=['corpus/README.md','reports/corpus-results.md','reports/whatif.md',
-                   'reports/ablations.md','reports/subdags.md','reports/candidate-impact.md',
+                   'reports/ablations.md','reports/subdags.md','reports/candidate-impact.md','reports/budget-hotspots.md',
+                   'reports/data/budget-hotspots.tsv',
                    'reports/data/corpus-results.tsv','reports/data/candidate-impact.tsv',
                    'reports/data/subdags-exact.tsv','reports/data/subdags-shape.tsv',
                    'reports/data/run-fingerprint.txt']

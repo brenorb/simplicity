@@ -9,6 +9,8 @@ from pathlib import Path
 import re
 import subprocess
 
+from publish_recommendations import publication_paths
+
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'reports/data'
 
@@ -34,12 +36,14 @@ def main():
     args=parser.parse_args()
     cohort=json.loads(args.cohort.read_text())
     require(cohort['complete_registry'] and cohort['complete'],'The isolated run is incomplete')
+    require(cohort['coordinator_sha256']==sha(ROOT/'tools/run_isolated.py'),'Coordinator differs from the completed run')
     runner=Path(cohort['runner'])
     require(sha(runner)==cohort['runner_sha256'],'The frozen executable changed')
     fp=subprocess.check_output([str(runner),'fingerprint'],cwd=ROOT,text=True).strip()
     require(fp==cohort['fingerprint']==(DATA/'run-fingerprint.txt').read_text().strip(),'Final fingerprint mismatch')
     manifest_files={'corpus/README.md','reports/corpus-results.md','reports/whatif.md','reports/ablations.md',
-                    'reports/subdags.md','reports/candidate-impact.md','reports/data/corpus-results.tsv',
+                    'reports/subdags.md','reports/candidate-impact.md','reports/budget-hotspots.md',
+                    'reports/data/budget-hotspots.tsv','reports/data/corpus-results.tsv',
                     'reports/data/candidate-impact.tsv','reports/data/subdags-exact.tsv',
                     'reports/data/subdags-shape.tsv','reports/data/run-fingerprint.txt'}
     require(set(cohort['published_sha256'])==manifest_files,'Core published table inventory is incomplete')
@@ -59,6 +63,7 @@ def main():
     for ident,item in successes.items():
         require(sha(ROOT/item['log'])==item['log_sha256'],'Execution log changed: '+ident)
         if ident in ids:
+            require(item['fresh_vector_passes']==counts[ident],'Missing fresh per-vector execution: '+ident)
             checkpoint=ROOT/'dist-newstyle/jet-discovery-results'/fp/(ident+'.snapshot')
             require(sha(checkpoint)==item['checkpoint_sha256'],'Checkpoint changed: '+ident)
     classes=json.loads((DATA/'corpus-classification.json').read_text())
@@ -100,12 +105,40 @@ def main():
     names={r['candidate'] for r in prices}
     require(len(impacts)==len(ids)*len(names) and len({(r['program'],r['candidate']) for r in impacts})==len(impacts),
             'Incomplete candidate matrix')
+    budgets={r['program']:int(r['assumed_budget_wu']) for r in impacts}
+    cap_text=(ROOT.parent/'C/limitations.h').read_text()
+    cap=int(re.search(r'^#define BUDGET_MAX (\d+)U$',cap_text,re.M).group(1))
+    over={r['id']:int(r['cost_mwu']) for r in rows if r['execution_context']!='client-verifier'
+          and int(r['cost_mwu'])>1000*min(cap,budgets[r['id']])}
+    by_program=collections.Counter()
+    for r in read_tsv(DATA/'budget-hotspots.tsv'):
+        ident=r['program']
+        require(ident in over and int(r['native_mwu'])==over[ident] and
+                int(r['assumed_budget_wu'])==budgets[ident] and int(r['maximum_budget_wu'])==cap,
+                'Incorrect over-budget cost-driver row: '+ident)
+        by_program[ident]+=int(r['exclusive_mwu'])
+    require(dict(by_program)==over,'Exclusive cost drivers do not partition every over-budget bound')
     ranked=json.loads((DATA/'candidate-ranking.json').read_text())
     require({n for r in ranked for n in r['frontends']}==names and
             all(r['tier'] in ('strong','maybe','rejected') and r['tier_reason'] for r in ranked),'Pending recommendation tier')
     for name in names:
         readme=ROOT/'candidates'/name/'README.md'
         require(fp in readme.read_text(),'No fresh README evidence for '+name)
+    derived=json.loads((DATA/'recommendations-publication.json').read_text())
+    require(derived['fingerprint']==fp and derived['runner']==str(runner) and
+            derived['runner_sha256']==cohort['runner_sha256'] and
+            derived['publisher_sha256']==sha(ROOT/'tools/publish_recommendations.py'),
+            'Derived publication has a different fingerprint, runner or publisher')
+    require(set(derived['files'])==set(publication_paths(names)),'Derived publication inventory incomplete')
+    for name,digest in derived['files'].items():
+        require(sha(ROOT/name)==digest,'A derived published report changed: '+name)
+    ranking_record=json.loads((DATA/'candidate-ranking-provenance.json').read_text())
+    require(ranking_record['run_fingerprint']==fp and ranking_record['runner']==str(runner) and
+            ranking_record['runner_sha256']==cohort['runner_sha256'] and
+            ranking_record['tool_sha256']==sha(ROOT/'tools/rank_candidates.py'),
+            'Ranking provenance differs from the published run')
+    for name,digest in ranking_record['inputs'].items():
+        require(sha(DATA/name)==digest,'Ranking input changed: '+name)
     recommendations=ROOT/'reports/RECOMMENDATIONS.md'
     require(fp in recommendations.read_text(),'Missing final recommendations')
     sources=collections.Counter(r['source_set'] for r in read_tsv(DATA/'source-cost-coverage.tsv'))

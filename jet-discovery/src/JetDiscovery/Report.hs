@@ -11,12 +11,16 @@ module JetDiscovery.Report
   , assumedWitnessStackBytes
   , candidateImpactMarkdown
   , candidateImpactTsv
+  , budgetHotspotsMarkdown
+  , budgetHotspotsTsv
   ) where
 
-import Data.List (intercalate, isPrefixOf)
+import Data.List (intercalate, isPrefixOf, maximumBy, sortOn)
+import qualified Data.Map.Strict as Map
+import Data.Ord (Down(..), comparing)
 import Numeric (showFFloat, showEFloat)
 
-import JetDiscovery.Profile (niCmr)
+import JetDiscovery.Profile (NodeInfo(..))
 import JetDiscovery.Run
 import JetDiscovery.Types
 import JetDiscovery.Tx (hex, hashToBytes)
@@ -130,3 +134,47 @@ ablationMarkdown rs = unlines $
  where
   sci x | x < 10 ^ (12 :: Int) = wu x
         | otherwise = let d = fromInteger x / 1000 :: Double in showEFloat (Just 2) d ""
+
+-- | Separate unique and shared node contributions even when the global mining
+-- table omits them. Group exclusive weight by exact jet/combinator kind. The
+-- group totals partition the bound; nested inclusive costs would overlap.
+budgetHotspots :: [EntryResult] -> [(EntryResult,Integer,[(String,Integer)],NodeInfo)]
+budgetHotspots rs =
+  [ (r,budget,byKind,heaviest)
+  | r <- rs, let e=erEntry r; m=erMeasure r
+  , not (clientMode e)
+  , let budget=witnessBudgetModel (witnessStackBytes m)
+  , mCost m > 1000*min budget budgetMax
+  , let nodes=mProfile m
+        self n=niMult n*niSelf n
+        byKind=sortOn (\(kind,c)->(Down c,kind)) . Map.toList $
+          Map.fromListWith (+) [(niKind n,self n) | n<-nodes, self n>0]
+        heaviest=maximumBy (comparing (\n->(self n,Down (niIndex n)))) nodes
+  ]
+
+budgetHotspotsMarkdown :: [EntryResult] -> String
+budgetHotspotsMarkdown rs = unlines $
+  [ "# What dominates over-budget programs"
+  , ""
+  , "Every non-client program above its first-vector witness-stack-bytes + 50 WU scenario or the in-tree maximum caller budget appears below. The first comparison is hypothetical. The per-kind values sum exclusive node weight times selected-path multiplicity; they partition the bound, including unique nodes. The separate largest node uses its own exclusive contribution. Ablations reprice the original expression with the named jet family removed."
+  , ""
+  , "| program | native WU | hypothetical budget WU | deficit WU | above maximum caller budget | largest exclusive contributors (WU, share) | largest exact node (CMR and exclusive WU) | largest ablation increase WU |"
+  , "| --- | ---: | ---: | ---: | --- | --- | --- | ---: |"
+  ] ++ map row (budgetHotspots rs)
+ where
+  row (r,budget,byKind,node) = intercalate " | "
+    ["| `"++entryId (erEntry r)++"`",wu (mCost m),show budget,wu (max 0 (mCost m-1000*budget)),
+     if mCost m>1000*budgetMax then "yes" else "no",
+     intercalate "; " [kind++" "++wu c++" ("++pct c (mCost m)++")" | (kind,c)<-take 5 byKind],
+     niKind node++" `"++hex (hashToBytes (niCmr node))++"` "++wu (niSelf node*niMult node),
+     ablation m++" |"]
+   where m=erMeasure r
+  ablation m = case sortOn (Down . snd) [(n,c-mCost m) | (n,c)<-mAblations m,c>mCost m] of
+    (name,increase):_ -> name++" "++wu increase
+    [] -> "—"
+
+budgetHotspotsTsv :: [EntryResult] -> String
+budgetHotspotsTsv rs = unlines $
+  "program\tnative_mwu\tassumed_budget_wu\tmaximum_budget_wu\tkind\texclusive_mwu" :
+  [intercalate "\t" [entryId (erEntry r),show (mCost (erMeasure r)),show budget,show budgetMax,kind,show c]
+  | (r,budget,byKind,_)<-budgetHotspots rs,(kind,c)<-byKind]

@@ -3,6 +3,7 @@
 import argparse
 import collections
 from decimal import Decimal
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -13,6 +14,20 @@ from rank_candidates import ROOT, DATA, context, keyed, read_tsv, table, wu
 START = '<!-- final-corpus-evidence:start -->'
 END = '<!-- final-corpus-evidence:end -->'
 TIERS = ('strong', 'maybe', 'rejected')
+
+
+def publication_paths(names):
+    core = ['reports/RECOMMENDATIONS.md','reports/bip-verdicts.md','reports/candidate-ranking.md',
+            'reports/coverage-and-costs.md','reports/data/candidate-ranking.json',
+            'reports/data/candidate-prices.tsv','reports/data/candidate-ranking-provenance.json',
+            'reports/data/coverage-input-hashes.json','reports/data/corpus-coverage.tsv',
+            'reports/data/source-cost-coverage.tsv','reports/data/bn254-groth16-estimate.json']
+    return sorted(core+['candidates/'+name+'/README.md' for name in names])
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
 
 
 def fits(row):
@@ -64,7 +79,7 @@ def final_report(fp, policy, ranked, results, groups, full):
              f'**{len(full)} full bounded applications or verifiers**. All **{vectors:,} vectors** passed. '
              'This report recommends what to prototype and benchmark; it changes no consensus jet.', '',
              f'Run fingerprint: `{fp}`. Reproduce with [METHOD.md](METHOD.md). See [all program results](corpus-results.md), '
-             '[sub-DAG mining](subdags.md), [combined overlays](whatif.md), [ablations](ablations.md), '
+             '[sub-DAG mining](subdags.md), [over-budget cost drivers](budget-hotspots.md), [combined overlays](whatif.md), [ablations](ablations.md), '
              '[all source comparisons](coverage-and-costs.md) and [the complete candidate matrix](candidate-ranking.md).', '',
              '## Ranked candidate families', '',
              'Native static bounds are measured. All hypothetical prices, savings and scores are **ESTIMATE**. '
@@ -141,10 +156,25 @@ def main():
         path=ROOT/'candidates'/name/'README.md'
         changes[path]=candidate_readme(path,name,policy['candidates'][name],price,impacts[name],fp)
     changes[ROOT/'reports/RECOMMENDATIONS.md']=final_report(fp,policy,ranked,results,groups,full)
+    bn_estimate=subprocess.check_output([sys.executable,str(ROOT/'tools/bn254_extrapolate.py'),
+                                         '--runner',str(runner)],cwd=ROOT,text=True)
+    changes[DATA/'bn254-groth16-estimate.json']=bn_estimate
+    publication=DATA/'recommendations-publication.json'
+    if publication.exists():
+        publication.unlink()
     for path,contents in changes.items():
         tmp=path.with_name(path.name+'.new')
         tmp.write_text(contents)
         tmp.replace(path)
+    current=subprocess.check_output([str(runner),'fingerprint'],cwd=ROOT,text=True).strip()
+    if current!=fp:
+        raise SystemExit('Source fingerprint changed during derived publication')
+    record=dict(fingerprint=fp,runner=str(runner),runner_sha256=sha(runner),
+                publisher_sha256=sha(Path(__file__)),
+                files={name:sha(ROOT/name) for name in publication_paths(prices)})
+    pending=publication.with_suffix('.json.new')
+    pending.write_text(json.dumps(record,indent=2)+'\n')
+    pending.replace(publication)
     print(f'Published {len(prices)} candidate evidence blocks and recommendations for {len(groups)} groups')
 
 

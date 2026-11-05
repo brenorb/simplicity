@@ -144,6 +144,8 @@ writeReports fp rs = do
      "Rows are alternative counterfactuals: savings do not add. Occurrences count the selected static-bound path. Both WOTS frontends belong to one primitive family. The complete matrix, including zero-match rows, is in data/candidate-impact.tsv.",
      "Feasibility holds the original serialized stack's hypothetical witness-bytes + 50 budget fixed (METHOD.md). Candidate encodings and their new program lengths are undefined. This is not an established Bitcoin rule or deployment claim. Prices require C benchmarks and proofs.","",candidateImpactMarkdown rs]
   writeFile "reports/corpus-results.md" (header ++ resultsMarkdown rs)
+  writeFile "reports/budget-hotspots.md" (budgetHotspotsMarkdown rs)
+  writeFile "reports/data/budget-hotspots.tsv" (budgetHotspotsTsv rs)
   let variantRows = [ (fam, pid, measure p) | (fam, pid, p) <- variants ]
   writeFile "reports/whatif.md" $ unlines $
     [ "# What-if costs with candidate jets (ESTIMATE)"

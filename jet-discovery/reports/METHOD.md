@@ -77,7 +77,11 @@ after all output tables have been rendered and the source fingerprint still
 matches. A failed render leaves no current publish marker. The coordinator verifies
 that marker and hashes every published table in its terminal manifest.
 `--last <exact-id> ...` can defer expensive runs without dropping any registry
-row; use the same order on resume. Heap size
+row; use the same order on resume. A new full cohort refuses an existing
+checkpoint namespace for that fingerprint. Preserve an earlier namespace
+separately if intentionally remeasuring; an explicit resume reuses only its
+recorded, hash-checked results. Every new full-cohort child must log exactly
+one passing outcome per registered vector. Heap size
 is a runtime resource cap, not a changed mathematical parameter.
 
 Checkpoints live under `dist-newstyle/jet-discovery-results/<fingerprint>/`.
@@ -295,7 +299,9 @@ Each group's **total** is the sum over programs of multiplicity × the
 sub-DAG's static bound.  That is the part of the corpus's cost spent inside
 it.  Groups are reported only if they are repeated (multiplicity ≥ 2, or found
 in ≥ 2 programs), cost at least 1 WU per instance, and are not already a single
-jet.  Nested groups overlap, so shares do not add up.
+jet.  Nested groups overlap, so shares do not add up. [Budget hotspots](budget-hotspots.md)
+uses exclusive profile weight times multiplicity, including unique nodes,
+to partition the native bound for each non-client over-budget program.
 
 ## Verification-burden estimates
 
@@ -336,9 +342,11 @@ copy the cohort's exact `registry.tsv`). After publication, run:
 python3 tools/check_final_evidence.py --cohort <isolated-manifest.json> --harness <unfiltered-tests-run.json>
 ```
 
-The audit checks each exact entry log and checkpoint hash, all generated
-core table hashes, tested source/data, actual upstream results, every
-candidate README and named source table, and the scope of the Git diff. The
+The audit checks each exact entry log and local checkpoint hash, all core
+and derived publication hashes, tested source/data, actual upstream results,
+every candidate README and source table, and the Git scope. Run it in the
+original measurement checkout with its frozen executable and ignored
+checkpoints; the signed logs and publication manifests remain portable. The
 fork update is independently verified after the signed final push.
 
 
