@@ -241,15 +241,21 @@ timeOne :: String -> IO ()
 timeOne i = corpus >>= \c -> case [ e | e <- c, entryId e == i ] of
   [Entry _ _ _ _ _ _ prog (v:_)] -> do
     let m = measure (prog (vecWitness v))
-        t l a = do { s0 <- getCPUTime; _ <- evaluate a; s1 <- getCPUTime
-                   ; putStrLn (l ++ ": " ++ show (fromIntegral (s1 - s0) / 1e12 :: Double) ++ "s") }
-    t "cmr" (mCmr m `seq` ())
+        t l a = do { s0 <- getCPUTime; value <- evaluate a; s1 <- getCPUTime
+                   ; putStrLn (l ++ " result=" ++ show value ++ " cpu_seconds=" ++ show (fromIntegral (s1 - s0) / 1e12 :: Double)) }
+    t "cmr" (mCmr m)
     t "cost" (mCost m)
     t "baseline" (mCostBase m)
     t "whatif" (mCostWhatIf m)
     t "isolated candidate scenarios" (sum [cost+count|(_, (cost,count))<-mCandidateCosts m])
     t "bits" (mProgBits m + mWitBits m)
     t "profile" (mProfileTotal m)
-    t "one vector" (length (filter vrOk (runVectors prog (mCmr m) [v])))
+    forM_ (mAblations m) $ \(name,cost) -> t ("ablation:"++name) cost
+    unless (mProfileTotal m==mCost m && niCmr (last (mProfile m))==mCmr m) $ do
+      putStrLn "profile consistency failed"
+      exitFailure
+    let passed=all vrOk (runVectors prog (mCmr m) [v])
+    t "one vector" passed
+    unless passed exitFailure
   _ -> putStrLn "unknown id"
 

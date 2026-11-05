@@ -13,13 +13,22 @@ module JetDiscovery.Report
   , candidateImpactTsv
   ) where
 
-import Data.List (intercalate)
+import Data.List (intercalate, isPrefixOf)
 import Numeric (showFFloat, showEFloat)
 
 import JetDiscovery.Profile (niCmr)
 import JetDiscovery.Run
 import JetDiscovery.Types
 import JetDiscovery.Tx (hex, hashToBytes)
+
+-- This explicit annotation is part of a client's declared interface. A
+-- deliberately invalid virtual proof transaction cannot establish deployment
+-- feasibility, even though its statement has a measurable interpreter cost.
+clientMode :: Entry -> Bool
+clientMode = any (isPrefixOf "CLIENT MODE:") . entryAssumptions
+
+executionContext :: Entry -> String
+executionContext e = if clientMode e then "client-verifier" else "transaction-expression"
 
 -- | Render milliWU as WU with three decimals.
 wu :: Integer -> String
@@ -53,8 +62,8 @@ assumedWitnessStackBytes sizes = compactSize (toInteger (length sizes)) + sum [c
 
 resultsMarkdown :: [EntryResult] -> String
 resultsMarkdown rs = unlines $
-  [ "| id | category | vectors | cost (WU) | prims-only baseline (WU) | jet saving | what-if (WU) | % of BUDGET_MAX | program bytes | witness bytes | assumed budget (WU) | fits assumed budget |"
-  , "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |" ] ++
+  [ "| id | category | execution context | vectors | cost (WU) | prims-only baseline (WU) | jet saving | what-if (WU) | % of BUDGET_MAX | program bytes | witness bytes | assumed budget (WU) | fits assumed budget |"
+  , "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |" ] ++
   map row rs
  where
   row r = let e = erEntry r; m = erMeasure r
@@ -62,6 +71,7 @@ resultsMarkdown rs = unlines $
               budget = witnessBudgetModel wsb
               vs = erVectors r
           in "| `" ++ entryId e ++ "` | " ++ show (entryCategory e)
+             ++ " | " ++ executionContext e
              ++ " | " ++ show (length (filter vrOk vs)) ++ "/" ++ show (length vs)
              ++ " | " ++ wu (mCost m) ++ " | " ++ sciWu (mCostBase m)
              ++ " | " ++ ratio (mCostBase m) (mCost m)
@@ -69,7 +79,7 @@ resultsMarkdown rs = unlines $
              ++ " | " ++ pct (mCost m) (budgetMax * 1000)
              ++ " | " ++ show ((mProgBits m + 7) `div` 8) ++ " | " ++ show ((mWitBits m + 7) `div` 8)
              ++ " | " ++ show budget
-             ++ " | " ++ (if mCost m <= budget * 1000 then "yes" else "no (" ++ wu (mCost m - budget * 1000) ++ " WU deficit)")
+             ++ " | " ++ (if clientMode e then "n/a (client verifier)" else if mCost m <= budget * 1000 then "yes" else "no (" ++ wu (mCost m - budget * 1000) ++ " WU deficit)")
              ++ " |"
   ratio a b | b == 0 = "-"
             | otherwise = let x = fromInteger a / fromInteger b :: Double in if x < 1e6 then showFFloat (Just 1) x "×" else showEFloat (Just 1) x "×"
@@ -78,10 +88,10 @@ resultsMarkdown rs = unlines $
 
 resultsTsv :: [EntryResult] -> String
 resultsTsv rs = unlines $
-  intercalate "\t" ["id","category","vectors_ok","vectors_total","cost_mwu","baseline_mwu","whatif_mwu","program_bits","witness_bits","dag_nodes","cmr"] :
+  intercalate "\t" ["id","category","vectors_ok","vectors_total","cost_mwu","baseline_mwu","whatif_mwu","program_bits","witness_bits","dag_nodes","cmr","execution_context"] :
   [ intercalate "\t" [ entryId e, show (entryCategory e), show (length (filter vrOk vs)), show (length vs)
                      , show (mCost m), show (mCostBase m), show (mCostWhatIf m)
-                     , show (mProgBits m), show (mWitBits m), show (mNodes m), hex (hashToBytes (mCmr m)) ]
+                     , show (mProgBits m), show (mWitBits m), show (mNodes m), hex (hashToBytes (mCmr m)), executionContext e ]
   | r <- rs, let e = erEntry r; m = erMeasure r; vs = erVectors r ]
 
 -- | One-candidate-at-a-time counterfactuals, including nested matches and
@@ -92,11 +102,11 @@ candidateImpactMarkdown rs=unlines $
    "| --- | --- | ---: | ---: | ---: | ---: | --- |"]++
   ["| `"++entryId (erEntry r)++"` | ["++name++"](../candidates/"++name++"/README.md) | "++show count++" | "++wu (mCost m)++" | "++wu after++" | "++wu (mCost m-after)++" | "++fits (mCost m)++" / "++fits after++" |"
   |r<-rs,let m=erMeasure r,(name,(after,count))<-mCandidateCosts m,count>0,
-   let fits cost=if cost<=1000*witnessBudgetModel (witnessStackBytes m) then "yes" else "no"]
+   let fits cost=if clientMode (erEntry r) then "n/a (client verifier)" else if cost<=1000*witnessBudgetModel (witnessStackBytes m) then "yes" else "no"]
 
 candidateImpactTsv :: [EntryResult] -> String
-candidateImpactTsv rs=unlines $ intercalate "\t" ["program","candidate","occurrences","current_mwu","isolated_mwu_estimate","saving_mwu","assumed_budget_wu"]:
-  [intercalate "\t" [entryId (erEntry r),name,show count,show (mCost m),show after,show (mCost m-after),show (witnessBudgetModel (witnessStackBytes m))]
+candidateImpactTsv rs=unlines $ intercalate "\t" ["program","candidate","occurrences","current_mwu","isolated_mwu_estimate","saving_mwu","assumed_budget_wu","execution_context","feasibility_applicable"]:
+  [intercalate "\t" [entryId (erEntry r),name,show count,show (mCost m),show after,show (mCost m-after),show (witnessBudgetModel (witnessStackBytes m)),executionContext (erEntry r),if clientMode (erEntry r) then "false" else "true"]
   |r<-rs,let m=erMeasure r,(name,(after,count))<-mCandidateCosts m]
 
 -- | Per-program what-if: which candidates matched (with multiplicity) and the new bound.

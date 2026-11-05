@@ -210,6 +210,20 @@ program length and any resulting budget change cannot be measured here. A
 before/after fit is therefore conditional on that fixed scenario, not a Bitcoin
 deployment claim.
 
+Program and witness lengths are point measurements of the first vector in
+each entry. The CMR excludes witness values, but serialized witness encoding,
+constant sharing and variable-buffer length can change with those values.
+The displayed hypothetical budget therefore describes that measured vector,
+not every witness accepted by the same CMR. No universal fit claim follows
+from an empty-message or zero-filled first vector.
+
+Entries whose assumptions begin `CLIENT MODE:` verify an offchain statement
+using an explicitly supplied environment. Their cost remains useful as a
+computational comparison, but budget-fit fields are `n/a (client verifier)`.
+The candidate-impact TSV marks feasibility inapplicable for them. Rankings
+must disclose client-only evidence separately from native spending demand;
+pure component/kernels likewise do not acquire full-application weight.
+
 Jet rankings do not depend on the budget rule.  Feasibility statements do, and
 they are labelled as depending on the assumption.
 

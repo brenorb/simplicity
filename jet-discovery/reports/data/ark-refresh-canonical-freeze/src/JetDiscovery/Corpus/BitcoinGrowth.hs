@@ -1,0 +1,255 @@
+{-# LANGUAGE RankNTypes, ScopedTypeVariables #-}
+-- | Additional bounded Bitcoin applications. Every logical proof is witnessed
+-- once, then passed through typed projections to every consumer.
+module JetDiscovery.Corpus.BitcoinGrowth (entries, evict, evictT,bip322,bip322DigestT) where
+
+import Prelude hiding (drop,take,not,and,or)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.List as L
+import Data.Serialize (runPut,putWord64le)
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import Simplicity.Programs.Generic (eq)
+import qualified Simplicity.Programs.Arith as A
+import Simplicity.Programs.Sha256.Lib
+import qualified Simplicity.Programs.LibSecp256k1.Lib as S
+import Simplicity.Bitcoin.Term (Simplicity,Primitive,primitive)
+import qualified Simplicity.Bitcoin.Primitive as Prim
+import qualified Simplicity.Bitcoin.Jets as J
+import qualified Simplicity.Bitcoin.Programs.Transaction.Lib as Tx
+import Simplicity.Bitcoin.DataTypes (TapEnv(..))
+import Simplicity.LibSecp256k1.Schnorr (Sig(..),PubKey(..))
+import Simplicity.Ty.Word hiding (Vector)
+import JetDiscovery.Corpus.Apps (sigMsg)
+import JetDiscovery.Corpus.Baseline (signMsg)
+import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.TxSer (ctxWith)
+import JetDiscovery.Lib.BitcoinFunding(fundingScript)
+import qualified JetDiscovery.Lib.SpvReceipt as Spv
+import JetDiscovery.Run (progCmr)
+import JetDiscovery.Tx
+import JetDiscovery.Types
+import qualified JetDiscovery.Ref.Bip340 as R
+import qualified JetDiscovery.Ref.BitcoinGrowth as Ref
+
+type SigW=(Word256,Word256)
+type GE=(Word256,Word256)
+type PromiseW=(Word32,(Word256,SigW))
+type EvictW=(PromiseW,(PromiseW,SigW))
+
+same :: (Assert t,TyC a,TyC b) => t a b -> t a b -> t a ()
+same a b=(a&&&b)>>>eq>>>verify
+add64 :: (Assert t,TyC a) => t a Word64 -> t a Word64 -> t a Word64
+add64 a b=(a&&&b)>>>A.add word64>>>((oh>>>not iden>>>verify)&&&ih)>>>ih
+outVal :: (Assert t,Primitive t,TyC a) => Integer -> t a Word64
+outVal i=konst(w32 i)>>>primitive Prim.OutputValue>>>verify
+count :: (Assert t,Primitive t,TyC a) => Integer -> t a ()
+count n=same (unit>>>Tx.numOutputs) (konst(w32 n))
+inputCount :: (Assert t,Primitive t,TyC a) => Integer -> t a ()
+inputCount n=same (unit>>>Tx.numInputs) (konst(w32 n))
+liftX :: Assert t => t Word256 GE
+liftX=(((iden&&&konst(w256 R.p))>>>A.lt word256>>>verify)&&&iden)>>>ih
+   >>>(false&&&iden)>>>S.decompress>>>verify
+normalize :: Assert t => t (GE,Word256) GE
+normalize=S.gej_normalize>>>verify
+toJ :: (Core t,TyC a) => t a GE -> t a (GE,Word256)
+toJ x=x&&&konst(w256 1)
+p2trHash :: Assert t => t Word256 Word256
+p2trHash=(((unit>>>ctx8Init)&&&konst(w16 0x5120)>>>ctx8Add2)&&&iden)>>>ctx8Add32>>>ctx8Finalize
+startHash :: (Assert t,TyC a) => t a (a,Ctx8)
+startHash=iden&&&(unit>>>ctx8Init)
+appendHash :: (Assert t,TyC a,TyC b) => t a b -> t (Ctx8,b) Ctx8 -> t (a,Ctx8) (a,Ctx8)
+appendHash f jet=oh&&&((ih&&&(oh>>>f))>>>jet)
+txOutDigest :: Assert t => t (Word64,Word256) Word256
+txOutDigest=startHash>>>appendHash oh ctxAddLE64
+ >>>appendHash (konst(w8 34)) ctx8Add1>>>appendHash (konst(w16 0x5120)) ctx8Add2
+ >>>appendHash ih ctx8Add32>>>ih>>>ctx8Finalize
+
+-- Append fixed byte strings in word-sized chunks. No downloaded parser/code is
+-- used, and no wide Buffer511 context is needed for fixed serialization bytes.
+appendConst :: Assert t => BS.ByteString -> t Ctx8 Ctx8
+appendConst bytes
+ | BS.null bytes=iden
+ | otherwise=chunk size (BS.take size bytes)>>>appendConst(BS.drop size bytes)
+ where
+  size=head[n|n<-[32,16,8,4,2,1],n<=BS.length bytes]
+  number=R.intFromBytes
+  chunk 32 b=ctxWith(konst(w256FromBytes b))ctx8Add32
+  chunk 16 b=ctxWith(konst(toWord128(number b)))ctx8Add16
+  chunk 8 b=ctxWith(konst(w64(number b)))ctx8Add8
+  chunk 4 b=ctxWith(konst(w32(number b)))ctx8Add4
+  chunk 2 b=ctxWith(konst(w16(number b)))ctx8Add2
+  chunk _ b=ctxWith(konst(w8(number b)))ctx8Add1
+applyCtx :: (Assert t,TyC a) => t Ctx8 Ctx8 -> t (a,Ctx8) (a,Ctx8)
+applyCtx f=oh&&&(ih>>>f)
+sha32 :: Assert t => t Word256 Word256
+sha32=((unit>>>ctx8Init)&&&iden)>>>ctx8Add32>>>ctx8Finalize
+
+-- Exact BIP322 SIMPLE P2TR keypath encoding: nVersion/nLockTime/nSequence=0,
+-- to_spend's null prevout and OP_0 PUSH32 message hash, to_sign's OP_RETURN,
+-- and BIP341 SIGHASH_DEFAULT with no annex/script path. Input is already the
+-- BIP0322-signed-message hash plus the output key of the claimed P2TR address.
+bip322DigestT :: forall t. Assert t => t (Word256,Word256) Word256
+bip322DigestT=(toSpend&&&ih)>>>fromTxid
+ where
+  prefix=unhex "0000000001"<>BS.replicate 32 0<>unhex "ffffffff220020"
+  middle=unhex "00000000010000000000000000225120"
+  toSpend :: t (Word256,Word256) Word256
+  toSpend=(iden&&&(unit>>>ctx8Init>>>appendConst prefix))>>>appendHash oh ctx8Add32
+   >>>applyCtx(appendConst middle)>>>appendHash ih ctx8Add32>>>applyCtx(appendConst(unhex "00000000"))
+   >>>ih>>>ctx8Finalize>>>sha32
+  prevouts :: t Word256 Word256
+  prevouts=((unit>>>ctx8Init)&&&iden)>>>ctx8Add32>>>appendConst(unhex "00000000")>>>ctx8Finalize
+  scripts :: t Word256 Word256
+  scripts=((unit>>>ctx8Init>>>appendConst(unhex "225120"))&&&iden)>>>ctx8Add32>>>ctx8Finalize
+  hashed=hashToBytes.sha256
+  amounts=hashed(BS.replicate 8 0)
+  sequences=hashed(BS.replicate 4 0)
+  outputs=hashed(BS.replicate 8 0<>unhex "016a")
+  fromTxid :: t (Word256,Word256) Word256
+  fromTxid=(iden&&&(unit>>>ctx8InitTag "TapSighash">>>appendConst(BS.replicate 10 0)))
+   >>>appendHash (oh>>>prevouts) ctx8Add32>>>applyCtx(appendConst amounts)
+   >>>appendHash (ih>>>scripts) ctx8Add32>>>applyCtx(appendConst sequences)
+   >>>applyCtx(appendConst outputs)>>>applyCtx(appendConst(BS.replicate 5 0))>>>ih>>>ctx8Finalize
+
+type Bip322W=(Buffer511 Word8,SigW)
+bip322 :: (Simplicity t,Primitive t) => Bip322W -> t () ()
+bip322 w=witness w>>>((oh>>>messageHash)&&&ih)>>>bip322PaymentT
+ where
+  messageHash=((unit>>>ctx8InitTag "BIP0322-signed-message")&&&iden)>>>ctx8AddBuffer511>>>ctx8Finalize
+bip322PaymentT :: forall t. (Simplicity t,Primitive t) => t (Word256,SigW) ()
+bip322PaymentT=(proof&&&inputCount 1&&&count 2&&&marker&&&payout&&&conservation)>>>unit
+ where
+  key :: t (Word256,SigW) Word256
+  key=unit>>>primitive Prim.InternalKey
+  proof :: t (Word256,SigW) ()
+  proof=((key&&&((oh&&&key)>>>bip322DigestT))&&&ih)>>>S.bip_0340_verify
+  markerHash :: t Word256 Word256
+  markerHash=((unit>>>ctx8Init>>>appendConst(unhex "6a20"))&&&iden)>>>ctx8Add32>>>ctx8Finalize
+  marker :: t (Word256,SigW) ()
+  marker=(same(outVal 0)(konst(w64 0))&&&same(konst(w32 0)>>>primitive Prim.OutputScriptHash>>>verify)(oh>>>markerHash))>>>unit
+  payout :: t (Word256,SigW) ()
+  payout=same(konst(w32 1)>>>primitive Prim.OutputScriptHash>>>verify)(key>>>p2trHash)
+  conservation :: t (Word256,SigW) ()
+  conservation=same(add64(outVal 1)(konst(w64 1000)))(unit>>>Tx.currentValue)
+
+-- EVICT: two different promised Taproot outputs and one remaining-party spend.
+-- The proposal does not specify a wire digest. We use SHA256(serialized TxOut)
+-- for promises and native Simplicity sig_all_hash for the remaining signature.
+-- Neither signature is a witness-only assertion: both consume actual outputs.
+evict :: (Simplicity t,Primitive t) => EvictW -> t () ()
+evict w=witness w>>>evictT
+evictT :: forall t. (Simplicity t,Primitive t) => t EvictW ()
+evictT=(inputCount 1&&&count 3&&&distinct&&&promise 0&&&promise 1&&&remaining&&&conservation)>>>unit
+ where
+  p :: Int -> t EvictW PromiseW
+  p 0=oh
+  p _=ih>>>oh
+  ix :: Int -> t EvictW Word32
+  ix i=p i>>>oh
+  key :: Int -> t EvictW Word256
+  key i=p i>>>ioh
+  sig :: Int -> t EvictW SigW
+  sig i=p i>>>iih
+  value :: Int -> t EvictW Word64
+  value i=ix i>>>primitive Prim.OutputValue>>>verify
+  digest :: Int -> t EvictW Word256
+  digest i=(value i&&&key i)>>>txOutDigest
+  promise :: Int -> t EvictW ()
+  promise i=(same (ix i>>>primitive Prim.OutputScriptHash>>>verify) (key i>>>p2trHash)
+    &&&(((key i&&&digest i)&&&sig i)>>>S.bip_0340_verify))>>>unit
+  distinct :: t EvictW ()
+  distinct=((ix 0&&&ix 1)>>>eq>>>not iden)>>>verify
+  remainderKey :: t EvictW Word256
+  remainderKey=(((toJ(unit>>>primitive Prim.InternalKey>>>liftX)&&&(key 0>>>liftX>>>S.ge_negate))>>>S.gej_ge_add)
+    &&&(key 1>>>liftX>>>S.ge_negate))>>>S.gej_ge_add>>>normalize>>>oh
+  remaining :: t EvictW ()
+  remaining=((remainderKey&&&(unit>>>sigMsg))&&&(ih>>>ih))>>>S.bip_0340_verify
+  conservation :: t EvictW ()
+  conservation=same (add64 (add64 (outVal 0) (outVal 1)) (add64 (outVal 2) (konst(w64 1000)))) (unit>>>Tx.currentValue)
+
+sigW :: Sig -> SigW
+sigW (Sig r s)=(w256(toInteger r),w256(toInteger s))
+evenSecret :: Integer -> Integer
+evenSecret d=case R.pointMul R.gPt d of Just pt|R.hasEvenY pt->d;_->R.n-d
+p2tr :: Integer -> BS.ByteString
+p2tr x=unhex "5120"<>R.bytesFromInt x
+promiseMsg :: Integer -> Integer -> BS.ByteString
+promiseMsg amount pk=hashToBytes(sha256(runPut(putWord64le(fromInteger amount))<>BS.singleton 34<>p2tr pk))
+
+evictEntry :: Entry
+evictEntry=Entry "app-op-evict-complete" "Two-member EVICT with real key subtraction, promised outputs and remainder authorization"
+ "ZmnSCPxj OP_EVICT proposal 2022-02-18; vendor-specs/bip-inventory/proposals/op-evict-original.eml"
+ BitcoinApp (Derived "BIP340 reference signatures over actual serialized outputs and actual sig_all_hash; malformed promises and independently re-signed transactions")
+ ["Bounded native adaptation: exactly two unique evicted output indices, three outputs and one input; fee exactly 1000 satoshis",
+  "Promise digest is SHA256(value_le64 || CompactSize(34) || OP_1 PUSH32 pubkey); original proposal leaves exact digest encoding unspecified",
+  "Remaining key is lift_x(internal_key) minus BOTH revealed output keys; signature is native Simplicity sig_all_hash, not Script SIGHASH wire compatibility",
+  "Participant keys require anti-cancellation setup and fresh per-state keys, as required by the proposal; aggregate internal point has even Y",
+  "Bitcoin validation authenticates the Taproot control/internal-key environment; the setup/key-generation and off-chain update protocol are outside this spend"]
+ (\w->Prog(evict w)) vectors
+ where
+  a=evenSecret 11;b=evenSecret 22
+  c=head[d|d<-map evenSecret [33..],case R.pointMul R.gPt((a+b+d)`mod`R.n) of Just pt->R.hasEvenY pt;_->False]
+  aggregate=(a+b+c)`mod`R.n
+  qa=R.pubkeyOf a;qb=R.pubkeyOf b
+  tap cmr=(defaultTap cmr){tapInternalKey=PubKey(fromInteger(R.pubkeyOf aggregate))}
+  env amounts scripts cmr'=mkEnv(mkTx 2 [mkInput(dummyOutpoint 0)100000(BL.fromStrict(fundingScript(tap cmr')))0xfffffffe]
+    [mkOutput(fromInteger amount) script|(amount,script)<-zip amounts scripts]0)0 tap cmr'
+  goodEnv=env [25000,35000,39000] [p2tr qa,p2tr qb,p2tr(R.pubkeyOf c)]
+  dummy :: EvictW
+  dummy=((w32 0,(w256 qa,(w256 0,w256 0))),((w32 1,(w256 qb,(w256 0,w256 0))),(w256 0,w256 0)))
+  cmr=progCmr(Prog(evict dummy))
+  txSig secret e=case e cmr >>= (\pe->J.fastEval(J.unwrap(J.jetSubst sigMsg))pe()) of
+    Just m->sigW(signMsg secret(w256ToBytes m));_->error "EVICT signature environment"
+  pa=sigW(signMsg a(promiseMsg 25000 qa));pb=sigW(signMsg b(promiseMsg 35000 qb))
+  make e=((w32 0,(w256 qa,pa)),((w32 1,(w256 qb,pb)),txSig c e))
+  good=make goodEnv
+  duplicate=((w32 0,(w256 qa,pa)),((w32 0,(w256 qa,pa)),txSig((aggregate-2*a)`mod`R.n)goodEnv))
+  wrongAmount=env [25001,35000,38999] [p2tr qa,p2tr qb,p2tr(R.pubkeyOf c)]
+  diverted=env [25000,35000,39000] [p2tr qa,p2tr(R.pubkeyOf 77),p2tr(R.pubkeyOf c)]
+  overpay=env [25000,35000,39001] [p2tr qa,p2tr qb,p2tr(R.pubkeyOf c)]
+  extra=env [25000,35000,38999,1] [p2tr qa,p2tr qb,p2tr(R.pubkeyOf c),BS.empty]
+  (p0,(p1,sr))=good
+  vectors=[Vector "two evictions and valid remainder" goodEnv good Accept,
+   Vector "promise enumeration can be permuted" goodEnv (p1,(p0,sr)) Accept,
+   Vector "duplicate index with otherwise correct subtraction signature" goodEnv duplicate Reject,
+   Vector "changed promised amount with fresh remainder signature" wrongAmount (make wrongAmount) Reject,
+   Vector "diverted promised script with fresh remainder signature" diverted (make diverted) Reject,
+   Vector "wrong remainder signer" goodEnv (p0,(p1,txSig a goodEnv)) Reject,
+   Vector "value conservation violated with fresh remainder signature" overpay (make overpay) Reject,
+   Vector "extra output with fresh remainder signature" extra (make extra) Reject]
+
+bip322Entry :: IO Entry
+bip322Entry=do
+ raw<-readFile "vendor-specs/bitcoin-growth/bip322-keypath-vectors.tsv"
+ let rows=map (fields.filter(/='\r'))(L.drop 1(lines raw))
+     vectors=[Vector name (env (R.intFromBytes(unhex pk)) (unhex msg) False False)
+       (buffer511FromBytes(unhex msg),signature(unhex sig)) (if expected=="Accept" then Accept else Reject)
+       |[name,msg,pk,sig,expected]<-rows]
+     first=case rows of row:_->row;_->error "BIP322 upstream keypath vectors missing"
+     [_,m,p,s,_]=first
+     key=R.intFromBytes(unhex p);message=unhex m;sig=signature(unhex s)
+     extras=[Vector "valid proof cannot divert native payout" (env key message True False) (buffer511FromBytes message,sig) Reject,
+       Vector "valid proof cannot replace receipt marker" (env key message False True) (buffer511FromBytes message,sig) Reject]
+ if length vectors/=4 then error "BIP322 supported upstream coverage drift" else return(Entry
+  "app-bip322-message-control-proof" "BIP322 SIMPLE P2TR ownership proof with exact virtual transactions and owner-only receipt payout"
+  "BIP322 plus BIP341 SIGHASH_DEFAULT; vendor-specs/bitcoin-growth/bip-0322.mediawiki and bip322-vector-inventory.tsv"
+  BitcoinApp (Upstream "vendor-specs/bitcoin-growth/bip322-keypath-vectors.tsv (2 valid, 2 invalid; all 60 upstream rows inventoried)")
+  ["Canonical decoded SIMPLE proof: one 64-byte BIP340 keypath signature, no annex, <=511 UTF-8 message bytes; no FULL/PSBT/legacy/Script support claimed",
+   "Constructs every virtual to_spend byte and BIP341 SIGHASH_DEFAULT field in Simplicity; proof key is authenticated by the actual Taproot InternalKey",
+   "Public receipt message is committed by native output 0 OP_RETURN PUSH32 tagged-message-hash; output 1 returns all collateral minus 1000 satoshis to the proved key",
+   "Bech32m address decoding, Base64 and textual variant prefix validation are client boundaries, not Simplicity claims; upstream malformed-format rows outside the bound remain explicit",
+   "BIP322 is a reusable control proof, not an arbitrary transaction signature: this application therefore forces the entire spend to the proved owner and a message receipt"]
+  (\w->Prog(bip322 w))(vectors++extras))
+ where
+  fields s=case break(=='\t')s of(a,[])->[a];(a,_:b)->a:fields b
+  signature b=(w256FromBytes(BS.take 32 b),w256FromBytes(BS.drop 32 b))
+  env key message diverted badMarker cmr=
+   let tap root=(defaultTap root){tapInternalKey=PubKey(fromInteger key)}
+   in mkEnv(mkTx 2 [mkInput(dummyOutpoint 0)100000(BL.fromStrict(fundingScript(tap cmr)))0xfffffffe]
+    [mkOutput 0 (unhex "6a20"<>(if badMarker then BS.replicate 32 0 else Ref.bip322MessageHash message)),
+     mkOutput 99000(p2tr(if diverted then R.pubkeyOf 77 else key))]0)0 tap cmr
+
+entries :: IO [Entry]
+entries=do b<-bip322Entry;s<-Spv.entry;return[evictEntry,b,s]

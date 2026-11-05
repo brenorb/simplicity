@@ -1,0 +1,134 @@
+{-# LANGUAGE RankNTypes,ScopedTypeVariables,GADTs #-}
+-- | Complete bounded guardian-authorized native transfer/replay covenant.
+-- The184-byte body is the51-byte VAA header plus133-byte Transfer payload.
+module JetDiscovery.Corpus.ContractBridge (entries,bodyHashRef,bodyHashWrapped,packV) where
+import Prelude hiding (drop,take,not,and,or)
+import qualified Prelude as H
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.List as L
+import Data.Bits (testBit)
+import Data.Serialize (runPut,putWord16be,putWord32be,putWord64be)
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import Simplicity.Programs.Generic (eq)
+import qualified Simplicity.Programs.Arith as A
+import qualified Simplicity.Programs.Word as W
+import Simplicity.Bitcoin.Term (Simplicity,Primitive)
+import qualified Simplicity.Bitcoin.Jets as J
+import Simplicity.Ty.Word hiding (Vector)
+import qualified Simplicity.Ty.Word as T
+import JetDiscovery.Corpus.ContractExpansion (keccakFixed)
+import JetDiscovery.Lib.Ecrecover (recoverShared)
+import JetDiscovery.Corpus.ContractGrowth hiding (entries,program,entry,vector,vectorPayload,signature)
+import qualified JetDiscovery.Corpus.ContractGrowth as G
+import qualified JetDiscovery.Corpus.ContractMessageApps as M
+import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.State
+import JetDiscovery.Run (progCmr)
+import JetDiscovery.Tx
+import JetDiscovery.Types
+import qualified JetDiscovery.Ref.Keccak as K
+import qualified JetDiscovery.Ref.Bip340 as R
+
+type Body=Vector256 Word8
+type GuardianSig=(Word256,(Word256,Bit))
+type Guardians=Vector32 (Either () GuardianSig)
+type VInput=((Input,Body),Guardians)
+type VaaW=(GW,BS.ByteString,[Maybe (Integer,(Integer,Bool))])
+packV :: T.Vector a b -> [a] -> b
+packV T.SingleV [a]=a
+packV (T.DoubleV v) xs=(packV v (H.take n xs),packV v (H.drop n xs)) where n=T.vectorSize v
+packV _ _=error "fixed vector encoding length"
+packT :: (Core t,TyC a) => T.Vector Word8 b -> [t a Word8] -> t a b
+packT T.SingleV [a]=a
+packT (T.DoubleV v) xs=packT v (H.take n xs)&&&packT v (H.drop n xs) where n=T.vectorSize v
+packT _ _=error "fixed parser field length"
+at256 :: Core t => Int -> t Body Word8
+at256 i=pick (testBit i 7) (pick (testBit i 6) (pick (testBit i 5) (pick (testBit i 4) (pick (testBit i 3) (pick (testBit i 2) (pick (testBit i 1) (pick (testBit i 0) iden)))))))
+at32 :: (Core t,TyC a) => Int -> t (Vector32 a) a
+at32 i=pick (testBit i 4) (pick (testBit i 3) (pick (testBit i 2) (pick (testBit i 1) (pick (testBit i 0) iden))))
+byte :: Core t => Int -> t VInput Word8
+byte i=take (drop (at256 i))
+p16 off=packT vector2 [byte (off+i)|i<-[0..1]]
+p64 off=packT vector8 [byte (off+i)|i<-[0..7]]
+p256 off=packT vector32 [byte (off+i)|i<-[0..31]]
+bodyHashRef :: Assert t => t Body Word256
+bodyHashRef=keccakFixed [at256 i|i<-[0..183]]>>>keccakFixed (G.wordBytes iden)
+bodyHashWrapped :: J.WrappedSimplicity Body Word256
+bodyHashWrapped=J.jetSubst bodyHashRef
+{-# NOINLINE bodyHashWrapped #-}
+vBodyHash :: Simplicity t => t VInput Word256
+vBodyHash=take ih>>>J.unwrap bodyHashWrapped
+emitter=M.phash "configured Ethereum native-collateral bridge emitter"
+-- This is an explicit adapter domain for the corpus, not an assertion that
+-- Wormhole assigns Bitcoin an existing canonical destination chain ID.
+destinationChain=65534
+quorum :: forall t. Simplicity t => t VInput ()
+quorum=(iden&&&vBodyHash)>>>count>>>((konst (w8 13)&&&iden)>>>A.le word8>>>verify)
+ where
+  count :: t (VInput,Word256) Word8
+  count=L.foldl' (\acc i->(acc&&&slot i)>>>A.add word8>>>ih) (konst (w8 0)) [0..18]
+  slot i=((take (drop (at32 i)))&&&ih)>>>match (konst (w8 0)) verifyOne
+   where
+    verifyOne=(((ih&&&oh)>>>recoverShared)&&&konst (w256 (M.address (toInteger i+1))))>>>eq>>>verify>>>konst (w8 1)
+bridgeT :: (Simplicity t,Primitive t) => t VInput ()
+bridgeT=allChecks [take (take base),framing,fields,amounts,replay,stateTransition,payout,quorum]
+ where
+  input t=take (take t)
+  framing=allChecks [same (byte i) (konst (w8 0))|i<-[184..255]]
+  fields=allChecks [same (p16 8) (konst (w16 2)),same (p256 10) (M.pw emitter),same (byte 50) (konst (w8 32)),same (byte 51) (konst (w8 1)),same (p256 84) (konst (w256 M.nativeAsset)),same (p16 116) (konst (w16 2)),same (p16 150) (konst (w16 destinationChain)),input (same mode (konst (w8 0))),input (same actor (k 0)),allChecks [same (drop (at32 i)>>>isSome>>>not iden) true|i<-[19..31]],input (allChecks [same (o i) (k 0)|i<-[3..14]])]
+  quantity=p256 52>>>iih;fee=p256 152>>>iih
+  amounts=allChecks [((p256 52&&&konst (w256 (2^64)))>>>A.lt word256>>>verify),((p256 152&&&konst (w256 (2^64)))>>>A.lt word256>>>verify),nonzero fee,lt fee quantity,same quantity (input amount)]
+  relative=sub (p64 42) (input (o 2))
+  mask=(relative&&&k 1)>>>W.left_shift word64 word64
+  bitmap=input (o 1)
+  replay=allChecks [lt relative (k 64),same ((bitmap&&&mask)>>>W.bitwise_and word64) (k 0),same (input (n 1)) ((bitmap&&&mask)>>>W.bitwise_or word64)]
+  stateTransition=input (changes [(0,sub (o 0) amount),(1,n 1),nonce 15])
+  payout=allChecks [input (outCount 3),input (inputFund (k 0)),input continuation,same (input (outScript 1)) (p256 118),same (input (outVal 1)) (sub quantity fee),same (input (outScript 2)) (destination 2),same (input (outVal 2)) fee]
+bridgeProgram :: (Simplicity t,Primitive t) => VaaW -> t () ()
+bridgeProgram w=witness (bridgeInput w)>>>bridgeT
+bridgeInput :: VaaW -> VInput
+bridgeInput (g,body,sigs)=encoded
+ where
+  padded=if BS.length body==184 then body<>BS.replicate 72 0 else body
+  encoded=((encode g,packV vector256 (map (w8 . toInteger) (BS.unpack padded))),packV vector32 (map sigWit (H.take 32 (sigs++repeat Nothing))))
+  sigWit Nothing=Left ()
+  sigWit (Just (r,(s,p)))=Right (w256 r,(w256 s,if p then Right () else Left ()))
+bodyRef seqValue quantity target=runPut (putWord32be 1700000000>>putWord32be 17>>putWord16be 2)<>emitter<>runPut (putWord64be (fromInteger seqValue))<>BS.pack [32,1]<>R.bytesFromInt quantity<>R.bytesFromInt M.nativeAsset<>runPut (putWord16be 2)<>target<>runPut (putWord16be (fromInteger destinationChain))<>R.bytesFromInt 500
+vEnv oldState newState quantity cmr=mkEnv transaction 0 (\_->stateTap cmr (stateRef oldState)) cmr
+ where
+  ins=[mkInput (dummyOutpoint 0) (fromInteger (H.head oldState+carrier)) (BL.fromStrict (stateScript cmr (stateRef oldState))) 0xfffffffe,mkInput (dummyOutpoint 1) 1000 (BL.fromStrict (recipient 9)) 0xfffffffe]
+  outs=[mkOutput (fromInteger (H.head newState+carrier)) (stateScript cmr (stateRef newState)),mkOutput (fromInteger (quantity-500)) (recipient 0),mkOutput 500 (recipient 2)]
+  transaction=mkTx 2 ins outs 0
+bridgeVector name sequenceValue bitmap quantity signedQuantity wrongRecipient numSignatures duplicateGuardian badPadding expected=Vector name env (g,body,signatures) expected
+ where
+  recipientHash=hashToBytes (sha256 (recipient 0))
+  target=if wrongRecipient then hashToBytes (sha256 (recipient 1)) else recipientHash
+  rawBody=bodyRef sequenceValue quantity target
+  body=if badPadding then rawBody<>BS.singleton 1<>BS.replicate 71 0 else rawBody
+  signedBody=bodyRef sequenceValue signedQuantity target
+  digest=R.intFromBytes (K.keccak256 (K.keccak256 signedBody))
+  sign i=let (r,s,p)=M.ecdsaSign (toInteger i+1) digest (toInteger i+101) in Just (r,(s,p))
+  signatures=[if i>=numSignatures then Nothing else sign (if duplicateGuardian&&i==1 then 0 else i)|i<-[0..18]]
+  relative=sequenceValue-100
+  newBitmap=bitmap H.+ (if relative>=0&&relative<64&&notBit bitmap relative then 2^relative else 0)
+  notBit a b=H.not (testBit a (fromInteger b))
+  oldState=pad [100000,bitmap,100]
+  newState=pad ([100000-quantity,newBitmap,100]++replicate 12 0++[1])
+  g=(0,(oldState,newState),(0,quantity),(zeroSig,zeroSig))
+  env=vEnv oldState newState quantity
+bridgeEntry=Entry "app-vaa-bridge-replay-payout" "Full184-byte guardian transfer body with native payout and persistent replay window" "Wormhole Messages.parseVM/verifySignatures and Bridge Transfer payload, exact51+133-byte body; fixed native adapter domain"
+ BitcoinApp (Derived "exact big-endian fields independently serialized, double-Keccak signed with13actual ECDSA guardians, independent bitmap/amount/output state vectors")
+ ["fixed VAA version1/guardian-set7 configuration and19indexed guardian slots; at least13distinct valid slots; source emitter/chain and native-asset token fields checked", "all184body bytes are hashed, including timestamp/nonce/consistency and all133transfer bytes; fixed typed-buffer padding must be zero", "sequence window[base,base+63] with persistent bitmap; sequences outside the window reject, including exhaustion; no silent window reset", "payload recipient32 is interpreted as Bitcoin recipient script hash; configured destination65534 is an explicit benchmark adapter domain, not a canonical Wormhole Bitcoin chain assignment", "actual native collateral debits amount, pays amount-fee to the parsed script and fee to fixed relayer; source-chain finality is trusted to guardians; guardian rotation/expiration is outside this fixed-set deployment"]
+ (boundProgram bridgeT . bridgeInput)
+ [bridgeVector "valid13guardian transfer" 101 0 10000 10000 False 13 False False Accept,
+  bridgeVector "already consumed sequence" 101 2 10000 10000 False 13 False False Reject,
+  bridgeVector "signed amount altered" 101 0 10000 10001 False 13 False False Reject,
+  bridgeVector "recipient output does not match payload" 101 0 10000 10000 True 13 False False Reject,
+  bridgeVector "only12guardians" 101 0 10000 10000 False 12 False False Reject,
+  bridgeVector "duplicate guardian in another slot" 101 0 10000 10000 False 13 True False Reject,
+  bridgeVector "sequence outside bounded window" 164 0 10000 10000 False 13 False False Reject,
+  bridgeVector "nonzero typed-buffer padding" 101 0 10000 10000 False 13 False True Reject]
+entries :: [Entry]
+entries=[bridgeEntry]

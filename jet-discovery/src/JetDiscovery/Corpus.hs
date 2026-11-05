@@ -12,6 +12,14 @@ import qualified JetDiscovery.Corpus.ScriptProposals as ScriptProposals
 import qualified JetDiscovery.Corpus.BitcoinExpansion as BitcoinExpansion
 import qualified JetDiscovery.Corpus.BitcoinGrowth as BitcoinGrowth
 import qualified JetDiscovery.Corpus.BitcoinGrowth2 as BitcoinGrowth2
+import qualified JetDiscovery.Corpus.BitcoinClients as BitcoinClients
+import qualified JetDiscovery.Corpus.TransportCrypto as TransportCrypto
+import qualified JetDiscovery.Corpus.WebAuthn as WebAuthn
+import qualified JetDiscovery.Corpus.Poseidon2 as Poseidon2
+import qualified JetDiscovery.Corpus.Shake256 as Shake256
+import qualified JetDiscovery.Corpus.ContractGrowth as ContractGrowth
+import qualified JetDiscovery.Corpus.ContractMessageApps as ContractMessageApps
+import qualified JetDiscovery.Corpus.ContractBridge as ContractBridge
 import qualified JetDiscovery.Corpus.Xmss as Xmss
 import qualified JetDiscovery.Corpus.Bip360P2mr as Bip360P2mr
 import qualified JetDiscovery.Corpus.ContractMath as ContractMath
@@ -73,9 +81,17 @@ corpus = concat <$> sequence
   , pure BitcoinExpansion.entries
   , BitcoinGrowth.entries
   , BitcoinGrowth2.entries
+  , BitcoinClients.entries
+  , TransportCrypto.entries
+  , pure WebAuthn.entries
+  , pure Poseidon2.entries
+  , Shake256.entries
   , pure ScriptProposals.entries
   , pure FibonacciStark.entries
   , pure ContractExpansion.entries
+  , pure ContractGrowth.entries
+  , pure ContractMessageApps.entries
+  , pure ContractBridge.entries
   , pure EprintExpansion.entries
   , pure BN254.entries
   , pure DeFi.entries

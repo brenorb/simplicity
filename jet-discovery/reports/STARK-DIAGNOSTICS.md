@@ -23,6 +23,22 @@ same-CMR context-splice regressions at small parameters passed, as detailed
 below. Full corpus negative-vector/report checks are separate work. This
 custom DEEP/FRI protocol has no claimed proved security-bit level.
 
+The later complete resource diagnostic
+`data/stark-full-analysis-diagnostic.{txt,json}` exited0 in2313.146seconds
+with54,590,809,296bytes maximum live heap and66,579MiB RTS memory under64GiB.
+It timed CMR, native/primitive/combined-overlay/isolated-candidate costs,
+serialization and profiling. That former diagnostic printed timings rather
+than the values, did not assert acceptance and omitted ablations. It therefore
+establishes construction capacity, not an additional accepted proof or a
+complete analysis result. The normal runner's8-vector/full-analysis attempt
+is preserved separately as `data/stark-full-corpus-pre-final.{txt,json}` and
+must have a successful completion before any complete-group claim is made.
+Its pre-final fingerprint will not be silently promoted to a later changed
+corpus. The `time` command now prints evaluated results, checks profile
+consistency, forces all ablations and asserts the first vector; the complete
+ChaCha20 diagnostic exercises that reporting path in
+`data/chacha-time-diagnostic-observability.{txt,json}`.
+
 **Historical unsound-builder measurements.** The 1,416,983.723 WU result
 below belongs to the earlier builder whose Haskell `Proof` interface forced
 copied witnesses to agree. Arbitrary same-CMR witnesses can violate that
