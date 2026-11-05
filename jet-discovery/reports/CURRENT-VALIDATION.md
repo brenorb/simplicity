@@ -1,7 +1,7 @@
 # Current validation checkpoint
 
-The source milestone contains144 registered rows,140 distinct counting groups
-and97 complete bounded spend/verifier groups. It does **not** meet the150-group
+The source milestone contains146 registered rows,142 distinct counting groups
+and99 complete bounded spend/verifier groups. It does **not** meet the150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
 missing cost, profile, serialization or ablation numbers.
@@ -16,6 +16,7 @@ missing cost, profile, serialization or ablation numbers.
 | BIP152 client | All13 direct and13 prepared same-CMR vectors pass, plus12 independent wire/reference checks; [scope](COMPACT-BLOCK.md) | Fresh metrics; bounded two-transaction legacy block; full consensus/finality external |
 | Private BIP47 client | All10 published notification/payment positives and9 actual corruption or re-signed payment negatives pass; [scope](PAYMENT-CODE.md) | Fresh shared metrics; offchain private interpreter only, budget feasibility inapplicable |
 | PSBT finalizer/extractor | All 23 native client vectors pass; exact published mixed legacy/SegWit finalization and extraction, full inventory of 96 published binary records; [scope](PSBT-FINALIZER.md) | Fresh shared metrics; fixed authenticated session maps, no general PSBT parser or spend-budget claim |
+| Delegated governance and quadratic funding | All 63 voting/treasury and 42 funded matching vectors pass; separate arithmetic/ancestry controls; [governance](SNAPSHOT-GOVERNOR.md), [funding](QUADRATIC-FUNDING-SCOPE.md) | Fresh shared metrics; bounded roster, clock and contribution domain explicit |
 | Optimistic assertion bonds | All 42 native UMA lifecycle vectors, 41 rounding checks, and all 11 linked wire/C/Haskell/CSV positives pass; [scope](UMA-BOND.md) | Fresh shared metrics; fixed arbitrator and deadline race explicit |
 | Funded Sablier cliff stream | All 38 native lifecycle vectors, 59 schedule checks and all 13 accepted wire/C/Haskell/ancestry controls pass; [scope](SABLIER-STREAM.md) | Fresh shared metrics; native signed cancellation valuation and freshness trust |
 | Cumulative pull payments | All 28 native vectors pass, including genuine two-input payout control, lifetime rounding and actual continuation; [scope](CUMULATIVE-SPLITTER.md) | Fresh shared metrics; one native BTC lineage and immutable payees |

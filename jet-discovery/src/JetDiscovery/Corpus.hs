@@ -23,6 +23,8 @@ import qualified JetDiscovery.Corpus.ContractGrowth as ContractGrowth
 import qualified JetDiscovery.Corpus.CumulativeSplitter as CumulativeSplitter
 import qualified JetDiscovery.Corpus.SablierStream as SablierStream
 import qualified JetDiscovery.Corpus.UmaBond as UmaBond
+import qualified JetDiscovery.Corpus.QuadraticFunding as QuadraticFunding
+import qualified JetDiscovery.Corpus.SnapshotGovernor as SnapshotGovernor
 import qualified JetDiscovery.Corpus.ContractMessageApps as ContractMessageApps
 import qualified JetDiscovery.Corpus.ContractBridge as ContractBridge
 import qualified JetDiscovery.Corpus.ClaimProtocols as ClaimProtocols
@@ -109,6 +111,8 @@ corpus = concat <$> sequence
   , pure CumulativeSplitter.entries
   , pure [SablierStream.entry]
   , pure [UmaBond.entry]
+  , pure QuadraticFunding.entries
+  , pure [SnapshotGovernor.entry]
   , pure ContractMessageApps.entries
   , pure ContractBridge.entries
   , pure ClaimProtocols.entries
