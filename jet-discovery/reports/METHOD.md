@@ -245,6 +245,27 @@ jet.  Nested groups overlap, so shares do not add up.
 
 ## Verification-burden estimates
 
+The final isolated-scenario ranking is reproduced with
+`python3 tools/rank_candidates.py --runner <same-frozen-full-run-executable>`.
+The executable's `fingerprint` command must match the successful full run's
+`data/run-fingerprint.txt`; missing, partial or stale output is rejected.
+Its `candidates` command supplies all21 frontend prices and their exact
+benchmark-analogue methods. Registry/vector/classification coverage and every
+cell of the isolated candidate matrix are checked before writing anything.
+
+`data/candidate-ranking-policy.json` records ordinal generality/proof-burden
+judgements and context weights, rather than measured proof hours. Original
+bounds already include occurrence multiplicity, so isolated bound savings
+are not multiplied by occurrences a second time. Each counting group receives
+at most one contribution per candidate family, selecting the largest positive
+isolated saving among variants/frontends. The two WOTS frontends share one
+family. This conservative envelope is not a measurement of composing both
+frontends. Raw individual rows, including zero matches and negative savings,
+remain in the primary per-candidate tables. Native full predicates, client
+verifiers and components/kernels have separate displayed savings; client-only
+evidence cannot silently become native onchain demand. Tier decisions remain
+explicit policy judgements requiring review of the fresh evidence.
+
 For each candidate, `candidates/*/README.md` names the closest existing jet
 whose C implementation was proven equivalent to its Simplicity specification
 on the `feat/jet-equivalence` work.  This was read-only: no proof work was

@@ -1,5 +1,7 @@
 # Candidate: `sha256_wots_chain_16_fixed`
 
+**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
+
 This is the fixed-width frontend of the SHA-256 WOTS chain primitive family.
 It makes the expensive verification step executable without carrying a
 variable-length SHA context through every chain. It is a candidate overlay

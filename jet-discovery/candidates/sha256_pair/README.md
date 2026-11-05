@@ -1,5 +1,7 @@
 # Candidate: `sha256_pair` — SHA-256 of a 64-byte concatenation
 
+**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
+
 ## Type signature
 `Word512 -> Word256`
 

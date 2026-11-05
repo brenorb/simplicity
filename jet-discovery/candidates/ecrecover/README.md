@@ -1,5 +1,7 @@
 # ecrecover
 
+**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
+
 Prototype only; no consensus registration.
 
 - **Type:** `(Word256, (Word256, (Word256, Bit))) -> Word256`, interpreted as `(z, (r, (s, recoveryParity)))`; result is a 160-bit Ethereum address zero-extended to 256 bits. Parity corresponds to Ethereum v=27/28. EIP155 transaction-v decoding is outside this function.

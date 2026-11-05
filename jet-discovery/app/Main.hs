@@ -20,6 +20,8 @@ import JetDiscovery.Snapshot (sourceFingerprint, saveResult, loadResult)
 import JetDiscovery.Corpus (corpus)
 import JetDiscovery.Mine (mine, groupsMarkdown, groupsTsv)
 import JetDiscovery.Candidates.Variants (variants)
+import JetDiscovery.Candidates.Registry (candidateInfo, CandidateInfo(..))
+import Simplicity.Weight (milliWeight)
 import Numeric (showFFloat)
 import qualified Simplicity.Bitcoin.Jets as Jets
 import Simplicity.Ty.Word (fromWord32)
@@ -44,13 +46,18 @@ main = do
     ["time", i] -> timeOne i
     ["index"] -> writeIndex
     ["metadata"] -> writeMetadata
+    ["fingerprint"] -> sourceFingerprint >>= putStrLn
+    ["candidates"] -> do
+      putStrLn "candidate\tcost_mwu_estimate\tmethod"
+      forM_ candidateInfo $ \c -> putStrLn (intercalate "\t"
+        [ciName c,show (milliWeight (ciCost c)),ciMethod c])
     ["stark-reference"] -> do
       putStrLn "generating and checking full-size Fibonacci STARK reference proof"
       hFlush stdout
       ok <- evaluate (FS.verify FS.realistic (FS.prove FS.realistic))
       print ok
       unless ok exitFailure
-    _ -> putStrLn "usage: jet-discovery [run [prefix] | verify <prefix> | profile <id> | time <id> | index | metadata | stark-reference]"
+    _ -> putStrLn "usage: jet-discovery [run [prefix] | verify <prefix> | profile <id> | time <id> | index | metadata | fingerprint | candidates | stark-reference]"
 
 -- Inventory only: force no Simplicity expression, cost or proof. Keeping this
 -- in the ordinary executable avoids separate GHCi/Backpack package loading.

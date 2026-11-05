@@ -1,5 +1,7 @@
 # Candidate: `p256_ecdsa_verify` — ECDSA verification over secp256r1 (P-256)
 
+**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
+
 ## Type signature
 `((Word256 qx_or_compressed, Word256 msg_hash), (Word256 r, Word256 s)) -> ()` (asserting, like `bip_0340_verify`)
 

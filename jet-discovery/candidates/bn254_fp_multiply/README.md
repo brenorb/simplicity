@@ -1,5 +1,7 @@
 # Candidate: `bn254_fp_multiply`
 
+**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
+
 Type: `(Word256, Word256) -> Word256`.
 
 The specification is `(a*b) mod p`, with

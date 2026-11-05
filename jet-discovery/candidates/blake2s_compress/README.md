@@ -1,5 +1,7 @@
 # Candidate: `blake2s_compress` — BLAKE2s compression function
 
+**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
+
 ## Type signature
 `((Vector8 Word32, Vector16 Word32), (Word32, Word32)) -> Vector8 Word32` (final-block flag set)
 

@@ -1,5 +1,7 @@
 # Candidate: `bip341_hashes` — BIP 341 precomputed transaction hashes
 
+**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
+
 ## Type signature
 `bip341_sha_outputs`, `bip341_sha_sequences`, `bip341_sha_prevouts`, `bip341_sha_amounts`, `bip341_sha_scriptpubkeys`: `1 -> Word256`; `bip341_current_sha_annex`: `1 -> S Word256`; for BIP 119, `bip119_sha_scriptsigs`: `1 -> S Word256` (none when every scriptSig is empty)
 
