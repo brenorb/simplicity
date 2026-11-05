@@ -1,12 +1,12 @@
 # Native protocol batch: current outcomes
 
-The three-outcome conditional-position application passed **all 29 native vectors**, the indexed loan passed **all 20**, and the fixed-config OCR consumer passed **all 11**. Their predicates/input encoding are unchanged from the compact source; independently generated canonical CMRs are used only for offchain fixture signing. Exact whole-program and per-vector CMR checks remain active. Three compact groups remain pending. No count or cost credit is assigned to unvalidated drafts or helper variants.
+The three-outcome conditional-position application passed **all 29 native vectors**, the indexed loan and batch settlement each passed **all 20**, and the fixed-config OCR consumer passed **all 11**. Their predicates/input encoding are unchanged from the compact source; independently generated canonical CMRs are used only for offchain fixture signing. Exact whole-program and per-vector CMR checks remain active. The two pool cohorts remain pending. No count or cost credit is assigned to unvalidated drafts or helper variants.
 
 | Application group | Current result | Evidence |
 |---|---|---|
 | `app-conditional-position-partitions` | **29/29PASS, exit0**, 879.57s, peak RSS29456875520 bytes; actual canonical CMR `c7881650b7686ef1cc12d6954b048c7759efb9ad0387f60fff82fffd3bccc975` | `data/claim-full29-fixture32g.txt`, exact hashes in `data/claim-full29-freeze.json` |
 | `app-interest-accruing-loan-rollover` | **20/20PASS, exit0**, 487.40s, peak RSS24217157632 bytes; exact canonical CMR `cdd787692459595d2da0b69e634bef5ea716042ef22b0ba53d6adb53dc9a5162` | `data/loan-full20-fixture32g.txt`, `data/loan-full20-freeze.json`, `data/loan-source-closure.json` |
-| `app-batch-limit-order-settlement` | canonical CMR extracted; fixture-only signing prepared;20 application vectors pending | `data/batch-orders-canonical-cmr32g.txt`, `data/batch-orders-fixture-cmr-change.json` |
+| `app-batch-limit-order-settlement` | **20/20 PASS, exit 0**, 907.21 s, peak RSS 34,551,889,920 bytes; exact canonical CMR `469318e34bffe46c42f771aa62ee9ccd7b0da2800ea35405ff5431bbc21e11f3` | `data/batch-orders-full20-fixture32g.txt`, `data/batch-orders-full20-freeze.json`, `data/batch-orders-source-closure.json` |
 | `app-ocr-report-state-machine` | **11/11 PASS, exit 0**, 333.41 s, peak RSS 10,887,577,600 bytes; exact canonical CMR `15035ac18ab2818a093ed0e3335d85c993b476ea66d13effb264199b0b593d28` | `data/ocr-full11-fixture32g.txt`, `data/ocr-full11-freeze.json`, `data/ocr-source-closure.json` |
 | `app-stableswap-pool-transition` | canonical CMR extracted; fixture-only signing prepared;23 application vectors pending | `data/stableswap-canonical-cmr32g.txt`, `data/stableswap-fixture-cmr-change.json` |
 | `app-weighted-pool-transition` | canonical CMR extracted; fixture-only signing prepared;18 application vectors pending | `data/weighted-pool-canonical-cmr32g.txt`, `data/weighted-pool-fixture-cmr-change.json` |

@@ -27,6 +27,7 @@ import qualified JetDiscovery.Corpus.ContractBridge as ContractBridge
 import qualified JetDiscovery.Corpus.ClaimProtocols as ClaimProtocols
 import qualified JetDiscovery.Corpus.NativeLoan as NativeLoan
 import qualified JetDiscovery.Corpus.NativeOcr as NativeOcr
+import qualified JetDiscovery.Corpus.NativeBatchOrders as NativeBatchOrders
 import qualified JetDiscovery.Corpus.MlDsaNtt as MlDsaNtt
 import qualified JetDiscovery.Lib.HdWallet as HdWallet
 import qualified JetDiscovery.Corpus.Xmss as Xmss
@@ -109,6 +110,7 @@ corpus = concat <$> sequence
   , pure ClaimProtocols.entries
   , pure NativeLoan.entries
   , pure NativeOcr.entries
+  , pure NativeBatchOrders.entries
   , pure EprintExpansion.entries
   , pure FairSwap.entries
   , pure BN254.entries

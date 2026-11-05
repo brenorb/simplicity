@@ -1,0 +1,118 @@
+{-# LANGUAGE RankNTypes,ScopedTypeVariables #-}
+-- | Native pre-registered signed limit orders over two fully BTC-backed claims.
+-- Clearing math/rounding follows GPv2; order encoding is explicitly native.
+module JetDiscovery.Corpus.NativeBatchOrders where
+import Prelude hiding (drop,take,not,and,or)
+import qualified Prelude as H
+import qualified Data.ByteString as BS
+import Data.Bits (testBit)
+import Data.Serialize (runPut,putWord64be)
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import qualified Simplicity.Programs.Word as W
+import qualified Simplicity.Programs.Arith as A
+import Simplicity.Programs.Sha256.Lib
+import Simplicity.Bitcoin.Term (Simplicity,Primitive)
+import qualified Simplicity.Bitcoin.Programs.TimeLock as TL
+import qualified Simplicity.Bitcoin.Jets as J
+import Simplicity.Ty.Word hiding (Vector)
+import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.ClaimLedger
+import JetDiscovery.Corpus.Apps (checkSigWith)
+import JetDiscovery.Corpus.Baseline (signMsg)
+import qualified JetDiscovery.Corpus.ContractGrowth as G
+import qualified JetDiscovery.Ref.Bip340 as R
+import JetDiscovery.Types
+import Simplicity.Digest (Hash256)
+import JetDiscovery.Tx (hashFromInteger)
+
+-- Offchain signature-fixture CMR only, independently extracted from the exact
+-- actual typed program; canonical and per-vector runtime checks remain active.
+batchFixtureCmr :: Hash256
+batchFixtureCmr=hashFromInteger 0x469318e34bffe46c42f771aa62ee9ccd7b0da2800ea35405ff5431bbc21e11f3
+
+type Order=Vector8 Word64
+orderField :: Core t => Int -> t Order Word64
+orderField i=G.pick (testBit i 2) (G.pick (testBit i 1) (G.pick (testBit i 0) iden))
+orderHashRef :: Assert t => t Order Word256
+orderHashRef=H.foldl (\ctx i->(ctx&&&orderField i)>>>ctx8Add8) (unit>>>ctx8InitTag "JetDiscovery/NativeCoW/Order") [0..7]>>>ctx8Finalize
+orderWrapped :: J.WrappedSimplicity Order Word256
+orderWrapped=J.jetSubst orderHashRef
+{-# NOINLINE orderWrapped #-}
+orderTerms who source=(((k (toInteger who)&&&source (18+who))&&&(source start&&&source (start+1)))&&&((source (start+2)&&&source (start+3))&&&(source (start+4)&&&k 42)))
+ where start=20+5*who
+orderRef who xs=R.taggedHash "JetDiscovery/NativeCoW/Order" (BS.concat [runPut (putWord64be (fromInteger i))|i<-[toInteger who,xs H.!!(18+who)]++H.take 5 (H.drop (20+5*who) xs)++[42]])
+validBookT :: Assert t => t Ledger ()
+validBookT=allChecks [validClaims field,same (field 15) (k 0),allChecks [same (field i) (k 0)|i<-[11..13]],le (field 30) (k 3),same (field 31) (k 0),one 0,one 1]
+ where
+  one who=select (is ((field 30&&&k (2^who))>>>W.bitwise_and word64) (k 0)) unit (allChecks [nonzero (field (18+who)),nonzero (field start),nonzero (field (start+1)),le (field (start+3)) (k 1),le (field (start+4)) (k 1),le (field (16+who)) (select (is (field (start+3)) (k 0)) (field start) (field (start+1)))])
+   where start=20+5*who
+batchT :: (Simplicity t,Primitive t) => CT t
+batchT=allChecks [base,old>>>validBookT,new>>>validBookT,choose (claimBranches++[(16,register 0),(17,register 1),(18,cancel),(19,settle),(20,pull False),(21,pull True),(22,fund False),(23,fund True)])]
+ where
+  bit who=k (2^who)
+  active who=same ((o 30&&&bit who)>>>W.bitwise_and word64) (bit who)
+  register who=allChecks [same actor (k (toInteger who)),nonzero (aux 0),nonzero (aux 1),le (aux 3) (k 1),le (aux 4) (k 1),checkSigWith (G.pk who) (orderTerms who n>>>J.unwrap orderWrapped) (signature 0),changes ([(16+who,k 0),(18+who,add (o (18+who)) (k 1)),(30,(o 30&&&bit who)>>>W.bitwise_or word64),nonce]++[(20+5*who+j,aux j)|j<-[0..4]]),noCash]
+  cancel=allChecks [actorSig,changes [nonce,(18,account (add (o 18) (k 1)) (o 18)),(19,account (o 19) (add (o 19) (k 1))),(30,(o 30&&&(account (bit 0) (bit 1)>>>W.complement word64))>>>W.bitwise_and word64)],noCash]
+  -- Return sell/buy/fee/fill, using source side-dependent rounding.
+  trade who=(sell,buy,fee,executed)
+   where
+    start=20+5*who
+    sellMax=o start;buyMin=o (start+1);feeMax=o (start+2)
+    sellKind=is (o (start+3)) (k 0)
+    partial=is (o (start+4)) (k 1)
+    sellPrice=if who==0 then aux 0 else aux 1
+    buyPrice=if who==0 then aux 1 else aux 0
+    executed=select partial (aux (2+who)) (select sellKind sellMax buyMin)
+    sell=select sellKind executed (G.floorRatio executed buyPrice sellPrice)
+    buy=select sellKind (G.ceilRatio executed sellPrice buyPrice) executed
+    fee=G.floorRatio feeMax executed (select sellKind sellMax buyMin)
+  (sell0,buy0,fee0,fill0)=trade 0
+  (sell1,buy1,fee1,fill1)=trade 1
+  limit who=let {start=20+5*who;sp=if who==0 then aux 0 else aux 1;bp=if who==0 then aux 1 else aux 0} in ((o (start+1)&&&bp)>>>A.multiply word64)&&&((o start&&&sp)>>>A.multiply word64)>>>A.le word128>>>verify
+  settle=allChecks [sigAt 2 0,active 0,active 1,nonzero (aux 0),nonzero (aux 1),nonzero fill0,nonzero fill1,limit 0,limit 1,changes [nonce,(3,sub (o 3) (add sell0 fee0)),(4,add (o 4) buy1),(5,add (o 5) buy0),(6,sub (o 6) (add sell1 fee1)),(7,sub (add (o 7) sell0) buy1),(8,sub (add (o 8) sell1) buy0),(9,add (o 9) fee0),(10,add (o 10) fee1),(16,add (o 16) fill0),(17,add (o 17) fill1)],noCash]
+  fund isB=allChecks [actorSig,nonzero amount,changes ([nonce,(if isB then 8 else 7,add (o (if isB then 8 else 7)) amount)]++setUser isB (sub (userBalance isB o) amount)),noCash]
+  pull isB=allChecks [sigAt 2 0,nonzero amount,konst (w32 (if isB then 900000 else 800000))>>>TL.checkLockHeight,changes [(0,sub (o 0) amount),(if isB then 2 else 1,sub (o (if isB then 2 else 1)) amount),(feeField,select fromFee (sub (o feeField) amount) (k 0)),(reserveField,select fromFee (o reserveField) (sub (o reserveField) (sub amount (o feeField)))),nonce],withdraw amount (destination 2)]
+   where feeField=if isB then 10 else 9;reserveField=if isB then 8 else 7;fromFee=(amount&&&o feeField)>>>A.le word64
+
+batchEntry=entry "app-batch-limit-order-settlement" "Native signed two-order clearing and cumulative fill book" "CoW GPv2Settlement computeTradeExecution and fill accounting; pinned source"
+ ["two native claim classes and two fixed owners; one active signed order per owner and nonce; native SHA256/BIP340 domain42 order registration, not foreign EIP712/ECDSA wire compatibility", "order0 sells A for B and order1 sells B for A; supports both sell/buy kinds and partial/fill-or-kill flags with exact source ceil-buy/floor-sell/proportional-fee rules", "solver2 signs actual settlement; one common price pair, committed cumulative fills and solver inventories absorb rounding; all token balance debits/credits/fees are fully collateralized native claims", "solver inventory funding is a signed voluntary transfer and inventory/fees have fixed solver ownership; orders remain valid until signed cancel/replacement, with no foreign current-time expiry claim or arbitrary callbacks"] batchT vectors
+ where
+  initial=update [] [(0,20000),(1,10000),(2,10000),(3,9900),(6,9900),(7,100),(8,100)]
+  step a xs=update a ((14,a H.!!14+1):xs)
+  reg0=step initial [(18,1),(20,1000),(21,1900),(22,10),(23,0),(24,1),(30,1)]
+  reg1=step reg0 [(19,1),(25,2200),(26,1000),(27,20),(28,1),(29,1),(30,3)]
+  half=step reg1 [(3,9395),(4,500),(5,1000),(6,8890),(9,5),(10,10),(16,500),(17,500)]
+  filled=step half [(3,8890),(4,1000),(5,2000),(6,7880),(9,10),(10,20),(16,1000),(17,1000)]
+  rounded=step reg1 [(3,9397),(4,499),(5,1003),(6,8889),(8,99),(9,4),(10,9),(16,499),(17,499)]
+  cancelled=step reg1 [(18,2),(30,2)]
+  fresh=step cancelled [(16,0),(18,3),(20,1000),(21,1900),(22,10),(23,0),(24,1),(30,3)]
+  funded=step reg1 [(3,9800),(7,200)]
+  pulled=step filled [(0,19990),(1,9990),(9,0)]
+  fok=update reg1 [(24,0),(29,0)]
+  fokFilled=step fok [(3,8890),(4,1000),(5,2000),(6,7880),(9,10),(10,20),(16,1000),(17,1000)]
+  v=vectorBound batchFixtureCmr
+  go label m a b who q aux signer funding payout height expected=v label batchT m a b who q aux [signer] funding payout height expected
+  registered label who a b expected=let { vec=go label (16+toInteger who) a b (toInteger who) 0 (H.take 5 (H.drop (20+5*who) b)) who 0 Nothing 0 expected; sig=G.sigW (signMsg (G.keys H.!!who) (orderRef who b)) } in vec {vecWitness=(vecWitness vec) {cwSigs=[sig]}}
+  wrongSig=let vec=registered "wrong owner cannot register order" 0 initial reg0 Reject in vec {vecWitness=(vecWitness vec){cwSigs=[G.sigW (signMsg (G.keys H.!!1) (orderRef 0 reg0))]}}
+  replay=let { vec=registered "old registered nonce signature cannot authorize replacement" 0 cancelled fresh Reject; sig=G.sigW (signMsg (G.keys H.!!0) (orderRef 0 reg0)) } in vec {vecWitness=(vecWitness vec){cwSigs=[sig]}}
+  vectors=[replay,registered "owner0 registers signed partial sell order" 0 initial reg0 Accept,
+   registered "owner1 registers signed partial buy order" 1 reg0 reg1 Accept,
+   go "shared2:1 clearing partially fills both kinds" 19 reg1 half 0 0 [2,1,500,500] 2 0 Nothing 0 Accept,
+   go "second fill reaches exact signed limits" 19 half filled 0 0 [2,1,500,500] 2 0 Nothing 0 Accept,
+   go "201:100 quote executes opposite ceil/floor rounding" 19 reg1 rounded 0 0 [201,100,499,499] 2 0 Nothing 0 Accept,
+   go "fill-or-kill ignores arbitrary executedAmount" 19 fok fokFilled 0 0 [2,1,1,7] 2 0 Nothing 0 Accept,
+   go "owner cancels nonce and disables resting order" 18 reg1 cancelled 0 0 [] 0 0 Nothing 0 Accept,
+   registered "fresh owner signature creates next nonce" 0 cancelled fresh Accept,
+   go "signed claim transfer funds solver inventory" 22 reg1 funded 0 100 [] 0 0 Nothing 0 Accept,
+   go "solver burns earned A fee into native payout" 20 filled pulled 2 10 [] 2 0 (Just (2,10)) 800000 Accept,
+   wrongSig,
+   go "non-solver cannot settle" 19 reg1 half 0 0 [2,1,500,500] 0 0 Nothing 0 Reject,
+   go "unfavorable shared price violates signed limit" 19 reg1 half 0 0 [1,1,500,500] 2 0 Nothing 0 Reject,
+   go "third fill exceeds cumulative maximum" 19 filled (step filled []) 0 0 [2,1,1,1] 2 0 Nothing 0 Reject,
+   go "cancelled order cannot be executed" 19 cancelled half 0 0 [2,1,500,500] 2 0 Nothing 0 Reject,
+   go "ceil buy cannot be rounded downward" 19 reg1 (update rounded [(5,1002),(8,100)]) 0 0 [201,100,499,499] 2 0 Nothing 0 Reject,
+   go "fee cannot be silently waived" 19 reg1 (update half [(3,9400),(9,0)]) 0 0 [2,1,500,500] 2 0 Nothing 0 Reject,
+   go "solver inventory cannot be fabricated" 22 reg1 (update funded [(3,9900),(1,10100)]) 0 100 [] 0 0 Nothing 0 Reject,
+   go "native fee burn binds recipient script" 20 filled pulled 2 10 [] 2 0 (Just (1,10)) 800000 Reject]
+entries=[batchEntry]

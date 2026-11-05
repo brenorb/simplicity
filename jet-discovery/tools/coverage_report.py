@@ -77,7 +77,7 @@ def classify_contract(dataset,r):
         if label=='Multicall3':
             return [],'ROUTING_NOT_A_NEW_PRIMITIVE','Call/read batching is not itself a new cryptographic verifier. Inner calls need trace-based identification; top-level receipts do not establish them.'
         if label=='CoW GPv2Settlement':
-            return [],'NATIVE_BATCH_VALIDATION_PENDING','Exact GPv2 order authorization and bounded native settlement are in validation. Solver auctions, arbitrary interaction execution, foreign token balances and full protocol semantics are outside that scope.'
+            return ['app-batch-limit-order-settlement'],'SOURCE_DERIVED_NATIVE_ADAPTATION','Bounded GPv2-derived fill/fee arithmetic, two signed native orders and fully backed native claim accounting. Uses native SHA256/BIP340 registration; no EIP712 compatibility, solver auction, arbitrary interaction execution, expiry or foreign token balances.'
         if label=='KyberSwap Aggregator router':
             return [],'UNIMPLEMENTED_ROUTE','Selected swap routes can constrain output allocations; the actual nested calls and mutable route/pool state are not ported.'
     if dataset in ['solana-compute','solana-24h-soltop']:
