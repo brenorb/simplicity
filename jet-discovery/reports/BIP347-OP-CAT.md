@@ -81,6 +81,15 @@ record carries no terminal exit status or RTS statistics.
 [Core evidence hashes](data/bip347-cat-core342-provenance.json)
 [Partial launch record](data/bip347-cat-core342-partial-launch.json)
 
+The diagnostic subsequently completed both direct split batches and
+exited successfully. All 521 splits totaling 520 bytes returned the
+reference bytes, and all 520 splits totaling 521 bytes with legal
+operand lengths rejected. Across the entire diagnostic, the host RTS
+reported 2,011.955 seconds elapsed, 5,955,801,712 bytes maximum
+residency and 12,479 MiB total memory in use.
+[Terminal vector and RTS log](data/bip347-cat-tail-tree-full342.txt)
+[Terminal launch and result hashes](data/bip347-cat-tail-tree-full342.json)
+
 | Quantity | Value |
 | --- | ---: |
 | Native static bound | 8,793.377 WU |
