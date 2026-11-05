@@ -9,5 +9,6 @@ import qualified JetDiscovery.Lib.ArkRefresh as ArkRefresh
 import qualified JetDiscovery.Lib.CompactFilters as CompactFilters
 import qualified JetDiscovery.Lib.CompactBlock as CompactBlock
 import qualified JetDiscovery.Lib.PaymentCode as PaymentCode
+import qualified JetDiscovery.Lib.Psbt as Psbt
 entries :: IO[Entry]
-entries=sequence[NumericDlc.entry,Bolt12Invoice.entry,ArkRefresh.entry,CompactFilters.entry,CompactBlock.entry,PaymentCode.entry]
+entries=sequence[NumericDlc.entry,Bolt12Invoice.entry,ArkRefresh.entry,CompactFilters.entry,CompactBlock.entry,PaymentCode.entry,Psbt.entry]
