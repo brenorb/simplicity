@@ -39,6 +39,28 @@ def atomic(path,value):
     temporary.replace(path)
 
 
+def count_fresh_passes(log, ident):
+    # A source label can contain a literal CR, e.g. the BIP340 CSV comment
+    # passed through the Haskell runner. Only LF terminates a process record.
+    # Verify a PASS follows the corresponding fresh evaluation record.
+    prefix=re.escape(ident.encode())+rb' / '
+    evaluate=re.compile(prefix+rb'([^\n]*): evaluating')
+    passed=re.compile(prefix+rb'([^\n]*): PASS \([^\n]*\)')
+    count=0
+    pending=None
+    for line in log.read_bytes().split(b'\n'):
+        start=evaluate.fullmatch(line)
+        finish=passed.fullmatch(line)
+        if start:
+            pending=start[1]
+        elif finish:
+            if pending!=finish[1]:
+                raise ValueError('PASS without matching fresh vector evaluation: '+ident)
+            count+=1
+            pending=None
+    return count
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--runner',type=Path,required=True)
@@ -155,8 +177,7 @@ def main():
             raise SystemExit(ident+': failed; exact log '+str(log))
         if verb=='run-one':
             if complete:
-                pattern=re.compile(re.escape(ident)+r' / .*: PASS \([^\n]*\)')
-                passes=sum(pattern.fullmatch(line) is not None for line in log.read_text().splitlines())
+                passes=count_fresh_passes(log,ident)
                 if passes!=counts[ident]:
                     raise SystemExit(ident+': expected fresh per-vector execution, found '+str(passes)+' PASS lines')
                 item['fresh_vector_passes']=passes

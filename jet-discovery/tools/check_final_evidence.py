@@ -10,6 +10,7 @@ import re
 import subprocess
 
 from publish_recommendations import publication_paths
+from run_isolated import count_fresh_passes
 
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'reports/data'
@@ -63,7 +64,8 @@ def main():
     for ident,item in successes.items():
         require(sha(ROOT/item['log'])==item['log_sha256'],'Execution log changed: '+ident)
         if ident in ids:
-            require(item['fresh_vector_passes']==counts[ident],'Missing fresh per-vector execution: '+ident)
+            require(item['fresh_vector_passes']==counts[ident]==count_fresh_passes(ROOT/item['log'],ident),
+                    'Missing fresh per-vector execution: '+ident)
             checkpoint=ROOT/'dist-newstyle/jet-discovery-results'/fp/(ident+'.snapshot')
             require(sha(checkpoint)==item['checkpoint_sha256'],'Checkpoint changed: '+ident)
     classes=json.loads((DATA/'corpus-classification.json').read_text())
