@@ -1,7 +1,7 @@
 # Current validation checkpoint
 
-The source milestone contains128 registered rows,124 distinct counting groups
-and83 complete bounded spend/verifier groups. It does **not** meet the150-group
+The source milestone contains129 registered rows,125 distinct counting groups
+and84 complete bounded spend/verifier groups. It does **not** meet the150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
 missing cost, profile, serialization or ablation numbers.
@@ -13,6 +13,7 @@ missing cost, profile, serialization or ablation numbers.
 | Silent payments and BIP127 reserve client | All9 native output-condition and7 client proof vectors pass with corrected raw outpoint bytes; actual C/Haskell wire checks and all9 legacy DER checks pass; [audit](OUTPOINT-BYTEORDER.md) | Fresh shared cost/profile run; old standard-wire compatibility claims withdrawn |
 | Numeric DLC, BOLT12 and Ark clients | Complete15 numeric DLC,14 signed invoice and14 current Bark hArk certificate vectors pass; canonical wire/C checks cover all DLC/Ark environments; [DLC](NUMERIC-DLC.md), [BOLT12](BOLT12-INVOICE.md), [Ark](ARK-REFRESH-SCOPE.md) | Fresh metrics; no onchain-feasibility credit for client verifiers |
 | BIP157/158 client | All10 official filter rows reconstructed and queried;52 actual source/boundary checks plus9 complete same-CMR vectors pass; [scope](COMPACT-FILTERS.md) | Fresh metrics; trusted checkpoint/completeness and false positives explicit |
+| BIP152 client | All13 direct and13 prepared same-CMR vectors pass, plus12 independent wire/reference checks; [scope](COMPACT-BLOCK.md) | Fresh metrics; bounded two-transaction legacy block; full consensus/finality external |
 | New native contract adaptations | Eight complete groups /84 vectors pass: vault/share ledger, asynchronous claims, ascending/sealed auctions, Squads, Permit2, compressed asset transfer and13of19 guardian bridge; [validation](CONTRACT-GROWTH-VALIDATION.md) | Fresh shared cost/profile run; other drafts receive zero credit |
 | Transport primitives | SipHash74, ChaCha20 block12 and Poly1305 MAC30 vectors pass; all named published sets covered; [scope](TRANSPORT-CRYPTO.md) | Three component families; fresh metrics |
 | WebAuthn | All17 enrolled counter-wallet vectors pass the full P-256/assertion/state/payment expression; [scope](CRYPTO-FAMILIES.md) | Fresh metrics; enrollment/browser trust explicit |

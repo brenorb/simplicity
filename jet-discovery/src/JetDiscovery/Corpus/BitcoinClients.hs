@@ -7,5 +7,6 @@ import qualified JetDiscovery.Lib.NumericDlc as NumericDlc
 import qualified JetDiscovery.Lib.Bolt12Invoice as Bolt12Invoice
 import qualified JetDiscovery.Lib.ArkRefresh as ArkRefresh
 import qualified JetDiscovery.Lib.CompactFilters as CompactFilters
+import qualified JetDiscovery.Lib.CompactBlock as CompactBlock
 entries :: IO[Entry]
-entries=sequence[NumericDlc.entry,Bolt12Invoice.entry,ArkRefresh.entry,CompactFilters.entry]
+entries=sequence[NumericDlc.entry,Bolt12Invoice.entry,ArkRefresh.entry,CompactFilters.entry,CompactBlock.entry]
