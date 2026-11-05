@@ -33,27 +33,28 @@ def sha(path):
 def fits(row):
     if row['feasibility_applicable'] == 'false':
         return 'n/a (client)'
-    budget = int(row['assumed_budget_wu'])
+    budget = int(row['effective_budget_wu'])
     before = int(row['current_mwu']) <= budget*1000
     after = int(row['isolated_mwu_estimate']) <= budget*1000
     return f"{'yes' if before else 'no'} / {'yes' if after else 'no'} at {budget} WU"
 
 
 def candidate_readme(path, name, rule, price, rows, fp):
-    matches = [r for r in rows if int(r['occurrences']) > 0]
+    matches = [r for r in rows if int(r['matched_dag_nodes']) > 0 or int(r['saving_mwu']) != 0]
     lines = [START, '', '## Final corpus evidence', '', f'Full-run fingerprint: `{fp}`.', '',
              f"**{rule['tier'].capitalize()}**: {rule['tier_reason']}", '',
              f"Price: **{wu(price['cost_mwu_estimate'])} WU (ESTIMATE)**. {price['method']}", '',
-             f"Matches in {len(matches)} of {len(rows)} registered rows, totalling "
-             f"{sum(int(r['occurrences']) for r in matches):,} static occurrences before family deduplication.", '']
+             f"Matches in {len(matches)} of {len(rows)} registered rows: "
+             f"{sum(int(r['matched_dag_nodes']) for r in matches):,} matched DAG nodes across all branches, "
+             f"{sum(int(r['occurrences']) for r in matches):,} selected-path occurrences before family deduplication.", '']
     if matches:
-        lines += [table(['program','scope','occurrences','native WU','isolated WU ESTIMATE','saved WU ESTIMATE','fixed hypothetical fit before / after'],
-                       [(r['program'],r['scope'],r['occurrences'],wu(r['current_mwu']),wu(r['isolated_mwu_estimate']),wu(r['saving_mwu']),fits(r))
+        lines += [table(['program','scope','selected occurrences','matched DAG nodes','native WU','isolated WU ESTIMATE','saved WU ESTIMATE','fixed hypothetical fit before / after'],
+                       [(r['program'],r['scope'],r['occurrences'],r['matched_dag_nodes'],wu(r['current_mwu']),wu(r['isolated_mwu_estimate']),wu(r['saving_mwu']),fits(r))
                         for r in matches]), '']
     else:
-        lines += ['No selected-path matches in the verified corpus.', '']
+        lines += ['No exact DAG matches in the verified corpus.', '']
     lines += [f'See the [complete matrix](../../reports/candidate-ranking.md#{name}) for zero-match rows and competing scenarios. '
-              'The budget scenario holds the original first-vector stack fixed. There is no candidate encoding, '
+              'The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, '
               'measured C price, or consensus feasibility claim.', '', END]
     block = '\n'.join(lines)
     original = path.read_text()
@@ -83,7 +84,7 @@ def final_report(fp, policy, ranked, results, groups, full):
              '[all source comparisons](coverage-and-costs.md) and [the complete candidate matrix](candidate-ranking.md).', '',
              '## Ranked candidate families', '',
              'Native static bounds are measured. All hypothetical prices, savings and scores are **ESTIMATE**. '
-             'Occurrences refer to the selected static bound path; different scenarios can select a different path.', '',
+             'Occurrences refer to the worst path after repricing. Matched groups also include off-path nodes. A positive saving can remain when the new worst path has zero occurrences.', '',
              policy['score_rule'], '', policy['deduplication'], '']
     for tier in TIERS:
         rows = [(i,r) for i,r in enumerate(ranked,1) if r['tier']==tier]
@@ -91,9 +92,9 @@ def final_report(fp, policy, ranked, results, groups, full):
         if not rows:
             lines += ['No candidates assigned to this tier.', '']
             continue
-        lines += [table(['overall rank','reference prototypes','groups','selected occurrences','native WU saved ESTIMATE',
+        lines += [table(['overall rank','reference prototypes','matched groups','saving groups','saving groups with zero selected occurrences','selected occurrences in scored rows','native WU saved ESTIMATE',
                          'client WU saved ESTIMATE','component/kernel WU saved ESTIMATE','score','generality / burden','reason'],
-                        [(i,', '.join(f'[{n}](../candidates/{n}/README.md)' for n in r['frontends']),r['groups'],r['occurrences'],
+                        [(i,', '.join(f'[{n}](../candidates/{n}/README.md)' for n in r['frontends']),r['matched_groups'],r['groups'],r['zero_selected_saving_groups'],r['occurrences'],
                           wu(r['native_mwu']),wu(r['client_mwu']),wu(r['component_mwu']),f"{Decimal(r['score']):,.3f}",
                           f"{r['generality']} / {r['burden']}",r['tier_reason']) for i,r in rows]), '']
     lines += ['## Cost-only and unprototyped concepts', '',
@@ -105,7 +106,7 @@ def final_report(fp, policy, ranked, results, groups, full):
               (ROOT/'reports/bip-verdicts.md').read_text().split('\n',1)[1].strip(), '',
               '## Limits that affect these recommendations', '',
               '- Bitcoin execution receives its budget from the caller. Witness stack bytes + 50 is a stated scenario. '
-              'Client verifiers have no onchain fit result. The first-vector stack and native program encoding are held '
+              'Fit applies the in-tree cap. Client verifiers have no onchain fit result. The first-vector stack and native program encoding are held '
               'fixed because a hypothetical jet has no assigned encoding.',
               '- Static bounds are not latency. Selected-path counts are not network call frequencies. The corpus '
               'and context weights affect the order; C benchmarks and proofs could change the tier decisions.',

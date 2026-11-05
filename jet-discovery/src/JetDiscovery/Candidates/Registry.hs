@@ -55,7 +55,7 @@ candidateInfo =
   , CandidateInfo "sha256_wots_chain_16" (15 * cost "Sha256Block") "15 x Sha256Block: a Winternitz chain is at most 15 compressions (the jet is priced at its worst case)"
   , CandidateInfo "sha256_wots_chain_16_fixed" (15 * cost "Sha256Block") "ESTIMATE: 15 x Sha256Block for the fixed 18-byte-address n16 chain frontend; same primitive family as sha256_wots_chain_16"
   , CandidateInfo "sha256_pair" (2 * cost "Sha256Block") "2 x Sha256Block: SHA-256 of 64 bytes is two compressions"
-  , CandidateInfo "pubkey_unpack_neg" (cost "FeNormalize") "FeNormalize: a range check and a negation on one field element"
+  , CandidateInfo "pubkey_unpack_neg" (cost "FeNormalize") "FeNormalize analogue: one field-range check and a parity tag; the coordinate is returned unchanged"
   , CandidateInfo "signature_unpack" (cost "FeNormalize" + cost "ScalarNormalize") "FeNormalize + ScalarNormalize: range checks on r and s"
   , CandidateInfo "div_mod_256" (4 * cost "DivMod128_64") "4 x DivMod128_64: schoolbook 256-bit division by 64-bit limbs"
   , CandidateInfo "multiply_128" (4 * cost "Multiply64") "4 x Multiply64: four 64x64 products"

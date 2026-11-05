@@ -97,7 +97,7 @@ def main():
     require(not any(s=='-p' or s.startswith('--pattern') for s in harness['command']),'Local harness was filtered')
     require(sha(ROOT/harness['frozen_executable'])==harness['executable_sha256'],'Local test executable changed')
     tasty=re.search(r'^All (\d+) tests passed',harness_log.read_text(),re.M)
-    require(tasty and int(tasty.group(1))>=43,'Complete current Tasty suite is missing')
+    require(tasty and int(tasty.group(1))>=45,'Complete current Tasty suite is missing')
     for name,digest in harness['source_sha256'].items():
         if name.startswith(('app/','src/','test/')) or name in {'cabal.project','jet-discovery.cabal'}:
             require(sha(ROOT/name)==digest,'Current harness source differs: '+name)
@@ -132,6 +132,10 @@ def main():
     budgets={r['program']:int(r['assumed_budget_wu']) for r in impacts}
     cap_text=(ROOT.parent/'C/limitations.h').read_text()
     cap=int(re.search(r'^#define BUDGET_MAX (\d+)U$',cap_text,re.M).group(1))
+    require(all(int(r['maximum_budget_wu'])==cap and
+                int(r['effective_budget_wu'])==min(cap,budgets[r['program']]) and
+                int(r['assumed_budget_wu'])==budgets[r['program']] for r in impacts),
+            'Candidate budget evidence disagrees with the actual C cap')
     over={r['id']:int(r['cost_mwu']) for r in rows if r['execution_context']!='client-verifier'
           and int(r['cost_mwu'])>1000*min(cap,budgets[r['id']])}
     by_program=collections.Counter()

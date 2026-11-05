@@ -66,13 +66,14 @@ assumedWitnessStackBytes sizes = compactSize (toInteger (length sizes)) + sum [c
 
 resultsMarkdown :: [EntryResult] -> String
 resultsMarkdown rs = unlines $
-  [ "| id | category | execution context | vectors | cost (WU) | prims-only baseline (WU) | jet saving | what-if (WU) | % of BUDGET_MAX | program bytes | witness bytes | assumed budget (WU) | fits assumed budget |"
+  [ "| id | category | execution context | vectors | cost (WU) | prims-only baseline (WU) | jet saving | what-if (WU) | % of BUDGET_MAX | program bytes | witness bytes | raw hypothetical budget (WU) | fits capped hypothetical budget |"
   , "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |" ] ++
   map row rs
  where
   row r = let e = erEntry r; m = erMeasure r
               wsb = witnessStackBytes m
-              budget = witnessBudgetModel wsb
+              rawBudget = witnessBudgetModel wsb
+              budget = min budgetMax rawBudget
               vs = erVectors r
           in "| `" ++ entryId e ++ "` | " ++ show (entryCategory e)
              ++ " | " ++ executionContext e
@@ -82,7 +83,7 @@ resultsMarkdown rs = unlines $
              ++ " | " ++ wu (mCostWhatIf m)
              ++ " | " ++ pct (mCost m) (budgetMax * 1000)
              ++ " | " ++ show ((mProgBits m + 7) `div` 8) ++ " | " ++ show ((mWitBits m + 7) `div` 8)
-             ++ " | " ++ show budget
+             ++ " | " ++ show rawBudget
              ++ " | " ++ (if clientMode e then "n/a (client verifier)" else if mCost m <= budget * 1000 then "yes" else "no (" ++ wu (mCost m - budget * 1000) ++ " WU deficit)")
              ++ " |"
   ratio a b | b == 0 = "-"
@@ -102,16 +103,16 @@ resultsTsv rs = unlines $
 -- worst-branch changes. Different rows are alternatives and are not additive.
 candidateImpactMarkdown :: [EntryResult] -> String
 candidateImpactMarkdown rs=unlines $
-  ["| program | candidate | isolated occurrences | current WU | isolated WU (ESTIMATE) | WU saved | fits fixed hypothetical budget, before / after |",
-   "| --- | --- | ---: | ---: | ---: | ---: | --- |"]++
-  ["| `"++entryId (erEntry r)++"` | ["++name++"](../candidates/"++name++"/README.md) | "++show count++" | "++wu (mCost m)++" | "++wu after++" | "++wu (mCost m-after)++" | "++fits (mCost m)++" / "++fits after++" |"
-  |r<-rs,let m=erMeasure r,(name,(after,count))<-mCandidateCosts m,count>0,
-   let fits cost=if clientMode (erEntry r) then "n/a (client verifier)" else if cost<=1000*witnessBudgetModel (witnessStackBytes m) then "yes" else "no"]
+  ["| program | candidate | selected-path occurrences | matched DAG nodes | current WU | isolated WU (ESTIMATE) | WU saved | fits fixed hypothetical budget, before / after |",
+   "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |"]++
+  ["| `"++entryId (erEntry r)++"` | ["++name++"](../candidates/"++name++"/README.md) | "++show count++" | "++show sites++" | "++wu (mCost m)++" | "++wu after++" | "++wu (mCost m-after)++" | "++fits (mCost m)++" / "++fits after++" |"
+  |r<-rs,let m=erMeasure r,(name,(after,count,sites))<-mCandidateCosts m,sites>0 || mCost m/=after,
+   let fits cost=if clientMode (erEntry r) then "n/a (client verifier)" else if cost<=1000*min budgetMax (witnessBudgetModel (witnessStackBytes m)) then "yes" else "no"]
 
 candidateImpactTsv :: [EntryResult] -> String
-candidateImpactTsv rs=unlines $ intercalate "\t" ["program","candidate","occurrences","current_mwu","isolated_mwu_estimate","saving_mwu","assumed_budget_wu","execution_context","feasibility_applicable"]:
-  [intercalate "\t" [entryId (erEntry r),name,show count,show (mCost m),show after,show (mCost m-after),show (witnessBudgetModel (witnessStackBytes m)),executionContext (erEntry r),if clientMode (erEntry r) then "false" else "true"]
-  |r<-rs,let m=erMeasure r,(name,(after,count))<-mCandidateCosts m]
+candidateImpactTsv rs=unlines $ intercalate "\t" ["program","candidate","occurrences","matched_dag_nodes","current_mwu","isolated_mwu_estimate","saving_mwu","assumed_budget_wu","maximum_budget_wu","effective_budget_wu","execution_context","feasibility_applicable"]:
+  [intercalate "\t" [entryId (erEntry r),name,show count,show sites,show (mCost m),show after,show (mCost m-after),show budget,show budgetMax,show (min budget budgetMax),executionContext (erEntry r),if clientMode (erEntry r) then "false" else "true"]
+  |r<-rs,let m=erMeasure r,(name,(after,count,sites))<-mCandidateCosts m,let budget=witnessBudgetModel (witnessStackBytes m)]
 
 -- | Per-program what-if: which candidates matched (with multiplicity) and the new bound.
 whatIfMarkdown :: [EntryResult] -> String
@@ -158,12 +159,12 @@ budgetHotspotsMarkdown rs = unlines $
   , ""
   , "Every non-client program above its first-vector witness-stack-bytes + 50 WU scenario or the in-tree maximum caller budget appears below. The first comparison is hypothetical. The per-kind values sum exclusive node weight times selected-path multiplicity; they partition the bound, including unique nodes. The separate largest node uses its own exclusive contribution. Ablations reprice the original expression with the named jet family removed."
   , ""
-  , "| program | native WU | hypothetical budget WU | deficit WU | above maximum caller budget | largest exclusive contributors (WU, share) | largest exact node (CMR and exclusive WU) | largest ablation increase WU |"
+  , "| program | native WU | raw hypothetical budget WU | capped deficit WU | above maximum caller budget | largest exclusive contributors (WU, share) | largest exact node (CMR and exclusive WU) | largest ablation increase WU |"
   , "| --- | ---: | ---: | ---: | --- | --- | --- | ---: |"
   ] ++ map row (budgetHotspots rs)
  where
   row (r,budget,byKind,node) = intercalate " | "
-    ["| `"++entryId (erEntry r)++"`",wu (mCost m),show budget,wu (max 0 (mCost m-1000*budget)),
+    ["| `"++entryId (erEntry r)++"`",wu (mCost m),show budget,wu (max 0 (mCost m-1000*min budget budgetMax)),
      if mCost m>1000*budgetMax then "yes" else "no",
      intercalate "; " [kind++" "++wu c++" ("++pct c (mCost m)++")" | (kind,c)<-take 5 byKind],
      niKind node++" `"++hex (hashToBytes (niCmr node))++"` "++wu (niSelf node*niMult node),

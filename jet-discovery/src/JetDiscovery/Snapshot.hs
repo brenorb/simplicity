@@ -21,7 +21,7 @@ import JetDiscovery.Tx (sha256, hashToBytes, hex, unhex)
 
 data STy = U | W Integer | S STy STy | P STy STy deriving (Read, Show)
 data SNode = SN Int Word64 String Word64 String STy STy Integer Integer Integer Int deriving (Read, Show)
-data SMeasure = SM String [Integer] [SNode] [(String,Integer)] [(String,(Integer,Integer))] [(String,Integer)] deriving (Read, Show)
+data SMeasure = SM String [Integer] [SNode] [(String,Integer)] [(String,(Integer,Integer,Integer))] [(String,Integer)] deriving (Read, Show)
 data Snapshot = Snapshot Int String String SMeasure [(String,Bool,Bool,String)] deriving (Read, Show)
 
 toTy = snd . T.memoCataTy go
@@ -48,7 +48,7 @@ packM m = SM (hashText (mCmr m))
   (map packNode (mProfile m)) (mWhatIfJets m) (mCandidateCosts m) (mAblations m)
 unpackM (SM c [w,b,f,p,v,n,t] ns js cs as) = Measurement (readHash c) w b f (fromInteger p) (fromInteger v) (fromInteger n) (map unpackNode ns) js cs t as
 unpackM _ = error "invalid snapshot measurement schema"
-pack fp r = Snapshot 2 fp (entryId (erEntry r)) (packM (erMeasure r))
+pack fp r = Snapshot 3 fp (entryId (erEntry r)) (packM (erMeasure r))
   [(vrName v,vrExpect v==Accept,vrOk v,vrNote v) | v<-erVectors r]
 unpack e (Snapshot _ _ _ m vs) = EntryResult e (unpackM m)
   [VectorResult n (if expected then Accept else Reject) ok note | (n,expected,ok,note)<-vs]
@@ -67,7 +67,7 @@ loadResult dir fp e = do
   if not exists then return Nothing else do
     contents<-readFile path
     return $ case readMaybe contents of
-      Just s@(Snapshot 2 stored ident _ vs) | stored==fp && ident==entryId e &&
+      Just s@(Snapshot 3 stored ident _ vs) | stored==fp && ident==entryId e &&
         [(name,expected)|(name,expected,_,_)<-vs]==vectorHeaders e -> Just (unpack e s)
       _ -> Nothing
  where vectorHeaders (Entry _ _ _ _ _ _ _ vs)=[(vecName v,vecExpect v==Accept)|v<-vs]

@@ -15,7 +15,7 @@ ESTIMATE: `FeMultiply` = 0.813 WU (16 small-limb products and reductions).
 Circle STARK verification (FRI folding, DEEP quotients, OODS evaluations).
 
 ## Verification burden (judgement, by analogy with jets proven on `feat/jet-equivalence`)
-Low to medium: small integer arithmetic.
+Low to medium. C can use 16 unsigned 32×32 full products, Mersenne folds, and fixed add/subtract steps for the two extension levels. At read-only `feat/jet-equivalence` revision `771d41b98acc3750308a07c76405125bbc8439cd`, `Coq/C/jet_multiply_wide_exec.v` and its contract snapshot cover the 32-bit multiply-to-64-bit execution pattern. `Coq/C/jet_add32_wide_word.v` covers the carry and payload relation for addition. The new obligations are the M31 reduction, the coefficient order and reduction identities for both extension levels, and the exact frame and output layout. The independent field comparison uses canonical M31 coefficients. A jet proof must also match the arrow on every raw Word32 input accepted by its type.
 
 ## Alternatives considered
 Only `m31_mul`: QM31 then costs 16 jet calls plus plumbing.

@@ -55,7 +55,7 @@ missing cost, profile, serialization or ablation numbers.
 | Vault recovery and aggregation bounds | Single-input and batch vault replay 10/10; additional guarded cross-input replay 18/18, including actual 16/17-input boundaries; [scope](VAULT-RECOVERY-BOUNDS.md) | Fresh shared metrics; one-input full-value recovery and enforced 16-input shared scan |
 | Older settlement/guard repairs | DLC settlement11, Merkle-key4, Uniswap-v2 kernel10, P2MR7 and modular multiplication6 pass | All389 CTV,19 template/annex and32 upstream P2MR vectors also pass; fresh shared metrics remain |
 | Full custom STARK | All8 full-size vectors and all analysis fields pass; native1,497,462.342WU; combined overlay252,144.216WU ESTIMATE; [complete snapshot](data/stark-full-pre-final-measurements.json) | Final frozen whole-corpus run; this pre-final binary has21 candidate frontends |
-| Analysis | Full42-test suite passes816.99s; prepared-path3, candidate-recognition and canonical wire regressions pass; [record](data/harness-isolated-backend-current42.json) | Complete larger-corpus run remains |
+| Analysis | Earlier 42-test suite passed in 816.99s. Five current focused tests passed, including direct unpack equivalence, per-program mining output and the candidate saving with zero selected occurrences; [focused record](data/harness-reporting-focus45.json) | Run the full current 45-test suite |
 | Upstream | Unchanged C suite98/98 and Haskell suite3252/3252 pass; default100 QuickCheck cases, no filter; [completion](data/upstream-validation-status.json) | No further upstream source changes are planned |
 
 All listed pass claims have observed successful exit status or a separately

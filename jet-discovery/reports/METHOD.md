@@ -268,7 +268,8 @@ assumptions, not an established Bitcoin spending format. The table reports
 the WU deficit for programs that do not fit; it supplies no valid witness
 padding procedure or claim that arbitrary trailing data would be accepted.
 Candidate feasibility holds this original serialized stack's assumed budget
-fixed. Hypothetical jets have no assigned consensus encoding, so their changed
+fixed and caps the comparison at the in-tree maximum. The candidate-impact
+TSV preserves the raw assumption, the maximum, and their minimum. Hypothetical jets have no assigned consensus encoding, so their changed
 program length and any resulting budget change cannot be measured here. A
 before/after fit is therefore conditional on that fixed scenario, not a Bitcoin
 deployment claim.
@@ -302,7 +303,13 @@ Every profile root CMR must equal the library-computed program CMR, and its self
 
 Each group's **total** is the sum over programs of multiplicity × the
 sub-DAG's static bound.  That is the part of the corpus's cost spent inside
-it.  Groups are reported only if they are repeated (multiplicity ≥ 2, or found
+it. The Markdown table shows each program's selected-path occurrence count
+and inclusive WU. The exact and shape TSVs store semicolon-separated
+program-ID/count pairs in programs and program-ID/inclusive-mWU pairs in
+program_inclusive_mwu. Both pair formats use a colon delimiter. Their per-program
+inclusive mWU add to total_mwu. The maximum single-program share uses the
+combined weight of all the group's type instantiations in that program.
+Groups are reported only if they are repeated (multiplicity ≥ 2, or found
 in ≥ 2 programs), cost at least 1 WU per instance, and are not already a single
 jet.  Nested groups overlap, so shares do not add up. [Budget hotspots](budget-hotspots.md)
 uses exclusive profile weight times multiplicity, including unique nodes,
@@ -326,7 +333,12 @@ at most one contribution per candidate family, selecting the largest positive
 isolated saving among variants/frontends. The two WOTS frontends share one
 family. This conservative envelope is not a measurement of composing both
 frontends. Raw individual rows, including zero matches and negative savings,
-remain in the primary per-candidate tables. Native full predicates, client
+remain in the primary per-candidate tables. `matched_dag_nodes` counts
+distinct matched nodes across all branches, with shared nodes counted once.
+The `occurrences` field counts multiplicity only on the selected worst path
+after repricing. A candidate can reduce the original worst branch until
+another branch sets the bound; the report and score retain positive savings
+even when the new path has zero occurrences. Native full predicates, client
 verifiers and components/kernels have separate displayed savings; client-only
 evidence cannot silently become native onchain demand. Tier decisions remain
 explicit policy judgements requiring review of the fresh evidence.

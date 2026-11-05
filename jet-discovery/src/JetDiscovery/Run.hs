@@ -72,7 +72,7 @@ data Measurement = Measurement
   , mNodes      :: Int
   , mProfile    :: [NodeInfo]  -- ^ profile of the jetted DAG
   , mWhatIfJets :: [(String, Integer)]  -- ^ candidates matched, with multiplicity
-  , mCandidateCosts :: [(String,(Integer,Integer))] -- ^ candidate -> (isolated ESTIMATE milliWU, static multiplicity)
+  , mCandidateCosts :: [(String,(Integer,Integer,Integer))] -- ^ candidate -> (isolated ESTIMATE milliWU, selected multiplicity, matched DAG nodes)
   , mProfileTotal :: Integer  -- ^ consistency check: must equal 'mCost'
   , mAblations :: [(String, Integer)]  -- ^ milliWU with a jet family removed (only when the program uses that family)
   }
@@ -214,7 +214,7 @@ runEntryIO e@(Entry _ _ _ _ _ _ prog vecs) = do
       -- completed cost can retain its large source DAG until candidate counts
       -- are requested after a second interpretation has already been built.
       forceWhatIf = mCostWhatIf m `seq` forcePairs (mWhatIfJets m) `seq`
-        foldl' (\() (name,(cost,count))->forceText name `seq` cost `seq` count `seq` ()) () (mCandidateCosts m)
+        foldl' (\() (name,(cost,count,sites))->forceText name `seq` cost `seq` count `seq` sites `seq` ()) () (mCandidateCosts m)
       forceProfile = mNodes m `seq` mProfileTotal m `seq` foldl' (\() n -> forceNode n) () (mProfile m)
       forceM = [ ("jetted CMR",() <$ evaluate (hashToInteger (mCmr m)))
                , ("native bound",() <$ evaluate (mCost m))

@@ -101,14 +101,20 @@ def main():
         if int(r['current_mwu']) != int(results[ident]['cost_mwu']):
             raise ValueError('impact original bound differs: '+ident)
         saving = int(r['current_mwu'])-int(r['isolated_mwu_estimate'])
+        sites, selected_count = int(r['matched_dag_nodes']), int(r['occurrences'])
+        if min(sites, selected_count) < 0 or (sites == 0 and (selected_count or saving)):
+            raise ValueError('isolated result has impossible site/count/cost evidence: '+ident+'/'+name)
         if saving != int(r['saving_mwu']):
             raise ValueError('impact subtraction mismatch')
+        effective = min(int(r['assumed_budget_wu']), int(r['maximum_budget_wu']))
+        if int(r['effective_budget_wu']) != effective:
+            raise ValueError('capped budget evidence differs: '+ident)
         kind = context(classes[ident])
         if (r['feasibility_applicable'] == 'false') != (kind == 'client'):
             raise ValueError('client feasibility disagreement: '+ident)
         r = dict(r, scope=kind, count_group=classes[ident]['count_group'])
         details[name].append(r)
-        if int(r['occurrences']) <= 0 or saving <= 0:
+        if saving <= 0:
             continue
         family = candidates[name]['family']
         group = r['count_group']
@@ -125,6 +131,8 @@ def main():
             raise ValueError('family frontends need consistent ranking policy')
         rule = rules[0]
         rows = list(selected[family].values())
+        matched_groups = {r['count_group'] for name in fronts for r in details[name]
+                          if int(r['matched_dag_nodes']) > 0}
         totals = collections.Counter()
         weighted = Decimal(0)
         for r in rows:
@@ -132,7 +140,8 @@ def main():
             totals[r['scope']] += amount
             weighted += Decimal(amount)*Decimal(str(policy['context_weights'][r['scope']]))
         score = weighted*rule['generality']/rule['burden']/1000
-        ranked.append(dict(family=family, frontends=fronts, groups=len(rows),
+        ranked.append(dict(family=family, frontends=fronts, groups=len(rows), matched_groups=len(matched_groups),
+                           zero_selected_saving_groups=sum(int(r['occurrences'])==0 for r in rows),
                            occurrences=sum(int(r['occurrences']) for r in rows),
                            native_mwu=totals['native_full_spend']+totals['native_full_verifier'],
                            client_mwu=totals['client'], component_mwu=totals['protocol_component']+totals['kernel'],
@@ -149,19 +158,19 @@ def main():
              'All hypothetical prices, overlays, savings and scores are **ESTIMATE**. Original expression bounds are measured. This is a complete isolated-scenario matrix, not a combination of candidate savings.', '',
              policy['score_rule'], '', policy['deduplication'], '',
              'Context weights are explicit judgement: '+json.dumps(policy['context_weights'], sort_keys=True)+'. Static occurrences already affect each measured bound difference; multiplying by occurrences again would double-count that benefit.', '',
-             table(['rank', 'family', 'tier', 'deduplicated groups', 'selected occurrences', 'native WU saved ESTIMATE', 'client WU saved ESTIMATE', 'component/kernel WU saved ESTIMATE', 'weighted score', 'generality / burden'],
-                   [(i, r['family'], r['tier'], r['groups'], r['occurrences'], wu(r['native_mwu']), wu(r['client_mwu']), wu(r['component_mwu']), f"{Decimal(r['score']):,.3f}", f"{r['generality']} / {r['burden']}") for i, r in enumerate(ranked, 1)]), '',
+             table(['rank', 'family', 'tier', 'matched groups', 'saving groups', 'saving groups with zero selected occurrences', 'selected occurrences in scored rows', 'native WU saved ESTIMATE', 'client WU saved ESTIMATE', 'component/kernel WU saved ESTIMATE', 'weighted score', 'generality / burden'],
+                   [(i, r['family'], r['tier'], r['matched_groups'], r['groups'], r['zero_selected_saving_groups'], r['occurrences'], wu(r['native_mwu']), wu(r['client_mwu']), wu(r['component_mwu']), f"{Decimal(r['score']):,.3f}", f"{r['generality']} / {r['burden']}") for i, r in enumerate(ranked, 1)]), '',
              '## Every candidate and program', '',
-             'The tables retain every program row, including zero matches and negative savings. Feasibility is only the first-vector fixed hypothetical witness budget. Client rows are inapplicable. No candidate has an assigned consensus encoding.', '']
+             'The tables retain every program row, including off-path matches and negative savings. Matched DAG nodes include all branches and count each shared node once. Selected occurrences use the worst path after repricing; a different branch can become the bound, leaving zero selected occurrences and a positive saving. Feasibility uses the first-vector fixed hypothetical witness budget capped by the in-tree maximum. Client rows are inapplicable. No candidate has an assigned consensus encoding.', '']
     for name in prices:
         c = candidates[name]
         lines += ['## `'+name+'`', '',
                   '[Specification, C/proof burden and alternatives](../candidates/'+name+'/README.md).', '',
                   'Price: '+wu(prices[name]['cost_mwu_estimate'])+'WU **ESTIMATE**. '+prices[name]['method'], '',
                   c['rationale']+' Tier: '+c['tier']+'. '+c['tier_reason'], '',
-                  table(['program / count group', 'scope', 'occurrences', 'current WU', 'isolated WU ESTIMATE', 'WU saved ESTIMATE', 'fixed hypothetical fit before / after'],
-                        [(r['program']+' / '+r['count_group'], r['scope'], r['occurrences'], wu(r['current_mwu']), wu(r['isolated_mwu_estimate']), wu(r['saving_mwu']),
-                          'n/a (client)' if r['scope']=='client' else ('yes' if int(r['current_mwu'])<=1000*int(r['assumed_budget_wu']) else 'no')+' / '+('yes' if int(r['isolated_mwu_estimate'])<=1000*int(r['assumed_budget_wu']) else 'no'))
+                  table(['program / count group', 'scope', 'selected occurrences', 'matched DAG nodes', 'current WU', 'isolated WU ESTIMATE', 'WU saved ESTIMATE', 'fixed hypothetical fit before / after'],
+                        [(r['program']+' / '+r['count_group'], r['scope'], r['occurrences'], r['matched_dag_nodes'], wu(r['current_mwu']), wu(r['isolated_mwu_estimate']), wu(r['saving_mwu']),
+                          'n/a (client)' if r['scope']=='client' else ('yes' if int(r['current_mwu'])<=1000*int(r['effective_budget_wu']) else 'no')+' / '+('yes' if int(r['isolated_mwu_estimate'])<=1000*int(r['effective_budget_wu']) else 'no'))
                          for r in details[name]]), '']
     (ROOT/'reports/candidate-ranking.md').write_text('\n'.join(lines)+'\n')
     inputs = ['run-fingerprint.txt', 'corpus-results.tsv', 'corpus-metadata.tsv',

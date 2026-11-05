@@ -77,19 +77,20 @@ wu m = showFFloat (Just 3) (fromInteger m / 1000 :: Double) ""
 
 groupsMarkdown :: Integer -> Int -> [Group] -> String
 groupsMarkdown corpusTotal n gs = unlines $
-  [ "| rank | sub-DAG id | CMR (representative for shape groups) | root combinator | type signature | WU per instance | occurrences | programs | total WU | corpus share | max single-program share |"
+  [ "| rank | sub-DAG id | CMR (representative for shape groups) | root combinator | type signature | max WU per instance | occurrences | programs (occurrences and inclusive WU) | total WU | corpus share | max single-program share |"
   , "| ---: | --- | --- | --- | --- | ---: | ---: | --- | ---: | ---: | ---: |" ] ++
   [ "| " ++ show i ++ " | `" ++ gKey g ++ "` | `" ++ gCmr g ++ "` | " ++ gKind g ++ " | `" ++ intercalate " \\| " (gSig g) ++ "` | " ++ wu (gPerInstance g)
-    ++ " | " ++ show (gOccurrences g) ++ " | " ++ intercalate ", " [ p ++ " ×" ++ show m | (p, m, _) <- gPrograms g ]
+    ++ " | " ++ show (gOccurrences g) ++ " | " ++ intercalate ", " [ p ++ " ×" ++ show m ++ " (" ++ wu total ++ " WU)" | (p, m, total) <- gPrograms g ]
     ++ " | " ++ wu (gTotal g) ++ " | " ++ pctD (fromInteger (gTotal g) / fromInteger (max 1 corpusTotal)) ++ " | " ++ pctD (gMaxShare g) ++ " |"
   | (i, g) <- zip [1 :: Int ..] (take n gs) ]
  where
-  clip k s = if length s > k then take (k - 1) s ++ "…" else s
   pctD x = showFFloat (Just 1) (100 * x) "%"
 
 groupsTsv :: [Group] -> String
 groupsTsv gs = unlines $
-  intercalate "\t" ["id","cmr","kind","signature","per_instance_mwu","occurrences","programs","total_mwu","max_share"] :
+  intercalate "\t" ["id","cmr","kind","signature","per_instance_mwu","occurrences","programs","program_inclusive_mwu","total_mwu","max_share"] :
   [ intercalate "\t" [ gKey g, gCmr g, gKind g, intercalate " | " (gSig g), show (gPerInstance g), show (gOccurrences g)
-                     , intercalate ";" [ p ++ ":" ++ show m | (p, m, _) <- gPrograms g ], show (gTotal g), show (gMaxShare g) ]
+                     , intercalate ";" [ p ++ ":" ++ show m | (p, m, _) <- gPrograms g ]
+                     , intercalate ";" [ p ++ ":" ++ show total | (p, _, total) <- gPrograms g ]
+                     , show (gTotal g), show (gMaxShare g) ]
   | g <- gs ]

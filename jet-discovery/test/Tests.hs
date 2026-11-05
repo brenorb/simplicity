@@ -59,8 +59,8 @@ import qualified JetDiscovery.Corpus.Lms as Lms
 import JetDiscovery.Types (Prog(..), boundProgram, boundView, BoundView(..), boundEligible, Entry(..), Vector(..), Expect(..), Category(..), VectorSource(..))
 import JetDiscovery.Run (progCmr, runVector, runVectors, vrOk, vrNote, measure, Measurement(..), runEntry, erMeasure)
 import JetDiscovery.Profile (niCmr)
-import JetDiscovery.Report (assumedWitnessStackBytes)
-import JetDiscovery.Mine (mine,Group(..))
+import JetDiscovery.Report (assumedWitnessStackBytes,wu)
+import JetDiscovery.Mine (mine,groupsMarkdown,groupsTsv,Group(..))
 import JetDiscovery.Candidates.Impact (directIsolatedCost)
 import JetDiscovery.Reprice (primitiveCost,restrictedCost)
 import JetDiscovery.JetSets (PrimOnly, Ablate, NoSecpCurve, NoSecp, NoSha256)
@@ -184,6 +184,11 @@ main = defaultMain $ testGroup "jet-discovery"
       gOccurrences g @?= 2
       length (gSig g) @?= 2
       gMaxShare g @?= fromInteger (gTotal g)/fromInteger (mCost (erMeasure result))
+      gPrograms g @?= [("mining-types",2,gTotal g)]
+      assertBool "mining TSV publishes the per-program inclusive mWU"
+        (("mining-types:"++show (gTotal g)) `L.isInfixOf` groupsTsv [g])
+      assertBool "mining Markdown publishes the per-program count and WU"
+        (("mining-types ×2 ("++wu (gTotal g)++" WU)") `L.isInfixOf` groupsMarkdown (mCost (erMeasure result)) 1 [g])
   , testCase "isolated candidate costs match independent substitution" $ do
       let rec=Prog (witness (W.toWord256 123,(W.toWord256 456,(W.toWord256 789,Left ()))) >>> Contract.ecRecover >>> unit)
           branch=Prog ((witness (Left () :: Either () ()) &&& unit) >>> cond
@@ -191,14 +196,24 @@ main = defaultMain $ testGroup "jet-discovery"
             (witness (W.toWord256 123,(W.toWord256 456,(W.toWord256 789,Left ()))) >>> Contract.ecRecover >>> unit))
           padded=Prog (witness (vec32 (map W.toWord64 [0..31])) >>> Hashes.keccakF >>> unit)
           check p name=do
-            let Just (cost,count)=lookup name (mCandidateCosts (measure p))
+            let Just (cost,count,sites)=lookup name (mCandidateCosts (measure p))
             cost @?= directIsolatedCost name p
-            assertBool "nonnegative static multiplicity" (count>=0)
+            assertBool "nonnegative static multiplicity and match sites" (count>=0 && sites>=0)
       mapM_ (check rec) ["ecrecover","keccak_f1600","sha256_pair"]
       mapM_ (check branch) ["ecrecover","keccak_f1600","sha256_pair"]
       mapM_ (check padded) ["keccak_f1600","sha256_pair"]
-      let Just (_,nested)=lookup "keccak_f1600" (mCandidateCosts (measure rec))
+      let Just (_,nested,nestedSites)=lookup "keccak_f1600" (mCandidateCosts (measure rec))
       nested @?= 1
+      nestedSites @?= 1
+      let switch = Prog ((witness (Left () :: Either () ()) &&& unit) >>> cond
+            (konst (W.toWord512 1) >>> sha256Pair >>> unit)
+            (foldr (>>>) unit (replicate 20 unit)))
+          switched = measure switch
+          Just (after,selected,sites) = lookup "sha256_pair" (mCandidateCosts switched)
+      after @?= directIsolatedCost "sha256_pair" switch
+      assertBool "candidate lowers the bound after the worst branch switches" (after<mCost switched)
+      selected @?= 0
+      sites @?= 1
   , testCase "prejetted helpers retain hypothetical candidate matches" $ do
       let raw=Prog (witness (W.toWord512 1)>>>sha256Pair>>>unit)
           cached=Prog (witness (W.toWord512 1)>>>Jets.unwrap (Jets.jetSubst sha256Pair)>>>unit)
@@ -207,7 +222,7 @@ main = defaultMain $ testGroup "jet-discovery"
       mCost a @?= mCost b
       mCostWhatIf a @?= mCostWhatIf b
       lookup "sha256_pair" (mCandidateCosts a) @?= lookup "sha256_pair" (mCandidateCosts b)
-      assertBool "candidate survives prepared native helper" (maybe False ((>0).snd) (lookup "sha256_pair" (mCandidateCosts b)))
+      assertBool "candidate survives prepared native helper" (maybe False (\(_,count,sites)->count>0 && sites>0) (lookup "sha256_pair" (mCandidateCosts b)))
   , testCase "restricted jet costs match independent substitution" $ do
       let sha=Prog (witness (W.toWord512 1) >>> sha256Pair >>> unit)
           curve=Prog (witness ((W.toWord256 1,W.toWord256 2),W.toWord256 1) >>> Secp.gej_double >>> unit)
@@ -279,6 +294,20 @@ main = defaultMain $ testGroup "jet-discovery"
         mapM_ (\(a,b)->fmap W.fromWord32 (run KoalaBear.addRef (W.toWord32 a,W.toWord32 b)) @?= Just(KoalaBearRef.addWordSpec a b)) xs
         KoalaBearRef.addWordSpec (2^32-1)(2^32-1) @?= 2164260861
         assertBool "raw noncanonical words keep specified single-reduction behavior" (KoalaBearRef.addWordSpec (2^32-1)(2^32-1)>=q)
+    , testCase "pubkey_unpack_neg agrees with the Integer range and parity specification" $ do
+        let p = Bip340.p
+            expected x = if x<p then Right (Right (),W.toWord256 x) else Left ()
+            xs = [0,1,Bip340.pubkeyOf 1,p-2,p-1,p,p+1,2^256-1]
+        Bip340.liftX 0 @?= Nothing
+        mapM_ (\x -> run Secp.pubkey_unpack_neg (W.toWord256 x) @?= Just (expected x)) xs
+    , testCase "signature_unpack agrees with the independent field and scalar ranges" $ do
+        let p = Bip340.p
+            n = Bip340.n
+            expected r s = if r<p && s<n then Right (W.toWord256 r,W.toWord256 s) else Left ()
+            rs = [0,1,n,p-2,p-1,p,p+1,2^256-1]
+            ss = [0,1,n-2,n-1,n,n+1,p-1,2^256-1]
+        mapM_ (\(r,s) -> run Secp.signature_unpack (W.toWord256 r,W.toWord256 s)
+                         @?= Just (expected r s)) [(r,s) | r<-rs,s<-ss]
     , testCase "m31_mul" $ do
         let xs = take 40 [ (a `mod` Stark.p31, b `mod` Stark.p31) | (a, b) <- pairs (rands 1) ]
         mapM_ (\(a, b) -> fmap W.fromWord32 (run Stark.m31Mul (W.toWord32 a, W.toWord32 b)) @?= Just (Stark.hMul a b)) xs

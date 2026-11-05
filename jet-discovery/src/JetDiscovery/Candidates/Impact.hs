@@ -78,16 +78,19 @@ closure=go S.empty
                  | otherwise=go (S.insert x seen) (M.findWithDefault [] x dependencies++xs)
 
 type OverlayDag=I.SimplicityDag Seq Ty (SomeArrow WhatIf) UntypedValue
-isolatedCosts :: Integer -> [String] -> OverlayDag -> [(String,(Integer,Integer))]
-isolatedCosts nativeCost direct dag=[(name,if S.member name affected then scenario name else (nativeCost,0))|name<-map ciName candidateInfo]
+-- Each row records the static bound, selected-path multiplicity, and
+-- distinct matched DAG nodes including off-path branches.
+isolatedCosts :: Integer -> [String] -> OverlayDag -> [(String,(Integer,Integer,Integer))]
+isolatedCosts nativeCost direct dag=[(name,if S.member name affected then scenario name else (nativeCost,0,0))|name<-map ciName candidateInfo]
  where
   affected=closure direct
   scenario name=case someSymbolVal name of SomeSymbol p->forName p
-  forName :: forall name. KnownSymbol name => Proxy name -> (Integer,Integer)
+  forName :: forall name. KnownSymbol name => Proxy name -> (Integer,Integer,Integer)
   forName _=
     let raw=either (error.("candidate reconstruction: "++)) id (I.typeCheck dag) :: D.JetDag (Only name) () ()
         prof=profile (\(Only j)->label j) (\j->milliWeight (J.jetCost j)) (const Nothing) (D.jetDag raw)
-    in (niTotal (last prof),sum [niMult n|n<-prof,niKind n=="jet:cand:"++symbolVal (Proxy :: Proxy name)])
+        matches=[n|n<-prof,niKind n=="jet:cand:"++symbolVal (Proxy :: Proxy name)]
+    in (niTotal (last prof),sum (map niMult matches),toInteger (length matches))
 
 -- Independent whole-program route for regression tests, without starting
 -- from any combined overlay or using the dependency shortcut.
