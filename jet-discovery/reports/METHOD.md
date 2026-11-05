@@ -329,6 +329,19 @@ matches in every candidate README. The final recommendations include the
 complete numbered and unnumbered proposal verdicts. Stale fingerprints and
 pending tier decisions cannot replace the current reports.
 
+For the final audit, export `corpus-metadata.tsv` from the frozen runner (or
+copy the cohort's exact `registry.tsv`). After publication, run:
+
+```sh
+python3 tools/check_final_evidence.py --cohort <isolated-manifest.json> --harness <unfiltered-tests-run.json>
+```
+
+The audit checks each exact entry log and checkpoint hash, all generated
+core table hashes, tested source/data, actual upstream results, every
+candidate README and named source table, and the scope of the Git diff. The
+fork update is independently verified after the signed final push.
+
+
 For each candidate, `candidates/*/README.md` names the closest existing jet
 whose C implementation was proven equivalent to its Simplicity specification
 on the `feat/jet-equivalence` work.  This was read-only: no proof work was
