@@ -1,6 +1,6 @@
 # Current validation checkpoint
 
-The source milestone contains139 registered rows,135 distinct counting groups
+The source milestone contains140 registered rows,136 distinct counting groups
 and93 complete bounded spend/verifier groups. It does **not** meet the150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
@@ -22,6 +22,7 @@ missing cost, profile, serialization or ablation numbers.
 | Conditional positions | Complete29 native vectors pass plus independent focused layout/accounting review; [validation](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; remaining three compact drafts remain uncounted |
 | Native BIP32 wallet | All9 source/derivation/boundary controls and11 full native vectors pass; [scope](HD-WALLET.md) | Fresh shared metrics; unchanged hmac37 body with additive later helpers explicit |
 | FairSwap file-sale escrow | All 24 actual native vectors pass under one canonical CMR, including the two-input payout regression; [scope and evidence](FAIRSWAP-NATIVE-SCOPE.md) | Fresh shared metrics; native CSV lower bounds and deadline races explicit |
+| Bounded BLAKE3-256 | All 22 actual native vectors pass, including all 19 supported official unkeyed cases and three negatives; [scope](CRYPTO-FAMILIES.md) | One hash component, not a full application; fresh exact overlay match counts pending |
 | BN254 Fp and Fp2 | All 12 actual vectors and complete two-entry costs; separate typed arrows and explicit dense arithmetic extrapolation [evidence](bn254-groth16.md) | Pre-final; no complete pairing verifier or budget claim |
 | Full degree256 NTT | All15 full polynomial/direction/canonicality vectors pass; original source restored byte-for-byte after failed retention experiments; [restoration](data/ntt-original-restored.json) | Component only; complete final measurements run in its own process |
 | New native contract adaptations | Eight complete groups /84 vectors pass: vault/share ledger, asynchronous claims, ascending/sealed auctions, Squads, Permit2, compressed asset transfer and13of19 guardian bridge; [validation](CONTRACT-GROWTH-VALIDATION.md) | Fresh shared cost/profile run; other drafts receive zero credit |

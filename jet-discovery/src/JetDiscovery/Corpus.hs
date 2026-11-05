@@ -17,6 +17,7 @@ import qualified JetDiscovery.Corpus.BitcoinClients as BitcoinClients
 import qualified JetDiscovery.Corpus.TransportCrypto as TransportCrypto
 import qualified JetDiscovery.Corpus.WebAuthn as WebAuthn
 import qualified JetDiscovery.Corpus.Poseidon2 as Poseidon2
+import qualified JetDiscovery.Corpus.Blake3 as Blake3
 import qualified JetDiscovery.Corpus.Shake256 as Shake256
 import qualified JetDiscovery.Corpus.ContractGrowth as ContractGrowth
 import qualified JetDiscovery.Corpus.CumulativeSplitter as CumulativeSplitter
@@ -94,6 +95,7 @@ corpus = concat <$> sequence
   , TransportCrypto.entries
   , pure WebAuthn.entries
   , pure Poseidon2.entries
+  , Blake3.entries
   , Shake256.entries
   , pure MlDsaNtt.entries
   , pure ScriptProposals.entries

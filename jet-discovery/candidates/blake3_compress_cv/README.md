@@ -24,12 +24,12 @@ order; byte serialization is outside this arrow.
   scales the existing BLAKE2s cost analogue by seven versus ten rounds; both
   mix 32-bit words. A real C benchmark may differ with setup, feed-forward
   and CPU acceleration. The current registry rounds this analogue to **0.535 WU (ESTIMATE)**.
-- Demand: this expression is used by the bounded unkeyed BLAKE3-256 hash
-  draft, with a Bitcoin dispute path evidenced by the pinned
+- Demand: this expression is used by the bounded unkeyed BLAKE3-256 hash, with a Bitcoin dispute path evidenced by the pinned
   [BitVM BLAKE3 source](../../vendor-specs/crypto-families/bitvm-blake3.rs.txt).
   Exact corpus matches, per-program isolated savings and budget effects are
-  pending the full hash validation and the fresh corpus run. This candidate
-  adds no corpus group.
+  pending the fresh corpus run. All 22 native hash vectors pass, including
+  all 19 supported official cases; see [validation](../../reports/CRYPTO-FAMILIES.md).
+  This candidate adds no corpus group.
 - Burden: medium. C needs 16 local state words, fixed add/XOR/rotate operations,
   seven message schedules and eight feed-forward outputs. At the read-only
   `feat/jet-equivalence` revision `771d41b98acc3750308a07c76405125bbc8439cd`,
