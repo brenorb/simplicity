@@ -108,6 +108,33 @@ def main():
 
     upstream=json.loads((DATA/'upstream-validation-status.json').read_text())
     git=lambda *args: subprocess.check_output(['git',*args],cwd=ROOT,text=True).strip()
+    migration=cohort.get('migration')
+    if migration is not None:
+        prior=ROOT/migration['prior_manifest']
+        digest=migration['prior_manifest_sha256']
+        require(prior.resolve()==args.cohort.resolve().parent/('manifest-before-parallel-'+digest+'.json')
+                and not prior.is_symlink() and sha(prior)==digest,
+                'Archived serial coordinator manifest differs')
+        old=json.loads(prior.read_text())
+        require(old['complete_registry'] and not old['complete'] and
+                all(item['exit_status'] is not None for item in old['attempts']),
+                'Parallel handoff did not preserve a quiescent partial cohort')
+        immutable=('fingerprint','runner','runner_sha256','source_commit_at_start','metadata_sha256','registry_rows','targets')
+        require(all(old[k]==cohort[k] for k in immutable) and
+                old['attempts']==cohort['attempts'][:len(old['attempts'])],
+                'Parallel handoff changed original run identity or attempts')
+        legacy=migration['legacy_commit']
+        require(legacy=='b76b5f16c3194bbffc6f66d6ba496cc5adab268a' and
+                git('show','-s','--format=%G?',legacy)=='G' and
+                legacy==old['source_commit_at_start'],
+                'Parallel handoff did not use the pinned signed serial coordinator')
+        blob=subprocess.check_output(['git','show',legacy+':jet-discovery/tools/run_isolated.py'],cwd=ROOT)
+        require(hashlib.sha256(blob).hexdigest()==old['coordinator_sha256']==migration['legacy_coordinator_sha256'],
+                'Signed serial coordinator source differs')
+        credited=[item['id'] for item in old['attempts'] if 'checkpoint_sha256' in item]
+        require(credited==migration['verified_checkpoints'] and
+                all(sha(ROOT/item['log'])==item['log_sha256'] for item in old['attempts']),
+                'Archived serial checkpoint or log evidence differs')
     require(git('branch','--show-current')=='feat/bitcoin-jet-discovery','Unexpected branch')
     require(git('remote','get-url','fork')=='https://github.com/brenorb/simplicity.git','Unexpected fork remote')
     changed=git('diff','master','--name-only').splitlines()
@@ -182,6 +209,7 @@ def main():
                           vectors=sum(counts.values()),candidate_frontends=len(names),candidate_families=len(ranked),
                           isolated_scenarios=len(impacts),source_rows=dict(sources),harness_tests=int(tasty.group(1)),
                           upstream_c=98,upstream_haskell=3252,cohort_sha256=sha(args.cohort),
+                          coordinator_handoff_sha256=migration['prior_manifest_sha256'] if migration else None,
                           harness_provenance_sha256=sha(args.harness),recommendations_sha256=sha(recommendations),
                           scope='all tracked differences from master under jet-discovery/'),indent=2))
 

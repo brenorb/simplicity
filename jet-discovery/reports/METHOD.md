@@ -88,6 +88,28 @@ the deliberately disconnected default versus APO sighash pair documented in
 [DISCONNECTED-SIGHASH.md](DISCONNECTED-SIGHASH.md). Heap size
 is a runtime resource cap, not a changed mathematical parameter.
 
+The coordinator can run two ordinary entries at once with
+`--jobs 2 --heap 40G --tail-heap 64G`. It runs the explicit `--last` list
+and strict aggregation in one process at a time. Every child writes its
+own log and checkpoint; the coordinator alone writes the manifest.
+A failure or signal stops new launches and lets active children finish
+and record their outcomes. Locks prevent a second writer for the same
+fingerprint, label, or full publication.
+
+The one supported handoff from signed serial coordinator `b76b5f16`
+requires it and its children to have exited. Use `--resume`, the same
+`--last` list and `--migrate-b76b5f16 <sha256-of-the-quiescent-manifest>`.
+The new coordinator archives the exact old manifest, checks the pinned
+signed coordinator, verifies the exact prior logs and checkpoints, and
+runs any uncredited entry anew. The final audit checks that the archived
+attempts are unchanged. A [scratch integration test](data/parallel-coordinator-smoke.txt)
+uses mock child processes to check the scheduling and failure paths; it
+supplies no Simplicity measurements. To reproduce that test in an empty
+scratch directory, put this coordinator at `proposed/tools/run_isolated.py`,
+the signed previous file at `base/tools/run_isolated.py`, and copy
+[data/parallel-coordinator-smoke.py.txt](data/parallel-coordinator-smoke.py.txt)
+to `verify_mock.py`, then run `python3 verify_mock.py` there.
+
 Checkpoints live under `dist-newstyle/jet-discovery-results/<fingerprint>/`.
 They retain all numeric costs, candidate counts/scenarios, typed profiles,
 CMRs, ablations and vector outcomes as plain data. Both vector names and

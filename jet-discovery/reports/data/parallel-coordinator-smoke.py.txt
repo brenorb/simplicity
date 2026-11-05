@@ -1,0 +1,302 @@
+#!/usr/bin/env python3
+"""Scratch-only integration tests. The runner and git responses here are mocks."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+
+SCRATCH=Path(__file__).resolve().parent
+BASE=SCRATCH/'base/tools/run_isolated.py'
+PROPOSED=SCRATCH/'proposed/tools/run_isolated.py'
+COMMIT='b76b5f16c3194bbffc6f66d6ba496cc5adab268a'
+TAIL=['heavy-p256','heavy-webauthn','heavy-stark']
+REPORTS=['corpus/README.md','reports/corpus-results.md','reports/whatif.md',
+         'reports/ablations.md','reports/subdags.md','reports/candidate-impact.md',
+         'reports/budget-hotspots.md','reports/data/budget-hotspots.tsv',
+         'reports/data/corpus-results.tsv','reports/data/candidate-impact.tsv',
+         'reports/data/subdags-exact.tsv','reports/data/subdags-shape.tsv',
+         'reports/data/run-fingerprint.txt']
+
+RUNNER=r'''#!/usr/bin/env python3
+import hashlib,json,os,sys,time
+from pathlib import Path
+root=Path.cwd()
+config=json.loads((root/'mock-config.json').read_text())
+fp=hashlib.sha256((str(root)+str(Path(__file__).resolve())).encode()+Path(__file__).read_bytes()).hexdigest()
+override=root/'mock-fingerprint-breach'
+if override.exists(): fp='e'*64
+verb=sys.argv[1]
+if verb=='metadata':
+ print('id\ttitle\tcategory\tspec\tvector_source\tvectors\tassumptions')
+ for ident in config['ids']:
+  assumption='mock' if config.get('orphan_once') else ''
+  print(f'{ident}\tTitle\tCategory\tSpec\tMock\t2\t{assumption}')
+elif verb=='fingerprint': print(fp)
+elif verb=='aggregate':
+ for name in config['reports']:
+  out=root/name
+  out.parent.mkdir(parents=True,exist_ok=True)
+  out.write_text(fp+'\n' if name.endswith('run-fingerprint.txt') else 'mock report\n')
+elif verb=='run-one':
+ ident=sys.argv[2]
+ checkpoint=root/'dist-newstyle/jet-discovery-results'/fp/(ident+'.snapshot')
+ checkpoint.parent.mkdir(parents=True,exist_ok=True)
+ if checkpoint.exists():
+  print(ident+' ... 1 WU (verified checkpoint)')
+  print(ident+' exact-entry checkpoint verified')
+  sys.exit(0)
+ def event(kind):
+  fd=os.open(root/'events.jsonl',os.O_WRONLY|os.O_APPEND|os.O_CREAT,0o600)
+  try: os.write(fd,(json.dumps([ident,kind,time.monotonic(),sys.argv[-3]])+'\n').encode())
+  finally: os.close(fd)
+ event('start')
+ time.sleep(config['sleep'].get(ident,.01))
+ flag=root/('mock-first-'+ident)
+ if ident==config.get('fail_once') and not flag.exists():
+  flag.write_text('failed once')
+  print('mock heap failure',flush=True)
+  event('exit')
+  sys.exit(251)
+ print('running '+ident+' (vectors and static analysis)',flush=True)
+ for label in ['empty', 'literal\rCR and trailing blanks ']:
+  print(ident+' / '+label+': evaluating',flush=True)
+  print(ident+' / '+label+': PASS (accepted)',flush=True)
+ checkpoint.write_text(json.dumps([fp,ident,'fresh']))
+ if ident==config.get('orphan_once') and not flag.exists():
+  flag.write_text(str(os.getpid()))
+  time.sleep(30)
+ print(ident+' exact-entry checkpoint verified',flush=True)
+ event('exit')
+else: sys.exit(64)
+'''
+
+GIT=r'''#!/usr/bin/env python3
+# Deliberate local mock: signing anchor is independently verified against real git.
+import os, sys
+from pathlib import Path
+args=sys.argv[1:]
+commit=os.environ['MOCK_SIGNED_COMMIT']
+if args[0] in {'diff','ls-files'}: pass
+elif args==['rev-parse','HEAD']: print(commit)
+elif args==['show','-s','--format=%G?',commit]: print('G')
+elif args==['show',commit+':jet-discovery/tools/run_isolated.py']:
+ sys.stdout.buffer.write(Path(os.environ['MOCK_SIGNED_BLOB']).read_bytes())
+else: sys.exit('unexpected mock git args '+repr(args))
+'''
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def check(condition,message):
+    if not condition:
+        raise AssertionError(message)
+
+def setup(name,ids,sleeps=None,**faults):
+    folder=Path(tempfile.mkdtemp(prefix=name+'-',dir=SCRATCH))
+    root=folder/'jet-discovery'
+    for file in ['src/JetDiscovery/Fixture.hs','app/Main.hs','cabal.project']:
+        target=root/file
+        target.parent.mkdir(parents=True,exist_ok=True)
+        target.write_text('fixture\n')
+    (root/'jet-discovery.cabal').write_text('library\n  exposed-modules: JetDiscovery.Fixture\nexecutable jet-discovery\n')
+    (root/'tools').mkdir()
+    shutil.copyfile(PROPOSED,root/'tools/run_isolated.py')
+    shutil.copyfile(BASE,root/'tools/run_legacy.py')
+    (root/'mock-config.json').write_text(json.dumps(dict(ids=ids,sleep=sleeps or {},reports=REPORTS,**faults)))
+    runner=root/'runner'
+    runner.write_text(RUNNER)
+    runner.chmod(0o700)
+    shim=folder/'bin/git'
+    shim.parent.mkdir()
+    shim.write_text(GIT)
+    shim.chmod(0o700)
+    env=dict(os.environ,PATH=str(shim.parent)+os.pathsep+os.environ['PATH'],
+             MOCK_SIGNED_COMMIT=COMMIT,MOCK_SIGNED_BLOB=str(BASE))
+    return root,env
+
+def command(root,label,extra,legacy=False):
+    return [sys.executable,str(root/'tools'/('run_legacy.py' if legacy else 'run_isolated.py')),
+            '--runner',str(root/'runner'),'--label',label,*extra]
+
+def run(root,env,label,extra,expected=0,includes=None):
+    result=subprocess.run(command(root,label,extra),cwd=root,env=env,stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT,text=True,timeout=20)
+    check(result.returncode==expected,result.stdout)
+    if includes: check(includes in result.stdout,result.stdout)
+    return result
+
+def manifest(root,label):
+    return root/'reports/data'/('isolated-'+label)/'manifest.json'
+
+def read(path):
+    return json.loads(path.read_text())
+
+def wait_for(predicate):
+    until=time.monotonic()+10
+    while time.monotonic()<until:
+        if predicate(): return
+        time.sleep(.04)
+    raise AssertionError('mock timeout')
+
+def events(root):
+    p=root/'events.jsonl'
+    return [json.loads(line) for line in p.read_text().splitlines()] if p.exists() else []
+
+def completed_invariants(root, record):
+    check(record['complete'] and record['complete_registry'], 'full cohort did not finish')
+    check(set(record['published_sha256'])==set(REPORTS),'publication set')
+    check(all(sha(root/name)==digest for name,digest in record['published_sha256'].items()), 'publication hashes')
+    picked={a['id']:a for a in record['attempts'] if a['exit_status']==0}
+    check(set(picked)==set(record['targets'])|{'strict-aggregation'},'terminal successes')
+    for ident in record['targets']:
+        item=picked[ident]
+        check(item['fresh_vector_passes']==2 and sha(root/item['log'])==item['log_sha256'],'fresh count/log')
+        cp=root/'dist-newstyle/jet-discovery-results'/record['fingerprint']/(ident+'.snapshot')
+        check(sha(cp)==item['checkpoint_sha256'],'snapshot hash')
+    check(all('-M64G' in picked[name]['command'] for name in TAIL+['strict-aggregation']),'tail caps')
+    ordered=[name for name,kind,_,_ in events(root) if kind=='start' and name in TAIL]
+    check(ordered==TAIL,'tail start order')
+    positions={(name,kind):t for name,kind,t,_ in events(root) if name in TAIL}
+    check(all(positions[(a,'exit')] < positions[(b,'start')] for a,b in zip(TAIL,TAIL[1:])),'tail overlapped')
+
+def test_failure_and_resume():
+    ids=['failure','partner','ordinary-next',*TAIL]
+    root,env=setup('drain-failure',ids,{'failure':.5,'partner':1.1},fail_once='failure')
+    flags=['--jobs','2','--heap','3G','--tail-heap','64G','--last',*TAIL]
+    run(root,env,'drain',flags,expected=1,includes='drained active jobs')
+    path=manifest(root,'drain')
+    record=read(path)
+    check([a['id'] for a in record['attempts']]==['failure','partner'],'dispatched work after observed failure')
+    failure,partner=record['attempts']
+    check(failure['exit_status']==251 and 'checkpoint_sha256' not in failure,'incorrect failure credit')
+    check(partner['exit_status']==0 and partner['fresh_vector_passes']==2,'unrecorded drained partner')
+    position={(name,kind):t for name,kind,t,_ in events(root)}
+    check(position[('partner','start')]<position[('failure','exit')]<position[('partner','exit')],'ordinary concurrency')
+    run(root,env,'drain',flags+['--resume'],includes='partner: preserved successful checkpoint')
+    result=read(path)
+    check(partner in result['attempts'],'prior completed row was mutated')
+    check(sum(a['id']=='partner' for a in result['attempts'])==1,'partner rerun')
+    check(not (root/'reports/data/isolated-drain/partner-attempt2.txt').exists(),'overwrote logs')
+    completed_invariants(root,result)
+    print('PASS parallel overlap, failure drain, preserved success, sequential high-cap tail, aggregate')
+
+def test_migration():
+    ids=['legacy-ok','legacy-cr','legacy-in-flight','ordinary-next',*TAIL]
+    root,env=setup('signed-legacy-migration',ids,orphan_once='legacy-in-flight')
+    old_flags=['--heap','64G','--last',*TAIL]
+    # Old coordinator and its mock child share this scratch-only process group.
+    old=subprocess.Popen(command(root,'migrate',old_flags,legacy=True),cwd=root,env=env,
+                         stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT,start_new_session=True)
+    path=manifest(root,'migrate')
+    orphan_flag=root/'mock-first-legacy-in-flight'
+    try:
+        wait_for(lambda:orphan_flag.is_file() and orphan_flag.stat().st_size>0)
+        # Signal only the old child so the old coordinator records the exit.
+        os.kill(int(orphan_flag.read_text()),signal.SIGTERM)
+        check(old.wait(timeout=5)==1,'legacy coordinator did not record and stop')
+    finally:
+        if old.poll() is None:
+            os.killpg(old.pid,signal.SIGTERM)
+            old.wait(timeout=5)
+    raw=path.read_bytes()
+    before=read(path)
+    check(before['coordinator_sha256']==sha(BASE),'not the exact legacy coordinator')
+    check([x['exit_status'] for x in before['attempts']]==[0,0,-15],'bad legacy fixture')
+    ckdir=root/'dist-newstyle/jet-discovery-results'/before['fingerprint']
+    known_log=root/before['attempts'][1]['log']
+    rawlog=known_log.read_bytes()
+    check(b'literal\rCR' in rawlog,'literal CR lost')
+    checkpoint=ckdir/'legacy-cr.snapshot'
+    raw_cp=checkpoint.read_bytes()
+    flags=['--jobs','2','--heap','3G','--tail-heap','64G','--resume','--last',*TAIL]
+    approval=hashlib.sha256(raw).hexdigest()
+    migration=flags+['--migrate-b76b5f16',approval]
+    run(root,env,'migrate',flags,expected=1,includes='explicit supported migration')
+    run(root,env,'migrate',flags+['--migrate-b76b5f16','b'*64],expected=1,includes='manifest SHA differs')
+    open_attempt=read(path)
+    open_attempt['attempts'][-1]['exit_status']=None
+    path.write_text(json.dumps(open_attempt)+'\n')
+    run(root,env,'migrate',flags+['--migrate-b76b5f16',sha(path)],expected=1,
+        includes='legacy attempt is still open')
+    path.write_bytes(raw)
+    known_log.write_bytes(rawlog+b'tampered\n')
+    run(root,env,'migrate',migration,expected=1,includes='legacy log bytes changed')
+    known_log.write_bytes(rawlog)
+    checkpoint.write_bytes(raw_cp+b'tampered')
+    run(root,env,'migrate',migration,expected=1,includes='successful checkpoint changed')
+    checkpoint.write_bytes(raw_cp)
+    # Even if a byte hash were changed to match, malformed pairing must fail.
+    malformed=rawlog.replace(b'literal\rCR and trailing blanks : PASS',b'other label: PASS')
+    known_log.write_bytes(malformed)
+    tampered=read(path)
+    tampered['attempts'][1]['log_sha256']=sha(known_log)
+    path.write_text(json.dumps(tampered)+'\n')
+    run(root,env,'migrate',flags+['--migrate-b76b5f16',sha(path)],expected=1,
+        includes='PASS without matching fresh vector evaluation')
+    known_log.write_bytes(rawlog)
+    path.write_bytes(raw)
+    run(root,env,'migrate',migration,includes='preserved unclaimed result')
+    after=read(path)
+    check(after['attempts'][:3]==before['attempts'],'legacy attempt rows changed')
+    info=after['migration']
+    check(info['verified_checkpoints']==['legacy-ok','legacy-cr'],'incorrect legacy pass credit')
+    check([a['id'] for a in info['uncredited_attempts']]==['legacy-in-flight'],'incorrect abandoned attempt')
+    check((root/info['prior_manifest']).read_bytes()==raw,'old manifest was not archived byte-for-byte')
+    check(len(list((ckdir/'unclaimed-migrate').glob('legacy-in-flight-*.snapshot')))==1,'unclaimed snapshot not quarantined')
+    check(len([a for a in after['attempts'] if a['id']=='legacy-in-flight'])==2,'unclaimed attempt was not remeasured')
+    check(all(a['command'][0]==before['runner'] for a in after['attempts']),'frozen runner path changed')
+    completed_invariants(root,after)
+    print('PASS explicit legacy migration, exact archive, old raw-CR PASS pairs, tamper rejection, orphan rerun')
+
+def test_locks_and_signal():
+    ids=['slow-a','slow-b','after',*TAIL]
+    root,env=setup('lock-and-signal',ids,{'slow-a':1.3,'slow-b':1.3})
+    flags=['--jobs','2','--heap','3G','--tail-heap','64G','--last',*TAIL]
+    first=subprocess.Popen(command(root,'lock',flags),cwd=root,env=env,
+                           stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+    try:
+        wait_for(lambda:sum(kind=='start' for _,kind,_,_ in events(root))>=2)
+        run(root,env,'same-fingerprint',['--heap','3G','--only','after'],expected=1,includes='another isolated coordinator')
+        first.send_signal(signal.SIGTERM)
+        log,_=first.communicate(timeout=8)
+        check(first.returncode==143,log)
+    finally:
+        if first.poll() is None: first.terminate(); first.wait(timeout=8)
+    result=read(manifest(root,'lock'))
+    check(len(result['attempts'])==2 and all('checkpoint_sha256' in a for a in result['attempts']),'signal did not drain')
+    check(not result['complete'],'signal falsely published full report')
+    run(root,env,'lock',flags+['--resume'])
+    completed_invariants(root,read(manifest(root,'lock')))
+    print('PASS single writer across labels, SIGTERM drains both slots, preserved resume')
+
+def test_parent_crash():
+    ids=['slow-a','slow-b','after',*TAIL]
+    root,env=setup('lock-survives-parent',ids,{'slow-a':1.6,'slow-b':1.6})
+    flags=['--jobs','2','--heap','3G','--tail-heap','64G','--last',*TAIL]
+    first=subprocess.Popen(command(root,'crash',flags),cwd=root,env=env,
+                           stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+    try:
+        wait_for(lambda:sum(kind=='start' for _,kind,_,_ in events(root))>=2)
+    finally:
+        first.kill()
+        first.wait(timeout=5)
+    run(root,env,'while-child-remains',['--heap','3G','--only','after'],expected=1,
+        includes='another isolated coordinator')
+    wait_for(lambda:sum(kind=='exit' for _,kind,_,_ in events(root))>=2)
+    run(root,env,'crash',flags+['--resume'],includes='preserved unclaimed result')
+    record=read(manifest(root,'crash'))
+    check([a['exit_status'] for a in record['attempts'][:2]]==[None,None],'invented orphan status')
+    completed_invariants(root,record)
+    print('PASS inherited locks protect live children after parent SIGKILL; unclaimed results rerun')
+
+if __name__=='__main__':
+    test_failure_and_resume()
+    test_migration()
+    test_locks_and_signal()
+    test_parent_crash()
