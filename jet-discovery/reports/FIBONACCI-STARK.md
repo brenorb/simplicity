@@ -113,6 +113,63 @@ The honest DEEP polynomial has degree at most 1022; ten FRI folds test the
 slightly looser degree bound below 1024. This local construction has no
 formal soundness proof establishing the effect of that slack.
 
+## Measured stage costs
+
+These regions are taken from the native DAG of the complete corrected
+verifier. A scratch probe computes the jetted CMR of each exact source
+region. Its CMRs are matched against the saved profile, including the
+expected 48 queries and ten folds per query. A CMR shared by different
+witness values is accepted only when each matched cost agrees and the
+selected-path multiplicities sum to the source call count.
+
+| Nonoverlapping region | Calls on the static bound | Native WU |
+| --- | ---: | ---: |
+| AIR and out-of-domain check | 1 | 6,989.339 |
+| Compute query's domain point | 48 | 183,015.036 |
+| Trace Merkle path | 48 | 14,167.164 |
+| Composition Merkle path | 48 | 14,243.964 |
+| DEEP quotient batches, both sides | 96 | 463,069.536 |
+| FRI Merkle paths across ten layers | 480 | 101,611.476 |
+| FRI arithmetic after opening, including inverse check | 480 | 653,430.132 |
+| Other nodes, including transcript, context reopening and control | — | 60,935.695 |
+| Full verifier | — | **1,497,462.342** |
+
+The three proof Merkle path rows include the two leaf hashes, path
+traversal, query-index access and root equality. Together they cost
+**130,022.604 WU**. The FRI arithmetic row also includes the post-opening
+witness read, next-point calculation and final equality. The remaining
+region includes the incoming fold equality, value canonicality and the
+separate authenticated context paths. The table gives inclusive bounds for
+these particular expression boundaries, not prices for new jet proposals.
+
+The field multiplication rows are **overlapping**, both with each other
+and with the stage table. Each M31 multiply costs **10.337 WU**, with
+**81,056** selected calls contributing **837,875.872 WU** inclusively. Each
+QM31 multiply costs **240.889 WU**, with **5,066** selected calls contributing
+**1,220,343.674 WU** inclusively. QM31 multiply includes sixteen M31
+multiplications. Don't add those two totals or add either to the stage table.
+
+The [standalone native profile breakdown](data/stark-stage-pre-final.json)
+is reproducible from its [snapshot](data/stark-full-pre-final.snapshot.txt),
+[stage roots](data/stark-stage-roots.tsv) and [field roots](data/stark-field-roots.tsv):
+
+```sh
+python3 tools/stark_stage_profile.py summarize \
+  reports/data/stark-stage-roots.tsv reports/data/stark-field-roots.tsv \
+  reports/data/stark-full-pre-final.snapshot.txt
+```
+
+To regenerate roots, run `python3 tools/stark_stage_profile.py probe` and
+`python3 tools/stark_stage_profile.py probe --fields` into two scratch `.hs`
+files. Compile each with `cabal exec -- ghc -O1 -rtsopts -threaded -package
+jet-discovery -package Simplicity` in the same Nix shell as the main build;
+use separate scratch output directories. Run each binary with
+`+RTS -N1 -A8m -M2G -s -RTS`. The stage probe took about 303 seconds;
+the [stage RTS](data/stark-stage-roots-rts.txt) and
+[field RTS](data/stark-field-roots-rts.txt) logs are separate from the full
+verifier execution. The tool only joins measured native profile costs; it
+doesn't replace the cost analysis or execute a second verifier.
+
 ## Reproduction and evidence
 
 From `jet-discovery/`:
