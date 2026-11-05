@@ -72,7 +72,12 @@ Build all library/executable/test targets first and freeze source/spec/vector
 files throughout the cohort. The coordinator copies the executable once to
 an immutable hash-named path. That same path and byte hash, plus the strict
 global source fingerprint, bind every child and the final aggregation.
-Each child runs `run-one <exact-id>`; prefix matches are rejected. Heap size
+Each child runs `run-one <exact-id>`; prefix matches are rejected. The full-run fingerprint is published only
+after all output tables have been rendered and the source fingerprint still
+matches. A failed render leaves no current publish marker. The coordinator verifies
+that marker and hashes every published table in its terminal manifest.
+`--last <exact-id> ...` can defer expensive runs without dropping any registry
+row; use the same order on resume. Heap size
 is a runtime resource cap, not a changed mathematical parameter.
 
 Checkpoints live under `dist-newstyle/jet-discovery-results/<fingerprint>/`.
@@ -314,6 +319,15 @@ remain in the primary per-candidate tables. Native full predicates, client
 verifiers and components/kernels have separate displayed savings; client-only
 evidence cannot silently become native onchain demand. Tier decisions remain
 explicit policy judgements requiring review of the fresh evidence.
+
+After ranking, review the measured match concentration, budget scenarios and
+implementation/proof tradeoffs. Record each final tier and reason in the policy
+JSON, then run `python3 tools/publish_recommendations.py --runner <same-frozen-full-run-executable>`.
+This verifies the complete run again, requires 150 distinct groups and a
+majority of full applications/verifiers, and inserts the exact isolated
+matches in every candidate README. The final recommendations include the
+complete numbered and unnumbered proposal verdicts. Stale fingerprints and
+pending tier decisions cannot replace the current reports.
 
 For each candidate, `candidates/*/README.md` names the closest existing jet
 whose C implementation was proven equivalent to its Simplicity specification

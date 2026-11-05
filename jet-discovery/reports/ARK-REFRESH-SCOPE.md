@@ -51,4 +51,9 @@ All14 actual jetted Haskell Simplicity vectors and all14 raw-wire/Haskell/actual
 
 This verifier certifies a public bounded **client completion statement**. It does not validate the interactive round's private coordinator database, MuSig2 partial/nonce session, live chain confirmation/fork choice, full old VTXO genesis, actual UTXO existence or a whole-protocol fairness proof. Setup/cosign key handling, confirmation policy, chain monitoring and timely exit remain client responsibilities. Published seven-leaf serialization fixtures and arbitrary tree/participant counts are outside this two-leaf bound. No standard Taproot output is falsely described as an onchain Simplicity covenant.
 
+The [client classification record](data/ark-refresh-client-classification.json)
+changes only the metadata prefix to `CLIENT MODE:`. The entire tested predicate
+and vectors remain byte-identical. The common runner therefore excludes the
+certificate from Bitcoin spend-budget feasibility comparisons.
+
 Reproduction uses `tools/extract_bark_growth_vectors.py`, `ArkRefreshReference.hs`, `ArkRefreshPackageReference.hs` and `ArkRefreshSmoke.hs`. For the frozen full run: `ghc -O1 -threaded -rtsopts -package-db dist-newstyle/packagedb/ghc-9.8.4 -package jet-discovery -ireports/data/ark-refresh-canonical-freeze/src -outputdir /tmp/ark-repro reports/data/ark-refresh-canonical-freeze/tools/ArkRefreshSmoke.hs -o /tmp/ark-repro-run`, then `/tmp/ark-repro-run +RTS -N1 -M8G -s`. The source packet's35 primary files and10 derived artifacts, including all fixture bytes, pass `python3 tools/check_bitcoin_growth3_packet.py` offline. No external source code is executed.

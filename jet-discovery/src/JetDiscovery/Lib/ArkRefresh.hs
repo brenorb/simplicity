@@ -186,7 +186,7 @@ entry=return(Entry "app-ark-round-refresh"
  "Current Bark hArk complete two-leaf refresh certificate: real Taproot round/tree/leaf/forfeit, shared unlock and actual BIP341 signatures"
  "Bark5a7dbf9f2cd64dcdb65e3465080727e24dfe111d lib/{tree/signed,forfeit,vtxo/policy,musig}.rs and wallet round validation; MIT"
  BitcoinApp(Derived "Four actual standard Bitcoin wire transactions, current hArk scripts and MuSig2-derived keys; reference reproduces published eight-key Bark round output and official BIP341 DEFAULT vector")
- ["CLIENT COMPLETION CERTIFICATE: verifies current hArk round R->node D->user leaf L and old-VTXO->forfeit F; does not replace the interactive coordinator/nonce database or claim an onchain Simplicity spend",
+ ["CLIENT MODE: completion certificate; verifies current hArk round R->node D->user leaf L and old-VTXO->forfeit F; does not replace the interactive coordinator/nonce database or claim an onchain Simplicity spend",
   "Authenticated client supplies actual round primitive environment, prior old/liquidity UTXO state, negotiated two-leaf requests, setup/cosign keys and trusted chain tip800000; synthetic fixture outpoints are not livechain evidence",
   "Actual current Taproot/MuSig2-derived keypath and scriptpath DEFAULT signatures; sorted aggregate setup keys are fixed authenticated parameters, while every expiry/unlock-dependent Taproot output is computed in Simplicity",
   "Current hArk HashSign uses actual RIPEMD160(SHA256(preimage)), OP_SIZE32 and the exact script hash; same checked preimage drives the user's new leaf and conditional forfeit output; no independent witness reopening",

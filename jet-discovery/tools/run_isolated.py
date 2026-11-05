@@ -44,7 +44,10 @@ def main():
     parser.add_argument('--runner',type=Path,required=True)
     parser.add_argument('--label',required=True)
     parser.add_argument('--heap',default='64G')
-    parser.add_argument('--only',nargs='+',metavar='EXACT_ID')
+    selection=parser.add_mutually_exclusive_group()
+    selection.add_argument('--only',nargs='+',metavar='EXACT_ID')
+    selection.add_argument('--last',nargs='+',metavar='EXACT_ID',
+                           help='defer selected exact IDs to the end of the full cohort')
     parser.add_argument('--resume',action='store_true')
     args=parser.parse_args()
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',args.label):
@@ -82,6 +85,11 @@ def main():
     if not ids or len(ids)!=len(set(ids)):
         raise SystemExit('empty or duplicate registry IDs')
     targets=args.only if args.only is not None else ids
+    if args.last is not None:
+        last=set(args.last)
+        if len(last)!=len(args.last) or not last<=set(ids):
+            raise SystemExit('every deferred exact ID must occur once in the complete registry')
+        targets=[i for i in ids if i not in last]+args.last
     if len(targets)!=len(set(targets)) or not set(targets)<=set(ids):
         raise SystemExit('every selected exact ID must occur once in the complete registry')
     complete=args.only is None
@@ -149,6 +157,15 @@ def main():
         # Every exact ID must already have a successful fingerprint-bound
         # checkpoint; aggregate deliberately has no fallback compilation.
         launch('strict-aggregation','aggregate')
+        marker=ROOT/'reports/data/run-fingerprint.txt'
+        if not marker.is_file() or marker.read_text().strip()!=fingerprint:
+            raise SystemExit('strict aggregation did not publish this cohort fingerprint')
+        published=['corpus/README.md','reports/corpus-results.md','reports/whatif.md',
+                   'reports/ablations.md','reports/subdags.md','reports/candidate-impact.md',
+                   'reports/data/corpus-results.tsv','reports/data/candidate-impact.tsv',
+                   'reports/data/subdags-exact.tsv','reports/data/subdags-shape.tsv',
+                   'reports/data/run-fingerprint.txt']
+        record['published_sha256']={name:sha(ROOT/name) for name in published}
     unchanged()
     record.update(complete=True,finished_utc=utc(),coverage='complete registry' if complete else'development subset; full reports not generated')
     atomic(status,record)
