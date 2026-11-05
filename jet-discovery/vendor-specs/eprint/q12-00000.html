@@ -1,0 +1,688 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Search results</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+ input {
+   background-color: #e8e8e8 !important;
+ }
+ mark {
+   font-weight: 600;
+   padding: .2em 0px .2em 0px;
+   color: black;
+ }
+ span.term {
+   font-weight: 700 !important;
+   font-family: var(--bs-font-monospace), monospace !important;
+ }
+ form {
+   background-color:#fff;
+ }
+ @media (min-width: 768px) {
+   form {
+     position:sticky;top:6rem;
+   }
+ }
+
+</style>
+<meta name="description" content="Search the Cryptology ePrint Archive">
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+<div class="row">
+    <div class="alert alert-info" role="alert">
+      We have switched the default sort to relevance (instead of chronological order) based on a straw poll at Eurocrypt.
+      Let us know how this affects your search experience!
+    </div>
+    <div class="col-12 col-lg-4">
+      <form class="p-2 pt-md-4 align-items-end  needs-validation" novalidate onsubmit="return validateForm()" method="GET" action="/search">
+        <label for="anything" class="mt-2 form-label">Match anything</label>
+        <input type="text" name="q" class="form-control form-control-sm" id="anything" aria-label="Match anything" value="&#34;blind Schnorr&#34;">
+        <label for="title" class="mt-4 form-label">Match title</label>
+        <input type="text" name="title" class="form-control form-control-sm" id="title" aria-label="Match title" value="">
+        <label for="authors" class="mt-4 form-label">Match authors</label>
+        <input type="text" name="authors" class="form-control form-control-sm" id="authors" aria-label="Match authors" value="">
+        <label for="category" class="mt-4 form-label">Category</label><br>
+        <select class="form-select form-select-sm" id="category" name="category" aria-label="Category">
+          <option value="">All categories</option>
+          
+          <option value="APPLICATIONS" >Applications</option>
+          
+          <option value="PROTOCOLS" >Cryptographic protocols</option>
+          
+          <option value="FOUNDATIONS" >Foundations</option>
+          
+          <option value="IMPLEMENTATION" >Implementation</option>
+          
+          <option value="SECRETKEY" >Secret-key cryptography</option>
+          
+          <option value="PUBLICKEY" >Public-key cryptography</option>
+          
+          <option value="ATTACKS" >Attacks and cryptanalysis</option>
+          
+        </select>
+        <div class="row d-none d-lg-flex">
+          <div class="col-6">
+            <label for="submittedafter" class="mt-4 form-label">Submitted after</label><br>
+            <input class="form-control form-control-sm" type="number" min="1996" id="submittedafter" name="submittedafter" aria-label="Submitted after" value="2019" placeholder="Enter a year">
+          </div>
+          <div class="col-6">
+            <label for="submittedbefore" class="mt-4 form-label">Submitted before</label><br>
+            <input class="form-control form-control-sm" type="number" min="1996" id="submittedbefore" name="submittedbefore" aria-label="Submitted before" value="2027" placeholder="Enter a year">
+            <div class="invalid-feedback">
+              Dates are inconsistent
+            </div>
+          </div>
+        </div>
+        <div class="row d-none d-lg-flex">
+          <div class="col-6">
+            <label for="revisedafter" class="mt-4 form-label">Revised after</label><br>
+            <input class="form-control form-control-sm" type="number" min="1996" id="revisedafter" name="revisedafter" aria-label="Revised after" placeholder="Enter a year" value="None">
+            <div class="invalid-feedback">
+              Dates are inconsistent
+            </div>
+          </div>
+          <div class="col-6">
+            <label for="revisedbefore" class="mt-4 form-label">Revised before</label><br>
+            <input class="form-control form-control-sm" type="number" min="1996" id="revisedbefore" name="revisedbefore" aria-label="Revised before" value="None" placeholder="Enter a year">
+          </div>
+        </div>
+        <div class="d-none d-lg-flex mt-3">
+          <div class="form-check">
+            <input type="checkbox" id="relevance" name="relevance" >
+            <label for="relevance" class="form-check-label ms-2">Sort by relevance</label>
+          </div>
+        </div>
+        <div class="mt-3 d-flex">
+          <button class="btn btn-primary btn-sm" type="submit">Search</button>
+          <button id="clearButton" class="btn btn-secondary btn-sm ms-2" type="button">Clear</button>
+          <button id="helpButton" class="btn btn-info btn-sm ms-auto" type="button" data-bs-toggle="modal" data-bs-target="#helpModal">Help</button>
+        </div>
+      </form>
+      <div class="modal" tabindex="-1" id="helpModal">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title">Search Help</h4>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>
+                You can search for a phrase by enclosing it in double quotes, e.g.,
+                <span class="term text-nowrap"><a href="/search?q=%22differential%20privacy%22">"differential privacy"</a></span>.
+              </p>
+              <p>
+                You can require or exclude specific terms using + and -. For example, to search for papers that contain the term elliptic
+                but not the term factoring, use
+                <span class="term text-nowrap"><a href="/search?q=%2Belliptic%20-factoring">+elliptic -factoring</a></span>
+              </p>
+              <p>
+                To search in a title or for author name, use
+                <span class="term text-nowrap"><a href="/search?q=title%3Aisogeny%20author%3Aboneh">title:isogeny author:boneh</a></span>.
+                If you want to require both, you can use
+                <span class="term text-nowrap"><a href="/search?q=title%3Aisogeny%20AND%20author%3Aboneh">title:isogeny AND author:boneh</a></span>
+                because it recognizes logical operators <span class="term">AND</span> and <span class="term">OR</span>.
+                This is equivalent to <a href="/search?title=isogeny&authors=boneh">using the individual fields</a> for author and title.
+                You can also use NOT to negate a condition, as with
+                <span class="term text-nowrap"><a href="/search?q=title%3Aisogeny%20AND%20NOT%20author%3Aboneh">title:isogeny AND NOT author:boneh</a></span> to search for papers with an author other than Boneh.
+              </p>
+              <p>
+                To find documents containing a term starting with the string
+                <span class="term">differe</span>, use
+                <span class="term"><a href="/search?q=differe%2A">differe*</a></span>.
+                This will match the terms difference, different, and differential
+              </p>
+              <p>
+                Note that search applies stemming, so that if you search for <span class="term">yield</span> it will also match terms
+                <span class="term">yields</span> and <span class="term">yielding</span>. If you want to disable
+                stemming, capitalize the term. A search for <span class="term">Adam</span> will not match the term 'Adams'.
+              </p>
+              <p>
+                The system attempts to recognize possible misspellings. This is perhaps a source of amusement more than anything else.
+              </p>
+              <p>
+                This currently searches the text in titles, authors, abstracts, and keywords, but does not search in the PDF or PS itself.
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Parsed query: Query((((blind@1 PHRASE 2 schnorr@2) AND VALUE_RANGE 0 2019 2027) AND_MAYBE PostingSource(Xapian::ValueWeightPostingSource(slot=2)))) -->
+    </div>
+  <div class="col-12 col-lg-8" style="min-height:80vh">
+    
+    
+    
+    
+    <h4 class="mt-3 ms-4">14 results sorted by ID</h5>
+      
+    <div class="ms-lg-4 mt-3 results">
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2026/2276" class="paperlink" href="/2026/2276">2026/2276</a>
+          <span class="ms-2"><a href="/2026/2276.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2026-09-30</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>Concurrently secure variants of blind (Okamoto-)Schnorr signatures</strong>
+              <div class="mt-1"><span class="fst-italic">Georg Fuchsbauer, Fabian Regen, Levente Sulyok</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PUBLICKEY">Public-key cryptography</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">We present variants of blind Schnorr and blind Okamoto-Schnorr signatures that are not susceptible to ROS-style attacks. We prove the schemes unforgeable in the algebraic group model and the random oracle model: the Okamoto-Schnorr variant under the discrete-logarithm assumption; the Schnorr variant under the algebraic one-more discrete-logarithm assumption. Our Schnorr variant improves on the communication complexity of Snowblind (CRYPTO 2023), the state-of-the-art &#34;pairing-free&#34; blind...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2026/1084" class="paperlink" href="/2026/1084">2026/1084</a>
+          <span class="ms-2"><a href="/2026/1084.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2026-09-25</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>BRaccoon: Concurrently Secure Blind Lattice Signatures from Raccoon</strong>
+              <div class="mt-1"><span class="fst-italic">Lucjan Hanzlik, Mark Manulis, Marzio Mula, Alan Pulval-Dady, Tjerand Silde, Daniel Slamanig</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PROTOCOLS">Cryptographic protocols</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">Blind signatures are a central primitive for privacy-preserving applications such as e-cash, anonymous credentials, and e-voting. 
+
+Classical constructions such as blind Schnorr adapt an ordinary signature scheme while producing signatures that follow the same format and distribution as those generated by the ordinary signing algorithm. This property is particularly relevant in settings where blind and non-blind signatures coexist within the same infrastructure. Achieving an analogous...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2025/1992" class="paperlink" href="/2025/1992">2025/1992</a>
+          <span class="ms-2"><a href="/2025/1992.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2026-07-26</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>Improved Concurrent-Secure Blind Schnorr Signatures</strong>
+              <div class="mt-1"><span class="fst-italic">Pierpaolo Della Monica, Ivan Visconti</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PUBLICKEY">Public-key cryptography</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">Since the work of Chaum in ’82, the problem of designing secure blind signature protocols for existing signature schemes has been of great interest. In particular, when considering Schnorr signatures, nowadays used in Bitcoin, designing corresponding efficient and secure blind signature schemes is very challenging in light of the ROS attack (Eurocrypt’21), which affected all previous efficient constructions. 
+
+Currently, the main positive result about concurrent-secure blind Schnorr...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2025/306" class="paperlink" href="/2025/306">2025/306</a>
+          <span class="ms-2"><a href="/2025/306.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2025-02-20</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>Dimensional e$\mathsf{ROS}$ion: Improving the $\mathsf{ROS}$ Attack with Decomposition in Higher Bases</strong>
+              <div class="mt-1"><span class="fst-italic">Antoine Joux, Julian Loss, Giacomo Santato</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-ATTACKS">Attacks and cryptanalysis</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">We revisit the polynomial attack to the $\mathsf{ROS}$ problem modulo $p$ from [BLLOR22]. Our new algorithm achieves a polynomial time solution in dimension $\ell \gtrsim 0.725 \cdot \log_2 p$, extending the range of dimensions for which a polynomial attack is known beyond the previous bound of $\ell &gt; \log_2p$. 
+
+We also combine our new algorithm with Wagner&#39;s attack to improve the general $\mathsf{ROS}$ attack complexity for some of the dimensions where a polynomial solution is still not...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2024/1118" class="paperlink" href="/2024/1118">2024/1118</a>
+          <span class="ms-2"><a href="/2024/1118.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2024-07-19</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>Shared-Custodial Password-Authenticated Deterministic Wallets</strong>
+              <div class="mt-1"><span class="fst-italic">Poulami Das, Andreas Erwig, Sebastian Faust</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PROTOCOLS">Cryptographic protocols</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">Cryptographic wallets are an essential tool in Blockchain networks to ensure the secure storage and maintenance of an user&#39;s cryptographic keys. Broadly, wallets can be divided into three categories, namely custodial, non-custodial, and shared-custodial wallets. The first two are centralized solutions, i.e., the wallet is operated by a single entity, which inherently introduces a single point of failure. Shared-custodial wallets, on the other hand, are maintained by two independent parties,...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2024/1100" class="paperlink" href="/2024/1100">2024/1100</a>
+          <span class="ms-2"><a href="/2024/1100.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2024-09-10</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>Unforgeability of Blind Schnorr in the Limited Concurrency Setting</strong>
+              <div class="mt-1"><span class="fst-italic">Franklin Harding, Jiayu Xu</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PUBLICKEY">Public-key cryptography</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">Blind signature schemes enable a user to obtain a digital signature on a message from a signer without revealing the message itself. Among the most fundamental examples of such a scheme is blind Schnorr, but recent results show that it does not satisfy the standard notion of security against malicious users, One-More Unforgeability (OMUF), as it is vulnerable to the ROS attack. However, blind Schnorr does satisfy the weaker notion of sequential OMUF, in which only one signing session is open...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2023/1603" class="paperlink" href="/2023/1603">2023/1603</a>
+          <span class="ms-2"><a href="/2023/1603.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2025-06-26</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>Breaking Parallel ROS:  Implication for Isogeny and Lattice-based  Blind Signatures</strong>
+              <div class="mt-1"><span class="fst-italic">Shuichi Katsumata, Yi-Fu Lai, Michael Reichle</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PUBLICKEY">Public-key cryptography</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">Many of the three-round blind signatures based on identification protocols are only proven to be $\ell$-concurrently unforgeable for $\ell = \mathsf{polylog}(\lambda)$. It was only recently shown in a seminal work by Benhamouda et al. (EUROCRYPT&#39;21) that this is not just a limitation of the proof technique. They proposed an elegant polynomial time attack against the $\ell$-concurrently unforgeability of the classical blind Schnorr protocol for $\ell = \mathsf{poly}(\lambda)$. 
+However,...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2023/491" class="paperlink" href="/2023/491">2023/491</a>
+          <span class="ms-2"><a href="/2023/491.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2023-04-04</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>On the Security of Blind Signatures in the Multi-Signer Setting</strong>
+              <div class="mt-1"><span class="fst-italic">Samuel Bedassa Alemu, Julia Kastner</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PUBLICKEY">Public-key cryptography</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">Blind signatures were originally introduced by Chaum (CRYPTO ’82) in the context of privacy-preserving electronic payment systems. Nowadays, the cryptographic primitive has also found applications in anonymous credentials and voting systems. However, many practical blind signature schemes have only been analysed in the game-based setting where a single signer is present. This is somewhat unsatisfactory as blind signatures are intended to be deployed in a setting with many signers. We address...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2022/1676" class="paperlink" href="/2022/1676">2022/1676</a>
+          <span class="ms-2"><a href="/2022/1676.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2024-06-05</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>Concurrently Secure Blind Schnorr Signatures</strong>
+              <div class="mt-1"><span class="fst-italic">Georg Fuchsbauer, Mathias Wolf</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PUBLICKEY">Public-key cryptography</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">Many applications of blind signatures, e.g. in blockchains, require compatibility of the resulting signatures with the existing system.  This makes blind issuing of Schnorr signatures (now being standardized and supported by major cryptocurrencies) desirable.  Concurrent security of the signing protocol is required to thwart denial-of-service attacks.
+
+We present a concurrently secure blind-signing protocol for Schnorr signatures, using the standard primitives NIZK and PKE and assuming...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2022/004" class="paperlink" href="/2022/004">2022/004</a>
+          <span class="ms-2"><a href="/2022/004.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2022-01-02</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>Publicly verifiable anonymous tokens with private metadata bit</strong>
+              <div class="mt-1"><span class="fst-italic">Fabrice Benhamouda, Tancrède Lepoint, Michele Orrù, Mariana Raykova</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PUBLICKEY">Public-key cryptography</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">We present a new construction for publicly verifiable anonymous tokens with private metadata. This primitive enables an issuer to generate an anonymous authentication token for a user while embedding a single private metadata bit.
+
+The token can be publicly verified, while the value of the private metadata is only accessible to the party holding the secret issuing key and remains hidden to any other party, even to the user. The security properties of this primitive also...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2021/1449" class="paperlink" href="/2021/1449">2021/1449</a>
+          <span class="ms-2"><a href="/2021/1449.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2021-10-29</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>One-more Unforgeability of Blind ECDSA</strong>
+              <div class="mt-1"><span class="fst-italic">Xianrui Qin, Cailing Cai, Tsz Hon Yuen</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PUBLICKEY">Public-key cryptography</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">In this paper, we give the first formal security analysis on the one-more unforgeability of blind ECDSA.
+We start with giving a general attack on blind ECDSA, which is similar to the ROS attack on the blind Schnorr signature. We formulate the ECDSA-ROS problem to capture this attack.
+
+Next, we give a generic construction of blind ECDSA based on an additive homomorphic encryption and a corresponding zero-knowledge proof. Our concrete instantiation is about 40 times more bandwidth efficient...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2021/866" class="paperlink" href="/2021/866">2021/866</a>
+          <span class="ms-2"><a href="/2021/866.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2021-06-24</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>The One-More Discrete Logarithm Assumption in the Generic Group Model</strong>
+              <div class="mt-1"><span class="fst-italic">Balthazar Bauer, Georg Fuchsbauer, Antoine Plouviez</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-FOUNDATIONS">Foundations</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">The one more-discrete logarithm assumption (OMDL) underlies the security analysis of identification protocols, blind signature and multi-signature schemes, such as blind Schnorr signatures and the recent MuSig2 multi-signatures.  As these schemes produce standard Schnorr signatures, they are compatible with existing systems, e.g. in the context of blockchains.  OMDL is moreover assumed for many results on the impossibility of certain security reductions.
+
+Despite its wide use, surprisingly,...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2020/1071" class="paperlink" href="/2020/1071">2020/1071</a>
+          <span class="ms-2"><a href="/2020/1071.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2022-01-13</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>On Pairing-Free Blind Signature Schemes in the Algebraic Group Model</strong>
+              <div class="mt-1"><span class="fst-italic">Julia Kastner, Julian Loss, Jiayu Xu</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PUBLICKEY">Public-key cryptography</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">Studying the security and efficiency of blind signatures is an important goal for privacy sensitive applications. In particular, for large-scale settings (e.g., cryptocurrency tumblers), it is important for schemes to scale well with the number of users in the system. Unfortunately, all practical schemes either 1) rely on (very strong) number theoretic hardness assumptions and/or computationally expensive pairing operations over bilinear groups, or 2) support only a polylogarithmic number of...</p>
+        </div>
+
+      </div>
+      
+      <div class="mb-4">
+        <div class="d-flex"><a title="2019/877" class="paperlink" href="/2019/877">2019/877</a>
+          <span class="ms-2"><a href="/2019/877.pdf">(PDF)</a></span>
+          
+          <small class="ms-auto">Last updated: 2021-01-16</small>
+        </div>
+        <div class="ms-md-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between">
+            <div>
+              <strong>Blind Schnorr Signatures and Signed ElGamal Encryption in the Algebraic Group Model</strong>
+              <div class="mt-1"><span class="fst-italic">Georg Fuchsbauer, Antoine Plouviez, Yannick Seurin</span></div>
+            </div>
+            
+            <div class="float-end mt-1 ms-md-3">
+              <small class="badge category category-PUBLICKEY">Public-key cryptography</small>
+            </div>
+            
+          </div>
+          <p class="mb-0 mt-1 search-abstract">The Schnorr blind signing protocol allows blind issuing of Schnorr signatures, one of the most widely used signatures. Despite its practical relevance, its security analysis is unsatisfactory. The only known security proof is rather informal and in the combination of the generic group model (GGM) and the random oracle model (ROM) assuming that the ``ROS problem&#39;&#39; is hard. The situation is similar for (Schnorr-)signed ElGamal encryption, a simple CCA2-secure variant of ElGamal.
+
+We analyze...</p>
+        </div>
+
+      </div>
+      
+      
+      
+    </div>
+    
+  </div>
+</div>
+      <script>
+       document.getElementById('clearButton').addEventListener('click', function(ev) {
+         document.querySelectorAll('input').forEach(el => {
+           el.value = '';
+         });
+         document.getElementById('category').selectedIndex = "0";
+       });
+
+       function validateForm() {
+         // check that dates are compatible.
+         let submittedAfter = document.getElementById('submittedafter');
+         let submittedBefore = document.getElementById('submittedbefore');
+         let revisedAfter = document.getElementById('revisedafter');
+         let revisedBefore = document.getElementById('revisedbefore');
+         if (submittedAfter.value &&
+             submittedBefore.value &&
+             submittedAfter.value > submittedBefore.value) {
+           submittedAfter.classList.add('is-invalid');
+           submittedBefore.classList.add('is-invalid');
+           return false;
+         }
+         if (revisedAfter.value &&
+             revisedBefore.value &&
+             revisedAfter.value > revisedBefore.value) {
+           revisedAfter.classList.add('is-invalid');
+           revisedBefore.classList.add('is-invalid');
+           return false;
+         }
+         if (revisedBefore.value &&
+             submittedAfter.value &&
+             revisedBefore.value < submittedAfter.value) {
+           revisedBefore.classList.add('is-invalid');
+           submittedAfter.classList.add('is-invalid');
+           return false;
+         }
+         return true;
+       }
+
+      </script>
+      <script src="/js/mark.min.js"></script>
+      <script>
+       var instance = new Mark("div.results");
+       let urlParams = new URLSearchParams(window.location.search);
+       if (urlParams.get('q')) {
+         instance.mark(urlParams.get('q'));
+       }
+       if (urlParams.get('title')) {
+         instance.mark(urlParams.get('title'));
+       }
+       if (urlParams.get('authors')) {
+         instance.mark(urlParams.get('authors'));
+       }
+      </script>
+<!--  -->
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

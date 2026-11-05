@@ -1,0 +1,31 @@
+# Contract specifications and snapshots
+
+Specifications below are pinned data. They are never imported, compiled or executed. Sources with no license declaration are recorded as such; source-specific SPDX declarations take precedence over repository defaults.
+
+| local file | pinned revision | license evidence | source |
+| --- | --- | --- | --- |
+| `ethereum_EIPs_EIPS_eip-2612.md` | `46976b2a9bf99f727fb87dc8c809e3a3cdc6b445` | CC0-1.0 | [source](https://raw.githubusercontent.com/ethereum/EIPs/46976b2a9bf99f727fb87dc8c809e3a3cdc6b445/EIPS/eip-2612.md) |
+| `ethereum_EIPs_EIPS_eip-712.md` | `46976b2a9bf99f727fb87dc8c809e3a3cdc6b445` | CC0-1.0 | [source](https://raw.githubusercontent.com/ethereum/EIPs/46976b2a9bf99f727fb87dc8c809e3a3cdc6b445/EIPS/eip-712.md) |
+| `lightning_bolts_03-transactions.md` | `191462825ae341f0a27098765c075f01ca9bc6c2` | CC-BY-4.0, as stated in repository README.md | [source](https://raw.githubusercontent.com/lightning/bolts/191462825ae341f0a27098765c075f01ca9bc6c2/03-transactions.md) |
+| `JoinMarket-Org_joinmarket-clientserver_docs_fidelity-bonds.md` | `23d61a8b42b50cf3f7e0c2198c12fadedc7488df` | GPL-3.0; see retained LICENSE for exact grant | [source](https://raw.githubusercontent.com/JoinMarket-Org/joinmarket-clientserver/23d61a8b42b50cf3f7e0c2198c12fadedc7488df/docs/fidelity-bonds.md) |
+| `Uniswap_v3-core_contracts_libraries_TickMath.sol` | `5ea68a77cb541c6b3812df783be71ba8c081e25f` | GPL-2.0-or-later | [source](https://raw.githubusercontent.com/Uniswap/v3-core/5ea68a77cb541c6b3812df783be71ba8c081e25f/contracts/libraries/TickMath.sol) |
+| `Uniswap_v3-core_contracts_libraries_FullMath.sol` | `5ea68a77cb541c6b3812df783be71ba8c081e25f` | MIT | [source](https://raw.githubusercontent.com/Uniswap/v3-core/5ea68a77cb541c6b3812df783be71ba8c081e25f/contracts/libraries/FullMath.sol) |
+| `curvefi_curve-contract_contracts_pools_3pool_StableSwap3Pool.vy` | `574f44027d089de0eac765f5a74ea5ae96aba968` | Custom repository license; see retained curvefi_curve-contract_LICENSE; not assumed permissive | [source](https://raw.githubusercontent.com/curvefi/curve-contract/574f44027d089de0eac765f5a74ea5ae96aba968/contracts/pools/3pool/StableSwap3Pool.vy) |
+| `gnosis_conditional-tokens-contracts_contracts_ConditionalTokens.sol` | `eeefca66eb46c800a9aaab88db2064a99026fde5` | LGPL-3.0; see retained LICENSE for exact grant | [source](https://raw.githubusercontent.com/gnosis/conditional-tokens-contracts/eeefca66eb46c800a9aaab88db2064a99026fde5/contracts/ConditionalTokens.sol) |
+| `babylonlabs-io_btc-staking-ts_README.md` | `eb037e6d3a155329a25e3fd331cb2b318d087ea7` | BUSL-1.1; file-specific overrides apply if present; see retained license for change date/terms | [source](https://raw.githubusercontent.com/babylonlabs-io/btc-staking-ts/eb037e6d3a155329a25e3fd331cb2b318d087ea7/README.md) |
+| `OpenZeppelin_openzeppelin-contracts_contracts_token_ERC20_extensions_ERC20Permit.sol` | `efaa6f78ab1dde05416246e801c0baaf4f900d49` | MIT | [source](https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/efaa6f78ab1dde05416246e801c0baaf4f900d49/contracts/token/ERC20/extensions/ERC20Permit.sol) |
+| `lightning_bolts_README.md` | `191462825ae341f0a27098765c075f01ca9bc6c2` | CC-BY-4.0, as stated in repository README.md | [source](https://raw.githubusercontent.com/lightning/bolts/191462825ae341f0a27098765c075f01ca9bc6c2/README.md) |
+| `bgd-labs_aave-address-book_src_AaveV3Ethereum.sol` | `b71495aeb9948348aac898787cc1de3ab4b408ae` | MIT | [source](https://raw.githubusercontent.com/bgd-labs/aave-address-book/b71495aeb9948348aac898787cc1de3ab4b408ae/src/AaveV3Ethereum.sol) |
+| `pump-fun_pump-public-docs_idl_pump_amm.ts` | `639b87fb45c3adeffa6f7c4a1bf0cb85e392bf22` | No license declaration found in inspected source or standard repository license paths; no grant inferred | [source](https://raw.githubusercontent.com/pump-fun/pump-public-docs/639b87fb45c3adeffa6f7c4a1bf0cb85e392bf22/idl/pump_amm.ts) |
+| `pump-fun_pump-public-docs_idl_pump_fees.ts` | `639b87fb45c3adeffa6f7c4a1bf0cb85e392bf22` | No license declaration found in inspected source or standard repository license paths; no grant inferred | [source](https://raw.githubusercontent.com/pump-fun/pump-public-docs/639b87fb45c3adeffa6f7c4a1bf0cb85e392bf22/idl/pump_fees.ts) |
+| `Kamino-Finance_klend_programs_klend_src_lib.rs` | `77e81854909ab7ffea3a2e898b2554d96e07daac` | BUSL-1.1; file-specific overrides apply if present; see retained license for change date/terms | [source](https://raw.githubusercontent.com/Kamino-Finance/klend/77e81854909ab7ffea3a2e898b2554d96e07daac/programs/klend/src/lib.rs) |
+| `ethereum_ercs_ERCS_erc-2612.md` | `7dafd1125fffbd3832316edeb739608ad82bb4c4` | CC0-1.0 | [source](https://raw.githubusercontent.com/ethereum/ercs/7dafd1125fffbd3832316edeb739608ad82bb4c4/ERCS/erc-2612.md) |
+| `ethereum_ercs_ERCS_erc-2981.md` | `7dafd1125fffbd3832316edeb739608ad82bb4c4` | CC0-1.0 | [source](https://raw.githubusercontent.com/ethereum/ercs/7dafd1125fffbd3832316edeb739608ad82bb4c4/ERCS/erc-2981.md) |
+| `babylonlabs-io_btc-staking-ts_src_staking_stakingScript.ts` | `eb037e6d3a155329a25e3fd331cb2b318d087ea7` | BUSL-1.1; file-specific overrides apply if present; see retained license for change date/terms | [source](https://raw.githubusercontent.com/babylonlabs-io/btc-staking-ts/eb037e6d3a155329a25e3fd331cb2b318d087ea7/src/staking/stakingScript.ts) |
+| `wormhole-foundation_wormhole_ethereum_contracts_Messages.sol` | `c9d17c45d40d2ed7c844901e51312118e9c68eaa` | Apache 2 | [source](https://raw.githubusercontent.com/wormhole-foundation/wormhole/c9d17c45d40d2ed7c844901e51312118e9c68eaa/ethereum/contracts/Messages.sol) |
+
+The original EIPs2612 file is a moved-document stub; `ethereum_ercs_ERCS_erc-2612.md` contains the actual normative specification. `spec-provenance.json` preserves full revisions, retrieval times and hashes. `snapshot-provenance.json` records DefiLlama and exact Ethereum/Solana block requests. `snapshot-hashes.json` inventories immutable data files.
+
+`ethereum-code-response-*.json` are nonexecuted on-chain bytecode data used only to distinguish contracts/delegated execution accounts from empty-code recipients. No downloaded bytecode or source enters a program evaluator.
+
+See `../../reports/contract-inventory.md` for coverage, exact filters, ranked tables and access gaps.

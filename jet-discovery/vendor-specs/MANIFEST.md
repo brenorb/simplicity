@@ -63,3 +63,19 @@ the upstream test vectors are published only as SHA-256 fingerprints (`*.csv.fp`
 | `rfc/rfc7693.txt` | https://www.rfc-editor.org/rfc/rfc7693.txt (fetched 2026-11-02) | IETF Trust (informational RFC) | `c943754888364fe2…` |
 | `rfc/rfc6979.txt` | https://www.rfc-editor.org/rfc/rfc6979.txt (fetched 2026-11-03) | IETF Trust (informational RFC) | `456e8f17558fdbd2…` |
 | `rfc/rfc8032.txt` | https://www.rfc-editor.org/rfc/rfc8032.txt (fetched 2026-11-03) | IETF Trust (informational RFC) | `ed63657ff3893012…` |
+
+## Expanded source inventories (2026-11-04)
+
+The following manifests carry complete hashes, immutable revisions where
+available, licenses, coverage bounds, and access gaps. Downloaded code remains
+specification data and is never imported, compiled, or executed.
+
+- [BIP/proposal inventory](bip-inventory/README.md), with all 220 index rows,
+  all 51 softfork rows, 46 pinned BIP data files and 17 proposal snapshots.
+- [eprint and RFC sources](eprint/MANIFEST.md), including all 33 search-result
+  pages for the documented 2020–2026 metadata scan, plus XMSS/LMS sources.
+- [STARK protocol provenance](stark/MANIFEST.md), including the explicit
+  DEEP-FRI PDF retrieval gap.
+- [Ethereum/Solana source provenance](contracts/spec-provenance.json),
+  [snapshot provenance](contracts/snapshot-provenance.json), and
+  [snapshot hashes](contracts/snapshot-hashes.json).
