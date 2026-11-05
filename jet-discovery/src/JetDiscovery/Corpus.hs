@@ -42,6 +42,7 @@ import qualified JetDiscovery.Corpus.NativePendleMarket as NativePendleMarket
 import qualified JetDiscovery.Corpus.NativeV3Pool as NativeV3Pool
 import qualified JetDiscovery.Corpus.TwoCrypto as TwoCrypto
 import qualified JetDiscovery.Corpus.PumpLaunch as PumpLaunch
+import qualified JetDiscovery.Corpus.NativeLidoQueue as NativeLidoQueue
 import qualified JetDiscovery.Corpus.MlDsaNtt as MlDsaNtt
 import qualified JetDiscovery.Lib.HdWallet as HdWallet
 import qualified JetDiscovery.Corpus.Xmss as Xmss
@@ -141,6 +142,7 @@ corpus = concat <$> sequence
   , pure NativeV3Pool.entries
   , pure [TwoCrypto.entry]
   , pure [PumpLaunch.entry]
+  , pure NativeLidoQueue.entries
   , pure EprintExpansion.entries
   , pure FairSwap.entries
   , pure BN254.entries

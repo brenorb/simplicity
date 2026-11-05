@@ -55,6 +55,8 @@ def classify_contract(dataset,r):
             return ['app-interest-accruing-loan-rollover','ethsol-lending-liquidation'],'RELATED_PREDECESSOR_AND_PROXY','Native CToken-era indexed accounting and collateral proxy; the named Compound V3 Comet implementation and asset/state model are distinct and not ported.'
         if cat in ['Lending','CDP']:
             return ['ethsol-lending-liquidation','app-median-oracle-settlement'],'PROXY_NATIVE_COLLATERAL','Bounded BTC liquidation/oracle settlement patterns only; named protocol debt accrual, assets, collateral configuration and full state machine are not implemented.'
+        if r['slug']=='lido':
+            return ['app-lido-fifo-withdrawal-queue'],'SOURCE_DERIVED_WITHDRAWAL_QUEUE','Pinned Lido withdrawal-queue arithmetic with a bounded native funded FIFO prefix, immutable rate checkpoints and exact transferable claims. The verified TVL address is the staking proxy, not the queue; validator selection, foreign stETH supply, oracle timing and the actual holdings remain outside this profile.'
         if cat in ['Liquid Staking','Staking Pool','Restaking']:
             return ['app-babylon-unbonding','app-babylon-slashing'],'PROXY_CUSTODY','Bitcoin authorization/unbond/slash pattern only; foreign validator selection, rewards and consensus/slash evidence are not verified.'
         if cat in ['Bridge','Canonical Bridge']:
@@ -146,7 +148,10 @@ def main():
             ident=r['program']
             if ident not in measured or r['current_mwu']!=measured[ident]['cost_mwu']:
                 raise SystemExit('Impact original bound disagrees: '+ident)
-            budget=(int(r['assumed_budget_wu']),r['feasibility_applicable'])
+            effective=int(r['effective_budget_wu'])
+            if effective!=min(int(r['assumed_budget_wu']),int(r['maximum_budget_wu'])):
+                raise SystemExit('Impact cap disagreement: '+ident)
+            budget=(effective,r['feasibility_applicable'])
             if ident in budgets and budgets[ident]!=budget:
                 raise SystemExit('Impact budget disagreement: '+ident)
             budgets[ident]=budget
@@ -243,7 +248,7 @@ def main():
     bip_rows=[proposal_row('open-bip',r['number'],'BIP '+r['number']+': '+r['title'],r['status'],r['source'],bmap[r['number']]) for r in bips]
     no_number_rows=[proposal_row('unnumbered-proposal',m['id'],m['title'],'unnumbered',m['source'],m) for m in proposal_map]
     proposal_sections=['## All 24 open softfork BIPs','',
-        'Costs attach to the exact corpus IDs. The optional fit column compares native and combined overlay bounds at the same first-vector witness-bytes + 50 WU scenario; it is not a Bitcoin consensus budget rule. Scope gaps do not imply a new jet is necessary.','',
+        'Costs attach to the exact corpus IDs. The optional fit column compares native and combined overlay bounds at the same first-vector witness-bytes + 50 WU scenario, capped by the in-tree maximum; it is not a Bitcoin consensus budget rule. Scope gaps do not imply a new jet is necessary.','',
         table(header,bip_rows),'','## Ten audited unnumbered proposal families','',
         'This is the documented search scope in [BIP-INVENTORY.md](BIP-INVENTORY.md). The BIP index and these proposal searches have different coverage.','',table(header,no_number_rows)]
     lines += proposal_sections + ['','## Every ranked protocol and execution-source row','','TVL includes BOTH complete saved top20 sets for each chain: all categories including custodial holdings, and the separately filtered non-CEX ranking. Their source_set values are distinct; overlapping protocols are not merged or counted as additional applications. Gas and compute tables cover **all rows** of the complete one-block source TSVs, including unknown implementations and non-contract recipients. They do not replace unavailable Etherscan/Solscan period rankings. Source period/coverage limits remain those documented in [contract-inventory.md](contract-inventory.md). Architectural PROXY costs belong to the named corpus programs, not to the source contract itself.']

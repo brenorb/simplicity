@@ -2,7 +2,7 @@
 
 ## All 24 open softfork BIPs
 
-Costs attach to the exact corpus IDs. The optional fit column compares native and combined overlay bounds at the same first-vector witness-bytes + 50 WU scenario; it is not a Bitcoin consensus budget rule. Scope gaps do not imply a new jet is necessary.
+Costs attach to the exact corpus IDs. The optional fit column compares native and combined overlay bounds at the same first-vector witness-bytes + 50 WU scenario, capped by the in-tree maximum; it is not a Bitcoin consensus budget rule. Scope gaps do not imply a new jet is necessary.
 
 | proposal / status | verdict and association / program IDs | native WU | combined overlay WU ESTIMATE | vectors / status | hypothetical fit before / after | exact scope gap |
 | --- | --- | --- | --- | --- | --- | --- |

@@ -1,8 +1,9 @@
 # Current validation checkpoint
 
-The source milestone contains 156 registered rows, 149 distinct counting groups
-and 107 complete bounded spend/verifier groups. It does **not** meet the 150-group
-target. Old49-row cost/recommendation tables are historical and explicitly
+The source milestone contains 157 registered rows, 150 distinct counting groups
+and 108 full bounded spend/verifier groups. The target is registered; fresh
+whole-corpus measurements must still qualify those groups. The old 49-row
+cost and recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
 missing cost, profile, serialization or ablation numbers.
 
@@ -28,6 +29,7 @@ missing cost, profile, serialization or ablation numbers.
 | Finite Uniswap V3 pool | All 39 full native vectors (24 accept, 15 reject), 51 arithmetic and four targeted state binding controls pass; [scope](V3-NATIVE-VALIDATION.md) | Fresh shared metrics; finite tick map with exact Q96 crossings and Q128 fee checkpoints |
 | Fixed-scale Curve Twocrypto | All 56 full native vectors pass (20 accept, 36 reject); 55 arithmetic comparisons pass; [scope and source branch proof](TWOCRYPTO-NATIVE.md) | Fresh shared metrics; fixed scale and exact supported Newton fallback, no moving EMA or ramp |
 | Pump.fun virtual-reserve launch | All 48 current native vectors pass (13 accept, 35 reject), including exact sellout, permissionless migration and backed redemptions; [scope](PUMP-LAUNCH-NATIVE.md) | Fresh shared metrics; fixed native launch and migration handoff, no foreign mint or subsequent pool port |
+| Lido FIFO withdrawal queue | All 31 bounded native vectors pass (15 accept, 16 reject), including source floor equality, two checkpoints, transfers and exact backed claims; [scope](LIDO-WITHDRAWAL-QUEUE.md) | Fresh shared metrics; pinned source payout logic, no foreign staking or timestamp attestation |
 | StableSwap and weighted pools | All 23 three-class StableSwap and 18 two-class weighted lifecycle vectors pass; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; fixed native rates, rounding and liquidity bounds, no foreign asset-ledger equivalence |
 | CoW batch settlement | All 20 complete native signed-order, settlement and accounting vectors pass; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; bounded two-order native claim ledger, no foreign interactions or expiry |
 | Indexed loan and OCR report consumer | All 20 indexed lending and 11 fixed-config OCR vectors pass; independent canonical roots and exact source snapshots; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; native rate/height authority and OCR freshness limits explicit |

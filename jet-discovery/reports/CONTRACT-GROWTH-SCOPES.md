@@ -105,3 +105,10 @@ transaction vectors. Its synthetic pricing liquidity, finite sellout and
 permissionless terminal migration distinguish it from a recurring pool with
 LP shares. The native handoff pays a fixed output and preserves already
 backed holder claims; the later PumpSwap pool remains outside this profile.
+
+The [Lido withdrawal queue](LIDO-WITHDRAWAL-QUEUE.md) adds a second
+ranked profile with 31 passing native vectors. A strict funded FIFO prefix,
+immutable E27 rate checkpoints and the source's floor-equality rule
+distinguish it from the generic asynchronous vault. The ranked TVL
+address is the staking proxy; the queue profile is a downstream
+source adaptation.
