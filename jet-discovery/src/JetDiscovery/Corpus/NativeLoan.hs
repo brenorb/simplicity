@@ -1,0 +1,90 @@
+{-# LANGUAGE RankNTypes,ScopedTypeVariables #-}
+-- | One lender/borrower, actual native cash and native collateral. Compound's
+-- interest/index/reserve math is retained; authenticated events replace tip time.
+module JetDiscovery.Corpus.NativeLoan where
+import Prelude hiding (drop,take,not,and,or)
+import qualified Prelude as H
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import qualified Simplicity.Programs.Arith as A
+import Simplicity.Ty.Word (word64)
+import Simplicity.Bitcoin.Term (Simplicity,Primitive)
+import JetDiscovery.Corpus.ContractGrowth hiding (entries)
+import JetDiscovery.Types
+import Simplicity.Digest (Hash256)
+import JetDiscovery.Tx (hashFromInteger)
+
+-- Offchain signature fixture only; independently extracted from the actual
+-- unchanged complete typed program and explicitly checked by the vector driver.
+loanFixtureCmr :: Hash256
+loanFixtureCmr=hashFromInteger 0xcdd787692459595d2da0b69e634bef5ea716042ef22b0ba53d6adb53dc9a5162
+
+loanT :: (Simplicity t,Primitive t) => GT t
+loanT=allChecks [base,valid o,valid n,choose [(0,supply),(1,redeem),(2,lock),(3,unlock),(4,borrow),(5,accrue),(6,repay),(7,liquidate),(8,reserves)]]
+ where
+  scale=k (10^18)
+  accountDebt=floorRatio (o 7) (o 5) (o 8)
+  valid source=allChecks [same (source 0) (add (source 1) (source 2)),same (source 9) (source 10),nonzero (source 5),nonzero (source 8),le (source 8) (source 5),le (floorRatio (source 7) (source 5) (source 8)) (source 3),le (source 4) (add (source 1) (source 3)),lt (source 6) (k 500000000),le (ceilRatio (source 3) (k 105) (k 100)) (source 2),select (is (source 3) (k 0)) (same (source 7) (k 0)) (nonzero (source 7)),allChecks [same (source i) (k 0)|i<-[12..15]]]
+  owner i=allChecks [same actor (k (toInteger i)),sigAt i]
+  nonceLoan=(11,add (o 11) (k 1))
+  assets=sub (add (o 1) (o 3)) (o 4)
+  shares=select (is (o 9) (k 0)) amount (floorRatio amount (o 9) assets)
+  supply=allChecks [owner 0,nonzero shares,changes [(0,add (o 0) amount),(1,add (o 1) amount),(9,add (o 9) shares),(10,add (o 10) shares),nonceLoan],deposit amount]
+  redeemed=floorRatio amount assets (o 9)
+  redeem=allChecks [owner 0,nonzero amount,select (is amount (o 9)) (same (o 3) (k 0)) unit,changes [(0,sub (o 0) redeemed),(1,sub (o 1) redeemed),(9,sub (o 9) amount),(10,sub (o 10) amount),nonceLoan],withdraw redeemed (destination 0)]
+  lock=allChecks [owner 1,changes [(0,add (o 0) amount),(2,add (o 2) amount),nonceLoan],deposit amount]
+  unlock=allChecks [owner 1,le (add (o 3) (o 3)) (sub (o 2) amount),changes [(0,sub (o 0) amount),(2,sub (o 2) amount),nonceLoan],withdraw amount (destination 1)]
+  borrow=allChecks [owner 1,same (o 3) (k 0),nonzero amount,le (add amount amount) (o 2),changes [(0,sub (o 0) amount),(1,sub (o 1) amount),(3,amount),(7,amount),(8,o 5),nonceLoan],withdraw amount (destination 1)]
+  delta=sub (n 6) (o 6)
+  factor=floorRatio amount delta (k 1)
+  interest=floorRatio factor (o 3) scale
+  indexInterest=floorRatio factor (o 5) scale
+  reserveInterest=floorRatio interest (k (10^17)) scale
+  accrue=allChecks [sigAt 3,le amount (k (5*10^12)),nonzero delta,le delta (k 1000000),lt (n 6) (k 500000000),changes [(3,add (o 3) interest),(4,add (o 4) reserveInterest),(5,add (o 5) indexInterest),(6,n 6),nonceLoan],noCash]
+  full=is amount (o 3)
+  repay=allChecks [owner 1,nonzero amount,le amount (o 3),select full unit (le amount accountDebt),changes [(0,add (o 0) amount),(1,add (o 1) amount),(3,sub (o 3) amount),(7,select full (k 0) (sub accountDebt amount)),(8,o 5),nonceLoan],deposit amount]
+  incentive=ceilRatio (o 3) (k 105) (k 100)
+  claim=select ((o 2&&&incentive)>>>A.lt word64) (o 2) incentive
+  liquidate=allChecks [sigAt 2,nonzero (o 3),lt (o 2) (add (o 3) (o 3)),same amount (o 3),changes [(0,sub (add (o 0) amount) claim),(1,add (o 1) amount),(2,sub (o 2) claim),(3,k 0),(7,k 0),(8,o 5),nonceLoan],outCount 2,inputFund amount,continuation,same (outVal 1) claim,same (outScript 1) (destination 2)]
+  reserves=allChecks [sigAt 3,le amount (o 4),changes [(0,sub (o 0) amount),(1,sub (o 1) amount),(4,sub (o 4) amount),nonceLoan],withdraw amount (destination 3)]
+
+loanEntry=entry "app-interest-accruing-loan-rollover" "Native Compound-style indexed loan lifecycle" "Compound CToken accrueInterest/borrowBalanceStored/exchangeRateStored; pinned source"
+ ["one fixed lender0 and borrower1; actual native funded pool cash and borrower collateral; no foreign token supply, global Comptroller, interest-model contract or current-tip primitive", "rate authority3 signs actual transaction/new height/rate; height strictly monotone, delta<=1million, borrowRate<=5e12 at1e18 precision;10% interest reserve; all accrued balances/index use exact source floor rounding", "native fixed1:1 collateral value with50% borrowing factor and5% liquidation incentive; signed accrual events outside fully collateralized liquidation domain are rejected; liquidator2 funds full debt and receives capped collateral, preserving remaining borrower collateral", "partial repayment uses published principal*index/snapshot; terminal repayment settles total borrow accounting including bounded integer residual; no claim of exact multi-borrower/global Compound state equivalence"] loanT vectors
+ where
+  initial=pad [0,0,0,0,0,10^18,800000,0,10^18,0,0,0]
+  step a xs=[maybe (a H.!!i) id (lookup i ((11,a H.!!11+1):xs))|i<-[0..15]]
+  supplied=step initial [(0,100000),(1,100000),(9,100000),(10,100000)]
+  locked=step supplied [(0,120000),(2,20000)]
+  borrowed=step locked [(0,112000),(1,92000),(3,8000),(7,8000),(8,10^18)]
+  accrued=step borrowed [(3,8080),(4,8),(5,101*10^16),(6,810000)]
+  partial=step accrued [(0,114000),(1,94000),(3,6080),(7,6080),(8,101*10^16)]
+  paid=step accrued [(0,120080),(1,100080),(3,0),(7,0),(8,101*10^16)]
+  closedLender=step paid [(0,20008),(1,8),(9,0),(10,0)]
+  closedReserves=step closedLender [(0,20000),(1,0),(4,0)]
+  closed=step closedReserves [(0,0),(2,0)]
+  stressed=step borrowed [(3,12000),(4,400),(5,15*10^17),(6,900000)]
+  liquidated=step stressed [(0,111400),(1,104000),(2,7400),(3,0),(7,0),(8,15*10^17)]
+  v=vectorBound loanFixtureCmr
+  go name m a b who quantity signer funding payout expected=v name loanT m a b who quantity signer funding payout 0xfffffffe expected
+  vectors=[
+   go "lender supplies native pool and mints shares" 0 initial supplied 0 100000 0 100000 Nothing Accept,
+   go "borrower funds exact locked collateral" 2 supplied locked 1 20000 1 20000 Nothing Accept,
+   go "borrow transfers native cash and snapshots index" 4 locked borrowed 1 8000 1 0 (Just (1,8000)) Accept,
+   go "signed10000-block event accrues80 debt and8 reserve" 5 borrowed accrued 0 (10^12) 3 0 Nothing Accept,
+   go "partial repayment uses account borrow index" 6 accrued partial 1 2000 1 2000 Nothing Accept,
+   go "full repayment funds8080 and clears borrower" 6 accrued paid 1 8080 1 8080 Nothing Accept,
+   go "lender redeems shares plus72 native interest" 1 paid closedLender 0 100000 0 0 (Just (0,100072)) Accept,
+   go "administrator pulls only8 realized reserve" 8 closedLender closedReserves 0 8 3 0 (Just (3,8)) Accept,
+   go "borrower recovers collateral after debt close" 3 closedReserves closed 1 20000 1 0 (Just (1,20000)) Accept,
+   go "higher signed interest creates unhealthy collateral" 5 borrowed stressed 0 (5*10^12) 3 0 Nothing Accept,
+   go "liquidator funds12000 and receives12600 collateral" 7 stressed liquidated 2 12000 2 12000 (Just (2,12600)) Accept,
+   go "borrow cannot exceed collateral factor" 4 locked (step locked [(0,109000),(1,89000),(3,11000),(7,11000),(8,10^18)]) 1 11000 1 0 (Just (1,11000)) Reject,
+   go "accrual height cannot replay" 5 borrowed (step borrowed [(6,800000)]) 0 0 3 0 Nothing Reject,
+   go "rate cap rejects excessive source rate" 5 borrowed accrued 0 (5*10^12+1) 3 0 Nothing Reject,
+   go "borrower cannot impersonate rate authority" 5 borrowed accrued 0 (10^12) 1 0 Nothing Reject,
+   go "reserve rounding cannot add unearned sat" 5 borrowed (step borrowed [(3,8080),(4,9),(5,101*10^16),(6,810000)]) 0 (10^12) 3 0 Nothing Reject,
+   go "unpaid debt prevents collateral release" 3 borrowed (step borrowed [(0,92000),(2,0)]) 1 20000 1 0 (Just (1,20000)) Reject,
+   go "repayment requires exact input funding" 6 accrued paid 1 8080 1 8079 Nothing Reject,
+   go "healthy loan cannot be liquidated" 7 borrowed liquidated 2 8000 2 8000 (Just (2,8400)) Reject,
+   go "liquidation cannot redirect collateral payout" 7 stressed liquidated 2 12000 2 12000 (Just (1,12600)) Reject]
+entries=[loanEntry]

@@ -1,7 +1,7 @@
 # Current validation checkpoint
 
-The source milestone contains136 registered rows,132 distinct counting groups
-and90 complete bounded spend/verifier groups. It does **not** meet the150-group
+The source milestone contains138 registered rows,134 distinct counting groups
+and92 complete bounded spend/verifier groups. It does **not** meet the150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
 missing cost, profile, serialization or ablation numbers.
@@ -17,7 +17,8 @@ missing cost, profile, serialization or ablation numbers.
 | Private BIP47 client | All10 published notification/payment positives and9 actual corruption or re-signed payment negatives pass; [scope](PAYMENT-CODE.md) | Fresh shared metrics; offchain private interpreter only, budget feasibility inapplicable |
 | PSBT finalizer/extractor | All 23 native client vectors pass; exact published mixed legacy/SegWit finalization and extraction, full inventory of 96 published binary records; [scope](PSBT-FINALIZER.md) | Fresh shared metrics; fixed authenticated session maps, no general PSBT parser or spend-budget claim |
 | Cumulative pull payments | All 28 native vectors pass, including genuine two-input payout control, lifetime rounding and actual continuation; [scope](CUMULATIVE-SPLITTER.md) | Fresh shared metrics; one native BTC lineage and immutable payees |
-| Conditional positions | Complete29 native vectors pass plus independent focused layout/accounting review; [validation](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; other five native drafts remain uncounted |
+| Indexed loan and OCR report consumer | All 20 indexed lending and 11 fixed-config OCR vectors pass; independent canonical roots and exact source snapshots; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; native rate/height authority and OCR freshness limits explicit |
+| Conditional positions | Complete29 native vectors pass plus independent focused layout/accounting review; [validation](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; remaining three compact drafts remain uncounted |
 | Native BIP32 wallet | All9 source/derivation/boundary controls and11 full native vectors pass; [scope](HD-WALLET.md) | Fresh shared metrics; unchanged hmac37 body with additive later helpers explicit |
 | FairSwap file-sale escrow | All 24 actual native vectors pass under one canonical CMR, including the two-input payout regression; [scope and evidence](FAIRSWAP-NATIVE-SCOPE.md) | Fresh shared metrics; native CSV lower bounds and deadline races explicit |
 | BN254 Fp and Fp2 | All 12 actual vectors and complete two-entry costs; separate typed arrows and explicit dense arithmetic extrapolation [evidence](bn254-groth16.md) | Pre-final; no complete pairing verifier or budget claim |

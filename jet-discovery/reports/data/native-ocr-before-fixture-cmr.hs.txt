@@ -1,0 +1,93 @@
+{-# LANGUAGE RankNTypes,ScopedTypeVariables #-}
+-- | Fixed-config OCR2 report transcript and replay-protected native consumer.
+-- Report/context bytes follow the pinned ABI; billing and config rotation are
+-- deliberately replaced by a fixed native payout policy, not claimed ported.
+module JetDiscovery.Corpus.NativeOcr where
+import Prelude hiding (drop,take,not,and,or)
+import qualified Prelude as H
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BC
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import Simplicity.Programs.Generic (eq)
+import qualified Simplicity.Programs.Arith as A
+import Simplicity.Bitcoin.Term (Simplicity,Primitive)
+import qualified Simplicity.Bitcoin.Jets as J
+import Simplicity.Ty.Word hiding (Vector)
+import JetDiscovery.Lib.Bytes
+import JetDiscovery.Corpus.ContractExpansion (keccakFixed,ecRecover)
+import qualified JetDiscovery.Corpus.ContractGrowth as G
+import qualified JetDiscovery.Corpus.ContractMessageApps as M
+import qualified JetDiscovery.Ref.Bip340 as R
+import qualified JetDiscovery.Ref.Keccak as K
+import JetDiscovery.Types
+import JetDiscovery.Run (progCmr)
+
+type Fields=(Word32,((Word64,Word64),(Word64,Word64)))
+type ESig=(Word256,(Word256,Bit))
+type Input=(G.Input,(Fields,(ESig,ESig)))
+type OW=(G.GW,(Integer,Integer,[Integer]),[(Integer,(Integer,Bool))])
+ts :: Core t => t Fields Word32
+ts=oh
+epoch,v0,v1,v2 :: Core t => t Fields Word64
+epoch=drop (take oh)
+v0=drop (take ih)
+v1=drop (drop oh)
+v2=drop (drop ih)
+config=K.keccak256 (BC.pack "JetDiscovery/native OCR/f1/signers11,12,13,14/transmitter3303")
+rawObservers=BS.pack ([0,1,2]++replicate 29 0)
+-- A small staged pure input retains only the40-bit epoch/round alongside the
+-- report hash; no ledger or signature context crosses the Keccak permutations.
+reportDigestRefT :: Assert t => t Fields Word256
+reportDigestRefT=(bodyHash&&&epoch)>>>keccakFixed (G.wordBytes oh++G.wordBytes (konst (w256FromBytes config))++G.wordBytes (G.as256 ih)++G.wordBytes (konst (w256 0)))
+ where
+  asTs=G.as256 (konst (w32 0)&&&ts)
+  bodyHash=keccakFixed (G.wordBytes asTs++[konst (w8 (toInteger b))|b<-BS.unpack rawObservers]++G.wordBytes (konst (w256 128))++G.wordBytes (konst (w256 1))++G.wordBytes (konst (w256 3))++G.wordBytes (G.as256 v0)++G.wordBytes (G.as256 v1)++G.wordBytes (G.as256 v2))
+reportWrapped :: J.WrappedSimplicity Fields Word256
+reportWrapped=J.jetSubst reportDigestRefT
+{-# NOINLINE reportWrapped #-}
+ocrT :: (Simplicity t,Primitive t) => t Input ()
+ocrT=(iden&&&(drop (take (J.unwrap reportWrapped))))>>>((take iden)&&&(recover 0&&&recover 1))>>>G.allChecks [core,G.allChecks [allowed oh,allowed ih,(drop oh&&&drop ih)>>>eq>>>not iden>>>verify]]
+ where
+  recover i=(ih&&&take (drop (drop (if i==0 then oh else ih))))>>>ecRecover
+  allowed side=G.allChecks [H.foldr or false [(drop side&&&konst (w256 (M.address sk)))>>>eq|sk<-[11..14]]>>>verify]
+  input t=take (take t)
+  fields t=take (drop (take t))
+  median=fields v1
+  core=G.allChecks [input G.base,input (G.same G.mode (konst (w8 0))),input (G.same G.actor (G.k 2)),input (G.sigAt 2),G.nonzero (fields epoch),G.lt (fields epoch) (G.k (2^40)),G.lt (input (G.o 1)) (fields epoch),G.le (fields v0) median,G.le median (fields v2),G.nonzero median,G.le median (G.k (10^9)),input (G.allChecks [G.same (G.o i) (G.k 0)|i<-[5..14]]),G.same (input G.amount) median,input (G.changes [(0,G.sub (G.o 0) G.amount),(1,G.n 1),(2,G.add (G.o 2) (G.k 1)),(3,G.n 3),(4,G.n 4),G.nonce 15]),G.same (input (G.n 1)) (fields epoch),G.same (input (G.n 3)) median,G.same (input (G.n 4)) (fields (konst (w32 0)&&&ts)),input (G.withdraw G.amount (G.destination 2))]
+ocrInput :: OW -> Input
+ocrInput (g,(timestamp,er,observations),signatures)=(G.encode g,((w32 timestamp,((w64 er,w64 (at 0)),(w64 (at 1),w64 (at 2)))),(sig 0,sig 1)))
+ where
+  at i=H.head (H.drop i (observations++repeat 0))
+  sig i=case H.head (H.drop i (signatures++repeat (0,(0,False)))) of (r,(s,b))->(w256 r,(w256 s,toBit b))
+ocrProgram :: (Simplicity t,Primitive t) => OW -> t () ()
+ocrProgram w=witness (ocrInput w)>>>ocrT
+rawReport timestamp observations=BS.concat ([R.bytesFromInt timestamp,rawObservers,R.bytesFromInt 128,R.bytesFromInt 1,R.bytesFromInt 3]++map R.bytesFromInt observations)
+reportDigest domain timestamp er observations=K.keccak256 (K.keccak256 (rawReport timestamp observations)<>domain<>R.bytesFromInt er<>BS.replicate 32 0)
+ocrCmr=progCmr (Prog (ocrProgram ((0,([],[]),(0,0),(G.zeroSig,G.zeroSig)),(0,0,[0,0,0]),[])))
+ocrVector name oldState newState timestamp er observations guardianKeys signingDomain spender payout expected=Vector name (vecEnv native) (vecWitness native,(timestamp,er,observations),sigs) expected
+ where
+  native=G.vectorBound ocrCmr name G.vaultT 0 oldState newState 2 (newState H.!!3) spender 0 (Just (payout,newState H.!!3)) 0xfffffffe expected
+  z=R.intFromBytes (reportDigest signingDomain timestamp er observations)
+  sigs=[let (r,s,b)=M.ecdsaSign sk z (71+toInteger i*2) in (r,(s,b))|(i,sk)<-zip [0::Int ..] guardianKeys]
+ocrEntry=Entry "app-ocr-report-state-machine" "OCR2 fixed-config report and native price payout" "libocr OCR2Aggregator transmit/_decodeReport/_report; pinned source" BitcoinApp
+ (Derived "exact canonical ABI report/context hashing with independent bytes and secp256k1 ECDSA signatures; persisted epoch/round and native output adversarial vectors")
+ ["fixed4ECDSA signers, f1, exactly2 distinct signatures; transmitter is BIP340 key3303; initialized native reserve and fixed configuration digest; no global LINK billing/config rotation claim", "canonical256-byte ABI report: uint32 timestamp, observer bytes0,1,2, offset128, juelsPerFeeCoin1, three nonnegative int192 observations bounded to64bits;128-byte keccak(report)+context digest", "canonical40-bit epoch/round strictly increases; native policy additionally requires ordered observations and median1..1e9; no report timestamp/current-chain freshness assertion", "native consumer pays exactly the accepted median in satoshis to fixed transmitter2 and stores answer/timestamp/aggregator round; all state/output values bound and reserve debited; this is an OCR-authorized native application, not the entire foreign aggregator"]
+ (boundProgram ocrT . ocrInput) vectors
+ where
+  initial=G.pad [10000,0,0,0,0]
+  first=G.pad [9800,257,1,200,1700000000,0,0,0,0,0,0,0,0,0,0,1]
+  second=G.pad [9580,258,2,220,1700000010,0,0,0,0,0,0,0,0,0,0,2]
+  v=ocrVector
+  vectors=[v "two distinct ECDSA signers authorize canonical OCR report" initial first 1700000000 257 [100,200,300] [11,12] config 2 2 Accept,
+   v "next report stores answer and consumes reserve once" first second 1700000010 258 [100,220,300] [13,14] config 2 2 Accept,
+   v "duplicate valid signer rejected" initial first 1700000000 257 [100,200,300] [11,11] config 2 2 Reject,
+   v "unregistered signer rejected" initial first 1700000000 257 [100,200,300] [11,15] config 2 2 Reject,
+   v "wrong configuration digest signatures rejected" initial first 1700000000 257 [100,200,300] [11,12] (BS.replicate 32 0) 2 2 Reject,
+   v "old epoch/round cannot replay" first second 1700000010 257 [100,220,300] [11,12] config 2 2 Reject,
+   v "canonical40-bit context cannot overflow" initial first 1700000000 (2^40+257) [100,200,300] [11,12] config 2 2 Reject,
+   v "native ordered median rule enforced" initial first 1700000000 257 [300,200,100] [11,12] config 2 2 Reject,
+   v "wrong transmitter cannot spend report reserve" initial first 1700000000 257 [100,200,300] [11,12] config 1 2 Reject,
+   v "accepted median cannot redirect native payout" initial first 1700000000 257 [100,200,300] [11,12] config 2 1 Reject,
+   v "stored answer must equal signed report median" initial (G.pad [9799,257,1,201,1700000000,0,0,0,0,0,0,0,0,0,0,1]) 1700000000 257 [100,200,300] [11,12] config 2 2 Reject]
+entries=[ocrEntry]

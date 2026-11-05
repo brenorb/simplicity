@@ -1,15 +1,15 @@
 # Native protocol batch: current outcomes
 
-The three-outcome conditional-position application now has **29/29 actual guarded vectorsPASS**. Its predicate and input encoding are unchanged from the compact source; a separately generated canonical CMR is used only for offchain fixture signing. Exact whole-program and per-vector CMR checks remain active. The other five compact groups remain pending. No count or cost credit is assigned to unvalidated drafts or helper variants.
+The three-outcome conditional-position application passed **all 29 native vectors**, the indexed loan passed **all 20**, and the fixed-config OCR consumer passed **all 11**. Their predicates/input encoding are unchanged from the compact source; independently generated canonical CMRs are used only for offchain fixture signing. Exact whole-program and per-vector CMR checks remain active. Three compact groups remain pending. No count or cost credit is assigned to unvalidated drafts or helper variants.
 
 | Application group | Current result | Evidence |
 |---|---|---|
 | `app-conditional-position-partitions` | **29/29PASS, exit0**, 879.57s, peak RSS29456875520 bytes; actual canonical CMR `c7881650b7686ef1cc12d6954b048c7759efb9ad0387f60fff82fffd3bccc975` | `data/claim-full29-fixture32g.txt`, exact hashes in `data/claim-full29-freeze.json` |
-| `app-interest-accruing-loan-rollover` | 20 application vectors pending; canonical-CMR extraction active | `data/loan-canonical-cmr32g.txt` |
-| `app-batch-limit-order-settlement` | 20 application vectors pending | `tools/CheckNativeProtocols.hs` |
-| `app-ocr-report-state-machine` | 11 application vectors pending | `tools/CheckNativeProtocols.hs` |
-| `app-stableswap-pool-transition` | 23 application vectors pending | `tools/CheckNativeProtocols.hs` |
-| `app-weighted-pool-transition` | 18 application vectors pending | `tools/CheckNativeProtocols.hs` |
+| `app-interest-accruing-loan-rollover` | **20/20PASS, exit0**, 487.40s, peak RSS24217157632 bytes; exact canonical CMR `cdd787692459595d2da0b69e634bef5ea716042ef22b0ba53d6adb53dc9a5162` | `data/loan-full20-fixture32g.txt`, `data/loan-full20-freeze.json`, `data/loan-source-closure.json` |
+| `app-batch-limit-order-settlement` | canonical CMR extracted; fixture-only signing prepared;20 application vectors pending | `data/batch-orders-canonical-cmr32g.txt`, `data/batch-orders-fixture-cmr-change.json` |
+| `app-ocr-report-state-machine` | **11/11 PASS, exit 0**, 333.41 s, peak RSS 10,887,577,600 bytes; exact canonical CMR `15035ac18ab2818a093ed0e3335d85c993b476ea66d13effb264199b0b593d28` | `data/ocr-full11-fixture32g.txt`, `data/ocr-full11-freeze.json`, `data/ocr-source-closure.json` |
+| `app-stableswap-pool-transition` | canonical CMR extracted; fixture-only signing prepared;23 application vectors pending | `data/stableswap-canonical-cmr32g.txt`, `data/stableswap-fixture-cmr-change.json` |
+| `app-weighted-pool-transition` | canonical CMR extracted; fixture-only signing prepared;18 application vectors pending | `data/weighted-pool-canonical-cmr32g.txt`, `data/weighted-pool-fixture-cmr-change.json` |
 
 The old and compact six-group runs exhausted16 GiB before vector1. Those failures remain in `data/native-protocols-vectors16g.txt` and `data/native-protocols-compact16g.txt`, with the representation change in `data/claim-ledger-compaction.json` and exact compact hashes in `data/native-protocols-freeze.json`. They are not passes.
 
@@ -30,8 +30,15 @@ All29 application vectors exercise the actual bound witness, actual transaction 
 Metadata/comments were corrected after the successful run: before resolution all three outcome liabilities fit escrow; after resolution the exact weighted numerator liability fits `escrow * denominator`. The code already enforced that distinction and passed the weighted redemption vectors. Condition identity is implicit in the initialized UTXO lineage and six fixed subset-mask slots; the oracle signs the actual transaction containing the current funding outpoint and full state transition. No question/domain hash or exported position-ID bytes are computed. The tested pre-correction file is retained; only descriptive Entry assumptions/comments changed, with complete kernel/vector definitions unchanged. The metadata-only change record and current hash accompany the freeze. This is a complete bounded native adaptation; no foreign BN254 collection-ID, ERC1155 wire or global registry compatibility is claimed.
 
 
-After the shared build, reproduce the complete registered application with
-`jet-discovery verify app-conditional-position-partitions +RTS -N1 -M32G -RTS`
-from the project directory. This main-runner route needs no unregistered
-five-group draft modules. The final isolated full-corpus command additionally
+The loan vectors cover both account roles and actual funding of pool cash,
+collateral and repayments; exact bounded index/reserve rounding; signed rate
+and height; liquidation and terminal reserve/share withdrawals. The OCR
+vectors check the canonical bounded ABI/context digest, distinct authorized
+ECDSA signers, monotone epoch/round, transmitter and actual median payout. The
+source-closure records identify the selected primary implementations and the
+foreign state and hooks excluded from these bounded native applications.
+
+After the shared build, reproduce each registered cohort with
+`jet-discovery verify <exact-registered-id> +RTS -N1 -M32G -RTS` from the
+project directory. The final isolated full-corpus command additionally
 measures every cost/profile/overlay/ablation field before strict aggregation.
