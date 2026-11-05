@@ -1,5 +1,34 @@
 # STARK construction diagnostics
 
+## Complete pre-final entry run
+
+The normal runner completed all8 full-size vectors, every static measurement,
+isolated candidate scenario, profile, serialization and applicable ablation.
+Actual exit0,3839.262seconds, one capability,64GiB heap cap;54,460,241,664bytes
+maximum live heap and66,578MiB total RTS memory. The honest generated proof
+accepts; changed OOD answer, final constant, noncanonical trace field,
+authentication sibling, DEEP inverse and independent initial/FRI context
+splices all reject. Profile self-cost and root CMR consistency checks pass.
+
+| field | completed value |
+| --- | ---: |
+| native static bound WU |1,497,462.342 |
+| combined candidate overlay WU ESTIMATE |252,144.216 |
+| encoded program bits, first vector |1,044,295 |
+| encoded witness bits, first vector |1,248,640 |
+| jetted DAG nodes |49,165 |
+| bound without SHA256 jets WU |5,197,091,146.775 |
+
+The exact21-scenario matrix, primitive baseline, all8 named outcomes and
+snapshot hash are in
+[stark-full-pre-final-measurements.json](data/stark-full-pre-final-measurements.json).
+The full plain snapshot is `data/stark-full-pre-final.snapshot.txt`;
+`data/stark-full-corpus-pre-final.{txt,json}` preserves executable/source
+hashes, log and observed exit. It uses the same corrected native CMR below.
+The later KoalaBear overlay addition and further corpus growth make this a
+**pre-final entry result**, not a fresh complete-corpus ranking. No estimated
+security-bit level or compatibility with Stwo/Circle proof encoding is implied.
+
 The **corrected dataflow verifier** completed its full-size CMR, cost and
 honest evaluation measurement on 2026-11-05:
 
