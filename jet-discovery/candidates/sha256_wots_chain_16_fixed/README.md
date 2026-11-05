@@ -69,12 +69,16 @@ program.
 
 ## Cost estimate and proof burden
 
-The overlay cost is **ESTIMATE: `15 * cost("Sha256Block")`**, using the unchanged
-in-tree Bitcoin benchmark cost, charged at the worst-case 15 iterations.
-This is a benchmark analogy, not a C implementation measurement. The seeded
-first-block compression is outside the candidate and remains in the caller.
-The fresh `whatif` artifact must report the candidate's actual matches and
-per-program savings; no measurement is inferred from the call count above.
+The overlay uses **11.475 WU ESTIMATE**, or `15 * cost("Sha256Block")` at the
+unchanged in-tree benchmark price. The fixed layout needs exactly one
+compression per executed iteration and up to 15 iterations. The seeded first
+block remains in the caller. The price approximates compression work. A C
+benchmark must also cover the loop, block assembly, and result truncation.
+
+The generic context frontend currently uses the same price for its measured
+18-byte caller alignment. Its typed input permits alignments that need two
+compressions per iteration. The fixed frontend is the simpler benchmark
+target for this address layout. [Generic frontend and price scope](../sha256_wots_chain_16/README.md)
 
 The implementation burden is moderate by analogy with the existing proven
 SHA-256 compression primitive: a bounded loop, exact 18+4+16-byte packing,
@@ -93,12 +97,13 @@ correspondence and public/startup composition as separate obligations. It is
 evidence for reuse of the compression specification, not a completed proof of
 this new C loop or a claim that every C linkage obligation is discharged.
 
-The generic context frontend is more flexible but constructs a larger reference
-DAG. A one-step F kernel keeps the 15 conditional steps in Simplicity; a full
-signature-verifier jet is more scheme-specific. The fixed chain form is shared
-by the pinned SHRINCS stateful and stateless address formats. RFC8391 XMSS
-randomized masks and RFC8554 LMS n32 chains require their own exact relations;
-they are not claimed to match this n16 kernel unchanged.
+The generic context frontend accepts a wider set of prefixes. A one-step F
+kernel keeps the 15 conditional steps in Simplicity, and a full
+signature-verifier jet adds scheme-specific work. The fixed chain form supports
+both pinned SHRINCS address domains and the SLH-DSA-SHA2-128s layout. The current
+stateful row retains its generic expression and matches that frontend. RFC8391
+XMSS randomized masks and RFC8554 LMS n32 chains require their own exact
+relations.
 
 ## Validation
 

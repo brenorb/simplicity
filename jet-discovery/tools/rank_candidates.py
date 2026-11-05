@@ -81,6 +81,22 @@ def main():
     prices = keyed(list(csv.DictReader(io.StringIO(emitted), delimiter='\t')), 'candidate')
     if set(prices) != set(candidates):
         raise ValueError('ranking policy and executable candidate registry differ')
+    # Preserve the frozen numeric prices and clarify the scope of these
+    # analogies in the report. An estimate does not bound implementation cost.
+    method_limits = {
+        'sha256_wots_chain_16': ('15 x Sha256Block for the matched 18-byte buffer alignment; a caller-profile ESTIMATE. '
+                                'An unrestricted valid context can require 30 compressions.'),
+        'div_mod_256': ('4 x DivMod128_64, a limb-throughput ESTIMATE; it does not model every step of '
+                        'unrestricted 256-by-256 division.'),
+        'div_mod_512': ('16 x DivMod128_64, a 512-by-256 proxy ESTIMATE; the exact prototype accepts '
+                        'a full 512-bit divisor.'),
+        'secp256k1_ecdsa_verify': ('Sum of ScalarInvert, LinearCombination1, GejNormalize, GeIsOnCurve and '
+                                   'ScalarNormalize benchmark analogues. This ESTIMATE omits two separate scalar '
+                                   'multiplications and range/control overhead.'),
+    }
+    for name, method in method_limits.items():
+        if name in prices:
+            prices[name]['method'] = method
     if set(results) != set(metadata) or not set(results) <= set(classes):
         raise ValueError('incomplete registry, result or classification coverage')
     for ident, row in results.items():

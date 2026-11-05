@@ -6,10 +6,10 @@
 `(Word256, Word256) -> (Word256, Word256)`
 
 ## Specification
-The library's `Simplicity.Programs.Arith.div_mod word256`.
+The library's `Simplicity.Programs.Arith.div_mod word256` accepts two unrestricted unsigned 256-bit words. For a nonzero divisor it returns the exact quotient and remainder. Division by zero returns `(0, numerator)`. Both results retain the full width. [Simplicity expression](../../../Haskell/Core/Simplicity/Programs/Arith.hs)
 
 ## Cost (ESTIMATE)
-ESTIMATE: 4 x `DivMod128_64` = 0.676 WU.
+The current overlay uses 4 × `DivMod128_64`, or **0.676 WU ESTIMATE**. This is a limb-operation proxy for dividing a 256-bit numerator. The existing 128-by-64 helper assumes a normalized divisor and a quotient that fits 64 bits. The candidate's full-width divisor also requires selecting and normalizing the active limbs, correcting quotient estimates as needed, and handling the zero case. A C benchmark must cover the full typed arrow before the proxy can serve as a worst-path price.
 
 ## Generality
 Fixed-point and AMM arithmetic, big-number arithmetic (the Great Script Restoration's use cases), modular reductions for non-native fields.
