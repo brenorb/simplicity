@@ -244,11 +244,12 @@ the same `cost` function.
 
 ## Budget (open question)
 
-`C/bitcoin/exec.c` takes the per-input budget as a parameter
-(`simplicity_bitcoin_execSimplicity(..., minCost, budget, ...)`).  The only
-fixed limit in this repository is `BUDGET_MAX = 4000050` WU
-(`C/limitations.h:9`).  How Bitcoin would compute a spend's budget is not
-defined here.  Bitcoin Core's integration is not in this repository.
+[`C/bitcoin/exec.c:44–46`](../../C/bitcoin/exec.c#L44-L46) takes the
+per-input budget as a caller parameter. [Lines 125–129](../../C/bitcoin/exec.c#L125-L129)
+cap that input before analysis. The fixed ceiling is 4,000,050 WU
+([`C/limitations.h:9`](../../C/limitations.h#L9)). The repository does not
+contain the Bitcoin Core integration or a rule deriving this budget from a
+transaction.
 
 So reports give:
 - the absolute static bound;
@@ -362,7 +363,7 @@ that analogy.  It is not a measurement.
 
 ## Biases and limits
 
-**The corpus is written by one author against one library.**
+**The corpus uses one library and one set of modeling conventions.**
 - Programs use the library's existing jets wherever they can, which can
   understate gaps the library hides.
 - Specs were chosen to force the expensive work: exact BIP serializations,
@@ -386,8 +387,9 @@ would not be caught.
 and extrapolated costs belong to a builder with unbound copied witnesses and
 are withdrawn. Trace/composition openings and the DEEP quotient were also
 absent. The corrected full Fibonacci AIR/DEEP/FRI experiment is described in
-[FIBONACCI-STARK.md](FIBONACCI-STARK.md); its full-size honest diagnostic has
-a measured cost, while complete corpus/report validation remains separate.
+[FIBONACCI-STARK.md](FIBONACCI-STARK.md). The full-size eight-vector
+diagnostic and the complete corpus run are separate evidence; use the
+complete run's fingerprint for comparisons across programs.
 
 **Non-native curves use witness hints.** The P-256 and ed25519 programs take
 s⁻¹ mod n and decompression x-coordinates as witness and check them, as a
@@ -407,8 +409,12 @@ The BIP inventory inspects every nonterminal softfork row at its pinned
 revision, including exclusions. The eprint log is complete for the stated
 metadata queries, with automated and individually reviewed verdicts kept
 separate. The contract inventory preserves both all-category holdings and
-non-CEX TVL rankings, plus explicitly bounded single-block gas/CU sources;
-those blocks do not replace unavailable 24-hour explorer rankings.
+non-CEX TVL rankings, the complete single-block/single-slot execution
+samples, an independent full Ethereum UTC day of receipt gas, and the
+provider-reported Soltop rolling 24-hour slice. Etherscan and Solscan
+period tables were unavailable. The alternative sources have different
+windows, coverage and attribution rules; see [PERIOD-RANKINGS.md](PERIOD-RANKINGS.md)
+and the [Ethereum UTC day](ETHEREUM-DAY-GAS-RANKING.md).
 
 Registered testable rows, distinct counting groups, complete spend conditions,
 complete bounded verifiers, protocol components, and arithmetic kernels are
