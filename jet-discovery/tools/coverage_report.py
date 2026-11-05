@@ -59,6 +59,8 @@ def classify_contract(dataset,r):
             return ['app-babylon-unbonding','app-babylon-slashing'],'PROXY_CUSTODY','Bitcoin authorization/unbond/slash pattern only; foreign validator selection, rewards and consensus/slash evidence are not verified.'
         if cat in ['Bridge','Canonical Bridge']:
             return ['xchain-secp256k1-ecdsa','xchain-keccak-merkle-membership'],'PROXY_COMPONENTS','Generic signature/Merkle components only; protocol-specific message format, finality, replay protection and bridge payout covenant are not implemented.'
+        if r['slug']=='orca-dex':
+            return ['app-concentrated-pool-swap','xchain-uniswap-v3-tick-math'],'PROXY_CONCENTRATED_POOL','The native Uniswap V3 profile demonstrates bounded tick crossing, liquidity and fee accounting. The ranked Orca Whirlpool uses distinct Q64 arithmetic, position and account semantics; it is not implemented.'
         if cat=='Dexs':
             return ['xchain-uniswap-v2-amount-out','xchain-fullmath-muldiv'],'PROXY_AMM_ARITHMETIC','Constant-product/full-width arithmetic demand only; named pool formula, fee schedule, token ledger and complete swap covenant are not ported.'
         if cat=='Derivatives':
@@ -75,7 +77,7 @@ def classify_contract(dataset,r):
         if label in ['USDT','USDC','Tether USD₮','Circle USDC']:
             return [],'UNIMPLEMENTED_TOKEN_TRANSITION','Transfer/approval storage and issuer controls are not ported. The ERC2612 entry must not be presented as an implementation of these observed transfer calls.'
         if label in ['Uniswap Universal Router','Uniswap v3 SwapRouter','Uniswap SwapRouter02']:
-            return ['xchain-uniswap-v3-tick-math','xchain-fullmath-muldiv'],'RELATED_EXACT_LIBRARY_KERNELS','Exact Uniswap arithmetic kernels measured; observed routing commands, pool execution and complete UTXO asset transitions are not implemented or attributed from the receipt.'
+            return ['app-concentrated-pool-swap','xchain-uniswap-v3-tick-math','xchain-fullmath-muldiv'],'RELATED_V3_NATIVE_PROFILE','Pinned v3-core arithmetic and a finite BTC-backed pool implement Q96 crossing and Q128 fees. Routing commands and foreign assets are outside the profile. Top-level receipt gas does not attribute inner pool execution or distinguish the router versions used within a call.'
         if label in ['ERC4337 EntryPoint v0.7','ERC-4337 EntryPoint v0.7']:
             return ['ethsol-safe-allowance'],'PROXY_AUTHORIZATION_POLICY','A bounded Bitcoin allowance wallet is a policy comparison; EntryPoint nonce/storage, validation callbacks, paymaster and gas accounting are unimplemented.'
         if label=='Multicall3':
@@ -96,7 +98,7 @@ def classify_contract(dataset,r):
         if label=='Pump fee program':
             return ['app-royalty-payment-splitter'],'PROXY_FEE_ALLOCATION','Fixed native payment splitter is only an allocation comparison; actual Pump fee rates, tiers and instruction state are not implemented.'
         if label in ['Orca Whirlpool','Raydium CLMM']:
-            return ['xchain-uniswap-v3-tick-math'],'PROXY_TICK_ARITHMETIC','Exact Uniswap Q96 kernel; source-specific Q64 rounding/fee/position semantics and complete pool covenant remain missing.'
+            return ['app-concentrated-pool-swap','xchain-uniswap-v3-tick-math'],'PROXY_CONCENTRATED_POOL','A bounded Uniswap V3 native profile measures Q96 crossings, fees and positions. The named Solana Q64 rounding, fee/position and account semantics are distinct and remain unimplemented.'
         if label=='Jupiter v6 aggregator':
             return [],'UNIMPLEMENTED_ROUTE','No chosen route/pool state is established from provider CU; general cross-program routing and mutable pool accounts are not a complete Bitcoin covenant.'
         if label=='Meteora DLMM':
@@ -265,6 +267,8 @@ def main():
             source=[dict(r,**{k:v for k,v in triage[r['recipient']].items() if k not in r}) for r in source]
         for r in source:
             ids,assoc,gap=classify_contract(dataset,r)
+            if any(i not in meta for i in ids):
+                raise SystemExit('Unknown corpus ID in contract mapping: '+str(ids))
             identity='';role='';execution_source=''
             source_verdict=r.get('verdict',r.get('utxo_verdict',''))
             source_reason=r.get('reason',r.get('utxo_verdict_reason',r.get('utxo_verdict','')))
