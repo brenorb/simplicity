@@ -20,6 +20,7 @@ import qualified JetDiscovery.Corpus.Shake256 as Shake256
 import qualified JetDiscovery.Corpus.ContractGrowth as ContractGrowth
 import qualified JetDiscovery.Corpus.ContractMessageApps as ContractMessageApps
 import qualified JetDiscovery.Corpus.ContractBridge as ContractBridge
+import qualified JetDiscovery.Corpus.ClaimProtocols as ClaimProtocols
 import qualified JetDiscovery.Corpus.MlDsaNtt as MlDsaNtt
 import qualified JetDiscovery.Lib.HdWallet as HdWallet
 import qualified JetDiscovery.Corpus.Xmss as Xmss
@@ -96,6 +97,7 @@ corpus = concat <$> sequence
   , pure ContractGrowth.entries
   , pure ContractMessageApps.entries
   , pure ContractBridge.entries
+  , pure ClaimProtocols.entries
   , pure EprintExpansion.entries
   , pure BN254.entries
   , pure DeFi.entries

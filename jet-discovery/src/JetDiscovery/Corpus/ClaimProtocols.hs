@@ -1,0 +1,120 @@
+{-# LANGUAGE RankNTypes,ScopedTypeVariables #-}
+-- | Complete bounded native claim protocols. Foreign collection IDs and token
+-- addresses are replaced by fixed domain-separated native ledger positions.
+module JetDiscovery.Corpus.ClaimProtocols where
+import Prelude hiding (drop,take,not,and,or)
+import qualified Prelude as H
+import Data.Bits (testBit)
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import qualified Simplicity.Programs.Word as W
+import qualified Simplicity.Programs.Arith as A
+import Simplicity.Bitcoin.Term (Simplicity,Primitive)
+import Simplicity.Ty.Word hiding (Vector)
+import JetDiscovery.Lib.Bytes (konst)
+import JetDiscovery.Lib.ClaimLedger
+import qualified JetDiscovery.Corpus.ContractGrowth as G
+import JetDiscovery.Types
+import Simplicity.Digest (Hash256)
+import JetDiscovery.Tx (hashFromInteger)
+
+-- Offchain vector-signing fixture only. Independently computed from the full
+-- unchanged typed kernel/dummy witness by DiagnoseClaimStages; the runner still
+-- computes the actual whole-program CMR and checks every vector against it.
+conditionalFixtureCmr :: Hash256
+conditionalFixtureCmr=hashFromInteger 0xc7881650b7686ef1cc12d6954b048c7759efb9ad0387f60fff82fffd3bccc975
+
+band a b=(a&&&b)>>>W.bitwise_and word64
+bor a b=(a&&&b)>>>W.bitwise_or word64
+-- Six proper nonempty subsets of one implicitly identified three-outcome
+-- condition in the initialized UTXO lineage. Position identity is its mask/slot
+-- in that deployment; no question/domain hash or position-ID bytes are computed.
+position source mask=sumT [select (is mask (k (toInteger m))) (account (source (18+2*m)) (source (19+2*m))) (k 0)|m<-[1..6]]
+liability source j=sumT [add (source (18+2*m)) (source (19+2*m))|m<-[1..6],testBit m j]
+validPositionsT :: Assert t => t Ledger ()
+validPositionsT=checks field
+ where
+ checks source=allChecks [validClaims source,le (source 16) (k 1),allChecks [same (source i) (k 0)|i<-[7..13]],select (is (source 16) (k 0)) unresolved resolved]
+  where
+   den=sumT (map source [17..19])
+   unresolved=allChecks ([same (source i) (k 0)|i<-[17..19]]++[le (liability source j) (source 15)|j<-[0..2]])
+   mul a b=(a&&&b)>>>A.multiply word64
+   plus a b=(a&&&b)>>>A.add word128>>>((oh>>>not iden>>>verify)&&&ih)>>>ih
+   weighted=H.foldl plus (konst (toWord128 0)) [mul (add (source (18+2*m)) (source (19+2*m))) (sumT [source (17+j)|j<-[0..2],testBit m j])|m<-[1..6]]
+   resolved=allChecks [nonzero den,(weighted&&&mul (source 15) den)>>>A.le word128>>>verify]
+conditionalT :: (Simplicity t,Primitive t) => CT t
+conditionalT=allChecks [base,old>>>validPositionsT,new>>>validPositionsT,choose (claimBranches++[(16,split),(17,merge),(18,transferPosition),(19,resolve),(20,redeem)])]
+ where
+  mask0=aux 0;mask1=aux 1;mask2=aux 2
+  union=bor (bor mask0 mask1) mask2
+  full=is union (k 7)
+  partition=allChecks [nonzero mask0,lt mask0 (k 7),nonzero mask1,lt mask1 (k 7),lt mask2 (k 7),same (band mask0 mask1) (k 0),same (band mask0 mask2) (k 0),same (band mask1 mask2) (k 0)]
+  leg m=or (is mask0 (k (toInteger m))) (or (is mask1 (k (toInteger m))) (is mask2 (k (toInteger m))))
+  parent m=is union (k (toInteger m))
+  delta splitFlag m bal=let { credit=if splitFlag then select (leg m) amount (k 0) else select (parent m) amount (k 0); debit=if splitFlag then select (parent m) amount (k 0) else select (leg m) amount (k 0) } in add (sub bal debit) credit
+  positions splitFlag=concat [[(18+2*m,account (delta splitFlag m (o (18+2*m))) (o (18+2*m))),(19+2*m,account (o (19+2*m)) (delta splitFlag m (o (19+2*m))))]|m<-[1..6]]
+  rootChanges splitFlag=[(15,select full (if splitFlag then add (o 15) amount else sub (o 15) amount) (o 15))]++setUser False (select full (if splitFlag then sub (userBalance False o) amount else add (userBalance False o) amount) (userBalance False o))
+  transition splitFlag=allChecks [actorSig,nonzero amount,partition,changes ([nonce]++rootChanges splitFlag++positions splitFlag),noCash]
+  split=transition True
+  merge=transition False
+  transferPosition=allChecks [actorSig,nonzero amount,nonzero mask0,lt mask0 (k 7),changes ([nonce]++concat [[(18+2*m,select (is mask0 (k (toInteger m))) (account (sub (o (18+2*m)) amount) (add (o (18+2*m)) amount)) (o (18+2*m))),(19+2*m,select (is mask0 (k (toInteger m))) (account (add (o (19+2*m)) amount) (sub (o (19+2*m)) amount)) (o (19+2*m)))]|m<-[1..6]]),noCash]
+  resolve=allChecks [sigAt 3 0,same (o 16) (k 0),nonzero (sumT [aux 0,aux 1,aux 2]),changes [(16,k 1),(17,aux 0),(18,aux 1),(19,aux 2),nonce],noCash]
+  numerator=sumT [select (is (band mask0 (k (2^j))) (k 0)) (k 0) (o (17+j))|j<-[0..2]]
+  quantity=position o mask0
+  payout=G.floorRatio quantity numerator (sumT (map o [17..19]))
+  redeem=allChecks [actorSig,same (o 16) (k 1),nonzero mask0,lt mask0 (k 7),nonzero quantity,changes ([nonce,(15,sub (o 15) payout)]++setUser False (add (userBalance False o) payout)++concat [[(18+2*m,select (is mask0 (k (toInteger m))) (account (k 0) (o (18+2*m))) (o (18+2*m))),(19+2*m,select (is mask0 (k (toInteger m))) (account (o (19+2*m)) (k 0)) (o (19+2*m)))]|m<-[1..6]]),noCash]
+
+conditionalEntry=entry "app-conditional-position-partitions" "Three-outcome native conditional position partitions" "ConditionalTokens splitPosition/mergePositions/reportPayouts/redeemPositions; pinned source"
+ ["one three-outcome condition implicitly identified by the initialized UTXO lineage; six fixed subset-mask slots, two owners and oracle key4404 signing the actual transaction; no explicit question/domain hash or position-ID byte computation, foreign BN254 compressed collection IDs or ERC1155 wire encoding", "all six proper subsets and two owners; arbitrary supported two/three-leg disjoint partitions including subset splits; oracle resolves once; redemption burns the complete selected position and floors payout", "conditional positions are claims on A escrow, never independently issued native liabilities; before resolution all three per-outcome worst-case liabilities fit escrow; after resolution the exact weighted numerator liability fits escrow*denominator"] conditionalT vectors
+ where
+  initial=update [] [(0,10000),(1,6000),(2,4000),(3,4000),(4,2000),(5,3000),(6,1000)]
+  step state xs=update state ((14,state H.!!14+1):xs)
+  splitFull=step initial [(3,3000),(15,1000),(20,1000),(30,1000)] -- masks1 and6
+  splitSubset=step splitFull [(22,400),(26,400),(30,600)] -- mask6 ->2+4
+  mergedSubset=step splitSubset [(22,0),(26,0),(30,1000)]
+  mergedFull=step mergedSubset [(3,4000),(15,0),(20,0),(30,0)]
+  moved=step splitSubset [(20,750),(21,250)]
+  resolved=step moved [(16,1),(17,1),(18,2),(19,1)]
+  redeemed0=step resolved [(3,3187),(15,813),(20,0)] -- floor750/4
+  redeemed1=step redeemed0 [(4,2062),(15,751),(21,0)] -- floor250/4
+  issueA=step initial [(0,10500),(1,6500),(3,4500)]
+  issueB=step initial [(0,10700),(2,4700),(6,1700)]
+  transferA=step initial [(3,3500),(4,2500)]
+  transferB=step initial [(5,3500),(6,500)]
+  burnA=step initial [(0,9500),(1,5500),(3,3500)]
+  burnB=step initial [(0,9500),(2,3500),(6,500)]
+  v=vectorBound conditionalFixtureCmr
+  go label action a b who q aux signer funding payout height expected=v label conditionalT action a b who q aux [signer] funding payout height expected
+  forgedOld=update initial [(3,3999),(4,2001)]
+  forgedNew=step forgedOld [(3,3499),(4,2501)]
+  forged=let vec=go "forged owned balances fail current state opening" 2 forgedOld forgedNew 0 500 [] 0 0 Nothing 0 Reject in resignVector conditionalFixtureCmr [0] (vec {vecEnv=environment initial forgedNew 0 Nothing 0})
+  wrongSuccessor=let vec=go "actual successor must commit the complete new ledger" 2 initial transferA 0 500 [] 0 0 Nothing 0 Reject in resignVector conditionalFixtureCmr [0] (vec {vecEnv=environment initial (update transferA [(3,3499),(4,2501)]) 0 Nothing 0})
+  vectors=[forged,wrongSuccessor,
+   go "complete partition1+6 escrows A" 16 initial splitFull 0 1000 [1,6,0] 0 0 Nothing 0 Accept,
+   go "subset partition6 into2+4 burns parent" 16 splitFull splitSubset 0 400 [2,4,0] 0 0 Nothing 0 Accept,
+   go "merge subset legs restores mask6" 17 splitSubset mergedSubset 0 400 [2,4,0] 0 0 Nothing 0 Accept,
+   go "merge complete legs releases A" 17 mergedSubset mergedFull 0 1000 [1,6,0] 0 0 Nothing 0 Accept,
+   go "position transfer changes owned outcome claims" 18 splitSubset moved 0 250 [1] 0 0 Nothing 0 Accept,
+   go "oracle publishes one weighted resolution" 19 moved resolved 0 0 [1,2,1] 3 0 Nothing 0 Accept,
+   go "owner0 burns750 and receives187 A" 20 resolved redeemed0 0 0 [1] 0 0 Nothing 0 Accept,
+   go "owner1 burns250 and receives62 A" 20 redeemed0 redeemed1 1 0 [1] 1 0 Nothing 0 Accept,
+   go "native A issuance funds exact collateral" 0 initial issueA 0 500 [] 0 500 Nothing 0 Accept,
+   go "native B issuance belongs to signed user1" 1 initial issueB 1 700 [] 1 700 Nothing 0 Accept,
+   go "authenticated A transfer preserves supply" 2 initial transferA 0 500 [] 0 0 Nothing 0 Accept,
+   go "authenticated B transfer preserves supply" 3 initial transferB 1 500 [] 1 0 Nothing 0 Accept,
+   go "A redemption burns at lower maturity" 4 initial burnA 0 500 [] 0 0 (Just (0,500)) 800000 Accept,
+   go "B redemption uses later maturity" 5 initial burnB 1 500 [] 1 0 (Just (1,500)) 900000 Accept,
+   go "overlapping partition rejected" 16 initial splitFull 0 1000 [1,3,0] 0 0 Nothing 0 Reject,
+   go "trivial full-set leg rejected" 16 initial splitFull 0 1000 [7,0,0] 0 0 Nothing 0 Reject,
+   go "missing merge leg cannot release escrow" 17 splitSubset mergedFull 0 1000 [1,6,0] 0 0 Nothing 0 Reject,
+   go "split cannot inflate one leg" 16 initial (update splitFull [(20,1001)]) 0 1000 [1,6,0] 0 0 Nothing 0 Reject,
+   go "position transfer requires owner" 18 splitSubset moved 0 250 [1] 1 0 Nothing 0 Reject,
+   go "nonoracle cannot resolve" 19 moved resolved 0 0 [1,2,1] 0 0 Nothing 0 Reject,
+   go "second resolution rejected" 19 resolved (step resolved [(17,2)]) 0 0 [2,2,1] 3 0 Nothing 0 Reject,
+   go "redemption cannot round187.5 up" 20 resolved (update redeemed0 [(3,3188),(15,812)]) 0 0 [1] 0 0 Nothing 0 Reject,
+   go "burned position cannot redeem twice" 20 redeemed0 (step redeemed0 []) 0 0 [1] 0 0 Nothing 0 Reject,
+   go "underbacked native genesis rejected" 2 (update initial [(0,9999)]) (update transferA [(0,9999)]) 0 500 [] 0 0 Nothing 0 Reject,
+   go "A issuance cannot fabricate input funding" 0 initial issueA 0 500 [] 0 499 Nothing 0 Reject,
+   go "A redemption payout script bound" 4 initial burnA 0 500 [] 0 0 (Just (1,500)) 800000 Reject,
+   go "B cannot redeem at A maturity" 5 initial burnB 1 500 [] 1 0 (Just (1,500)) 800000 Reject]
+entries=[conditionalEntry]
