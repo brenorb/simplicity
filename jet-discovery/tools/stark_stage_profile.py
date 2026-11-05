@@ -153,11 +153,11 @@ def summarize(roots, fields, snapshot):
         cost = costs.pop()
         field_costs[name] = dict(cmr=root,native_mwu_each=cost,selected_occurrences=count,
                                 inclusive_native_mwu=cost*count,distinct_dag_nodes=len(matching))
-    print(json.dumps(dict(fingerprint=fp, cmr=program_cmr, full_native_mwu=native,
-                          remaining_native_mwu=native-accounted,
-                          source_sha256=digest(SOURCE), snapshot_sha256=hashlib.sha256(raw).hexdigest(),
-                          stage_roots_sha256=digest(roots), field_roots_sha256=digest(fields),
-                          field_multiply_inclusive_overlapping=field_costs, stages=stages), indent=2))
+    return dict(fingerprint=fp, cmr=program_cmr, full_native_mwu=native,
+                remaining_native_mwu=native-accounted,
+                source_sha256=digest(SOURCE), snapshot_sha256=hashlib.sha256(raw).hexdigest(),
+                stage_roots_sha256=digest(roots), field_roots_sha256=digest(fields),
+                field_multiply_inclusive_overlapping=field_costs, stages=stages)
 
 
 def main():
@@ -173,7 +173,7 @@ def main():
     if args.mode == 'probe':
         print(probe(args.fields), end='')
     else:
-        summarize(args.roots, args.fields, args.snapshot)
+        print(json.dumps(summarize(args.roots, args.fields, args.snapshot), indent=2))
 
 
 if __name__ == '__main__':

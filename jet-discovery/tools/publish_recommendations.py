@@ -3,17 +3,33 @@
 import argparse
 import collections
 from decimal import Decimal
+import gzip
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 
 from rank_candidates import ROOT, DATA, context, keyed, read_tsv, table, wu
+from stark_stage_profile import summarize as stark_stages
 
 START = '<!-- final-corpus-evidence:start -->'
 END = '<!-- final-corpus-evidence:end -->'
 TIERS = ('strong', 'maybe', 'rejected')
+STARK_ID = 'stark-fibonacci-full'
+STARK_ROOTS = DATA/'stark-stage-roots.tsv'
+STARK_FIELDS = DATA/'stark-field-roots.tsv'
+STARK_SNAPSHOT = DATA/'stark-full-final.snapshot.gz'
+STARK_STAGES = DATA/'stark-stage-final.json'
+CORE_OUTPUTS = {
+    'corpus/README.md', 'reports/corpus-results.md', 'reports/whatif.md',
+    'reports/ablations.md', 'reports/subdags.md', 'reports/candidate-impact.md',
+    'reports/budget-hotspots.md', 'reports/data/budget-hotspots.tsv',
+    'reports/data/corpus-results.tsv', 'reports/data/candidate-impact.tsv',
+    'reports/data/subdags-exact.tsv', 'reports/data/subdags-shape.tsv',
+    'reports/data/run-fingerprint.txt',
+}
 
 
 def publication_paths(names):
@@ -21,13 +37,72 @@ def publication_paths(names):
             'reports/coverage-and-costs.md','reports/data/candidate-ranking.json',
             'reports/data/candidate-prices.tsv','reports/data/candidate-ranking-provenance.json',
             'reports/data/coverage-input-hashes.json','reports/data/corpus-coverage.tsv',
-            'reports/data/source-cost-coverage.tsv','reports/data/bn254-groth16-estimate.json']
+            'reports/data/source-cost-coverage.tsv','reports/data/bn254-groth16-estimate.json',
+            'reports/CROSS-ECOSYSTEM-INTERFACES.md',
+            'reports/data/cross-ecosystem-interface-provenance.json',
+            'reports/data/ethereum-mainnet-precompile-registration.tsv',
+            'reports/data/agave-syscall-registration.tsv','tools/stark_stage_profile.py']
+    core += [path.relative_to(ROOT).as_posix() for path in (STARK_ROOTS, STARK_FIELDS, STARK_SNAPSHOT, STARK_STAGES)]
     return sorted(core+['candidates/'+name+'/README.md' for name in names])
 
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+
+def verify_core_outputs(cohort):
+    outputs = cohort.get('published_sha256', {})
+    if set(outputs) != CORE_OUTPUTS:
+        raise SystemExit('Terminal cohort core output inventory differs')
+    for name, digest in outputs.items():
+        path = ROOT/name
+        if not path.is_file() or sha(path) != digest:
+            raise SystemExit('Terminal cohort core output is missing or changed: '+name)
+
+
+def verify_registry_metadata(path, cohort):
+    for metadata in (path.parent/'registry.tsv', DATA/'corpus-metadata.tsv'):
+        if not metadata.is_file() or sha(metadata) != cohort['metadata_sha256']:
+            raise SystemExit('Terminal cohort registry metadata is missing or changed: '+str(metadata))
+
+
+def completed_cohort(path, runner):
+    raw = path.read_bytes()
+    cohort = json.loads(raw)
+    if (cohort.get('complete') is not True or cohort.get('complete_registry') is not True
+            or not cohort.get('finished_utc') or cohort.get('fingerprint_breach')):
+        raise SystemExit('Final recommendations require a complete terminal full-registry cohort')
+    if (not runner.is_file() or cohort.get('runner') != str(runner)
+            or cohort.get('runner_sha256') != sha(runner)):
+        raise SystemExit('Terminal cohort runner path or executable hash differs')
+    if cohort.get('coordinator_sha256') != sha(ROOT/'tools/run_isolated.py'):
+        raise SystemExit('Terminal cohort coordinator hash differs')
+    fp = cohort.get('fingerprint', '')
+    if not re.fullmatch(r'[0-9a-f]{64}', fp):
+        raise SystemExit('Terminal cohort fingerprint is invalid')
+    verify_core_outputs(cohort)
+    current = subprocess.check_output([str(runner), 'fingerprint'], cwd=ROOT, text=True).strip()
+    if current != fp or (DATA/'run-fingerprint.txt').read_text().strip() != fp:
+        raise SystemExit('STALE: terminal cohort, runner and core output fingerprints differ')
+    verify_registry_metadata(path, cohort)
+    metadata = keyed(read_tsv(DATA/'corpus-metadata.tsv'), 'id')
+    results = keyed(read_tsv(DATA/'corpus-results.tsv'), 'id')
+    targets = cohort['targets']
+    if (not results or len(results) != len(targets) or len(results) != cohort['registry_rows']
+            or set(results) != set(targets) or set(results) != set(metadata)):
+        raise SystemExit('Terminal cohort targets, metadata and measured rows differ')
+    attempts = cohort.get('attempts', [])
+    if (not attempts or attempts[-1]['id'] != 'strict-aggregation'
+            or attempts[-1]['exit_status'] != 0 or attempts[-1].get('coordinator_error')):
+        raise SystemExit('Terminal cohort is missing successful strict aggregation')
+    credited = {r['id']: r['fresh_vector_passes'] for r in attempts
+                if r['exit_status'] == 0 and 'checkpoint_sha256' in r}
+    if (credited != {ident: int(row['vectors']) for ident, row in metadata.items()}
+            or any(int(r['vectors_ok']) != int(r['vectors_total']) or
+                   int(r['vectors_total']) != credited[ident] or credited[ident] <= 0
+                   for ident, r in results.items())):
+        raise SystemExit('Terminal cohort is missing fresh successful vector evidence')
+    return cohort, hashlib.sha256(raw).hexdigest(), results
 
 
 def fits(row):
@@ -81,7 +156,8 @@ def final_report(fp, policy, ranked, results, groups, full):
              'This report recommends what to prototype and benchmark; it changes no consensus jet.', '',
              f'Run fingerprint: `{fp}`. Reproduce with [METHOD.md](METHOD.md). See [all program results](corpus-results.md), '
              '[sub-DAG mining](subdags.md), [over-budget cost drivers](budget-hotspots.md), [combined overlays](whatif.md), [ablations](ablations.md), '
-             '[all source comparisons](coverage-and-costs.md) and [the complete candidate matrix](candidate-ranking.md).', '',
+             '[all source comparisons](coverage-and-costs.md), [the Ethereum precompile and Solana syscall inventory](CROSS-ECOSYSTEM-INTERFACES.md), '
+             '[the full STARK with measured stage costs](FIBONACCI-STARK.md), and [the complete candidate matrix](candidate-ranking.md).', '',
              '## Ranked candidate families', '',
              'Native static bounds are measured. All hypothetical prices, savings and scores are **ESTIMATE**. '
              'Occurrences refer to the worst path after repricing. Matched groups also include off-path nodes. A positive saving can remain when the new worst path has zero occurrences.', '',
@@ -115,8 +191,12 @@ def final_report(fp, policy, ranked, results, groups, full):
               'measures field arithmetic and estimates one dense pairing arithmetic component.',
               '- The [period inventories](PERIOD-RANKINGS.md) have distinct datasets, windows and attribution rules. '
               'Their source associations do not establish foreign deployment or implementation equivalence.',
-              '- The [eprint scan](eprint-scan.md) distinguishes keyword metadata triage, individually reviewed text '
-              'and primary-source gaps. Complete published inventories can include vectors outside the native bounds.', '']
+              '- The frozen generic WOTS overlay uses an **ESTIMATE** for the matched 18-byte buffered caller profile. '
+              'A valid unrestricted context can require two compressions per step, up to 30 per chain. '
+              'The overlay does not price that worst path. [WOTS price scope](../candidates/sha256_wots_chain_16/README.md).',
+              '- The [ePrint scan](eprint-scan.md) records all 1,814 unique in-window metadata hits returned by 14 pinned queries. '
+              'Seven paper rows have individual review, and 1,595 were deferred at metadata triage. '
+              'Full-text coverage of the archive and implementation of verifiable timed signatures remain open.', '']
     return '\n'.join(lines)
 
 
@@ -124,22 +204,19 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--runner',required=True,type=Path,
                         help='same frozen executable used to complete the isolated run')
-    runner=parser.parse_args().runner.resolve()
-    if not runner.is_file():
-        raise SystemExit('Missing frozen corpus executable')
-    fp=subprocess.check_output([str(runner),'fingerprint'],cwd=ROOT,text=True).strip()
-    saved=DATA/'run-fingerprint.txt'
-    if not saved.is_file() or not fp or saved.read_text().strip()!=fp:
-        raise SystemExit('STALE: final recommendations require the successful full-run fingerprint')
+    parser.add_argument('--cohort', required=True, type=Path,
+                        help='terminal manifest of the complete isolated run')
+    args = parser.parse_args()
+    runner = args.runner.resolve()
+    cohort_path = args.cohort.resolve()
+    if not cohort_path.is_relative_to(ROOT) or not cohort_path.is_file():
+        raise SystemExit('Expected a terminal cohort manifest inside jet-discovery')
+    cohort, cohort_sha, results = completed_cohort(cohort_path, runner)
+    fp = cohort['fingerprint']
     policy=json.loads((DATA/'candidate-ranking-policy.json').read_text())
     for name,rule in policy['candidates'].items():
         if rule['tier'] not in TIERS or not rule['tier_reason'].strip() or rule['tier_reason'].startswith('Assign after'):
             raise SystemExit('Review and assign a final tier and reason for '+name)
-    for script in ('rank_candidates.py','coverage_report.py'):
-        subprocess.run([sys.executable,str(ROOT/'tools'/script),'--runner',str(runner)],cwd=ROOT,check=True)
-    ranked=json.loads((DATA/'candidate-ranking.json').read_text())
-    prices=keyed(read_tsv(DATA/'candidate-prices.tsv'),'candidate')
-    results=keyed(read_tsv(DATA/'corpus-results.tsv'),'id')
     classes=json.loads((DATA/'corpus-classification.json').read_text())
     if not set(results)<=set(classes):
         raise SystemExit('Every actual result must have an explicit classification')
@@ -149,6 +226,22 @@ def main():
     full={c['count_group'] for c in classes.values() if c['kind'].startswith('full_')}
     if len(groups)<150 or 2*len(full)<=len(groups):
         raise SystemExit('Final recommendations require 150 groups and a majority of full applications/verifiers')
+    snapshot = ROOT/'dist-newstyle/jet-discovery-results'/fp/(STARK_ID+'.snapshot')
+    stark_attempts = [item for item in cohort['attempts'] if item['id']==STARK_ID and item['exit_status']==0]
+    stage_profile = stark_stages(STARK_ROOTS, STARK_FIELDS, snapshot)
+    if (len(stark_attempts)!=1 or stage_profile['snapshot_sha256']!=stark_attempts[0]['checkpoint_sha256']
+            or stage_profile['fingerprint']!=fp or stage_profile['cmr']!=results[STARK_ID]['cmr']
+            or stage_profile['full_native_mwu']!=int(results[STARK_ID]['cost_mwu'])):
+        raise SystemExit('The measured STARK stage profile differs from the terminal cohort')
+    stark_snapshot_raw = snapshot.read_bytes()
+    if hashlib.sha256(stark_snapshot_raw).hexdigest()!=stage_profile['snapshot_sha256']:
+        raise SystemExit('STARK snapshot changed during stage profiling')
+    publication = DATA/'recommendations-publication.json'
+    publication.unlink(missing_ok=True)
+    for script in ('rank_candidates.py','coverage_report.py'):
+        subprocess.run([sys.executable,str(ROOT/'tools'/script),'--runner',str(runner)],cwd=ROOT,check=True)
+    ranked=json.loads((DATA/'candidate-ranking.json').read_text())
+    prices=keyed(read_tsv(DATA/'candidate-prices.tsv'),'candidate')
     impacts=collections.defaultdict(list)
     for r in read_tsv(DATA/'candidate-impact.tsv'):
         impacts[r['candidate']].append(dict(r,scope=context(classes[r['program']])))
@@ -160,17 +253,24 @@ def main():
     bn_estimate=subprocess.check_output([sys.executable,str(ROOT/'tools/bn254_extrapolate.py'),
                                          '--runner',str(runner)],cwd=ROOT,text=True)
     changes[DATA/'bn254-groth16-estimate.json']=bn_estimate
-    publication=DATA/'recommendations-publication.json'
-    if publication.exists():
-        publication.unlink()
+    changes[STARK_STAGES]=json.dumps(stage_profile,indent=2)+'\n'
+    changes[STARK_SNAPSHOT]=gzip.compress(stark_snapshot_raw,mtime=0)
     for path,contents in changes.items():
         tmp=path.with_name(path.name+'.new')
-        tmp.write_text(contents)
+        if isinstance(contents,bytes):
+            tmp.write_bytes(contents)
+        else:
+            tmp.write_text(contents)
         tmp.replace(path)
     current=subprocess.check_output([str(runner),'fingerprint'],cwd=ROOT,text=True).strip()
-    if current!=fp:
-        raise SystemExit('Source fingerprint changed during derived publication')
-    record=dict(fingerprint=fp,runner=str(runner),runner_sha256=sha(runner),
+    if current != fp or sha(runner) != cohort['runner_sha256']:
+        raise SystemExit('Source fingerprint or runner changed during derived publication')
+    if sha(cohort_path) != cohort_sha:
+        raise SystemExit('Terminal cohort manifest changed during derived publication')
+    verify_core_outputs(cohort)
+    verify_registry_metadata(cohort_path, cohort)
+    record=dict(fingerprint=fp,runner=str(runner),runner_sha256=cohort['runner_sha256'],
+                cohort_path=cohort_path.relative_to(ROOT).as_posix(),cohort_sha256=cohort_sha,
                 publisher_sha256=sha(Path(__file__)),
                 files={name:sha(ROOT/name) for name in publication_paths(prices)})
     pending=publication.with_suffix('.json.new')

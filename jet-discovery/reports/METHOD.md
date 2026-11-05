@@ -110,6 +110,29 @@ the signed previous file at `base/tools/run_isolated.py`, and copy
 [data/parallel-coordinator-smoke.py.txt](data/parallel-coordinator-smoke.py.txt)
 to `verify_mock.py`, then run `python3 verify_mock.py` there.
 
+On the 128 GiB measurement host, the earlier full STARK used 65.02 GiB of
+RTS-reported memory. To overlap that class with ordinary work, keep the
+original `--last` list and add `--start-tail-first stark-fibonacci-full`
+with `--jobs 2 --heap 36G --tail-heap 64G`. A separately selected
+`--light <exact-id> ... --light-heap 12G` lane can run beside them. While
+tail work remains, there is at most one tail, one ordinary and one light
+process. The ordinary lane can use both slots once the tail is empty.
+The scheduler bounds the sum of the configured RTS heap caps at 112 GiB;
+this is not an RSS limit. Strict aggregation still runs by itself.
+
+The live overlap handoff uses `--resume --migrate-3838c177 <quiescent-manifest-sha256>`
+after the signed `3838c177` coordinator has drained and exited. It archives
+that manifest, admits its hash-verified attempts and preserves the earlier
+serial archive. In a scratch directory, save the signed coordinator blobs
+from `b76b5f16`, `3838c177`, and `f4620906` under `base/`, `parallel/`, and
+`proposed/`, each at `tools/run_isolated.py`. Copy
+[the first mock fixture](data/parallel-coordinator-smoke.py.txt) as
+`verify_fixture.py` and [the overlap test](data/overlap-coordinator-smoke.py.txt)
+as `verify_overlap.py`. Run `python3 verify_fixture.py` and
+`python3 verify_overlap.py` in that scratch directory. These check scheduling,
+resource configuration, process draining and immutable handoff evidence;
+the frozen runner and terminal manifests supply the real measurements.
+
 Checkpoints live under `dist-newstyle/jet-discovery-results/<fingerprint>/`.
 They retain all numeric costs, candidate counts/scenarios, typed profiles,
 CMRs, ablations and vector outcomes as plain data. Both vector names and
@@ -367,12 +390,19 @@ explicit policy judgements requiring review of the fresh evidence.
 
 After ranking, review the measured match concentration, budget scenarios and
 implementation/proof tradeoffs. Record each final tier and reason in the policy
-JSON, then run `python3 tools/publish_recommendations.py --runner <same-frozen-full-run-executable>`.
-This verifies the complete run again, requires 150 distinct groups and a
-majority of full applications/verifiers, and inserts the exact isolated
-matches in every candidate README. The final recommendations include the
-complete numbered and unnumbered proposal verdicts. Stale fingerprints and
-pending tier decisions cannot replace the current reports.
+JSON, then run:
+
+```sh
+python3 tools/publish_recommendations.py --runner <same-frozen-full-run-executable> --cohort <terminal-manifest.json>
+```
+
+The publisher requires the terminal full-cohort manifest and verifies the
+same executable, fingerprint, registry, fresh vector counts and every core
+report hash before writing. It requires 150 distinct groups and a majority
+of full applications/verifiers and inserts the exact isolated matches in
+every candidate README. The final recommendations include the complete
+numbered and unnumbered proposal verdicts. Stale fingerprints and pending
+tier decisions cannot replace the current reports.
 
 For the final audit, export `corpus-metadata.tsv` from the frozen runner (or
 copy the cohort's exact `registry.tsv`). After publication, run:
@@ -381,12 +411,26 @@ copy the cohort's exact `registry.tsv`). After publication, run:
 python3 tools/check_final_evidence.py --cohort <isolated-manifest.json> --harness <unfiltered-tests-run.json>
 ```
 
-The audit checks each exact entry log and local checkpoint hash, all core
-and derived publication hashes, tested source/data, actual upstream results,
-every candidate README and source table, and the Git scope. Run it in the
-original measurement checkout with its frozen executable and ignored
-checkpoints; the signed logs and publication manifests remain portable. The
-fork update is independently verified after the signed final push.
+The default audit checks each exact entry log and local checkpoint hash,
+all core and derived publication hashes, tested source/data, actual upstream
+results, every candidate README and source table, and the Git scope. Run it
+in the original measurement checkout with its frozen executables and ignored
+checkpoints. The fork update is independently verified after the signed push.
+
+To check the signed publication in a fresh checkout, use the same command
+with `--published-only` at the signed report commit. It verifies the pinned
+signer, the source and handoff commits, every recorded log and archived
+manifest, report/TSV hashes and input inventories from the signed Git tree.
+It requires no personal signing configuration or local `fork` alias. This
+mode explicitly reports that it did not read the two local executable files
+or all local checkpoints or recompute the original path-bound fingerprint.
+It does reproduce the STARK stage breakdown from the separately published
+compressed STARK checkpoint and verifies the uncompressed hash against the
+terminal cohort. The [portable audit fixture](data/publication-audit-smoke.py.txt)
+and [observed checks](data/publication-audit-smoke.txt) cover detached signed
+publication, tampering and omission. A full reproduction from a different
+checkout builds the executable and runs a fresh cohort, which gets a new
+fingerprint because the executable path is an input.
 
 
 For each candidate, `candidates/*/README.md` names the closest existing jet

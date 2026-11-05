@@ -1,0 +1,313 @@
+#!/usr/bin/env python3
+"""Synthetic signed Git publication fixture.
+
+From the jet-discovery directory of a full-history checkout, run:
+
+    publication_smoke_dir=$(mktemp -d /tmp/jet-discovery-publication-smoke.XXXXXX)
+    cp reports/data/publication-audit-smoke.py.txt "$publication_smoke_dir/smoke.py"
+    python3 -B "$publication_smoke_dir/smoke.py" "$PWD"
+
+The script creates disposable Git history and an SSH signing key under
+that temporary directory. The source-only interface packet is copied as
+data so the publication manifest covers the real file schema. The cohort,
+costs, attestations and logs are synthetic. The live checkout is read-only.
+"""
+import csv
+import gzip
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+SCRATCH=Path(__file__).resolve().parent
+if len(sys.argv)!=2:
+    raise SystemExit('usage: python3 -B smoke.py /path/to/jet-discovery')
+LIVE=Path(sys.argv[1]).resolve()
+if not SCRATCH.is_relative_to(Path('/tmp').resolve()) or SCRATCH.is_relative_to(LIVE):
+    raise SystemExit('Copy this fixture to a separate directory under /tmp before running it')
+GIT_ENV={name:value for name,value in os.environ.items() if not name.startswith('GIT_')}
+GIT_ENV.update(GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL=os.devnull)
+SOURCE_ONLY={
+    'reports/CROSS-ECOSYSTEM-INTERFACES.md',
+    'reports/data/cross-ecosystem-interface-provenance.json',
+    'reports/data/ethereum-mainnet-precompile-registration.tsv',
+    'reports/data/agave-syscall-registration.tsv',
+}
+sys.dont_write_bytecode=True
+sys.path.insert(0,str(LIVE/'tools'))
+import check_final_evidence as template
+from publish_recommendations import CORE_OUTPUTS, publication_paths
+
+def need(ok,message):
+    if not ok:
+        raise AssertionError(message)
+
+def hash_bytes(data):
+    return hashlib.sha256(data).hexdigest()
+
+def write(path,data):
+    path.parent.mkdir(parents=True,exist_ok=True)
+    path.write_bytes(data if isinstance(data,bytes) else data.encode())
+
+def put_json(path,data):
+    write(path,json.dumps(data,indent=2)+'\n')
+
+def tsv(path,fields,rows):
+    path.parent.mkdir(parents=True,exist_ok=True)
+    with path.open('w',newline='') as out:
+        writer=csv.DictWriter(out,fields,delimiter='\t',lineterminator='\n')
+        writer.writeheader()
+        writer.writerows(rows)
+
+def main():
+    fixture=Path(tempfile.mkdtemp(prefix='case-',dir=SCRATCH))
+    repo=fixture/'repo'
+    repo.mkdir()
+    study=repo/'jet-discovery'
+    data=study/'reports/data'
+    cohort_dir=data/'isolated-test'
+    coordinator=study/'tools/run_isolated.py'
+    legacy=template.HANDOFFS
+    key=fixture/'scratch-signing-key'
+    subprocess.run(['ssh-keygen','-q','-t','ed25519','-N','','-f',str(key)],check=True)
+    public_key=' '.join(key.with_suffix('.pub').read_text().split()[:2])
+    fingerprint=subprocess.check_output(['ssh-keygen','-lf',str(key.with_suffix('.pub'))],
+                                        text=True).split()[1]
+    def git(*args):
+        return subprocess.check_output(['git','-c','core.hooksPath=/dev/null',*args],
+                                       cwd=repo,text=True,env=GIT_ENV).strip()
+    def commit(message,signed=True):
+        git('add','-A')
+        git('commit','-q',('-S' if signed else '--no-gpg-sign'),'-m',message)
+        return git('rev-parse','HEAD')
+    git('init','-q','--initial-branch=fixture')
+    git('config','user.email','scratch@example.invalid')
+    git('config','user.name','Publication audit fixture')
+    git('config','gpg.format','ssh')
+    git('config','user.signingkey',str(key))
+    write(repo/'C/limitations.h','#define BUDGET_MAX 4000050U\n')
+    write(repo/'Haskell/fixture.hs','-- mock upstream\n')
+    baseline=commit('Synthetic base')
+
+    for name in ('src/Fixture.hs','app/Main.hs','test/Test.hs','cabal.project','jet-discovery.cabal'):
+        write(study/name,'mock source\n')
+    for name in ('check_final_evidence.py','publish_recommendations.py','coverage_report.py','rank_candidates.py',
+                 'stark_stage_profile.py'):
+        write(study/'tools'/name,(LIVE/'tools'/name).read_bytes())
+    for name in template.COVERAGE_INPUTS:
+        if name.startswith(('vendor-specs/','reports/')):
+            write(study/name,'mock input\n')
+    legacy_bytes={}
+    for name,(_,revision,sha) in legacy.items():
+        content=subprocess.check_output(['git','show',revision+':jet-discovery/tools/run_isolated.py'],
+                                        cwd=LIVE,env=GIT_ENV)
+        need(hash_bytes(content)==sha,'legacy real blob hash mismatch')
+        legacy_bytes[name]=content
+    write(coordinator,legacy_bytes['migration'])
+    freeze=commit('Synthetic frozen source')
+    write(coordinator,legacy_bytes['overlap_migration'])
+    parallel=commit('Synthetic parallel coordinator')
+    write(coordinator,(LIVE/'tools/run_isolated.py').read_bytes())
+
+    ids=[f'test-{i:03d}' for i in range(150)]
+    marker='5'*64
+    runner='/does/not/exist/frozen-jet-discovery'
+    run_hash='6'*64
+    write(data/'run-fingerprint.txt',marker+'\n')
+    tsv(data/'corpus-metadata.tsv',['id','vectors'],[dict(id=i,vectors=1) for i in ids])
+    write(cohort_dir/'registry.tsv',(data/'corpus-metadata.tsv').read_bytes())
+    rows=[dict(id=i,vectors_ok=1,vectors_total=1,execution_context='transaction-expression',
+               cost_mwu=100001 if n==0 else 1000,cmr=f'{n:064x}') for n,i in enumerate(ids)]
+    tsv(data/'corpus-results.tsv',list(rows[0]),rows)
+    put_json(data/'corpus-classification.json',
+             {i:dict(count_group=i,kind='full_spend_condition' if n<76 else 'protocol_component')
+              for n,i in enumerate(ids)})
+    put_json(data/'candidate-ranking-policy.json',dict(status='fixture only'))
+    impact=[dict(program=i,candidate='mockjet',assumed_budget_wu=100,maximum_budget_wu=4000050,
+                 effective_budget_wu=100) for i in ids]
+    tsv(data/'candidate-impact.tsv',list(impact[0]),impact)
+    tsv(data/'candidate-prices.tsv',['candidate'],[dict(candidate='mockjet')])
+    put_json(data/'candidate-ranking.json',[dict(frontends=['mockjet'],tier='rejected',tier_reason='fixture')])
+    tsv(data/'budget-hotspots.tsv',['program','native_mwu','assumed_budget_wu','maximum_budget_wu','exclusive_mwu'],
+        [dict(program=ids[0],native_mwu=100001,assumed_budget_wu=100,maximum_budget_wu=4000050,exclusive_mwu=100001)])
+    counters={'open-bip':24,'unnumbered-proposal':10,'protocol-tvl':40,'protocol-tvl-non-cex':40,
+              'ethereum-gas':117,'ethereum-24h-aws':20,'solana-compute':64,'solana-24h-soltop':20}
+    tsv(data/'source-cost-coverage.tsv',['source_set'],[dict(source_set=k) for k,n in counters.items() for _ in range(n)])
+    core=CORE_OUTPUTS
+    derived_names=publication_paths(['mockjet'])
+    need(SOURCE_ONLY<=set(derived_names),'fixture requires the source-only interface publication inventory')
+    need(all(not Path(name).is_absolute() and '..' not in Path(name).parts for name in set(derived_names)|core),
+         'publication paths must stay inside the scratch study')
+    for name in SOURCE_ONLY:
+        write(study/name,(LIVE/name).read_bytes())
+    for name in set(derived_names)|core:
+        path=study/name
+        if path.exists():
+            continue
+        if path.suffix=='.gz':
+            write(path,gzip.compress(b'mock compressed evidence\n',mtime=0))
+        elif path.suffix=='.json':
+            put_json(path,dict(status='synthetic fixture output',fingerprint=marker))
+        else:
+            write(path,'mock output '+marker+'\n')
+    rank_proof=dict(run_fingerprint=marker,runner=runner,runner_sha256=run_hash,
+                    tool_sha256=template.sha(study/'tools/rank_candidates.py'),
+                    inputs={n:template.sha(data/n) for n in template.RANKING_INPUTS})
+    put_json(data/'candidate-ranking-provenance.json',rank_proof)
+    coverage=set(template.COVERAGE_INPUTS)|{'reports/data/run-fingerprint.txt','reports/data/candidate-impact.tsv'}
+    put_json(data/'coverage-input-hashes.json',{n:template.sha(study/n) for n in coverage})
+    def publish_record():
+        cohort_manifest=cohort_dir/'manifest.json'
+        put_json(data/'recommendations-publication.json',
+                 dict(fingerprint=marker,runner=runner,runner_sha256=run_hash,
+                      cohort_path=cohort_manifest.relative_to(study).as_posix(),
+                      cohort_sha256=template.sha(cohort_manifest),
+                      publisher_sha256=template.sha(study/'tools/publish_recommendations.py'),
+                      files={n:template.sha(study/n) for n in derived_names}))
+
+    attempts=[]
+    def attempt(ident,name,content,code):
+        path=cohort_dir/name
+        write(path,content)
+        info=dict(id=ident,log=path.relative_to(study).as_posix(),log_sha256=template.sha(path),
+                  exit_status=code)
+        if code==0 and ident!='strict-aggregation':
+            info.update(fresh_vector_passes=1,checkpoint_sha256='9'*64)
+        attempts.append(info)
+    def success(ident):
+        label='mock label with literal\rCR'
+        content=f'{ident} / {label}: evaluating\n{ident} / {label}: PASS (accepted)\n'
+        attempt(ident,ident+'-success.txt',content,0)
+    success(ids[0])
+    attempt(ids[1],'stopped-legacy-attempt.txt','synthetic terminated child\n',-15)
+    identity=dict(fingerprint=marker,runner=runner,runner_sha256=run_hash,source_commit_at_start=freeze,
+                  metadata_sha256=template.sha(data/'corpus-metadata.tsv'),registry_rows=len(ids),targets=ids,
+                  complete_registry=True,complete=False)
+    def archive(kind,revision,old_sha,extra):
+        prior=dict(identity,coordinator_sha256=old_sha,attempts=attempts[:],**extra)
+        raw=(json.dumps(prior,indent=2)+'\n').encode()
+        digest=hash_bytes(raw)
+        path=cohort_dir/f'manifest-before-{kind}-{digest}.json'
+        write(path,raw)
+        return dict(legacy_commit=revision,legacy_coordinator_sha256=old_sha,
+                    prior_manifest=path.relative_to(study).as_posix(),prior_manifest_sha256=digest,
+                    migrated_utc='test fixture',
+                    verified_checkpoints=[a['id'] for a in attempts if 'checkpoint_sha256' in a],
+                    uncredited_attempts=[dict(id=a['id'],log=a['log'],exit_status=a['exit_status'],
+                                              log_sha256_at_handoff=a['log_sha256'])
+                                         for a in attempts if 'checkpoint_sha256' not in a])
+    migration=archive('parallel',freeze,hash_bytes(legacy_bytes['migration']),{})
+    success(ids[1])
+    schedules=[dict(ordinary_jobs=2,ordinary_heap='40G')]
+    overlap=archive('overlap',parallel,hash_bytes(legacy_bytes['overlap_migration']),
+                    dict(migration=migration,schedules=schedules))
+    for ident in ids[2:]:
+        success(ident)
+    attempt('strict-aggregation','aggregate.txt','all 150 corpus programs pass their vectors; complete analysis published\n',0)
+    terminal=dict(identity,coordinator_sha256=template.sha(coordinator),attempts=attempts,
+                  migration=migration,overlap_migration=overlap,schedules=schedules+[dict(ordinary_jobs=2)],
+                  published_sha256={name:template.sha(study/name) for name in core})
+    terminal['complete']=True
+    put_json(cohort_dir/'manifest.json',terminal)
+    publish_record()
+    write(data/'harness.txt','All 45 tests passed (1.00s)\n')
+    source_names={p.relative_to(study).as_posix() for folder in ('src','app','test')
+                  for p in (study/folder).rglob('*.hs')}|{'cabal.project','jet-discovery.cabal'}
+    vendor_names={p.relative_to(study).as_posix() for p in (study/'vendor-specs').rglob('*') if p.is_file()}
+    put_json(data/'harness.json',dict(log='reports/data/harness.txt',log_sha256=template.sha(data/'harness.txt'),
+             command=['/does/not/exist/tests','--num-threads=1'],frozen_executable='dist-newstyle/tests',
+             executable_sha256='0'*64,exit_status=0,source_sha256={n:template.sha(study/n) for n in source_names},
+             input_sha256={n:template.sha(study/n) for n in vendor_names}))
+    write(data/'upstream-c.txt','Successes: 98\nFailures: 0\n')
+    write(data/'upstream-haskell.txt','All 3252 tests passed\n')
+    upstream=[dict(name=name,log=log,exit_status=0,sha256=template.sha(study/log))
+              for name,log in [('upstream-c-default-check','reports/data/upstream-c.txt'),
+                               ('upstream-haskell-default-tests','reports/data/upstream-haskell.txt')]]
+    put_json(data/'upstream-validation-status.json',
+             dict(c_tree=git('rev-parse','HEAD:C'),haskell_tree=git('rev-parse','HEAD:Haskell'),
+                  test_filter='none',quickcheck_cases='upstream default',runs=upstream))
+    final=commit('Synthetic signed publication')
+    git('checkout','-q','--detach',final)
+    need(not (study/'dist-newstyle').exists(),'created a local build artifact')
+    need(not git('remote'),'added remote alias')
+    need('allowedsignersfile' not in (repo/'.git/config').read_text().lower(),
+         'fixture must not install a local allowed-signers configuration')
+
+    # Only the immutable source trust anchors are replaced for this test.
+    run_code=(
+        "import sys;sys.path.insert(0,'tools');import check_final_evidence as c;"
+        f"c.BASELINE={baseline!r};c.SIGNER_KEY={public_key!r};c.SIGNER_FINGERPRINT={fingerprint!r};"
+        f"c.HANDOFFS={{'migration':('parallel',{freeze!r},{hash_bytes(legacy_bytes['migration'])!r}),"
+        f"'overlap_migration':('overlap',{parallel!r},{hash_bytes(legacy_bytes['overlap_migration'])!r})}};"
+        "c.main()")
+    def run(extra=(), *, ok=False, message=''):
+        args=[sys.executable,'-B','-c',run_code,
+              '--cohort','reports/data/isolated-test/manifest.json','--harness','reports/data/harness.json',*extra]
+        p=subprocess.run(args,cwd=study,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
+                         env=GIT_ENV)
+        need((p.returncode==0)==ok,p.stdout)
+        if message:
+            need(message in p.stdout,p.stdout)
+        return p.stdout
+    published=json.loads(run(('--published-only',),ok=True))
+    need(published['groups']==150 and published['vectors']==150 and published['audit_mode']=='published-only',
+         'portable summary counts')
+    need(not any(published[k] for k in ('run_fingerprint_recomputed','frozen_runner_bytes_checked',
+                                       'checkpoint_bytes_checked','harness_executable_bytes_checked')),
+         'portable gate claimed local checks')
+    need(published['signed_publication_commit']==final and published['comparison_baseline']==baseline,
+         'portable signed scope')
+    need(published['coordinator_handoff_sha256']==migration['prior_manifest_sha256'] and
+         published['overlap_handoff_sha256']==overlap['prior_manifest_sha256'],'portable handoff output')
+    source_packet=study/'reports/data/agave-syscall-registration.tsv'
+    original_source_packet=source_packet.read_bytes()
+    write(source_packet,original_source_packet+b'changed source-only packet\n')
+    run(('--published-only',),message='Evidence bytes differ from the signed tree')
+    write(source_packet,original_source_packet)
+    publication_manifest=data/'recommendations-publication.json'
+    for field,value in [('cohort_path','reports/data/wrong-cohort/manifest.json'),('cohort_sha256','a'*64)]:
+        alternate=json.loads(publication_manifest.read_bytes())
+        alternate[field]=value
+        put_json(publication_manifest,alternate)
+        commit('Signed publication linked to the wrong cohort')
+        run(('--published-only',),message='Derived publication identifies a different terminal cohort')
+        git('reset','--hard','-q',final)
+    print('checker_sha256='+template.sha(study/'tools/check_final_evidence.py'))
+    print('publisher_sha256='+template.sha(study/'tools/publish_recommendations.py'))
+    print('PASS detached signed publication, exact cohort linkage and source-only packet without local binaries, snapshots, Git remote aliases or allowed signers')
+    run(message='frozen-jet-discovery')
+    print('PASS default local mode still requires the frozen executable')
+
+    failed_log=study/attempts[1]['log']
+    original=failed_log.read_bytes()
+    write(failed_log,original+b'changed failed log\n')
+    run(('--published-only',),message='Evidence bytes differ from the signed tree')
+    write(failed_log,original)
+    print('PASS failed attempt log bytes are verified against signed tip')
+
+    bad_rank=dict(rank_proof,inputs={k:v for k,v in rank_proof['inputs'].items() if k!='corpus-metadata.tsv'})
+    put_json(data/'candidate-ranking-provenance.json',bad_rank)
+    publish_record()
+    commit('Signed but incomplete ranking manifest')
+    run(('--published-only',),message='Ranking provenance input inventory differs')
+    git('reset','--hard','-q',final)
+    print('PASS signed ranking omission rejected even with matching derived digest')
+
+    bad=dict(terminal,schedules=[dict(ordinary_jobs=1)]+terminal['schedules'][1:])
+    put_json(cohort_dir/'manifest.json',bad)
+    publish_record()
+    commit('Signed but changed schedule prefix')
+    run(('--published-only',),message='Overlap handoff changed the earlier handoff or schedules')
+    git('reset','--hard','-q',final)
+    print('PASS overlap handoff rejects a changed schedule prefix')
+
+    write(study/'fixture-marker.txt','unsigned output\n')
+    commit('Unsigned test tip',signed=False)
+    run(('--published-only',),message='Invalid publication or frozen-source signature')
+    print('PASS unsigned publication tip rejected')
+
+if __name__=='__main__':
+    main()
