@@ -2,7 +2,7 @@
 
 Corpus-driven discovery of missing Bitcoin Simplicity jets (goal: [GOAL.md](GOAL.md)).
 
-**Work in progress:** the registry has133 rows in129 distinct groups, including87 full bounded spend/verifier groups. [Same-CMR witness aliasing](reports/WITNESS-DATAFLOW.md) and a [local outpoint byte-order error](reports/OUTPOINT-BYTEORDER.md) invalidated earlier evidence. Their local repairs pass the documented regressions; complete fresh measurements remain required. The corrected full-size STARK accepts its honest proof at1,497,462.342WU; complete corpus metrics are pending. See [current validation evidence](reports/CURRENT-VALIDATION.md).
+**Work in progress:** the registry has134 rows in130 distinct groups, including88 full bounded spend/verifier groups. [Same-CMR witness aliasing](reports/WITNESS-DATAFLOW.md) and a [local outpoint byte-order error](reports/OUTPOINT-BYTEORDER.md) invalidated earlier evidence. Their local repairs pass the documented regressions; complete fresh measurements remain required. The corrected full-size STARK accepts its honest proof at1,497,462.342WU; complete corpus metrics are pending. See [current validation evidence](reports/CURRENT-VALIDATION.md).
 
 - **Results:** [reports/RECOMMENDATIONS.md](reports/RECOMMENDATIONS.md) (ranked candidates, per-BIP verdicts),
   [reports/corpus-results.md](reports/corpus-results.md), [reports/whatif.md](reports/whatif.md),

@@ -7,6 +7,7 @@ module JetDiscovery.Corpus
 import qualified JetDiscovery.Corpus.FibonacciStark as FibonacciStark
 import qualified JetDiscovery.Corpus.ContractExpansion as ContractExpansion
 import qualified JetDiscovery.Corpus.EprintExpansion as EprintExpansion
+import qualified JetDiscovery.Corpus.FairSwap as FairSwap
 import qualified JetDiscovery.Corpus.BN254 as BN254
 import qualified JetDiscovery.Corpus.ScriptProposals as ScriptProposals
 import qualified JetDiscovery.Corpus.BitcoinExpansion as BitcoinExpansion
@@ -99,6 +100,7 @@ corpus = concat <$> sequence
   , pure ContractBridge.entries
   , pure ClaimProtocols.entries
   , pure EprintExpansion.entries
+  , pure FairSwap.entries
   , pure BN254.entries
   , pure DeFi.entries
   , Eprint.entries
