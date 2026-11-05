@@ -16,16 +16,16 @@ The what-if registry prices this at **ESTIMATE: 2 × the existing `FeMultiply`
 benchmark**, to allow a generic 254-bit Montgomery reduction. This is an analogy,
 not a benchmark of BN254 C code. A real implementation could change that ratio.
 
-Evidence comes from `eprint-bn254-fp-multiply` (one occurrence) and
-`eprint-bn254-fp2-multiply` (three occurrences, Karatsuba over `u²=-1`). The
-reproducible measurements and overlay savings are in
-[`reports/corpus-results.md`](../../reports/corpus-results.md) and
-[`reports/whatif.md`](../../reports/whatif.md). The normal tests compare the
-reference expression to Haskell Integer multiplication and modular reduction;
-the entries include zero, maximal canonical operands, a 253-bit carry case,
-and rejection of an incorrect result. No complete Groth16 pairing verifier is
-counted as a corpus program. See the explicitly estimated operation model in
-[`reports/bn254-groth16.md`](../../reports/bn254-groth16.md).
+The two complete pre-final measurements found one exact occurrence in
+`eprint-bn254-fp-multiply` and three in `eprint-bn254-fp2-multiply` (Karatsuba
+over `u²=-1`). Their isolated bounds fell from 3,867.295 to 66.685 WU and
+11,821.680 to 419.850 WU respectively, savings of 3,800.610 and 11,401.830 WU
+(**ESTIMATE**). Both are arithmetic entries; they do not establish full spend
+feasibility. The normal tests compare the expression to Haskell Integer
+multiplication and modular reduction. All 12 corpus vectors pass, including
+zero, maximal canonical operands, a 253-bit carry case and incorrect-result
+rejection. See [measurements and extrapolation](../../reports/bn254-groth16.md)
+for the complete measured scope. Corpus-wide impact remains pending.
 
 BN254 is useful beyond one opcode: Groth16 bridge verifiers, pairing relations,
 G2 arithmetic and proof systems used by BitVM bridges. This reverses the earlier
