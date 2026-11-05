@@ -14,7 +14,8 @@ INPUTS=['reports/data/corpus-metadata.tsv','reports/data/corpus-results.tsv',
         'reports/data/corpus-classification.json','reports/data/bip-program-map.json',
         'vendor-specs/bip-inventory/softfork-triage.tsv',
         'reports/data/protocol-ranking.tsv','reports/data/protocol-ranking-non-cex.tsv','reports/data/ethereum-gas-ranking.tsv',
-        'reports/data/solana-compute-ranking.tsv','reports/data/growth-backlog.tsv']
+        'reports/data/solana-compute-ranking.tsv','reports/data/growth-backlog.tsv',
+        'tools/coverage_report.py']
 PERIOD_DIR='vendor-specs/rankings/soltop-2026-11-05'
 INPUTS += [PERIOD_DIR+'/top20.tsv',PERIOD_DIR+'/utxo-triage.tsv',PERIOD_DIR+'/manifest.json','reports/PERIOD-RANKINGS.md']
 
@@ -139,10 +140,18 @@ def main():
     if retired:
         lines += ['### Retired historical rows — no program-count credit','',table(['retired program','historical cost WU','historical overlay WU ESTIMATE','historical vectors'],[(i,wu(measured[i]['cost_mwu']),wu(measured[i]['whatif_mwu']),measured[i]['vectors_ok']+'/'+measured[i]['vectors_total']) for i in retired]),'','The retired FRI fragment is not the full STARK verifier and is not counted alongside its replacement.','','### Current registered rows','']
     inventory=[]
-    modulefiles=list((ROOT/'src/JetDiscovery/Corpus').glob('*.hs'))
+    modulefiles=[p for directory in ['Corpus','Lib'] for p in (ROOT/'src/JetDiscovery'/directory).glob('*.hs')]
+    expansion=ROOT/'src/JetDiscovery/Corpus/BitcoinExpansion.hs'
+    expansion_text=expansion.read_text()
     for i,r in meta.items():
         c,e,v,status=costs([i]);cl=classes[i]
         origins=[str(p.relative_to(ROOT)) for p in modulefiles if '"'+i+'"' in p.read_text()]
+        # BitcoinExpansion's reviewed constructor prefixes each App slug with
+        # app-. Other modules must contain the exact complete identifier.
+        if not origins and i.startswith('app-') and 'App "'+i[4:]+'"' in expansion_text:
+            origins=[str(expansion.relative_to(ROOT))]
+        if not origins:
+            raise SystemExit('No source module for registered entry: '+i)
         row=dict(r,kind=cl['kind'],count_group=cl['count_group'],classification_note=cl['note'],source_modules='; '.join(origins),recorded_cost_wu=c,overlay_estimate_wu=e,recorded_vectors=v,measurement_status=status)
         inventory.append(row)
     with (DATA/'corpus-coverage.tsv').open('w') as out:
@@ -199,7 +208,7 @@ def main():
     backlog=read_tsv('reports/data/growth-backlog.tsv')
     new=[r for r in backlog if r['count_policy']=='prospective_new']
     upgrades=[r for r in backlog if r['count_policy']!='prospective_new']
-    lines+=['','## Growth backlog and counting gate','',f'The conservative gap is {max(0,150-len(groups))} additional distinct groups. The backlog below contains {len(new)} prospective new scopes and {len(upgrades)} upgrades/alternatives that receive no extra counting credit. A source-backed target is not yet an independently validated implementation: full-text/contract review must establish its exact predicate, Bitcoin enforcement path and distinction from existing groups before coding and counting it. If two rows reduce to the same program modulo constants, thresholds or tree depth, merge them. Parameter sweeps remain measurements within one group.','','Each accepted new row must supply a full bounded spend predicate or verifier, independent/ upstream vectors including rejection cases, actual jet-substituted WU measurement, and the complete publication/spec provenance. Source-backed candidates whose deployment path depends on unexposed chain context must retain that gap instead of using witness data as an oracle.','',table(['target / count policy','primary specification','distinct work to implement / gate'],[(r['id']+'; '+r['count_policy'],f"[{r['source_title']}]({r['source_url']})",r['target']+'; '+r['count_gate']) for r in backlog]),'','## Input provenance','','Reproduce after building and successfully running the current full corpus:','','```sh','cabal exec -- runghc tools/CorpusMetadata.hs > reports/data/corpus-metadata.tsv','python3 tools/coverage_report.py','```','','[source-cost-coverage.tsv](data/source-cost-coverage.tsv) is the complete machine-readable source join. No cost is fabricated for an unimplemented or unmapped source.','','| input | SHA-256 |','| --- | --- |']
+    lines+=['','## Growth backlog and counting gate','',f'The conservative gap is {max(0,150-len(groups))} additional distinct groups. The backlog below contains {len(new)} prospective new scopes and {len(upgrades)} upgrades/alternatives that receive no extra counting credit. A source-backed target is not yet an independently validated implementation: full-text/contract review must establish its exact predicate, Bitcoin enforcement path and distinction from existing groups before coding and counting it. If two rows reduce to the same program modulo constants, thresholds or tree depth, merge them. Parameter sweeps remain measurements within one group.','','Each accepted new row must supply a full bounded spend predicate or verifier, independent/ upstream vectors including rejection cases, actual jet-substituted WU measurement, and the complete publication/spec provenance. Source-backed candidates whose deployment path depends on unexposed chain context must retain that gap instead of using witness data as an oracle.','',table(['target / count policy','primary specification','distinct work to implement / gate'],[(r['id']+'; '+r['count_policy'],f"[{r['source_title']}]({r['source_url']})",r['target']+'; '+r['count_gate']) for r in backlog]),'','## Input provenance','','Reproduce after building and successfully running the current full corpus:','','```sh','cabal run -v0 exe:jet-discovery -- metadata > reports/data/corpus-metadata.tsv','python3 tools/coverage_report.py','```','','[source-cost-coverage.tsv](data/source-cost-coverage.tsv) is the complete machine-readable source join. No cost is fabricated for an unimplemented or unmapped source.','','| input | SHA-256 |','| --- | --- |']
     provenance={}
     for path in INPUTS:
         digest=hashlib.sha256((ROOT/path).read_bytes()).hexdigest();provenance[path]=digest;lines.append(f'| `{path}` | `{digest}` |')

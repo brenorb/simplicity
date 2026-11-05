@@ -598,7 +598,7 @@ Each accepted new row must supply a full bounded spend predicate or verifier, in
 Reproduce after building and successfully running the current full corpus:
 
 ```sh
-cabal exec -- runghc tools/CorpusMetadata.hs > reports/data/corpus-metadata.tsv
+cabal run -v0 exe:jet-discovery -- metadata > reports/data/corpus-metadata.tsv
 python3 tools/coverage_report.py
 ```
 
@@ -616,6 +616,7 @@ python3 tools/coverage_report.py
 | `reports/data/ethereum-gas-ranking.tsv` | `b00de24510abc17fae706990c74bc7a7fa7360f8afea7ff8d76922cacb7555a6` |
 | `reports/data/solana-compute-ranking.tsv` | `82fafc36efeffbaadc02bc9da9a4c98e7954d5a6686a1d434660380ea86481ba` |
 | `reports/data/growth-backlog.tsv` | `a4ec4c4798ba713a5eed199c64e11a151c47f9dd38e59c9c8327133d5bad22af` |
+| `tools/coverage_report.py` | `47e1dbd1b8b7a870a2787f45c559a4a3d3391ed34020d1a0711b6f8ad271814c` |
 | `vendor-specs/rankings/soltop-2026-11-05/top20.tsv` | `5e1dcd587076a2603cd767dedebe98455851e2e7f676dcf45d937e5de5f9deea` |
 | `vendor-specs/rankings/soltop-2026-11-05/utxo-triage.tsv` | `304fd67d7bb1ffbf5fbd852386dcfbe7125dc5056ebeb9fdebf5073ad205a1d1` |
 | `vendor-specs/rankings/soltop-2026-11-05/manifest.json` | `86e60bb47e1801fb7d0dc76f6c40fe61dbf63cd58cbeb4fe18e272aa95c63f42` |
