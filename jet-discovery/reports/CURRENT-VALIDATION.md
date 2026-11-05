@@ -1,7 +1,7 @@
 # Current validation checkpoint
 
-The source milestone contains132 registered rows,128 distinct counting groups
-and86 complete bounded spend/verifier groups. It does **not** meet the150-group
+The source milestone contains133 registered rows,129 distinct counting groups
+and87 complete bounded spend/verifier groups. It does **not** meet the150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
 missing cost, profile, serialization or ablation numbers.
@@ -14,6 +14,7 @@ missing cost, profile, serialization or ablation numbers.
 | Numeric DLC, BOLT12 and Ark clients | Complete15 numeric DLC,14 signed invoice and14 current Bark hArk certificate vectors pass; canonical wire/C checks cover all DLC/Ark environments; [DLC](NUMERIC-DLC.md), [BOLT12](BOLT12-INVOICE.md), [Ark](ARK-REFRESH-SCOPE.md) | Fresh metrics; no onchain-feasibility credit for client verifiers |
 | BIP157/158 client | All10 official filter rows reconstructed and queried;52 actual source/boundary checks plus9 complete same-CMR vectors pass; [scope](COMPACT-FILTERS.md) | Fresh metrics; trusted checkpoint/completeness and false positives explicit |
 | BIP152 client | All13 direct and13 prepared same-CMR vectors pass, plus12 independent wire/reference checks; [scope](COMPACT-BLOCK.md) | Fresh metrics; bounded two-transaction legacy block; full consensus/finality external |
+| Private BIP47 client | All10 published notification/payment positives and9 actual corruption or re-signed payment negatives pass; [scope](PAYMENT-CODE.md) | Fresh shared metrics; offchain private interpreter only, budget feasibility inapplicable |
 | Conditional positions | Complete29 native vectors pass plus independent focused layout/accounting review; [validation](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; other five native drafts remain uncounted |
 | Native BIP32 wallet | All9 source/derivation/boundary controls and11 full native vectors pass; [scope](HD-WALLET.md) | Fresh shared metrics; unchanged hmac37 body with additive later helpers explicit |
 | Full degree256 NTT | All15 full polynomial/direction/canonicality vectors pass; original source restored byte-for-byte after failed retention experiments; [restoration](data/ntt-original-restored.json) | Component only; complete final measurements run in its own process |
