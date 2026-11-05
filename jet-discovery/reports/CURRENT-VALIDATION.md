@@ -30,7 +30,7 @@ missing cost, profile, serialization or ablation numbers.
 | TXHASH | All150 upstream successful selectors plus derived wrong-hash negative pass after canonical raw-outpoint repair, at one jetted CMR; [record](data/txhash-canonical-wire-vectors.json) | Fresh shared cost/profile run; malformed selector decoding remains host-only |
 | Older settlement/guard repairs | DLC settlement11, Merkle-key4, Uniswap-v2 kernel10, P2MR7 and modular multiplication6 pass | All389 CTV,19 template/annex and32 upstream P2MR vectors also pass; fresh shared metrics remain |
 | Full custom STARK | All8 full-size vectors and all analysis fields pass; native1,497,462.342WU; combined overlay252,144.216WU ESTIMATE; [complete snapshot](data/stark-full-pre-final-measurements.json) | Final frozen whole-corpus run; this pre-final binary has21 candidate frontends |
-| Analysis | Full41-test suite passes907.54s; prepared-path3, candidate-recognition and canonical wire regressions pass; [record](data/harness-canonical-current41.json) | Complete larger-corpus run remains |
+| Analysis | Full42-test suite passes816.99s; prepared-path3, candidate-recognition and canonical wire regressions pass; [record](data/harness-isolated-backend-current42.json) | Complete larger-corpus run remains |
 | Upstream | Unchanged C suite98/98 and Haskell suite3252/3252 pass; default100 QuickCheck cases, no filter; [completion](data/upstream-validation-status.json) | No further upstream source changes are planned |
 
 All listed pass claims have observed successful exit status or a separately
