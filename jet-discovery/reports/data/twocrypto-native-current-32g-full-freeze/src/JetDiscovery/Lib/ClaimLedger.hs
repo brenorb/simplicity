@@ -1,0 +1,160 @@
+{-# LANGUAGE RankNTypes,ScopedTypeVariables #-}
+-- | Serialized, fully BTC-backed coupon accounting used by native protocol
+-- adaptations. Plumbing has no independent corpus-count credit.
+module JetDiscovery.Lib.ClaimLedger where
+import Prelude hiding (drop,take,not,and,or)
+import qualified Prelude as H
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.List as L
+import qualified Data.Word as DW
+import Data.Bits (testBit)
+import Data.Serialize (runPut,putWord64be)
+import Simplicity.Digest (Hash256)
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import Simplicity.Programs.Generic (eq)
+import qualified Simplicity.Programs.Arith as A
+import Simplicity.Programs.Sha256.Lib
+import Simplicity.Bitcoin.Term (Simplicity,Primitive,primitive)
+import qualified Simplicity.Bitcoin.Primitive as P
+import qualified Simplicity.Bitcoin.Programs.Transaction.Lib as Tx
+import qualified Simplicity.Bitcoin.Programs.SigHash.Lib as SH
+import qualified Simplicity.Bitcoin.Programs.TimeLock as TL
+import qualified Simplicity.Bitcoin.Jets as J
+import Simplicity.Ty.Word hiding (Vector)
+import JetDiscovery.Corpus.Apps (sigMsg,checkSigWith)
+import JetDiscovery.Corpus.Baseline (signMsg)
+import qualified JetDiscovery.Corpus.ContractGrowth as G
+import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.State
+import JetDiscovery.Run (progCmr)
+import JetDiscovery.Tx
+import JetDiscovery.Types
+import qualified JetDiscovery.Ref.Bip340 as R
+
+type SigW=G.SigW
+type Ledger=Vector32 Word64
+type Aux=(Word64,(Word64,(Word64,(Word64,Word64))))
+type Input=(Word8,((Ledger,Ledger),((Word64,Word64),(Aux,SigW))))
+type CT t=t Input ()
+type Kernel=forall t. (Simplicity t,Primitive t) => CT t
+data CW=CW { cwMode::Integer,cwOld::[Integer],cwNew::[Integer],cwActor::Integer,cwAmount::Integer,cwAux::[Integer],cwSigs::[SigW] }
+pad32 xs=H.take 32 (xs++repeat 0)
+ledger xs=(G.ledger (H.take 16 xs),G.ledger (H.drop 16 xs))
+encode (CW m a b who quantity extra sigs)=(w8 m,((ledger (pad32 a),ledger (pad32 b)),((w64 who,w64 quantity),(packed,signatureValue))))
+ where
+  packed=case map w64 (H.take 5 (extra++repeat 0)) of [x0,x1,x2,x3,x4]->(x0,(x1,(x2,(x3,x4))));_->error "five auxiliary words"
+  signatureValue=case sigs of s:_->s;_->G.zeroSig
+program :: (Simplicity t,Primitive t) => CT t -> CW -> t () ()
+program term w=witness (encode w)>>>term
+field :: Core t => Int -> t Ledger Word64
+field i=G.pick (testBit i 4) (G.field (i `mod` 16))
+mode :: Core t => t Input Word8
+mode=oh
+old,new :: Core t => t Input Ledger
+old=drop (take oh)
+new=drop (take ih)
+actor,amount :: Core t => t Input Word64
+actor=drop (drop (take oh))
+amount=drop (drop (take ih))
+aux :: Core t => Int -> t Input Word64
+aux i=drop (drop (drop (take (auxField i))))
+auxField :: Core t => Int -> t Aux Word64
+auxField 0=oh
+auxField 1=ioh
+auxField 2=iioh
+auxField 3=drop (drop (drop oh))
+auxField 4=drop (drop (drop ih))
+auxField _=error "auxiliary index outside0..4"
+signature :: Core t => Int -> t Input SigW
+signature 0=drop (drop (drop ih))
+signature _=error "single-signature native ledger: slot must be0"
+o i=old>>>field i
+n i=new>>>field i
+k :: (Core t,TyC a) => Integer -> t a Word64
+k=konst . w64
+same a b=(a&&&b)>>>eq>>>verify
+add a b=(a&&&b)>>>A.add word64>>>((oh>>>not iden>>>verify)&&&ih)>>>ih
+sub a b=(a&&&b)>>>A.subtract word64>>>((oh>>>not iden>>>verify)&&&ih)>>>ih
+le a b=(a&&&b)>>>A.le word64>>>verify
+lt a b=(a&&&b)>>>A.lt word64>>>verify
+nonzero a=lt (k 0) a
+is a b=(a&&&b)>>>eq
+select p a b=(p&&&iden)>>>cond a b
+account a b=select (is actor (k 0)) a b
+allChecks xs=L.foldl' (\a b->(a&&&b)>>>unit) unit xs
+sumT :: (Assert t,TyC a) => [t a Word64] -> t a Word64
+sumT=L.foldl' add (k 0)
+changes xs=allChecks [same (n i) (maybe (o i) id (lookup i xs))|i<-[0..31]]
+choose branches=L.foldr (\(m,t) rest->select (is mode (konst (w8 m))) t rest) failure branches
+stateHashRef :: Assert t => t Ledger Word256
+stateHashRef=L.foldl' (\ctx i->(ctx&&&field i)>>>ctx8Add8) (unit>>>ctx8InitTag "JetDiscovery/ClaimLedger/State") [0..31]>>>ctx8Finalize
+stateWrapped :: J.WrappedSimplicity Ledger Word256
+stateWrapped=J.jetSubst stateHashRef
+{-# NOINLINE stateWrapped #-}
+stateHash :: Simplicity t => t Ledger Word256
+stateHash=J.unwrap stateWrapped
+stateRef xs=R.taggedHash "JetDiscovery/ClaimLedger/State" (BS.concat [runPut (putWord64be (fromInteger i))|i<-pad32 xs])
+base :: (Simplicity t,Primitive t) => CT t
+base=allChecks [same (unit>>>primitive P.CurrentIndex) (konst (w32 0)),loadState (old>>>stateHash),same (unit>>>Tx.currentValue) (add (o 0) (k G.carrier)),same (unit>>>Tx.numInputs) (konst (w32 2))]
+outVal i=konst (w32 i)>>>primitive P.OutputValue>>>verify
+outScript i=konst (w32 i)>>>primitive P.OutputScriptHash>>>verify
+outCount v=same (unit>>>Tx.numOutputs) (konst (w32 v))
+continuation :: (Simplicity t,Primitive t) => CT t
+continuation=allChecks [same (outVal 0) (add (n 0) (k G.carrier)),same (outScript 0) (stateScriptHash (new>>>stateHash))]
+inputFund a=same (konst (w32 1)>>>primitive P.InputValue>>>verify) (add a (k 1000))
+noCash :: (Simplicity t,Primitive t) => CT t
+noCash=allChecks [outCount 1,inputFund (k 0),continuation]
+deposit a=allChecks [nonzero a,outCount 1,inputFund a,continuation]
+destination i=konst (G.scriptHash (G.recipient i))
+actorDestination :: Assert t => t Input Word256
+actorDestination=account (destination 0) (destination 1)
+withdraw a dest=allChecks [nonzero a,outCount 2,inputFund (k 0),continuation,same (outVal 1) a,same (outScript 1) dest]
+sigAt signer slot=checkSigWith (G.pk signer) (unit>>>sigMsg) (signature slot)
+actorSig :: (Simplicity t,Primitive t) => CT t
+actorSig=select (is actor (k 0)) (sigAt 0 0) (same actor (k 1)&&&sigAt 1 0>>>unit)
+nonce :: Assert t => (Int,t Input Word64)
+nonce=(14,add (o 14) (k 1))
+userBalance isB source=if isB then account (source 5) (source 6) else account (source 3) (source 4)
+setUser isB value=if isB then [(5,account value (o 5)),(6,account (o 6) value)] else [(3,account value (o 3)),(4,account (o 4) value)]
+-- field15 is optional A escrow; pool/fee balances are included exactly once.
+validClaims source=allChecks [same (source 1) (sumT (map source [3,4,7,9,15])),same (source 2) (sumT (map source [5,6,8,10])),le (add (source 1) (source 2)) (source 0),same (source 11) (add (source 12) (source 13))]
+claimAction :: (Simplicity t,Primitive t) => Bool -> Int -> CT t
+claimAction isB action=allChecks [actorSig,nonzero amount,case action of
+  0->allChecks [changes ([(0,add (o 0) amount),(total,add (o total) amount),nonce]++setUser isB (add bal amount)),deposit amount]
+  1->allChecks [changes ([nonce]++if isB then [(5,account (sub (o 5) amount) (add (o 5) amount)),(6,account (add (o 6) amount) (sub (o 6) amount))] else [(3,account (sub (o 3) amount) (add (o 3) amount)),(4,account (add (o 4) amount) (sub (o 4) amount))]),noCash]
+  _->allChecks [konst (w32 (if isB then 900000 else 800000))>>>TL.checkLockHeight,changes ([(0,sub (o 0) amount),(total,sub (o total) amount),nonce]++setUser isB (sub bal amount)),withdraw amount actorDestination]]
+ where total=if isB then 2 else 1;bal=userBalance isB o
+claimBranches :: (Simplicity t,Primitive t) => [(Integer,CT t)]
+claimBranches=[(0,claimAction False 0),(1,claimAction True 0),(2,claimAction False 1),(3,claimAction True 1),(4,claimAction False 2),(5,claimAction True 2)]
+
+cmrOf :: Kernel -> Hash256
+cmrOf term=progCmr (Prog (program term (CW 0 [] [] 0 0 [] [])))
+environment actualOld actualNew funding payout height cmr=mkEnv tx 0 (\_->stateTap cmr (stateRef actualOld)) cmr
+ where
+  inputs=[mkInput (dummyOutpoint 0) (fromInteger (H.head actualOld+G.carrier)) (BL.fromStrict (stateScript cmr (stateRef actualOld))) 0xfffffffe,mkInput (dummyOutpoint 1) (fromInteger (funding+1000)) (BL.fromStrict (G.recipient 9)) 0xfffffffe]
+  outputs=mkOutput (fromInteger (H.head actualNew+G.carrier)) (stateScript cmr (stateRef actualNew)):[mkOutput (fromInteger q) (G.recipient d)|(d,q)<-maybe [] (:[]) payout]
+  tx=mkTx 2 inputs outputs height
+vectorBound :: Hash256 -> String -> Kernel -> Integer -> [Integer] -> [Integer] -> Integer -> Integer -> [Integer] -> [Int] -> Integer -> Maybe (Int,Integer) -> DW.Word32 -> Expect -> Vector CW
+vectorBound cmr name _term m a b who quantity extra signers funding payout height expected=Vector name env signed expected
+ where
+  env=environment (pad32 a) (pad32 b) funding payout height
+  signed=CW m (pad32 a) (pad32 b) who quantity extra signatures
+  signatures=case env cmr>>=(\e->J.fastEval (J.unwrap (J.jetSubst SH.sigAllHash)) e ()) of
+   Just msg->[G.sigW (signMsg (G.keys H.!! signer) (w256ToBytes msg))|signer<-signers]
+   _->error "claim vector sigAllHash"
+entry :: String -> String -> String -> [String] -> Kernel -> [Vector CW] -> Entry
+entry ident title spec assumptions term vectors=Entry ident title spec BitcoinApp
+ (Derived "Integer reference accounting and published bounded formulas; actual native funding/payout, all logical witness data once; adversarial transitions re-signed")
+ (assumptions++["two fixed owners and named administrators; native coupon classes redeem no earlier than heights800000/900000; all ownership/supply/reserves/escrow in one serialized state, fully BTC backed", "one aggregate witness; current input0;10000-sat carrier and1000-sat separate fee input; exact same-leaf continuation"])
+ (boundProgram term . encode) vectors
+update xs changes'= [maybe (pad32 xs H.!! i) id (lookup i changes')|i<-[0..31]]
+
+-- Re-sign an adversarial environment so failures isolate the covenant relation.
+resignVector :: Hash256 -> [Int] -> Vector CW -> Vector CW
+resignVector cmr signers vector=vector {vecWitness=(vecWitness vector){cwSigs=signatures}}
+ where
+  signatures=case vecEnv vector cmr>>=(\e->J.fastEval (J.unwrap (J.jetSubst SH.sigAllHash)) e ()) of
+   Just msg->[G.sigW (signMsg (G.keys H.!! signer) (w256ToBytes msg))|signer<-signers]
+   _->error "adversarial claim vector sigAllHash"

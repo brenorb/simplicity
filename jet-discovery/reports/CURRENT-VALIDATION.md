@@ -1,6 +1,6 @@
 # Current validation checkpoint
 
-The source milestone contains 153 registered rows, 148 distinct counting groups
+The source milestone contains 154 registered rows, 147 distinct counting groups
 and 106 complete bounded spend/verifier groups. It does **not** meet the 150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
@@ -26,6 +26,7 @@ missing cost, profile, serialization or ablation numbers.
 | DODO private pool and LMSR market | All 31 PMM and 38 LMSR lifecycle vectors pass; [DODO](DODO-VALIDATION.md), [LMSR](LMSR-MATH-VALIDATION.md) | Fresh shared metrics; fixed bounded reserve/claim, price and funding policies explicit |
 | Pendle term market | All 34 complete native transaction vectors pass (18 accept, 16 reject); all 22 initial rate/trade controls pass; [scope](PENDLE-VALIDATION.md) | Fresh shared metrics; bounded authenticated time/index and actual BTC-backed native coupons |
 | Finite Uniswap V3 pool | All 39 full native vectors (24 accept, 15 reject), 51 arithmetic and four targeted state binding controls pass; [scope](V3-NATIVE-VALIDATION.md) | Fresh shared metrics; finite tick map with exact Q96 crossings and Q128 fee checkpoints |
+| Fixed-scale Curve Twocrypto | All 56 full native vectors pass (20 accept, 36 reject); 55 arithmetic comparisons pass; [scope and source branch proof](TWOCRYPTO-NATIVE.md) | Fresh shared metrics; fixed scale and exact supported Newton fallback, no moving EMA or ramp |
 | StableSwap and weighted pools | All 23 three-class StableSwap and 18 two-class weighted lifecycle vectors pass; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; fixed native rates, rounding and liquidity bounds, no foreign asset-ledger equivalence |
 | CoW batch settlement | All 20 complete native signed-order, settlement and accounting vectors pass; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; bounded two-order native claim ledger, no foreign interactions or expiry |
 | Indexed loan and OCR report consumer | All 20 indexed lending and 11 fixed-config OCR vectors pass; independent canonical roots and exact source snapshots; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; native rate/height authority and OCR freshness limits explicit |
