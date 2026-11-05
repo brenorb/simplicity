@@ -1,0 +1,783 @@
+<html><head><title>Re: [bitcoin-dev] `OP_EVICT`: An Alternative to `OP_TAPLEAFUPDATEVERIFY` - Antoine Riard</title><link
+rel=alternate
+title="Atom feed"
+href="../new.atom"
+type="application/atom+xml"/><style>pre{white-space:pre-wrap}*{font-size:100%;font-family:monospace}</style></head><body><form
+action="../"><pre><a
+href="../?t=20220218180924"><b>public inbox for bitcoindev@googlegroups.com</b></a>
+<input
+name=q
+type=text /><input
+type=submit
+value=search /> <a
+href="../_/text/help/">help</a> / <a
+href="../_/text/color/">color</a> / <a
+id=mirror
+href="../_/text/mirror/">mirror</a> / <a
+href="../new.atom">Atom feed</a></pre></form><pre
+id=b>From: Antoine Riard &lt;antoine.riard@gmail&#8226;com&gt;
+To: ZmnSCPxj &lt;ZmnSCPxj@protonmail&#8226;com&gt;,
+	 Bitcoin Protocol Discussion
+	&lt;bitcoin-dev@lists&#8226;linuxfoundation.org&gt;
+Cc: Anthony Towns &lt;aj@erisian&#8226;com.au&gt;
+Subject: <a
+href="#r"
+id=t>Re: [bitcoin-dev] `OP_EVICT`: An Alternative to `OP_TAPLEAFUPDATEVERIFY`</a>
+Date: Fri, 18 Feb 2022 13:09:07 -0500	<a
+href="#r">[thread overview]</a>
+Message-ID: &lt;CALZpt+Ee9kuVjpXYgOb_7dB7Yr8HYmicdRhfgXsQkey2szNDHg@mail.gmail.com&gt; (<a
+href="raw">raw</a>)
+In-Reply-To: &lt;<a
+href="../6nZ-SkxvJLrOCOIdUtLOsdnl94DoX_NHY0uwZ7sw78t24FQ33QJlJU95W7Sk1ja5EFic5a3yql14MLmSAYFZvLGBS4lDUJfr8ut9hdB7GD4=@protonmail.com/">6nZ-SkxvJLrOCOIdUtLOsdnl94DoX_NHY0uwZ7sw78t24FQ33QJlJU95W7Sk1ja5EFic5a3yql14MLmSAYFZvLGBS4lDUJfr8ut9hdB7GD4=@protonmail.com</a>&gt;
+
+<a
+href="1-a.txt">[-- Attachment #1: Type: text/plain, Size: 28812 bytes --]</a>
+
+Hi Zeeman,
+
+<span
+class="q">&gt; After some thinking, I realized that it was the use of the
+&gt; Merkle tree to represent the promised-but-offchain outputs of
+&gt; the CoinPool that lead to the O(log N) space usage.
+&gt; I then started thinking of alternative representations of
+&gt; sets of promised outputs, which would not require O(log N)
+&gt; revelations by avoiding the tree structure.
+</span>
+In the context of payment pools, I think the O(log N) revelations can be
+avoided already today by pre-signing all the combinations of
+promised-but-offchain outputs publications order. However, this approach
+presents a factorial complexity and appears as an intractable problem for
+high-number of pool users.
+
+I think this factorial complexity issue is the primary problem to enable
+scalable payment pools. This issue appears to be solvable by introducing an
+accumulator at the script interpreter level. IMO, the efficiency of the
+accumulated set representations comes as a second-order issue.
+
+In the comparison of different covenant primitives, I believe we should ask
+first if the flexibility offered is enough to solve the factorial
+complexity. I would say performance trade-offs analysis can only be
+conducted in logically equivalent primitives.
+
+<span
+class="q">&gt; A statechain is really just a CoinPool hosted inside a
+&gt;  Decker-Wattenhofer or Decker-Russell-Osuntokun construction.
+</span>
+Note, to the best of my knowledge, how to use LN-Penalty in the context of
+multi-party construction is still an unsolved issue. If an invalidated
+state is published on-chain, how do you guarantee that the punished output
+value is distributed &#34;fairly&#34; among the &#34;honest&#34; set of users ? At least
+where fairness is defined as a reasonable proportion of the balances they
+owned in the latest state.
+
+<span
+class="q">&gt; (To Bitcoin Cashers: this is not an IOU, this is *committed* and
+&gt; can be enforced onchain, that is enough to threaten your offchain
+&gt; counterparties into behaving correctly.
+&gt; They cannot gain anything by denying the outputs they promised,
+&gt; you can always drop it onchain and have it enforced, thus it is
+&gt; not just merely an IOU, as IOUs are not necessarily enforceable,
+&gt; but this mechanism *would* be.
+&gt; Blockchain as judge+jury+executioner, not noisy marketplace.)
+</span>
+To be fair towards the Bitcoin Cashers, I think there are still limitations
+of LN, we have not solved yet. Especially, w.r.t to mass exits from the
+off-chain layers to the chain, where the blocks would stay fulfilled longer
+than the standard HTLC timelocks, at  a fee price point that the average
+user can&#39;t buy... I&#39;m not sure if we have outlawed the &#34;bank runs&#34; scenario
+yet of LN.
+
+I would say yes the Blockchain is a juge authority, but in the worst-case
+we might be all in market competition to get enforcement.
+
+<span
+class="q">&gt; In principle, a set of promised outputs, if the owners of those
+&gt; outputs are peers, does not have *any* inherent order.
+&gt; Thus, I started to think about a commitment scheme that does not
+&gt; impose any ordering during commitment.
+</span>
+I think we should dissociate a) *outputs publication ordering* from the b)
+*spends paths ordering* itself. Even if to each spend path a output
+publication is attached, the ordering constraint might not present the same
+complexity.
+
+Under this distinction, are you sure that TLUV imposes an ordering on the
+output publication ?
+
+<span
+class="q">&gt; With `OP_TLUV`, however, it is possible to create an &#34;N-of-N With
+&gt; Eviction&#34; construction.
+&gt; When a participant in the N-of-N is offline, but the remaining
+&gt; participants want to advance the state of the construction, they
+&gt; instead evict the offline participant, creating a smaller N-of-N
+&gt; where *all* participants are online, and continue operating.
+</span>
+I think we should dissociate two types of pool spends : a) eviction by the
+pool unanimity in case of irresponsive participants and b) unilateral
+withdrawal by a participant because of the liquidity allocation policy. I
+think the distinction is worthy, as the pool participant should be stable
+and the eviction not abused.
+
+I&#39;m not sure if TLUV enables b), at least without transforming the
+unilateral withdrawal into an eviction. To ensure the TLUV operation is
+correct  (spent leaf is removed, withdrawing participant point removed,
+etc), the script content must be inspected by *all* the participant.
+However, I believe
+knowledge of this content effectively allows you to play it out against the
+pool at any time ? It&#39;s likely solvable at the price of a CHECKSIG.
+
+`OP_EVICT`
+----------
+
+<span
+class="q">&gt;  * If it is `1` that simply means &#34;use the Taproot internal
+&gt;    pubkey&#34;, as is usual for `OP_CHECKSIG`.
+</span>
+IIUC, this assumes the deployment of BIP118, where if the  public key is a
+single byte 0x01, the internal pubkey is used
+for verification.
+
+<span
+class="q">&gt;  * Output indices must not be duplicated, and indicated
+&gt;    outputs must be SegWit v1 (&#34;Taproot&#34;) outputs.
+</span>
+I think public key duplication must not be verified. If a duplicated public
+key is present, the point is subtracted twice from the internal pubkey and
+therefore the aggregated
+key remains unknown ? So it sounds to me safe against replay attacks.
+
+<span
+class="q">&gt;  * The public key is the input point (i.e. stack top)
+&gt;    **MINUS** all the public keys of the indicated outputs.
+</span>
+Can you prevent eviction abuse where one counterparty threatens to evict
+everyone as all the output signatures are known among participants and free
+to sum ? (at least not considering fees)
+
+<span
+class="q">&gt; Suppose however that B is offline.
+&gt; Then A, C, and D then decide to evict B.
+&gt; To do so, they create a transaction that has an output
+&gt; with &#34;B := 6&#34;, and they reveal the `OP_EVICT` Tapscript
+&gt; as well as sign(b, &#34;B := 6&#34;).
+&gt; This lets them change state and spend their funds without
+&gt; B being online.
+&gt; And B remains secure, as they cannot evict B except using
+&gt; the pre-signed output, which B certifies as their expected
+&gt; promised output.
+</span>
+I think in the context of (off-chain) payment pool, OP_EVICT requires
+participant cooperation *after* the state update to allow a single
+participant to withdraw her funds.
+
+I believe this is unsafe if we retain as an off-chain construction security
+requirement that a participant should have the unilateral means to enforce
+the latest agreed upon state at any time during the construction lifetime.
+
+I would say an OP_EVICT construction could solve the issue where the pool
+participants exchange pre-signatures of the internal pubkey with the
+withdrawing participant point removed. However, I believe such fix would a)
+block promised outputs batching (or at least in a pre-committed way like
+radix pools) and b) be grieved by the factorial complexity described above.
+
+<span
+class="q">&gt; The combined fund cannot be spent except if all participants
+&gt; agree.
+</span>
+If all participants agree minus the evicted ones, correct ? The output
+promises signatures are shared at state setup, therefore no additional
+contribution from the evicted participant (I think).
+
+<span
+class="q">&gt; To prevent signature replay, each update of an updateable
+&gt; scheme like CoinPool et al should use a different pubkey
+&gt; for each participant for each state.
+</span>
+I&#39;m not even sure if it&#39;s required with OP_EVICT, as the publication of the
+promised output are ultimately restrained by a signature of the updated
+internal pubkey, this set of signers verify that promised output N does
+bind to the published state N ?
+
+<span
+class="q">&gt; Its advantage is reduced number of eviction transactions,
+&gt; as multiple evictions, plus the revival of the CoinPool,
+&gt; can be put in a single transaction.
+&gt; It has the disadvantage relative to `OP_TLUV` of requiring
+&gt; point operations.
+&gt; I have not explored completely, but my instinct suggests
+&gt; that `OP_TLUV` use may require at least one signature
+&gt; validation anyway.
+</span>
+I believe you can slightly modify TLUV to make it functional for CoinPool
+revival, where you want to prevent equivocation among the remaining set of
+signers. Though, I&#39;m leaning to agree that you may require at least one
+signature validation  (first to restrain spend authorization inside the
+pool participants, second to attach fees at broadcast-time).
+
+<span
+class="q">&gt; It may be possible to design an `OP_CSFS` variant that
+&gt; allows batch validation, such as by extending the virtual
+&gt; machine with an accumulator for pending signature
+&gt; validations.
+</span>
+I agree that in the context of payment pools, aggregation of
+non-cooperative unilateral spends is a scalability bottleneck, especially
+in the face of mempools congestion. If we rely on merkle
+trees as the accumulator primitive, there is still the path to aggregate
+many branches in-flight.
+
+Any misunderstandings of this proposal are my own.
+,
+Antoine
+
+Le jeu. 17 f&#233;vr. 2022 &#224; 21:45, ZmnSCPxj via bitcoin-dev &lt;
+bitcoin-dev@lists&#8226;linuxfoundation.org&gt; a &#233;crit :
+
+<span
+class="q">&gt; `OP_EVICT`: An Alternative to `OP_TAPLEAFUPDATEVERIFY`
+&gt; ======================================================
+&gt;
+&gt; In late 2021, `aj` proposed `OP_TAPLEAFUPDATEVERIFY` in order to
+&gt; implement CoinPools and similar constructions.
+&gt;
+&gt; `Jeremy` observed that due to the use of Merkle tree paths, an
+&gt; `OP_TLUV` would require O(log N) hash revelations in order to
+&gt; reach a particular tapleaf, which, in the case of a CoinPool,
+&gt; would then delete itself after spending only a particular amount
+&gt; of funds.
+&gt; He then observed that `OP_CTV` trees also require a similar
+&gt; revelation of O(log N) transactions, but with the advantage that
+&gt; once revealed, the transactions can then be reused, thus overall
+&gt; the expectation is that the number of total bytes onchain is
+&gt; lesser compared to `OP_TLUV`.
+&gt;
+&gt; After some thinking, I realized that it was the use of the
+&gt; Merkle tree to represent the promised-but-offchain outputs of
+&gt; the CoinPool that lead to the O(log N) space usage.
+&gt; I then started thinking of alternative representations of
+&gt; sets of promised outputs, which would not require O(log N)
+&gt; revelations by avoiding the tree structure.
+&gt;
+&gt; Promised Outputs
+&gt; ----------------
+&gt;
+&gt; Fundamentally, we can consider that a solution for scaling
+&gt; Bitcoin would be to *promise* that some output *can* appear
+&gt; onchain at some point in the future, without requiring that the
+&gt; output be shown onchain *right now*.
+&gt; Then, we can perform transactional cut-through on spends of the
+&gt; promised outputs, without requiring onchain activity (&#34;offchain&#34;).
+&gt; Only if something Really Bad (TM) happens do we need to actually
+&gt; drop the latest set of promised outputs onchain, where it has to
+&gt; be verified globally by all fullnodes (and would thus incur scaling
+&gt; and privacy costs).
+&gt;
+&gt; As an example of the above paradigm, consider the Lightning
+&gt; Network.
+&gt; Outputs representing the money of each party in a channel are
+&gt; promised, and *can* appear onchain (via the unilateral close
+&gt; mechanism).
+&gt; In the meantime, there is a mechanism for performing cut-through,
+&gt; allowing transfers between channel participants; any number of
+&gt; transactions can be performed that are only &#34;solidified&#34; later,
+&gt; without expensive onchain activity.
+&gt;
+&gt; Thus:
+&gt;
+&gt; * A CoinPool is really a way to commit to promised outputs.
+&gt;   To change the distribution of those promised outputs, the
+&gt;   CoinPool operators need to post an onchain transaction, but
+&gt;   that is only a 1-input-1-output transaction, and with Schnorr
+&gt;   signatures the single input requires only a single signature.
+&gt;   But in case something Really Bad (TM) happens, any participant
+&gt;   can unilaterally close the CoinPool, instantiating the promised
+&gt;   outputs.
+&gt; * A statechain is really just a CoinPool hosted inside a
+&gt;   Decker-Wattenhofer or Decker-Russell-Osuntokun construction.
+&gt;   This allows changing the distribution of those promised outputs
+&gt;   without using an onchain transaction --- instead, a new state
+&gt;   in the Decker-Wattenhofer/Decker-Russell-Osuntokun construction
+&gt;   is created containing the new state, which invalidates all older
+&gt;   states.
+&gt;   Again, any participant can unilaterally shut it down, exposing
+&gt;   the state of the inner CoinPool.
+&gt; * A channel factory is really just a statechain where the
+&gt;   promised outputs are not simple 1-of-1 single-owner outputs,
+&gt;   but are rather 2-of-2 channels.
+&gt;   This allows graceful degradation, where even if the statechain
+&gt;   (&#34;factory&#34;) layer has missing participants, individual 2-of-2
+&gt;   channels can still continue operating as long as they do not
+&gt;   involve missing participants, without requiring all participants
+&gt;   to be online for large numbers of transactions.
+&gt;
+&gt; We can then consider that the base CoinPool usage should be enough,
+&gt; as other mechanisms (`OP_CTV`+`OP_CSFS`, `SIGHASH_NOINPUT`) can be
+&gt; used to implement statechains and channels and channel factories.
+&gt;
+&gt; I therefore conclude that what we really need is &#34;just&#34; a way to
+&gt; commit ourselves to exposing a set of promised outputs, with the
+&gt; proviso that if we all agree, we can change that set (without
+&gt; requiring that the current or next set be exposed, for both
+&gt; scaling and privacy).
+&gt;
+&gt; (To Bitcoin Cashers: this is not an IOU, this is *committed* and
+&gt; can be enforced onchain, that is enough to threaten your offchain
+&gt; counterparties into behaving correctly.
+&gt; They cannot gain anything by denying the outputs they promised,
+&gt; you can always drop it onchain and have it enforced, thus it is
+&gt; not just merely an IOU, as IOUs are not necessarily enforceable,
+&gt; but this mechanism *would* be.
+&gt; Blockchain as judge+jury+executioner, not noisy marketplace.)
+&gt;
+&gt; Importantly: both `OP_CTV` and `OP_TLUV` force the user to
+&gt; decide on a particular, but ultimately arbitrary, ordering for
+&gt; promised outputs.
+&gt; In principle, a set of promised outputs, if the owners of those
+&gt; outputs are peers, does not have *any* inherent order.
+&gt; Thus, I started to think about a commitment scheme that does not
+&gt; impose any ordering during commitment.
+&gt;
+&gt; Digression: N-of-N With Eviction
+&gt; --------------------------------
+&gt;
+&gt; An issue with using an N-of-N construction is that if any single
+&gt; participant is offline, the construction cannot advance its state.
+&gt;
+&gt; This has lead to some peopple proposing to instead use K-of-N
+&gt; once N reaches much larger than 2 participants for CoinPools/statechains/
+&gt; channel factories.
+&gt;
+&gt; However, even so, K-of-N still requires that K participants remain
+&gt; online, and the level K is a security parameter.
+&gt; If less than K participants are online, then the construction
+&gt; *still* cannot advance its state.
+&gt;
+&gt; Worse, because K &lt; N, a single participant can have its funds
+&gt; outright stolen by a quorum of K participants.
+&gt; There is no way to prove that the other participants in the same
+&gt; construction are not really sockpuppets of the same real-world
+&gt; entity, thus it is entirely possible that the K quorum is actually
+&gt; just a single participant that is now capable of stealing the
+&gt; funds of all the other participants.
+&gt; The only way to avoid this is to use N-oF-N: N-of-N requires
+&gt; *your* keys, thus the coins are *your* coins.
+&gt; In short: K-of-N, as it allows the state to be updated without your
+&gt; keys (on the excuse that &#34;if you are offline, we need to be able to
+&gt; update state&#34;), is *not your keys not your coins*.
+&gt;
+&gt; K-of-N should really only be used if all N are your sockpuppets,
+&gt; and you want to HODL your funds.
+&gt; This is the difference between consensus &#34;everyone must agree&#34; and
+&gt; voting &#34;enough sockpuppets can be used to overpower you&#34;.
+&gt;
+&gt; With `OP_TLUV`, however, it is possible to create an &#34;N-of-N With
+&gt; Eviction&#34; construction.
+&gt; When a participant in the N-of-N is offline, but the remaining
+&gt; participants want to advance the state of the construction, they
+&gt; instead evict the offline participant, creating a smaller N-of-N
+&gt; where *all* participants are online, and continue operating.
+&gt;
+&gt; This avoids the *not your keys not your coins* problem of K-of-N
+&gt; constructions, while simultaneously providing a way to advance
+&gt; the state without the full participant set being online.
+&gt;
+&gt; The only real problem with `OP_TLUV` is that it takes O(log N)
+&gt; hash revelations to evict one participant, and each evicted
+&gt; participant requires one separate transaction.
+&gt;
+&gt; K-of-N has the &#34;advantage&#34; that even if you are offline, the state
+&gt; can be advanced without evicting you.
+&gt; However, as noted, as the coins can be spent without your keys,
+&gt; the coins are not your coins, thus this advantage may be considered
+&gt; dubious --- whether you are online or offline, a quorum of K can
+&gt; outright steal your coins.
+&gt; Eviction here requires that your coins be returned to your control.
+&gt;
+&gt; Committing To An Unordered Set
+&gt; ------------------------------
+&gt;
+&gt; In an N-of-N CoinPool/statechain/channel factory, the ownership
+&gt; of a single onchain UTXO is shared among N participants.
+&gt; That is, there are a number of promised outputs, not exposed
+&gt; onchain, which the N participants agree on as the &#34;real&#34; current
+&gt; state of the construction,
+&gt; However, the N participants can also agree to change the current
+&gt; state of the construction, if all of them sign off on the change.
+&gt;
+&gt; Each of the promised outputs has a value, and the sum of all
+&gt; promised values is the value of the onchain UTXO.
+&gt; Interestingly, each of the promised outputs also has an SECP256K1
+&gt; point that can be used as a public key, and the sum of all
+&gt; promised points is the point of the onchain UTXO.
+&gt;
+&gt; Thus, the onchain UTXO can serve as a commitment to the sum of
+&gt; the promised outputs.
+&gt; The problem is committing to each of the individual promised
+&gt; outputs.
+&gt;
+&gt; We can observe that a digital signature not only proves knowledge
+&gt; of a private key, it also commits to a particular message.
+&gt; Thus, we can make each participant sign their own expected
+&gt; promised output, and share the signature for their promised
+&gt; output.
+&gt;
+&gt; When a participant is to be evicted, the other participants
+&gt; take the signature for the promised output of the to-be-evicted
+&gt; participant, and show it onchain, to attest to the output.
+&gt; Then, the onchain mechanism should then allow the rest of the
+&gt; funds to be controlled by the N-of-N set minus the evicted
+&gt; participant.
+&gt;
+&gt; `OP_EVICT`
+&gt; ----------
+&gt;
+&gt; With all that, let me now propose the `OP_EVICT` opcode.
+&gt;
+&gt; `OP_EVICT` accepts a variable number of arguments.
+&gt;
+&gt; * The stack top is either the constant `1`, or an SECP256K1
+&gt;   point.
+&gt;   * If it is `1` that simply means &#34;use the Taproot internal
+&gt;     pubkey&#34;, as is usual for `OP_CHECKSIG`.
+&gt; * The next stack item is a number, equal to the number of
+&gt;   outputs that were promised, and which will now be evicted.
+&gt; * The next stack items will alternate:
+&gt;   * A number indicating an output index.
+&gt;   * A signature for that output.
+&gt;   * Output indices must not be duplicated, and indicated
+&gt;     outputs must be SegWit v1 (&#34;Taproot&#34;) outputs.
+&gt;     The public key of the output will be taken as the public
+&gt;     key for the corresponding signature, and the signature
+&gt;     only covers the output itself (i.e. value and
+&gt;     `scriptPubKey`).
+&gt;     This means the signature has no `SIGHASH`.
+&gt;   * As the signature covers the public key, this prevents
+&gt;     malleation of a signature using one public key to a
+&gt;     signature for another public key.
+&gt; * After that is another signature.
+&gt;   * This signature is checked using `OP_CHECKSIG` semantics
+&gt;     (including `SIGHASH` support).
+&gt;   * The public key is the input point (i.e. stack top)
+&gt;     **MINUS** all the public keys of the indicated outputs.
+&gt;
+&gt; As a concrete example, suppose A, B, C, and D want to make a
+&gt; CoinPool (or offchain variant of such) with the following
+&gt; initial state:
+&gt;
+&gt; * A := 10
+&gt; * B := 6
+&gt; * C := 4
+&gt; * D := 22
+&gt;
+&gt; Let us assume that A, B, C, and D have generated public
+&gt; keys in such a way to avoid key cancellation (e.g.
+&gt; precommitment, or the MuSig scheme).
+&gt;
+&gt; The participants then generate promised outputs for the
+&gt; above, and each of them shares signatures for the promised
+&gt; outputs:
+&gt;
+&gt; * sign(a, &#34;A := 10&#34;)
+&gt; * sign(b, &#34;B := 6&#34;)
+&gt; * sign(c, &#34;C := 4&#34;)
+&gt; * sign(d, &#34;D := 22&#34;)
+&gt;
+&gt; Once that is done, they generate:
+&gt;
+&gt; * Q = A + B + C + D
+&gt; * P = h(Q|`&lt;1&gt; OP_EVICT`) * Q
+&gt;
+&gt; Then they spend their funds, creating a Taproot output:
+&gt;
+&gt; * P := 42
+&gt;
+&gt; If all participants are online, they can move funds between
+&gt; each other (or to other addresses) by cooperatively signing
+&gt; using the point P, and the magic of Taproot means that use
+&gt; of `OP_EVICT` is not visible.
+&gt;
+&gt; Suppose however that B is offline.
+&gt; Then A, C, and D then decide to evict B.
+&gt; To do so, they create a transaction that has an output
+&gt; with &#34;B := 6&#34;, and they reveal the `OP_EVICT` Tapscript
+&gt; as well as sign(b, &#34;B := 6&#34;).
+&gt; This lets them change state and spend their funds without
+&gt; B being online.
+&gt; And B remains secure, as they cannot evict B except using
+&gt; the pre-signed output, which B certifies as their expected
+&gt; promised output.
+&gt;
+&gt; Note that the opcode as described above allows for multiple
+&gt; evictions in the same transaction.
+&gt; If B and C are offline, then the remaining participants
+&gt; simply need to expose multiple outputs in the same
+&gt; transaction.
+&gt;
+&gt; Security
+&gt; --------
+&gt;
+&gt; I am not a cryptographer.
+&gt; Thus, the security of this scheme is a conjecture.
+&gt;
+&gt; As long as key cancellation is protected against, it should
+&gt; be secure.
+&gt; The combined fund cannot be spent except if all participants
+&gt; agree.
+&gt; A smaller online participant set can be created only if a
+&gt; participant is evicted, and eviction will force the owned
+&gt; funds of the evicted participant to be instantiated.
+&gt; The other participants cannot synthesize an alternate
+&gt; signature signing a different value without knowledge of the
+&gt; privkey of the evicted participant.
+&gt;
+&gt; To prevent signature replay, each update of an updateable
+&gt; scheme like CoinPool et al should use a different pubkey
+&gt; for each participant for each state.
+&gt; As the signature covers the pubkey, it should be safe to
+&gt; use a non-hardened derivation scheme so that only a single
+&gt; root privkey is needed.
+&gt;
+&gt; Additional Discussion
+&gt; ---------------------
+&gt;
+&gt; ### Eviction Scheme
+&gt;
+&gt; We can consider that the eviction scheme proposed here is the
+&gt; following contract:
+&gt;
+&gt; * Either all of us agree on some transfer, OR,
+&gt; * Give me my funds and the rest of you can all go play with
+&gt;   your funds however you want.
+&gt;
+&gt; The signature that commits to a promised output is then the
+&gt; agreement that the particular participant believes they are
+&gt; entitled to a particular amount.
+&gt;
+&gt; We can consider that a participant can re-sign their output
+&gt; with a different amount, but that is why `OP_EVICT` requires
+&gt; the *other* participants to cooperatively sign as well.
+&gt; If the other participants cooperatively sign, they effectively
+&gt; agree to the participant re-signing for a different amount,
+&gt; and thus actually covered by &#34;all of us agree&#34;.
+&gt;
+&gt; ### Pure SCRIPT Contracts
+&gt;
+&gt; A &#34;pure SCRIPT contract&#34; is a Taproot contract where the
+&gt; keyspend path is not desired, and the contract is composed of
+&gt; Tapscript branches.
+&gt;
+&gt; In such a case, the expected technique would be for the
+&gt; contract participants to agree on a NUMS point where none
+&gt; of the participants can know the scalar (private key) behind
+&gt; the point, and to use that as the internal Taproot pubkey
+&gt; `Q`.
+&gt; For complete protocols, the NUMS point can be a protocol-defined
+&gt; constant.
+&gt;
+&gt; As the `OP_EVICT` opcode requires that each promised output
+&gt; be signed, on the face of it, this technique cannot be used
+&gt; for `OP_EVICT`-promised outputs, as it is impossible to sign
+&gt; using the NUMS point.
+&gt;
+&gt; However, we should note that the requirement of a &#34;pure SCRIPT&#34;
+&gt; contract is that none of the participants can unilaterally
+&gt; sign an alternate spend.
+&gt; Using an N-of-N of the participants as the Taproot internal
+&gt; pubkey is sufficient to ensure this.
+&gt;
+&gt; As a concrete example: suppose we want an HTLC, which has a
+&gt; hashlock branch requiring participant A, and a timelock branch
+&gt; requiring participant B.
+&gt; Such a simple scheme would not require that both A and B be
+&gt; able to cooperatively spend the output, thus we might have
+&gt; preferred the technique of using a NUMS point as Taproot
+&gt; internal pubkey.
+&gt; But using a NUMS point would not allow any signature, even the
+&gt; `OP_EVICT`-required signatures-of-promised-outputs.
+&gt;
+&gt; Instead of using a NUMS point for the Taproot internal pubkey,
+&gt; we can use the sum of `A[tmp] + B[tmp]` (suitably protected
+&gt; against key cancellation).
+&gt; Then both A and B can cooperatively sign the promised output,
+&gt; and keep the promised output in an `OP_EVICT`-enforced UTXO.
+&gt; After creating the signature for the promised output, A and B
+&gt; can ensure that the keypath branch cannot be used by securely
+&gt; deleting the private keys for `A[tmp]` and `B[tmp]`
+&gt; respectively.
+&gt;
+&gt; ### Signature Half-Aggregation
+&gt;
+&gt; It is possible to batch-validate, and as `OP_EVICT` must
+&gt; validate at least two signatures (an eviction and the
+&gt; signature of the remaining) it makes sense to use batch
+&gt; validation for `OP_EVICT`.
+&gt;
+&gt; Of note is that Schnorr signatures allow for third-party
+&gt; half-aggregation, where the `s` components of multiple
+&gt; signatures are summed together, but the `R` components
+&gt; are not.
+&gt;
+&gt; (Warning: I am not aware of any security proofs that
+&gt; half-aggregation is actually **safe**!
+&gt; In particular, BIP-340 does not define half-aggregation,
+&gt; and its batch validation algorithm is not, to my naivete,
+&gt; extensible to half-aggregation.)
+&gt;
+&gt; Basically, if we are batch validating two signatures
+&gt; `(R[0], s[0])`, `(R[1], s[1])` of two messages `m[0]`
+&gt; and `m[1]` signed by two keys `A[0]` and `A[1]`, we
+&gt; would do:
+&gt;
+&gt; * For `i = 0, 1`: `e[i] = h(R[i]|m[i])`
+&gt; * Check: `(s[0] + s[1]) * G` is equal to `R[0] + e[0] * A[0] + R[1] + e[1]
+&gt; * A[1]`.
+&gt;
+&gt; As we can see, the `s` can be summed before being
+&gt; posted on the blockchain, as validators do not need
+&gt; individual `s[i]`.
+&gt; However, `R` cannot be summed as each one needs to be
+&gt; hashed.
+&gt;
+&gt; This half-aggregation is third-party, i.e. someone
+&gt; without any knowledge of any private keys can simply
+&gt; sum the `s` components of multiple signatures.
+&gt;
+&gt; As `OP_EVICT` always validates at least two signatures,
+&gt; using half-aggregation can remove at least 32 weight
+&gt; units, and each additional promised output being evicted
+&gt; is another signature whose `s` can be added to the sum.
+&gt; Of course, **that depends on half-aggregation being
+&gt; secure**.
+&gt;
+&gt; ### Relationship to Other Opcodes
+&gt;
+&gt; `OP_CTV` does other things than this opcode, and cannot
+&gt; be used as a direct alternative.
+&gt; In particular while `OP_CTV` *can* commit to a set of
+&gt; promised outputs, if a promised output needs to be
+&gt; published, the remaining funds are now distributed over a
+&gt; set of UTXOs.
+&gt; Thus, &#34;reviving&#34; the CoinPool (or offchain variant thereof)
+&gt; requires consuming multiple UTXOs, and the consumption of
+&gt; multiple UTXOs is risky unless specifically designd for it.
+&gt; (In particular, if the UTXOs have different signer sets,
+&gt; one signer set can initially cooperate to revive the
+&gt; CoinPool, then spend their UTXO to a different transaction,
+&gt; which if confirmed will invalidate the revival transaction.)
+&gt;
+&gt; This opcode seems largely in direct competitiong with
+&gt; `OP_TLUV`, with largely the same design goal.
+&gt; Its advantage is reduced number of eviction transactions,
+&gt; as multiple evictions, plus the revival of the CoinPool,
+&gt; can be put in a single transaction.
+&gt; It has the disadvantage relative to `OP_TLUV` of requiring
+&gt; point operations.
+&gt; I have not explored completely, but my instinct suggests
+&gt; that `OP_TLUV` use may require at least one signature
+&gt; validation anyway.
+&gt;
+&gt; It may be possible to implement `OP_EVICT` in terms of
+&gt; `OP_TX`/`OP_TXHASH`, `OP_CSFS`, and a point-subtraction
+&gt; operation.
+&gt; However, `OP_EVICT` allows for the trivial implementation
+&gt; of batch validation (and, if half-aggregation is safe, to
+&gt; use half-aggregation instead), whereas we expect multiple
+&gt; `OP_CSFS` to be needed to implement this, without any
+&gt; possibility of batch validation.
+&gt; It may be possible to design an `OP_CSFS` variant that
+&gt; allows batch validation, such as by extending the virtual
+&gt; machine with an accumulator for pending signature
+&gt; validations.
+&gt; _______________________________________________
+&gt; bitcoin-dev mailing list
+&gt; bitcoin-dev@lists&#8226;linuxfoundation.org
+&gt; <a
+href="https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev">https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev</a>
+&gt;
+</span>
+<a
+href="2-a.bin">[-- Attachment #2: Type: text/html, Size: 31050 bytes --]</a>
+</pre><hr><pre><a
+href="../0mhhHzTun8dpIcLda1CLFihMsgLoWQUEE8woKUKhf_UHYps2w7jVzbJAUJ302kQEB1ZdvMfakP9IBUHLM8bGns-pg0NHmpuak3yjpphjJnw=@protonmail.com/"
+rel=next>next</a> <a
+href="../4adf8c88-eebd-8fd3-21af-fa059ca9d911@gmail.com/"
+rel=prev>prev</a> <a
+href="../6nZ-SkxvJLrOCOIdUtLOsdnl94DoX_NHY0uwZ7sw78t24FQ33QJlJU95W7Sk1ja5EFic5a3yql14MLmSAYFZvLGBS4lDUJfr8ut9hdB7GD4=@protonmail.com/">parent</a> <a
+href="#R">reply</a>	other threads:[<a
+href="../?t=20220218180924">~2022-02-18 18:09 UTC</a>|<a
+href="../">newest</a>]
+
+<b>Thread overview: </b>16+ messages / expand[<a
+href="T/#u">flat</a>|<a
+href="t/#u">nested</a>]  <a
+href="t.mbox.gz">mbox.gz</a>  <a
+href="t.atom">Atom feed</a>  <a
+href="#b">top</a>
+2022-02-18  2:45 <a
+href="../6nZ-SkxvJLrOCOIdUtLOsdnl94DoX_NHY0uwZ7sw78t24FQ33QJlJU95W7Sk1ja5EFic5a3yql14MLmSAYFZvLGBS4lDUJfr8ut9hdB7GD4=@protonmail.com/">ZmnSCPxj</a>
+2022-02-18 13:53 ` <a
+href="../CAJowKg+cK3ZjPCjcDK8v5qFA=uCHD7gcR8ymroXBFicU5jzY8Q@mail.gmail.com/">Erik Aronesty</a>
+2022-02-18 14:48   ` <a
+href="../mSBTc8Bl5YIXe7LSX_fCNUYhd0wjepa_XhF6uhtwzF7s5h9-AEGWbkfrPA58nn431SjAqTkWEzd7YJ5mC0M7aZf-NmS5eDTN8LKEGQOFGcY=@protonmail.com/">ZmnSCPxj</a>
+2022-02-18 15:50     ` <a
+href="../CAJowKgKEAptvQnOSKc7W=FDtf6DRchaBUyx3QWeHbCN_89w2zQ@mail.gmail.com/">Erik Aronesty</a>
+2022-02-18 16:06       ` <a
+href="../3YGc8zgpxTXfmj09vOFSHiGqubBn5Tb6PefbEje8vbSvcKt3wWlf2Ue1VCS33WFygsLq5Rvdv9FW8SCvoDqGNUVYT7gAa2z4NSdu5GHqkHc=@protonmail.com/">ZmnSCPxj</a>
+2022-02-18 13:55 ` <a
+href="../4adf8c88-eebd-8fd3-21af-fa059ca9d911@gmail.com/">Jonas Nick</a>
+<b>2022-02-18 18:09 ` <a
+id=r
+href="#t">Antoine Riard [this message]</a></b>
+2022-02-18 23:39   ` <a
+href="../0mhhHzTun8dpIcLda1CLFihMsgLoWQUEE8woKUKhf_UHYps2w7jVzbJAUJ302kQEB1ZdvMfakP9IBUHLM8bGns-pg0NHmpuak3yjpphjJnw=@protonmail.com/">ZmnSCPxj</a>
+2022-02-19  0:56     ` <a
+href="../CAD5xwhh9JHE0QAfRMeKs7w=L-GB5DaEomsQ0aH4ibSDi9Oe8Rg@mail.gmail.com/">Jeremy Rubin</a>
+2022-02-19  1:17       ` <a
+href="../3ev2Zqf5SyEHMQvtRbaTBnP8wADZPis-2YvawQr0k6vM4ftjlggJhQHRup44LkMtaoCTUF6EWm5FC86xuMFxOtb7Di7KQza8k4rn5Xs96Hw=@protonmail.com/">ZmnSCPxj</a>
+2022-02-19  1:46       ` <a
+href="../CAB3F3Dt6znirMfe4C6ASh6OvS_qR7XLx1fQ4O5ZCwbxhcNKsNg@mail.gmail.com/">Greg Sanders</a>
+2022-02-19  7:21         ` <a
+href="../CAGpPWDYUJ66oA2gzjXYk2fvRaRMZeY4wCyS0KmimXtid03ahCw@mail.gmail.com/">Billy Tetrud</a>
+2022-02-19 11:41           ` <a
+href="../gcBcBwsL0ocO4fpTF1ZNkFTWGNhuPCHpbwjV5pzO4I2IR9WOfEEsQqL_i2IMqV2k8eDj9POJlQ0IX7eIzovjYq7gV6E6LTOjmAlINIIbxQM=@protonmail.com/">ZmnSCPxj</a>
+2022-02-19 21:59             ` <a
+href="../CAGpPWDY6X3X4ne0AatGaVx9tZSsi9V4hTAVfef-Hqe1kH0SXHA@mail.gmail.com/">Billy Tetrud</a>
+2022-02-22  0:17     ` <a
+href="../CALZpt+EUm06LxMmaQd0wxZ5cNtE_+jCQUWDmVrGTJx6ADQT4mA@mail.gmail.com/">Antoine Riard</a>
+2022-02-23 11:42       ` <a
+href="../EoJPTKIHFCBpB505PNjhQp3Iuou-FhQqNwzqVOvFh5W2qx_d0phXLuVPGdjQhYqEma6BX1TfDxRQ1XpCaqZQPF2PWMhTnyTrEnkmtKFpmnw=@protonmail.com/">ZmnSCPxj</a>
+</pre><hr><pre
+id=R><b>Reply instructions:</b>
+
+You may reply publicly to <a
+href=#t>this message</a> via plain-text email
+using any one of the following methods:
+
+* Save the following mbox file, import it into your mail client,
+  and reply-to-all from there: <a
+href=raw>mbox</a>
+
+  Avoid top-posting and favor interleaved quoting:
+  <a
+href="https://en.wikipedia.org/wiki/Posting_style#Interleaved_style">https://en.wikipedia.org/wiki/Posting_style#Interleaved_style</a>
+
+* Reply using the <b>--to</b>, <b>--cc</b>, and <b>--in-reply-to</b>
+  switches of git-send-email(1):
+
+  git send-email \
+    --in-reply-to=CALZpt+Ee9kuVjpXYgOb_7dB7Yr8HYmicdRhfgXsQkey2szNDHg@mail.gmail.com \
+    --to=antoine.riard@gmail$(echo .)com \
+    --cc=ZmnSCPxj@protonmail$(echo .)com \
+    --cc=aj@erisian$(echo .)com.au \
+    --cc=bitcoin-dev@lists$(echo .)linuxfoundation.org \
+    /path/to/YOUR_REPLY
+
+  <a
+href="https://kernel.org/pub/software/scm/git/docs/git-send-email.html">https://kernel.org/pub/software/scm/git/docs/git-send-email.html</a>
+</pre>
+
+  Be sure your reply has a <b>Subject:</b> header at the top and a blank line
+  before the message body.
+<hr><pre>This is a public inbox, see <a
+href="../_/text/mirror/">mirroring instructions</a>
+for how to clone and mirror all data and code used for this inbox</pre></body></html>

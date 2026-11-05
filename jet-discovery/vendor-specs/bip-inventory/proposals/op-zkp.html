@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>[bitcoin-dev] proposal: new opcode OP_ZKP to enable ZKP-based	spending authorization</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="contents" href="index.html#12601" id="c">
+<link rel="index" href="maillist.html#12601" id="i">
+<link rel="prev" href="msg12600.html" id="p">
+<link rel="next" href="msg12602.html" id="n">
+<link rel="canonical" href="https://www.mail-archive.com/bitcoin-dev@lists.linuxfoundation.org/msg12601.html">
+<link rel="stylesheet" href="/normalize.css" media="screen">
+<link rel="stylesheet" href="/master.css" media="screen">
+
+<!--[if lt IE 9]>
+<link rel="stylesheet" href="/ie.css" media="screen">
+<![endif]-->
+</head>
+<body>
+<script language="javascript" type="text/javascript">
+document.onkeydown = NavigateThrough;
+function NavigateThrough (event)
+{
+  if (!document.getElementById) return;
+  if (window.event) event = window.event;
+  if (event.target.tagName == 'INPUT') return;
+  if (event.ctrlKey || event.metaKey) return;
+  var link = null;
+  switch (event.keyCode ? event.keyCode : event.which ? event.which : null) {
+    case 74:
+    case 80:
+      link = document.getElementById ('p');
+      break;
+    case 75:
+    case 78:
+      link = document.getElementById ('n');
+      break;
+    case 69:
+      link = document.getElementById ('e');
+      break;
+    }
+  if (link && link.href) document.location = link.href;
+}
+</script>
+<div itemscope itemtype="http://schema.org/Article" class="container">
+<div class="skipLink">
+<a href="#nav">Skip to site navigation (Press enter)</a>
+</div>
+<div class="content" role="main">
+<div class="msgHead">
+<h1>
+<span class="subject"><a href="/search?l=bitcoin-dev@lists.linuxfoundation.org&amp;q=subject:%22%5C%5Bbitcoin%5C-dev%5C%5D+proposal%5C%3A+new+opcode+OP_ZKP+to+enable+ZKP%5C-based%09spending+authorization%22&amp;o=newest" rel="nofollow"><span itemprop="name">[bitcoin-dev] proposal: new opcode OP_ZKP to enable ZKP-based	spending authorization</span></a></span>
+</h1>
+<p class="darkgray font13">
+<span class="sender pipe"><a href="/search?l=bitcoin-dev@lists.linuxfoundation.org&amp;q=from:%22Weiji+Guo+via+bitcoin%5C-dev%22" rel="nofollow"><span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">Weiji Guo via bitcoin-dev</span></span></a></span>
+<span class="date"><a href="/search?l=bitcoin-dev@lists.linuxfoundation.org&amp;q=date:20230429" rel="nofollow">Sat, 29 Apr 2023 09:20:15 -0700</a></span>
+</p>
+</div>
+<div itemprop="articleBody" class="msgBody">
+<!--X-Body-of-Message-->
+<pre>Hey everyone,
+</pre><pre>
+
+I am writing this email to propose a new opcode to enable zero knowledge
+based spending authorization for Bitcoin. This new opcode OP_ZKP will
+enable the Bitcoin network to authorize spending based on off-chain
+computation, provided acceptable proof is supplied. This will not only
+equip the Bitcoin script with Turing completeness, but also enable the
+building of payment channels more flexible, stablecoin, decentralized
+exchange, DeFi, etc. directly over the Bitcoin network, or even a layer 2.
+All these could be accomplished with a soft fork (and follow-up building).
+
+
+Before any BIP could be requested, I’d like to discuss all the aspects in
+more detail, to cover as many corners as possible, and hopefully to build
+consensus among developers and the community.
+
+
+*### 0. Overview*
+
+Here are what I am currently considering, listed as starting points for
+discussion. I hope that I have covered all major issues, but please do feel
+free to add more.
+
+
+
+   1. How it works: we add OP_ZKP and OP_ZKPVERIFY using some unused OP_NOP
+   codes. OP_ZKP works similarly to OP_MULTISIG, with a number parameter to
+   indicate how many public inputs are to be read;
+   2. Security: to bind the spending conditions to certain UTXO set,
+   amount, and recipients, the hash of all this information shall be used as
+   public input to the proof;
+   3. Dealing with system limitation: verification keys could be very long
+   and exceed the MAX_SCRIPT_ELEMENT_SIZE (520 bytes). They could be put into
+   configurations and only use their hash in the scriptPubKey. The
+   configuration information such as new verification keys could be propagated
+   through P2P messages (we might need a separate BIP for this);
+   4. Scalability: arrangement for miners or computing power vendors to
+   aggregate some proofs for scalability and fee reduction. Alternatively,
+   this could be accomplished with recursive proof.
+   5. ZKP scheme and curve choices.
+   6. Potential uses are unlimited, although there is no apparent secret
+   key (private key or seed) in play.
+   7. Ecology implications. Impacts on wallets, etc.
+
+
+Below, I will introduce/discuss the above-listed item one by one. Mostly I
+have to keep the discussion minimal and brief. It is still a bit lengthy,
+please bear with me.
+
+
+*### 1. How it works*
+
+Consider below script:
+
+
+scriptPubKey: &lt;hash of the verification key&gt; &lt;Groth16_BN254&gt; OP_ZKP
+
+scriptSig: &lt;pubInput_1&gt; &lt;pubInput_2&gt; … &lt;pubInput_n&gt; &lt;n&gt; &lt;proof&gt;
+
+
+&lt;Groth16_BN254&gt; is only an example in place of an indicator for the ZKP
+scheme and curve parameters. Other combinations are possible. Further
+discussion is provided in section 5.
+
+
+&lt;hash of the verification key&gt; - the node implementation should look up a
+verification key that hashed to this value. Verification keys tend to be
+long and exceed the limitation imposed by MAX_SCRIPT_ELEMENT_SIZE (520
+bytes). And for various schemes/circuits, the size might be different. So a
+hash is used here. Further discussion is covered in section 3.
+
+
+&lt;proof&gt; refers to the proof data to be verified. Its size is also subject
+to MAX_SCRIPT_ELEMENT_SIZE. This might limit our choices of the ZKP scheme,
+although proof data could be split into several parts.
+
+
+&lt;n&gt; refers to how many public inputs are to be read. It should depend on
+the circuit in use. However, this is *not* the actual number. There is also
+an implicit public input, which is the hash of the transaction, calculated
+according to the script context.
+
+
+The evaluation is pretty straightforward. The implementation of OP_ZKP
+reads in (and removes) all its parameters from the stack, calculates the
+implicit public input from the transaction (UTXO inputs, amount,
+recipients, etc.), and then leave a true or false in the stack after ZKP
+verification. The security reason behind this implicit public input design
+is discussed in the next section.
+
+
+OP_ZKPVERIFY works the same except for the last step, where it leaves
+nothing or fails the verification.
+
+
+*### 2. Security: replay protection*
+
+Proof should not be replayed to authorize spending of another set of UTXO.
+Therefore it is critical to bind the proof to the transaction. This is
+similar to OP_CHECKSIG: the transaction hash is needed to verify the proof
+for OP_ZKP. To calculate the hash, just follow what the context requires.
+For a SegWit transaction, BIP 0143 seems natural. And most of the time this
+will be the case. But if those opcodes are indeed used outside of SegWit,
+then the hashing algorithm before SegWit should be fine.
+
+
+Binding proof to the transaction, especially the UTXO entries, also
+protects from proof malleability, since once spent, the UTXO entries will
+be removed from the available UTXO set.
+
+
+On the other hand, since proof could be calculated by anybody given the
+witness, circuit developers must take this into account. The private inputs
+should be kept confidential. In some other uses, there might not be any
+private inputs but only an authoritative signature, then it is the
+authority’s responsibility to only sign valid information, and circuit
+developers’ responsibility to ensure proper protection. Further discussion
+is deferred for now.
+
+
+*### 3. Dealing with system limitations: verification key*
+
+The size of proof data or verification key could exceed the limitation
+imposed by MAX_SCRIPT_ELEMENT_SIZE, which is 520 (bytes). In this section,
+we discuss its implications for the verification key.
+
+
+The size of a verification key varies with different schemes and circuits.
+However, the number of total different circuits will be rather limited, at
+least at the Bitcoin network level. Therefore, using the hash of the
+verification key instead of the key itself renders fixed-size data, and
+flexibility without worrying if the verification key gets too long.
+
+
+Further, it is not advisable to hard code the verification key in the code
+base of nodes, as new verification keys arise every few days or months.
+Rather, P2P messaging seems a suitable way to propagate new verification
+keys. Once received, a node could save it to a configuration file, and also
+forward it to other nodes. If an unknown hash is encountered, the node
+could also request it from its connected peers. If the node cannot gather a
+new verification key in time, then it has to fail the transaction
+verification. If too many nodes cannot get the new verification key in
+time, the new block containing the offending transaction will not be
+accepted by the Bitcoin network. It is suggested that a separate BIP be
+requested to address these issues.
+
+
+*### 4. Scalability*
+
+ZKP verification usually costs at least tens of milli-seconds, and might
+also cost more data size. So, it should be fine to have a few dozen ZKP
+transactions in a block. But a few thousand will cost too much time to
+verify and too much block space. In this section, we discuss how this could
+be mitigated.
+
+
+There are two options: proof aggregation (batching), and recursive
+verification.
+
+
+Some ZKP proofs are known to be capable of aggregation, however, with
+certain limitations. For example, aggregating Groth16 proofs seems to
+require that all proofs are of the same circuit, so that the value of γ and
+δ remain the same across different proofs, as both parameters are from
+phase 2 setup, thus circuit specific. We can also aggregate KZG polynomial
+commitment scheme-based proofs. Still, the aggregator needs to ensure that
+the hash of each transaction has been verified as well.
+
+
+On the other hand, recursive verification can handle these transaction hash
+verification, along with verifying the correctness of each proof. It might
+be very computationally intensive to generate a recursive proof for a few
+thousand proofs but there are lots of room for further optimization.
+
+
+It is also possible to develop a hybrid strategy, that some proofs are
+aggregated, with additional verification being proved, then both the
+aggregation and additional proof could be verified by a recursive proof.
+
+
+We might need a new SegWit version so that transactions can refer to its
+proper proof once aggregated or recursively verified.
+
+
+Replay protection: once aggregated or proved via recursion to the network,
+a transaction cannot be played to the Bitcoin network again, as the UTXO
+entries have been spent.
+
+
+*### 5. ZKP scheme and curve choice*
+
+A major concern is the size of the script, proof, cost of verification, and
+the feasibility to aggregate/batching many proofs.
+
+
+Groth16 checks out here with short proof size, cheap verification, and
+feasibility to aggregate. For example, the standard draft here ([1]) shows
+an implementation that can aggregate 1024 proofs in 2s and verifies them in
+23ms. Although it seems to require that all proofs belong to the same
+circuit ( due to γ and δ, which are circuit-specific). Still, the short
+proof size and cheap verification cost make Groth16 suitable to verify
+other proofs recursively. And when the upper layer proving schemes (and
+setup) is the same, so are the verification circuits, therefore those
+proofs could be aggregated.
+
+
+On the other hand, KZG commitment supports batching. So the zkSnarks based
+on KZG should support as well. Further, this paper by Boneh, etc. ([2])
+enhances KZG commitment to allow one or two group element opening for
+multiple polynomials each evaluated at a different set of points.
+
+
+This is not an exhaustive list, not even a list. Overall, if we can
+aggregate/batch many proofs together, then proof size is of smaller
+concern. In this case, Plonk might be a better scheme than Groth16, if we
+can implement a batching technique to batch proofs from different circuits
+together. But still, in the beginning, there might not be many proofs to be
+batched/aggregated at all.
+
+
+We shall designate a parameter to OP_ZKP and OP_ZKPVERIFY to indicate which
+scheme (and curve) to use.
+
+
+For curve, BN254 is a natural choice as it has been adopted by many
+blockchain projects. However, this is largely an open issue.
+
+
+All being said, as a proposal, it is my opinion that we should support
+Groth16-BN254 at the beginning. Based on that we could build recursive
+verification circuits for other scheme, which does not require a soft fork.
+Other schemes and curves, if much desired by the community, could be
+included as well. Maybe we can designate a separate BIP for each
+scheme-curve pair for direct support (instead of recursive verification).
+
+
+*### 6. Potential uses*
+
+The potential uses are unlimited: payment aggregation for a fee reduction
+or anonymity, stablecoin, DeFi, decentralized exchange, DAO, NFT, etc.,
+just to name a few. But still, we could take as an example some uses to
+check if any issues arise and discuss how to address them.
+
+
+A. ZKP-based smart contract. We could reasonably assume ZKP-based smart
+contracts to be rather different from consensus-based smart contracts
+(although OP_ZKP is part of a script). A notable difference is that with
+Bitcoin’s UTXO model instead of account-model, account-balance type of
+contracts are hard to build without involving external storage or state
+management. And even with external storage involved to manage the states,
+the security of the external storage is also a concern. Data might be lost
+or corrupted. Bitcoin’s security does not extend to those contracts
+automatically. It takes innovations to address these issues.
+
+
+On the other hand, there could be smart contracts without a need for
+explicit state management. This could be gaming or decentralized identity,
+that a ZKP proof is used to prove ”something happens or exists according to
+designated algorithm or criteria“.
+
+
+B. Payment aggregation, or Bitcoin Layer 2. Every address can participate
+in such a protocol by sending certain Bitcoin to the designated address
+(the fund-holding address). Once signed up, participants can send Bitcoin
+to each other with very little fee or pays a higher fee to send to Layer 1.
+Bookkeeping each participant’s “balance” is a challenge, but might be
+achievable via some complex circuits proving the ownership of certain UTXO
+entries. Once proven, the fund-holding address can send Bitcoins to the
+address as requested by the participant. It is another challenge to
+maintain those UTXO entries off the Bitcoin network with high security. We
+might also need to segregate those UXTOs from the Bitcoin network so that
+no transaction can be replayed to the Bitcoin network or another Layer 2
+protocol.
+
+
+*### 7. Ecology implications*
+
+Proof generation, computing power services/vendors. Some proof might be
+very computationally intensive to generate, for example, recursive
+verification of thousands of OP_ZKP transactions. In that case, computation
+power services or vendors can work with miners to speed up the generation,
+or simply propose a bundle of transactions to be included in a block. By
+paying a higher fee miners are motivated to include the bundle, while the
+service or vendor can still profit a lot. The immediate reward could
+incentivize lots of efforts to further optimize the implementation,
+engineering, algorithms, or even ZKP schemes.
+
+
+Contract composability. We need to figure out a systematic way for one
+smart contract to call another, either on-chain or assisted-off-chain. For
+ZKP-based smart contracts, proof will have to be generated off-chain and
+then used later to call the target contract. Off-chain vendors could
+monitor closely related signals, generate the proof, and submit it to the
+Bitcoin network. There should be incentives to ensure the proper running of
+the system. It is still an open issue about how to define a cross-contract
+API, how to signal the call, and how to incentivize computation power
+vendors.
+
+
+Impact on wallet applications. Generating proof to authorize spending seems
+a heavy-duty computation task, and does not seem to fit into mobile
+applications or hardware wallets, especially those with SoC and powered by
+a small battery. However, we argue that this is not the case. If no secret
+(private key or seed) is involved, there is no need to involve a wallet
+that is tasked with safekeeping secrets. In such cases, the ZKP proof could
+be proof that something has indeed happened or exists (including a
+signature issued from a wallet), which makes up spending conditions.
+
+
+
+
+That's it for now. I hope you are interested in this idea. I look forward
+to your comments.
+
+
+Thanks,
+
+Weiji
+
+
+[1] -
+<a  rel="nofollow" href="https://docs.zkproof.org/pages/standards/accepted-workshop4/proposal-aggregation.pdf">https://docs.zkproof.org/pages/standards/accepted-workshop4/proposal-aggregation.pdf</a>
+
+[2] - <a  rel="nofollow" href="https://eprint.iacr.org/2020/081.pdf">https://eprint.iacr.org/2020/081.pdf</a>
+</pre><pre>_______________________________________________
+bitcoin-dev mailing list
+<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="44262d30272b2d2a6920213204282d3730376a282d2a313c222b312a2025302d2b2a6a2b3623">[email&#160;protected]</a>
+<a  rel="nofollow" href="https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev">https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev</a>
+</pre>
+
+</div>
+<div class="msgButtons margintopdouble">
+<ul class="overflow">
+<li class="msgButtonItems"><a class="button buttonleft " accesskey="p" href="msg12600.html">Previous message</a></li>
+<li class="msgButtonItems textaligncenter"><a class="button" accesskey="c" href="index.html#12601">View by thread</a></li>
+<li class="msgButtonItems textaligncenter"><a class="button" accesskey="i" href="maillist.html#12601">View by date</a></li>
+<li class="msgButtonItems textalignright"><a class="button buttonright " accesskey="n" href="msg12602.html">Next message</a></li>
+</ul>
+</div>
+<a name="tslice"></a>
+<div class="tSliceList margintopdouble">
+<ul class="icons monospace">
+<li class="icons-email tSliceCur"><span class="subject">[bitcoin-dev] proposal: new opcode OP_ZKP to ena...</span> <span class="sender italic">Weiji Guo via bitcoin-dev</span></li>
+<li><ul>
+<li class="icons-email"><span class="subject"><a href="msg12602.html">Re: [bitcoin-dev] proposal: new opcode OP_Z...</a></span> <span class="sender italic">ZmnSCPxj via bitcoin-dev</span></li>
+<li><ul>
+<li class="icons-email"><span class="subject"><a href="msg12605.html">Re: [bitcoin-dev] proposal: new opcode ...</a></span> <span class="sender italic">Weiji Guo via bitcoin-dev</span></li>
+<li><ul>
+<li class="icons-email"><span class="subject"><a href="msg12614.html">Re: [bitcoin-dev] proposal: new opc...</a></span> <span class="sender italic">ZmnSCPxj via bitcoin-dev</span></li>
+<li><ul>
+<li class="icons-email"><span class="subject"><a href="msg12618.html">Re: [bitcoin-dev] proposal: new...</a></span> <span class="sender italic">Weiji Guo via bitcoin-dev</span></li>
+<li><ul>
+<li class="icons-email"><span class="subject"><a href="msg12619.html">Re: [bitcoin-dev] proposal...</a></span> <span class="sender italic">ZmnSCPxj via bitcoin-dev</span></li>
+<li><ul>
+<li class="icons-email"><span class="subject"><a href="msg12623.html">Re: [bitcoin-dev] prop...</a></span> <span class="sender italic">Weiji Guo via bitcoin-dev</span></li>
+<li><ul>
+<li class="icons-email"><span class="subject"><a href="msg12620.html">Re: [bitcoin-dev] ...</a></span> <span class="sender italic">ZmnSCPxj via bitcoin-dev</span></li>
+</ul>
+</ul>
+</ul>
+</ul>
+</ul>
+</ul>
+</ul>
+</ul>
+</div>
+<div class="overflow msgActions margintopdouble">
+<div class="msgReply" >
+<h2>
+					Reply via email to
+</h2>
+<form method="POST" action="/mailto.php">
+<input type="hidden" name="subject" value="[bitcoin-dev] proposal: new opcode OP_ZKP to enable ZKP-based	spending authorization">
+<input type="hidden" name="msgid" value="CA+ydi=LtskFh89TW75=CBwbdZzWR-ZjWS77TnrF4G+xUfm8z+Q@mail.gmail.com">
+<input type="hidden" name="relpath" value="bitcoin-dev@lists.linuxfoundation.org/msg12601.html">
+<input type="submit" value=" Weiji Guo via bitcoin-dev ">
+</form>
+</div>
+</div>
+</div>
+<div class="aside" role="complementary">
+<div class="logo">
+<a href="/"><img src="/logo.png" width=247 height=88 alt="The Mail Archive"></a>
+</div>
+<form class="overflow" action="/search" method="get">
+<input type="hidden" name="l" value="bitcoin-dev@lists.linuxfoundation.org">
+<label class="hidden" for="q">Search the site</label>
+<input class="submittext" type="text" id="q" name="q" placeholder="Search bitcoin-dev">
+<input class="submitbutton" name="submit" type="image" src="/submit.png" alt="Submit">
+</form>
+<div class="nav margintop" id="nav" role="navigation">
+<ul class="icons font16">
+<li class="icons-home"><a href="/">The Mail Archive home</a></li>
+<li class="icons-list"><a href="/bitcoin-dev@lists.linuxfoundation.org/">bitcoin-dev - all messages</a></li>
+<li class="icons-about"><a href="/bitcoin-dev@lists.linuxfoundation.org/info.html">bitcoin-dev - about the list</a></li>
+<li class="icons-expand"><a href="/search?l=bitcoin-dev@lists.linuxfoundation.org&amp;q=subject:%22%5C%5Bbitcoin%5C-dev%5C%5D+proposal%5C%3A+new+opcode+OP_ZKP+to+enable+ZKP%5C-based%09spending+authorization%22&amp;o=newest&amp;f=1" title="e" id="e">Expand</a></li>
+<li class="icons-prev"><a href="msg12600.html" title="p">Previous message</a></li>
+<li class="icons-next"><a href="msg12602.html" title="n">Next message</a></li>
+</ul>
+</div>
+<div class="listlogo margintopdouble">
+
+</div>
+<div class="margintopdouble">
+
+</div>
+</div>
+</div>
+<div class="footer" role="contentinfo">
+<ul>
+<li><a href="/">The Mail Archive home</a></li>
+<li><a href="/faq.html#newlist">Add your mailing list</a></li>
+<li><a href="/faq.html">FAQ</a></li>
+<li><a href="/faq.html#support">Support</a></li>
+<li><a href="/faq.html#privacy">Privacy</a></li>
+<li class="darkgray">CA+ydi=LtskFh89TW75=CBwbdZzWR-ZjWS77TnrF4G+xUfm8z+Q@mail.gmail.com</li>
+</ul>
+</div>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a559dc88febd158f',t:'MTc5Mzg2MDc2OA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a559dc88febd158f',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"6b16babd81bc4986bb5551fcbd676e26","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

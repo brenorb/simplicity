@@ -1,0 +1,98 @@
+<pre>
+  BIP: TBD
+  Layer: Consensus (soft fork)
+  Title: 64 bit arithmetic operations
+  Author: Chris Stewart <stewart.chris1234@gmail.com>
+  Comments-Summary: No comments yet.
+  Comments-URI: https://github.com/bitcoin/bips/wiki/Comments:BIP-0364
+  Status: Draft
+  Type: Standards Track
+  Created: 2023-09-11
+  License: BSD-3-Clause
+</pre>
+
+==Abstract==
+
+This BIP describes a new op code `OP_INOUT_AMOUNT` that pushes the amount
+amount our utxo is funded with and the amount it spending to on the stack.
+
+==Summary==
+The opcode `OP_INOUT_AMOUNT` pushes the current input index's funding amount onto the stack.
+It then pushes the amount we are spending to at the same output index onto the stack.
+
+==Motivation==
+
+Various bitcoin protocol ideas such as vaults require rate limiting of funds from a utxo.
+Other ideas such as recurring subscriptions that allow X amount to be withdraw from a utxo
+can use OP_INOUT_AMOUNT to enforce this at the protocol level in combination with ideas
+such as OP_TAPLEAFUPDATE_VERIFY.
+
+===OP_TAPLEAFUPDATE_VERIFY===
+
+This opcode was initially proposed as part of the [https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2021-September/019419.html OP_TAPLEAFUPDATE_VERIFY] soft fork proposal.
+
+This proposal allows for generic vault and covenant construction. This proposal requires `OP_INOUT_AMOUNT` to be implemented.
+
+==Detailed Specification==
+
+Refer to the reference implementation, reproduced below, for the precise
+semantics and detailed rationale for those semantics.
+
+<source lang="cpp">
+
+
+static inline int64_t cast_signed64(uint64_t v)
+{
+    uint64_t int64_min = static_cast<uint64_t>(std::numeric_limits<int64_t>::min());
+    if (v >= int64_min)
+        return static_cast<int64_t>(v - int64_min) + std::numeric_limits<int64_t>::min();
+    return static_cast<int64_t>(v);
+}
+
+static inline int64_t read_le8_signed(const unsigned char* ptr)
+{
+    return cast_signed64(ReadLE64(ptr));
+}
+
+static inline void push8_le(std::vector<valtype>& stack, uint64_t v)
+{
+    uint64_t v_le = htole64(v);
+    stack.emplace_back(reinterpret_cast<unsigned char*>(&v_le), reinterpret_cast<unsigned char*>(&v_le) + sizeof(v_le));
+}
+
+case OP_INOUT_AMOUNT:
+{
+    // Opcodes only available post tapscript_64bit
+    if (sigversion == SigVersion::BASE || sigversion == SigVersion::WITNESS_V0 || sigversion == SigVersion::TAPROOT || sigversion == SigVersion::TAPSCRIPT) return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+            
+    unsigned int nIn = checker.GetNIn();
+    int64_t fundingAmount = checker.GetTransactionData().m_spent_outputs[nIn].nValue;
+    int64_t outAmount = checker.GetTransactionData().outputs[nIn].nValue;
+
+    push8_le(stack, fundingAmount);
+    push8_le(stack, outAmount);
+
+}
+break;
+</source>
+
+https://github.com/Christewart/bitcoin/commits/64bit-arith 
+
+==Deployment==
+
+todo
+
+==Credits==
+
+This work was first written about by Aj Towns. He credits Greg Maxwell, Matt Corallo, David Harding and Jeremy Rubin with helping with ideation.
+
+==References==
+
+https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2021-September/019419.html
+
+https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2021-September/019420.html
+
+==Copyright==
+
+This document is placed in the public domain.
+

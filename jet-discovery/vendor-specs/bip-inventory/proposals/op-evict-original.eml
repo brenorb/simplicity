@@ -1,0 +1,524 @@
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Return-Path: <ZmnSCPxj@protonmail.com>
+Received: from smtp3.osuosl.org (smtp3.osuosl.org [140.211.166.136])
+ by lists.linuxfoundation.org (Postfix) with ESMTP id 47B29C000B
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Fri, 18 Feb 2022 02:45:36 +0000 (UTC)
+Received: from localhost (localhost [127.0.0.1])
+ by smtp3.osuosl.org (Postfix) with ESMTP id 28BCC60A70
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Fri, 18 Feb 2022 02:45:36 +0000 (UTC)
+X-Virus-Scanned: amavisd-new at osuosl.org
+X-Spam-Flag: NO
+X-Spam-Score: -1.601
+X-Spam-Level: 
+X-Spam-Status: No, score=-1.601 tagged_above=-999 required=5
+ tests=[BAYES_00=-1.9, DKIM_SIGNED=0.1, DKIM_VALID=-0.1,
+ DKIM_VALID_AU=-0.1, DKIM_VALID_EF=-0.1, FREEMAIL_FROM=0.001,
+ FROM_LOCAL_NOVOWEL=0.5, SPF_HELO_PASS=-0.001, SPF_PASS=-0.001]
+ autolearn=ham autolearn_force=no
+Authentication-Results: smtp3.osuosl.org (amavisd-new);
+ dkim=pass (2048-bit key) header.d=protonmail.com
+Received: from smtp3.osuosl.org ([127.0.0.1])
+ by localhost (smtp3.osuosl.org [127.0.0.1]) (amavisd-new, port 10024)
+ with ESMTP id PJqgP7izFdsB
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Fri, 18 Feb 2022 02:45:34 +0000 (UTC)
+X-Greylist: domain auto-whitelisted by SQLgrey-1.8.0
+Received: from mail-40135.protonmail.ch (mail-40135.protonmail.ch
+ [185.70.40.135])
+ by smtp3.osuosl.org (Postfix) with ESMTPS id 8F963607A4
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Fri, 18 Feb 2022 02:45:34 +0000 (UTC)
+Date: Fri, 18 Feb 2022 02:45:23 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+ s=protonmail3; t=1645152330;
+ bh=/HqxW3AbO7u2lZrZkUn5O7nkazua1RuGFN3C0mLou5Q=;
+ h=Date:To:From:Reply-To:Subject:Message-ID:From:To:Cc:Date:Subject:
+ Reply-To:Feedback-ID:Message-ID;
+ b=E4OzuNjY+2UnfI+hpKk9wAOZZbPiDc8IG5aUlOAuwAzMFcESldJppzj/870VGdkjd
+ BMkXwc1R2ePOTV9J88e/gEP/Av7bXjCFu6/hgTxDsHFqpeamaWrg7IrtK2P2HWR9Ub
+ u70y5JiWgUG8YdIZxnDwoS2jgnBcERN76fFpfB1W5gjK1eQx+56qIwMqpA7mLQXypY
+ 1qkloJw7oGk6Cg7+0J5XnCcAHjglBuu3BXsBgO8grHSIBAkuRpJzmShybD7X4iwYp9
+ o42PuflRBCdUC8OCz3glt+9pOVFI9K7f59caQhZ9BvWa3mYGrJVEF/s76z2Org3ds+
+ boECR2NjssY4g==
+To: Anthony Towns <aj@erisian.com.au>,
+ bitcoin-dev <bitcoin-dev@lists.linuxfoundation.org>
+From: ZmnSCPxj <ZmnSCPxj@protonmail.com>
+Reply-To: ZmnSCPxj <ZmnSCPxj@protonmail.com>
+Message-ID: <6nZ-SkxvJLrOCOIdUtLOsdnl94DoX_NHY0uwZ7sw78t24FQ33QJlJU95W7Sk1ja5EFic5a3yql14MLmSAYFZvLGBS4lDUJfr8ut9hdB7GD4=@protonmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Subject: [bitcoin-dev] `OP_EVICT`: An Alternative to `OP_TAPLEAFUPDATEVERIFY`
+X-BeenThere: bitcoin-dev@lists.linuxfoundation.org
+X-Mailman-Version: 2.1.15
+Precedence: list
+List-Id: Bitcoin Protocol Discussion <bitcoin-dev.lists.linuxfoundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bitcoin-dev>, 
+ <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bitcoin-dev/>
+List-Post: <mailto:bitcoin-dev@lists.linuxfoundation.org>
+List-Help: <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev>, 
+ <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=subscribe>
+X-List-Received-Date: Fri, 18 Feb 2022 02:45:36 -0000
+
+`OP_EVICT`: An Alternative to `OP_TAPLEAFUPDATEVERIFY`
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D
+
+In late 2021, `aj` proposed `OP_TAPLEAFUPDATEVERIFY` in order to
+implement CoinPools and similar constructions.
+
+`Jeremy` observed that due to the use of Merkle tree paths, an
+`OP_TLUV` would require O(log N) hash revelations in order to
+reach a particular tapleaf, which, in the case of a CoinPool,
+would then delete itself after spending only a particular amount
+of funds.
+He then observed that `OP_CTV` trees also require a similar
+revelation of O(log N) transactions, but with the advantage that
+once revealed, the transactions can then be reused, thus overall
+the expectation is that the number of total bytes onchain is
+lesser compared to `OP_TLUV`.
+
+After some thinking, I realized that it was the use of the
+Merkle tree to represent the promised-but-offchain outputs of
+the CoinPool that lead to the O(log N) space usage.
+I then started thinking of alternative representations of
+sets of promised outputs, which would not require O(log N)
+revelations by avoiding the tree structure.
+
+Promised Outputs
+----------------
+
+Fundamentally, we can consider that a solution for scaling
+Bitcoin would be to *promise* that some output *can* appear
+onchain at some point in the future, without requiring that the
+output be shown onchain *right now*.
+Then, we can perform transactional cut-through on spends of the
+promised outputs, without requiring onchain activity ("offchain").
+Only if something Really Bad (TM) happens do we need to actually
+drop the latest set of promised outputs onchain, where it has to
+be verified globally by all fullnodes (and would thus incur scaling
+and privacy costs).
+
+As an example of the above paradigm, consider the Lightning
+Network.
+Outputs representing the money of each party in a channel are
+promised, and *can* appear onchain (via the unilateral close
+mechanism).
+In the meantime, there is a mechanism for performing cut-through,
+allowing transfers between channel participants; any number of
+transactions can be performed that are only "solidified" later,
+without expensive onchain activity.
+
+Thus:
+
+* A CoinPool is really a way to commit to promised outputs.
+  To change the distribution of those promised outputs, the
+  CoinPool operators need to post an onchain transaction, but
+  that is only a 1-input-1-output transaction, and with Schnorr
+  signatures the single input requires only a single signature.
+  But in case something Really Bad (TM) happens, any participant
+  can unilaterally close the CoinPool, instantiating the promised
+  outputs.
+* A statechain is really just a CoinPool hosted inside a
+  Decker-Wattenhofer or Decker-Russell-Osuntokun construction.
+  This allows changing the distribution of those promised outputs
+  without using an onchain transaction --- instead, a new state
+  in the Decker-Wattenhofer/Decker-Russell-Osuntokun construction
+  is created containing the new state, which invalidates all older
+  states.
+  Again, any participant can unilaterally shut it down, exposing
+  the state of the inner CoinPool.
+* A channel factory is really just a statechain where the
+  promised outputs are not simple 1-of-1 single-owner outputs,
+  but are rather 2-of-2 channels.
+  This allows graceful degradation, where even if the statechain
+  ("factory") layer has missing participants, individual 2-of-2
+  channels can still continue operating as long as they do not
+  involve missing participants, without requiring all participants
+  to be online for large numbers of transactions.
+
+We can then consider that the base CoinPool usage should be enough,
+as other mechanisms (`OP_CTV`+`OP_CSFS`, `SIGHASH_NOINPUT`) can be
+used to implement statechains and channels and channel factories.
+
+I therefore conclude that what we really need is "just" a way to
+commit ourselves to exposing a set of promised outputs, with the
+proviso that if we all agree, we can change that set (without
+requiring that the current or next set be exposed, for both
+scaling and privacy).
+
+(To Bitcoin Cashers: this is not an IOU, this is *committed* and
+can be enforced onchain, that is enough to threaten your offchain
+counterparties into behaving correctly.
+They cannot gain anything by denying the outputs they promised,
+you can always drop it onchain and have it enforced, thus it is
+not just merely an IOU, as IOUs are not necessarily enforceable,
+but this mechanism *would* be.
+Blockchain as judge+jury+executioner, not noisy marketplace.)
+
+Importantly: both `OP_CTV` and `OP_TLUV` force the user to
+decide on a particular, but ultimately arbitrary, ordering for
+promised outputs.
+In principle, a set of promised outputs, if the owners of those
+outputs are peers, does not have *any* inherent order.
+Thus, I started to think about a commitment scheme that does not
+impose any ordering during commitment.
+
+Digression: N-of-N With Eviction
+--------------------------------
+
+An issue with using an N-of-N construction is that if any single
+participant is offline, the construction cannot advance its state.
+
+This has lead to some peopple proposing to instead use K-of-N
+once N reaches much larger than 2 participants for CoinPools/statechains/
+channel factories.
+
+However, even so, K-of-N still requires that K participants remain
+online, and the level K is a security parameter.
+If less than K participants are online, then the construction
+*still* cannot advance its state.
+
+Worse, because K < N, a single participant can have its funds
+outright stolen by a quorum of K participants.
+There is no way to prove that the other participants in the same
+construction are not really sockpuppets of the same real-world
+entity, thus it is entirely possible that the K quorum is actually
+just a single participant that is now capable of stealing the
+funds of all the other participants.
+The only way to avoid this is to use N-oF-N: N-of-N requires
+*your* keys, thus the coins are *your* coins.
+In short: K-of-N, as it allows the state to be updated without your
+keys (on the excuse that "if you are offline, we need to be able to
+update state"), is *not your keys not your coins*.
+
+K-of-N should really only be used if all N are your sockpuppets,
+and you want to HODL your funds.
+This is the difference between consensus "everyone must agree" and
+voting "enough sockpuppets can be used to overpower you".
+
+With `OP_TLUV`, however, it is possible to create an "N-of-N With
+Eviction" construction.
+When a participant in the N-of-N is offline, but the remaining
+participants want to advance the state of the construction, they
+instead evict the offline participant, creating a smaller N-of-N
+where *all* participants are online, and continue operating.
+
+This avoids the *not your keys not your coins* problem of K-of-N
+constructions, while simultaneously providing a way to advance
+the state without the full participant set being online.
+
+The only real problem with `OP_TLUV` is that it takes O(log N)
+hash revelations to evict one participant, and each evicted
+participant requires one separate transaction.
+
+K-of-N has the "advantage" that even if you are offline, the state
+can be advanced without evicting you.
+However, as noted, as the coins can be spent without your keys,
+the coins are not your coins, thus this advantage may be considered
+dubious --- whether you are online or offline, a quorum of K can
+outright steal your coins.
+Eviction here requires that your coins be returned to your control.
+
+Committing To An Unordered Set
+------------------------------
+
+In an N-of-N CoinPool/statechain/channel factory, the ownership
+of a single onchain UTXO is shared among N participants.
+That is, there are a number of promised outputs, not exposed
+onchain, which the N participants agree on as the "real" current
+state of the construction,
+However, the N participants can also agree to change the current
+state of the construction, if all of them sign off on the change.
+
+Each of the promised outputs has a value, and the sum of all
+promised values is the value of the onchain UTXO.
+Interestingly, each of the promised outputs also has an SECP256K1
+point that can be used as a public key, and the sum of all
+promised points is the point of the onchain UTXO.
+
+Thus, the onchain UTXO can serve as a commitment to the sum of
+the promised outputs.
+The problem is committing to each of the individual promised
+outputs.
+
+We can observe that a digital signature not only proves knowledge
+of a private key, it also commits to a particular message.
+Thus, we can make each participant sign their own expected
+promised output, and share the signature for their promised
+output.
+
+When a participant is to be evicted, the other participants
+take the signature for the promised output of the to-be-evicted
+participant, and show it onchain, to attest to the output.
+Then, the onchain mechanism should then allow the rest of the
+funds to be controlled by the N-of-N set minus the evicted
+participant.
+
+`OP_EVICT`
+----------
+
+With all that, let me now propose the `OP_EVICT` opcode.
+
+`OP_EVICT` accepts a variable number of arguments.
+
+* The stack top is either the constant `1`, or an SECP256K1
+  point.
+  * If it is `1` that simply means "use the Taproot internal
+    pubkey", as is usual for `OP_CHECKSIG`.
+* The next stack item is a number, equal to the number of
+  outputs that were promised, and which will now be evicted.
+* The next stack items will alternate:
+  * A number indicating an output index.
+  * A signature for that output.
+  * Output indices must not be duplicated, and indicated
+    outputs must be SegWit v1 ("Taproot") outputs.
+    The public key of the output will be taken as the public
+    key for the corresponding signature, and the signature
+    only covers the output itself (i.e. value and
+    `scriptPubKey`).
+    This means the signature has no `SIGHASH`.
+  * As the signature covers the public key, this prevents
+    malleation of a signature using one public key to a
+    signature for another public key.
+* After that is another signature.
+  * This signature is checked using `OP_CHECKSIG` semantics
+    (including `SIGHASH` support).
+  * The public key is the input point (i.e. stack top)
+    **MINUS** all the public keys of the indicated outputs.
+
+As a concrete example, suppose A, B, C, and D want to make a
+CoinPool (or offchain variant of such) with the following
+initial state:
+
+* A :=3D 10
+* B :=3D 6
+* C :=3D 4
+* D :=3D 22
+
+Let us assume that A, B, C, and D have generated public
+keys in such a way to avoid key cancellation (e.g.
+precommitment, or the MuSig scheme).
+
+The participants then generate promised outputs for the
+above, and each of them shares signatures for the promised
+outputs:
+
+* sign(a, "A :=3D 10")
+* sign(b, "B :=3D 6")
+* sign(c, "C :=3D 4")
+* sign(d, "D :=3D 22")
+
+Once that is done, they generate:
+
+* Q =3D A + B + C + D
+* P =3D h(Q|`<1> OP_EVICT`) * Q
+
+Then they spend their funds, creating a Taproot output:
+
+* P :=3D 42
+
+If all participants are online, they can move funds between
+each other (or to other addresses) by cooperatively signing
+using the point P, and the magic of Taproot means that use
+of `OP_EVICT` is not visible.
+
+Suppose however that B is offline.
+Then A, C, and D then decide to evict B.
+To do so, they create a transaction that has an output
+with "B :=3D 6", and they reveal the `OP_EVICT` Tapscript
+as well as sign(b, "B :=3D 6").
+This lets them change state and spend their funds without
+B being online.
+And B remains secure, as they cannot evict B except using
+the pre-signed output, which B certifies as their expected
+promised output.
+
+Note that the opcode as described above allows for multiple
+evictions in the same transaction.
+If B and C are offline, then the remaining participants
+simply need to expose multiple outputs in the same
+transaction.
+
+Security
+--------
+
+I am not a cryptographer.
+Thus, the security of this scheme is a conjecture.
+
+As long as key cancellation is protected against, it should
+be secure.
+The combined fund cannot be spent except if all participants
+agree.
+A smaller online participant set can be created only if a
+participant is evicted, and eviction will force the owned
+funds of the evicted participant to be instantiated.
+The other participants cannot synthesize an alternate
+signature signing a different value without knowledge of the
+privkey of the evicted participant.
+
+To prevent signature replay, each update of an updateable
+scheme like CoinPool et al should use a different pubkey
+for each participant for each state.
+As the signature covers the pubkey, it should be safe to
+use a non-hardened derivation scheme so that only a single
+root privkey is needed.
+
+Additional Discussion
+---------------------
+
+### Eviction Scheme
+
+We can consider that the eviction scheme proposed here is the
+following contract:
+
+* Either all of us agree on some transfer, OR,
+* Give me my funds and the rest of you can all go play with
+  your funds however you want.
+
+The signature that commits to a promised output is then the
+agreement that the particular participant believes they are
+entitled to a particular amount.
+
+We can consider that a participant can re-sign their output
+with a different amount, but that is why `OP_EVICT` requires
+the *other* participants to cooperatively sign as well.
+If the other participants cooperatively sign, they effectively
+agree to the participant re-signing for a different amount,
+and thus actually covered by "all of us agree".
+
+### Pure SCRIPT Contracts
+
+A "pure SCRIPT contract" is a Taproot contract where the
+keyspend path is not desired, and the contract is composed of
+Tapscript branches.
+
+In such a case, the expected technique would be for the
+contract participants to agree on a NUMS point where none
+of the participants can know the scalar (private key) behind
+the point, and to use that as the internal Taproot pubkey
+`Q`.
+For complete protocols, the NUMS point can be a protocol-defined
+constant.
+
+As the `OP_EVICT` opcode requires that each promised output
+be signed, on the face of it, this technique cannot be used
+for `OP_EVICT`-promised outputs, as it is impossible to sign
+using the NUMS point.
+
+However, we should note that the requirement of a "pure SCRIPT"
+contract is that none of the participants can unilaterally
+sign an alternate spend.
+Using an N-of-N of the participants as the Taproot internal
+pubkey is sufficient to ensure this.
+
+As a concrete example: suppose we want an HTLC, which has a
+hashlock branch requiring participant A, and a timelock branch
+requiring participant B.
+Such a simple scheme would not require that both A and B be
+able to cooperatively spend the output, thus we might have
+preferred the technique of using a NUMS point as Taproot
+internal pubkey.
+But using a NUMS point would not allow any signature, even the
+`OP_EVICT`-required signatures-of-promised-outputs.
+
+Instead of using a NUMS point for the Taproot internal pubkey,
+we can use the sum of `A[tmp] + B[tmp]` (suitably protected
+against key cancellation).
+Then both A and B can cooperatively sign the promised output,
+and keep the promised output in an `OP_EVICT`-enforced UTXO.
+After creating the signature for the promised output, A and B
+can ensure that the keypath branch cannot be used by securely
+deleting the private keys for `A[tmp]` and `B[tmp]`
+respectively.
+
+### Signature Half-Aggregation
+
+It is possible to batch-validate, and as `OP_EVICT` must
+validate at least two signatures (an eviction and the
+signature of the remaining) it makes sense to use batch
+validation for `OP_EVICT`.
+
+Of note is that Schnorr signatures allow for third-party
+half-aggregation, where the `s` components of multiple
+signatures are summed together, but the `R` components
+are not.
+
+(Warning: I am not aware of any security proofs that
+half-aggregation is actually **safe**!
+In particular, BIP-340 does not define half-aggregation,
+and its batch validation algorithm is not, to my naivete,
+extensible to half-aggregation.)
+
+Basically, if we are batch validating two signatures
+`(R[0], s[0])`, `(R[1], s[1])` of two messages `m[0]`
+and `m[1]` signed by two keys `A[0]` and `A[1]`, we
+would do:
+
+* For `i =3D 0, 1`: `e[i] =3D h(R[i]|m[i])`
+* Check: `(s[0] + s[1]) * G` is equal to `R[0] + e[0] * A[0] + R[1] + e[1] =
+* A[1]`.
+
+As we can see, the `s` can be summed before being
+posted on the blockchain, as validators do not need
+individual `s[i]`.
+However, `R` cannot be summed as each one needs to be
+hashed.
+
+This half-aggregation is third-party, i.e. someone
+without any knowledge of any private keys can simply
+sum the `s` components of multiple signatures.
+
+As `OP_EVICT` always validates at least two signatures,
+using half-aggregation can remove at least 32 weight
+units, and each additional promised output being evicted
+is another signature whose `s` can be added to the sum.
+Of course, **that depends on half-aggregation being
+secure**.
+
+### Relationship to Other Opcodes
+
+`OP_CTV` does other things than this opcode, and cannot
+be used as a direct alternative.
+In particular while `OP_CTV` *can* commit to a set of
+promised outputs, if a promised output needs to be
+published, the remaining funds are now distributed over a
+set of UTXOs.
+Thus, "reviving" the CoinPool (or offchain variant thereof)
+requires consuming multiple UTXOs, and the consumption of
+multiple UTXOs is risky unless specifically designd for it.
+(In particular, if the UTXOs have different signer sets,
+one signer set can initially cooperate to revive the
+CoinPool, then spend their UTXO to a different transaction,
+which if confirmed will invalidate the revival transaction.)
+
+This opcode seems largely in direct competitiong with
+`OP_TLUV`, with largely the same design goal.
+Its advantage is reduced number of eviction transactions,
+as multiple evictions, plus the revival of the CoinPool,
+can be put in a single transaction.
+It has the disadvantage relative to `OP_TLUV` of requiring
+point operations.
+I have not explored completely, but my instinct suggests
+that `OP_TLUV` use may require at least one signature
+validation anyway.
+
+It may be possible to implement `OP_EVICT` in terms of
+`OP_TX`/`OP_TXHASH`, `OP_CSFS`, and a point-subtraction
+operation.
+However, `OP_EVICT` allows for the trivial implementation
+of batch validation (and, if half-aggregation is safe, to
+use half-aggregation instead), whereas we expect multiple
+`OP_CSFS` to be needed to implement this, without any
+possibility of batch validation.
+It may be possible to design an `OP_CSFS` variant that
+allows batch validation, such as by extending the virtual
+machine with an accumulator for pending signature
+validations.
+
+

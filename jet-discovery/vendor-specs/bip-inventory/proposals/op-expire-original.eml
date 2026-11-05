@@ -1,0 +1,287 @@
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Return-Path: <pete@petertodd.org>
+Received: from smtp2.osuosl.org (smtp2.osuosl.org [140.211.166.133])
+ by lists.linuxfoundation.org (Postfix) with ESMTP id 5B25AC0032;
+ Sat, 21 Oct 2023 00:09:34 +0000 (UTC)
+Received: from localhost (localhost [127.0.0.1])
+ by smtp2.osuosl.org (Postfix) with ESMTP id 33B0A43498;
+ Sat, 21 Oct 2023 00:09:34 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.11.0 smtp2.osuosl.org 33B0A43498
+Authentication-Results: smtp2.osuosl.org; dkim=pass (2048-bit key,
+ unprotected) header.d=messagingengine.com header.i=@messagingengine.com
+ header.a=rsa-sha256 header.s=fm3 header.b=ZPgfJaKM
+X-Virus-Scanned: amavisd-new at osuosl.org
+X-Spam-Flag: NO
+X-Spam-Score: -2.6
+X-Spam-Level: 
+X-Spam-Status: No, score=-2.6 tagged_above=-999 required=5
+ tests=[BAYES_00=-1.9, DKIM_SIGNED=0.1, DKIM_VALID=-0.1,
+ RCVD_IN_DNSWL_LOW=-0.7, RCVD_IN_MSPIKE_H5=0.001,
+ RCVD_IN_MSPIKE_WL=0.001, SPF_HELO_PASS=-0.001, SPF_PASS=-0.001]
+ autolearn=ham autolearn_force=no
+Received: from smtp2.osuosl.org ([127.0.0.1])
+ by localhost (smtp2.osuosl.org [127.0.0.1]) (amavisd-new, port 10024)
+ with ESMTP id fThmX2eg_OC6; Sat, 21 Oct 2023 00:09:29 +0000 (UTC)
+Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com
+ [64.147.123.24])
+ by smtp2.osuosl.org (Postfix) with ESMTPS id 36A454346B;
+ Sat, 21 Oct 2023 00:09:29 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.11.0 smtp2.osuosl.org 36A454346B
+Received: from compute7.internal (compute7.nyi.internal [10.202.2.48])
+ by mailout.west.internal (Postfix) with ESMTP id 4141832009F0;
+ Fri, 20 Oct 2023 20:09:24 -0400 (EDT)
+Received: from mailfrontend2 ([10.202.2.163])
+ by compute7.internal (MEProxy); Fri, 20 Oct 2023 20:09:24 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+ messagingengine.com; h=cc:cc:content-type:content-type:date:date
+ :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+ :message-id:mime-version:references:reply-to:sender:subject
+ :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+ :x-sasl-enc; s=fm3; t=1697846963; x=1697933363; bh=l63MpaR6/sfDu
+ JGQrIwttiV+zlD+FPxGu5O8wfKJcnQ=; b=ZPgfJaKMPYVSt37VaEZp/l0gg7Ma6
+ f3XVZxy4Kzrwy6Ee8IFi9kpFI9RMjzZ2lw2huxzxVISM8Rp9M4ILTIYUML8GDH1G
+ fi82Q1q4OjXUidiD9SVRuZiibagsGclZyilHd374hQ75MwEke5u6ob+uRInU5r78
+ 6raFB47oYkM88poqWY8y6fviW1sVvnqKidgVAkPL7RG26a6Z0BvMkuX3BqzFPWqI
+ 1vv8KyZo9sLZ94hw3JnVWDgLjWsJh2vHOWCjPYkvna9hUV4Yj0lQt9w2wnenK2tr
+ gKsj2XYgr3Sb1kbW55JZCgQaoidxjnEWeC4DAkQySo4oeWSojwJcYZGwA==
+X-ME-Sender: <xms:shYzZQM-XdcOct_vLS8XDrExBjyCo8eXSFiisER8ClLwSj0EJbXWXw>
+ <xme:shYzZW81JIW2rYuMVlUKaKUpwfS8j1O97XZqkEKmw1sdcKDQmmc5G7oQweJIcW3R9
+ yyvF0J8nEXlY41UpAA>
+X-ME-Received: <xmr:shYzZXTSILRD6GcBKGKTBhcB_nRAm7yCam3Q0NKm1kZEDWaYz8_ytCXKzLyO2qPOd0XvA7dOV-n7AJ_sueSX-CXjzAXUNgE30vmtLhTlwJL1tEKk>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrjeelgddvkecutefuodetggdotefrodftvf
+ curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+ uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+ fjughrpeffhffvvefukfhfgggtuggjsehgtderredttddvnecuhfhrohhmpefrvghtvghr
+ ucfvohguugcuoehpvghtvgesphgvthgvrhhtohguugdrohhrgheqnecuggftrfgrthhtvg
+ hrnhepledvleelffdtudekudffjefgfeejueehieelfedtgfetudetgeegveeutefhjedt
+ necuffhomhgrihhnpehpvghtvghrthhouggurdhorhhgnecuvehluhhsthgvrhfuihiivg
+ eptdenucfrrghrrghmpehmrghilhhfrhhomhepphgvthgvsehpvghtvghrthhouggurdho
+ rhhg
+X-ME-Proxy: <xmx:shYzZYs_4Q5CJ6-s-axzd37sEpqPm9FL7N5K1R6mAHN8x2Y8GzzNqw>
+ <xmx:shYzZYe0Zg8UZuVhV1fjGiNxUyivDFt0xgJsTQLvzQp728N-8DRmQQ>
+ <xmx:shYzZc3DRtR-JvSw-eyIecMGTiT6HUyZDn5_iPcxocdn0d_MfpUGPQ>
+ <xmx:sxYzZdGKvSS-Q6zMbtBD7Lq29KIMycrKH7xK7vsEvjKqr7WPzT4C_g>
+Feedback-ID: i525146e8:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
+ 20 Oct 2023 20:09:21 -0400 (EDT)
+Received: by localhost (Postfix, from userid 1000)
+ id BF4B15F86A; Sat, 21 Oct 2023 00:09:16 +0000 (UTC)
+Date: Sat, 21 Oct 2023 00:09:16 +0000
+From: Peter Todd <pete@petertodd.org>
+To: Antoine Riard <antoine.riard@gmail.com>,
+ Bitcoin Protocol Discussion <bitcoin-dev@lists.linuxfoundation.org>
+Message-ID: <ZTMWrJ6DjxtslJBn@petertodd.org>
+References: <CALZpt+GdyfDotdhrrVkjTALg5DbxJyiS8ruO2S7Ggmi9Ra5B9g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature"; boundary="5gCdcG3BiHE94rwW"
+Content-Disposition: inline
+In-Reply-To: <CALZpt+GdyfDotdhrrVkjTALg5DbxJyiS8ruO2S7Ggmi9Ra5B9g@mail.gmail.com>
+Cc: security@ariard.me, "lightning-dev\\\\@lists.linuxfoundation.org"
+ <lightning-dev@lists.linuxfoundation.org>
+Subject: [bitcoin-dev] OP_Expire and Coinbase-Like Behavior: Making HTLCs
+ Safer by Letting Transactions Expire Safely
+X-BeenThere: bitcoin-dev@lists.linuxfoundation.org
+X-Mailman-Version: 2.1.15
+Precedence: list
+List-Id: Bitcoin Protocol Discussion <bitcoin-dev.lists.linuxfoundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bitcoin-dev>, 
+ <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bitcoin-dev/>
+List-Post: <mailto:bitcoin-dev@lists.linuxfoundation.org>
+List-Help: <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev>, 
+ <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=subscribe>
+X-List-Received-Date: Sat, 21 Oct 2023 00:09:34 -0000
+
+
+--5gCdcG3BiHE94rwW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Oct 16, 2023 at 05:57:36PM +0100, Antoine Riard via bitcoin-dev wro=
+te:
+> Here enter a replacement cycling attack. A malicious channel counterparty
+> can broadcast its HTLC-preimage transaction with a higher absolute fee and
+> higher feerate than the honest HTLC-timeout of the victim lightning node
+> and triggers a replacement. Both for legacy and anchor output channels, a
+> HTLC-preimage on a counterparty commitment transaction is malleable, i.e
+> additional inputs or outputs can be added. The HTLC-preimage spends an
+> unconfirmed and unrelated to the channel parent transaction M and conflic=
+ts
+> its child.
+
+The basic problem here is after the HTLC-timeout path becomes spendable, the
+HTLC-preimage path remains spendable. That's bad, because in this case we w=
+ant
+spending the HTLC-preimage - if possible - to have an urgency attached to i=
+t to
+ensure that it happens before the previous HTLC-timeout is mined.
+
+So, why can't we make the HTLC-preimage path expire? Traditionally, we've t=
+ried
+to ensure that transactions - once valid - remain valid forever. We do this
+because we don't want transactions to become impossible to mine in the even=
+t of
+a large reorganization.
+
+A notable example of this design philosophy is seen in Bitcoin's rules arou=
+nd
+coinbase outputs: they only become spendable after 100 more blocks have been
+found; a 100 block reorg is quite unlikely.
+
+Enter the OP_Expire and the Coinbase Bit soft-fork upgrade.
+
+
+# Coinbase Bit
+
+By redefining a bit of the nVersion field, eg the most significant bit, we =
+can
+apply coinbase-like txout handling to arbitrary transactions. Such a
+transaction's outputs would be treated similarly to a coinbase transaction,=
+ and
+would be spendable only after 100 more blocks had been mined. Due to this
+requirement, these transactions will pose no greater risk to reorg safety t=
+han
+the existing hazard of coinbase transactions themselves becoming invalid.
+
+Note how such a transaction is non-standard right now, ensuring compatibili=
+ty
+with existing nodes in a soft-fork upgrade.
+
+
+# OP_Expire
+
+Redefining an existing OP_Nop opcode, OP_Expire would terminate script
+evaluation with an error if:
+
+1) the Coinbase Bit was not set; or
+2) the stack is empty; or
+3) the top item on the stack was >=3D the block height of the containing bl=
+ock
+
+This is conceptually an AntiCheckLockTimeVerify: where CLTV _allows_ a txou=
+t to
+become spendable in a particular way in the future, Expire _prevents_ a txo=
+ut
+=66rom being spent in a particular way.
+
+Since OP_Expire requires the Coinbase Bit to be set, the reorg security of
+OP_Expire-using transactions is no worse than transactions spending miner
+coinbases.
+
+
+# How HTLC's Would Use OP_Expire
+
+Whenever revealing the preimage on-chain is necessary to the secure functio=
+ning
+of the HTLC-using protocol, we simply add an appropriate OP_Expire to the
+pre-image branch of the script along the lines of:
+
+    If
+        <expiry height> Expire Drop
+        Hash <digest> EqualVerify
+        <pubkey> CheckSig
+    ElseIf
+        # HTLC Expiration conditions
+        ...
+    EndIf
+
+Now the party receiving the pre-image has a deadline. Either they get a
+transaction spending the preimage mined, notifying the other party via the
+blockchain itself, or they fail to get the preimage mined in time, reverting
+control to the other party who can spend the HTLC output at their leisure,
+without strict time constraints.
+
+Since the HTLC-expired branch does *not* execute OP_Expire, the transaction
+spending the HTLC-expired branch does *not* need to set the Coinbase Bit. T=
+hus
+it can be spent in a perfectly normal transaction, without restrictions.
+
+
+# Delta Encoding Expiration
+
+Rather than having a specific Coinbase Bit, it may also be feasible to enco=
+de
+the expiration height as a delta against a block-height nLockTime. In this
+variant, OP_Expire would work similarly to OP_CheckLockTimeVerify, by check=
+ing
+that the absolute expiration height was <=3D the requested expiration, allo=
+wing
+multiple HTLC preimage outputs to be spent in one transaction.
+
+If the top 16-bits were used, the maximum period a transaction could be val=
+id
+would be:
+
+    2^16 blocks / 144 blocks/day =3D 455 days
+
+In this variant, a non-zero expiration delta would enable expiration behavi=
+or,
+as well as the coinbase-like output spending restriction. The remaining 16-=
+bits
+of nVersion would remain available for other meanings.
+
+Similar to how CLTV and CSV verified nLockTime and nSequence respectively,
+verifying an expiration height encoded in the nVersion has the advantage of
+making an expiration height easy to detect without validating scripts.
+
+While Lightning's HTLC-success transactions currently use nLockTime=3D0, AF=
+AIK
+there is no reason why they could not set nLockTime to be valid in the next
+block, allowing delta encoding to be used.
+
+
+## Reusing Time-Based nLockTime
+
+Reusing time-based nLockTime's prior to some pre-2009 genesis point for
+expiration is another possibility (similar to how Lightning makes use of
+time-based nLockTime for signalling). However I believe this is not as
+desirable as delta encoding or a coinbase bit, as it would prevent transact=
+ions
+=66rom using block nLockTime and expiration at the same time. It would also=
+ still
+require a coinbase bit or nVersion increase to ensure expiration-using
+transactions are non-standard.
+
+
+# Mempool Behavior
+
+Obviously, mempool logic will need to handle transactions that can expire
+differently than non-expiring transactions. One notable consideration is th=
+at
+nodes should require higher minimum relay fees for transactions close to th=
+eir
+expiration height to ensure we don't waste bandwidth on transactions that h=
+ave
+no potential to be mined. Considering the primary use-case, it is probably
+acceptable to always require a fee rate high enough to be mined in the next
+block.
+
+--=20
+https://petertodd.org 'peter'[:-1]@petertodd.org
+
+--5gCdcG3BiHE94rwW
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE0RcYcKRzsEwFZ3N5Lly11TVRLzcFAmUzFqcACgkQLly11TVR
+LzcHGg/+K73d3M/RLhHRbvK4Coajp+1Nj0X0yl8HymfzIF3xEhGS+RBfHdSl3oIa
+MOOLdHwb7oYrgtFP+9sRLjIQK4OBjeTnRm1DombOBwN5wubU6ukkXP2QlXonIPL2
+T/CQWRljQxU31SgBuqx7QEg0IfeLhbflG2MWlCk7bhc55fXHDhFhub+VDoQ5XWcb
+7IkXwT6OUSIqwzYGLlBRsn3/u06sA2BXkj6n5dN8y7MdCwI/t1dYgZ6ux0ugJWjX
+NK+oLBnq424pQVGclRmDp8x+NT6ZgOVagrFox8ugJXaC5cWTa9cSijePgLYZzVC6
+b4cPnWsB5wrVexoiaZ2Z91thfP7s3cXfTgOc/b4hXyBpqz6Cesccmhoz7xEUxxVF
+4+UAOBTCl3udxkRMRH0VSTixtA6bJCGyy2YqA0A6X3KRX4wilsk7CFHoPl2lEj0b
+HjpOFwmYJpdq59bv0iggh1EeiuC4DLYYvtv5vSl6inJeqL3rAZxfYsKgLR/TB+tk
+0clJDRg0eoQs5BqFPuRqyDW9EU73h6DF2hqKw3J4RaU41XouxpCBOrY0x8JQkCsy
+XKFr+Feh7YLOOgtSPVwLioV9G/oMjWbxPVFydRrzJTg3iSjxMzBtX00AVBHcc9li
+39MRKa3zUkRCZTM1jbmb24XuGZ099JFe1OWvH4u0Ps7SCe1q1ww=
+=BRXu
+-----END PGP SIGNATURE-----
+
+--5gCdcG3BiHE94rwW--
+
+

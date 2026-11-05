@@ -1,0 +1,305 @@
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Return-Path: <aj@erisian.com.au>
+Received: from smtp1.osuosl.org (smtp1.osuosl.org [140.211.166.138])
+ by lists.linuxfoundation.org (Postfix) with ESMTP id 8EF17C000D
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Thu,  9 Sep 2021 06:53:38 +0000 (UTC)
+Received: from localhost (localhost [127.0.0.1])
+ by smtp1.osuosl.org (Postfix) with ESMTP id 77FE984997
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Thu,  9 Sep 2021 06:53:38 +0000 (UTC)
+X-Virus-Scanned: amavisd-new at osuosl.org
+X-Spam-Flag: NO
+X-Spam-Score: -1.499
+X-Spam-Level: 
+X-Spam-Status: No, score=-1.499 tagged_above=-999 required=5
+ tests=[BAYES_00=-1.9, KHOP_HELO_FCRDNS=0.398, SPF_HELO_NONE=0.001,
+ SPF_NONE=0.001, UNPARSEABLE_RELAY=0.001]
+ autolearn=no autolearn_force=no
+Received: from smtp1.osuosl.org ([127.0.0.1])
+ by localhost (smtp1.osuosl.org [127.0.0.1]) (amavisd-new, port 10024)
+ with ESMTP id CMUyNYPXvAID
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Thu,  9 Sep 2021 06:53:37 +0000 (UTC)
+X-Greylist: from auto-whitelisted by SQLgrey-1.8.0
+Received: from azure.erisian.com.au (cerulean.erisian.com.au [139.162.42.226])
+ by smtp1.osuosl.org (Postfix) with ESMTPS id 7211184996
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Thu,  9 Sep 2021 06:53:37 +0000 (UTC)
+Received: from aj@azure.erisian.com.au (helo=sapphire.erisian.com.au)
+ by azure.erisian.com.au with esmtpsa (Exim 4.92 #3 (Debian))
+ id 1mODwD-0002FX-OS
+ for <bitcoin-dev@lists.linuxfoundation.org>; Thu, 09 Sep 2021 16:53:35 +1000
+Received: by sapphire.erisian.com.au (sSMTP sendmail emulation);
+ Thu, 09 Sep 2021 16:53:30 +1000
+Date: Thu, 9 Sep 2021 16:53:30 +1000
+From: Anthony Towns <aj@erisian.com.au>
+To: bitcoin-dev@lists.linuxfoundation.org
+Message-ID: <20210909065330.GB22496@erisian.com.au>
+References: <20210909064138.GA22496@erisian.com.au>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210909064138.GA22496@erisian.com.au>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Spam-Score-int: -18
+X-Spam-Bar: -
+Subject: Re: [bitcoin-dev] TAPLEAF_UPDATE_VERIFY covenant opcode
+X-BeenThere: bitcoin-dev@lists.linuxfoundation.org
+X-Mailman-Version: 2.1.15
+Precedence: list
+List-Id: Bitcoin Protocol Discussion <bitcoin-dev.lists.linuxfoundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bitcoin-dev>, 
+ <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bitcoin-dev/>
+List-Post: <mailto:bitcoin-dev@lists.linuxfoundation.org>
+List-Help: <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev>, 
+ <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=subscribe>
+X-List-Received-Date: Thu, 09 Sep 2021 06:53:38 -0000
+
+On Thu, Sep 09, 2021 at 04:41:38PM +1000, Anthony Towns wrote:
+> I'll split this into two emails, this one's the handwavy overview,
+> the followup will go into some of the implementation complexities.
+
+(This is informed by discussions with Greg, Matt Corallo, David Harding
+and Jeremy Rubin; opinions and mistakes my own, of course)
+
+
+
+First, let's talk quickly about IN_OUT_AMOUNT. I think the easiest way to
+deal with it is just a single opcode that pushes two values to the stack;
+however it could be two opcodes, or it could even accept a parameter
+letting you specify which input (and hence which corresponding output)
+you're talking about (-1 meaning the current input perhaps). 
+
+Anyway, a big complication here is that amounts in satoshis require up
+to 51 bits to represent them, but script only allows you to do 32 bit
+maths. However introducing IN_OUT_AMOUNT already means using an OP_SUCCESS
+opcode, which in turn allows us to arbitrarily redefine the behaviour
+of other opcodes -- so we can use the presence of IN_OUT_AMOUNT in the
+script to upgrade ADD, SUB, and the comparison operators to support 64
+bit values. Enabling MUL, DIV and MOD might also be worthwhile.
+
+
+
+Moving onto TLUV. My theory is that it pops three items off the stack. The
+top of the stack is "C" the control integer; next is "H" the
+additional path step; and finally "X" the tweak for the internal
+pubkey. If "H" is the empty vector, no additional path step is
+added; otherwise it must be 32 bytes. If "X" is the empty vector,
+the internal pubkey is not tweaked; otherwise it must be a 32 byte
+x-only pubkey.
+
+The low bit of C indicates the parity of X; if it's 0, X has even y,
+if it's 1, X has odd y.
+
+The next bit of C indicates whether the current script is dropped from
+the merkle path, if it's 0, the current script is kept, if it's 1 the
+current script is dropped.
+
+The remaining bits of C (ie C >> 2) are the number of steps in the merkle
+path that are dropped. (If C is negative, behaviour is to be determined
+-- either always fail, or always succeed and left for definition via
+future soft-fork)
+
+For example, suppose we have a taproot utxo that had 5 scripts
+(A,B,C,D,E), calculated as per the example in BIP 341 as:
+
+    AB = H_TapBranch(A, B)
+    CD = H_TapBranch(C, D)
+    CDE = H_TapBranch(CD, E)
+    ABCDE = H_TapBranch(AB, CDE)
+
+And we're spending using script E, in that case the control block includes
+the script E, and the merkle path to it, namely (AB, CD).
+
+So here's some examples of what you could do with TLUV to control how
+the spending scripts can change, between the input sPK and the output sPK.
+
+At it's simplest, if we used the script "0 0 0 TLUV", then that says we
+keep the current script, keep all steps in the merkle path, don't add
+any new ones, and don't change the internal public key -- that is that
+we want to resulting sPK to be exactly the same as the one we're spending.
+
+If we used the script "0 F 0 TLUV" (H=F, C=0) then we keep the current
+script, keep all the steps in the merkle path (AB and CD), and add
+a new step to the merkle path (F), giving us:
+
+    EF = H_TapBranch(E, F)
+    CDEF =H_TapBranch(CD, EF)
+    ABCDEF = H_TapBranch(AB, CDEF)
+
+If we used the script "0 F 2 TLUV" (H=F, C=2) then we drop the current
+script, but keep all the other steps, and add a new step (effectively
+replacing the current script with a new one):
+
+    CDF = H_TapBranch(CD, F)
+    ABCDF = H_TapBranch(AB, CDF)
+
+If we used the script "0 F 4 TLUV" (H=F, C=4) then we keep the current
+script, but drop the last step in the merkle path, and add a new step
+(effectively replacing the *sibling* of the current script):
+
+    EF = H_TapBranch(E, F)
+    ABEF = H_TapBranch(AB, EF)
+
+If we used the script "0 0 4 TLUV" (H=empty, C=4) then we keep the current
+script, drop the last step in the merkle path, and don't add anything new
+(effectively dropping the sibling), giving just:
+
+    ABE = H_TapBranch(AB, E)
+
+
+
+Implementing the release/locked/available vault construct would then
+look something like this:
+
+Locked script = "OP_RETURN"
+Available script = "<HOT> CHECKSIGVERIFY IN_OUT_AMOUNT SWAP <X> SUB DUP 0 GREATERTHAN IF GREATERTHANOREQUAL VERIFY 0 <H_LOCKED> 2 TLUV ELSE 2DROP ENDIF <D> CSV"
+Release script = "<HOT> CHECKSIGVERIFY IF <H_LOCKED> ELSE <H_AVAILABLE> ENDIF 0 SWAP 4 TLUV  INPUTAMOUNT OUTPUTAMOUNT LESSTHANOREQUAL"
+HOT = 32B hot wallet pubkey
+X = maximum amount spendable via hot wallet at any time
+D = compulsory delay between releasing funds and being able to spend them
+H_LOCKED = H_TapLeaf(locked script)
+H_AVAILABLE= H_TapLeaf(available script)
+Internal public key = 32B cold wallet pubkey
+
+
+
+Moving on to the pooled scheme and actually updating the internal pubkey
+is, unfortunately, where things start to come apart. In particular,
+since taproot uses 32-byte x-only pubkeys (with implicit even-y) for the
+scriptPubKey and the internal public key, we have to worry about what
+happens if, eg, A,B,C and A+B+C all have even-y, but (A+B)=(A+B+C)-C does
+not have even-y. In that case allowing C to remove herself from the pool,
+might result in switching from the scriptPubKey Qabc to the scriptPubKey
+Qab as follows:
+
+     Qabc = (A+B+C) + H(A+B+C, (Sa, (Sb, Sc)))*G
+     Qab = -(A+B) + H( -(A+B), (Sa, Sb)*G
+
+That's fine so far, but what happens if B then removes himself from the
+pool? You take the internal public key, which turns out to be -(A+B)
+since (A+B) did not have even y, and then subtract B, but that gives you
+-A-2B instead of just A. So B obtains his funds, but B's signature hasn't
+been cancelled out from the internal public key, so is still required
+in order to do key path spends, which is definitely not what we want.
+
+If we ignore that caveat (eg, having TLUV consider it to be an error if
+you end up an internal public key that has odd-y) then the scripts for
+exiting the pool are straightforward (if your balance is BAL and your
+key is KEY):
+
+    <KEY> DUP "" 1 TLUV
+    CHECKSIGVERIFY 
+    IN_OUT_AMOUNT SUB <BAL> GREATERTHANOREQUAL
+
+It seems like "just ignore it" might be feasible for modest sized pools --
+just choose A, B, C, D.. so that every combination of them (A+B+C, A+D,
+etc) sums to a point that happens to have even-y and have each participant
+in the pool verify that prior to using the pool. If I got my maths right,
+you'll need to do about (2**n) trials to find a set of lucky points,
+but each unlucky set will tend to fail quickly, leading to amortized
+constant time for each test, so something like 3*(2**n) work overall. So
+as long as n is no more than 20 or 30, that should be reasonably feasible.
+
+To deal with it properly, you need to have the utxo commit to the parity
+of the internal public key and have some way to find out that value when
+using TLUV. There are probably three plausible ways of doing this.
+
+The straightforward way is just to commit to it in the scriptPubKey --
+that is, rather than taproot's approach of setting Q = P + H(P, S)*G where
+P is a 32 byte x-only pubkey, also commit to the parity of P in the H(P,
+S) step, and reveal the parity of the internal public key as part of the
+control block when spending via the script path, in addition to revealing
+the parity of the scriptPubKey point as we do already. Since taproot is
+already locked in for activation, it's too late to change this behaviour
+for taproot addresses, but we could include this in a future soft-fork
+that enabled entroot or similar, or we could make this the behaviour of
+(eg) 33B segwit v1 addresses that begin with 0x00, or similar.
+
+If we don't commit to the parity in the scriptPubKey, there are two other
+ways to commit to it in the utxo: either by having script ensure it is
+committed to it in the value, or by extending the data that's saved in
+the utxo database.
+
+To commit to it in the value, you might do something like:
+
+    <P> <H> IN_OUT_AMOUNT 2 MOD SWAP 2 MOD TUCK EQUAL 2 MUL ADD TLUV
+
+and change TLUV's control parameter to be: C&1 = add/subtract the point,
+C&2 = require the result to be even/odd y (with C&4 and C>>3 controlling
+whether the current script and how many merkle paths are dropped). The
+idea being to require that, if the utxo's value in satoshis is 0 mod
+2, you subtract the point, and if it's 1 mod 2, you add the point,
+and that the *output* amount's value in satoshis is different (mod 2)
+from the input amount's value (mod 2), exactly when the resulting point
+ends up with odd y.  Combined with a rule to ensure the output amount
+doesn't decrease by more than your balance, this would effectively mean
+that if half the time when you withdraw your balance you'll have to pay
+a 1 satoshi fee to the remaining pool members so the the parity of the
+remaining value is correct, which is inelegant, but seems like workable.
+
+The other approach sits somewhere between those two, and would involve
+adding a flag to each entry in the utxo database to say whether the
+internal public key had been inverted. This would only be set if the
+utxo had been created via a spending script that invoked TLUV, and TLUV
+would use the flag to determine whether to add/subtract the provided
+point. That seems quite complicated to implement to me, particularly if
+you want to allow the flag to be able to be set by future opcodes that
+we haven't thought of yet.
+
+
+
+All of this so far assumed that the hashes for any new merkle steps are
+fixed when the contract is created. If "OP_CAT" or similar were enabled,
+however, you could construct those hashes programmatically in script,
+which might lead to some interesting behaviour. For example, you could
+construct a script that says "allow anyone to add themselves to the
+buy-a-citadel pool, as long as they're contributing at least 10 BTC",
+which would then verify they have control of the pubkey they're adding,
+and allow them to add a script that lets them pull their 10 BTC back
+out via that pubkey, and participate in key path spends in the same
+way as everyone else. Of course, that sort of feature probably also
+naturally extends to many of the "covenants considered harmful" cases,
+eg a dollar-auction-like-contract: "Alice can spend this utxo after 1000
+confirmations" or "anyone who increases the balance by 0.1 BTC can swap
+Alice's pubkey for their own in the sibling script to this".
+
+An interesting thing to note is that constructing the script can sometimes
+be more efficient than hardcoding it, eg, I think
+
+    "TapLeaf" SHA256 DUP CAT [0xc0016a] CAT SHA256
+
+is correct for calculating the hash for the "OP_RETURN" script, and at
+~17 bytes should be cheaper than the ~33 bytes it would take to hardcode
+the hash.
+
+To construct a new script programmatically you almost certainly need to
+use templates, eg
+
+    SIZE 32 EQUALVERIFY [0xc02220] SWAP CAT [0xac] CAT
+    "TapLeaf" SHA256 DUP CAT SWAP CAT SHA256
+
+might take a public key off the stack and turn it into the hash for a
+script that expects a signature from that pubkey. I believe you could
+construct multiple scripts and combine them via
+
+    CAT "TapBranch" SHA256 DUP CAT SWAP CAT SHA256
+
+or similar as well.
+
+There's a serious caveat with doing that in practice though: if you allow
+people to add in arbitrary opcodes when constructing the new script,
+they could choose to have that opcode be one of the "OP_SUCCESS" opcodes,
+and, if they're a miner, use that to bypass the covenant constraints
+entirely. So if you want to think about this, the template being filled
+in probably has to be very strict, eg including the specific PUSH opcode
+for the data being provided in the witness, and checking that the length
+of the witness data exactly matches the PUSH opcode being used.
+
+Cheers,
+aj
+
+

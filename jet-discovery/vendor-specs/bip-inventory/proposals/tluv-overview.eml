@@ -1,0 +1,317 @@
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Return-Path: <aj@erisian.com.au>
+Received: from smtp2.osuosl.org (smtp2.osuosl.org [140.211.166.133])
+ by lists.linuxfoundation.org (Postfix) with ESMTP id 09084C000D
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Thu,  9 Sep 2021 06:41:50 +0000 (UTC)
+Received: from localhost (localhost [127.0.0.1])
+ by smtp2.osuosl.org (Postfix) with ESMTP id F0459404B8
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Thu,  9 Sep 2021 06:41:49 +0000 (UTC)
+X-Virus-Scanned: amavisd-new at osuosl.org
+X-Spam-Flag: NO
+X-Spam-Score: 2.079
+X-Spam-Level: **
+X-Spam-Status: No, score=2.079 tagged_above=-999 required=5
+ tests=[ADVANCE_FEE_4_NEW=1, BAYES_50=0.8, KHOP_HELO_FCRDNS=0.276,
+ SPF_HELO_NONE=0.001, SPF_NONE=0.001, UNPARSEABLE_RELAY=0.001]
+ autolearn=no autolearn_force=no
+Received: from smtp2.osuosl.org ([127.0.0.1])
+ by localhost (smtp2.osuosl.org [127.0.0.1]) (amavisd-new, port 10024)
+ with ESMTP id ZSemOmH2iJTu
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Thu,  9 Sep 2021 06:41:48 +0000 (UTC)
+X-Greylist: from auto-whitelisted by SQLgrey-1.8.0
+Received: from azure.erisian.com.au (cerulean.erisian.com.au [139.162.42.226])
+ by smtp2.osuosl.org (Postfix) with ESMTPS id F3E73400CB
+ for <bitcoin-dev@lists.linuxfoundation.org>;
+ Thu,  9 Sep 2021 06:41:47 +0000 (UTC)
+Received: from aj@azure.erisian.com.au (helo=sapphire.erisian.com.au)
+ by azure.erisian.com.au with esmtpsa (Exim 4.92 #3 (Debian))
+ id 1mODkl-0002EU-3b
+ for <bitcoin-dev@lists.linuxfoundation.org>; Thu, 09 Sep 2021 16:41:45 +1000
+Received: by sapphire.erisian.com.au (sSMTP sendmail emulation);
+ Thu, 09 Sep 2021 16:41:38 +1000
+Date: Thu, 9 Sep 2021 16:41:38 +1000
+From: Anthony Towns <aj@erisian.com.au>
+To: bitcoin-dev@lists.linuxfoundation.org
+Message-ID: <20210909064138.GA22496@erisian.com.au>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Spam-Score-int: 4
+X-Spam-Bar: /
+Subject: [bitcoin-dev] TAPLEAF_UPDATE_VERIFY covenant opcode
+X-BeenThere: bitcoin-dev@lists.linuxfoundation.org
+X-Mailman-Version: 2.1.15
+Precedence: list
+List-Id: Bitcoin Protocol Discussion <bitcoin-dev.lists.linuxfoundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bitcoin-dev>, 
+ <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bitcoin-dev/>
+List-Post: <mailto:bitcoin-dev@lists.linuxfoundation.org>
+List-Help: <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bitcoin-dev>, 
+ <mailto:bitcoin-dev-request@lists.linuxfoundation.org?subject=subscribe>
+X-List-Received-Date: Thu, 09 Sep 2021 06:41:50 -0000
+
+Hello world,
+
+A couple of years ago I had a flight of fancy [0] imagining how it
+might be possible for everyone on the planet to use bitcoin in a
+mostly decentralised/untrusted way, without requiring a block size
+increase. It was a bit ridiculous and probably doesn't quite hold up,
+and beyond needing all the existing proposals to be implemented (taproot,
+ANYPREVOUT, CTV, eltoo, channel factories), it also needed a covenant
+opcode [1]. I came up with something that I thought fit well with taproot,
+but couldn't quite figure out how to use it for anything other than my
+ridiculous scheme, so left it at that.
+
+But recently [2] Greg Maxwell emailed me about his own cool idea for a
+covenant opcode, which turned out to basically be a reinvention of the
+same idea but with more functionality, a better name and a less fanciful
+use case; and with that inspiration, I think I've also now figured out
+how to use it for a basic vault, so it seems worth making the idea a
+bit more public.
+
+I'll split this into two emails, this one's the handwavy overview,
+the followup will go into some of the implementation complexities.
+
+
+
+The basic idea is to think about "updating" a utxo by changing the
+taproot tree.
+
+As you might recall, a taproot address is made up from an internal public
+key (P) and a merkle tree of scripts (S) combined via the formula Q=P+H(P,
+S)*G to calculate the scriptPubKey (Q). When spending using a script,
+you provide the path to the merkle leaf that has the script you want
+to use in the control block. The BIP has an example [3] with 5 scripts
+arranged as ((A,B), ((C,D), E)), so if you were spending with E, you'd
+reveal a path of two hashes, one for (AB), then one for (CD), then you'd
+reveal your script E and satisfy it.
+
+So that makes it relatively easy to imagine creating a new taproot address
+based on the input you're spending by doing some or all of the following:
+
+ * Updating the internal public key (ie from P to P' = P + X)
+ * Trimming the merkle path (eg, removing CD)
+ * Removing the script you're currently executing (ie E)
+ * Adding a new step to the end of the merkle path (eg F)
+
+Once you've done those things, you can then calculate the new merkle
+root by resolving the updated merkle path (eg, S' = MerkleRootFor(AB,
+F, H_TapLeaf(E))), and then calculate a new scriptPubKey based on that
+and the updated internal public key (Q' = P' + H(P', S')).
+
+So the idea is to do just that via a new opcode "TAPLEAF_UPDATE_VERIFY"
+(TLUV) that takes three inputs: one that specifies how to update the
+internal public key (X), one that specifies a new step for the merkle path
+(F), and one that specifies whether to remove the current script and/or
+how many merkle path steps to remove. The opcode then calculates the
+scriptPubKey that matches that, and verifies that the output corresponding
+to the current input spends to that scriptPubKey.
+
+That's useless without some way of verifying that the new utxo retains
+the bitcoin that was in the old utxo, so also include a new opcode
+IN_OUT_AMOUNT that pushes two items onto the stack: the amount from this
+input's utxo, and the amount in the corresponding output, and then expect
+anyone using TLUV to use maths operators to verify that funds are being
+appropriately retained in the updated scriptPubKey.
+
+
+
+Here's two examples of how you might use this functionality.
+
+First, a basic vault. The idea is that funds are ultimately protected
+by a cold wallet key (COLD) that's inconvenient to access but is as
+safe from theft as possible. In order to make day to day transactions
+more convenient, a hot wallet key (HOT) is also available, which is
+more vulnerable to theft. The vault design thus limits the hot wallet
+to withdrawing at most L satoshis every D blocks, so that if funds are
+stolen, you lose at most L, and have D blocks to use your cold wallet
+key to re-secure the funds and prevent further losses.
+
+To set this up with TLUV, you construct a taproot output with COLD as
+the internal public key, and a script that specifies:
+
+ * The tx is signed via HOT
+ * <D> CSV -- there's a relative time lock since the last spend
+ * If the input amount is less than L + dust threshold, fine, all done,
+   the vault can be emptied.
+ * Otherwise, the output amount must be at least (the input amount -
+   L), and do a TLUV check that the resulting sPK is unchanged
+
+So you can spend up to "L" satoshis via the hot wallet as long as you
+wait D blocks since the last spend, and can do whatever you want via a
+key path spend with the cold wallet.
+
+You could extend this to have a two phase protocol for spending, where
+first you use the hot wallet to say "in D blocks, allow spending up to
+L satoshis", and only after that can you use the hot wallet to actually
+spend funds. In that case supply a taproot sPK with COLD as the internal
+public key and two scripts, the "release" script, which specifies:
+
+ * The tx is signed via HOT
+ * Output amount is greater or equal to the input amount.
+ * Use TLUV to check:
+   + the output sPK has the same internal public key (ie COLD)
+   + the merkle path has one element trimmed
+   + the current script is included
+   + a new step is added that matches either H_LOCKED or H_AVAILABLE as
+     described below (depending on whether 0 or 1 was provided as
+     witness info)
+
+The other script is either "locked" (which is just "OP_RETURN") or
+"available" which specifies:
+
+ * The tx is signed via HOT
+ * <D> CSV -- there's a relative time lock since the last spend (ie,
+   when the "release" script above was used)
+ * If the input amount is less than L, fine, all done, the vault can
+   be emptied
+ * Otherwise, the output amount must be at least (the input amount minus
+   L), and via TLUV, check the resulting sPK keeps the internal pubkey
+   unchanged, keeps the merkle path, drops the current script, and adds
+   H_LOCKED as the new step.
+
+H_LOCKED and H_AVAILABLE are just the TapLeaf hash corresponding to the
+"locked" and "available" scripts.
+
+I believe this latter setup matches the design Bryan Bishop talked about
+a couple of years ago [4], with the benefit that it's fully recursive,
+allows withdrawals to vary rather than be the fixed amount L (due to not
+relying on pre-signed transactions), and generally seems a bit simpler
+to work with.
+
+
+
+The second scheme is allowing for a utxo to represent a group's pooled
+funds. The idea being that as long as everyone's around you can use
+the taproot key path to efficiently move money around within the pool,
+or use a single transaction and signature for many people in the pool
+to make payments. But key path spends only work if everyone's available
+to sign -- what happens if someone disappears, or loses access to their
+keys, or similar? For that, we want to have script paths to allow other
+people to reclaim their funds even if everyone else disappears. So we
+setup scripts for each participant, eg for Alice:
+
+ * The tx is signed by Alice
+ * The output value must be at least the input value minus Alice's balance
+ * Must pass TLUV such that:
+   + the internal public key is the old internal pubkey minus Alice's key
+   + the currently executing script is dropped from the merkle path
+   + no steps are otherwise removed or added
+
+The neat part here is that if you have many participants in the pool,
+the pool continues to operate normally even if someone makes use of the
+escape hatch -- the remaining participants can still use the key path to
+spend efficiently, and they can each unilaterally withdraw their balance
+via their own script path. If everyone decides to exit, whoever is last
+can spend the remaining balance directly via the key path.
+
+Compared to having on-chain transactions using non-pooled funds, this
+is more efficient and private: a single one-in, one-out transaction
+suffices for any number of transfers within the pool, and there's no
+on-chain information about who was sending/receiving the transfers, or
+how large the transfers were; and for transfers out of the pool, there's
+no on-chain indication which member of the pool is sending the funds,
+and multiple members of the pool can send funds to multiple destinations
+with only a single signature. The major constraint is that you need
+everyone in the pool to be online in order to sign via the key path,
+which provides a practical limit to how many people can reasonably be
+included in a pool before there's a breakdown.
+
+Compared to lightning (eg eltoo channel factories with multiple
+participants), the drawback is that no transfer is final without an
+updated state being committed on chain, however there are also benefits
+including that if one member of the pool unilaterally exits, that
+doesn't reveal the state of anyone remaining in the pool (eg an eltoo
+factory would likely reveal the balances of everyone else's channels at
+that point).
+
+A simpler case for something like this might be for funding a joint
+venture -- suppose you're joining with some other early bitcoiners to
+buy land to build a citadel, so you each put 20 BTC into a pooled utxo,
+ready to finalise the land purchase in a few months, but you also want
+to make sure you can reclaim the funds if the deal falls through. So
+you might include scripts like the above that allow you to reclaim your
+balance, but add a CLTV condition preventing anyone from doing that until
+the deal's deadline has passed. If the deal goes ahead, you all transfer
+the funds to the vendor via the keypath; if it doesn't work out, you
+hopefully return your funds via the keypath, but if things turn really
+sour, you can still just directly reclaim your 20 BTC yourself via the
+script path.
+
+
+
+I think a nice thing about this particular approach to recursive covenants
+at a conceptual level is that it automatically leaves the key path as an
+escape mechanism -- rather than having to build a base case manually,
+and have the risk that it might not work because of some bug, locking
+your funds into the covenant permanently; the escape path is free, easy,
+and also the optimal way of spending things when everything is working
+right. (Of course, you could set the internal public key to a NUMS point
+and shoot yourself in the foot that way anyway)
+
+
+
+I think there's two limitations of this method that are worth pointing out.
+
+First it can't tweak scripts in areas of the merkle tree that it can't
+see -- I don't see a way of doing that particularly efficiently, so maybe
+it's best just to leave that as something for the people responsible for
+the funds to negotiate via the keypath, in which case it's automatically
+both private and efficient since all the details stay off-chain, anyway
+
+And second, it doesn't provide a way for utxos to "interact", which is
+something that is interesting for automated market makers [5], but perhaps
+only interesting for chains aiming to support multiple asset types,
+and not bitcoin directly. On the other hand, perhaps combining it with
+CTV might be enough to solve that, particularly if the hash passed to
+CTV is constructed via script/CAT/etc.
+
+
+
+(I think everything described here could be simulated with CAT and
+CHECKSIGFROMSTACK (and 64bit maths operators and some way to access
+the internal public key), the point of introducing dedicated opcodes
+for this functionality rather than (just) having more generic opcodes
+would be to make the feature easy to use correctly, and, presuming it
+actually has a wide set of use cases, to make it cheap and efficient
+both to use in wallets, and for nodes to validate)
+
+Cheers,
+aj
+
+[0] https://gist.github.com/ajtowns/dc9a59cf0a200bd1f9e6fb569f76f7a0
+
+[1] Roughly, the idea was that if you have ~9 billion people using
+    bitcoin, but can only have ~1000 transactions per block, then you
+    need have each utxo represent a significant number of people. That
+    means that you need a way of allowing the utxo's to be efficiently
+    spent, but need to introduce some level of trust since expecting
+    many people to constantly be online seems unreliable, but to remain
+    mostly decentralised/untrusted, you want to have some way of limiting
+    how much trust you're introducing, and that's where covenants come in.
+
+[2] Recently in covid-adjusted terms, or on the bitcoin consensus
+    change scale anyway...
+    https://mobile.twitter.com/ajtowns/status/1385091604357124100 
+
+[3] https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki#Constructing_and_spending_Taproot_outputs 
+
+[4] https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2019-August/017231.html
+
+[5] The idea behind an automated market maker being that you setup a
+    script that says "you can withdraw x BTC if you deposit f(x) units of
+    USDT, or you can withdraw g(x) units of USDT if you deposit x units
+    of BTC", with f(x)/x giving the buy price, and f(x)>g(x) meaning
+    you make a profit. Being able to specify a covenant that links the
+    change in value to the BTC utxo (+/-x) and the change in value to
+    the USDT utxo (+f(x) or -g(x)) is what you'd need to support this
+    sort of use case, but TLUV doesn't provide a way to do that linkage.
+
+
+

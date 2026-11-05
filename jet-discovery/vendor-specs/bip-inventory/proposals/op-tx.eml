@@ -1,0 +1,491 @@
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Delivery-date: Sat, 27 Sep 2025 06:23:01 -0700
+Received: from mail-oa1-f58.google.com ([209.85.160.58])
+	by mail.fairlystable.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.94.2)
+	(envelope-from <bitcoindev+bncBAABBK6K37DAMGQEF22SDAA@googlegroups.com>)
+	id 1v2UtA-0007Ej-Kq
+	for bitcoindev@gnusha.org; Sat, 27 Sep 2025 06:23:01 -0700
+Received: by mail-oa1-f58.google.com with SMTP id 586e51a60fabf-35bb39e5f65sf2777276fac.0
+        for <bitcoindev@gnusha.org>; Sat, 27 Sep 2025 06:23:00 -0700 (PDT)
+ARC-Seal: i=2; a=rsa-sha256; t=1758979375; cv=pass;
+        d=google.com; s=arc-20240605;
+        b=Kf+8k0IVBw5Rwr30F6/6yC9/5BfHWgA61pPApNK3iRY/v9gjDJmkyi7NTPCFQbZpSl
+         jCBsp8OxX6N+zSfJ/O+kogsNApHamy7iTLcxNU8kJOOOrrXiLW3Y3TN4HEwyF8jzA1A8
+         TUm0aoCx8/a5+13ypjnnhf0F94VhJIviigutF2yLvIQLYYXml/q63l0/Wf0B2mx+gnhL
+         kVshJa0Y9IHynj5e9FCajctdJKUJbJ4E7DuE8h9LKDWVZiPoeQ8GCKrwzmdecEJ2U2TA
+         Ix6N/C7qzMD4AL8jsjV8Sxv+Gn+OZpLi/T34o3cbAqI6sbKhjYL0svi1njZBDMf0Oa0v
+         qsWA==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=list-unsubscribe:list-subscribe:list-archive:list-help:list-post
+         :list-id:mailing-list:precedence:content-transfer-encoding
+         :mime-version:message-id:date:in-reply-to:subject:cc:to:from:sender
+         :dkim-signature;
+        bh=JdLKWLNpQVvtINwdw9fvl4hDvhfmPFxIhO5zSypCN1I=;
+        fh=Yh04rUUJCMB139jkRMoTsuLIWx/2FBQ54kRaiqMBI8Q=;
+        b=CTV/mgnM9d+xfxF4Gu/9XQ3uOxVh9/WlbSH+LymSRa9OsBHjDGVCmzVMLKC9LXYoyL
+         yDeem+5xvOK4FP7mc/yj6ZAA+x6YbTWneZJYZWMGCb5EbjUUJ6uOhGa9J1YxDc3pzGqH
+         pox1h2bHsf3wSJmghuodMTuLnh74O9AB7XENMv+BHSf8L81LiVuUG/97cHDUn5QZI4bs
+         r4Y9s9oKP1ZEtLQskQnvgogtb2psjBwxowZ60w+56vOFXCgjdrDPfCPN/rsQrGPOaQtu
+         9eETgLu1UD4CFRfw1Blww1ltZ6y0pUtWbSYPO1+HDBLTCd6N+038KGmVNN2jWIgUepHE
+         pedw==;
+        darn=gnusha.org
+ARC-Authentication-Results: i=2; gmr-mx.google.com;
+       dkim=pass header.i=@rustcorp.com.au header.s=202305 header.b=e0a10u3t;
+       spf=pass (google.com: domain of rusty@gandalf.ozlabs.org designates 2404:9400:2221:ea00::3 as permitted sender) smtp.mailfrom=rusty@gandalf.ozlabs.org
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlegroups.com; s=20230601; t=1758979375; x=1759584175; darn=gnusha.org;
+        h=list-unsubscribe:list-subscribe:list-archive:list-help:list-post
+         :list-id:mailing-list:precedence:content-transfer-encoding
+         :x-original-authentication-results:x-original-sender:mime-version
+         :message-id:date:in-reply-to:subject:cc:to:from:sender:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=JdLKWLNpQVvtINwdw9fvl4hDvhfmPFxIhO5zSypCN1I=;
+        b=Al1YjrHxjF29n3eMujlTf9XQx0gu93Ffy22+1iBkAUNDRJLi2Yv4kuzLHM2gRbAZUP
+         /x73/PvB4Cf1joTp1Ll/VtuX4zWXYMDwpfcOJHjCeJVSeJey5lvw/1LeTDsb0txSSrIl
+         aTkesSFjWWc/4Mj72TyFvHDXGU3+TBuc6S8nByoSuCr++tFsUoXa1ADTGoXJaz4Bns+9
+         0XkNCxlfKqrZHX1yCgcsjgd5HVpD/Z4UXs/9jDRkSjPpkqELq+o2fKAMi08raI2R6aOj
+         84hmT3XnCD+pWFHFzuBz5KK3jWAB+Xb5gaAJYeFNFnycw8jYSaAZ1mSY84izp/rne0AO
+         S2wg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758979375; x=1759584175;
+        h=list-unsubscribe:list-subscribe:list-archive:list-help:list-post
+         :list-id:mailing-list:precedence:content-transfer-encoding
+         :x-original-authentication-results:x-original-sender:mime-version
+         :message-id:date:in-reply-to:subject:cc:to:from:x-beenthere
+         :x-gm-message-state:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=JdLKWLNpQVvtINwdw9fvl4hDvhfmPFxIhO5zSypCN1I=;
+        b=F3eULrDeHxnUMAAmLpd9Scowq1gXu72tYc9IrJl/9+M/Ch3MyqmmyVLrzfPZnKVwwm
+         mDAPTwroseQF7XgM6r5XwwtAZKX4s0LQ/iSlqVT4UEmxFcDax3IBycEwT7O9wg5oTShH
+         X1y0CAUmT7LjKvnbEHGp2lfyh7z0xtvKGR/l/hANcJwSzEFjjdcd7KgHZHn90s8iLgsV
+         Fzsou+F0vG+tnESUMfU1IiWVFtrGdXBwgwwQK2H+jQQNXP65EeHfZVyrZJXs7DNkFP0J
+         FHuSmOX/alSAQCOuTHBPosGJPXEr+jLDqmk80qFTsEZrd3UYeKKCTlzZzlQ6AcR0XrIl
+         ZX0Q==
+Sender: bitcoindev@googlegroups.com
+X-Forwarded-Encrypted: i=2; AJvYcCUWU0ya3jhYLcldWwfs0/mxgN4BOM2grgjCmP/HxzgQ6lcfwEZ7Jog1Z0wk2TD2tqAI0nb6e2q1BgU5@gnusha.org
+X-Gm-Message-State: AOJu0YwMgm5k2TC+CrckGwonS3wQsJXBg+lcUhUfdF9rZWRhUkU7q++V
+	5jqTKvFT4LGUSxtABqVBtT1YdSIGEx/AD6Pv+EaOhMbaR0IJO0fplAOI
+X-Google-Smtp-Source: AGHT+IG7XysfGyRA3wwWVFHtZZQqvMcucZgCGdr1UJy8EhUx8xvw6jTw5FfVeBIUuTYlP6Ipv9o5Bg==
+X-Received: by 2002:a05:6871:6618:b0:301:fec8:fc5 with SMTP id 586e51a60fabf-35ee8a36e55mr6439306fac.23.1758979374504;
+        Sat, 27 Sep 2025 06:22:54 -0700 (PDT)
+X-BeenThere: bitcoindev@googlegroups.com; h="ARHlJd76RXshQxLr4FDoBQkAdApacZq0AmnPu4qTUHkarvdgbg=="
+Received: by 2002:a05:6870:5381:b0:30b:d6e4:3de6 with SMTP id
+ 586e51a60fabf-35ef077c70fls1337789fac.2.-pod-prod-01-us; Sat, 27 Sep 2025
+ 06:22:51 -0700 (PDT)
+X-Received: by 2002:a05:6808:18aa:b0:43f:2791:12c6 with SMTP id 5614622812f47-43f4cbf29bcmr5334910b6e.2.1758979371190;
+        Sat, 27 Sep 2025 06:22:51 -0700 (PDT)
+Received: by 2002:a05:620a:4628:b0:80d:5a8b:a44e with SMTP id af79cd13be357-8601b027b5fms85a;
+        Sat, 27 Sep 2025 04:29:55 -0700 (PDT)
+X-Received: by 2002:a05:6122:3c4d:b0:54a:910a:872d with SMTP id 71dfb90a1353d-54bea3019cbmr4509621e0c.13.1758972595144;
+        Sat, 27 Sep 2025 04:29:55 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1758972595; cv=none;
+        d=google.com; s=arc-20240605;
+        b=R4hz0b/IjnHBygena7G468pp3YtWUj9tZhH3urRuciAAK+4eUF7TvrEHFiIA357nWm
+         HJNgImXMsu+T8y9XSLs6rwCeJ7df67+Wg3DGiMu3eM5LIrLTsx+tB1t44868pLDwTSXy
+         9uwL7lEbB9bZkXJrANt+mvAidnkxaE+duX+3yLSE2zeKEepMojO2exhSR0vbK39rTp20
+         +geUvMBp/PiMTmqpKHV1vhtSmqM5BPa0eBgBF8XYSXpbYgOxgaTgeUZMv1P2vtuxrMTv
+         IfSq07JJaOmKlH+UZx8P0fcyJviZszlksuP8/yQeFih3ZY1zj0tXQgLp3ddqLDvwAmoA
+         j4GA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=mime-version:message-id:date:in-reply-to:subject:cc:to:from
+         :dkim-signature;
+        bh=T5JS5We+4Nr9g47xaDR263/LlDmPuNXNMwr0q0NA0aU=;
+        fh=VKRDeyaA3Okg5Ur9YeEuvs3adnjn1Zay82pjgmdy54E=;
+        b=BJte1RixBDTL3S9J8hQUtcrEM/oOX/DlLzwDuT4fkVa/IcP4awuS6tciGMOXxbhb6B
+         +Elg9cZJQSX87jnwoNvOq1GkeJ7c7WRNCvct+wMgn1Fyl8T1d65NWOBqFArKXLaO5gT9
+         QoTXxxVc37OQLCS32V0vkoChHSQRiyOP4oFKe0Afyp4cX2BZUvrDdQuQHiyWcgdw8d1I
+         4z/OMwkUqPA7QIASRXL3Yfxw8kD5ayIhrAkG6Ld+wFgE5EaXS7g0wISDM5c9v1MjQFzC
+         FXwDC464KwvTEH8KHLoqCRMk/wcDUs5l8cnU2jJzZTZUbgsdDExxjoo+PY9khYasJZJv
+         i+Jw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; gmr-mx.google.com;
+       dkim=pass header.i=@rustcorp.com.au header.s=202305 header.b=e0a10u3t;
+       spf=pass (google.com: domain of rusty@gandalf.ozlabs.org designates 2404:9400:2221:ea00::3 as permitted sender) smtp.mailfrom=rusty@gandalf.ozlabs.org
+Received: from mail.ozlabs.org (mail.ozlabs.org. [2404:9400:2221:ea00::3])
+        by gmr-mx.google.com with ESMTPS id 71dfb90a1353d-54bed8b05bdsi346926e0c.2.2025.09.27.04.29.53
+        for <bitcoindev@googlegroups.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 27 Sep 2025 04:29:54 -0700 (PDT)
+Received-SPF: pass (google.com: domain of rusty@gandalf.ozlabs.org designates 2404:9400:2221:ea00::3 as permitted sender) client-ip=2404:9400:2221:ea00::3;
+Received: by gandalf.ozlabs.org (Postfix, from userid 1011)
+	id 4cYlby55Xfz4wCS; Sat, 27 Sep 2025 21:29:50 +1000 (AEST)
+From: Rusty Russell <bitcoin-dev@rustcorp.com.au>
+To: bitcoindev@googlegroups.com
+Cc: Julian Moik <julianmoik@gmail.com>
+Subject: [bitcoindev] [3/4] OP_TX
+In-Reply-To: <871pnsnnhh.fsf@rustcorp.com.au>
+Date: Sat, 27 Sep 2025 20:59:04 +0930
+Message-ID: <87y0q0m8vz.fsf@rustcorp.com.au>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+X-Original-Sender: bitcoin-dev@rustcorp.com.au
+X-Original-Authentication-Results: gmr-mx.google.com;       dkim=pass
+ header.i=@rustcorp.com.au header.s=202305 header.b=e0a10u3t;       spf=pass
+ (google.com: domain of rusty@gandalf.ozlabs.org designates
+ 2404:9400:2221:ea00::3 as permitted sender) smtp.mailfrom=rusty@gandalf.ozlabs.org
+Content-Transfer-Encoding: quoted-printable
+Precedence: list
+Mailing-list: list bitcoindev@googlegroups.com; contact bitcoindev+owners@googlegroups.com
+List-ID: <bitcoindev.googlegroups.com>
+X-Google-Group-Id: 786775582512
+List-Post: <https://groups.google.com/group/bitcoindev/post>, <mailto:bitcoindev@googlegroups.com>
+List-Help: <https://groups.google.com/support/>, <mailto:bitcoindev+help@googlegroups.com>
+List-Archive: <https://groups.google.com/group/bitcoindev
+List-Subscribe: <https://groups.google.com/group/bitcoindev/subscribe>, <mailto:bitcoindev+subscribe@googlegroups.com>
+List-Unsubscribe: <mailto:googlegroups-manage+786775582512+unsubscribe@googlegroups.com>,
+ <https://groups.google.com/group/bitcoindev/subscribe>
+X-Spam-Score: -0.8 (/)
+
+Hi all,
+
+    This BIP presents an implementation of generic introspection, giving
+a UTXO greater control over the conditions under which it may be spent.
+It is less polished than the previous two BIP drafts, but also simpler.
+But there's plenty of room to debate the control word!
+
+    Three things to note: firstly, this opcode would be possible without
+the previous two BIPs.  However, it would be severely limited by 31 bit
+arithmetic and the 520 byte limit (the `OP_TXHASH` proposal worked
+around this by hashing the result, for example, which is awkward for
+anything other than direct comparisons of large parts of the
+transaction).
+
+    Secondly, the reason this is specified now is that its existence
+clarifies the requirements for varops: if an input can query the rest of
+the transaction, giving it a budget based on its own weight would be
+overly restrictive, so the varops budget (unlike the sigops budget) is
+transaction-wide.
+
+   Finally, note this contains a runtime OP_SUCCESS semantic, for
+unknown control word bits.  This is the most future-proof option, and as
+the control word must always be moderated by the script (usually, stated
+outright), does not seem to leave room for accidental success.
+
+Looking forward to your feedback!
+Rusty.
+
+<pre>
+  BIP: ?
+  Layer: Consensus (soft fork)
+  Title: OP_TX
+  Author: Rusty Russell <rusty@rustcorp.com.au>
+  Comments-URI: TBA
+  Status: Draft
+  Type: Standards Track
+  Created: 2025-06-16
+  License: BSD-3-Clause
+</pre>
+
+=3D=3DIntroduction=3D=3D
+
+=3D=3D=3DAbstract=3D=3D=3D
+
+This BIP introduces a new opcode (OP_TX) for tapscript v2, which allows for=
+ convenient and explicit introspection of the current transaction.  It rede=
+fines the OP_SUCCESS189 tapscript opcode (0xbd) as OP_TX.
+
+=3D=3D=3DCopyright=3D=3D=3D
+
+This document is licensed under the 3-clause BSD license.
+
+=3D=3D=3DMotivation=3D=3D=3D
+
+The original Bitcoin design was to avoid reliance on trusted third parties,=
+ and the scripting system was a way of ensuring this: that the network itse=
+lf would enforce the spending conditions for an output.  This aim is underm=
+ined if users cannot specify, with all possible precision and power, the co=
+nditions under which their coins can be spent.
+
+[[bip-unknown-script-restoration.mediawiki|BIP-scriptrestore]] restores ful=
+l programmability to Bitcoin's scripting system, but does not make it conve=
+nient.  The main missing piece is the ability to directly query the transac=
+tion attempting to spend an output, beyond merely checking that it is signe=
+d by a given set of keys.  Many proposals to use this functionality have em=
+erged, including new signature modes, spending restrictions even in case of=
+ leaked key material, and more complicated multiparty protocols.
+
+This opcode allows directly extracting each piece of the current transactio=
+n's contents (and some of its context) onto the stack.  This allows arbitra=
+ry arithmetic on values and examination of scripts, but an opcode which onl=
+y allowed extraction of a single type of value at a time would be inefficie=
+nt in the very common case where specific fields of the transaction are req=
+uired to be specific exact values.  So we explicitly support extraction of =
+multiple values into a single, concatenated stack element, ready for hashin=
+g and comparison.
+
+=3D=3DOP_TX=3D=3D
+
+OP_TX operates as follows:
+
+- If the stack is empty, fail validation.
+- Pop the ''selection_vector'' off the stack (as a little-endian unsigned v=
+ariable-length integer).
+- If ''selection_vector'' contains bits not defined in the table below:
+  - Immediately succeed script validation.
+- Extract the two input selector bits from ''selection_vector'':
+  - TXSELECT_INPUTSELECT_CURRENT: ''first_input'' =3D current input, ''num_=
+inputs'' =3D 1
+  - TXSELECT_INPUTSELECT_ALL: ''first_input'' =3D 0, ''num_inputs'' =3D num=
+ber of inputs
+  - TXSELECT_INPUTSELECT_SINGLE:
+     - if the stack is empty, fail validation.
+     - otherwise pop ''first_input'' off the stack.  ''num_inputs'' =3D 1.
+     - if the input numbered ''first_input'' does not exist, fail validatio=
+n.
+  - TXSELECT_INPUTSELECT_RANGE (pop start, number from stack)
+     - if the stack has less than 2 elements, fail validation.
+     - otherwise pop ''num_inputs'' then ''first_input'' off the stack.
+- Extract the two output selector bits from ''selection_vector'':
+  - TXSELECT_OUTPUTSELECT_CURRENT: ''first_output'' =3D current input, ''nu=
+m_outputs'' =3D 1
+  - TXSELECT_OUTPUTSELECT_ALL: ''first_output'' =3D 0, ''num_outputs'' =3D =
+number of outputs
+  - TXSELECT_OUTPUTSELECT_SINGLE:
+     - if the stack is empty, fail validation.
+     - otherwise pop ''first_output'' off the stack.  ''num_outputs'' =3D 1=
+.
+     - if the output numbered ''first_output'' does not exist, fail validat=
+ion.
+  - TXSELECT_OUTPUTSELECT_RANGE (pop start, number from stack)
+     - if the stack has less than 2 elements, fail validation.
+     - otherwise pop ''num_outputs'' then ''first_output'' off the stack.
+- If TXSELECT_COLLATE is set in ''selection_vector'':
+  - push an empty element onto the stack.
+  - "output" means "concatenate to the top stack element".
+  - "varint or int" means output the value as a CompactSize
+  - "variable size object" means the length as a CompactSize, then the obje=
+ct
+- Otherwise: =20
+  - "output" means "push a new element on the stack under the previous outp=
+ut elements" (i.e. the last output will be the top stack element).
+  - "varint or int" means output the value as a minimally-encoded little-en=
+dian integer
+  - "variable size object" means output the object (without length prepende=
+d)
+
+Examine bits in ''selection_vector'':
+- If TXSELECT_VERSION is set:
+  - output the nVersion (32 bits)
+- If TXSELECT_NUM_INPUTS is set:
+  - output the number of inputs as varint or int
+- For each existing input ''i'' in the range ''first_input'' to ''first_inp=
+ut'' + ''num_inputs'':
+  - If TXSELECT_INPUT_OUTPOINT_HASH is set:
+    - output input ''i''s outpoint hash (32 bytes)
+  - If TXSELECT_INPUT_OUTPOINT_INDEX is set:
+    - output input ''i''s outpoint index (32 bits)
+  - If TXSELECT_INPUT_SCRIPT is set:
+    - output input ''i''s script as a variable size object
+  - If TXSELECT_INPUT_SEQUENCE is set:
+    - output input ''i''s nSequence (32 bits)
+  - If TXSELECT_INPUT_AMOUNT is set:
+    - output input ''i''s input amount (64 bits)
+  - If TXSELECT_INPUT_SCRIPTPUBKEY is set:
+    - output input ''i''s scriptPubkey as a variable size object
+  - If TXSELECT_INPUT_NUM_WITNESSES is set:
+    - output input ''i''s number of witness elements (including any annex) =
+as varint or int.
+  - For each witness stack element (including any annex) in input ''i'':
+    - If TXSELECT_INPUT_WITNESS is set:
+      - output the witness stack element as a variable size object
+- If TXSELECT_NUM_OUTPUTS is set:
+  - output the number of outputs as varint or int
+- For each existing output in the range ''first_output'' to ''first_output'=
+' + ''num_outputs'':
+  - If TXSELECT_OUTPUT_AMOUNT is set:
+    - output this output's amount (64 bits)
+  - If TXSELECT_OUTPUT_SCRIPT is set:
+    - output this output's scriptPubkey as a variable size object
+- If TXSELECT_LOCKTIME is set:
+v  - output the nLocktime field (32 bits)
+- If TXSELECT_CURR_INPUT_NUMBER is set:
+  - output the current 0-based input number as varint or int.
+
+- The varops cost for each operation is 2 units per byte output.
+- As always, validation fails if:
+  - the top stack element exceeds 4,000,000 bytes, or
+  - the total bytes on the stack exceeds 8,000,000 bytes, or
+  - the total number of stack entries exceeds 1000, or
+  - the varops cost exceeds the remaining varops budget.
+
+=3D=3D=3DRationale=3D=3D=3D
+
+The runtime success semantics for unknown bits in ''section_vector'' improv=
+es upgradability, by allowing other bits to be specified in future in a bac=
+kwards-compatible manner.  Unfortunately, unlike OP_SUCCESS semantics defin=
+ed in [[bip-0342.mediawiki|BIP342]], this cannot generally be evaluated bef=
+ore script execution begins, because it's possible (and occasionally useful=
+) to allow ''section_vector'' to be altered at runtime.  Where this is done=
+, it needs to be constrained to a certain subset anyway (such as setting TX=
+SELECT_COLLATE), so preventing unknown bits is not a significant additional=
+ burden on the script.
+
+The use of four selection values for inputs and outputs recognises the comm=
+on cases of either all, or only the current input (and, SIGHASH_SINGLE-styl=
+e, the matching output) while allowing more flexibility for the general cas=
+e of requesting specific inputs or outputs.
+
+The TXSELECT_COLLATE option is an optimization for concatenation; the repre=
+sentation of numbers changes from arithmetic-convenient to linearization-co=
+nvenient, and size prepended to variable length objects, so that there is n=
+o possible ambiguity over the results.
+
+The order of field output is txid order, with fields which do not appear in=
+ the txid appended appropriately.  Without a strong demonstrated reason for=
+ a different ordering in practice, using established ordering should be pre=
+ferred.
+
+The varops cost is slightly higher than simply stack copying, reflecting a =
+conservative view that some fields are not as immediately available as stac=
+k elements.  It is still cheap enough to allow accessing the entire transac=
+tion many times over: the weight of the OP_TX opcode itself provides enough=
+ budget to access 2600 bytes.
+
+=3D=3D=3DValues For TXID-Relevant Selectors=3D=3D=3D
+
+These selectors enumerate parts of the transaction which are hashed into th=
+e txid:
+
+{|
+! Selector Name
+! Selector Value
+|-
+|TXSELECT_COLLATE
+|0x1
+|-
+|TXSELECT_VERSION
+|0x2
+|-
+|TX1SELECT_NUM_INPUTS
+|0x4
+|-
+|TXSELECT_INPUT_OUTPOINT_HASH
+|0x8
+|-
+|TXSELECT_INPUT_OUTPOINT_INDEX
+|0x10
+|-
+|TXSELECT_INPUT_SCRIPT
+|0x20
+|-
+|TXSELECT_INPUT_SEQUENCE
+|0x40
+|-
+|TXSELECT_NUM_OUTPUTS
+|0x80
+|-
+|TXSELECT_OUTPUT_AMOUNT
+|0x100
+|-
+|TXSELECT_OUTPUT_SCRIPT
+|0x200
+|-
+|TXSELECT_OUTPUT_LOCKTIME
+|0x400
+|}
+
+=3D=3D=3DValues For Input Selector and Output Selector Bits=3D=3D=3D
+
+The input selectors, controlling which inputs are enumerated, are bits 11 a=
+nd 12:
+
+{|
+! Selector Name
+! Selector Value
+|-
+|TXSELECT_INPUTSELECT_ALL
+|0
+|-
+|TXSELECT_INPUTSELECT_CURRENT
+|0x800
+|-
+|TXSELECT_INPUTSELECT_SINGLE
+|0x1000
+|-
+|TXSELECT_INPUTSELECT_RANGE
+|0x1800
+|}
+
+The output selectors, controlling which outputs are enumerated, are bits 13=
+ and 14:
+
+{|
+! Selector Name
+! Selector Value
+|-
+|TXSELECT_OUTPUTSELECT_ALL
+|0
+|-
+|TXSELECT_OUTPUTSELECT_CURRENT
+|0x2000
+|-
+|TXSELECT_OUTPUTSELECT_SINGLE
+|0x4000
+|-
+|TXSELECT_OUTPUTSELECT_RANGE
+|0x6000
+|}
+
+=3D=3D=3DValues For Input Metadata Selection=3D=3D=3D
+
+These select additional data about the input which is not committed in the =
+txid, as well as the current input number:
+
+{|
+! Selector Name
+! Selector Value
+|-
+|TXSELECT_CURR_INPUT_NUMBER
+|0x8000
+|-
+|TXSELECT_INPUT_AMOUNT
+|0x10000
+|-
+|TXSELECT_INPUT_SCRIPTPUBKEY
+|0x20000
+|-
+|TXSELECT_INPUT_NUM_WITNESSES
+|0x40000
+|-
+|TXSELECT_INPUT_WITNESS
+|0x80000
+|}
+
+=3D=3DReference Implementation=3D=3D
+
+None as yet.
+
+=3D=3DThanks=3D=3D
+
+I stand here on the shoulder of giants, including Russell O'Connor's origin=
+al OP_TXHASH proposal and Steven Roose's subsequent elaboration of that wor=
+k.  I also credit Jeremy Rubin for his tireless work exploring the uses of =
+covenants and his OP_CHECKTEMPLATEVERIFY proposal.
+
+While I ultimately found those proposal unsatisfying, it was their daunting=
+ intellectual prowess which forced me to slowly develop the groundwork for =
+a proposal to meet the high standards they have set.
+
+=3D=3DTODO=3D=3D
+
+The ordering of bits in the ''selection_vector'' is unoptimized: if a mask =
+only uses the first four bits it can be put on the stack in a single opcode=
+ byte, two opcode bytes for eight bits, three for sixteen.  This is ripe fo=
+r consideration by greater minds (aka "bikeshedding").
+
+In particular, an all-zero mask for OP_TX makes no sense, so it could be de=
+fined to mean some pre-determined mask: for example, the OP_CHECKTEMPLATEVE=
+RIFY proposal commits to the data in (though not the form of) COLLATE|VERSI=
+ON|NUM_INPUTS|TXSELECT_INPUT_SCRIPT|NUM_OUTPUTS|OUTPUT_AMOUNT|OUTPUT_SCRIPT=
+|OUTPUT_LOCKTIME|CURR_INPUT_NUMBER.
+
+--=20
+You received this message because you are subscribed to the Google Groups "=
+Bitcoin Development Mailing List" group.
+To unsubscribe from this group and stop receiving emails from it, send an e=
+mail to bitcoindev+unsubscribe@googlegroups.com.
+To view this discussion visit https://groups.google.com/d/msgid/bitcoindev/=
+87y0q0m8vz.fsf%40rustcorp.com.au.
+
+
