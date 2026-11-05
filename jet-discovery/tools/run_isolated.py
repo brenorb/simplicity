@@ -28,6 +28,8 @@ import time
 ROOT=Path(__file__).resolve().parents[1]
 LEGACY_COMMIT='b76b5f16c3194bbffc6f66d6ba496cc5adab268a'
 LEGACY_COORDINATOR_SHA256='81efe541a7b87afc8bbfeaab922067fe9a4cf5369e4658ed9f2d4feef8cf2a9a'
+PARALLEL_COMMIT='3838c177ba31a59bd471eed7352df7538fc809c8'
+PARALLEL_COORDINATOR_SHA256='1b9fced8b94984a4332b85a0ed79ac67ae14b05688ec6471676b2577c80f803c'
 ID_PATTERN=r'[A-Za-z0-9][A-Za-z0-9_.-]*'
 
 
@@ -114,19 +116,23 @@ def verify_success(item, log, checkpoint, expected):
         raise ValueError('previous successful checkpoint changed: '+ident)
 
 
-def migrate_legacy(record, raw, expected_sha, directory, checkpoint_dir, counts, coordinator_sha):
+def migrate_legacy(record, raw, expected_sha, directory, checkpoint_dir, counts, coordinator_sha,
+                   *, overlap=False):
     """Admit only the exact signed legacy format after an operator handoff."""
+    commit = PARALLEL_COMMIT if overlap else LEGACY_COMMIT
+    digest = PARALLEL_COORDINATOR_SHA256 if overlap else LEGACY_COORDINATOR_SHA256
+    archive_name = 'manifest-before-overlap-' if overlap else 'manifest-before-parallel-'
+    record_key = 'overlap_migration' if overlap else 'migration'
     if hashlib.sha256(raw).hexdigest() != expected_sha:
         raise ValueError('legacy manifest SHA differs from the quiescent handoff')
-    if (record['coordinator_sha256'] != LEGACY_COORDINATOR_SHA256
-            or record['source_commit_at_start'] != LEGACY_COMMIT
-            or not record['complete_registry'] or record['complete']):
-        raise ValueError('migration requires the incomplete full cohort from signed b76b5f16')
+    if (record['coordinator_sha256'] != digest or not record['complete_registry'] or record['complete']
+            or record_key in record or (not overlap and record['source_commit_at_start'] != LEGACY_COMMIT)):
+        raise ValueError('migration requires the incomplete full cohort from signed '+commit[:8])
     blob = subprocess.check_output(
-        ['git','show',LEGACY_COMMIT+':jet-discovery/tools/run_isolated.py'], cwd=ROOT)
+        ['git','show',commit+':jet-discovery/tools/run_isolated.py'], cwd=ROOT)
     signature = subprocess.check_output(
-        ['git','show','-s','--format=%G?',LEGACY_COMMIT], cwd=ROOT, text=True).strip()
-    if hashlib.sha256(blob).hexdigest() != LEGACY_COORDINATOR_SHA256 or signature != 'G':
+        ['git','show','-s','--format=%G?',commit], cwd=ROOT, text=True).strip()
+    if hashlib.sha256(blob).hexdigest() != digest or signature != 'G':
         raise ValueError('could not verify the pinned legacy coordinator and its signed commit')
 
     attempt_numbers = Counter()
@@ -159,20 +165,17 @@ def migrate_legacy(record, raw, expected_sha, directory, checkpoint_dir, counts,
             uncredited.append({'id':ident,'log':item['log'],'exit_status':item['exit_status'],
                                'log_sha256_at_handoff':item['log_sha256']})
 
-    archive = directory / ('manifest-before-parallel-'+expected_sha+'.json')
+    archive = directory / (archive_name+expected_sha+'.json')
     if archive.exists():
         if archive.read_bytes() != raw:
             raise ValueError('legacy manifest archive changed')
     else:
         with archive.open('xb') as out:
             out.write(raw)
-    record['migration'] = {'legacy_commit':LEGACY_COMMIT,
-                           'legacy_coordinator_sha256':LEGACY_COORDINATOR_SHA256,
-                           'prior_manifest':str(archive.relative_to(ROOT)),
-                           'prior_manifest_sha256':expected_sha,
-                           'migrated_utc':utc(),
-                           'verified_checkpoints':verified,
-                           'uncredited_attempts':uncredited}
+    record[record_key] = {'legacy_commit':commit,'legacy_coordinator_sha256':digest,
+                          'prior_manifest':str(archive.relative_to(ROOT)),
+                          'prior_manifest_sha256':expected_sha,'migrated_utc':utc(),
+                          'verified_checkpoints':verified,'uncredited_attempts':uncredited}
     record['coordinator_sha256'] = coordinator_sha
 
 
@@ -182,6 +185,11 @@ class Job:
     item: dict
     log: Path
     started: float
+    lane: str
+
+
+def heap_mib(heap):
+    return int(heap[:-1]) * (1024 if heap.endswith('G') else 1)
 
 
 def main():
@@ -193,25 +201,40 @@ def main():
                         help='ordinary isolated processes to run concurrently')
     parser.add_argument('--tail-heap',
                         help='per-process cap for sequential --last entries and aggregation; defaults to --heap')
+    parser.add_argument('--start-tail-first',metavar='DEFERRED_EXACT_ID',
+                        help='start this --last ID early; keep one tail and one ordinary process while tail work remains')
+    parser.add_argument('--light',nargs='+',metavar='EXACT_ID',help='one extra lane for these exact ordinary IDs')
+    parser.add_argument('--light-heap',default='12G')
     selection=parser.add_mutually_exclusive_group()
     selection.add_argument('--only',nargs='+',metavar='EXACT_ID')
     selection.add_argument('--last',nargs='+',metavar='EXACT_ID',
                            help='defer selected exact IDs to the end of the full cohort')
     parser.add_argument('--resume',action='store_true')
-    parser.add_argument('--migrate-b76b5f16',metavar='QUIESCENT_MANIFEST_SHA256',
+    migration=parser.add_mutually_exclusive_group()
+    migration.add_argument('--migrate-b76b5f16',metavar='QUIESCENT_MANIFEST_SHA256',
                         help='explicit --resume handoff from the pinned legacy coordinator after it and its children have exited')
+    migration.add_argument('--migrate-3838c177',metavar='QUIESCENT_MANIFEST_SHA256',
+                           help='explicit --resume handoff from the signed two-worker coordinator after it and its children have exited')
     args=parser.parse_args()
     if not re.fullmatch(ID_PATTERN,args.label):
         parser.error('label must be a simple basename')
     args.tail_heap = args.tail_heap or args.heap
-    if any(not re.fullmatch(r'[1-9][0-9]*[MG]',heap) for heap in (args.heap,args.tail_heap)):
+    if any(not re.fullmatch(r'[1-9][0-9]*[MG]',heap) for heap in (args.heap,args.tail_heap,args.light_heap)):
         parser.error('heap caps must be RTS sizes such as 64G')
-    ordinary_mib = int(args.heap[:-1]) * (1024 if args.heap.endswith('G') else 1)
+    ordinary_mib = heap_mib(args.heap)
     if args.jobs == 2 and ordinary_mib > 48*1024:
         parser.error('--jobs 2 requires an ordinary --heap no larger than 48G per child')
-    if args.migrate_b76b5f16 and (not args.resume or not args.last
-                               or not re.fullmatch(r'[0-9a-f]{64}',args.migrate_b76b5f16)):
-        parser.error('--migrate-b76b5f16 requires --resume, the exact --last list, and the old manifest SHA256')
+    requested_migration = args.migrate_b76b5f16 or args.migrate_3838c177
+    if requested_migration and (not args.resume or not args.last or not re.fullmatch(r'[0-9a-f]{64}',requested_migration)):
+        parser.error('a migration requires --resume, the exact --last list, and the old manifest SHA256')
+    if args.start_tail_first:
+        if not args.last or args.start_tail_first not in args.last:
+            parser.error('--start-tail-first must select an exact ID from --last')
+        light_mib = heap_mib(args.light_heap) if args.light else 0
+        if max(heap_mib(args.tail_heap)+ordinary_mib, args.jobs*ordinary_mib)+light_mib > 112*1024:
+            parser.error('overlapped lane heap caps may sum to at most 112G')
+    elif args.light or args.migrate_3838c177:
+        parser.error('--light and the overlap migration require --start-tail-first')
     complete=args.only is None
     source_commit=None
     if complete:
@@ -261,6 +284,8 @@ def main():
         targets=[i for i in ids if i not in last]+args.last
     if len(targets)!=len(set(targets)) or not set(targets)<=set(ids):
         raise SystemExit('every selected exact ID must occur once in the complete registry')
+    if args.light and (len(args.light)!=len(set(args.light)) or not set(args.light)<=set(targets)-set(args.last)):
+        raise SystemExit('every light exact ID must occur once in the ordinary registry')
     counts={r['id']:int(r['vectors']) for r in rows}
     checkpoint_dir=ROOT/'dist-newstyle/jet-discovery-results'/fingerprint
     # Protect the checkpoint namespace and label even across invocations with
@@ -310,6 +335,11 @@ def run_cohort(args, runner, original, binary_hash, fingerprint, metadata, targe
             migrate_legacy(record,raw,args.migrate_b76b5f16,directory,checkpoint_dir,
                            counts,coordinator_sha)
             record['deferred_targets']=deferred
+        elif args.migrate_3838c177:
+            if record.get('deferred_targets')!=deferred:
+                raise SystemExit('migration requires the original deferred IDs in order')
+            migrate_legacy(record,raw,args.migrate_3838c177,directory,checkpoint_dir,
+                           counts,coordinator_sha,overlap=True)
         elif record['coordinator_sha256']!=coordinator_sha or record.get('deferred_targets')!=deferred:
             raise SystemExit('resume requires the same coordinator and deferred IDs, or an explicit supported migration')
     else:
@@ -334,7 +364,7 @@ def run_cohort(args, runner, original, binary_hash, fingerprint, metadata, targe
             atomic(status,record)
         raise ValueError('global source/executable fingerprint could not be verified; cohort stopped')
 
-    def launch(ident,verb,heap):
+    def launch(ident,verb,heap,lane):
         attempts=[r for r in record['attempts'] if r['id']==ident]
         log=directory/(ident+f'-attempt{len(attempts)+1}.txt')
         command=[str(runner),verb]+([] if verb=='aggregate' else[ident])+['+RTS','-N1','-A16m','-M'+heap,'-s','-RTS']
@@ -351,7 +381,7 @@ def run_cohort(args, runner, original, binary_hash, fingerprint, metadata, targe
                 item.update(finished_utc=utc(),log_sha256=sha(log),coordinator_error=str(error))
                 atomic(status,record)
                 raise
-        return Job(process,item,log,started)
+        return Job(process,item,log,started,lane)
 
     def finish(job, exit_status):
         item,log=job.item,job.log
@@ -391,8 +421,8 @@ def run_cohort(args, runner, original, binary_hash, fingerprint, metadata, targe
         nonlocal stop_signal
         stop_signal=signum
 
-    def batch(ids, slots, heap, verb='run-one'):
-        pending=deque(ids)
+    def batch(lanes, verb='run-one'):
+        lanes=[(lane,deque(ids),slots,heap) for lane,ids,slots,heap in lanes]
         running=[]
         failed=False
         def collect():
@@ -403,23 +433,32 @@ def run_cohort(args, runner, original, binary_hash, fingerprint, metadata, targe
                     running.remove(job)
                     if not finish(job,code):
                         failed=True
+        def next_lane():
+            occupied=Counter(job.lane for job in running)
+            tail_outstanding=occupied['tail'] or any(queue for lane,queue,_,_ in lanes if lane=='tail')
+            for lane,queue,slots,heap in lanes:
+                capacity=1 if lane=='ordinary' and tail_outstanding else slots
+                if queue and occupied[lane]<capacity:
+                    return lane,queue,heap
+            return None
         try:
-            while running or pending:
+            while running or any(queue for _,queue,_,_ in lanes):
                 collect()
                 if failed or stop_signal is not None:
                     if not running:
                         break
-                elif pending and len(running)<slots:
+                elif next_lane():
                     try:
                         unchanged()
                         # A child may have finished during the fingerprint check.
                         collect()
                         if not failed and stop_signal is None:
+                            lane,pending,heap=next_lane()
                             ident=pending.popleft()
                             if verb=='run-one':
                                 preserve_unclaimed(ident)
                             if stop_signal is None:
-                                running.append(launch(ident,verb,heap))
+                                running.append(launch(ident,verb,heap,lane))
                     except (OSError,ValueError) as error:
                         failed=True
                         print(f'coordinator stopped scheduling: {error}',flush=True)
@@ -449,15 +488,27 @@ def run_cohort(args, runner, original, binary_hash, fingerprint, metadata, targe
     if record['complete']:
         print(record['coverage']+': already completed',flush=True)
         return
-    record.setdefault('schedules',[]).append({'started_utc':utc(),'ordinary_jobs':args.jobs,
-                                              'ordinary_heap':args.heap,'tail_heap':args.tail_heap})
+    schedule={'started_utc':utc(),'ordinary_jobs':args.jobs,'ordinary_heap':args.heap,'tail_heap':args.tail_heap}
+    ordinary=[i for i in targets if i not in previous and i not in deferred]
+    tail=[i for i in deferred if i not in previous]
+    if args.start_tail_first:
+        early=args.start_tail_first
+        tail=([early] if early in tail else [])+[i for i in tail if i!=early]
+        light=[i for i in (args.light or []) if i not in previous]
+        ordinary=[i for i in ordinary if i not in light]
+        schedule.update(overlap_tail_order=tail,light_targets=light,light_heap=args.light_heap)
+    record.setdefault('schedules',[]).append(schedule)
     atomic(status,record)
-    batch((i for i in targets if i not in previous and i not in deferred),args.jobs,args.heap)
-    batch((i for i in deferred if i not in previous),1,args.tail_heap)
+    if args.start_tail_first:
+        batch([('tail',tail,1,args.tail_heap),('ordinary',ordinary,args.jobs,args.heap),
+               ('light',light,1,args.light_heap)])
+    else:
+        batch([('ordinary',ordinary,args.jobs,args.heap)])
+        batch([('tail',tail,1,args.tail_heap)])
     if complete:
         # Every exact ID must already have a successful fingerprint-bound
         # checkpoint; aggregate deliberately has no fallback compilation.
-        batch(['strict-aggregation'],1,args.tail_heap,'aggregate')
+        batch([('aggregation',['strict-aggregation'],1,args.tail_heap)],'aggregate')
         marker=ROOT/'reports/data/run-fingerprint.txt'
         if not marker.is_file() or marker.read_text().strip()!=fingerprint:
             raise SystemExit('strict aggregation did not publish this cohort fingerprint')

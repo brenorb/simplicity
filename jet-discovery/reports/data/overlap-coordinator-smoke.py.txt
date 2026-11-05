@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+"""Scratch integration test; imports the earlier mock runner/git fixture."""
+import os
+import signal
+import subprocess
+
+import verify_fixture as f
+
+
+OLD_COMMIT = '3838c177ba31a59bd471eed7352df7538fc809c8'
+OLD = f.SCRATCH/'parallel/tools/run_isolated.py'
+
+
+def main():
+    ids = ['old-a', 'old-b', 'ordinary-a', 'ordinary-b', 'light-a', 'light-b', *f.TAIL]
+    durations = dict.fromkeys(ids, .8) | dict.fromkeys(f.TAIL, 1.4)
+    root, env = f.setup('signed-overlap', ids, durations)
+    old = root/'tools/run_legacy.py'
+    old.write_bytes(OLD.read_bytes())
+    flags = ['--jobs','2','--heap','36G','--tail-heap','64G','--last',*f.TAIL]
+    process = subprocess.Popen(f.command(root,'overlap',flags,legacy=True), cwd=root, env=env,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    try:
+        f.wait_for(lambda: len(f.events(root))>=2)
+        process.send_signal(signal.SIGTERM)
+        output,_ = process.communicate(timeout=8)
+        f.check(process.returncode==143, output)
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            process.wait(timeout=8)
+    path = f.manifest(root,'overlap')
+    before = f.read(path)
+    raw = path.read_bytes()
+    f.check([a['id'] for a in before['attempts']]==ids[:2] and
+            all(a['exit_status']==0 for a in before['attempts']), 'old coordinator failed to drain')
+    env = dict(env,MOCK_SIGNED_COMMIT=OLD_COMMIT,MOCK_SIGNED_BLOB=str(OLD))
+    overlap = ['--start-tail-first',f.TAIL[-1],'--light','light-a','light-b','--light-heap','12G']
+    f.run(root,env,'overlap',flags+['--resume']+overlap,expected=1,includes='explicit supported migration')
+    f.run(root,env,'overlap',flags+['--resume']+overlap+['--light-heap','16G'],
+          expected=2,includes='at most 112G')
+    f.run(root,env,'overlap',flags+['--resume']+overlap+['--migrate-3838c177','f'*64],
+          expected=1,includes='manifest SHA differs')
+    f.run(root,env,'overlap',flags+['--resume']+overlap+['--migrate-3838c177',f.sha(path)],
+          includes='complete registry: completed')
+    after = f.read(path)
+    migration = after['overlap_migration']
+    f.check((root/migration['prior_manifest']).read_bytes()==raw, 'archive bytes differ')
+    f.check(after['attempts'][:2]==before['attempts'] and after['schedules'][:1]==before['schedules'],
+            'old attempt or schedule was modified')
+    f.check(migration['verified_checkpoints']==ids[:2] and not migration['uncredited_attempts'], 'credit differs')
+    f.check(after['complete'] and set(after['published_sha256'])==set(f.REPORTS), 'aggregate not published')
+    f.check(len(after['attempts'])==len(ids)+1 and
+            all(a['exit_status']==0 and a.get('fresh_vector_passes')==2 for a in after['attempts'][:-1]),
+            'missing or duplicate execution')
+    events = f.events(root)
+    f.check([name for name,kind,_,_ in events if kind=='start' and name in f.TAIL]
+            ==[f.TAIL[-1],*f.TAIL[:-1]], 'wrong tail order')
+    ts = {(name,kind):at for name,kind,at,_ in events}
+    f.check(max(ts[(name,'start')] for name in (f.TAIL[-1],'ordinary-a','light-a'))<
+            min(ts[(name,'exit')] for name in (f.TAIL[-1],'ordinary-a','light-a')), 'no three-way overlap')
+    active = {}
+    for name,kind,_,heap in events:
+        if kind=='start':
+            active[name] = int(heap.removeprefix('-M').removesuffix('G'))
+            f.check(len(active)<=3 and sum(active.values())<=112, 'oversubscribed lanes')
+            f.check(sum(n in f.TAIL for n in active)<=1, 'overlapping heavy runs')
+        else:
+            active.pop(name)
+    f.check(not active, 'an isolated process did not exit')
+    print('PASS exact second handoff; bounded three-lane overlap; STARK first; strict aggregation')
+
+
+if __name__=='__main__':
+    main()
