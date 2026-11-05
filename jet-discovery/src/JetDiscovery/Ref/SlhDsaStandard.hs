@@ -1,5 +1,5 @@
 -- | Independent ByteString/Integer FIPS205 SLH-DSA-SHA2-128s verifier.
--- Algorithms3,6,9,12,14,15,20,24 and section11.2.1; n16,h63,d7,a12,k14.
+-- Algorithms2-5,8,11,13,17,20,24 and section11.2.1; n16,h63,d7,a12,k14.
 -- Adapted from this project's earlier SHRINCS verification reference, with
 -- standard parameter/digest split,32-byte public key and exact7856-byte wire.
 -- The derived test signer computes a real top512-leaf tree; lower siblings

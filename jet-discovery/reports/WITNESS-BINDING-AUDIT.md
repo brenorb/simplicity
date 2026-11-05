@@ -104,6 +104,7 @@ is counted as a successful verifier run.
 | Final shared XMSS transaction verifier | 7 | 0 | 288.886 | 3961502344 |
 | Direct-kernel stateless SHRINCS (16 GiB cap) | 7 | 0 | 1145.480 | 15273293304 |
 | Standard FIPS205 official case266 and corruptions (24 GiB cap) | 4 | 0 | 802.738 | 9133865632 |
+| Standard FIPS205 native transaction verifier (24 GiB cap) | 7 | 0 | 1921.104 | 17188800144 |
 
 The original eprint 14-vector data-flow-only run also passed before the extra
 encoding guards; the six completed canonical controls/regressions test those

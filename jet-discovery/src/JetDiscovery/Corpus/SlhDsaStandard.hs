@@ -207,7 +207,7 @@ entries :: [Entry]
 entries=[Entry
  {entryId="pq-slh-dsa-sha2-128s"
  ,entryTitle="FIPS205 SLH-DSA-SHA2-128s full transaction signature verifier"
- ,entrySpec="FIPS205 algorithms3,6,9,12,14,15,20,24 and11.2.1; vendor-specs/slhdsa/fips205.pdf"
+ ,entrySpec="FIPS205 algorithms2-5,8,11,13,17,20,24 and11.2.1; vendor-specs/slhdsa/fips205.pdf"
  ,entryCategory=PostQuantum
  ,entryVectorSource=Derived "independent ByteString verifier and fixed-secret verification fixture generator in Ref.SlhDsaStandard; official ACVP fixtures separately"
  ,entryAssumptions=["standard n16,h63,d7,hprime9,k14,a12,w16, publickey32bytes, signature7856bytes", "pure external API, empty context, message=sig_all_hash; no prehash or other parameter sets counted", "typed witness maps fixed public-key/signature fields; each proof word enters once", "standard baseline belongs to the same hash-family parameter counting group, not a new distinct application"]

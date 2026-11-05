@@ -48,7 +48,14 @@ start and a chain node that enters once. Its five layers have 35 chains each:
 structural multiplicity; actual matcher occurrences, WU, what-if savings and
 budget feasibility must be taken from the fresh runner/mining artifacts.
 Those rows are pending, and old costs for the repaired verifier are invalid.
-Full vector verification is required before counting the current verifier.
+The full repaired verifier's seven vectors pass; this is separate from the
+pending fresh cost measurement.
+
+The standard `pq-slh-dsa-sha2-128s` baseline uses the same kernel in seven
+35-chain layers, or **245 source-level calls**. It belongs to the same hash-family
+parameter counting group as the SHRINCS stateless row. All seven native-message
+vectors and the four-vector official NIST fixture pass; these source call counts
+still require actual candidate matching and cost analysis.
 
 `pq-shrincs-stateful` retains the generic `Ctx8` frontend
 `Lib.Kernels.wotsChain`, which already has a distinct candidate expression.

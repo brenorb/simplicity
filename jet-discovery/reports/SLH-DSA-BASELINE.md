@@ -54,9 +54,13 @@ that signature plus three same-CMR corruptions. Seven additional derived
 transaction vectors check the full native-message path and header/proof splices.
 The official Simplicity fixture passed all four vectors (actual exit status 0,
 802.738 seconds, maximum heap residency 9133865632 bytes under a 24 GiB cap).
-The seven-vector native transaction group remains in progress. See
-`slh-standard-verification-status.json` and the corresponding logs. A heap or
-compilation failure is not a passing verifier result.
+The native transaction group passed all seven vectors (actual exit status 0,
+1921.104 seconds, maximum heap residency 17188800144 bytes under a 24 GiB cap).
+See [the separate status JSON](data/slh-standard-verification-status.json),
+[the official-case log](data/slh-standard-kat-verification.txt) and
+[the transaction log](data/slh-standard-verification.txt). A heap or compilation
+failure is not a passing verifier result. These completed vector runs establish
+verification behavior; fresh main-run WU and candidate-impact rows remain pending.
 
 The derived fixture generator computes the top 512-leaf tree in full but uses
 arbitrary lower authentication siblings for verification fixtures. It is not a
