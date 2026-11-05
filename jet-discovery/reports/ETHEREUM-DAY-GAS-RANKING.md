@@ -1,0 +1,66 @@
+# Ethereum mainnet gas ranking for November 4, 2026 UTC
+
+The completed UTC day **[2026-11-04 00:00:00, 2026-11-05 00:00:00)** contains **7,176 blocks**, **1,990,008 transactions**, and **217,736,681,820 receipt gas units**. The full ranking retains all **273,361** distinct non-null top-level recipients. All 20 highest-gas recipients had nonempty deployed code at the final block, so they are also the complete top 20 under the stated contract filter. This is an independent chain-derived day, not the unavailable Etherscan Gas Tracker table or a rolling window around retrieval.
+
+| Check | Evidence |
+| --- | --- |
+| Exact period and chain | Ethereum mainnet, chain ID 1. First block **26,337,723** at **2026-11-04 00:00:11 UTC**; last **26,344,898** at **23:59:59 UTC**. Independent RPC neighbors are **26,337,722** at **November 3 23:59:59 UTC** and **26,344,899** at **November 5 00:00:11 UTC**. Finalized head at verification was 26,349,832. |
+| Complete source inventory | [AWS Public Blockchain Data](https://registry.opendata.aws/aws-public-blockchain/) mainnet `v1.0/eth/{blocks,transactions}/date=2026-11-04/`: one object in each complete untruncated listing. Listings and footers captured **2026-11-05 16:37:15–17 UTC**. [AWS table schema](https://github.com/aws-solutions-library-samples/guidance-for-digital-assets-on-aws/blob/main/analytics/consumer/schema/eth.md) identifies receipt gas versus gas allowance or fee. |
+| Full row accounting | Every block links to its preceding block. Every transaction references its block hash and occupies a unique, consecutive index. The decoded receipt gas sums to the cumulative receipt value at **every** index, and then to the block header's gas and transaction count for **every** block. No date partition, row group, or transaction was sampled. |
+| Independent mainnet check | [PublicNode](https://ethereum-rpc.publicnode.com) confirmed the two boundaries and their adjacent blocks, exact timestamps, hashes, and header totals. All **658 receipts** in the first and last included blocks match the AWS recipient, index, gas, cumulative gas, and status fields. Full-period reconciliation uses AWS source rows; this is not a second raw-RPC download or a recomputation of the full receipts trie. |
+| Contract filter | [Alchemy public Ethereum RPC](https://www.alchemy.com/rpc/ethereum) and the [Blast public endpoint](https://onfinality.io/en/learn/accessing-historical-blockchain-data) returned identical code bytes for all first 20 recipient ranks at canonical block hash `0xe9414072a62573862aa4016005ff25caf2a6df416e86e145e2956ccbc05a692f`. Both returned chain ID 1. All 20 passed the nonempty-code filter, so no unqueried address can outrank them. These checks classify the **end-of-period** state, not code at each transaction's execution height. |
+| Rows outside the ranking | **1,907** creation transactions with **2,539,069,560** gas units have no top-level recipient. The export represents their absent recipient with literal `None`; every row has a creation receipt address. There are **30,710** reverted transactions, including **28** creations. Creations are separately reconciled and never assigned to an address as if called. |
+| Source packet | [Manifest](../vendor-specs/rankings/ethereum-aws-2026-11-04/manifest.json), [all recipient ranks (TSV gzip)](../vendor-specs/rankings/ethereum-aws-2026-11-04/all-recipients.tsv.gz), [all blocks](../vendor-specs/rankings/ethereum-aws-2026-11-04/all-blocks.tsv), [exact top 20](../vendor-specs/rankings/ethereum-aws-2026-11-04/top20-code-recipients.tsv), [complete top-20 triage](../vendor-specs/rankings/ethereum-aws-2026-11-04/utxo-triage.tsv). |
+
+The metric assigns each transaction's full **receipt `gasUsed`** to its top-level `to` address. It includes reverted transactions, intrinsic gas, and execution in nested calls and proxies. Gas is not attributed exclusively to each internal callee or a proxy's current implementation. These are gas units, not ETH paid, burned ETH, blob gas, gas limits, or protocol revenue. Directly addressed empty-code accounts are retained in the full recipient rank and excluded from the contract slice, even if a precompile or earlier code could have executed. An [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) `ef0100 || address` delegation indicator would count as nonempty, with a distinct delegated-code status; none appeared in this top 20. The check reads bytes at one historical state, without disassembling or executing them.
+
+## Complete top 20
+
+The 20 listed addresses account for **74,116,092,392** receipt gas units. Seven deployment identities have primary documentation; the remaining 13 are explicit analysis gaps. A label identifies the listed contract, not every action executed through it. Native mappings describe bounded patterns and do not imply an equivalent implementation of the entire foreign contract.
+
+| Rank | Ethereum recipient | Deployment | Receipt gas units | Transactions | Reverted | Code bytes at cutoff | Native UTXO triage |
+| ---: | --- | --- | ---: | ---: | ---: | ---: | --- |
+| 1 | `0xdac17f958d2ee523a2206206994597c13d831ec7` | [Tether USD₮](https://tether.to/en/supported-protocols/) | 18,283,940,501 | 364,004 | 1,130 | 11,075 | Token-transfer ownership has an output authorization analogue; foreign issuer, balances and freezes remain external. |
+| 2 | `0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48` | [Circle USDC](https://developers.circle.com/stablecoins/usdc-contract-addresses) | 9,097,063,225 | 181,353 | 666 | 2,186 | Signed output assignment fits; USDC balances, issuer policy and proxy implementation history remain external. |
+| 3 | `0x0000000071727de22e5e9d8baf0edac6f37da032` | [ERC-4337 EntryPoint v0.7](https://github.com/eth-infinitism/account-abstraction/releases/tag/v0.7.0) | 5,344,599,210 | 22,022 | 14 | 16,035 | Wallet authorization and replay protection fit a state UTXO; arbitrary calls, bundling and paymasters require EVM semantics. |
+| 4 | `0xbdb3ba9ffe392549e1f8658dd2630c141fdf47b6` | Unclassified deployment | 5,258,759,982 | 7,634 | 2 | 11,703 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 5 | `0x66a9893cc07d91d95644aedd05d03f95e1dba8af` | [Uniswap Universal Router](https://developers.uniswap.org/docs/protocols/v4/deployments) | 5,019,443,029 | 41,792 | 2,626 | 19,499 | A bounded swap route can constrain inputs, outputs and pool state; general command dispatch across EVM contracts does not port directly. |
+| 6 | `0x004395edb43efca9885cedad51ec9faf93bd34ac` | Unclassified deployment | 4,058,820,092 | 998 | 0 | 22,904 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 7 | `0x51c72848c68a965f66fa7a88855f9f7784502a7f` | Unclassified deployment | 3,328,201,126 | 19,031 | 0 | 20,805 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 8 | `0xca11bde05977b3631167028862be2a173976ca11` | [Multicall3](https://www.multicall3.com/) | 2,604,765,756 | 5,124 | 9 | 3,808 | Generic cross-contract batching alone is not a distinct native spend relation. The called contracts require their own mappings. |
+| 9 | `0xbf7fe109f674ab1341d69e67a262e50ce87eb7c1` | Unclassified deployment | 2,024,295,650 | 2,611 | 167 | 6,517 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 10 | `0x2192bc3b4028acc1113f2cd9ac2cba70c36520db` | Unclassified deployment | 1,979,659,443 | 3,798 | 326 | 609 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 11 | `0xb5f650e96ed10184e1be22390fddb0a0c0f024d0` | Unclassified deployment | 1,949,483,561 | 3,322 | 2 | 76 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 12 | `0x8feab81d36e7576107d5de0758c1b839be31b4f6` | Unclassified deployment | 1,944,909,550 | 5,007 | 426 | 13,322 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 13 | `0x5567954cd026cebfe486062cb75848e0f1c12e58` | Unclassified deployment | 1,854,274,962 | 3,423 | 47 | 13,884 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 14 | `0x881d40237659c251811cec9c364ef91dc08d300c` | Unclassified deployment | 1,718,268,875 | 4,614 | 5 | 8,320 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 15 | `0xda021a2c1c2f99574d861ef8c6fa745851beb7f6` | Unclassified deployment | 1,693,875,003 | 226 | 0 | 5,173 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 16 | `0x9008d19f58aabd9ed0d60971565aa8510560ab41` | [CoW GPv2Settlement](https://github.com/cowprotocol/docs/blob/main/docs/cow-protocol/reference/contracts/core/README.mdx) | 1,666,723,058 | 3,346 | 64 | 16,165 | Authorized bounded batch clearing and cumulative fills fit a state UTXO; arbitrary interactions, solver policy and ERC20 balances remain external. |
+| 17 | `0x6131b5fae19ea4f9d964eac0408e4408b66337b5` | [KyberSwap Aggregator router](https://api-docs.kyberswap.com/aggregator-api.html) | 1,665,462,677 | 2,816 | 243 | 18,652 | A committed route can bind a bounded payout; dynamic routing across EVM liquidity sources does not port directly. |
+| 18 | `0x7ec8a30a34b86927dc77b302603d1d53e640bef7` | Unclassified deployment | 1,567,791,032 | 1,960 | 0 | 352 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 19 | `0x93c30e6e09f698cfea99b09b5166ed90cfaedd17` | Unclassified deployment | 1,531,657,332 | 9,209 | 0 | 24,313 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+| 20 | `0x4d2fb5f8ec243fde4df1a9678b82238570c7e0e4` | Unclassified deployment | 1,524,098,328 | 421 | 0 | 123 | Code bytes and receipt gas do not identify a verified implementation or a Bitcoin predicate. |
+
+## Other sources and remaining gaps
+
+| Source checked | Disposition |
+| --- | --- |
+| [Etherscan](PERIOD-RANKINGS.md#access-gaps-and-rejected-substitutions) | Existing attempts returned HTTP 403; this audit did not repeat that retrieval. No claim of Etherscan ranking equivalence. |
+| [Pinax Ethereum datasets](https://data.pinax.network/datasets/) | Another promising chain-data source. Its plain S3 listing includes obsolete files from compaction and a continuation token. The catalog is needed to select a live snapshot; its object sample is not a completed day aggregate. |
+| [Blockchair dumps](https://blockchair.com/dumps) | Public documentation identifies bulk dumps, but the dumps page returned HTTP 401 through the web tool and its raw index was unavailable there. No rows taken from it. |
+| [Blockworks Ethereum activity](https://app.blockworks.com/projects/ethereum/analytics/ethereum-activity), [Ethscope](https://ethscope.dev/), [OKLink Gas Spenders](https://www.oklink.com/ethereum/gas-price/spenders), [Scopescan live statistics](https://docs.scopescan.ai/features/alpha-hunting/live-statistics) | Accessible extracts did not expose a complete exact-cutoff receipt-gas table. OKLink's spenders view is an hour; Scopescan's consumer metric is ETH fees. Neither substitutes for this day of gas units. |
+| Archive-state access | PublicNode supplied full boundary data but returned an explicit historical-state error for all 20 code lookups. Alchemy and Blast supplied both exact-block code batches. RPCFree returned a redirect and Flashbots returned a gateway failure in the bounded archive probe. No newer state was substituted. |
+
+This establishes one complete calendar day; it does not establish an Ethereum seven-day list, exclusive internal-contract gas, the composition of transactions behind routers, or identities for the 13 unknown deployments.
+
+## Reproduction
+
+From `jet-discovery/`:
+
+```sh
+python3 tools/aws_ethereum_period.py vendor-specs/rankings/ethereum-aws-2026-11-04 --check
+```
+
+This offline check verifies packet byte hashes, all **273,361** ordered recipient rows and sums, full column-range provenance, the 20 published rows, both archive code receipts, and every triage row. To reproduce the raw aggregation, copy the packet to a fresh local directory and run the same tool there with `--fetch-ranges --rank`. The reader fetches precisely **54** complete Parquet column chunks (**49,320,973 bytes**) under the listed object keys and `If-Match` ETags. Every range must match its recorded bounds, total object size and SHA-256. Column bytes can be re-fetched without putting 49 MB into Git; all complete aggregate rows, footers, range receipts, and RPC request/response bytes used for the boundary and code checks are retained. The reader handles only the observed flat Parquet, compact Thrift, and Snappy formats and fails on unknown encodings. It uses Python's standard library, and `curl` for public RPC. No downloaded code was executed; no account or paid API was used.
+
+Source output identities are recorded in the packet, along with capture times and SHA-256. Raw chain facts and bytecode do not imply a new software license or license to an unknown source implementation. The existing one-block Ethereum and Solana measurements, DefiLlama rankings, and Soltop's separately defined 24-hour table remain separate observations.

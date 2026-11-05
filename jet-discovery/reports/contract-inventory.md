@@ -4,6 +4,10 @@ Snapshot retrieval: 2026-11-04 America/Los_Angeles (UTC data timestamps below). 
 
 The gas/compute sources are separate, explicitly bounded one-block snapshots. They are **not** a 24-hour popularity ranking. Etherscan Gas Tracker and Solscan Fee Tracker returned HTTP403 both through ordinary and escalated HTTP. Browser Harness failed to start and the in-app browser was unavailable. These explorer-period rankings therefore remain an access gap. The independently fetched complete blocks below add real data without filling that gap by assumption.
 
+Period supplements now include a [complete Ethereum mainnet UTC day](ETHEREUM-DAY-GAS-RANKING.md)
+with every receipt reconciled to its block, and the [complete Soltop provider top 20](PERIOD-RANKINGS.md)
+with its documented limitations. These datasets remain separate from the one-block and one-slot snapshots.
+
 Sources: [DefiLlama API](https://api.llama.fi/protocols), [Ethereum JSON-RPC](https://ethereum.org/en/developers/docs/apis/json-rpc/), [Solana getBlock](https://solana.com/docs/rpc/http/getblock), [Etherscan Gas Tracker](https://etherscan.io/gastracker), [Solscan Fee Tracker](https://solscan.io/analysis/fee-tracker). Raw responses and provenance are in `vendor-specs/contracts/`. UTXO mappings are architectural assessments from protocol categories and explicit source paths, not claims that these foreign protocols currently run on Bitcoin. Rebuild: `python3 tools/contract_inventory.py`.
 
 ## Ethereum protocol holdings / TVL

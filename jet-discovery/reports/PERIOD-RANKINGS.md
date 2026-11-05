@@ -1,6 +1,6 @@
 # Period gas/compute ranking supplement
 
-The complete **Soltop top-20 Solana programs by provider-reported last-24h CU** is now captured. This improves the period coverage beyond the existing complete one-slot sample. Etherscan's Ethereum period ranking and Solscan's top-100 dataset remain access gaps. Soltop is a separate operator/data collector; this is not a recovered Solscan dataset. Existing chain snapshots and TVL lists in [contract-inventory.md](contract-inventory.md) are preserved.
+The complete **Soltop top-20 Solana programs by provider-reported last-24h CU** is now captured. This improves the period coverage beyond the existing complete one-slot sample. Etherscan's Ethereum period ranking and Solscan's top-100 dataset remain access gaps. A separate [complete Ethereum UTC-day chain-derived ranking](ETHEREUM-DAY-GAS-RANKING.md) now covers 2026-11-04 and reconciles every block and receipt. Soltop is a separate operator/data collector; this is not a recovered Solscan dataset. Existing chain snapshots and TVL lists in [contract-inventory.md](contract-inventory.md) are preserved.
 
 ## Source, period and coverage
 
@@ -62,7 +62,7 @@ Labels and existing mapping evidence for PumpSwap, Pump.fun, SPL ATA, Token-2022
 | [ultrasound.money](https://ultrasound.money/) | Public page/extracted content provides burn-oriented material; no complete per-contract raw-gas 24h/7d table retrieved in this audit. | ETH burned is base-fee-weighted gas and cannot silently replace gas units. No burn ranking is reported as a gas ranking. |
 | Other Etherscan-family explorers / DeFi fee datasets | Search results included other chains and protocol fee/revenue tables. | Wrong-chain tables and protocol fee USD are excluded. |
 
-No mainnet-wide seven-day program ranking, no Ethereum 24h ranking, and no authenticated/internally reconciled Solana 24h ledger aggregate have been established. The accessible Soltop dataset supplies a complete *provider-reported* 24h top list with the limitations above; the existing independent block snapshots remain useful complementary evidence.
+No seven-day program ranking and no independently reconciled Solana 24h ledger aggregate have been established. Ethereum has the separate complete UTC-day result linked above. The accessible Soltop dataset supplies a complete *provider-reported* 24h top list with the limitations above; the existing independent block snapshots remain useful complementary evidence.
 
 ## Reproduction and licensing
 

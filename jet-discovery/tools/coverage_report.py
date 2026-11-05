@@ -21,6 +21,9 @@ INPUTS=['reports/data/corpus-metadata.tsv','reports/data/corpus-results.tsv',
         'tools/coverage_report.py']
 PERIOD_DIR='vendor-specs/rankings/soltop-2026-11-05'
 INPUTS += [PERIOD_DIR+'/top20.tsv',PERIOD_DIR+'/utxo-triage.tsv',PERIOD_DIR+'/manifest.json','reports/PERIOD-RANKINGS.md']
+ETH_PERIOD_DIR='vendor-specs/rankings/ethereum-aws-2026-11-04'
+INPUTS += [ETH_PERIOD_DIR+'/top20-code-recipients.tsv',ETH_PERIOD_DIR+'/utxo-triage.tsv',
+           ETH_PERIOD_DIR+'/manifest.json',ETH_PERIOD_DIR+'/aggregation.json','reports/ETHEREUM-DAY-GAS-RANKING.md']
 
 
 def read_tsv(path):
@@ -64,15 +67,19 @@ def classify_contract(dataset,r):
     label=r['label']
     if label.startswith('Unclassified'):
         return [],'UNCLASSIFIED',r.get('utxo_verdict_reason','Unclassified implementation; no mapping inferred from address/selector or compute total.')
-    if dataset=='ethereum-gas':
-        if label in ['USDT','USDC']:
+    if dataset in ['ethereum-gas','ethereum-24h-aws']:
+        if label in ['USDT','USDC','Tether USD₮','Circle USDC']:
             return [],'UNIMPLEMENTED_TOKEN_TRANSITION','Transfer/approval storage and issuer controls are not ported. The ERC2612 entry must not be presented as an implementation of these observed transfer calls.'
         if label in ['Uniswap Universal Router','Uniswap v3 SwapRouter','Uniswap SwapRouter02']:
             return ['xchain-uniswap-v3-tick-math','xchain-fullmath-muldiv'],'RELATED_EXACT_LIBRARY_KERNELS','Exact Uniswap arithmetic kernels measured; observed routing commands, pool execution and complete UTXO asset transitions are not implemented or attributed from the receipt.'
-        if label=='ERC4337 EntryPoint v0.7':
+        if label in ['ERC4337 EntryPoint v0.7','ERC-4337 EntryPoint v0.7']:
             return ['ethsol-safe-allowance'],'PROXY_AUTHORIZATION_POLICY','A bounded Bitcoin allowance wallet is a policy comparison; EntryPoint nonce/storage, validation callbacks, paymaster and gas accounting are unimplemented.'
         if label=='Multicall3':
             return [],'ROUTING_NOT_A_NEW_PRIMITIVE','Call/read batching is not itself a new cryptographic verifier. Inner calls need trace-based identification; top-level receipts do not establish them.'
+        if label=='CoW GPv2Settlement':
+            return [],'NATIVE_BATCH_VALIDATION_PENDING','Exact GPv2 order authorization and bounded native settlement are in validation. Solver auctions, arbitrary interaction execution, foreign token balances and full protocol semantics are outside that scope.'
+        if label=='KyberSwap Aggregator router':
+            return [],'UNIMPLEMENTED_ROUTE','Selected swap routes can constrain output allocations; the actual nested calls and mutable route/pool state are not ported.'
     if dataset in ['solana-compute','solana-24h-soltop']:
         if label in ['PumpSwap AMM','Meteora DAMM v2']:
             return ['xchain-uniswap-v2-amount-out','xchain-fullmath-muldiv'],'PROXY_AMM_ARITHMETIC','AMM arithmetic proxy only; source-specific reserves, fees, invariant and asset/output transition are not ported.'
@@ -235,7 +242,8 @@ def main():
         'This is the documented search scope in [BIP-INVENTORY.md](BIP-INVENTORY.md). The BIP index and these proposal searches have different coverage.','',table(header,no_number_rows)]
     lines += proposal_sections + ['','## Every ranked protocol and execution-source row','','TVL includes BOTH complete saved top20 sets for each chain: all categories including custodial holdings, and the separately filtered non-CEX ranking. Their source_set values are distinct; overlapping protocols are not merged or counted as additional applications. Gas and compute tables cover **all rows** of the complete one-block source TSVs, including unknown implementations and non-contract recipients. They do not replace unavailable Etherscan/Solscan period rankings. Source period/coverage limits remain those documented in [contract-inventory.md](contract-inventory.md). Architectural PROXY costs belong to the named corpus programs, not to the source contract itself.']
     lines += ['', 'The separate [Soltop period supplement](PERIOD-RANKINGS.md) adds all 20 provider-reported last-24h rows captured on 2026-11-05 at 08:23:43 UTC. Its exact ranking cutoffs, ingestion completeness, nested-CPI and failed-transaction accounting are unknown; do not call these exclusive CU or combine them numerically with the one-slot exclusive-CU sample. This is not a recovered Solscan top100 or Ethereum period ranking. All four provider metrics retain full source precision below. Unknown implementations remain explicit gaps.']
-    datasets=[('protocol-tvl','reports/data/protocol-ranking.tsv'),('protocol-tvl-non-cex','reports/data/protocol-ranking-non-cex.tsv'),('ethereum-gas','reports/data/ethereum-gas-ranking.tsv'),('solana-compute','reports/data/solana-compute-ranking.tsv'),('solana-24h-soltop',PERIOD_DIR+'/top20.tsv')]
+    lines += ['', 'The [Ethereum UTC day supplement](ETHEREUM-DAY-GAS-RANKING.md) reconciles every receipt in all 7,176 blocks on 2026-11-04. This section shows its entire verified top 20 code-qualified recipient slice, with the [complete 273,361-address rank](../vendor-specs/rankings/ethereum-aws-2026-11-04/all-recipients.tsv.gz) retained separately. Receipt gas is attributed to top-level recipients, including intrinsic and nested execution. The code filter uses the finalized end-of-period block; this is an independent source and metric, not a recovered Etherscan table.']
+    datasets=[('protocol-tvl','reports/data/protocol-ranking.tsv'),('protocol-tvl-non-cex','reports/data/protocol-ranking-non-cex.tsv'),('ethereum-gas','reports/data/ethereum-gas-ranking.tsv'),('ethereum-24h-aws',ETH_PERIOD_DIR+'/top20-code-recipients.tsv'),('solana-compute','reports/data/solana-compute-ranking.tsv'),('solana-24h-soltop',PERIOD_DIR+'/top20.tsv')]
     execution_joins={(r['chain'],r['slug']):r for r in read_tsv('reports/data/protocol-ranking-non-cex.tsv') if r.get('verified_execution_id')}
     for dataset,path in datasets:
         source=read_tsv(path);rows=[]
@@ -244,6 +252,13 @@ def main():
             if len(source)!=20 or len(triage)!=20 or {r['program_id'] for r in source}!=set(triage):
                 raise SystemExit('Soltop20-row metric/identity inventory mismatch')
             source=[dict(r,**{k:v for k,v in triage[r['program_id']].items() if k not in r}) for r in source]
+        if dataset=='ethereum-24h-aws':
+            triage={r['recipient']:r for r in read_tsv(ETH_PERIOD_DIR+'/utxo-triage.tsv')}
+            if (len(source)!=20 or len(triage)!=20 or {r['recipient'] for r in source}!=set(triage)
+                    or [int(r['contract_rank']) for r in source]!=list(range(1,21))
+                    or any(triage[r['recipient']]['contract_rank']!=r['contract_rank'] for r in source)):
+                raise SystemExit('Ethereum day top20 metric/identity inventory mismatch')
+            source=[dict(r,**{k:v for k,v in triage[r['recipient']].items() if k not in r}) for r in source]
         for r in source:
             ids,assoc,gap=classify_contract(dataset,r)
             identity='';role='';execution_source=''
@@ -256,6 +271,13 @@ def main():
             elif dataset=='ethereum-gas':
                 key=r['recipient'];name='#'+r['rank_all_recipients']+' '+r['label']+' '+key;metric=r['gas_used']+' gas / '+r['transactions']+' tx; code='+r['has_execution_code'];url='https://etherscan.io/address/'+key
                 identity=key;role='sampled transaction recipient'
+            elif dataset=='ethereum-24h-aws':
+                key=r['recipient'];name='#'+r['contract_rank']+' '+r['label']+' '+key
+                metric=(r['receipt_gas_used']+' receipt gas / '+r['transactions']+' tx / '+r['reverted_transactions']
+                        +' reverted; end-of-period '+r['code_status_at_period_end']+' ('+r['code_bytes']+' bytes); all-recipient rank '+r['rank'])
+                url='https://etherscan.io/address/'+key;identity=key
+                role='direct recipient; historical code SHA-256 '+r['code_sha256']+'; delegation '+r['delegation_target']
+                execution_source=r['label_source']
             elif dataset=='solana-compute':
                 key=r['program'];name='#'+r['rank']+' '+r['label']+' '+key;metric=r['exclusive_logged_cu']+' exclusive logged CU / '+r['logged_invocations']+' calls';url='https://solscan.io/account/'+key
                 identity=key;role='program in sampled execution logs'
