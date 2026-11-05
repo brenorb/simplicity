@@ -30,6 +30,7 @@ import qualified JetDiscovery.Corpus.P256 as P256
 import qualified JetDiscovery.Corpus.BN254 as BN254
 import qualified JetDiscovery.Corpus.ContractExpansion as Contract
 import qualified JetDiscovery.Lib.ShrincsHash as ShrincsHash
+import qualified JetDiscovery.Lib.KoalaBear as KoalaBear
 
 data CandidateInfo = CandidateInfo
   { ciName :: String
@@ -40,7 +41,8 @@ data CandidateInfo = CandidateInfo
 -- | (name, ESTIMATE cost, how the estimate was made)
 candidateInfo :: [CandidateInfo]
 candidateInfo =
-  [ CandidateInfo "bn254_fp_multiply" (2 * cost "FeMultiply") "ESTIMATE: 2 x FeMultiply for a generic 254-bit Montgomery reduction; requires an implementation and benchmark"
+  [ CandidateInfo "koalabear_add" (cost "Add32" + cost "Subtract32") "ESTIMATE: Add32 plus Subtract32 benchmark analogues for exact wrap-add and one conditional subtraction, q=2130706433; no C implementation/benchmark"
+  , CandidateInfo "bn254_fp_multiply" (2 * cost "FeMultiply") "ESTIMATE: 2 x FeMultiply for a generic 254-bit Montgomery reduction; requires an implementation and benchmark"
   , CandidateInfo "secp256k1_ecdsa_verify" (sum (map cost ["ScalarInvert","LinearCombination1","GejNormalize","GeIsOnCurve","ScalarNormalize"])) "ESTIMATE: sum of existing ScalarInvert, LinearCombination1, GejNormalize, GeIsOnCurve and ScalarNormalize benchmarks"
   , CandidateInfo "ecrecover" (sum (map cost ["ScalarInvert","Decompress","LinearCombination1","GejNormalize","ScalarNegate"]) + 2 * cost "ScalarMultiply" + 2 * cost "Sha256Block") "ESTIMATE: existing secp256k1 operation benchmarks plus Keccak priced as 2 x Sha256Block"
   , CandidateInfo "m31_mul" (2 * cost "FullMultiply32") "2 x FullMultiply32: one 32x32 multiply plus a Mersenne fold of similar cost"
@@ -68,7 +70,8 @@ costOf n = head ([ ciCost c | c <- candidateInfo, ciName c == n ] ++ [error ("no
 
 candidates :: [SomeCandidate]
 candidates =
-  [ SomeCandidate (Candidate "bn254_fp_multiply" (costOf "bn254_fp_multiply") BN254.fpMul)
+  [ SomeCandidate (Candidate "koalabear_add" (costOf "koalabear_add") KoalaBear.addRef)
+  , SomeCandidate (Candidate "bn254_fp_multiply" (costOf "bn254_fp_multiply") BN254.fpMul)
   , SomeCandidate (Candidate "secp256k1_ecdsa_verify" (costOf "secp256k1_ecdsa_verify") Contract.ecdsaVerify)
   , SomeCandidate (Candidate "ecrecover" (costOf "ecrecover") Contract.ecRecover)
   , SomeCandidate (Candidate "m31_mul" (costOf "m31_mul") Stark.m31Mul)

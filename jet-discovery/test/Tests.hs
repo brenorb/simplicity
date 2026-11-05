@@ -39,6 +39,8 @@ import JetDiscovery.Lib.Bytes (konst, w8, w32, w64, w256FromBytes, w256ToBytes)
 import JetDiscovery.Lib.Kernels (sha256Pair, wotsChain)
 import qualified JetDiscovery.Corpus.Hashes as Hashes
 import qualified JetDiscovery.Corpus.Stark as Stark
+import qualified JetDiscovery.Lib.KoalaBear as KoalaBear
+import qualified JetDiscovery.Ref.KoalaBear as KoalaBearRef
 import qualified JetDiscovery.Ref.Bip340 as Bip340
 import qualified JetDiscovery.Ref.Shrincs as Shrincs
 import qualified JetDiscovery.Ref.ShrincsHash as ShrincsHashRef
@@ -263,7 +265,14 @@ main = defaultMain $ testGroup "jet-discovery"
       Ripemd.ripemd160Ref (BSC8.pack "abc") @?= unhex "8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"
       Ripemd.ripemd160Ref (BSC8.pack "message digest") @?= unhex "5d0689ef49d2fae572b881b123a85ffa21595f36"
   , testGroup "candidate specifications agree with Haskell references"
-    [ testCase "m31_mul" $ do
+    [ testCase "koalabear_add total raw-word semantics" $ do
+        let q=KoalaBearRef.q
+            bounds=[0,1,q-1,q,q+1,2*q-1,2*q,2^32-2,2^32-1]
+            xs=[(a,b)|a<-bounds,b<-bounds]++take 200 [(a `mod`2^32,b `mod`2^32)|(a,b)<-pairs(rands 211)]
+        mapM_ (\(a,b)->fmap W.fromWord32 (run KoalaBear.addRef (W.toWord32 a,W.toWord32 b)) @?= Just(KoalaBearRef.addWordSpec a b)) xs
+        KoalaBearRef.addWordSpec (2^32-1)(2^32-1) @?= 2164260861
+        assertBool "raw noncanonical words keep specified single-reduction behavior" (KoalaBearRef.addWordSpec (2^32-1)(2^32-1)>=q)
+    , testCase "m31_mul" $ do
         let xs = take 40 [ (a `mod` Stark.p31, b `mod` Stark.p31) | (a, b) <- pairs (rands 1) ]
         mapM_ (\(a, b) -> fmap W.fromWord32 (run Stark.m31Mul (W.toWord32 a, W.toWord32 b)) @?= Just (Stark.hMul a b)) xs
     , testCase "qm31_mul" $ do
