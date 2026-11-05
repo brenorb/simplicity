@@ -1,0 +1,142 @@
+{-# LANGUAGE RankNTypes,ScopedTypeVariables #-}
+-- | Bounded exact Pendle MarketMathCore swap/LP relations with fully BTC-backed
+-- SY/PT coupon ledgers. Signed event time/index replaces external contract time.
+module JetDiscovery.Corpus.NativePendleMarket where
+import Prelude hiding (drop,take,not,and,or)
+import qualified Prelude as H
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import qualified Simplicity.Bitcoin.Jets as J
+import Simplicity.Bitcoin.Term (Simplicity,Primitive)
+import qualified Simplicity.Bitcoin.Programs.TimeLock as TL
+import Simplicity.Ty.Word hiding (Vector)
+import JetDiscovery.Lib.Bytes
+import JetDiscovery.Lib.ClaimLedger
+import qualified JetDiscovery.Lib.PendleMath as P
+import qualified JetDiscovery.Lib.PendleLp as Q
+import qualified JetDiscovery.Corpus.ContractGrowth as G
+import JetDiscovery.Types
+
+validTerm :: Assert t => t Ledger ()
+validTerm=allChecks [le (add (field 1) (field 2)) (field 0),same (field 1) (sumT (map field [3,4,7,9])),same (field 2) (sumT (map field [5,6,8])),same (field 11) (sumT (map field [12,13,19])),same (field 20) (k P.year),le (field 16) (k (2*P.year)),le (k P.scale) (field 17),le (field 17) (k (2*P.scale)),allChecks [same (field i) (k 0)|i<-[10,15]++[21..31]],select (is (field 11) (k 0)) empty live]
+ where
+  empty=allChecks [same (field i) (k 0)|i<-[7,8,18,19]]
+  live=allChecks [same (field 19) (k 1000),nonzero (field 7),nonzero (field 8),le (field 7) (k (10^9)),le (field 8) (k (10^9)),nonzero (field 18),le (field 18) (k P.scale)]
+initialWrapped :: J.WrappedSimplicity P.Base Word64
+initialWrapped=J.jetSubst P.initialRate
+{-# NOINLINE initialWrapped #-}
+initialLn :: Simplicity t => t P.Base Word64
+initialLn=J.unwrap initialWrapped
+
+termT :: (Simplicity t,Primitive t) => CT t
+termT=allChecks [base,old>>>validTerm,new>>>validTerm,choose (claims++[(16,event),(17,join),(18,trade True),(19,trade False),(20,exit),(21,pullFee),(22,transferLp)])]
+ where
+  claims=H.take 5 claimBranches++[(5,allChecks [le (k P.year) (o 16),claimAction True 2])]
+  active=lt (o 16) (k P.year)
+  remaining=sub (k P.year) (o 16)
+  event=allChecks [sigAt 3 0,lt (o 16) amount,le (o 17) (aux 0),changes [(16,amount),(17,aux 0),nonce],noCash]
+  quoteJoin=(o 7&&&(o 8&&&(o 11&&&(aux 0&&&aux 1))))>>>Q.joinQuote
+  join=(allChecks [actorSig,active]&&&iden)>>>drop ((iden&&&quoteJoin)>>>(iden&&&initialOrOld)>>>joinChecks)
+  initialOrOld=select (is (take (o 11)) (k 0)) ((add (take (o 7)) (drop oh)&&&(add (take (o 8)) (drop ioh)&&&(take (o 17)&&&(take remaining&&&k 0))))>>>initialLn) (take (o 18))
+  joinChecks=allChecks [le (jt (aux 2)) minted,changesAt jo jn ([(7,add (jo 7) sy),(8,add (jo 8) pt),(11,add (jo 11) (add minted locked)),(12,jAccount (add (jo 12) minted) (jo 12)),(13,jAccount (jo 13) (add (jo 13) minted)),(14,add (jo 14) (k 1)),(18,ih),(19,add (jo 19) locked)]++jSet False (sub (jt (userBalance False o)) sy)++jSet True (sub (jt (userBalance True o)) pt)),jt noCash]
+   where
+    jt x=take (take x)
+    jo i=jt (o i);jn i=jt (n i)
+    sy=take (drop oh);pt=take (drop ioh);minted=take (drop iioh);locked=take (drop iiih)
+    jAccount a b=select (is (jt actor) (k 0)) a b
+    jSet isB value=if isB then [(5,jAccount value (jo 5)),(6,jAccount (jo 6) value)] else [(3,jAccount value (jo 3)),(4,jAccount (jo 4) value)]
+  poolBase=o 7&&&(o 8&&&(o 17&&&(remaining&&&o 18)))
+  trade buy=(allChecks [actorSig,active,nonzero (o 11),nonzero amount]&&&iden)>>>drop ((iden&&&((poolBase&&&(konst (toBit buy)&&&amount))>>>P.trade))>>>tradeChecks buy)
+  tradeChecks buy=allChecks [same (net>>>oh) (konst (toBit buy)),nonzero netMag,limit,changesAt oldP newP ([(7,drop oh),(8,drop ioh),(9,add (oldP 9) reserveFee),(14,add (oldP 14) (k 1)),(18,drop iiih)]++setP False ((if buy then sub else add) (take (userBalance False o)) netMag)++setP True ((if buy then add else sub) (take (userBalance True o)) (take amount))),take noCash]
+   where
+    q=drop iioh;net=q>>>oh;netMag=net>>>ih;reserveFee=q>>>iih
+    oldP i=take (o i);newP i=take (n i)
+    limit=select (is (take (aux 0)) (k 0)) unit (if buy then le netMag (take (aux 0)) else le (take (aux 0)) netMag)
+    accountP a b=select (is (take actor) (k 0)) a b
+    setP isB value=if isB then [(5,accountP value (oldP 5)),(6,accountP (oldP 6) value)] else [(3,accountP value (oldP 3)),(4,accountP (oldP 4) value)]
+  exitQuote=G.floorRatio (o 7) amount (o 11)&&&G.floorRatio (o 8) amount (o 11)
+  exit=(allChecks [actorSig,nonzero amount,le amount (account (o 12) (o 13))]&&&iden)>>>drop ((iden&&&exitQuote)>>>exitChecks)
+  exitChecks=allChecks [nonzero (add ioh iih),le (take (aux 0)) ioh,le (take (aux 1)) iih,changesAt oldP newP ([(7,sub (oldP 7) ioh),(8,sub (oldP 8) iih),(11,sub (oldP 11) (take amount)),(12,accountP (sub (oldP 12) (take amount)) (oldP 12)),(13,accountP (oldP 13) (sub (oldP 13) (take amount))),(14,add (oldP 14) (k 1))]++setP False (add (take (userBalance False o)) ioh)++setP True (add (take (userBalance True o)) iih)),take noCash]
+   where
+    oldP i=take (o i);newP i=take (n i)
+    accountP a b=select (is (take actor) (k 0)) a b
+    setP isB value=if isB then [(5,accountP value (oldP 5)),(6,accountP (oldP 6) value)] else [(3,accountP value (oldP 3)),(4,accountP (oldP 4) value)]
+  pullFee=allChecks [sigAt 2 0,nonzero amount,konst (w32 800000)>>>TL.checkLockHeight,changes [(0,sub (o 0) amount),(1,sub (o 1) amount),(9,sub (o 9) amount),nonce],withdraw amount (destination 2)]
+  transferLp=allChecks [actorSig,nonzero amount,changes [nonce,(12,account (sub (o 12) amount) (add (o 12) amount)),(13,account (add (o 13) amount) (sub (o 13) amount))],noCash]
+  changesAt src dst updates=allChecks [same (dst i) (maybe (src i) id (lookup i updates))|i<-[0..31]]
+
+step state xs=update state ((14,state H.!!14+1):xs)
+joinReference state who syWant ptWant=step state [(3+who,state H.!!(3+who)-sy),(5+who,state H.!!(5+who)-pt),(7,newSy),(8,newPt),(11,state H.!!11+mint+locked),(12+who,state H.!!(12+who)+mint),(18,newRate),(19,state H.!!19+locked)]
+ where
+  (sy,pt,mint,locked)=Q.joinInteger (state H.!!7) (state H.!!8) (state H.!!11) syWant ptWant
+  newSy=state H.!!7+sy;newPt=state H.!!8+pt
+  newRate=if state H.!!11==0 then P.initialRateInteger newSy newPt (state H.!!17) (P.year-state H.!!16) else state H.!!18
+tradeReference state who buy quantity=(step state [(3+who,state H.!!(3+who)+net),(5+who,state H.!!(5+who)+(if buy then quantity else negate quantity)),(7,sy),(8,pt),(9,state H.!!9+reserve),(18,rate)],net,reserve)
+ where
+  (sy,pt,net,_,reserve,rate)=P.tradeInteger (state H.!!7) (state H.!!8) (state H.!!17) (P.year-state H.!!16) (state H.!!18) buy quantity
+exitReference state who lp=step state [(3+who,state H.!!(3+who)+sy),(5+who,state H.!!(5+who)+pt),(7,state H.!!7-sy),(8,state H.!!8-pt),(11,state H.!!11-lp),(12+who,state H.!!(12+who)-lp)]
+ where sy=lp*(state H.!!7) `div`(state H.!!11);pt=lp*(state H.!!8) `div`(state H.!!11)
+
+termEntry=entry "app-pendle-term-market-transition" "Native Pendle term-market swaps and LP lifecycle" "Pinned Pendle MarketMathCore getMarketPreCompute/calcTrade/_getLnImpliedRate/addLiquidityCore/removeLiquidityCore, LogExpMath, PMath, PYIndex/SYUtils"
+ ["two independent fully BTC-backed SY/PT coupon classes with exact complete ledger; Pendle pricing uses signed PYIndex events but these coupons are native redeemable receipts, not foreign SY/PT/YT token contracts or external yield claims", "scalarRoot5e18, initialAnchor1.1e18, annual lnFeeRateRoot0.03e18,20% reserve fee share; source 18-decimal logit/exp/ln, signed truncation and PYIndex debt-up/credit-down with exact successor implied rate", "bounded market proportions1/4..3/4, reserves1..1e9, index1..2e18, active annual ln rate0<rate<=1e18; term expiry31536000 in signed event-clock seconds; authority3 signs actual state transition with strictly increasing event time and nondecreasing index; no current-time/foreign index freshness claim", "initial sqrt mint locks1000 LP as source minimum liquidity; later joins use limiting side/floor mint/ceil counterpart, LP exits floor both assets and remain available after maturity; locked LP is never user-owned", "PT native burn needs both signed-event maturity and chosen lower height900000; SY burn/treasury fee withdrawal needs lower height800000; no foreign redemption wire or PYToken interest accrual claim"] termT vectors
+ where
+  initial=update [] [(0,4000000),(1,2000000),(2,2000000),(3,1500000),(4,500000),(5,1500000),(6,500000),(17,P.scale),(20,P.year)]
+  joined=joinReference initial 0 1000000 1000000
+  evented=step joined [(16,P.year `div`2),(17,11*10^17)]
+  (bought,buyNet,buyReserve)=tradeReference evented 1 True 10000
+  (sold,sellNet,_)=tradeReference bought 1 False 4000
+  joinedPt=joinReference bought 1 100000 77777
+  joinedSy=joinReference bought 1 22222 100000
+  ownerLp=joined H.!!12
+  exited=exitReference joined 0 100000
+  drained=exitReference joined 0 ownerLp
+  lpMoved=step joined [(12,ownerLp-10000),(13,10000)]
+  matured=step bought [(16,P.year),(17,12*10^17)]
+  matureExit=exitReference matured 0 100000
+  matureJoin=joinReference matured 1 50000 50000
+  issueA=step initial [(0,4000500),(1,2000500),(3,1500500)]
+  issueB=step initial [(0,4000700),(2,2000700),(6,500700)]
+  moveA=step initial [(3,1499500),(4,500500)]
+  moveB=step initial [(5,1500500),(6,499500)]
+  burnA=step initial [(0,3999500),(1,1999500),(3,1499500)]
+  burnB=step matured [(0,3999500),(2,1999500),(6,matured H.!!6-500)]
+  earlyBurnB=step bought [(0,3999500),(2,1999500),(6,bought H.!!6-500)]
+  feePaid=step bought [(0,4000000-buyReserve),(1,2000000-buyReserve),(9,0)]
+  v=vectorBound (cmrOf termT)
+  go label mode a b who q extra signer fund payout height expected=v label termT mode a b who q extra [signer] fund payout height expected
+  vectors=[
+   go "initial source sqrt mint locks1000 LP and sets exact implied rate" 17 initial joined 0 0 [1000000,1000000,999000] 0 0 Nothing 0 Accept,
+   go "signed monotone event advances time and PY index" 16 joined evented 0 (P.year `div`2) [11*10^17] 3 0 Nothing 0 Accept,
+   go "buy exact PT uses debt-up SY and exact reserve fee" 18 evented bought 1 10000 [negate buyNet] 1 0 Nothing 0 Accept,
+   go "sell exact PT uses credit-down SY and new implied rate" 19 bought sold 1 4000 [sellNet] 1 0 Nothing 0 Accept,
+   go "PT-limited join rounds counterpart SY up" 17 bought joinedPt 1 0 [100000,77777,1] 1 0 Nothing 0 Accept,
+   go "SY-limited join rounds counterpart PT up" 17 bought joinedSy 1 0 [22222,100000,1] 1 0 Nothing 0 Accept,
+   go "LP exit floors both reserve claims" 20 joined exited 0 100000 [100000,100000] 0 0 Nothing 0 Accept,
+   go "all user LP can exit while minimum stays locked" 20 joined drained 0 ownerLp [1,1] 0 0 Nothing 0 Accept,
+   go "LP ownership transfer preserves supply" 22 joined lpMoved 0 10000 [] 0 0 Nothing 0 Accept,
+   go "authority publishes irreversible mature event" 16 bought matured 0 P.year [12*10^17] 3 0 Nothing 0 Accept,
+   go "proportional LP exit still works at maturity" 20 matured matureExit 0 100000 [1,1] 0 0 Nothing 0 Accept,
+   go "SY issuance is actually funded" 0 initial issueA 0 500 [] 0 500 Nothing 0 Accept,
+   go "PT issuance is actually funded" 1 initial issueB 1 700 [] 1 700 Nothing 0 Accept,
+   go "signed SY transfer preserves total" 2 initial moveA 0 500 [] 0 0 Nothing 0 Accept,
+   go "signed PT transfer preserves total" 3 initial moveB 1 500 [] 1 0 Nothing 0 Accept,
+   go "SY mature receipt burns for exact BTC" 4 initial burnA 0 500 [] 0 0 (Just (0,500)) 800000 Accept,
+   go "PT receipt burn uses event maturity and distinct native lower height" 5 matured burnB 1 500 [] 1 0 (Just (1,500)) 900000 Accept,
+   go "treasury burns exact earned SY fee for native payout" 21 bought feePaid 0 buyReserve [] 2 0 (Just (2,buyReserve)) 800000 Accept,
+   go "only authority can update index/time" 16 joined evented 0 (P.year `div`2) [11*10^17] 1 0 Nothing 0 Reject,
+   go "signed index decrease rejected" 16 evented (step evented [(16,P.year `div`2+1),(17,P.scale)]) 0 (P.year `div`2+1) [P.scale] 3 0 Nothing 0 Reject,
+   go "stale signed event rejected" 16 evented (step evented []) 0 (P.year `div`2) [11*10^17] 3 0 Nothing 0 Reject,
+   go "buy SY cap is enforced" 18 evented bought 1 10000 [negate buyNet-1] 1 0 Nothing 0 Reject,
+   go "sell SY minimum is enforced" 19 bought sold 1 4000 [sellNet+1] 1 0 Nothing 0 Reject,
+   go "wrong stored implied rate rejected" 18 evented (update bought [(18,bought H.!!18+1)]) 1 10000 [] 1 0 Nothing 0 Reject,
+   go "reserve fee cannot over-credit treasury while preserving SY supply" 18 evented (update bought [(7,bought H.!!7-1),(9,bought H.!!9+1)]) 1 10000 [] 1 0 Nothing 0 Reject,
+   go "locked LP cannot be relabeled as user-owned" 17 initial (update joined [(12,1000000),(19,0)]) 0 0 [1000000,1000000,0] 0 0 Nothing 0 Reject,
+   go "minimum mint protects existing owner" 17 bought joinedPt 1 0 [100000,77777,1000000] 1 0 Nothing 0 Reject,
+   go "event expiry disables trades" 18 matured (step matured []) 1 10000 [] 1 0 Nothing 0 Reject,
+   go "event expiry disables new liquidity" 17 matured matureJoin 1 0 [50000,50000,0] 1 0 Nothing 0 Reject,
+   go "PT cannot burn before event maturity even at chosen later height" 5 bought earlyBurnB 1 500 [] 1 0 (Just (1,500)) 900000 Reject,
+   go "PT cannot use SY lower height after signed maturity" 5 matured burnB 1 500 [] 1 0 (Just (1,500)) 800000 Reject,
+   go "mature PT native output cannot be redirected" 5 matured burnB 1 500 [] 1 0 (Just (0,500)) 900000 Reject,
+   go "treasury native fee output cannot be redirected" 21 bought feePaid 0 buyReserve [] 2 0 (Just (1,buyReserve)) 800000 Reject,
+   go "PT coupon cannot be minted without its actual backing" 1 initial issueB 1 700 [] 1 699 Nothing 0 Reject]
+entries=[termEntry]

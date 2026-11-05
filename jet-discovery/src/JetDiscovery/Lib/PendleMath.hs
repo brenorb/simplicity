@@ -1,0 +1,174 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+-- | Exact bounded Pendle MarketMathCore pricing. The pinned source's used
+-- LogExpMath constants/series match LogExpBounded. Signed divDown truncates
+-- toward zero; PYIndex applies up/down to magnitude and restores sign.
+module JetDiscovery.Lib.PendleMath where
+import Prelude hiding (drop,take,not,and,or)
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import Simplicity.Programs.Generic (eq)
+import qualified Simplicity.Bitcoin.Jets as J
+import Simplicity.Bitcoin.Term (Simplicity)
+import Simplicity.Ty.Word
+import qualified JetDiscovery.Lib.LogExpBounded as L
+import qualified JetDiscovery.Lib.StableMath as S
+import qualified JetDiscovery.Lib.LmsrCost as M -- generic checked signed magnitude only
+import qualified JetDiscovery.Lib.ClaimLedger as C
+import qualified JetDiscovery.Lib.PendleLogExp as X
+
+scale,year,scalarRoot,initialAnchor,feeRoot,reservePercent :: Integer
+scale=10^18
+year=365*86400
+scalarRoot=5*scale
+initialAnchor=11*10^17
+feeRoot=3*10^16
+reservePercent=20
+type Base=(Word64,(Word64,(Word64,(Word64,Word64)))) -- SY, PT, index, remaining, lnRate
+type Input=(Base,(Bit,Word64)) -- True buys PT, False sells PT
+type Pre=(Word128,(Word128,(Word128,Word128))) -- assets, scalar, anchor, feeRate
+type SyQuote=(M.Amount,(Word64,Word64)) -- signed SY to user, gross SY fee, reserve SY fee
+type Output=(Word64,(Word64,(SyQuote,Word64))) -- new SY, new PT, quote, new lnRate
+field :: Core t => Int -> t Base Word64
+field 0=oh
+field 1=ioh
+field 2=iioh
+field 3=drop (drop (drop oh))
+field 4=drop (drop (drop ih))
+field _=error "five Pendle base fields"
+positive a=false&&&a
+signed64 a=(a>>>oh)&&&L.u64 (a>>>ih)
+as64 a=(a>>>oh)&&&(a>>>ih>>>S.narrow)
+checks :: (Core t,TyC a) => [t a ()] -> t a ()
+checks=foldr (\a b->(a&&&b)>>>unit) unit
+fdiv a b=L.divide (S.mul a (L.ks scale)) b
+fdivUp a b=L.divide (L.add (S.mul a (L.ks scale)) (L.sub b (L.ks 1))) b
+floorMul a b d=L.divide (S.mul a b) d
+guarded p body=(p&&&iden)>>>drop body
+
+-- Positive exp branch sufficient for both annual-rate and fee exponents.
+expRef :: Assert t => t Word128 Word128
+expRef=X.expRef
+expWrapped :: J.WrappedSimplicity Word128 Word128
+expWrapped=J.jetSubst expRef
+{-# NOINLINE expWrapped #-}
+exp18 :: Simplicity t => t Word128 Word128
+exp18=J.unwrap expWrapped
+lnWrapped :: J.WrappedSimplicity Word128 L.Signed
+lnWrapped=J.jetSubst X.lnRef
+{-# NOINLINE lnWrapped #-}
+ln18 :: Simplicity t => t Word128 L.Signed
+ln18=J.unwrap lnWrapped
+
+baseChecks :: Assert t => t Base ()
+baseChecks=checks [C.nonzero (field 0),C.le (field 0) (C.k (10^9)),C.nonzero (field 1),C.le (field 1) (C.k (10^9)),C.le (C.k scale) (field 2),C.le (field 2) (C.k (2*scale)),C.nonzero (field 3),C.le (field 3) (C.k year)]
+assets sy index=floorMul (L.u64 sy) (L.u64 index) (L.ks scale)
+scalar remaining=L.divide (L.ks (scalarRoot*year)) (L.u64 remaining)
+fromAnnual rate remaining=floorMul (L.u64 rate) (L.u64 remaining) (L.ks year)>>>exp18
+toAnnual rate remaining=floorMul (rate>>>ln18>>>M.positiveMagnitude) (L.ks year) (L.u64 remaining)>>>S.narrow>>>guarded (checks [C.nonzero iden,C.le iden (C.k scale)]) iden
+logit :: Simplicity t => t (Word128,Word128) L.Signed
+logit=fdiv oh ih>>>guarded (checks [L.le (L.ks (scale `div`4)) iden>>>verify,L.le iden (L.ks (3*scale `div`4))>>>verify]) (fdiv iden (L.sub (L.ks scale) iden)>>>ln18)
+signedRatio a scalarValue=((a>>>oh)&&&fdiv (a>>>ih) scalarValue)>>>M.canonical
+priceRef :: Simplicity t => t ((Word128,Word128),(Word128,Word128)) Word128
+priceRef=M.plus (positive iih) (signedRatio (take logit) ioh)>>>M.positiveMagnitude>>>guarded (checks [L.le (L.ks scale) iden>>>verify,L.le iden (L.ks (3*scale))>>>verify]) iden
+priceWrapped :: J.WrappedSimplicity ((Word128,Word128),(Word128,Word128)) Word128
+priceWrapped=J.jetSubst priceRef
+{-# NOINLINE priceWrapped #-}
+price :: Simplicity t => t ((Word128,Word128),(Word128,Word128)) Word128
+price=J.unwrap priceWrapped
+
+preRef :: Simplicity t => t Base Pre
+preRef=guarded (checks [baseChecks,C.nonzero (field 4),C.le (field 4) (C.k scale)]) ((iden&&&(assets (field 0) (field 2)&&&scalar (field 3)))>>>(ioh&&&(iih&&&(anchor&&&feeRate))))
+ where
+  pt=L.u64 (take (field 1))
+  lp=(pt&&&L.add pt ioh)>>>logit
+  anchor=M.minus (positive (fromAnnual (take (field 4)) (take (field 3)))) (signedRatio lp iih)>>>M.positiveMagnitude
+  feeRate=fromAnnual (C.k feeRoot) (take (field 3))
+preWrapped :: J.WrappedSimplicity Base Pre
+preWrapped=J.jetSubst preRef
+{-# NOINLINE preWrapped #-}
+precompute :: Simplicity t => t Base Pre
+precompute=J.unwrap preWrapped
+initialRate :: Simplicity t => t Base Word64
+initialRate=guarded baseChecks (toAnnual (((pt&&&L.add pt totalAsset)&&&(scalar (field 3)&&&L.ks initialAnchor))>>>price) (field 3))
+ where pt=L.u64 (field 1);totalAsset=assets (field 0) (field 2)
+
+type AssetInput=(Bit,(Word64,(Word128,Word128))) -- buy, PT qty, price, fee rate
+type AssetQuote=(L.Signed,Word128) -- signed asset to user, asset fee
+assetQuote :: Assert t => t AssetInput AssetQuote
+assetQuote=guarded (C.select oh (L.le (L.ks scale) (fdiv iioh iiih)>>>verify) unit) ((iden&&&fdiv (L.u64 ioh) iioh)>>>(iden&&&fee)>>>(assetNet&&&ih))
+ where
+  feeFactor=L.sub (take iiih) (L.ks scale)
+  fee=C.select (take oh) (floorMul ih feeFactor (L.ks scale)) (floorMul ih feeFactor (take iiih))
+  buy=take (take oh)
+  assetNet=(buy&&&C.select buy (L.add (take ih) ih) (L.sub (take ih) ih))>>>M.canonical
+syQuote :: Assert t => t (AssetQuote,Word64) SyQuote
+syQuote=as64 net&&&((convertDown oih>>>S.narrow)&&&(convertDown reserveAsset>>>S.narrow))
+ where
+  q=take oh
+  index=L.u64 ih
+  convertDown a=fdiv a index
+  convertUp a=fdivUp a index
+  net=((q>>>oh)&&&C.select (q>>>oh) (convertUp (q>>>ih)) (convertDown (q>>>ih)))>>>M.canonical
+  reserveAsset=floorMul oih (L.ks reservePercent) (L.ks 100)
+
+tradeRef :: Simplicity t => t Input Output
+tradeRef=guarded (checks [C.nonzero (drop ih),C.le (drop ih) (C.k (10^9))]) ((iden&&&take precompute)>>>(iden&&&nextPt)>>>(iden&&&quote)>>>(iden&&&nextSy)>>>finish)
+ where
+  -- A=(Input,Pre), B=(A,newPT), C=(B,SyQuote), D=(C,newSY).
+  baseA i=take (take (field i))
+  dirA=take (drop oh);qtyA=take (drop ih)
+  aAssets=drop oh;aScalar=drop ioh;aAnchor=drop iioh;aFee=drop iiih
+  nextPt=C.select dirA (C.sub (baseA 1) qtyA) (C.add (baseA 1) qtyA)>>>guarded (checks [C.nonzero iden,C.le iden (C.k (10^9))]) iden
+  oldDenom=L.add (L.u64 (take (baseA 1))) (take aAssets)
+  tradePrice=((L.u64 ih&&&oldDenom)&&&(take aScalar&&&take aAnchor))>>>price
+  aq=(take dirA&&&(take qtyA&&&(tradePrice&&&take aFee)))>>>assetQuote
+  quote=(aq&&&take (baseA 2))>>>syQuote
+  nextSy=M.minus (positive (L.u64 (take (take (baseA 0))))) (M.plus (signed64 (drop oh)) (positive (L.u64 (drop iih))))>>>M.positiveMagnitude>>>S.narrow>>>guarded (checks [C.nonzero iden,C.le iden (C.k (10^9))]) iden
+  newPt=take (take ih)
+  preD t=take (take (take t))
+  newAssets=assets ih (preD (baseA 2))
+  postPrice=((L.u64 newPt&&&L.add (L.u64 newPt) newAssets)&&&(preD aScalar&&&preD aAnchor))>>>price
+  implied=toAnnual postPrice (preD (baseA 3))
+  finish=ih&&&(newPt&&&(take ih&&&implied))
+tradeWrapped :: J.WrappedSimplicity Input Output
+tradeWrapped=J.jetSubst tradeRef
+{-# NOINLINE tradeWrapped #-}
+trade :: Simplicity t => t Input Output
+trade=J.unwrap tradeWrapped
+
+-- Independent Integer translation follows source operation/rounding order.
+fixedDiv a b=a*scale `quot`b
+upDiv a b=(a+b-1) `div`b
+assetInteger sy index=sy*index `div`scale
+logitInteger numerator denominator
+ |p<scale `div`4||p>3*scale `div`4=error "native Pendle proportion bound"
+ |otherwise=L.lnInteger (fixedDiv p (scale-p))
+ where p=fixedDiv numerator denominator
+priceInteger numerator denominator scalarValue anchor
+ |rate<scale||rate>3*scale=error "Pendle exchange-rate bound"
+ |otherwise=rate
+ where rate=fixedDiv (logitInteger numerator denominator) scalarValue+anchor
+annualInteger rate remaining
+ |annual<=0||annual>scale=error "Pendle nonzero annual rate bound"
+ |otherwise=annual
+ where annual=L.lnInteger rate*year `div`remaining
+initialRateInteger sy pt index remaining=annualInteger (priceInteger pt (pt+assetInteger sy index) (scalarRoot*year `div`remaining) initialAnchor) remaining
+tradeInteger sy pt index remaining lastRate buy quantity
+ |buy&&fixedDiv exchange feeRate<scale=error "post-fee exchange rate below1"
+ |newSy<=0||newPt<=0||newSy>10^9||newPt>10^9=error "Pendle successor reserve domain"
+ |otherwise=(newSy,newPt,netSy,feeSy,reserveSy,implied)
+ where
+  totalAsset=assetInteger sy index
+  scalarValue=scalarRoot*year `div`remaining
+  anchor=L.expInteger (lastRate*remaining `div`year)-fixedDiv (logitInteger pt (pt+totalAsset)) scalarValue
+  feeRate=L.expInteger (feeRoot*remaining `div`year)
+  newPt=pt-(if buy then quantity else negate quantity)
+  exchange=priceInteger newPt (pt+totalAsset) scalarValue anchor
+  pre=negate (fixedDiv (if buy then quantity else negate quantity) exchange)
+  fee=if buy then pre*(scale-feeRate) `quot`scale else negate (pre*(scale-feeRate) `quot`feeRate)
+  net=pre-fee
+  netSy=if net<0 then negate (upDiv (negate net*scale) index) else net*scale `div`index
+  feeSy=fee*scale `div`index
+  reserveSy=(fee*reservePercent `div`100)*scale `div`index
+  newSy=sy-netSy-reserveSy
+  implied=annualInteger (priceInteger newPt (newPt+assetInteger newSy index) scalarValue anchor) remaining
