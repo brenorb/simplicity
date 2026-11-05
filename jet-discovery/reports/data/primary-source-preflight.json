@@ -1,0 +1,47 @@
+{
+  "purpose": "Offline reproduction of pinned source inventories; no network requests or external code execution.",
+  "checks": [
+    {
+      "name": "BIP index",
+      "command": "python3 tools/fetch_bip_inventory.py --offline",
+      "exit": 0,
+      "output": "Audited 220 indexed BIPs, 51 softfork rows, 24 nonterminal softfork rows, 46 vendored data files\n"
+    },
+    {
+      "name": "Unnumbered proposals",
+      "command": "python3 tools/fetch_proposal_sources.py --offline",
+      "exit": 0,
+      "output": "Verified all 17 proposal source snapshots\n"
+    },
+    {
+      "name": "eprint search pages",
+      "command": "python3 tools/eprint_scan.py --offline",
+      "exit": 0,
+      "output": "bitcoin: 374 records; 4 pages\ncovenant: 6 records; 1 pages\nSchnorr: 237 records; 3 pages\nadaptor: 59 records; 1 pages\nthreshold: 1174 records; 12 pages\n\"hash-based\": 204 records; 3 pages\n\"post-quantum signatures\": 109 records; 2 pages\nBitVM: 24 records; 1 pages\n\"payment channels\": 65 records; 1 pages\necash: 4 records; 1 pages\n\"proof of reserves\": 5 records; 1 pages\n\"proofs of reserves\": 1 records; 1 pages\n\"blind Schnorr\": 14 records; 1 pages\n\"timed signatures\": 5 records; 1 pages\n{\n  \"unique\": 1814,\n  \"triage\": {\n    \"DEFER\": 1595,\n    \"CANDIDATE\": 148,\n    \"EXCLUDE\": 71\n  },\n  \"pages\": 33\n}\n"
+    },
+    {
+      "name": "Ethereum day",
+      "command": "python3 tools/aws_ethereum_period.py vendor-specs/rankings/ethereum-aws-2026-11-04 --check",
+      "exit": 0,
+      "output": "273361 ordered recipients, all gas/counts, and all 20 published ranked rows reconciled\n"
+    },
+    {
+      "name": "PSBT sources",
+      "command": "python3 tools/check_bitcoin_growth9_packet.py",
+      "exit": 0,
+      "output": "PASS 4 derived files,3 pinned specifications,96 inline binary records,95 matching Base64 pairs,10 locktime cases and exact source/fresh wire digests\n"
+    },
+    {
+      "name": "BIP47 sources",
+      "command": "python3 tools/check_bitcoin_growth8_packet.py",
+      "exit": 0,
+      "output": "PASS full2account/11child/10payment BIP47 source packet;7 derived files, pinned primary hashes and LF TSVs\n"
+    },
+    {
+      "name": "Soltop period packet",
+      "command": "python3 tools/fetch_period_rankings.py --check vendor-specs/rankings/soltop-2026-11-05",
+      "exit": 0,
+      "output": "{\n  \"top_rows\": 20,\n  \"top20_cu_sum\": 6016077872868,\n  \"network_bucket_rows\": 10801,\n  \"network_bucket_label_min\": \"2026-11-04T08:23:36\",\n  \"network_bucket_label_max\": \"2026-11-05T08:23:36\",\n  \"network_bucket_duration_seconds\": 86400.0,\n  \"caveat\": \"Network bucket labels do not establish the separate ranking query's exact bounds, timezone, coverage, or accounting method\"\n}\n"
+    }
+  ]
+}
