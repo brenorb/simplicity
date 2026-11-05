@@ -41,6 +41,8 @@ main = do
     [] -> runAll
     ["run"] -> runAll
     ["run", prefix] -> runSome prefix
+    ["run-one", ident] -> runExactly ident
+    ["aggregate"] -> aggregateAll
     ["verify", prefix] -> verifySome prefix
     ["profile", i] -> profileOne i
     ["time", i] -> timeOne i
@@ -57,7 +59,7 @@ main = do
       ok <- evaluate (FS.verify FS.realistic (FS.prove FS.realistic))
       print ok
       unless ok exitFailure
-    _ -> putStrLn "usage: jet-discovery [run [prefix] | verify <prefix> | profile <id> | time <id> | index | metadata | fingerprint | candidates | stark-reference]"
+    _ -> putStrLn "usage: jet-discovery [run [prefix] | run-one <exact-id> | aggregate | verify <prefix> | profile <id> | time <id> | index | metadata | fingerprint | candidates | stark-reference]"
 
 -- Inventory only: force no Simplicity expression, cost or proof. Keeping this
 -- in the ordinary executable avoids separate GHCi/Backpack package loading.
@@ -99,6 +101,31 @@ runAll = do
   writeIndex
   fp <- sourceFingerprint
   rs <- mapM (runCached fp) =<< corpus
+  assertFingerprint fp
+  writeReports fp rs
+
+-- Strict aggregation never rebuilds a missing/failed/stale entry in the
+-- parent. Each expensive expression can be completed in its own process.
+aggregateAll :: IO ()
+aggregateAll = do
+  fp<-sourceFingerprint
+  es<-corpus
+  rs<-mapM (\e->do
+    saved<-loadResult (checkpointDirectory fp) fp e
+    case saved of
+      Just r | vectorsOk r -> return r
+      _ -> putStrLn("missing, stale or failed checkpoint: "++entryId e)>>exitFailure) es
+  assertFingerprint fp
+  writeIndex
+  writeReports fp rs
+
+assertFingerprint :: String -> IO ()
+assertFingerprint fp=do
+  current<-sourceFingerprint
+  unless(current==fp) $ putStrLn "source/executable fingerprint changed during run" >> exitFailure
+
+writeReports :: String -> [EntryResult] -> IO ()
+writeReports fp rs = do
   let bad = filter (not . vectorsOk) rs
   unless (null bad) $ do
     putStrLn ("FAILED; generated analysis reports preserved: " ++ unwords (map (entryId . erEntry) bad))
@@ -158,6 +185,7 @@ runAll = do
     , ""
     , groupsMarkdown corpusTotal 40 exact ]
   putStrLn ("all " ++ show (length rs) ++ " corpus programs pass their vectors")
+  assertFingerprint fp
  where
   header = unlines
     [ "# Corpus results"
@@ -195,12 +223,26 @@ runSome prefix = do
   unless (null bad) $ putStrLn ("FAILED: " ++ unwords (map (entryId . erEntry) bad)) >> exitFailure
   putStrLn (show (length rs) ++ " programs pass")
 
+-- Exact selection prevents prefix collisions when an external coordinator
+-- launches one process per entry under the same frozen executable path.
+runExactly :: String -> IO ()
+runExactly ident=do
+  es<-filter((==ident).entryId) <$> corpus
+  case es of
+    [e]->do
+      fp<-sourceFingerprint
+      r<-runCached fp e
+      unless(vectorsOk r) $ putStrLn("FAILED: "++ident)>>exitFailure
+      assertFingerprint fp
+      putStrLn(ident++" exact-entry checkpoint verified")
+    _->putStrLn("expected exactly one registered ID: "++ident)>>exitFailure
+
 -- Plain-data checkpoints let an interrupted multi-hour run resume without
 -- retaining every term interpreter graph. Fingerprints bind sources, vectors,
 -- build settings, and the actual executable; stale or failing rows rerun.
 runCached :: String -> Entry -> IO EntryResult
 runCached fp e = do
-  let dir="dist-newstyle/jet-discovery-results"
+  let dir=checkpointDirectory fp
   cached<-loadResult dir fp e
   case cached of
     Just r | vectorsOk r -> do
@@ -215,6 +257,9 @@ runCached fp e = do
       case detached of
         Just result -> return result
         Nothing -> error "snapshot round-trip failed"
+
+checkpointDirectory :: String -> FilePath
+checkpointDirectory fp="dist-newstyle/jet-discovery-results/"++fp
 
 runOne :: Entry -> IO EntryResult
 runOne e = do

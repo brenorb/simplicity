@@ -151,7 +151,8 @@ main = defaultMain $ testGroup "jet-discovery"
             return dir
       bracket acquire removeDirectoryRecursive $ \dir -> do
         let program=Prog (((witness (w256FromBytes (BS.replicate 32 0))) &&& konst (w256FromBytes (BS.replicate 32 1))) >>> sha256Pair >>> unit)
-            entry=Entry "checkpoint-unit" "checkpoint fixture" "library SHA256" BitcoinApp (Derived "local fixture") [] (const program) [Vector "honest" (const (Just env)) () Accept]
+            entryFor name expected=Entry "checkpoint-unit" "checkpoint fixture" "library SHA256" BitcoinApp (Derived "local fixture") [] (const program) [Vector name (const (Just env)) () expected]
+            entry=entryFor "honest" Accept
             result=runEntry entry
         saveResult dir "current-inputs" result
         loaded<-loadResult dir "current-inputs" entry
@@ -164,6 +165,10 @@ main = defaultMain $ testGroup "jet-discovery"
             map niCmr (mProfile (erMeasure r)) @?= map niCmr (mProfile (erMeasure result))
         stale<-loadResult dir "changed-inputs" entry
         assertBool "stale inputs cannot reuse a measurement" (isNothing stale)
+        renamed<-loadResult dir "current-inputs" (entryFor "renamed" Accept)
+        assertBool "same-length renamed vector cannot reuse a measurement" (isNothing renamed)
+        changedExpectation<-loadResult dir "current-inputs" (entryFor "honest" Reject)
+        assertBool "changed expected outcome cannot reuse a measurement" (isNothing changedExpectation)
   , testCase "assumed witness budget uses CompactSize boundaries" $ do
       assumedWitnessStackBytes [] @?= 1
       map assumedWitnessStackBytes [[252],[253],[65535],[65536],[4294967296]] @?= [254,257,65539,65542,4294967306]

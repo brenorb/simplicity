@@ -67,9 +67,10 @@ loadResult dir fp e = do
   if not exists then return Nothing else do
     contents<-readFile path
     return $ case readMaybe contents of
-      Just s@(Snapshot 2 stored ident _ vs) | stored==fp && ident==entryId e && length vs==vectorCount e -> Just (unpack e s)
+      Just s@(Snapshot 2 stored ident _ vs) | stored==fp && ident==entryId e &&
+        [(name,expected)|(name,expected,_,_)<-vs]==vectorHeaders e -> Just (unpack e s)
       _ -> Nothing
- where vectorCount (Entry _ _ _ _ _ _ _ vs)=length vs
+ where vectorHeaders (Entry _ _ _ _ _ _ _ vs)=[(vecName v,vecExpect v==Accept)|v<-vs]
 
 -- Hash inputs, not generated reports or build products. Changing any local
 -- source, vector/spec, in-tree Haskell/C source, or project build settings

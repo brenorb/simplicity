@@ -66,6 +66,44 @@ retained as build diagnostics, not passing upstream tests.
 
 ## Long-run checkpoints and resource use
 
+The final full-corpus path uses a fresh process for each exact registered ID:
+`python3 tools/run_isolated.py --runner <built-executable> --label <cohort> --heap 64G`.
+Build all library/executable/test targets first and freeze source/spec/vector
+files throughout the cohort. The coordinator copies the executable once to
+an immutable hash-named path. That same path and byte hash, plus the strict
+global source fingerprint, bind every child and the final aggregation.
+Each child runs `run-one <exact-id>`; prefix matches are rejected. Heap size
+is a runtime resource cap, not a changed mathematical parameter.
+
+Checkpoints live under `dist-newstyle/jet-discovery-results/<fingerprint>/`.
+They retain all numeric costs, candidate counts/scenarios, typed profiles,
+CMRs, ablations and vector outcomes as plain data. Both vector names and
+expected outcomes must match the current entry, in order; equal counts alone
+are insufficient. Profile-total/root consistency and all outcomes must pass.
+Namespaced paths prevent another preliminary binary from overwriting a final
+row. Source/executable hashes are checked before and after children and the
+cohort; actual exit, log SHA256, checkpoint SHA256 and elapsed time are saved.
+
+The final `aggregate` command refuses any missing, stale or failing row and
+never compiles a fallback expression. It loads all verified compact profiles
+for complete mining and report generation. The two small BIP341 cost-only
+stand-in variants remain measured there and are never executed. This process
+boundary lets an individual program share a complete transform DAG without
+retaining that graph while another program runs. Global hashing and all
+vector/measurement checks remain intact; no per-entry cache weakening or
+serialized expression substitution is used.
+
+`--only` is explicitly development coverage and never generates the full
+reports. A recorded arithmetic control and its `--resume` pass are under
+`data/isolated-control-arithmetic/`; strict rejection of missing rows without
+rewriting existing reports is in `data/isolated-strict-aggregation-rejection.json`.
+The separate3GiB baseline control exhausted its heap during primitive-only
+analysis (`data/isolated-control-baseline/`), so it receives no pass credit.
+The42-test source includes same-length vector-name and expectation-mismatch
+regressions, with the targeted completed check in
+`data/isolated-checkpoint-header-guards.{txt,json}`. The source-mtime check is
+an additional stale-build guard; it is explicitly not compiler attestation.
+
 The runner logs every measurement phase and every actual vector outcome.
 Before evaluating vectors it fully forces the saved profile's hashes, shape,
 costs, multiplicities, node counts and types; the compact record can then
