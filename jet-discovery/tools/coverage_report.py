@@ -49,6 +49,10 @@ def classify_contract(dataset,r):
         cat=r['category']
         if cat=='CEX':
             return [],'NOT_A_CONTRACT','Custodial holdings are not an enforceable contract port; reserve/liability attestations require a separately specified statement.'
+        if r['slug']=='sky-lending':
+            return ['app-maker-clipper-partial-liquidation'],'SOURCE_DERIVED_LIQUIDATION_PROFILE','Native Clipper-derived partial debt liquidation, exact funded bids, dust/cap arithmetic and terminal surplus. This is a bounded pinned Maker DSS path, not evidence of the composition or full behavior of the ranked Sky Lending TVL.'
+        if r['slug']=='compound-v3':
+            return ['app-interest-accruing-loan-rollover','ethsol-lending-liquidation'],'RELATED_PREDECESSOR_AND_PROXY','Native CToken-era indexed accounting and collateral proxy; the named Compound V3 Comet implementation and asset/state model are distinct and not ported.'
         if cat in ['Lending','CDP']:
             return ['ethsol-lending-liquidation','app-median-oracle-settlement'],'PROXY_NATIVE_COLLATERAL','Bounded BTC liquidation/oracle settlement patterns only; named protocol debt accrual, assets, collateral configuration and full state machine are not implemented.'
         if cat in ['Liquid Staking','Staking Pool','Restaking']:

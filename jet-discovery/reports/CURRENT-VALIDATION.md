@@ -1,7 +1,7 @@
 # Current validation checkpoint
 
-The source milestone contains148 registered rows,144 distinct counting groups
-and101 complete bounded spend/verifier groups. It does **not** meet the150-group
+The source milestone contains149 registered rows,145 distinct counting groups
+and102 complete bounded spend/verifier groups. It does **not** meet the150-group
 target. Old49-row cost/recommendation tables are historical and explicitly
 withdrawn pending a complete fresh run. Vector-only evidence below supplies no
 missing cost, profile, serialization or ablation numbers.
@@ -20,6 +20,7 @@ missing cost, profile, serialization or ablation numbers.
 | Optimistic assertion bonds | All 42 native UMA lifecycle vectors, 41 rounding checks, and all 11 linked wire/C/Haskell/CSV positives pass; [scope](UMA-BOND.md) | Fresh shared metrics; fixed arbitrator and deadline race explicit |
 | Funded Sablier cliff stream | All 38 native lifecycle vectors, 59 schedule checks and all 13 accepted wire/C/Haskell/ancestry controls pass; [scope](SABLIER-STREAM.md) | Fresh shared metrics; native signed cancellation valuation and freshness trust |
 | Cumulative pull payments | All 28 native vectors pass, including genuine two-input payout control, lifetime rounding and actual continuation; [scope](CUMULATIVE-SPLITTER.md) | Fresh shared metrics; one native BTC lineage and immutable payees |
+| Maker Clipper partial liquidation | All 51 native transaction vectors, 112 price and 248 fill checks, and 16 accepted wire/funding controls pass; [scope](CLIPPER-LIQUIDATION.md) | Fresh shared metrics; exact bounded whole-RAY quote and signed valuation, no current-time or Vat claim |
 | Native mutual cover | All 63 policy, solvency, claim outcome and payout vectors pass; [scope](NEXUS-MUTUAL-NATIVE.md) | Fresh shared metrics; bounded fixed assessor, distinct accepted/draw/denied deposit treatment |
 | Native Uniswap V2 fee-on pool | All 32 lifecycle vectors and 34 floor-square-root cases pass; [scope](UNISWAP-V2-POOL.md) | Fresh shared metrics; bounded two-class native coupon ledger and exact fee minting |
 | StableSwap and weighted pools | All 23 three-class StableSwap and 18 two-class weighted lifecycle vectors pass; [evidence](NATIVE-PROTOCOLS-VALIDATION.md) | Fresh shared metrics; fixed native rates, rounding and liquidity bounds, no foreign asset-ledger equivalence |
