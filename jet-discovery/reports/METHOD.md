@@ -111,10 +111,11 @@ the signed previous file at `base/tools/run_isolated.py`, and copy
 to `verify_mock.py`, then run `python3 verify_mock.py` there.
 
 On the 128 GiB measurement host, the earlier full STARK used 65.02 GiB of
-RTS-reported memory. To overlap that class with ordinary work, keep the
-original `--last` list and add `--start-tail-first stark-fibonacci-full`
-with `--jobs 2 --heap 36G --tail-heap 64G`. A separately selected
-`--light <exact-id> ... --light-heap 12G` lane can run beside them. While
+RTS-reported memory. The final cohort kept the original `--last` list and
+added `--start-tail-first stark-fibonacci-full --jobs 2 --heap 40G --tail-heap 64G`.
+It selected 17 exact entries for an 8 GiB light lane using
+`--light <exact-id> ... --light-heap 8G`. The terminal manifest records that
+exact list and every child command. While
 tail work remains, there is at most one tail, one ordinary and one light
 process. The ordinary lane can use both slots once the tail is empty.
 The scheduler bounds the sum of the configured RTS heap caps at 112 GiB;

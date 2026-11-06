@@ -90,14 +90,14 @@ for rank,(a,v) in enumerate(gas.most_common(),1):
 with (out/'ethereum-gas-ranking.tsv').open('w') as f:
  w=csv.writer(f,delimiter='\t',lineterminator='\r\n');w.writerow(['rank_all_recipients','rank_nonempty_code','recipient','label','gas_used','transactions','has_execution_code','code_bytes','input_selectors','utxo_verdict_reason']);w.writerows(erows)
 
-b=json.loads((data/'solana-finalized-block.json').read_text())['result'];cu=collections.Counter();calls=collections.Counter();missing=0;truncated=0
+b=json.loads((data/'solana-finalized-block.json').read_text())['result'];cu=collections.Counter();calls=collections.Counter();invocations=collections.Counter();missing=0;truncated=0
 for tx in b['transactions']:
  logs=tx['meta'].get('logMessages')
  if logs is None:missing+=1;continue
  stack=[]
  for line in logs:
   m=re.fullmatch(r'Program (\S+) invoke \[(\d+)\]',line)
-  if m:stack.append([m.group(1),0]);continue
+  if m:invocations[m.group(1)]+=1;stack.append([m.group(1),0]);continue
   m=re.fullmatch(r'Program (\S+) consumed (\d+) of (\d+) compute units',line)
   if m:
    name,value=m.group(1),int(m.group(2));assert stack and stack[-1][0]==name
@@ -110,7 +110,9 @@ for tx in b['transactions']:
  if stack:truncated+=1
 observed=sum(cu.values());total=sum(tx['meta'].get('computeUnitsConsumed',0) for tx in b['transactions'])
 solknown={'pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ':('Pump fee program','Fee-rate calculation and multi-recipient payout splitting fit an output covenant; dynamic protocol configuration needs committed or authenticated state.'),'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA':('PumpSwap AMM','Reserve-state AMM transition fits a covenant with explicit asset representation.'),'6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P':('Pump.fun','Bonding-curve arithmetic and payout covenant fit; token mint/state representation must be specified.'),'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL':('SPL Associated Token Account','Account-address derivation is specific to Solana; Bitcoin outputs already identify ownership. Not a direct application port.'),'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb':('SPL Token-2022','Transfer authorization fits a UTXO; account extensions and token supply need explicit asset semantics.'),'whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc':('Orca Whirlpool','Concentrated-liquidity tick arithmetic and per-position state fit a serialized pool UTXO.'),'cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG':('Meteora DAMM v2','Reserve/invariant arithmetic and fee allocation fit a pool UTXO with explicit asset semantics.')}
-lines+=['','## Solana compute use: one complete finalized block','','Slot465608975 (`'+b['blockhash']+'`), timestamp '+datetime.datetime.fromtimestamp(b['blockTime'],datetime.timezone.utc).isoformat()+'. Inspected all '+str(len(b['transactions']))+' transactions, '+str(missing)+' missing log arrays and '+str(truncated)+' unclosed invocation stacks. Rank uses exclusive compute from every `Program ... consumed` record, subtracting nested invocations to avoid double counting. Logged exclusive compute totals '+str(observed)+'; transaction metadata totals '+str(total)+'. The difference '+str(total-observed)+' is unassigned overhead/native work and is not allocated by guess. All logged programs are in the TSV. Current-block measurements are burst-sensitive.','','| rank | program | label | logged exclusive CU | invocations with CU logs | UTXO verdict / reason |','| ---: | --- | --- | ---: | ---: | --- |']
+unmetered=[f'`{name}` ({count} invocations)' for name,count in invocations.most_common() if name not in cu]
+unmetered_note=(' Invocations without any individual consumed record: '+', '.join(unmetered)+'.') if unmetered else ''
+lines+=['','## Solana compute use: one complete finalized block','','Slot465608975 (`'+b['blockhash']+'`), timestamp '+datetime.datetime.fromtimestamp(b['blockTime'],datetime.timezone.utc).isoformat()+'. Inspected all '+str(len(b['transactions']))+' transactions, '+str(missing)+' missing log arrays and '+str(truncated)+' unclosed invocation stacks. Rank uses exclusive compute from every `Program ... consumed` record, subtracting nested invocations to avoid double counting. Logged exclusive compute totals '+str(observed)+'; transaction metadata totals '+str(total)+'. The difference '+str(total-observed)+' is unassigned overhead/native work and is not allocated by guess. All '+str(len(cu))+' programs with a consumed record are ranked.'+unmetered_note+' Current-block measurements are burst-sensitive.','','| rank | program | label | logged exclusive CU | invocations with CU logs | UTXO verdict / reason |','| ---: | --- | --- | ---: | ---: | --- |']
 srows=[]
 for rank,(a,v) in enumerate(cu.most_common(),1):
  label,reason=solknown.get(a,('Unclassified program','Unclassified: no verified program implementation identified; a public program ID and compute total do not determine an enforceable Bitcoin predicate.'))

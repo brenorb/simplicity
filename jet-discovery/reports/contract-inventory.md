@@ -143,7 +143,7 @@ Block 26346924 (`0xed82034dba8f769dc199a8798b436f74a15be90d0903da55843042f2ab643
 
 ## Solana compute use: one complete finalized block
 
-Slot465608975 (`HWsZ8pvJRaiStzwNNYCn3tXfdVWkpCU6iweqMnoKkLES`), timestamp 2026-11-05T06:45:41+00:00. Inspected all 205 transactions, 0 missing log arrays and 0 unclosed invocation stacks. Rank uses exclusive compute from every `Program ... consumed` record, subtracting nested invocations to avoid double counting. Logged exclusive compute totals 7711520; transaction metadata totals 7751894. The difference 40374 is unassigned overhead/native work and is not allocated by guess. All logged programs are in the TSV. Current-block measurements are burst-sensitive.
+Slot465608975 (`HWsZ8pvJRaiStzwNNYCn3tXfdVWkpCU6iweqMnoKkLES`), timestamp 2026-11-05T06:45:41+00:00. Inspected all 205 transactions, 0 missing log arrays and 0 unclosed invocation stacks. Rank uses exclusive compute from every `Program ... consumed` record, subtracting nested invocations to avoid double counting. Logged exclusive compute totals 7711520; transaction metadata totals 7751894. The difference 40374 is unassigned overhead/native work and is not allocated by guess. All 64 programs with a consumed record are ranked. Invocations without any individual consumed record: `11111111111111111111111111111111` (183 invocations), `ComputeBudget111111111111111111111111111111` (178 invocations). Current-block measurements are burst-sensitive.
 
 | rank | program | label | logged exclusive CU | invocations with CU logs | UTXO verdict / reason |
 | ---: | --- | --- | ---: | ---: | --- |
