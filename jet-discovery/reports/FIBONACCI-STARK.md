@@ -1,12 +1,32 @@
 # Full Fibonacci STARK experiment
 
-**The corrected full-size verifier passed all eight proof vectors and cost
-1,497,462.342 WU under existing Bitcoin jets.** It accepts the honest proof
-and rejects all seven adversarial proofs under one commitment. The
-[complete standalone diagnostic](data/stark-full-pre-final-measurements.json)
-also records its primitive-only cost, overlays, ablations, encoding sizes
-and profile. It predates the full registry freeze. Use the final corpus
-fingerprint for cross-program and recommendation comparisons.
+**The full-size verifier passed all eight proof vectors in the frozen
+cohort and cost 1,497,462.342 WU under existing Bitcoin jets.** It accepts
+the honest proof and rejects all seven adversarial proofs under one
+commitment. See the [exact-entry run record](data/stark-final-run.json),
+[replay log](data/isolated-final-157-lf/stark-fibonacci-full-attempt1.txt),
+and [measured profile](data/stark-full-final.snapshot.gz). The result
+matches the [prior standalone diagnostic](data/stark-full-pre-final-measurements.json).
+
+| Full verifier scenario | Bound (WU) | Selected candidate occurrences |
+| --- | ---: | ---: |
+| Existing Bitcoin jets | **1,497,462.342** | — |
+| Primitive-only | 291,266,694,218.347 | — |
+| SHA-256 jets removed | 5,197,091,146.775 | — |
+| `m31_mul` only, **ESTIMATE** | 681,795.814 | 81,056 |
+| `qm31_mul` only, **ESTIMATE** | 281,743.926 | 5,066 |
+| `sha256_pair` only, **ESTIMATE** | 1,467,862.632 | 7,167 |
+| Combined overlay, **ESTIMATE** | **252,144.216** | `qm31_mul`: 5,066; `sha256_pair`: 7,167 |
+
+The jetted expression has 49,165 DAG nodes and 1,044,295 program bits;
+the honest vector uses 1,248,640 witness bits before stack framing.
+The overlays reprice the same expression. Their savings overlap and
+their assumed prices do not come from new C benchmarks.
+
+The fresh exact-entry run used a 64 GiB RTS cap. The coordinator records
+4,307.506 seconds and the RTS records 4,361.561 elapsed seconds and
+54,409,424,664 bytes of maximum Haskell residency. These describe the
+research runner, including profiling and vector evaluation.
 
 The earlier 1,416,983.723 WU expression allowed same-CMR witness splitting
 and supplies no current verifier cost. The corrected expression binds
@@ -149,14 +169,14 @@ QM31 multiply costs **240.889 WU**, with **5,066** selected calls contributing
 **1,220,343.674 WU** inclusively. QM31 multiply includes sixteen M31
 multiplications. Don't add those two totals or add either to the stage table.
 
-The [standalone native profile breakdown](data/stark-stage-pre-final.json)
-is reproducible from its [snapshot](data/stark-full-pre-final.snapshot.txt),
+The [frozen native profile breakdown](data/stark-stage-final.json) is
+reproducible from its [compressed snapshot](data/stark-full-final.snapshot.gz),
 [stage roots](data/stark-stage-roots.tsv) and [field roots](data/stark-field-roots.tsv):
 
 ```sh
 python3 tools/stark_stage_profile.py summarize \
   reports/data/stark-stage-roots.tsv reports/data/stark-field-roots.tsv \
-  reports/data/stark-full-pre-final.snapshot.txt
+  reports/data/stark-full-final.snapshot.gz
 ```
 
 To regenerate roots, run `python3 tools/stark_stage_profile.py probe` and
