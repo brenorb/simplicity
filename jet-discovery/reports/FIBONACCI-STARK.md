@@ -22,6 +22,11 @@ The jetted expression has 49,165 DAG nodes and 1,044,295 program bits;
 the honest vector uses 1,248,640 witness bits before stack framing.
 The overlays reprice the same expression. Their savings overlap and
 their assumed prices do not come from new C benchmarks.
+Under the [fixed first-vector stack scenario](METHOD.md), the framed stack
+is 286,695 bytes and the hypothetical budget is 286,745 WU. The isolated
+QM31 estimate fits by 5,001.074 WU; the combined estimate fits by
+34,600.784 WU. Bitcoin execution takes its budget from the caller, and
+these margins are not a deployment or encoding result.
 
 The fresh exact-entry run used a 64 GiB RTS cap. The coordinator records
 4,307.506 seconds and the RTS records 4,361.561 elapsed seconds and

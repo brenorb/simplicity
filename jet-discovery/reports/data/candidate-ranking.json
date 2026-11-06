@@ -1,0 +1,443 @@
+[
+  {
+    "family": "p256_fe_multiply",
+    "frontends": [
+      "p256_fe_multiply"
+    ],
+    "groups": 2,
+    "matched_groups": 2,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 17422,
+    "native_mwu": 18466901872,
+    "client_mwu": 0,
+    "component_mwu": 0,
+    "weighted_saving_wu": "13850176.404",
+    "score": "9233450.936",
+    "generality": 2,
+    "burden": 3,
+    "tier": "maybe",
+    "rationale": "Non-native curve arithmetic; P256 Solinas reduction proof and canonical field contract.",
+    "tier_reason": "Dedicated reduction saves 9,233,450.936 WU in each of the two P-256-based predicates. Residual estimates of 826,747.503 WU for standalone verification and 829,907.725 WU for WebAuthn still exceed their 13,272- and 19,725-WU fixed-stack scenarios. Benchmark the field ABI and compare a reusable curve-level verifier."
+  },
+  {
+    "family": "multiply_256",
+    "frontends": [
+      "multiply_256"
+    ],
+    "groups": 10,
+    "matched_groups": 10,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 35689,
+    "native_mwu": 2686725360,
+    "client_mwu": 0,
+    "component_mwu": 57044960,
+    "weighted_saving_wu": "1684263.976",
+    "score": "2526395.964",
+    "generality": 3,
+    "burden": 2,
+    "tier": "maybe",
+    "rationale": "General wide product with expanded limb carry proof.",
+    "tier_reason": "The regular wide product matches ten groups; the largest savings are concentrated in Ed25519 and P-256, which remain above their fixed-stack scenarios. Compare generic limb arithmetic against dedicated reductions before selecting a width."
+  },
+  {
+    "family": "m31_mul",
+    "frontends": [
+      "m31_mul"
+    ],
+    "groups": 5,
+    "matched_groups": 5,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 81154,
+    "native_mwu": 815666528,
+    "client_mwu": 0,
+    "component_mwu": 986174,
+    "weighted_saving_wu": "407931.8814",
+    "score": "815863.7628",
+    "generality": 2,
+    "burden": 1,
+    "tier": "strong",
+    "rationale": "Small Mersenne-field multiplication with bounded folding proof.",
+    "tier_reason": "The full STARK accounts for most savings, and the isolated M31 overlay does not make it fit the fixed-stack scenario. Benchmark this small reusable primitive alongside QM31 because the proof burden is smaller; compare the overlapping savings and exact raw-word contract."
+  },
+  {
+    "family": "ed25519_fe_multiply",
+    "frontends": [
+      "ed25519_fe_multiply"
+    ],
+    "groups": 1,
+    "matched_groups": 1,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 5835,
+    "native_mwu": 2358810420,
+    "client_mwu": 0,
+    "component_mwu": 0,
+    "weighted_saving_wu": "1179405.21",
+    "score": "786270.14",
+    "generality": 2,
+    "burden": 3,
+    "tier": "maybe",
+    "rationale": "Non-native curve arithmetic;25519 reduction proof and canonical field contract.",
+    "tier_reason": "Large savings in one interoperability verifier still leave a substantial residual. Benchmark raw field reduction and compare the dedicated curve and SHA-512 pieces before pursuing this as a broadly demanded jet."
+  },
+  {
+    "family": "qm31_mul",
+    "frontends": [
+      "qm31_mul"
+    ],
+    "groups": 3,
+    "matched_groups": 3,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 5068,
+    "native_mwu": 1215718416,
+    "client_mwu": 0,
+    "component_mwu": 479952,
+    "weighted_saving_wu": "607907.2032",
+    "score": "607907.2032",
+    "generality": 2,
+    "burden": 2,
+    "tier": "strong",
+    "rationale": "Reusable degree4 extension multiplication; field-tower reduction proof.",
+    "tier_reason": "The full STARK crosses the fixed-stack scenario by 5,001.074 WU at this estimated price. Benchmark the extension multiply and exact input domain; the margin is conditional and M31 savings overlap."
+  },
+  {
+    "family": "div_mod_256",
+    "frontends": [
+      "div_mod_256"
+    ],
+    "groups": 7,
+    "matched_groups": 7,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 148,
+    "native_mwu": 224710537,
+    "client_mwu": 0,
+    "component_mwu": 2643724,
+    "weighted_saving_wu": "224974.9094",
+    "score": "337462.3641",
+    "generality": 3,
+    "burden": 2,
+    "tier": "strong",
+    "rationale": "Wide integer division across fixed-point/state accounting; total zero-divisor convention needs exact proof.",
+    "tier_reason": "The estimate crosses the fixed-stack scenario for bounded Uniswap V3 (22,235.642 to 9,708.540 WU against 12,694) and LMSR (17,404.636 to 16,082.774 WU against 16,379). It also materially reduces Balancer and Pendle. Benchmark exact full-width and normalized narrow division separately: the limb proxy is incomplete."
+  },
+  {
+    "family": "keccak_f1600",
+    "frontends": [
+      "keccak_f1600"
+    ],
+    "groups": 12,
+    "matched_groups": 12,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 94,
+    "native_mwu": 460096480,
+    "client_mwu": 0,
+    "component_mwu": 80516884,
+    "weighted_saving_wu": "411786.3496",
+    "score": "308839.7622",
+    "generality": 3,
+    "burden": 4,
+    "tier": "strong",
+    "rationale": "Reusable permutation across Ethereum commitments, bridge messages and SHAKE; new permutation proof.",
+    "tier_reason": "One permutation matches 12 distinct groups and changes fixed-stack fit in 11 budget-applicable programs. FairSwap falls from 93,362.551 to 1,343.255 WU at the estimate. Benchmark the reusable permutation for hash, bridge, permit, oracle and compressed asset paths before bundling address recovery."
+  },
+  {
+    "family": "sha256_wots_chain_16",
+    "frontends": [
+      "sha256_wots_chain_16",
+      "sha256_wots_chain_16_fixed"
+    ],
+    "groups": 2,
+    "matched_groups": 2,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 277,
+    "native_mwu": 256129098,
+    "client_mwu": 0,
+    "component_mwu": 0,
+    "weighted_saving_wu": "128064.549",
+    "score": "192096.8235",
+    "generality": 3,
+    "burden": 2,
+    "tier": "strong",
+    "rationale": "Generic bounded tweaked SHA256 chain, reusing compression correctness.",
+    "tier_reason": "Prioritize the fixed-prefix frontend: both stateless variants cross their fixed-stack scenarios and share one counting group. The separate stateful group uses the generic frontend; its overlay prices the observed 18-byte buffer, and the unrestricted 30-compression path needs a separate price."
+  },
+  {
+    "family": "multiply_128",
+    "frontends": [
+      "multiply_128"
+    ],
+    "groups": 18,
+    "matched_groups": 18,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 2828,
+    "native_mwu": 36096336,
+    "client_mwu": 0,
+    "component_mwu": 8597376,
+    "weighted_saving_wu": "36829.6416",
+    "score": "110488.9248",
+    "generality": 3,
+    "burden": 1,
+    "tier": "maybe",
+    "rationale": "General wide product with reusable limb carry proof.",
+    "tier_reason": "This small carry proof has exact matches across 18 groups. The isolated estimate crosses the LMSR scenario by only 191.272 WU; larger savings in some pool predicates leave substantial residuals. Benchmark it against composition from existing Multiply64."
+  },
+  {
+    "family": "ecrecover",
+    "frontends": [
+      "ecrecover"
+    ],
+    "groups": 6,
+    "matched_groups": 6,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 43,
+    "native_mwu": 253547574,
+    "client_mwu": 0,
+    "component_mwu": 6036847,
+    "weighted_saving_wu": "194688.31575",
+    "score": "97344.157875",
+    "generality": 2,
+    "burden": 4,
+    "tier": "maybe",
+    "rationale": "Ethereum-address identities; recovery uniqueness, affine encoding and Keccak proofs.",
+    "tier_reason": "The Ethereum-style bridge, permit and oracle paths benefit. In the quorum example the combined estimate with Keccak fits where either candidate alone does not. Benchmark reusable recovery to a point plus a separate permutation before fixing the Ethereum address and failure ABI."
+  },
+  {
+    "family": "div_mod_512",
+    "frontends": [
+      "div_mod_512"
+    ],
+    "groups": 8,
+    "matched_groups": 8,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 141,
+    "native_mwu": 26012420,
+    "client_mwu": 0,
+    "component_mwu": 497952040,
+    "weighted_saving_wu": "68375.504",
+    "score": "68375.504",
+    "generality": 3,
+    "burden": 3,
+    "tier": "maybe",
+    "rationale": "Large division and quotient/remainder proof; wide state and zero-divisor convention.",
+    "tier_reason": "The bounded Curve invariant still costs 38,396.334 WU against its 5,206-WU scenario; the full StableSwap pool has no exact match. The only fit change is in the BN254 Fp2 kernel. Benchmark unrestricted and normalized division separately; the 512-by-256 price proxy is incomplete."
+  },
+  {
+    "family": "sha512_compress",
+    "frontends": [
+      "sha512_compress"
+    ],
+    "groups": 4,
+    "matched_groups": 4,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 18,
+    "native_mwu": 27181845,
+    "client_mwu": 65236428,
+    "component_mwu": 5436369,
+    "weighted_saving_wu": "31530.9402",
+    "score": "47296.4103",
+    "generality": 3,
+    "burden": 2,
+    "tier": "strong",
+    "rationale": "General hash/HMAC/Ed25519 workload;64-bit SHA2 schedule proof.",
+    "tier_reason": "The estimate brings the native BIP32 withdrawal below its fixed-stack scenario. The same compression is useful in HMAC, Ed25519 and BIP47 client work, which is reported separately. Benchmark the reusable block primitive."
+  },
+  {
+    "family": "sha256_pair",
+    "frontends": [
+      "sha256_pair"
+    ],
+    "groups": 7,
+    "matched_groups": 7,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 7202,
+    "native_mwu": 29744260,
+    "client_mwu": 0,
+    "component_mwu": 0,
+    "weighted_saving_wu": "14944.405",
+    "score": "44833.215",
+    "generality": 3,
+    "burden": 1,
+    "tier": "maybe",
+    "rationale": "General two-block SHA256 helper; existing compression and padding proof patterns.",
+    "tier_reason": "A simple Merkle helper has several direct matches and a reusable proof path. Compare its smaller savings and the full verifier residual with existing two-compression composition before adding a separate fixed-size jet."
+  },
+  {
+    "family": "blake3_compress_cv",
+    "frontends": [
+      "blake3_compress_cv"
+    ],
+    "groups": 1,
+    "matched_groups": 1,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 33,
+    "native_mwu": 0,
+    "client_mwu": 0,
+    "component_mwu": 129060855,
+    "weighted_saving_wu": "12906.0855",
+    "score": "12906.0855",
+    "generality": 2,
+    "burden": 2,
+    "tier": "maybe",
+    "rationale": "Reusable BLAKE3 chaining and 256-bit root output; new seven-round schedule and feed-forward proof over established word operations.",
+    "tier_reason": "The bounded BitVM-style tree-hash component has substantial savings but remains one use family. Benchmark the raw CV/first-output-block ABI and compare it with smaller round helpers before proposing a jet."
+  },
+  {
+    "family": "ripemd160_compress",
+    "frontends": [
+      "ripemd160_compress"
+    ],
+    "groups": 5,
+    "matched_groups": 5,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 5,
+    "native_mwu": 4910840,
+    "client_mwu": 4910840,
+    "component_mwu": 2455420,
+    "weighted_saving_wu": "5647.466",
+    "score": "8471.199",
+    "generality": 3,
+    "burden": 2,
+    "tier": "maybe",
+    "rationale": "Bitcoin HASH160 interoperability; new dual-lane compression proof.",
+    "tier_reason": "Several Bitcoin HASH160 and interoperability paths match the same compression. Verify whether a compression jet changes spend fit often enough to justify the new dual-lane proof alongside the broader SHA candidates."
+  },
+  {
+    "family": "koalabear_add",
+    "frontends": [
+      "koalabear_add"
+    ],
+    "groups": 1,
+    "matched_groups": 1,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 1884,
+    "native_mwu": 0,
+    "client_mwu": 0,
+    "component_mwu": 6382992,
+    "weighted_saving_wu": "638.2992",
+    "score": "1276.5984",
+    "generality": 2,
+    "burden": 1,
+    "tier": "maybe",
+    "rationale": "Exact32-bit wrap-add/single-subtract helper in published/deployed KoalaBear16 Poseidon2, with total noncanonical-word semantics. C needs add/subtract/select; existing32-bit carry/borrow proof patterns apply. Current demand is one component family, not a new full application.",
+    "tier_reason": "The exact wrap-and-reduce helper gives a meaningful saving in one deployed-source Poseidon2 component and has a small proof burden. More application evidence is needed before prioritizing a prime-specific add."
+  },
+  {
+    "family": "bn254_fp_multiply",
+    "frontends": [
+      "bn254_fp_multiply"
+    ],
+    "groups": 2,
+    "matched_groups": 2,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 4,
+    "native_mwu": 0,
+    "client_mwu": 0,
+    "component_mwu": 15202440,
+    "weighted_saving_wu": "1520.244",
+    "score": "760.122",
+    "generality": 2,
+    "burden": 4,
+    "tier": "maybe",
+    "rationale": "Generic254-bit reduction supports Groth16/BitVM arithmetic; new prime/reduction proof.",
+    "tier_reason": "The measured base- and extension-field kernels show substantial local savings and a plausible BitVM proof path. Benchmark canonical input and output conversion before valuing a pairing verifier; only the dense multiplication component is modeled."
+  },
+  {
+    "family": "blake2b_compress",
+    "frontends": [
+      "blake2b_compress"
+    ],
+    "groups": 1,
+    "matched_groups": 1,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 1,
+    "native_mwu": 0,
+    "client_mwu": 0,
+    "component_mwu": 4630337,
+    "weighted_saving_wu": "463.0337",
+    "score": "694.55055",
+    "generality": 3,
+    "burden": 2,
+    "tier": "rejected",
+    "rationale": "General64-bit compression; add/xor/rotate composition, new round proof.",
+    "tier_reason": "The fixed twelve-round final-block prototype matches its own kernel. It does not cover the Ethereum variable-round/final-flag ABI; the current corpus does not justify prioritizing this specialized arrow."
+  },
+  {
+    "family": "blake2s_compress",
+    "frontends": [
+      "blake2s_compress"
+    ],
+    "groups": 1,
+    "matched_groups": 1,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 1,
+    "native_mwu": 0,
+    "client_mwu": 0,
+    "component_mwu": 3252438,
+    "weighted_saving_wu": "325.2438",
+    "score": "487.8657",
+    "generality": 3,
+    "burden": 2,
+    "tier": "rejected",
+    "rationale": "General32-bit compression; add/xor/rotate composition, new round proof.",
+    "tier_reason": "The exact fixed final-block frontend only matches its own kernel and shares one counting group with BLAKE2b. Broader rounds or common G helpers need a distinct exact reference and new evidence."
+  },
+  {
+    "family": "signature_unpack",
+    "frontends": [
+      "signature_unpack"
+    ],
+    "groups": 1,
+    "matched_groups": 1,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 1,
+    "native_mwu": 213702,
+    "client_mwu": 0,
+    "component_mwu": 0,
+    "weighted_saving_wu": "106.851",
+    "score": "320.553",
+    "generality": 3,
+    "burden": 1,
+    "tier": "maybe",
+    "rationale": "General canonical Schnorr signature decode; field/scalar range proofs.",
+    "tier_reason": "A small field/scalar range proof is attractive, but direct measured demand is concentrated in variable-message CSFS. Compare shared range checks and full Schnorr verification before selecting the frontend."
+  },
+  {
+    "family": "secp256k1_ecdsa_verify",
+    "frontends": [
+      "secp256k1_ecdsa_verify"
+    ],
+    "groups": 3,
+    "matched_groups": 3,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 7,
+    "native_mwu": 148161,
+    "client_mwu": 888966,
+    "component_mwu": 0,
+    "weighted_saving_wu": "162.9771",
+    "score": "162.9771",
+    "generality": 3,
+    "burden": 3,
+    "tier": "maybe",
+    "rationale": "Known-key external signatures; existing group/scalar lemmas, new ECDSA equivalence.",
+    "tier_reason": "Known-key ECDSA can reuse existing curve proofs. The corpus separates client signatures and native predicates, and the current price omits two scalar multiplications and range/control work. Benchmark exact affine and scalar checks first."
+  },
+  {
+    "family": "pubkey_unpack_neg",
+    "frontends": [
+      "pubkey_unpack_neg"
+    ],
+    "groups": 1,
+    "matched_groups": 1,
+    "zero_selected_saving_groups": 0,
+    "occurrences": 1,
+    "native_mwu": 106653,
+    "client_mwu": 0,
+    "component_mwu": 0,
+    "weighted_saving_wu": "53.3265",
+    "score": "159.9795",
+    "generality": 3,
+    "burden": 1,
+    "tier": "maybe",
+    "rationale": "General canonical Schnorr key decode; range and field-negation proof.",
+    "tier_reason": "A cheap parser primitive with small isolated savings in variable-key CSFS. Existing complete Schnorr jets hide the parser in many other entries, so benchmark the paired parser use before prioritizing."
+  }
+]

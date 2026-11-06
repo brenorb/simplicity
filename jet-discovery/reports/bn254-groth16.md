@@ -5,10 +5,10 @@ The corpus measures two actual Simplicity expressions:
 exact 256-by-256 multiplication and 512-bit modular division; the latter
 uses three such multiplications in a Karatsuba product over `u² = -1`.
 Both validate canonical operands and check the computed result against an
-independent Haskell Integer reference. The complete two-entry analysis ran all
-12 vectors successfully (7 Fp and 5 Fp2). It measured the native bounds and
-applied the hypothetical Fp candidate in isolation, leaving the outer wrappers
-unchanged. A separate typed-arrow measurement removes those wrappers.
+independent Haskell Integer reference. The frozen full cohort passed all 12
+vectors (7 Fp and 5 Fp2). It measured the native bounds and applied the
+hypothetical Fp candidate in isolation, leaving the outer wrappers unchanged.
+A separate typed-arrow measurement removes those wrappers.
 
 | Expression | Actual native bound (WU) | Selected Fp matches | Isolated Fp overlay (WU, ESTIMATE) |
 | --- | ---: | ---: | ---: |
@@ -20,11 +20,12 @@ unchanged. A separate typed-arrow measurement removes those wrappers.
 The overlay price is 1.626 WU from twice the in-tree `FeMultiply` benchmark,
 plus the cost algebra's 0.100 WU jet overhead per call. Bare-arrow overlay
 values are derived from that price and reconcile with the two observed
-same-context overlays. See the [vector and static analysis log](data/bn254-pre-final-complete-analysis.txt),
-[typed-arrow log](data/bn254-typed-kernel-costs.txt) and
-[parsed snapshot evidence](data/bn254-pre-final-measurements.json). These
-measurements predate the final shared cohort. No Groth16 verifier was run or
-counted.
+same-context overlays. See the exact [Fp replay](data/isolated-final-157-lf/eprint-bn254-fp-multiply-attempt1.txt),
+[Fp2 replay](data/isolated-final-157-lf/eprint-bn254-fp2-multiply-attempt1.txt),
+[typed-arrow log](data/bn254-typed-kernel-costs.txt), and
+[final model record](data/bn254-groth16-estimate.json). The wrapped results
+agree with the [standalone measurements](data/bn254-pre-final-measurements.json).
+No Groth16 verifier was run or counted.
 
 The deployment path is Bitcoin bridge verification/disputes, documented by
 [BitVM2](https://eprint.iacr.org/2025/1158) and
@@ -78,18 +79,18 @@ checks and encoding. Dense assumptions overprice operations a real pairing
 can optimize, while omissions underprice the remaining work. The estimates
 therefore bound neither side of the cost of an optimized full pairing check.
 
-Reproduce the model from its [pre-final measurement packet](data/bn254-groth16-pre-final-estimate.json):
+Reproduce the [final model](data/bn254-groth16-estimate.json) with the same
+frozen runner from the terminal cohort manifest:
 
 ```bash
-python3 tools/bn254_extrapolate.py --pre-final
+python3 tools/bn254_extrapolate.py --runner <same-frozen-runner>
 ```
 
-The script verifies both successful log hashes, the BN254 source hash,
-both vector counts and snapshot hashes, and the identity between wrapped
-and bare scenarios. For the fresh full-run version use
-`python3 tools/bn254_extrapolate.py --runner <same-frozen-runner>`; that mode
-rejects a stale run fingerprint or failed/incomplete BN254 results. To
-repeat the local measurements, build the project as in [METHOD.md](METHOD.md)
+The script rejects a stale run fingerprint or failed/incomplete BN254
+results and reconciles wrapped and bare costs. The separate `--pre-final`
+mode reproduces the [standalone packet](data/bn254-groth16-pre-final-estimate.json)
+using its saved logs and snapshots. To repeat the local measurements,
+build the project as in [METHOD.md](METHOD.md)
 and run the built runner with `run eprint-bn254 +RTS -N1 -A16m -M8G -s -RTS`.
 Compile the standalone `tools/BN254KernelCost.hs` against the in-tree package
 via the local `dist-newstyle/packagedb/ghc-<version>` and `-isrc`, with an

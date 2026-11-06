@@ -1,5 +1,25 @@
 # Candidate: `blake3_compress_cv`
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Maybe**: The bounded BitVM-style tree-hash component has substantial savings but remains one use family. Benchmark the raw CV/first-output-block ABI and compare it with smaller round helpers before proposing a jet.
+
+Price: **0.535 WU (ESTIMATE)**. ESTIMATE: 7/10 of the BLAKE2s compression analogue (Sha256Block), scaled by 7 vs 10 rounds; no BLAKE3 C benchmark
+
+Matches in 1 of 157 registered rows: 1 matched DAG nodes across all branches, 33 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| crypto-blake3-tree-hash | kernel | 33 | 1 | 139,215.660 | 10,154.805 | 129,060.855 | no / no at 6756 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#blake3_compress_cv) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 The prototype is a local cost overlay. Its type is
 `(Vector8 Word32,(Vector16 Word32,(Word64,(Word32,Word32)))) -> Vector8 Word32`.
 Inputs are the eight chaining words, sixteen block words, the 64-bit counter,

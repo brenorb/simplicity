@@ -1,5 +1,27 @@
 # Candidate: `qm31_mul` — QM31 (degree-4 extension of M31) multiplication
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Strong**: The full STARK crosses the fixed-stack scenario by 5,001.074 WU at this estimated price. Benchmark the extension multiply and exact input domain; the margin is conditional and M31 savings overlap.
+
+Price: **0.813 WU (ESTIMATE)**. FeMultiply: 16 small-limb products and reductions, comparable to a 10x26-bit-limb secp256k1 field multiply
+
+Matches in 3 of 157 registered rows: 3 matched DAG nodes across all branches, 5,068 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| stark-qm31-mul | kernel | 1 | 1 | 245.781 | 5.805 | 239.976 | yes / yes at 387 WU |
+| stark-fri-fold | kernel | 1 | 1 | 346.899 | 106.923 | 239.976 | yes / yes at 487 WU |
+| stark-fibonacci-full | native_full_verifier | 5066 | 1 | 1,497,462.342 | 281,743.926 | 1,215,718.416 | no / yes at 286745 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#qm31_mul) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 ## Type signature
 `(((Word32, Word32), (Word32, Word32)), ((Word32, Word32), (Word32, Word32))) -> ((Word32, Word32), (Word32, Word32))`
 

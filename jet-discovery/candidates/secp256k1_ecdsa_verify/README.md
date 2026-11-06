@@ -1,5 +1,27 @@
 # secp256k1_ecdsa_verify
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Maybe**: Known-key ECDSA can reuse existing curve proofs. The corpus separates client signatures and native predicates, and the current price omits two scalar multiplications and range/control work. Benchmark exact affine and scalar checks first.
+
+Price: **94.293 WU (ESTIMATE)**. Sum of ScalarInvert, LinearCombination1, GejNormalize, GeIsOnCurve and ScalarNormalize benchmark analogues. This ESTIMATE omits two separate scalar multiplications and range/control overhead.
+
+Matches in 3 of 157 registered rows: 3 matched DAG nodes across all branches, 7 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| app-numeric-dlc-adaptor-cet | client | 2 | 1 | 4,083.550 | 3,787.228 | 296.322 | n/a (client) |
+| app-bip174-mixed-psbt-finalizer-extractor | client | 4 | 1 | 5,679.600 | 5,086.956 | 592.644 | n/a (client) |
+| xchain-secp256k1-ecdsa | native_full_verifier | 1 | 1 | 245.314 | 97.153 | 148.161 | yes / yes at 706 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#secp256k1_ecdsa_verify) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 Prototype only; no consensus jet, encoding, cost or existing implementation changes.
 
 - **Type** `(((Word256, Word256), Word256), (Word256, Word256)) -> ()`, interpreted as `((Q, z), (r, s))`. The caller supplies raw affine coordinate words, the digest word, and the two signature words. DER decoding, public-key decompression, transaction digest construction, and signature policy belong to the caller.

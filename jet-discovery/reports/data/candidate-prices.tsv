@@ -1,0 +1,24 @@
+candidate	cost_mwu_estimate	method
+koalabear_add	179	ESTIMATE: Add32 plus Subtract32 benchmark analogues for exact wrap-add and one conditional subtraction, q=2130706433; no C implementation/benchmark
+bn254_fp_multiply	1626	ESTIMATE: 2 x FeMultiply for a generic 254-bit Montgomery reduction; requires an implementation and benchmark
+secp256k1_ecdsa_verify	94293	Sum of ScalarInvert, LinearCombination1, GejNormalize, GeIsOnCurve and ScalarNormalize benchmark analogues. This ESTIMATE omits two separate scalar multiplications and range/control overhead.
+ecrecover	107232	ESTIMATE: existing secp256k1 operation benchmarks plus Keccak priced as 2 x Sha256Block
+m31_mul	174	2 x FullMultiply32: one 32x32 multiply plus a Mersenne fold of similar cost
+qm31_mul	813	FeMultiply: 16 small-limb products and reductions, comparable to a 10x26-bit-limb secp256k1 field multiply
+keccak_f1600	1530	2 x Sha256Block: software Keccak-f[1600] takes roughly twice a SHA-256 compression
+blake3_compress_cv	535	ESTIMATE: 7/10 of the BLAKE2s compression analogue (Sha256Block), scaled by 7 vs 10 rounds; no BLAKE3 C benchmark
+blake2s_compress	765	Sha256Block: BLAKE2s compression and SHA-256 compression cost about the same in software
+blake2b_compress	1147	1.5 x Sha256Block: BLAKE2b compresses 128 bytes with 64-bit words
+sha256_wots_chain_16	11475	15 x Sha256Block for the matched 18-byte buffer alignment; a caller-profile ESTIMATE. An unrestricted valid context can require 30 compressions.
+sha256_wots_chain_16_fixed	11475	ESTIMATE: 15 x Sha256Block for the fixed 18-byte-address n16 chain frontend; same primitive family as sha256_wots_chain_16
+sha256_pair	1530	2 x Sha256Block: SHA-256 of 64 bytes is two compressions
+pubkey_unpack_neg	656	FeNormalize analogue: one field-range check and a parity tag; the coordinate is returned unchanged
+signature_unpack	1156	FeNormalize + ScalarNormalize: range checks on r and s
+div_mod_256	676	4 x DivMod128_64, a limb-throughput ESTIMATE; it does not model every step of unrestricted 256-by-256 division.
+multiply_128	288	4 x Multiply64: four 64x64 products
+multiply_256	1152	16 x Multiply64: sixteen 64x64 products (schoolbook 256x256)
+div_mod_512	2704	16 x DivMod128_64, a 512-by-256 proxy ESTIMATE; the exact prototype accepts a full 512-bit divisor.
+ripemd160_compress	765	Sha256Block: RIPEMD-160 and SHA-256 compression cost about the same in software
+sha512_compress	1147	1.5 x Sha256Block: SHA-512 compresses 128 bytes with 64-bit words (as blake2b_compress)
+p256_fe_multiply	1219	1.5 x FeMultiply: a P-256 field multiply with Solinas reduction is somewhat slower than libsecp256k1's
+ed25519_fe_multiply	813	FeMultiply: 2^255-19 reduction is as cheap as secp256k1's (fold by 38)

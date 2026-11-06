@@ -1,5 +1,25 @@
 # Candidate: `sha256_wots_chain_16` — SHA-256 tweaked Winternitz chain (w = 16, n = 16)
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Strong**: Prioritize the fixed-prefix frontend: both stateless variants cross their fixed-stack scenarios and share one counting group. The separate stateful group uses the generic frontend; its overlay prices the observed 18-byte buffer, and the unrestricted 30-compression path needs a separate price.
+
+Price: **11.475 WU (ESTIMATE)**. 15 x Sha256Block for the matched 18-byte buffer alignment; a caller-profile ESTIMATE. An unrestricted valid context can require 30 compressions.
+
+Matches in 1 of 157 registered rows: 1 matched DAG nodes across all branches, 32 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| pq-shrincs-stateful | native_full_verifier | 32 | 1 | 15,175.556 | 8,335.428 | 6,840.128 | no / no at 3933 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#sha256_wots_chain_16) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 ## Type signature
 `(Ctx8, (Word4, Word128)) -> Word128`
 

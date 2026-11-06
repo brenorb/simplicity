@@ -1,5 +1,30 @@
 # ecrecover
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Maybe**: The Ethereum-style bridge, permit and oracle paths benefit. In the quorum example the combined estimate with Keccak fits where either candidate alone does not. Benchmark reusable recovery to a point plus a separate permutation before fixing the Ethereum address and failure ABI.
+
+Price: **107.232 WU (ESTIMATE)**. ESTIMATE: existing secp256k1 operation benchmarks plus Keccak priced as 2 x Sha256Block
+
+Matches in 6 of 157 registered rows: 6 matched DAG nodes across all branches, 43 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| xchain-eip712-permit | protocol_component | 1 | 1 | 24,042.559 | 18,005.712 | 6,036.847 | no / no at 6170 WU |
+| xchain-wormhole-13-of-19 | native_full_verifier | 19 | 1 | 128,724.783 | 14,024.690 | 114,700.093 | no / no at 5955 WU |
+| xchain-ecrecover | native_full_verifier | 1 | 1 | 6,147.718 | 110.871 | 6,036.847 | no / yes at 3734 WU |
+| app-permit2-bitmap-transfer | native_full_spend | 1 | 1 | 37,217.352 | 31,180.505 | 6,036.847 | no / no at 10154 WU |
+| app-vaa-bridge-replay-payout | native_full_spend | 19 | 1 | 136,523.527 | 21,823.434 | 114,700.093 | no / no at 12721 WU |
+| app-ocr-report-state-machine | native_full_spend | 2 | 1 | 31,208.149 | 19,134.455 | 12,073.694 | no / no at 8566 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#ecrecover) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 Prototype only; no consensus registration.
 
 - **Type:** `(Word256, (Word256, (Word256, Bit))) -> Word256`, interpreted as `(z, (r, (s, recoveryParity)))`; result is a 160-bit Ethereum address zero-extended to 256 bits. Parity corresponds to Ethereum v=27/28. EIP155 transaction-v decoding is outside this function.

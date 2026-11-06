@@ -1,5 +1,25 @@
 # koalabear_add
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Maybe**: The exact wrap-and-reduce helper gives a meaningful saving in one deployed-source Poseidon2 component and has a small proof burden. More application evidence is needed before prioritizing a prime-specific add.
+
+Price: **0.179 WU (ESTIMATE)**. ESTIMATE: Add32 plus Subtract32 benchmark analogues for exact wrap-add and one conditional subtraction, q=2130706433; no C implementation/benchmark
+
+Matches in 1 of 157 registered rows: 1 matched DAG nodes across all branches, 1,884 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| crypto-poseidon2-koalabear16 | kernel | 1884 | 1 | 10,947.177 | 4,564.185 | 6,382.992 | no / yes at 6723 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#koalabear_add) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 Prototype overlay only; no consensus registration, encoding or native C jet.
 
 - Type: `(Word32,Word32) -> Word32`.

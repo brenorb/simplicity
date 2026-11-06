@@ -1,5 +1,26 @@
 # Candidate: `sha256_wots_chain_16_fixed`
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Strong**: Prioritize the fixed-prefix frontend: both stateless variants cross their fixed-stack scenarios and share one counting group. The separate stateful group uses the generic frontend; its overlay prices the observed 18-byte buffer, and the unrestricted 30-compression path needs a separate price.
+
+Price: **11.475 WU (ESTIMATE)**. ESTIMATE: 15 x Sha256Block for the fixed 18-byte-address n16 chain frontend; same primitive family as sha256_wots_chain_16
+
+Matches in 2 of 157 registered rows: 2 matched DAG nodes across all branches, 420 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| pq-shrincs-stateless | native_full_verifier | 175 | 1 | 198,670.811 | 20,607.261 | 178,063.550 | no / yes at 23664 WU |
+| pq-slh-dsa-sha2-128s | native_full_verifier | 245 | 1 | 275,877.127 | 26,588.157 | 249,288.970 | no / yes at 29787 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#sha256_wots_chain_16_fixed) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 This is the fixed-width frontend of the SHA-256 WOTS chain primitive family.
 It makes the expensive verification step executable without carrying a
 variable-length SHA context through every chain. It is a candidate overlay

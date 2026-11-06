@@ -1,36 +1,76 @@
 # jet-discovery
 
-Corpus-driven discovery of missing Bitcoin Simplicity jets (goal: [GOAL.md](GOAL.md)).
+Corpus-driven discovery of missing Bitcoin Simplicity jets. [Research goal](GOAL.md)
 
-**Work in progress:** the registry has 157 rows in 150 distinct groups, including 108 full bounded spend/verifier groups. [Same-CMR witness aliasing](reports/WITNESS-DATAFLOW.md) and a [local outpoint byte-order error](reports/OUTPOINT-BYTEORDER.md) invalidated earlier evidence. Their local repairs pass the documented regressions; complete fresh measurements remain required. The corrected full-size STARK accepts its honest proof at1,497,462.342WU; complete corpus metrics are pending. See [current validation evidence](reports/CURRENT-VALIDATION.md).
+The complete corpus run passed all **2,698 vectors** across **157 registered
+programs** in **150 distinct groups**. **108 groups** are full bounded spend
+conditions or verifiers. The analysis covers **23 candidate frontends in 22
+families** and retains **335 source rows** across the proposal and contract
+inventories. [Terminal cohort](reports/data/isolated-final-157-lf/manifest.json)
+[Local validation](reports/data/final-validation.json)
+[Publication hashes](reports/data/recommendations-publication.json)
 
-- **Results:** [reports/RECOMMENDATIONS.md](reports/RECOMMENDATIONS.md) (ranked candidates, per-BIP verdicts),
-  [reports/corpus-results.md](reports/corpus-results.md), [reports/whatif.md](reports/whatif.md),
-  [reports/subdags.md](reports/subdags.md), [reports/ablations.md](reports/ablations.md),
-  [reports/mismatches.md](reports/mismatches.md).
-- **Source inventories:** [all open softfork BIPs and proposals](reports/BIP-INVENTORY.md), [eprint scan](reports/eprint-scan.md), [Ethereum/Solana demand](reports/contract-inventory.md), [period rankings and access gaps](reports/PERIOD-RANKINGS.md).
-- **New experiments:** [full Fibonacci STARK](reports/FIBONACCI-STARK.md), [STARK resource diagnostics](reports/STARK-DIAGNOSTICS.md), [BN254/Groth16 cost model](reports/bn254-groth16.md), [timed-signature implementation gap](reports/timed-signatures.md).
-- **Standard and application coverage:** [FIPS205 SLH-DSA baseline](reports/SLH-DSA-BASELINE.md), [EVICT, BIP322 and SPV applications](reports/BITCOIN-GROWTH.md), [silent payments and BIP127 reserve client](reports/BITCOIN-GROWTH2.md).
-- **Validated growth:** [native contract adaptations](reports/CONTRACT-GROWTH-VALIDATION.md), [numeric DLC](reports/NUMERIC-DLC.md), [BOLT12](reports/BOLT12-INVOICE.md), [current Bark hArk](reports/ARK-REFRESH-SCOPE.md), [compact filters](reports/COMPACT-FILTERS.md), [WebAuthn/Poseidon2/SHAKE256](reports/CRYPTO-FAMILIES.md), [transport primitives](reports/TRANSPORT-CRYPTO.md).
-- **Method:** [reports/METHOD.md](reports/METHOD.md).
-- **Corpus:** [corpus/README.md](corpus/README.md), with [explicit coverage and counting](reports/coverage-and-costs.md). The committed result tables still describe the earlier 49-row run while the expanded corpus is being verified. Sources live in `src/JetDiscovery/Corpus/`.
-- **Candidates:** [candidates/](candidates/) (one README per candidate jet).
-- **Vendored specs and vectors:** [vendor-specs/MANIFEST.md](vendor-specs/MANIFEST.md).
+- **Results** [Ranked recommendations and proposal verdicts](reports/RECOMMENDATIONS.md),
+  [per-program costs](reports/corpus-results.md), [combined overlays](reports/whatif.md),
+  [isolated candidate costs](reports/candidate-impact.md), [over-budget cost drivers](reports/budget-hotspots.md),
+  [sub-DAG mining](reports/subdags.md) and [ablations](reports/ablations.md).
+- **Source inventories** [Per-source verdicts and costs](reports/coverage-and-costs.md),
+  [open soft-fork BIPs and unnumbered proposals](reports/BIP-INVENTORY.md),
+  [ePrint scan](reports/eprint-scan.md), [Ethereum and Solana demand](reports/contract-inventory.md),
+  [period rankings and access gaps](reports/PERIOD-RANKINGS.md) and
+  [Ethereum precompiles and Solana syscalls](reports/CROSS-ECOSYSTEM-INTERFACES.md).
+- **Verifier studies** [Full Fibonacci STARK](reports/FIBONACCI-STARK.md),
+  [BN254 and the Groth16 arithmetic estimate](reports/bn254-groth16.md),
+  [FIPS205 SLH-DSA](reports/SLH-DSA-BASELINE.md) and
+  [verifiable timed signatures](reports/timed-signatures.md).
+- **Implementation and evidence** [Corpus specifications and vector scope](corpus/README.md),
+  [candidate prototypes](candidates/), [vendored specs and vectors](vendor-specs/MANIFEST.md),
+  [validation and archived development runs](reports/CURRENT-VALIDATION.md),
+  [upstream mismatches](reports/mismatches.md) and [method and limitations](reports/METHOD.md).
 
-Everything lives in this directory; no existing file in the repository is changed ([CHANGES_TO_EXISTING.md](CHANGES_TO_EXISTING.md)).
+Native costs are static bounds. Hypothetical jet prices and savings are
+estimates, and the witness-size fit calculation applies a stated budget
+scenario. Client verifiers are listed separately from on-chain spend
+conditions. The STARK is a custom M31-family proof profile with open
+soundness and wire-interoperability questions. The BN254 study measures
+field arithmetic and extrapolates a bounded pairing arithmetic scenario.
+The ePrint inventory records the retrieved metadata and its full-text review
+gaps. The Ethereum UTC-day ranking and the Soltop provider sample retain
+their distinct windows, metrics and missing Etherscan or Solscan datasets.
+[Method and limitations](reports/METHOD.md)
+[Ranking scope](reports/PERIOD-RANKINGS.md)
 
-```bash
+The task branch changes files only under `jet-discovery/`.
+[Scope record](CHANGES_TO_EXISTING.md)
+
+## Verify the signed reports
+
+Run this command from this directory at the signed report commit.
+
+```sh
+python3 -B tools/check_final_evidence.py --published-only \
+  --cohort reports/data/isolated-final-157-lf/manifest.json \
+  --harness reports/data/harness-final45.json
+```
+
+This checks the signed source and handoff history, archived logs, report
+hashes and the published STARK checkpoint and stage costs. The default
+audit additionally checks the original frozen executables and all local
+checkpoints and recomputes the path-bound fingerprint. Run the default
+audit in the measurement checkout. [Verification method](reports/METHOD.md#verification-burden-estimates)
+
+## Reproduce the run
+
+From this directory in a clean checkout, build the runner, choose a new
+cohort label, and keep all measured inputs frozen until strict aggregation.
+
+```sh
 nix-shell --run 'cabal build all test:tests'
-nix-shell --run 'cabal list-bin exe:jet-discovery'
+reproduction_runner=$(nix-shell --run 'cabal list-bin exe:jet-discovery')
+python3 tools/run_isolated.py --runner "$reproduction_runner" --label reproduced --heap 64G
 ```
 
-Use the printed executable path with
-`python3 tools/run_isolated.py --runner <path> --label <cohort> --heap 64G`.
-Freeze source/spec/vector files until the cohort finishes. It runs every
-exact ID in its own process, then strictly aggregates all verified profiles.
-`--resume` preserves the same fingerprint/path; a development `--only` run
-supplies no complete-corpus claim. See [METHOD](reports/METHOD.md).
-
-```bash
-nix-shell --run 'cabal test test:tests --test-show-details=direct --test-option=--num-threads=1 --test-option=+RTS --test-option=-N1 --test-option=-M16G --test-option=-RTS'
-```
+A fresh checkout produces its own fingerprint because the executable path
+is part of that hash. The method describes test execution, controlled resume,
+ranking review and final publication against the new terminal manifest.
+[Reproduction method](reports/METHOD.md)

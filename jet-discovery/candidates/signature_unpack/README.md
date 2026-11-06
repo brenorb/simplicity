@@ -1,5 +1,25 @@
 # Candidate: `signature_unpack` — BIP 340 signature parsing
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Maybe**: A small field/scalar range proof is attractive, but direct measured demand is concentrated in variable-message CSFS. Compare shared range checks and full Schnorr verification before selecting the frontend.
+
+Price: **1.156 WU (ESTIMATE)**. FeNormalize + ScalarNormalize: range checks on r and s
+
+Matches in 1 of 157 registered rows: 1 matched DAG nodes across all branches, 1 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| bip348-csfs | native_full_verifier | 1 | 1 | 408.282 | 194.580 | 213.702 | yes / yes at 775 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#signature_unpack) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 ## Type signature
 `(Word256, Word256) -> S (Word256, Word256)`
 

@@ -1,5 +1,25 @@
 # Candidate: `blake2b_compress` — fixed-round, final-block BLAKE2b compression
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Rejected**: The fixed twelve-round final-block prototype matches its own kernel. It does not cover the Ethereum variable-round/final-flag ABI; the current corpus does not justify prioritizing this specialized arrow.
+
+Price: **1.147 WU (ESTIMATE)**. 1.5 x Sha256Block: BLAKE2b compresses 128 bytes with 64-bit words
+
+Matches in 1 of 157 registered rows: 1 matched DAG nodes across all branches, 1 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| xchain-blake2b-compress | kernel | 1 | 1 | 4,641.718 | 11.381 | 4,630.337 | no / yes at 2171 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#blake2b_compress) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 ## Type signature
 `((Vector8 Word64, Vector16 Word64), (Word64, Word64)) -> Vector8 Word64`
 

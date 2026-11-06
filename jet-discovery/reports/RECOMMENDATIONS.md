@@ -1,337 +1,111 @@
 # Recommendations: missing Bitcoin Simplicity jets
 
-**Historical results — invalidated pending witness-dataflow repair.** The same-CMR witness-aliasing audit found that several verifiers checked independent copies of fields that were intended to be identical. These costs describe those earlier expressions, and their schema-level vector passes do not establish sound verification. Do not treat affected rows or the resulting rankings as current recommendations. See [WITNESS-DATAFLOW.md](WITNESS-DATAFLOW.md); corrected programs and full report regeneration are in progress.
+The verified corpus contains **157 programs in 150 distinct groups**, including **108 full bounded applications or verifiers**. All **2,698 vectors** passed. This report recommends what to prototype and benchmark; it changes no consensus jet.
 
+Run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`. Reproduce with [METHOD.md](METHOD.md). See [all program results](corpus-results.md), [sub-DAG mining](subdags.md), [over-budget cost drivers](budget-hotspots.md), [combined overlays](whatif.md), [ablations](ablations.md), [all source comparisons](coverage-and-costs.md), [the Ethereum precompile and Solana syscall inventory](CROSS-ECOSYSTEM-INTERFACES.md), [the full STARK with measured stage costs](FIBONACCI-STARK.md), and [the complete candidate matrix](candidate-ranking.md).
 
-Evidence-based recommendations from 49 tested corpus programs (reports/corpus-results.md, corpus/README.md).
-Every program passes all its vectors: 605 vectors, 343 of them in programs whose vectors come from upstream
-test-vector files (BIPs, RFCs). Method: reports/METHOD.md.
+## Ranked candidate families
 
-**Cost labels.**
-- Plain numbers are measured static cost bounds in WU.
-- **ESTIMATE** marks any cost involving a hypothetical jet. Each one is scaled from an existing benchmark, with the
-  method given in candidates/<name>/README.md.
+Native static bounds are measured. All hypothetical prices, savings and scores are **ESTIMATE**. Occurrences refer to the worst path after repricing. Matched groups also include off-path nodes. A positive saving can remain when the new worst path has zero occurrences.
 
-**Budget caveat.** The Bitcoin budget rule is not defined in this repository (reports/mismatches.md #5). The
-rankings below do not depend on it. Feasibility claims are marked as using the ASSUMPTION budget = witness bytes + 50.
+sum of positive isolated bound savings per deduplicated program group, weighted by execution context, times generality divided by burden. Savings already include static occurrences; do not multiply by occurrences again.
 
-**Correction (2026-11-03).** The per-jet ESTIMATE costs printed in the candidate READMEs of the previous version
-were half the values the what-if overlay actually used: they were computed without the library's 0.5 batch
-adjustment on `CheckSigVerify` (`Simplicity.Bitcoin.Benchmarks.benchmark`). All what-if program costs were
-correct; the READMEs and the monolithic `shrincs_verify` estimate are now fixed.
+For each candidate family and count_group choose the largest positive isolated saving among variants/frontends; report all individual rows separately. This is a conservative alternative envelope, not a composed overlay.
 
-## Summary
+### Strong
 
-1. **Most covenant proposals are already cheap in Simplicity, if you accept Simplicity-native hashes.**
-   CTV-equivalent (37.7 WU), APO-style rebindable signatures (88.5), CSFS (51.8 for 32-byte messages),
-   INTERNALKEY (54.2), PAIRCOMMIT (136.8), CCV (183.7), TLUV (193.3), TWEAKADD (196.4), MERKLEBRANCHVERIFY
-   (145.7), tail calls (54.2), a P2MR covenant (50.5) and a vault (130.4) all cost no more than a few signature
-   checks. Cross-input semantics (CCV aggregation, batched vault recovery) cost 170-344 WU with a per-input rescan.
-2. **Hash compatibility with the BIPs is what is expensive, except where the BIP hashes what Simplicity exposes.**
-   - The exact BIP 119 (3,737 WU), BIP 446 (1,937 WU) and BIP 448 (1,987 WU) programs spend over 95% of their
-     bound re-serializing outputs from witness bytes. One jet family exposing BIP 341's precomputed hashes would
-     cut these by 34-69x (ESTIMATE).
-   - Exact BIP 346 TXHASH costs 1,996 WU and passes all 150 upstream vectors with existing jets: its per-field
-     hashes are built from data Simplicity's primitives already expose (script hashes, values, sequences).
-3. **Post-quantum signatures are the strongest Bitcoin-specific case.**
-   - SHRINCS stateful verification costs 8,039 WU; the stateless (SLH-DSA) path costs 58,345 WU.
-   - A generic SHA-256 tweaked-chain jet brings them to 1,199 and 20,938 WU (6.7x and 2.8x, ESTIMATE). With it,
-     both fit the ASSUMPTION budget (signatures of 619 and 5,520 bytes); without it, neither does.
-   - The intrinsic SHA-256 work is ~390 WU stateful and ~2,136 WU stateless (ESTIMATE), so the stateless path
-     still spends ~19,000 WU in tweakable-hash plumbing after the chain jet.
-4. **Plumbing, not arithmetic, dominates.** Across the corpus, the static bound charges for moving data through
-   compositions:
-   - SHA-256 contexts: ~830 bits, about 1 WU per step.
-   - Witness buffers: about 4 WU per 511-byte slot per step.
-   - Constants outside unit input type: tens of WU.
+| overall rank | reference prototypes | matched groups | saving groups | saving groups with zero selected occurrences | selected occurrences in scored rows | native WU saved ESTIMATE | client WU saved ESTIMATE | component/kernel WU saved ESTIMATE | score | generality / burden | reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 3 | [m31_mul](../candidates/m31_mul/README.md) | 5 | 5 | 0 | 81154 | 815,666.528 | 0.000 | 986.174 | 815,863.763 | 2 / 1 | The full STARK accounts for most savings, and the isolated M31 overlay does not make it fit the fixed-stack scenario. Benchmark this small reusable primitive alongside QM31 because the proof burden is smaller; compare the overlapping savings and exact raw-word contract. |
+| 5 | [qm31_mul](../candidates/qm31_mul/README.md) | 3 | 3 | 0 | 5068 | 1,215,718.416 | 0.000 | 479.952 | 607,907.203 | 2 / 2 | The full STARK crosses the fixed-stack scenario by 5,001.074 WU at this estimated price. Benchmark the extension multiply and exact input domain; the margin is conditional and M31 savings overlap. |
+| 6 | [div_mod_256](../candidates/div_mod_256/README.md) | 7 | 7 | 0 | 148 | 224,710.537 | 0.000 | 2,643.724 | 337,462.364 | 3 / 2 | The estimate crosses the fixed-stack scenario for bounded Uniswap V3 (22,235.642 to 9,708.540 WU against 12,694) and LMSR (17,404.636 to 16,082.774 WU against 16,379). It also materially reduces Balancer and Pendle. Benchmark exact full-width and normalized narrow division separately: the limb proxy is incomplete. |
+| 7 | [keccak_f1600](../candidates/keccak_f1600/README.md) | 12 | 12 | 0 | 94 | 460,096.480 | 0.000 | 80,516.884 | 308,839.762 | 3 / 4 | One permutation matches 12 distinct groups and changes fixed-stack fit in 11 budget-applicable programs. FairSwap falls from 93,362.551 to 1,343.255 WU at the estimate. Benchmark the reusable permutation for hash, bridge, permit, oracle and compressed asset paths before bundling address recovery. |
+| 8 | [sha256_wots_chain_16](../candidates/sha256_wots_chain_16/README.md), [sha256_wots_chain_16_fixed](../candidates/sha256_wots_chain_16_fixed/README.md) | 2 | 2 | 0 | 277 | 256,129.098 | 0.000 | 0.000 | 192,096.824 | 3 / 2 | Prioritize the fixed-prefix frontend: both stateless variants cross their fixed-stack scenarios and share one counting group. The separate stateful group uses the generic frontend; its overlay prices the observed 18-byte buffer, and the unrestricted 30-compression path needs a separate price. |
+| 12 | [sha512_compress](../candidates/sha512_compress/README.md) | 4 | 4 | 0 | 18 | 27,181.845 | 65,236.428 | 5,436.369 | 47,296.410 | 3 / 2 | The estimate brings the native BIP32 withdrawal below its fixed-stack scenario. The same compression is useful in HMAC, Ed25519 and BIP47 client work, which is reported separately. Benchmark the reusable block primitive. |
 
-   Jets that fuse a whole kernel remove this tax, which is why kernel jets save 5-750x even where the
-   arithmetic jets already exist.
-5. **Non-native curves need curve-level jets; field jets are not enough.** Now measured, not proxied:
-   - ECDSA-P256 verification (RFC 6979 vectors): 8,860,684 WU, 221% of `BUDGET_MAX`. With a P-256 field-multiply
-     jet: 702,330 WU (17.6%, ESTIMATE). A curve-level `p256_ecdsa_verify`: ~99 WU (ESTIMATE).
-   - Ed25519 verification (RFC 8032 vectors): 2,925,313 WU (73%). With field-multiply and SHA-512 jets:
-     557,350 WU (13.9%, ESTIMATE).
-   - With field jets the remaining cost is field additions and moving Jacobian points through the
-     scalar-multiplication loop.
-6. **Cross-chain hashes and STARKs are expressible but heavy; each is a well-defined kernel jet.**
-   - RIPEMD-160: 2,470 WU; a HASH160 HTLC: 2,546 WU (28x cheaper with `ripemd160_compress`, ESTIMATE).
-   - SHA-512: 5,454; Keccak-256: 5,776; BLAKE2b: 4,642; BLAKE2s: 3,257 WU.
-   - A complete circle-FRI verifier (toy parameters: 2^8 domain, 6 folds, 3 queries, real proofs): 9,423 WU;
-     2,742 WU with M31/QM31 jets (ESTIMATE). Extrapolated to 30 queries and 20 layers: ~350,000 WU today and
-     ~114,000 WU with the jets (ESTIMATE, FRI only).
-7. **The eprint constructions and Ethereum/Solana contract patterns need nothing new.**
-   - Adaptor signatures (112 WU), MuSig2 KeyAgg of three keys with the BIP 327 vectors (591), a 4-key ring
-     signature (500) and a Cashu-style DLEQ proof (298) are all dominated by existing secp256k1 jets.
-   - Linear vesting (78), a Dutch auction (46), a 3-of-5 Safe with a spending allowance (287) and oracle-priced
-     loan liquidation (139) use only existing jets; the only match is `multiply_128` in the liquidation (1.1x).
-   - This agrees with gmax's earlier finding that popular smart contracts are technically boring.
+### Maybe
 
-## Ranked candidates
-
-**Score:** corpus WU saved × generality, ÷ verification burden.
-- Generality: 3 = primitive used by many schemes, 2 = one ecosystem, 1 = one scheme.
-- Burden: 1 = low, 2 = medium, 3 = high, judged against the jets proven on `feat/jet-equivalence`.
-
-WU saved is summed over corpus programs. A program with several matched candidates is attributed by candidate
-(reports/whatif.md). The score depends on which programs are in the corpus: SHRINCS's stateless path alone
-contributes 175 chain matches. The non-native curve candidates are listed apart, because their savings (millions of
-WU) leave the programs infeasible and would swamp the score.
-
-| rank | tier | candidate | corpus WU saved | generality | burden | score | evidence |
-| ---: | --- | --- | ---: | :---: | :---: | ---: | --- |
-| 1 | strong | [`sha256_wots_chain_16`](../candidates/sha256_wots_chain_16/README.md) | 44,247 | 3 | 2 | 66,371 | SHRINCS stateful 8,039 → 1,199; stateless 58,345 → 20,938 |
-| 2 | maybe | [`m31_mul`](../candidates/m31_mul/README.md) + [`qm31_mul`](../candidates/qm31_mul/README.md) | 7,825 | 1.5 | 1 | 11,738 | FRI verifier 9,423 → 2,742; FRI fold 347 → 66.7; M31 inverse 698 → 83.7 |
-| 3 | strong | [`bip341_hashes`](../candidates/bip341_hashes/README.md) (sha_outputs, sha_sequences, sha_annex, sha_prevouts, sha_amounts, sha_scriptpubkeys; BIP 119 scriptSig hash) | 7,442 | 3 | 2 | 11,163 | CTV-exact 3,737 → 54.5; TEMPLATEHASH 1,937 → 57.3; LN-Symmetry 1,987 → ~107 |
-| 4 | maybe | [`ripemd160_compress`](../candidates/ripemd160_compress/README.md) | 4,911 | 3 | 2 | 7,366 | RIPEMD-160 2,470 → 14.1; HASH160 HTLC 2,546 → 91.1 |
-| 5 | maybe | [`sha512_compress`](../candidates/sha512_compress/README.md) | 5,436 | 2 | 2 | 5,436 | SHA-512 5,454 → 17.8 (also inside ed25519) |
-| 6 | maybe | [`blake2b_compress`](../candidates/blake2b_compress/README.md) | 4,630 | 2 | 2 | 4,630 | 4,642 → 11.4 |
-| 7 | maybe | [`keccak_f1600`](../candidates/keccak_f1600/README.md) | 5,751 | 2 | 3 | 3,834 | 5,776 → 24.3 |
-| 8 | maybe | [`multiply_256`](../candidates/multiply_256/README.md) + [`div_mod_512`](../candidates/div_mod_512/README.md) | 3,793 | 2 | 2 | 3,793 | BIP 441 modular multiply 3,808 → 15.3 |
-| 9 | maybe | [`blake2s_compress`](../candidates/blake2s_compress/README.md) | 3,252 | 2 | 2 | 3,252 | 3,257 → 4.3 |
-| 10 | maybe | [`div_mod_256`](../candidates/div_mod_256/README.md) + [`multiply_128`](../candidates/multiply_128/README.md) | 1,401 | 2 | 2 | 1,401 | Uniswap math 1,410 → 25.3; liquidation 139 → 123 |
-| 11 | strong | [`pubkey_unpack_neg`](../candidates/pubkey_unpack_neg/README.md) + [`signature_unpack`](../candidates/signature_unpack/README.md) | 320 | 3 | 1 | 961 | variable-length CSFS 408 → 88 |
-| 12 | maybe | [`shrincs_verify`](../candidates/shrincs_verify/README.md) (monolithic) | ~19,600 beyond #1 | 1 | 3 | ~6,500 | ~390 WU stateful / ~2,136 WU stateless (ESTIMATE) |
-| 13 | rejected | [`sha256_pair`](../candidates/sha256_pair/README.md) | 66 + a share of the FRI verifier | 3 | 1 | ~200 | Merkle path 241 → 175 (1.4x); existing ctx jets suffice |
-
-**Non-native curves** (measured programs, ESTIMATE jet costs):
-
-| candidate | measured program | with field-level jets | with a curve-level jet | verdict |
-| --- | --- | ---: | ---: | --- |
-| [`p256_ecdsa_verify`](../candidates/p256_ecdsa_verify/README.md) vs [`p256_fe_multiply`](../candidates/p256_fe_multiply/README.md) | `xchain-p256-ecdsa` 8,860,684 WU (221% of `BUDGET_MAX`) | 702,330 (17.6%) | ~99 | curve-level jet, or nothing |
-| `ed25519_verify` (not registered) vs [`ed25519_fe_multiply`](../candidates/ed25519_fe_multiply/README.md) + [`sha512_compress`](../candidates/sha512_compress/README.md) | `xchain-ed25519` 2,925,313 WU (73%) | 557,350 (13.9%) | ~100 (ESTIMATE, by analogy with `bip_0340_verify`) | curve-level jet, or nothing |
-
-### Why `pubkey_unpack_neg` + `signature_unpack` is "strong" despite a low score
-
-The measured saving is small because the corpus has only one program that checks signatures outside the
-`bip_0340_verify` jet in a way that needs them. Every custom construction that starts from serialized BIP 340
-keys and signatures pays the same 320 WU:
-- variable-length CSFS,
-- adaptor signatures and oracle attestations over serialized pre-signatures,
-- MuSig2 and FROST partial checks.
-
-The corpus's adaptor, ring and DLEQ programs avoid the cost by taking points in decompressed form as witness
-operands, which a script interoperating with serialized keys cannot do.
-
-The jets are tiny range checks, a low burden like `fe_normalize`.
-
-An alternative is a single `bip_0340_verify` variant taking a message buffer. It serves CSFS directly, but not the
-other constructions.
-
-### Strong (recommend implementing and proving)
-
-1. **`sha256_wots_chain_16`**, plus a single tweakable-hash jet for H, T and FORS leaves.
-   - Covers SHRINCS (draft BIP; both paths now measured), SLH-DSA-SHA2 (FIPS 205), XMSS/LMS-style chains and
-     BitVM Winternitz commitments.
-   - It composes the proven SHA-256 compression with a bounded loop.
-   - With it, both SHRINCS paths fit the ASSUMPTION budget. The stateless path's remaining 20,938 WU is mostly
-     tweakable-hash plumbing (FORS and hypertree nodes); a `sha256_thash` jet over (seed, address, input) is the
-     next step and should be measured before a monolithic `shrincs_verify`.
-2. **`bip341_hashes`**
-   - Bitcoin Core already computes these hashes (`PrecomputedTransactionData`). Exposing them makes every
-     BIP 341-compatible covenant and signature-hash proposal cost about as much as Simplicity's native ones.
-   - The alternatives are a raw-bytes script primitive (breaks Simplicity's bounded-type design) or witness
-     re-serialization (measured at 34-69x more).
-   - Burden: low to medium. These are transaction-hash jets like `outputs_hash`, reusing the proven SHA-256
-     streaming lemmas. The new work is a BIP 341 serialization specification over raw scripts in the txEnv.
-3. **`pubkey_unpack_neg` / `signature_unpack`**: see above.
-
-### Maybe (worth it if there is demand)
-
-- **`ripemd160_compress`: the Bitcoin-native hash gap.** HASH160 is Script's key hash (P2PKH, P2WPKH) and the BOLT 3
-  HTLC payment hash. A Script-compatible HTLC costs 2,546 WU today and ~91 WU with the jet (ESTIMATE). Simplicity's
-  own HTLCs can use SHA-256 payment hashes (`app-htlc`: 62 WU), so the demand is interoperability with existing
-  Script outputs and Lightning's HASH160 scripts. A `hash160_32` jet would cover both uses in one call.
-- **Hash compression jets: SHA-512 (ed25519, BIP 32 HMAC-SHA512), BLAKE2b (EIP-152, Zcash), BLAKE2s/BLAKE3,
-  Keccak-f[1600] (Ethereum).**
-  - Each turns a 3,000-6,000 WU program into a few WU.
-  - Their value is interoperability: bridges, light clients, proof verification.
-  - BLAKE2s/BLAKE3 also matter for STARKs. Keccak's burden is the highest of the four (a new permutation).
-- **M31/QM31 field jets for circle-STARK verification.**
-  - Measured: a complete circle-FRI verifier (Merkle openings, folds, Fiat-Shamir) on real proofs with toy
-    parameters costs 9,423 WU, ~520 WU per query-layer; with the jets 2,742 WU (ESTIMATE).
-  - Extrapolated to 30 queries and 20 FRI layers (600 query-layers, ~5,700 Merkle levels): ~350,000 WU today
-    (8.7% of `BUDGET_MAX`) and ~114,000 WU with the jets (ESTIMATE). The FRI witness would be ~200 KB, so under the
-    ASSUMPTION budget the FRI part fits with the jets and not without them.
-  - Not counted: trace and composition openings and the DEEP quotient (more Merkle paths and a few hundred
-    extension-field operations per query).
-- **`multiply_256` + `div_mod_512`** (BIP 441 big numbers: 249x), and **`div_mod_256` + `multiply_128`**
-  (fixed-point and AMM math). A fused `mod_mul_256` is what the corpus uses. Also consider an unnormalized
-  `div_mod_128_64` (reports/mismatches.md #3).
-- **`p256_ecdsa_verify`** (passkeys/WebAuthn, HSMs, RIP-7212) and an **`ed25519_verify`** (Solana, Cardano, SSH):
-  - Now measured: field-level jets leave 557,000-702,000 WU (14-18% of `BUDGET_MAX`), which no plausible
-    witness-based budget covers. A curve-level jet is required, or nothing.
-  - High burden: new curves outside libsecp256k1.
-- **`shrincs_verify`:** only if SHRINCS is standardised and the chain and tweakable-hash jets prove insufficient.
+| overall rank | reference prototypes | matched groups | saving groups | saving groups with zero selected occurrences | selected occurrences in scored rows | native WU saved ESTIMATE | client WU saved ESTIMATE | component/kernel WU saved ESTIMATE | score | generality / burden | reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | [p256_fe_multiply](../candidates/p256_fe_multiply/README.md) | 2 | 2 | 0 | 17422 | 18,466,901.872 | 0.000 | 0.000 | 9,233,450.936 | 2 / 3 | Dedicated reduction saves 9,233,450.936 WU in each of the two P-256-based predicates. Residual estimates of 826,747.503 WU for standalone verification and 829,907.725 WU for WebAuthn still exceed their 13,272- and 19,725-WU fixed-stack scenarios. Benchmark the field ABI and compare a reusable curve-level verifier. |
+| 2 | [multiply_256](../candidates/multiply_256/README.md) | 10 | 10 | 0 | 35689 | 2,686,725.360 | 0.000 | 57,044.960 | 2,526,395.964 | 3 / 2 | The regular wide product matches ten groups; the largest savings are concentrated in Ed25519 and P-256, which remain above their fixed-stack scenarios. Compare generic limb arithmetic against dedicated reductions before selecting a width. |
+| 4 | [ed25519_fe_multiply](../candidates/ed25519_fe_multiply/README.md) | 1 | 1 | 0 | 5835 | 2,358,810.420 | 0.000 | 0.000 | 786,270.140 | 2 / 3 | Large savings in one interoperability verifier still leave a substantial residual. Benchmark raw field reduction and compare the dedicated curve and SHA-512 pieces before pursuing this as a broadly demanded jet. |
+| 9 | [multiply_128](../candidates/multiply_128/README.md) | 18 | 18 | 0 | 2828 | 36,096.336 | 0.000 | 8,597.376 | 110,488.925 | 3 / 1 | This small carry proof has exact matches across 18 groups. The isolated estimate crosses the LMSR scenario by only 191.272 WU; larger savings in some pool predicates leave substantial residuals. Benchmark it against composition from existing Multiply64. |
+| 10 | [ecrecover](../candidates/ecrecover/README.md) | 6 | 6 | 0 | 43 | 253,547.574 | 0.000 | 6,036.847 | 97,344.158 | 2 / 4 | The Ethereum-style bridge, permit and oracle paths benefit. In the quorum example the combined estimate with Keccak fits where either candidate alone does not. Benchmark reusable recovery to a point plus a separate permutation before fixing the Ethereum address and failure ABI. |
+| 11 | [div_mod_512](../candidates/div_mod_512/README.md) | 8 | 8 | 0 | 141 | 26,012.420 | 0.000 | 497,952.040 | 68,375.504 | 3 / 3 | The bounded Curve invariant still costs 38,396.334 WU against its 5,206-WU scenario; the full StableSwap pool has no exact match. The only fit change is in the BN254 Fp2 kernel. Benchmark unrestricted and normalized division separately; the 512-by-256 price proxy is incomplete. |
+| 13 | [sha256_pair](../candidates/sha256_pair/README.md) | 7 | 7 | 0 | 7202 | 29,744.260 | 0.000 | 0.000 | 44,833.215 | 3 / 1 | A simple Merkle helper has several direct matches and a reusable proof path. Compare its smaller savings and the full verifier residual with existing two-compression composition before adding a separate fixed-size jet. |
+| 14 | [blake3_compress_cv](../candidates/blake3_compress_cv/README.md) | 1 | 1 | 0 | 33 | 0.000 | 0.000 | 129,060.855 | 12,906.086 | 2 / 2 | The bounded BitVM-style tree-hash component has substantial savings but remains one use family. Benchmark the raw CV/first-output-block ABI and compare it with smaller round helpers before proposing a jet. |
+| 15 | [ripemd160_compress](../candidates/ripemd160_compress/README.md) | 5 | 5 | 0 | 5 | 4,910.840 | 4,910.840 | 2,455.420 | 8,471.199 | 3 / 2 | Several Bitcoin HASH160 and interoperability paths match the same compression. Verify whether a compression jet changes spend fit often enough to justify the new dual-lane proof alongside the broader SHA candidates. |
+| 16 | [koalabear_add](../candidates/koalabear_add/README.md) | 1 | 1 | 0 | 1884 | 0.000 | 0.000 | 6,382.992 | 1,276.598 | 2 / 1 | The exact wrap-and-reduce helper gives a meaningful saving in one deployed-source Poseidon2 component and has a small proof burden. More application evidence is needed before prioritizing a prime-specific add. |
+| 17 | [bn254_fp_multiply](../candidates/bn254_fp_multiply/README.md) | 2 | 2 | 0 | 4 | 0.000 | 0.000 | 15,202.440 | 760.122 | 2 / 4 | The measured base- and extension-field kernels show substantial local savings and a plausible BitVM proof path. Benchmark canonical input and output conversion before valuing a pairing verifier; only the dense multiplication component is modeled. |
+| 20 | [signature_unpack](../candidates/signature_unpack/README.md) | 1 | 1 | 0 | 1 | 213.702 | 0.000 | 0.000 | 320.553 | 3 / 1 | A small field/scalar range proof is attractive, but direct measured demand is concentrated in variable-message CSFS. Compare shared range checks and full Schnorr verification before selecting the frontend. |
+| 21 | [secp256k1_ecdsa_verify](../candidates/secp256k1_ecdsa_verify/README.md) | 3 | 3 | 0 | 7 | 148.161 | 888.966 | 0.000 | 162.977 | 3 / 3 | Known-key ECDSA can reuse existing curve proofs. The corpus separates client signatures and native predicates, and the current price omits two scalar multiplications and range/control work. Benchmark exact affine and scalar checks first. |
+| 22 | [pubkey_unpack_neg](../candidates/pubkey_unpack_neg/README.md) | 1 | 1 | 0 | 1 | 106.653 | 0.000 | 0.000 | 159.980 | 3 / 1 | A cheap parser primitive with small isolated savings in variable-key CSFS. Existing complete Schnorr jets hide the parser in many other entries, so benchmark the paired parser use before prioritizing. |
 
 ### Rejected
 
-- **`sha256_pair`:** 1.4x on Merkle paths. The existing SHA-256 context jets are adequate.
-- **Opcode-shaped jets for CTV, CSFS, APO, INTERNALKEY, PAIRCOMMIT, CCV, VAULT, TLUV, TWEAKADD,
-  MERKLEBRANCHVERIFY, TXHASH.** Each is already expressible at 38-2,000 WU with existing jets. Hash-compatible
-  variants of CTV and TEMPLATEHASH are better served by `bip341_hashes` than by one jet per opcode.
-- **OP_CAT-like byte concatenation.** The SHA-256 context jets already stream arbitrary byte layouts into hashes,
-  which covers CAT's main uses (Merkle paths, PAIRCOMMIT).
-- **64-bit arithmetic and comparisons.** The jets exist (`app-dlc-cfd`: 105 WU; the Ethereum/Solana patterns: 46-287 WU).
-- **A cross-input aggregation jet** (sum of values of same-script inputs). Measured at 344 WU for CCV aggregation
-  and 170 WU for batched vault recovery over 16 inputs: not worth a jet.
-- **Multi-scalar multiplication for MuSig2/ring signatures.** KeyAgg of three keys costs 591 WU with `scale`; the
-  ring signature 500 WU with `linear_combination_1`.
+| overall rank | reference prototypes | matched groups | saving groups | saving groups with zero selected occurrences | selected occurrences in scored rows | native WU saved ESTIMATE | client WU saved ESTIMATE | component/kernel WU saved ESTIMATE | score | generality / burden | reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 18 | [blake2b_compress](../candidates/blake2b_compress/README.md) | 1 | 1 | 0 | 1 | 0.000 | 0.000 | 4,630.337 | 694.551 | 3 / 2 | The fixed twelve-round final-block prototype matches its own kernel. It does not cover the Ethereum variable-round/final-flag ABI; the current corpus does not justify prioritizing this specialized arrow. |
+| 19 | [blake2s_compress](../candidates/blake2s_compress/README.md) | 1 | 1 | 0 | 1 | 0.000 | 0.000 | 3,252.438 | 487.866 | 3 / 2 | The exact fixed final-block frontend only matches its own kernel and shares one counting group with BLAKE2b. Broader rounds or common G helpers need a distinct exact reference and new evidence. |
 
-## Per-BIP verdicts
+## Cost-only and unprototyped concepts
 
-| proposal | verdict | program (cost) |
-| --- | --- | --- |
-| BIP 116 MERKLEBRANCHVERIFY (with BIP 98 fast Merkle trees) | expressible as is (fast-SHA256 via the SHA-256 block jet with BIP 98's IV) | `bip116-merklebranchverify` (145.7) |
-| BIP 117 tail call | expressible as is, as delegation (`disconnect`) | `bip117-tail-call` (54.2) |
-| BIP 118 ANYPREVOUT | expressible as is, as a Simplicity sighash mode; a BIP 118-compatible digest needs `bip341_hashes` | `bip118-apo` (88.5) |
-| BIP 119 CTV | expressible as is (native hashes); hash-compatible needs `bip341_hashes` | `bip119-ctv-native` (37.7), `bip119-ctv-exact` (3,737; 100 upstream txs) |
-| BIP 345 OP_VAULT | expressible as is (data-tweak + native template); batched recovery by per-input rescan | `app-vault` (130.4), `app-vault-batch-recover` (170.0) |
-| BIP 346 OP_TXHASH | expressible as is, hash-compatible: all 150 upstream vectors | `bip346-txhash` (1,996) |
-| BIP 347 OP_CAT | no jet needed: its uses are expressible | `app-merkle-key` (240.7), `bip442-paircommit` (136.8) |
-| BIP 348 OP_CHECKSIGFROMSTACK | expressible as is; variable-length messages benefit from unpack jets | `bip348-csfs-32` (51.8), `bip348-csfs` (408.3 → 87.9) |
-| BIP 349 OP_INTERNALKEY | expressible as is (existing `internal_key` jet) | `bip349-internalkey` (54.2) |
-| BIP 360 P2MR | expressible as is (a covenant producing a P2MR output) | `bip360-p2mr-output` (50.5) |
-| BIP 440 varops budget | a budget rule, not an opcode: no program; relevant to the open budget question | – |
-| BIP 441 restored big-number opcodes | expressible but heavy; `multiply_256` + `div_mod_512` | `bip441-bignum-modmul` (3,808 → 15.3) |
-| BIP 442 OP_PAIRCOMMIT | expressible as is | `bip442-paircommit` (136.8) |
-| BIP 443 OP_CHECKCONTRACTVERIFY | expressible as is; the default mode's cross-input amount accounting by per-input rescan | `bip443-ccv-output` (183.7), `bip443-ccv-aggregate` (344.0) |
-| BIP 446 OP_TEMPLATEHASH | hash-compatible needs `bip341_hashes` | `bip446-templatehash-exact` (1,937; 19 upstream cases) |
-| BIP 448 (TEMPLATEHASH + CSFS + INTERNALKEY, LN-Symmetry) | needs `bip341_hashes` for hash compatibility; the native version is ~90 WU | `bip448-lnsymmetry-update` (1,987) |
-| BIP 449 OP_TWEAKADD | expressible as is (upstream vectors) | `bip449-tweakadd` (196.4) |
-| TLUV (no BIP) | expressible as is (taptweak jets) | `tluv-remove-leaf` (193.3) |
-| LNHANCE (CTV + CSFS + INTERNALKEY + PAIRCOMMIT) | every component expressible; exact CTV needs `bip341_hashes` | components above |
-| 64-bit arithmetic | expressible as is (jets exist; division needs a normalized divisor) | `app-dlc-cfd` (105.3) |
-| SHRINCS (post-quantum) | expressible but expensive; needs `sha256_wots_chain_16` (then a tweakable-hash jet) | `pq-shrincs-stateful` (8,039 → 1,199), `pq-shrincs-stateless` (58,345 → 20,938) |
-| Circle STARK verification | expressible but expensive; needs M31/QM31 jets | `stark-fri-verifier` (9,423 → 2,742); ~350k WU per full-size FRI (ESTIMATE) |
+[BIP341 hash access](../candidates/bip341_hashes/README.md) has a separately priced cost-only stand-in in [whatif.md](whatif.md), outside the executable exact-expression overlays. [Whole P-256 verify](../candidates/p256_ecdsa_verify/README.md) and [monolithic SHRINCS](../candidates/shrincs_verify/README.md) remain concepts. These three concepts receive no measured matches or ranking score.
 
-## Cross-ecosystem inventory (Phase 1 item 5)
+## All 24 open softfork BIPs
 
-**Ethereum precompiles.**
+Costs attach to the exact corpus IDs. The optional fit column compares native and combined overlay bounds at the same first-vector witness-bytes + 50 WU scenario, capped by the in-tree maximum; it is not a Bitcoin consensus budget rule. Scope gaps do not imply a new jet is necessary.
 
-| precompile | status in this study |
-| --- | --- |
-| ecrecover (secp256k1 ECDSA) | existing secp256k1 jets suffice in principle; not implemented |
-| sha256 | jet exists |
-| ripemd160 | measured: 2,470 WU; `ripemd160_compress` |
-| identity | n/a |
-| modexp | `multiply_256` / `div_mod_512` family (BIP 441 program) |
-| bn254 add/mul/pairing, BLS12-381 (EIP-2537), KZG point evaluation | excluded: no Bitcoin deployment path found; very high verification burden |
-| blake2f (EIP-152) | `blake2b_compress` |
-| P256VERIFY (RIP-7212) | measured: 8.86M WU; `p256_ecdsa_verify` |
+| proposal / status | verdict and association / program IDs | native WU | combined overlay WU ESTIMATE | vectors / status | hypothetical fit before / after | exact scope gap |
+| --- | --- | --- | --- | --- | --- | --- |
+| [BIP 18: hashScriptCheck](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0018.mediawiki); Complete | Historical precursor; EXCLUDED;  | — | — | —; NO_IMPLEMENTATION | — | Historical P2SH precursor; no distinct open Script application targeted. |
+| [BIP 53: Disallow 64-byte transactions](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0053.mediawiki); Draft | Consensus rule outside input computation; EXCLUDED;  | — | — | —; NO_IMPLEMENTATION | — | Serialized transaction-size consensus rule, not a new spending computation. |
+| [BIP 54: Consensus Cleanup](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0054.md); Complete | Consensus rule outside input computation; EXCLUDED;  | — | — | —; NO_IMPLEMENTATION | — | Consensus accounting/timewarp/coinbase rules; no application port. |
+| [BIP 98: Fast Merkle Trees](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0098.mediawiki); Draft | Expressible using the existing SHA-256 block jet; SHARED_COMPONENT; bip116-merklebranchverify | bip116-merklebranchverify: 145.685 | bip116-merklebranchverify: 145.685 | bip116-merklebranchverify: 5/5; MEASURED | bip116-merklebranchverify: yes / yes at 326 WU | BIP98 fast-Merkle hashing exercised through BIP116; no separate complete application. |
+| [BIP 116: MERKLEBRANCHVERIFY](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0116.mediawiki); Draft | Expressible for the measured single-leaf bound; BOUNDED_COMPONENT; bip116-merklebranchverify | bip116-merklebranchverify: 145.685 | bip116-merklebranchverify: 145.685 | bip116-merklebranchverify: 5/5; MEASURED | bip116-merklebranchverify: yes / yes at 326 WU | Single-leaf depth<=16; arbitrary multiproof grammar unimplemented. |
+| [BIP 117: Tail Call Execution Semantics](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0117.mediawiki); Draft | Expressible via native delegation; NATIVE_ADAPTATION; bip117-tail-call | bip117-tail-call: 54.153 | bip117-tail-call: 54.153 | bip117-tail-call: 3/3; MEASURED | bip117-tail-call: yes / yes at 241 WU | Delegation via disconnect, not byte-for-byte Script tail-call interpreter. |
+| [BIP 118: SIGHASH_ANYPREVOUT for Taproot Scripts](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0118.mediawiki); Draft | Expressible with a native digest; exact wire compatibility absent; NATIVE_ADAPTATION; bip118-apo | bip118-apo: 88.451 | bip118-apo: 88.451 | bip118-apo: 4/4; MEASURED | bip118-apo: yes / yes at 353 WU | Simplicity-native digest; exact BIP118/BIP341 wire hash compatibility absent. |
+| [BIP 119: CHECKTEMPLATEVERIFY](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0119.mediawiki); Draft | Expressible for the bounded exact digest and cheaper native alternative; EXACT_BOUNDED_AND_NATIVE_ALTERNATIVE; bip119-ctv-exact, bip119-ctv-native | bip119-ctv-exact: 3,737.013; bip119-ctv-native: 37.720 | bip119-ctv-exact: 3,737.013; bip119-ctv-native: 37.720 | bip119-ctv-exact: 195/195; bip119-ctv-native: 194/194; MEASURED | bip119-ctv-exact: no / no at 2775 WU; bip119-ctv-native: yes / yes at 242 WU | At most16inputs/outputs; scripts<=511bytes. Invalid current-index upstream cases cannot form a Bitcoin PrimEnv. |
+| [BIP 300: Hashrate Escrows (Consensus layer)](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0300.mediawiki); Draft | Needs unavailable global consensus state; UNAVAILABLE_STATE;  | — | — | —; NO_IMPLEMENTATION | — | Sidechain withdrawal voting/global consensus state unavailable to an input expression. |
+| [BIP 301: Blind Merged Mining (Consensus layer)](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0301.mediawiki); Draft | Mining consensus rule outside input computation; EXCLUDED;  | — | — | —; NO_IMPLEMENTATION | — | Mining/coinbase rules; not a Script application. |
+| [BIP 346: OP_TXHASH](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0346.md); Draft | Expressible for decoded hash selections; tapscript context is external; BOUNDED_COMPONENT; bip346-txhash | bip346-txhash: 2,662.929 | bip346-txhash: 2,662.929 | bip346-txhash: 151/151; MEASURED | bip346-txhash: yes / yes at 5206 WU | All 150 upstream hashes plus one corruption; selector decoded offchain; tapscript-context witness fields require external authentication. |
+| [BIP 347: OP_CAT in Tapscript](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0347.mediawiki); Complete | Expressible as a direct bounded program through the 520-byte result limit; EXACT_BOUNDED_VALUE_RELATION; bip347-op-cat | bip347-op-cat: 8,793.377 | bip347-op-cat: 8,793.377 | bip347-op-cat: 342/342; MEASURED | bip347-op-cat: no / no at 6449 WU | Both operands and the claimed result are supplied by a typed interface. All 295 directly projected upstream value operations passed, but Script stack underflow, activation, policy and surrounding opcodes are outside this component. |
+| [BIP 348: CHECKSIGFROMSTACK](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0348.md); Draft | Expressible for bounded messages; BOUNDED_VERIFIER_AND_VARIANT; bip348-csfs, bip348-csfs-32 | bip348-csfs: 408.282; bip348-csfs-32: 51.769 | bip348-csfs: 87.927; bip348-csfs-32: 51.769 | bip348-csfs: 19/19; bip348-csfs-32: 15/15; MEASURED | bip348-csfs: yes / yes at 775 WU; bip348-csfs-32: yes / yes at 252 WU | Messages<=511bytes vs Script520; unknown-key upgrade semantics absent. |
+| [BIP 349: OP_INTERNALKEY](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0349.md); Draft | Expressible with existing internal-key and Schnorr primitives; EXPRESSIBLE; bip349-internalkey | bip349-internalkey: 54.216 | bip349-internalkey: 54.216 | bip349-internalkey: 2/2; MEASURED | bip349-internalkey: yes / yes at 194 WU | Existing internal-key primitive and Schnorr verification; bounded authorization measured. |
+| [BIP 360: Pay-to-Merkle-Root (P2MR)](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0360.mediawiki); Draft | Expressible for bounded output construction; BOUNDED_CONSTRUCTION; bip360-p2mr-output, bip360-upstream-p2mr-output | bip360-p2mr-output: 50.266; bip360-upstream-p2mr-output: 110.087 | bip360-p2mr-output: 50.266; bip360-upstream-p2mr-output: 110.087 | bip360-p2mr-output: 7/7; bip360-upstream-p2mr-output: 32/32; MEASURED | bip360-p2mr-output: yes / yes at 255 WU; bip360-upstream-p2mr-output: yes / yes at 501 WU | P2MR output construction only; activation, address coding and leaf execution absent. |
+| [BIP 361: Post Quantum Migration and Legacy Signature Sunset](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0361.mediawiki); Draft | Migration policy outside input computation; ADJACENT;  | — | — | —; NO_IMPLEMENTATION | — | Migration/sunset schedule, not a signature verifier; PQ corpus measured separately. |
+| [BIP 440: Varops Budget For Script Runtime Constraint](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0440.mediawiki); Draft | Script budget rule outside input computation; EXCLUDED;  | — | — | —; NO_IMPLEMENTATION | — | Script runtime-accounting proposal; do not substitute its budget for Simplicity. |
+| [BIP 441: Restoration of disabled script (Tapleaf 0xC2)](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0441.mediawiki); Draft | Expressible for measured arithmetic; full restored opcode family pending; KERNEL_ONLY; bip441-bignum-modmul | bip441-bignum-modmul: 3,838.308 | bip441-bignum-modmul: 45.368 | bip441-bignum-modmul: 6/6; MEASURED | bip441-bignum-modmul: yes / yes at 4614 WU | 256-bit modular multiplication; remaining restored opcode family and unbounded byte operands absent. |
+| [BIP 442: OP_PAIRCOMMIT](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0442.md); Draft | Expressible for bounded tagged hashing; BOUNDED_KERNEL; bip442-paircommit | bip442-paircommit: 136.837 | bip442-paircommit: 136.837 | bip442-paircommit: 7/7; MEASURED | bip442-paircommit: yes / yes at 423 WU | Elements<=511bytes vs520; tagged length-prefixed hashing only. |
+| [BIP 443: OP_CHECKCONTRACTVERIFY](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0443.mediawiki); Draft | Expressible for measured covenant modes; COMPONENTS; bip443-ccv-output, bip443-ccv-aggregate | bip443-ccv-output: 183.741; bip443-ccv-aggregate: 345.320 | bip443-ccv-output: 183.741; bip443-ccv-aggregate: 345.320 | bip443-ccv-output: 4/4; bip443-ccv-aggregate: 3/3; MEASURED | bip443-ccv-output: yes / yes at 389 WU; bip443-ccv-aggregate: yes / yes at 1034 WU | Output-key commitment and bounded same-covenant amount aggregation; mode-complete compatibility absent. |
+| [BIP 446: OP_TEMPLATEHASH](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0446.md); Draft | Expressible for bounded exact digest; EXACT_BOUNDED; bip446-templatehash-exact | bip446-templatehash-exact: 1,937.968 | bip446-templatehash-exact: 1,937.968 | bip446-templatehash-exact: 19/19; MEASURED | bip446-templatehash-exact: no / no at 1525 WU | 19basics vectors; additional Script-assets execution suite not executed; inputs/outputs<=16. |
+| [BIP 448: Taproot-native (Re)bindable Transactions](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0448.md); Draft | Expressible for bounded template-authorized update; NATIVE_SPEND_ADAPTATION; bip448-lnsymmetry-update | bip448-lnsymmetry-update: 1,988.048 | bip448-lnsymmetry-update: 1,988.048 | bip448-lnsymmetry-update: 3/3; MEASURED | bip448-lnsymmetry-update: no / no at 1573 WU | Template-bound update authorization; tapscript deployment/witness format absent. |
+| [BIP 449: OP_TWEAKADD - x-only key tweak addition](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0449.md); Draft | Expressible using existing curve jets; KERNEL; bip449-tweakadd | bip449-tweakadd: 196.394 | bip449-tweakadd: 196.394 | bip449-tweakadd: 15/15; MEASURED | bip449-tweakadd: yes / yes at 506 WU | Embedded passing/failing tweak vectors; underlying curve arithmetic already jetted. |
+| [BIP 460: CISA for Taproot Key Path Spends in SegWit v2](https://github.com/bitcoin/bips/blob/a0c977f3755da6476b955677ca9318334a2432c4/bip-0460.mediawiki); Draft | Needs transaction-wide signature collection and key-path validation; TRANSACTION_WIDE_STATE;  | — | — | —; NO_IMPLEMENTATION | — | CISA changes transaction-wide signature collection/key-path consensus; no single-input full implementation. |
 
-**Solana syscalls.**
+## Ten audited unnumbered proposal families
 
-| syscall | status in this study |
-| --- | --- |
-| sha256 | jet exists |
-| keccak256 | `keccak_f1600` |
-| blake3 | `blake2s_compress` (same G function) |
-| secp256k1_recover | as ecrecover |
-| curve25519 / ed25519 | measured: 2.93M WU; a curve-level jet |
-| alt_bn128 | excluded, as above |
-| poseidon | excluded |
-| big_mod_exp | modexp |
+This is the documented search scope in [BIP-INVENTORY.md](BIP-INVENTORY.md). The BIP index and these proposal searches have different coverage.
 
-**Contract patterns** (all measured, all cheap; `src/JetDiscovery/Corpus/EthSol.hs`):
+| proposal / status | verdict and association / program IDs | native WU | combined overlay WU ESTIMATE | vectors / status | hypothetical fit before / after | exact scope gap |
+| --- | --- | --- | --- | --- | --- | --- |
+| [OP_EXPIRE](https://gnusha.org/pi/bitcoindev/ZTMWrJ6DjxtslJBn@petertodd.org/); unnumbered | Needs current height or median-time-past and consensus expiry enforcement; UNAVAILABLE_CHAIN_CONTEXT;  | — | — | —; NO_IMPLEMENTATION | — | A chosen transaction nLockTime is a lower eligibility bound; it cannot enforce an upper expiry against current chain state. |
+| [OP_INOUT_AMOUNT](https://github.com/Christewart/bips/blob/92c108136a0400b3a2fd66ea6c291ec317ee4a01/bip-op-inout-amount.mediawiki); unnumbered | Expressible with existing amount primitives and checked 64-bit arithmetic; BOUNDED_COMPONENT; op-inout-amount-withdrawal-cap | op-inout-amount-withdrawal-cap: 9.011 | op-inout-amount-withdrawal-cap: 9.011 | op-inout-amount-withdrawal-cap: 5/5; MEASURED | op-inout-amount-withdrawal-cap: yes / yes at 232 WU | Current-index cap and script preservation only; later bitmap-selected sum variants and full signed vault lifecycle are separate. |
+| [OP_EVICT](https://gnusha.org/pi/bitcoindev/6nZ-SkxvJLrOCOIdUtLOsdnl94DoX_NHY0uwZ7sw78t24FQ33QJlJU95W7Sk1ja5EFic5a3yql14MLmSAYFZvLGBS4lDUJfr8ut9hdB7GD4=@protonmail.com/); unnumbered | Expressible for the bounded two-member eviction; NATIVE_SPEND_ADAPTATION; app-op-evict-complete | app-op-evict-complete: 495.451 | app-op-evict-complete: 495.451 | app-op-evict-complete: 8/8; MEASURED | app-op-evict-complete: yes / yes at 1035 WU | Actual distinct P2TR output promises, both key subtractions and remainder signature; arbitrary group size and exact Script aggregation and setup are outside this profile. |
+| [TLUV](https://gnusha.org/pi/bitcoindev/20210909064138.GA22496@erisian.com.au/); unnumbered | Expressible for one removal and internal-key update; BOUNDED_COMPONENT; tluv-remove-leaf | tluv-remove-leaf: 193.342 | tluv-remove-leaf: 193.342 | tluv-remove-leaf: 5/5; MEASURED | tluv-remove-leaf: yes / yes at 459 WU | Other control-word variants, parity commitments and amount-preservation policy remain outside the tested mode. |
+| [64-bit arithmetic draft (closed PR 2073)](https://github.com/bitcoin/bips/pull/2073); unnumbered | Expressible for exact bounded signed widening multiply; BOUNDED_KERNEL; draft64-signed-widening-multiply | draft64-signed-widening-multiply: 20.824 | draft64-signed-widening-multiply: 20.824 | draft64-signed-widening-multiply: 8/8; MEASURED | draft64-signed-widening-multiply: yes / yes at 300 WU | No claim of implementing every Script-number conversion or opcode variant. |
+| [OP_ZKP / OP_ZKPVERIFY](https://www.mail-archive.com/bitcoin-dev%40lists.linuxfoundation.org/msg12601.html); unnumbered | No complete pinned opcode; external verification-key lookup is unavailable; RELATED_ARITHMETIC_ONLY; eprint-bn254-fp-multiply, eprint-bn254-fp2-multiply | eprint-bn254-fp-multiply: 3,867.295; eprint-bn254-fp2-multiply: 11,821.680 | eprint-bn254-fp-multiply: 66.685; eprint-bn254-fp2-multiply: 419.850 | eprint-bn254-fp-multiply: 7/7; eprint-bn254-fp2-multiply: 5/5; MEASURED | eprint-bn254-fp-multiply: yes / yes at 4627 WU; eprint-bn254-fp2-multiply: no / yes at 4850 WU | Related field arithmetic and an explicitly estimated dense model do not constitute a Groth16 verifier or matching opcode. |
+| [OP_STARK_VERIFY / OP_GROTH16_VERIFY](https://delvingbitcoin.org/t/proposal-op-stark-verify-native-stark-proof-verification-in-bitcoin-script/2056); unnumbered | A concrete bounded native STARK is expressible; RELATED_FULL_VERIFIER; stark-fibonacci-full | stark-fibonacci-full: 1,497,462.342 | stark-fibonacci-full: 252,144.216 | stark-fibonacci-full: 8/8; MEASURED | stark-fibonacci-full: no / yes at 286745 WU | The custom M31/DEEP/FRI verifier does not implement Stone wire compatibility, unspecified verifier IDs or a full Groth16 pairing check. |
+| [M31 arithmetic opcodes](https://hackmd.io/@AbdelStark/m31-opcodes-bitcoin-stark); unnumbered | Expressible with existing word arithmetic; field overlays compared in isolation; RELATED_ARITHMETIC; stark-m31-mul, stark-qm31-mul | stark-m31-mul: 11.744; stark-qm31-mul: 245.781 | stark-m31-mul: 1.681; stark-qm31-mul: 5.805 | stark-m31-mul: 6/6; stark-qm31-mul: 4/4; MEASURED | stark-m31-mul: yes / yes at 233 WU; stark-qm31-mul: yes / yes at 387 WU | Native typed fields, no Script-number encoding or upstream conformance vector file. |
+| [OP_CHECKINPUTVERIFY](https://gnusha.org/pi/bitcoindev/05195086-ee52-472c-962d-0df2e0b9dca2n@googlegroups.com/); unnumbered | Expressible with existing input_prev_outpoint; NATIVE_SPEND_ADAPTATION; op-civ-linked-input | op-civ-linked-input: 9.085 | op-civ-linked-input: 9.085 | op-civ-linked-input: 6/6; MEASURED | op-civ-linked-input: yes / yes at 280 WU | Authenticated actual linked input; authorization for the sibling remains with its own spending condition. |
+| [OP_TX and companion opcode draft](https://gnusha.org/pi/bitcoindev/87y0q0m8vz.fsf@rustcorp.com.au/); unnumbered | Many fields exposed; full draft requires unavailable raw/context fields; PARTIAL_EXISTING_INTROSPECTION;  | — | — | —; NO_IMPLEMENTATION | — | Exact raw input/output scripts require checked preimages; confirmation height and current chain context are not exposed; full selector interpreter unimplemented. |
 
-| pattern | origin | program (cost) |
-| --- | --- | --- |
-| linear vesting | OpenZeppelin VestingWallet, Solana token-vesting | `ethsol-linear-vesting` (77.6) |
-| descending-price auction | Seaport, Metaplex, Paradigm GDA (linear) | `ethsol-dutch-auction` (45.7) |
-| threshold wallet with a delegate allowance | Safe + AllowanceModule | `ethsol-safe-allowance` (287.4) |
-| oracle-priced liquidation | Aave, Compound, Solend | `ethsol-lending-liquidation` (138.7 → 122.9) |
-| constant-product swap math | Uniswap v2 | `xchain-uniswap-v2-amount-out` (1,410 → 25.3) |
+## Limits that affect these recommendations
 
-## Eprint scan (filtered)
-
-Included and measured, each with a credible Bitcoin deployment path:
-- **SHRINCS** (Kudinov & Nick, ePrint 2025/2203). Post-quantum signatures for Bitcoin, already deployed via
-  Simplicity on Liquid. Measured: `pq-shrincs-stateful`, `pq-shrincs-stateless`.
-- **Circle STARKs** (Haböck, Levit & Papini, ePrint 2024/278). StarkWare's Bitcoin verifier work makes this the
-  STARK most likely to be verified on Bitcoin. Measured: `stark-fri-verifier` and the `stark-*` kernels.
-- **Adaptor signatures** (PTLCs, DLCs, atomic swaps): `eprint-adaptor-sig` (112.4).
-- **MuSig2 key aggregation** (BIP 327, ePrint 2020/1261), against BIP 327's own vectors: `eprint-musig2-keyagg` (590.9).
-- **Ring signatures** (Abe-Ohkubo-Suzuki; proof of reserves without revealing the key): `eprint-ring-sig` (499.6).
-- **Chaum-Pedersen DLEQ proofs** (Cashu ecash, NUT-12): `eprint-dleq-cashu` (298.0).
-
-None of the last four needs a new jet: the existing `scale`, `linear_combination_1`, `linear_verify_1` and
-`decompress` jets do the work.
-
-Considered, and needing no new jets:
-- **FROST**: aggregate keys verify as plain BIP 340; partial-signature checks are `linear_verify_1` like the
-  adaptor program.
-
-Excluded:
-- **Lattice signatures (ML-DSA, FIPS 204).** A possible post-quantum alternative, but its NTT arithmetic would need
-  a new jet family, and Bitcoin's post-quantum work has converged on hash-based schemes.
-- **Pairing-based schemes (BLS aggregation, Groth16 verification).** No Bitcoin soft-fork proposal; high burden.
-- **Bulletproofs.** No confidential amounts on Bitcoin.
-
-## Non-jet findings (for the library and the soft-fork design)
-
-1. **Constant cost depends on context** (mismatches.md #1). `scribe` constants at non-unit input types cost tens
-   of WU instead of ~0.3. `CheckSig.sigHash` loses about 150 WU this way when used outside its jet. Compilers
-   should emit `unit >>> scribe c`.
-2. **Context-threading tax.** Each composition charges the bit size of its intermediate value, so programs that
-   thread a SHA-256 context pay ~1 WU per step around 0.7-1.2 WU context jets. Hash APIs that take and return
-   smaller state (a midstate plus a counter) would lower this tax without new kernels.
-3. **Static worst-case pricing.** Loop bounds and maximum buffer sizes are always paid. Exact CTV costs 3,737 WU
-   even for a one-output transaction. This argues for both the `bip341_hashes` family and a budget rule that
-   counts the witness.
-4. **The budget rule is undecided** (mismatches.md #5). Under the ASSUMPTION budget, the exact covenant programs,
-   SHRINCS, the FRI verifier and the cross-chain hash kernels need witness padding, and the native covenant
-   programs, eprint constructions and contract patterns do not.
-5. **`Simplicity.Bitcoin.StaticAnalysis.Cost` is not re-exported** (mismatches.md #2). It would be a one-line
-   cabal change. Not applied here: off-limits.
-6. **Witness hints make non-native arithmetic cheaper.** The P-256 and ed25519 programs take an inverse and
-   decompression x-coordinates as witness and only check them (s⁻¹ mod n for P-256; x of R and A for ed25519). Library or compiler support
-   for this check-don't-compute pattern matters as much as jets for non-native code.
-
-## Limitations
-
-- **Corpus bias.**
-  - One author and one library. Programs were written to force the expensive work: exact serializations,
-    variable-length messages, post-quantum verification.
-  - SimplicityHL-compiled programs may differ in plumbing costs.
-- **Estimates.**
-  - Every candidate cost is scaled from an existing benchmark, not measured.
-  - The full-size STARK costs are extrapolated from the measured toy verifier; trace/composition openings and the
-    DEEP quotient are not included.
-  - All of them need C implementations and benchmarks.
-- **Not implemented.**
-  - ecrecover-style ECDSA over secp256k1, FROST partial-signature checks.
-  - Elements is out of scope.
-- **Simplifications stated per program** (corpus/README.md): for example TXHASH takes the selector decoded
-  off-chain and the tapscript-context fields as witness operands; the Ethereum/Solana patterns use the lock time
-  as their clock.
-- **Derived vectors.**
-  - 262 of the 605 vectors are in programs with derived vectors (Haskell references).
-  - For SHRINCS, the upstream vectors are published only as fingerprints. A misreading shared by the
-    transcription and the program would go unnoticed.
-- **Static bounds versus CPU time.** All costs are the static bound the budget is checked against, not measured
-  CPU time.
-- **Verification burden.** The burden column is a judgement by analogy, not a measured proof effort.
-
-## Reproduction
-
-All in `jet-discovery/`. Expected results: all 49 programs pass, 16 tests pass. A full `run` takes tens of
-minutes, mostly executing the P-256 and ed25519 vectors.
-
-The existing in-tree suites also passed unchanged at commit 34921e86 (no files outside `jet-discovery/` have
-changed since):
-- C: `make check` on an archive of `C/`: 98 successes, 0 failures.
-- Haskell: `Simplicity:test:testsuite`, through a scratch cabal project with tests enabled and
-  `--quickcheck-tests=20`: all 3,252 tests passed.
-
-```bash
-nix-shell --run 'cabal build all'
-```
-
-```bash
-nix-shell --run 'cabal run -v0 exe:jet-discovery -- run'
-```
-
-```bash
-nix-shell --run 'cabal test'
-```
+- Bitcoin execution receives its budget from the caller. Witness stack bytes + 50 is a stated scenario. Fit applies the in-tree cap. Client verifiers have no onchain fit result. The first-vector stack and native program encoding are held fixed because a hypothetical jet has no assigned encoding.
+- Static bounds are not latency. Selected-path counts are not network call frequencies. The corpus and context weights affect the order; C benchmarks and proofs could change the tier decisions.
+- The [full STARK](FIBONACCI-STARK.md) measures one custom M31 AIR/DEEP/FRI profile and has no verified security level or Stone, Circle or Stwo wire compatibility. The [BN254 result](bn254-groth16.md) measures field arithmetic and estimates one dense pairing arithmetic component.
+- The [period inventories](PERIOD-RANKINGS.md) have distinct datasets, windows and attribution rules. Their source associations do not establish foreign deployment or implementation equivalence.
+- The frozen generic WOTS overlay uses an **ESTIMATE** for the matched 18-byte buffered caller profile. A valid unrestricted context can require two compressions per step, up to 30 per chain. The overlay does not price that worst path. [WOTS price scope](../candidates/sha256_wots_chain_16/README.md).
+- The [ePrint scan](eprint-scan.md) records all 1,814 unique in-window metadata hits returned by 14 pinned queries. Seven paper rows have individual review, and 1,595 were deferred at metadata triage. Full-text coverage of the archive and implementation of verifiable timed signatures remain open.

@@ -1,5 +1,25 @@
 # Candidate: `pubkey_unpack_neg` — x-only public key parsing (negated)
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Maybe**: A cheap parser primitive with small isolated savings in variable-key CSFS. Existing complete Schnorr jets hide the parser in many other entries, so benchmark the paired parser use before prioritizing.
+
+Price: **0.656 WU (ESTIMATE)**. FeNormalize analogue: one field-range check and a parity tag; the coordinate is returned unchanged
+
+Matches in 1 of 157 registered rows: 1 matched DAG nodes across all branches, 1 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| bip348-csfs | native_full_verifier | 1 | 1 | 408.282 | 301.629 | 106.653 | yes / yes at 775 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#pubkey_unpack_neg) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 ## Type signature
 `Word256 -> S (Bit, Word256)`
 

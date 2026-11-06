@@ -1,5 +1,26 @@
 # Candidate: `bn254_fp_multiply`
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Maybe**: The measured base- and extension-field kernels show substantial local savings and a plausible BitVM proof path. Benchmark canonical input and output conversion before valuing a pairing verifier; only the dense multiplication component is modeled.
+
+Price: **1.626 WU (ESTIMATE)**. ESTIMATE: 2 x FeMultiply for a generic 254-bit Montgomery reduction; requires an implementation and benchmark
+
+Matches in 2 of 157 registered rows: 2 matched DAG nodes across all branches, 4 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| eprint-bn254-fp-multiply | kernel | 1 | 1 | 3,867.295 | 66.685 | 3,800.610 | yes / yes at 4627 WU |
+| eprint-bn254-fp2-multiply | kernel | 3 | 1 | 11,821.680 | 419.850 | 11,401.830 | no / yes at 4850 WU |
+
+See the [complete matrix](../../reports/candidate-ranking.md#bn254_fp_multiply) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 Type: `(Word256, Word256) -> Word256`.
 
 The specification is `(a*b) mod p`, with

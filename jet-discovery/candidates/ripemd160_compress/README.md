@@ -1,5 +1,29 @@
 # Candidate: `ripemd160_compress` — RIPEMD-160 compression function
 
+<!-- final-corpus-evidence:start -->
+
+## Final corpus evidence
+
+Full-run fingerprint: `5e8dc436ec69e679a073380ad0a4dd440d46bb8792fffaf4bf0c89d45b6329f0`.
+
+**Maybe**: Several Bitcoin HASH160 and interoperability paths match the same compression. Verify whether a compression jet changes spend fit often enough to justify the new dual-lane proof alongside the broader SHA candidates.
+
+Price: **0.765 WU (ESTIMATE)**. Sha256Block: RIPEMD-160 and SHA-256 compression cost about the same in software
+
+Matches in 5 of 157 registered rows: 5 matched DAG nodes across all branches, 5 selected-path occurrences before family deduplication.
+
+| program | scope | selected occurrences | matched DAG nodes | native WU | isolated WU ESTIMATE | saved WU ESTIMATE | fixed hypothetical fit before / after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| xchain-ripemd160 | kernel | 1 | 1 | 2,469.559 | 14.139 | 2,455.420 | yes / yes at 5230 WU |
+| app-htlc-hash160 | native_full_spend | 1 | 1 | 2,546.490 | 91.070 | 2,455.420 | yes / yes at 5463 WU |
+| app-silent-payment-output-covenant | native_full_spend | 1 | 1 | 4,296.691 | 1,841.271 | 2,455.420 | yes / yes at 7494 WU |
+| app-ark-round-refresh | client | 1 | 1 | 5,897.705 | 3,442.285 | 2,455.420 | n/a (client) |
+| app-bip47-notification-payment-client | client | 1 | 1 | 69,731.129 | 67,275.709 | 2,455.420 | n/a (client) |
+
+See the [complete matrix](../../reports/candidate-ranking.md#ripemd160_compress) for zero-match rows and competing scenarios. The budget scenario holds the original first-vector stack fixed and caps it at the in-tree maximum. There is no candidate encoding, measured C price, or consensus feasibility claim.
+
+<!-- final-corpus-evidence:end -->
+
 ## Type signature
 `((Word32, Word32, Word32, Word32, Word32), Vector16 Word32) -> (Word32, Word32, Word32, Word32, Word32)`
 (state and message words little-endian, as in the RIPEMD-160 specification)

@@ -1,13 +1,66 @@
-# Current validation checkpoint
+# Current validation
 
-The source milestone contains 157 registered rows, 150 distinct counting groups
-and 108 full bounded spend/verifier groups. The target is registered; fresh
-whole-corpus measurements must still qualify those groups. The old 49-row
-cost and recommendation tables are historical and explicitly
-withdrawn pending a complete fresh run. Vector-only evidence below supplies no
-missing cost, profile, serialization or ablation numbers.
+The complete isolated cohort passed **2,698 of 2,698 vectors** across **157
+registered programs**, **150 distinct counting groups** and **108 full
+bounded spend or verifier groups**. The terminal manifest binds every exact
+entry, vector log, checkpoint hash and strict aggregation to the same
+source and frozen runner. It also retains both coordinator handoffs.
+[Terminal manifest and run directory](data/isolated-final-157-lf/manifest.json)
+[Verified local validation](data/final-validation.json)
+[Derived publication manifest](data/recommendations-publication.json)
 
-| Scope | Completed evidence | Remaining work |
+| Verified evidence | Coverage | Record |
+| --- | ---: | --- |
+| Complete corpus | 157 programs, 150 groups, 108 full groups, 2,698 passing vectors | [Per-program results](corpus-results.md) |
+| Candidate scenarios | 23 frontends, 22 families, 3,611 isolated rows | [Ranked evidence](candidate-ranking.md) |
+| Proposal and contract comparison | 335 source rows | [Coverage and costs](coverage-and-costs.md) |
+| Local analysis harness | 45 passing tests, unfiltered | [Run record](data/harness-final45.json) and [output](data/harness-final45.txt) |
+| Supplemental hash candidate references | 59 passing cases | [BLAKE2b](data/blake2b-candidate-reference-probe.txt), [SHA-512 and RIPEMD-160](data/hash-compression-reference-probe.txt) |
+| Unchanged upstream suites | 98 C checks and 3,252 Haskell tests passed | [Run record and log hashes](data/upstream-validation-status.json) |
+| Full STARK and stage costs | Complete custom proof verifier and checkpoint-derived stage analysis | [Verifier](FIBONACCI-STARK.md) and [stage evidence](data/stark-stage-final.json) |
+
+The source rows include 24 open soft-fork BIPs, 10 unnumbered proposals,
+40 TVL rows and 40 non-CEX TVL rows, 117 Ethereum block gas rows,
+20 Ethereum UTC-day recipient rows, 64 Solana slot compute rows and 20
+Soltop provider rows. Overlaps remain visible across source sets. Their
+program links distinguish direct implementations, bounded adaptations,
+proxies and unimplemented cases. [All source comparisons](coverage-and-costs.md)
+[Period definitions and remaining access gaps](PERIOD-RANKINGS.md)
+
+The program counts refer to the implemented bounded interfaces. The report
+separates client verifiers, native spend conditions and components, and
+labels hypothetical candidate costs as estimates. The custom STARK's
+security and wire-interoperability boundaries, the BN254 pairing
+extrapolation, and the ePrint full-text and implementation gaps remain
+recorded. [Method and limits](METHOD.md#biases-and-limits)
+[STARK scope](FIBONACCI-STARK.md)
+[Groth16 estimate](bn254-groth16.md)
+[ePrint scope](eprint-scan.md#remaining-review-and-implementation-gaps)
+
+## Audit and reproduction
+
+Run the default audit from `jet-discovery/` in the original measurement checkout.
+
+```sh
+python3 -B tools/check_final_evidence.py \
+  --cohort reports/data/isolated-final-157-lf/manifest.json \
+  --harness reports/data/harness-final45.json
+```
+
+At the signed report commit in a fresh checkout, add `--published-only`.
+That audit checks the committed logs, report hashes and STARK stage
+evidence. The original executable and other checkpoint byte checks belong
+to the local audit. A fresh measurement builds the runner and creates a
+new path-bound fingerprint. [Build, execution and publication commands](METHOD.md)
+
+## Archived development evidence
+
+The standalone and intermediate results below predate the terminal cohort.
+Their historical follow-up notes describe the state at those checkpoints.
+Use the terminal cohort above for current whole-corpus costs, serialization,
+profiles, ablations and counts. The old 49-row results remain superseded.
+
+| Scope | Completed development evidence | Notes at that checkpoint |
 | --- | --- | --- |
 | Contract/Bitcoin expansion | All42 groups /202 vectors pass actual Bitcoin evaluation and same-jetted-CMR checks; [audit](CONTRACT-WITNESS-AUDIT.md) | Fresh shared cost/profile run |
 | EVICT, BIP322, SPV receipt | All3 groups /27 vectors pass with actual TapTweak/TapLeaf funding outputs; [batch evidence](data/bitcoin-growth-batch1-provenance.json), [scope](BITCOIN-GROWTH.md) | Fresh shared cost/profile run |
@@ -80,6 +133,6 @@ completion was observed in the tool result (1489.31s); its Cabal-generated log
 was removed during reconfiguration before preservation. The current cohort
 uses `tools/run_recorded.py`, which freezes the executable and captures output
 and launch source hashes directly. The preserved39-test completion supersedes the older36-test observation;
-the final frozen corpus still requires its complete shared run.
+the full frozen corpus run was still pending at that checkpoint.
 Unregistered growth drafts receive zero count credit. Source inventories and
 their access gaps remain explicit in the separate coverage reports.
