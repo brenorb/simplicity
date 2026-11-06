@@ -1,7 +1,5 @@
 # Candidate: `keccak_f1600` — Keccak-f[1600] permutation
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 ## Type signature
 `Vector32 Word64 -> Vector32 Word64` (25 lanes used)
 
@@ -18,10 +16,6 @@ Primitive for Ethereum interoperability (Keccak-256 addresses, storage proofs, b
 Medium to high. It is a new permutation, but a regular one: fixed rounds of 64-bit xor/and/not/rotate. The 64-bit word-jet proofs and the symbolic-execution approach used for SHA-256 apply; the state is large (1600 bits).
 
 ## Alternatives considered
-Keeping it in Simplicity costs about 240 WU per round.
-
-## Corpus evidence
-- `xchain-keccak256`: matched ×1 (static multiplicity); program cost 5775.502 WU → 24.296 WU with all candidates (237.7×).
-- Mining: one Keccak round (`W2048 -> W2048`, 237.5 WU) x24 is 98.7% of `xchain-keccak256`.
+Compose the existing 64-bit word jets for all 24 permutation rounds.
 
 Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

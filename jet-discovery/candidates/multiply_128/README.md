@@ -1,7 +1,5 @@
 # Candidate: `multiply_128` — 128x128 -> 256-bit multiplication
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 ## Type signature
 `(Word128, Word128) -> Word256`
 
@@ -19,9 +17,5 @@ Low to medium. A C implementation needs four unsigned 64×64 full products, a fi
 
 ## Alternatives considered
 `full_multiply_128` (with addends) would compose better.
-
-## Corpus evidence
-- `xchain-uniswap-v2-amount-out`: matched ×4 (static multiplicity); program cost 1410.366 WU → 25.288 WU with all candidates (55.8×).
-- `ethsol-lending-liquidation`: matched ×1; program cost 138.722 WU → 122.918 WU (1.1×).
 
 Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

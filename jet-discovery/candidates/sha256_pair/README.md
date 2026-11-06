@@ -1,7 +1,5 @@
 # Candidate: `sha256_pair` — SHA-256 of a 64-byte concatenation
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 ## Type signature
 `Word512 -> Word256`
 
@@ -19,9 +17,5 @@ Low. It is a composition of proven jets (`sha256_ctx_8_init`, `add_64`, `finaliz
 
 ## Alternatives considered
 Today it is three jets plus plumbing; a "hash two 32-byte nodes" jet with a tag or sort option would also serve BIP 341 TapBranch-style trees.
-
-## Corpus evidence
-- `app-merkle-key`: matched ×16 (static multiplicity); program cost 240.730 WU → 174.650 WU with all candidates (1.4×).
-- `stark-fri-verifier`: matched ×104 (Merkle openings), alongside the M31/QM31 candidates.
 
 Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

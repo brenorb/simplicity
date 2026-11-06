@@ -1,7 +1,5 @@
 # secp256k1_ecdsa_verify
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 Prototype only; no consensus jet, encoding, cost or existing implementation changes.
 
 - **Type** `(((Word256, Word256), Word256), (Word256, Word256)) -> ()`, interpreted as `((Q, z), (r, s))`. The caller supplies raw affine coordinate words, the digest word, and the two signature words. DER decoding, public-key decompression, transaction digest construction, and signature policy belong to the caller.

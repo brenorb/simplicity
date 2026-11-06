@@ -21,8 +21,7 @@ Prototype overlay only; no consensus registration, encoding or native C jet.
 - Demand: the complete KoalaBear16 Poseidon2 component, including both the
   published Plonky3 and exact Bitcoin-verifier constant profiles. Their
   shared field/frontend is one family. Source/provenance is in
-  [CRYPTO-FAMILIES.md](../../reports/CRYPTO-FAMILIES.md). The existing native
-  profile identified the repeated3.667WU addition frontend as a hotspot.
+  [CRYPTO-FAMILIES.md](../../reports/CRYPTO-FAMILIES.md).
 - Generality/burden: a fixed field-specific frontend has less generality than
   an arbitrary-modulus primitive. C is an unsigned add, subtraction and
   selection; Coq can reuse the32-bit addition/borrow patterns. The new proof
@@ -42,22 +41,13 @@ Budget effects remain conditional on the first-vector hypothetical scenario,
 with no candidate encoding or deployment claim. The final complete matrix
 must retain all zero matches, isolated alternatives and per-program savings.
 
-## Completed pre-final isolated measurement
+## Component validation
 
-All14 actual Poseidon2 vectors and every analysis field complete successfully
-with the new overlay. The original program, native cost and CMR are unchanged.
-The281-pair independent-reference test passes separately. Exact run, source,
-snapshot and price provenance is in
-[koalabear-add-impact-pre-final.json](../../reports/data/koalabear-add-impact-pre-final.json).
+The pre-final run passed all 14 Poseidon2 component vectors. The 281-pair
+independent reference test passed separately.
+[Pre-final run and source provenance](../../reports/data/koalabear-add-impact-pre-final.json)
 
-| program | native WU | exact occurrences | jet price WU ESTIMATE | isolated WU ESTIMATE | saved WU ESTIMATE |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| crypto-poseidon2-koalabear16 |10,947.177 |1884 |0.179 |4,564.185 |6,382.992 |
-
-The first vector serializes to51,775program bits and1,025witness bits.
-This is component evidence, not a complete native application or a fresh
-whole-corpus ranking. The full run still must establish whether any other
-program contains this exact expression. The proof analogies are pinned in
+The proof analogies are pinned in
 [koalabear-proof-analogues.json](../../reports/data/koalabear-proof-analogues.json):
 `jet_add32_wide_word.v`, `jet_add32_layout_exec.v`,
 `jet_subtract_spec.v` and `jet_full_subtract_word.v` at revision

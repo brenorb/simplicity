@@ -1,12 +1,10 @@
 # Candidate: `blake2b_compress` — fixed-round, final-block BLAKE2b compression
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 ## Type signature
 `((Vector8 Word64, Vector16 Word64), (Word64, Word64)) -> Vector8 Word64`
 
 ## Specification
-`JetDiscovery.Corpus.Hashes.blake2F blake2b` takes eight chaining words, sixteen block words and the two counter words. It runs twelve rounds with the final-block flag set. The RFC 7693 Appendix A case is covered by the reference test.
+`JetDiscovery.Corpus.Hashes.blake2F blake2b` takes eight chaining words, sixteen block words and the two counter words. It runs twelve rounds with the final-block flag set and eight G mixes per round, for 96 source-level mixes. The RFC 7693 Appendix A case is covered by the reference test.
 
 ## Cost (ESTIMATE)
 ESTIMATE: 1.5 x `Sha256Block` = 1.147 WU (128-byte blocks, 64-bit words, 12 rounds).
@@ -20,8 +18,6 @@ Medium. A C implementation can use sixteen 64-bit state words with fixed add, XO
 ## Alternatives considered
 A wider interface could expose the round count and the final-block flag, as EIP-152 does. That would require a different arrow, bound and proof.
 
-## Corpus evidence
-- `xchain-blake2b-compress`: matched ×1 (static multiplicity); program cost 4641.718 WU → 11.381 WU with all candidates (407.8×).
-- Mining: BLAKE2b's G function (38.5 WU) x96 is 79.6% of `xchain-blake2b-compress`.
+## Reference checks
 
-Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).
+The standalone probe matches all 40 inputs against a separate Word64 implementation of RFC 7693 F in both raw and existing-jet-substituted Simplicity evaluation. It checks the published Appendix A state, arbitrary chaining and block words, and high and low counter boundaries with the final-block flag set. [Probe](../../tools/CheckBlake2bCandidate.hs) · [Results](../../reports/data/blake2b-candidate-reference-probe.txt) · [Provenance](../../reports/data/blake2b-candidate-reference-provenance.json)

@@ -1,7 +1,5 @@
 # Candidate: `signature_unpack` — BIP 340 signature parsing
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 ## Type signature
 `(Word256, Word256) -> S (Word256, Word256)`
 
@@ -19,8 +17,3 @@ Low. A C implementation compares the two raw 256-bit words with p and n, writes 
 
 ## Alternatives considered
 See `pubkey_unpack_neg`.
-
-## Corpus evidence
-- `bip348-csfs`: matched ×1 (static multiplicity); program cost 408.282 WU → 87.927 WU with all candidates (4.6×).
-
-The direct test evaluates 64 pairs spanning zero, the distinct field/scalar boundaries, and maximum raw words. The CSFS vectors separately exercise the surrounding verifier.

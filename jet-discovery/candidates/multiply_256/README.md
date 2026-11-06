@@ -1,7 +1,5 @@
 # Candidate: `multiply_256` — 256x256 -> 512-bit multiplication
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 ## Type signature
 `(Word256, Word256) -> Word512`
 
@@ -21,9 +19,5 @@ Low to medium: the u128 oracles from the `fe_multiply` branch apply directly.
 ## Alternatives considered
 - `full_multiply_256` (with addends) composes better into multi-limb code.
 - Curve-specific field jets (`p256_fe_multiply`, `ed25519_fe_multiply`) subsume most uses on those curves.
-
-## Corpus evidence
-- `bip441-bignum-modmul`: matched ×1 (static multiplicity); program cost 3808.209 WU → 15.269 WU with all candidates (249.4×).
-- `xchain-p256-ecdsa`: matched ×3 (inside the scalar-field multiplications mod n).
 
 Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

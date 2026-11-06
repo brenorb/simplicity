@@ -1,7 +1,5 @@
 # Candidate: `p256_fe_multiply` — multiplication in the P-256 base field
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 ## Type signature
 `(Word256, Word256) -> Word256` (inputs and output reduced mod p = 2^256 - 2^224 + 2^192 + 2^96 - 1)
 
@@ -21,12 +19,7 @@ Medium to high: a new prime, so the u128-oracle `fe_multiply` proof is a templat
 new (not libsecp256k1).
 
 ## Alternatives considered
-- `p256_ecdsa_verify` (curve-level): far cheaper per verification and a single proof obligation, at a higher burden.
+- A curve-level `p256_ecdsa_verify` could fuse the full verification equation and would require a broader proof.
 - Generic `multiply_256` + `div_mod_512`: general, but leaves the reduction plumbing in Simplicity.
-
-## Corpus evidence
-- `xchain-p256-ecdsa` (RFC 6979 A.2.5 vectors): matched ×7686 (static multiplicity); program cost 8860683.872 WU → 702329.516 WU with all candidates (12.6×), still 17.6% of `BUDGET_MAX`.
-- Mining: the Solinas reduction (`W512 -> W256`, 1,061 WU per instance, ×7686) is the top sub-DAG of the whole corpus (68.5% of the corpus bound).
-- Conclusion: a field jet alone does not make P-256 usable; see `p256_ecdsa_verify`.
 
 Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

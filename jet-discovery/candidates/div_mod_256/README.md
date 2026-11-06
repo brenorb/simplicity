@@ -1,7 +1,5 @@
 # Candidate: `div_mod_256` — 256-bit division with remainder
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 ## Type signature
 `(Word256, Word256) -> (Word256, Word256)`
 
@@ -19,8 +17,5 @@ Medium: u128 oracles exist (fe_multiply branch); division needs a quotient/remai
 
 ## Alternatives considered
 An unnormalized `div_mod_128_64`: the existing one requires a normalized divisor (`reports/mismatches.md` #3).
-
-## Corpus evidence
-- `xchain-uniswap-v2-amount-out`: matched ×1 (static multiplicity); program cost 1410.366 WU → 25.288 WU with all candidates (55.8×).
 
 Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).

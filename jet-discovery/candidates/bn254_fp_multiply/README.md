@@ -1,7 +1,5 @@
 # Candidate: `bn254_fp_multiply`
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 Type: `(Word256, Word256) -> Word256`.
 
 The specification is `(a*b) mod p`, with
@@ -16,16 +14,12 @@ The what-if registry prices this at **ESTIMATE: 2 × the existing `FeMultiply`
 benchmark**, to allow a generic 254-bit Montgomery reduction. This is an analogy,
 not a benchmark of BN254 C code. A real implementation could change that ratio.
 
-The two complete pre-final measurements found one exact occurrence in
-`eprint-bn254-fp-multiply` and three in `eprint-bn254-fp2-multiply` (Karatsuba
-over `u²=-1`). Their isolated bounds fell from 3,867.295 to 66.685 WU and
-11,821.680 to 419.850 WU respectively, savings of 3,800.610 and 11,401.830 WU
-(**ESTIMATE**). Both are arithmetic entries; they do not establish full spend
-feasibility. The normal tests compare the expression to Haskell Integer
-multiplication and modular reduction. All 12 corpus vectors pass, including
-zero, maximal canonical operands, a 253-bit carry case and incorrect-result
-rejection. See [measurements and extrapolation](../../reports/bn254-groth16.md)
-for the complete measured scope. The complete run reports whole-corpus impact separately.
+The extension-field expression composes three base-field products using
+Karatsuba over `u²=-1`. The reference tests compare the expression to Haskell
+Integer multiplication and modular reduction. The pre-final validation passed
+all 12 base and extension field vectors, including zero, maximal canonical
+operands, a 253-bit carry case, and incorrect-result rejection.
+[Scoped validation and pairing extrapolation](../../reports/bn254-groth16.md)
 
 BN254 is useful beyond one opcode: Groth16 bridge verifiers, pairing relations,
 G2 arithmetic and proof systems used by BitVM bridges. This reverses the earlier

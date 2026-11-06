@@ -44,6 +44,28 @@ def read_tsv(path, read=Path.read_bytes):
     return list(csv.DictReader(io.StringIO(read(path).decode(),newline=None),delimiter='\t'))
 
 
+def check_hash_candidate_probes(read):
+    """Verify the supplemental direct references outside the frozen Tasty suite."""
+    probes = {
+        'blake2b-candidate-reference': ('tools/CheckBlake2bCandidate.hs',
+            ['TOTAL 40/40 inputs agree in both Simplicity paths']),
+        'hash-compression-reference': ('tools/HashCompressionReferenceProbe.hs',
+            ['SHA512 9/9 agree','RIPEMD160 10/10 agree']),
+    }
+    for name,(source,final_lines) in probes.items():
+        record=json.loads(read(DATA/(name+'-provenance.json')))
+        log=(DATA/(name+'-probe.txt')).relative_to(ROOT).as_posix()
+        rts=(DATA/(name+'-rts.txt')).relative_to(ROOT).as_posix()
+        digests=record['sourceAndEvidenceSha256']
+        require(record['stdout']==log and record['stderr']==rts and {source,log,rts}<=set(digests),
+                'Incomplete direct reference probe record: '+name)
+        for path,digest in digests.items():
+            require(hashlib.sha256(read(ROOT/path)).hexdigest()==digest,'Reference probe input or log changed: '+path)
+        require(read(ROOT/log).decode().splitlines()[-len(final_lines):]==final_lines,
+                'Missing successful reference probe results: '+name)
+    return 40+9+10
+
+
 class SignedPublication:
     """Verify working copies against the regular-file blobs in the signed tip."""
 
@@ -281,6 +303,11 @@ def main():
     require(len(prices)==len(names) and len(impacts)==len(ids)*len(names) and
             {(r['program'],r['candidate']) for r in impacts}=={(ident,name) for ident in ids for name in names},
             'Incomplete candidate matrix')
+    probed_hashes={'blake2b_compress','sha512_compress','ripemd160_compress'}
+    supplemental=0
+    if names & probed_hashes:
+        require(probed_hashes<=names,'Unexpected missing hash candidate frontend')
+        supplemental=check_hash_candidate_probes(read)
     budgets={r['program']:int(r['assumed_budget_wu']) for r in impacts}
     cap_text=read(ROOT.parent/'C/limitations.h').decode()
     cap=int(re.search(r'^#define BUDGET_MAX (\d+)U$',cap_text,re.M).group(1))
@@ -357,6 +384,7 @@ def main():
                           fingerprint=fp,registered=len(ids),groups=len(groups),full_groups=len(full),
                           vectors=sum(counts.values()),candidate_frontends=len(names),candidate_families=len(ranked),
                           isolated_scenarios=len(impacts),source_rows=dict(sources),harness_tests=int(tasty.group(1)),
+                          supplemental_candidate_reference_cases=supplemental,
                           upstream_c=98,upstream_haskell=3252,cohort_sha256=evidence_sha(args.cohort),
                           coordinator_handoff_sha256=cohort.get('migration',{}).get('prior_manifest_sha256'),
                           overlap_handoff_sha256=cohort.get('overlap_migration',{}).get('prior_manifest_sha256'),

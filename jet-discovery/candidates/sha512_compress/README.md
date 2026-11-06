@@ -1,7 +1,5 @@
 # Candidate: `sha512_compress` — SHA-512 compression function
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 ## Type signature
 `(Vector8 Word64, Vector16 Word64) -> Vector8 Word64`
 
@@ -21,8 +19,6 @@ Medium: the SHA-256 compression proof structure carries over with 64-bit words.
 ## Alternatives considered
 None smaller: the whole ed25519 verification jet would include it.
 
-## Corpus evidence
-- `xchain-sha512`: matched ×1 (static multiplicity); program cost 5454.166 WU → 17.797 WU with all candidates (306.5×).
-- `xchain-ed25519`: matched ×1 (the challenge hash).
+## Reference checks
 
-Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).
+The standalone probe matches all nine direct compressor calls against `JetDiscovery.Ref.HmacSha512.sha512`. It starts from the standard IV and passes one padded block for each message, including the empty message and the 111-byte single-block limit. [Probe](../../tools/HashCompressionReferenceProbe.hs) · [Results](../../reports/data/hash-compression-reference-probe.txt) · [Provenance](../../reports/data/hash-compression-reference-provenance.json)

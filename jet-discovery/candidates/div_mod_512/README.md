@@ -1,7 +1,5 @@
 # Candidate: `div_mod_512` — 512-bit division with remainder
 
-**Corpus evidence withdrawn pending the fresh complete run.** Numerical corpus examples below describe historical expressions and cannot be attributed to the repaired registry. Candidate prices remain explicitly ESTIMATE. Current vector evidence is in [CURRENT-VALIDATION.md](../../reports/CURRENT-VALIDATION.md); no old ranking is current.
-
 ## Type signature
 `(Word512, Word512) -> (Word512, Word512)`
 
@@ -20,9 +18,5 @@ Medium: as `div_mod_256`, at twice the width.
 
 ## Alternatives considered
 A dedicated 512-by-256 division arrow would cover call sites whose divisor is known to fit 256 bits. A `mod_mul_256 : ((Word256, Word256), Word256) -> Word256` arrow would fuse multiplication and reduction at call sites that need the modular product. Each changes the ABI and requires its own proof, pricing, and matching evidence. The current full-width arrow also serves callers that consume a quotient.
-
-## Corpus evidence
-- `bip441-bignum-modmul`: matched ×1 (static multiplicity); program cost 3808.209 WU → 15.269 WU with all candidates (249.4×).
-- `xchain-p256-ecdsa`: matched ×3 (reductions mod n); `xchain-ed25519`: matched ×1 (SHA-512 output mod l).
 
 Test: `cabal test` checks this specification against an independent Haskell reference (test/Tests.hs).
