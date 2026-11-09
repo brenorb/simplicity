@@ -124,14 +124,15 @@ bridge. The parent owns Cabal/corpus registration, signed commits and fresh
 whole-corpus measurement. Source-level local work changes no consensus jet,
 cost table, encoding or off-limits tree.
 
-## Next application work, excluded from this finished batch
+## Six native applications, completed in a later batch
 
-Six further native applications typecheck but have not completed their full
-application vectors: conditional positions29, indexed loan20, signed order
-book20, fixed-config OCR11, three-claim StableSwap23 and weighted pool18. They
-receive no achieved-count or current-price credit yet. Their earlier conditional
-3GiB preparation OOM is retained separately. The next sequential bounded driver
-is `tools/CheckNativeProtocols.hs`.
+Six further native applications were outside this batch: conditional positions
+29, indexed loan 20, signed order book 20, fixed-config OCR 11, three-claim
+StableSwap 23 and weighted pool 18. They later passed all 121/121 vectors with
+`tools/CheckNativeProtocols.hs` at a 32 GiB cap and are counted in the final
+cohort; see [NATIVE-PROTOCOLS-VALIDATION.md](NATIVE-PROTOCOLS-VALIDATION.md).
+The earlier 3 GiB conditional-positions preparation OOM is retained in
+`data/claim-protocols-vectors.txt`. It receives no pass credit.
 
 Separate mathematical evidence, with zero standalone application count:
 
@@ -140,7 +141,9 @@ Separate mathematical evidence, with zero standalone application count:
 * `CheckLogExp.hs`:46/46 bounded exact Balancer ln/exp/pow/rounding/error-envelope
   vectors, exit0 under3GiB, `data/log-exp-vectors.txt`.
 * `CheckWeightedMath.hs`:11 quote/invariant vectors passed, then3GiB preparation
-  OOM before LP-join vectors; no completed join claim.
+  OOM before LP-join vectors, `data/weighted-math-vectors.txt`; no completed join
+  claim from this helper. The later full weighted-pool application covers joins
+  ([NATIVE-PROTOCOLS-VALIDATION.md](NATIVE-PROTOCOLS-VALIDATION.md)).
 * `CheckBoundedSqrt.hs`:116/116 exact128/256-bit integer-root vectors, exit0 under
   3GiB. The first run caught an incorrect Integer-reference sqrt(2) base case;
   that reference was corrected, the failure log retained, and dense0..100 plus
