@@ -28,7 +28,7 @@ $(BUILD)/lib/%.o: $(C)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) -Wno-conversion -o $@ $<
 
-$(BUILD)/sk/%.o: ../candidates/%/sketch.c sketch.h limbs.h
+$(BUILD)/sk/%.o: ../candidates/%/sketch.c sketch.h limbs.h blake2_sketch.h
 	@mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) $(WARN) -o $@ $<
 
