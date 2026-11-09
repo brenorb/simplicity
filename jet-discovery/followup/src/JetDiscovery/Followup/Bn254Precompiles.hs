@@ -1,0 +1,322 @@
+{-# LANGUAGE ScopedTypeVariables, RankNTypes #-}
+-- | Exact EIP-196 BN254 G1 precompile relations (0x06 ECADD, 0x07 ECMUL).
+--
+-- Each program checks a claimed precompile output against its 128-byte (add)
+-- or 96-byte (mul) input, with the precompile's rules:
+--
+-- * coordinates must be below p; (0, 0) encodes the point at infinity; any
+--   other point must satisfy y^2 = x^3 + 3, otherwise the call fails;
+-- * the output is the exact group result, with infinity encoded as (0, 0);
+-- * the ECMUL scalar is the full 256-bit word (not reduced modulo r).
+--
+-- Field arithmetic is Montgomery multiplication (R = 2^256) assembled from
+-- Arith.multiply word256, which jet substitution lowers to the existing 64-bit
+-- multiply jets.  Field inverses are witness hints checked by multiplication,
+-- the convention of the corpus P-256 and ed25519 programs.  The EVM calldata
+-- padding/truncation step is outside the program (see tools/bn254_vectors.py).
+--
+-- Outside the frozen registered corpus; compiled with -ifollowup/src.
+module JetDiscovery.Followup.Bn254Precompiles
+  ( AddW, MulW, ecaddT, ecmulT, montMul, toM, fromM, pBN, refAdd, refMul, addWitness, mulWitness
+  ) where
+
+import Prelude hiding (drop, take, not, and, or)
+import qualified Prelude as P
+import Data.Bits (testBit)
+import Simplicity.Term.Core
+import Simplicity.Programs.Bit
+import Simplicity.Programs.Generic (eq)
+import qualified Simplicity.Programs.Arith as Arith
+import Simplicity.Ty.Word
+import JetDiscovery.Lib.Bytes (konst)
+
+pBN, npBN, r2BN, oneM, threeM :: Integer
+pBN = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+npBN = 0xf57a22b791888c6bd8afcbd01833da809ede7d651eca6ac987d20782e4866389  -- -p^-1 mod 2^256
+r2BN = 0x06d89f71cab8351f47ab1eff0a417ff6b5e71911d44501fbf32cfc5b538afa89  -- 2^512 mod p
+oneM = 2 ^ (256 :: Int) `mod` pBN
+threeM = 3 * oneM `mod` pBN
+
+-- Integer reference ----------------------------------------------------------------
+
+type RPt = Maybe (Integer, Integer)
+
+inv :: Integer -> Integer
+inv a = go a (pBN - 2) 1 where
+  go _ 0 acc = acc
+  go b e acc = go (b * b `mod` pBN) (e `div` 2) (if odd e then acc * b `mod` pBN else acc)
+
+refAddPts :: RPt -> RPt -> RPt
+refAddPts Nothing q = q
+refAddPts q Nothing = q
+refAddPts (Just (x1, y1)) (Just (x2, y2))
+  | x1 == x2 && (y1 + y2) `mod` pBN == 0 = Nothing
+  | otherwise = Just (x3, y3)
+ where
+  l | x1 == x2 = 3 * x1 * x1 * inv (2 * y1) `mod` pBN
+    | otherwise = (y2 - y1) * inv ((x2 - x1) `mod` pBN) `mod` pBN
+  x3 = (l * l - x1 - x2) `mod` pBN
+  y3 = (l * (x1 - x3) - y1) `mod` pBN
+
+decodePt :: (Integer, Integer) -> Maybe RPt
+decodePt (x, y)
+  | x >= pBN || y >= pBN = Nothing
+  | x == 0 && y == 0 = Just Nothing
+  | (y * y - x * x * x - 3) `mod` pBN == 0 = Just (Just (x, y))
+  | otherwise = Nothing
+
+encodePt :: RPt -> (Integer, Integer)
+encodePt = maybe (0, 0) id
+
+-- | Precompile semantics; Nothing = the call fails.
+refAdd :: (Integer, Integer) -> (Integer, Integer) -> Maybe (Integer, Integer)
+refAdd a b = encodePt <$> (refAddPts <$> decodePt a <*> decodePt b)
+
+refMul :: (Integer, Integer) -> Integer -> Maybe (Integer, Integer)
+refMul a s = encodePt . mulPt <$> decodePt a
+ where mulPt q = P.foldl (\acc i -> let d = refAddPts acc acc in if testBit s i then refAddPts d q else d) Nothing [255, 254 .. 0]
+
+-- Simplicity ----------------------------------------------------------------------------
+
+type Fp = Word256
+type Aff = (Fp, Fp)
+type Jac = ((Fp, Fp), Fp)
+-- | ((P1, P2), (claimed output, inverse hint))
+type AddW = ((Aff, Aff), (Aff, Fp))
+-- | ((P, scalar), (claimed output, inverse hint for the final Z))
+type MulW = ((Aff, Word256), (Aff, Fp))
+
+kw :: (Core term, TyC a) => Integer -> term a Word256
+kw = konst . toWord256
+
+canon :: Core term => term Fp Fp
+canon = (iden &&& ((iden &&& kw pBN) >>> Arith.subtract word256)) >>> (ioh &&& (oh &&& iih)) >>> cond oh ih
+
+-- | a + b mod p for a, b < p (the sum is below 2^255).
+addP :: Core term => term (Fp, Fp) Fp
+addP = Arith.add word256 >>> ih >>> canon
+
+subP :: Core term => term (Fp, Fp) Fp
+subP = Arith.subtract word256 >>> cond ((iden &&& kw pBN) >>> Arith.add word256 >>> ih) iden
+
+-- | Montgomery product a b R^-1 mod p for a, b < p.
+montMul :: Core term => term (Fp, Fp) Fp
+montMul = Arith.multiply word256 >>> redc
+ where
+  m = (ih &&& kw npBN) >>> Arith.multiply word256 >>> ih
+  redc = (iden &&& ((m &&& kw pBN) >>> Arith.multiply word256)) >>> Arith.add word512 >>> ih >>> oh >>> canon
+
+toM, fromM, sqM :: Core term => term Fp Fp
+toM = (iden &&& kw r2BN) >>> montMul
+fromM = (iden &&& kw 1) >>> montMul
+sqM = (iden &&& iden) >>> montMul
+
+-- binary helpers on a shared input
+add2, sub2, mul2 :: (Core term, TyC s) => term s Fp -> term s Fp -> term s Fp
+add2 a b = (a &&& b) >>> addP
+sub2 a b = (a &&& b) >>> subP
+mul2 a b = (a &&& b) >>> montMul
+
+dbl :: (Core term, TyC s) => term s Fp -> term s Fp
+dbl a = add2 a a
+
+isZero :: (Core term, TyC s) => term s Fp -> term s Bit
+isZero a = (a &&& kw 0) >>> eq
+
+eqF :: (Core term, TyC s) => term s Fp -> term s Fp -> term s Bit
+eqF a b = (a &&& b) >>> eq
+
+-- | Coordinates below p, and (0,0) or on the curve.  Input plain affine.
+validPt :: Assert term => term Aff ()
+validPt = (canonical &&& curve) >>> unit
+ where
+  lt t = (t &&& kw pBN) >>> Arith.lt word256
+  canonical = and (lt oh) (lt ih) >>> verify
+  xm = oh >>> toM
+  ym = ih >>> toM
+  rhs = add2 (mul2 (sqM <<< xm) xm) (kw threeM)
+  curve = or (and (isZero oh) (isZero ih)) (eqF (sqM <<< ym) rhs) >>> verify
+  f <<< g = g >>> f
+
+isInfA :: (Core term, TyC s) => term s Aff -> term s Bit
+isInfA pt = and (isZero (pt >>> oh)) (isZero (pt >>> ih))
+
+-- | Check out == (x, y) given Montgomery-form x, y.
+outIs :: (Assert term, TyC s) => term s Aff -> term s Fp -> term s Fp -> term s ()
+outIs out xm ym = and (eqF (out >>> oh) (xm >>> fromM)) (eqF (out >>> ih) (ym >>> fromM)) >>> verify
+
+outInf :: (Assert term, TyC s) => term s Aff -> term s ()
+outInf out = isInfA out >>> verify
+
+-- | Check den * hint == 1 and return num * hint (all Montgomery except hint, which is plain).
+divide :: (Assert term, TyC s) => term s Fp -> term s Fp -> term s Fp -> term s Fp
+divide num den hint = (((den &&& (hint >>> toM)) >>> montMul >>> (iden &&& kw oneM) >>> eq >>> verify) &&& mul2 num (hint >>> toM)) >>> ih
+
+ecaddT :: forall term. Assert term => term AddW ()
+ecaddT = ((p1 >>> validPt) &&& (p2 >>> validPt)) &&& body >>> unit
+ where
+  p1 = oh >>> oh
+  p2 = oh >>> ih
+  out = ih >>> oh
+  hint = ih >>> ih
+  same a b = and (eqF (a >>> oh) (b >>> oh)) (eqF (a >>> ih) (b >>> ih)) >>> verify
+  body = (isInfA p1 &&& iden) >>> cond (same out p2) ((isInfA p2 &&& iden) >>> cond (same out p1) finite)
+  -- E = (AddW, ((x1, y1), (x2, y2))) in Montgomery form
+  finite = (iden &&& ((p1 >>> (oh >>> toM) &&& (ih >>> toM)) &&& (p2 >>> (oh >>> toM) &&& (ih >>> toM)))) >>> finiteE
+  x1 = ih >>> ooh
+  y1 = ih >>> oih
+  x2 = ih >>> ioh
+  y2 = ih >>> iih
+  outE = oh >>> out
+  hintE = oh >>> hint
+  finiteE = (eqF x1 x2 &&& iden) >>> cond sameX general
+  sameX = (isZero (add2 y1 y2) &&& iden) >>> cond (outInf outE) doubling
+  doubling = finish (divide (mul2 (kw threeM) (sqM <<< x1)) (dbl y1) hintE)
+  general = finish (divide (sub2 y2 y1) (sub2 x2 x1) hintE)
+  -- given lambda on E: x3 = l^2 - x1 - x2, y3 = l (x1 - x3) - y1
+  finish l = (iden &&& l) >>> fin
+  fin = (iden &&& sub2 (sub2 (sqM <<< ih) (oh >>> x1)) (oh >>> x2)) >>>
+        outIs (oh >>> oh >>> outE) ih (sub2 (mul2 (oh >>> ih) (sub2 (oh >>> oh >>> x1) ih)) (oh >>> oh >>> y1))
+  f <<< g = g >>> f
+
+-- | Jacobian doubling for a = 0 (EFD dbl-2009-l); Z = 0 stays at infinity.
+dblJ :: forall term. Core term => term Jac Jac
+dblJ = s1 >>> s2 >>> s3 >>> out
+ where
+  -- E1 = (J, (A, (B, C))): A = X^2, B = Y^2, C = B^2
+  s1 = iden &&& ((ooh >>> sqM) &&& ((oih >>> sqM) >>> (iden &&& sqM)))
+  -- E2 = (E1, (D, E)): D = 2((X + B)^2 - A - C), E = 3A
+  x1 = oh >>> ooh
+  a1 = ih >>> oh
+  b1 = ih >>> ih >>> oh
+  c1 = ih >>> ih >>> ih
+  s2 = iden &&& (dbl (sub2 (sub2 (add2 x1 b1 >>> sqM) a1) c1) &&& add2 (dbl a1) a1)
+  -- E3 = (E2, X3): X3 = E^2 - 2D
+  s3 = iden &&& sub2 (ih >>> ih >>> sqM) (dbl (ih >>> oh))
+  e1 = oh >>> oh
+  j = e1 >>> oh
+  d3 = oh >>> ih >>> oh
+  ee3 = oh >>> ih >>> ih
+  c3 = e1 >>> c1
+  x3 = ih
+  y3 = sub2 (mul2 ee3 (sub2 d3 x3)) (dbl (dbl (dbl c3)))
+  z3 = dbl (mul2 (j >>> oih) (j >>> ih))
+  out = (x3 &&& y3) &&& z3
+
+-- | Q + P with P affine and finite (EFD madd-2007-bl), all exceptional cases handled.
+maddJ :: forall term. Core term => term (Jac, Aff) Jac
+maddJ = (isZero (oh >>> ih) &&& iden) >>> cond (ih >>> ((oh &&& ih) &&& kw oneM)) finiteQ
+ where
+  -- I = (Q, P)
+  qx = oh >>> ooh
+  qy = oh >>> oih
+  qz = oh >>> ih
+  px = ih >>> oh
+  py = ih >>> ih
+  -- E1 = (I, Z1Z1)
+  s1 = iden &&& (qz >>> sqM)
+  -- E2 = (E1, (H, r)): H = x2 Z1Z1 - X1, r = y2 Z1 Z1Z1 - Y1
+  hE1 = sub2 (mul2 (oh >>> px) ih) (oh >>> qx)
+  rE1 = sub2 (mul2 (oh >>> py) (mul2 (oh >>> qz) ih)) (oh >>> qy)
+  s2 = iden &&& (hE1 &&& rE1)
+  finiteQ = s1 >>> s2 >>> ((isZero (ih >>> oh) &&& iden) >>> cond sameX general)
+  sameX = (isZero (ih >>> ih) &&& iden) >>> cond (oh >>> oh >>> oh >>> dblJ) (unit >>> ((kw oneM &&& kw oneM) &&& kw 0))
+  -- E3 = (E2, (HH, I4)), E4 = (E3, (J, (rr, V)))
+  general = s3 >>> s4 >>> s5 >>> out
+  s3 = iden &&& ((ih >>> oh >>> sqM) >>> (iden &&& dbl (dbl iden)))
+  e2of3 = oh
+  s4 = iden &&& (mul2 (e2of3 >>> ih >>> oh) (ih >>> ih) &&& (dbl (e2of3 >>> ih >>> ih) &&& mul2 (e2of3 >>> oh >>> oh >>> qx) (ih >>> ih)))
+  -- E5 = (E4, X3): X3 = rr^2 - J - 2V
+  s5 = iden &&& sub2 (sub2 (ih >>> ioh >>> sqM) (ih >>> oh)) (dbl (ih >>> iih))
+  e4 = oh
+  e3 = e4 >>> oh
+  e2 = e3 >>> oh
+  e1 = e2 >>> oh
+  i0 = e1 >>> oh
+  jJ = e4 >>> ih >>> oh
+  rr = e4 >>> ih >>> ioh
+  vV = e4 >>> ih >>> iih
+  x3 = ih
+  y3 = sub2 (mul2 rr (sub2 vV x3)) (dbl (mul2 (i0 >>> qy) jJ))
+  z3 = sub2 (sub2 (add2 (i0 >>> qz) (e2 >>> ih >>> oh) >>> sqM) (e1 >>> ih)) (e3 >>> ih >>> oh)
+  out = (x3 &&& y3) &&& z3
+
+-- | Bit i (0 = least significant) of a 256-bit word.
+bit256 :: Core term => Int -> term Word256 Bit
+bit256 i = pk 7 (pk 6 (pk 5 (pk 4 (pk 3 (pk 2 (pk 1 (pk 0 iden)))))))
+ where
+  q = 255 - i
+  pk :: (Core term, TyC x, TyC c) => Int -> term x c -> term (x, x) c
+  pk b t = if testBit q b then drop t else take t
+
+ecmulT :: forall term. Assert term => term MulW ()
+ecmulT = (pt >>> validPt) &&& ((isInfA pt &&& iden) >>> cond (outInf out) finite) >>> unit
+ where
+  pt = oh >>> oh
+  sc = oh >>> ih
+  out = ih >>> oh
+  hint = ih >>> ih
+  -- (MulW, (affine P in Montgomery form, Q))
+  finite = (iden &&& ((pt >>> ((oh >>> toM) &&& (ih >>> toM))) &&& (unit >>> ((kw oneM &&& kw oneM) &&& kw 0)))) >>> loop >>> finish
+  -- state S = (MulW, (P, Q)): Q := 2Q, then Q := Q + P when bit i is set
+  step i = (iden &&& (ih >>> ih >>> dblJ)) >>> ((oh >>> oh) &&& ((oh >>> ih >>> oh) &&& choose i))
+  choose i = ((oh >>> oh >>> sc >>> bit256 i) &&& iden) >>> cond ((ih &&& (oh >>> ih >>> oh)) >>> maddJ) ih
+  loop = P.foldl (\acc i -> acc >>> step i) iden [255, 254 .. 0]
+  -- (MulW, (P, Q)) -> check the claimed output
+  zq = ih >>> ih >>> ih
+  finish = (isZero zq &&& iden) >>> cond (outInf (oh >>> out)) affine
+  affine = (iden &&& divZ) >>> outIs (oh >>> oh >>> out)
+             (mul2 (oh >>> ih >>> ih >>> ooh) (sqM <<< ih))
+             (mul2 (oh >>> ih >>> ih >>> oih) (mul2 (sqM <<< ih) ih))
+  divZ = divide (kw oneM) zq (oh >>> hint)
+  f <<< g = g >>> f
+
+-- Witness construction ------------------------------------------------------------
+
+affW :: (Integer, Integer) -> Aff
+affW (x, y) = (toWord256 x, toWord256 y)
+
+addWitness :: (Integer, Integer) -> (Integer, Integer) -> (Integer, Integer) -> AddW
+addWitness a b out = ((affW a, affW b), (affW out, toWord256 hint))
+ where
+  hint = case (decodePt a, decodePt b) of
+    (Just (Just (x1, y1)), Just (Just (x2, _)))
+      | x1 == x2 -> if y1 == 0 then 0 else inv (2 * y1 `mod` pBN)
+      | otherwise -> inv ((x2 - x1) `mod` pBN)
+    _ -> 0
+
+mulWitness :: (Integer, Integer) -> Integer -> (Integer, Integer) -> MulW
+mulWitness a s out = ((affW a, toWord256 s), (affW out, toWord256 hint))
+ where
+  -- The program's final Z depends on its Jacobian path; the hint is the inverse
+  -- of that Z, recomputed by the reference Jacobian walk below.
+  hint = case decodePt a of
+    Just (Just q) -> maybe 0 inv (jacZ q s)
+    _ -> 0
+
+-- | Final Jacobian Z of the program's double-and-add walk (Nothing at infinity).
+jacZ :: (Integer, Integer) -> Integer -> Maybe Integer
+jacZ (px, py) s = case P.foldl stepJ (1, 1, 0) [255, 254 .. 0] of
+    (_, _, 0) -> Nothing
+    (_, _, z) -> Just z
+ where
+  m a b = a * b `mod` pBN
+  stepJ q i = let d = dblR q in if testBit s i then maddR d else d
+  dblR (x, y, z) = let a = m x x; b = m y y; c = m b b
+                       d = 2 * ((m (x + b) (x + b) - a - c) `mod` pBN) `mod` pBN
+                       e = 3 * a `mod` pBN
+                       x3 = (m e e - 2 * d) `mod` pBN
+                   in (x3, (m e (d - x3) - 8 * c) `mod` pBN, 2 * m y z `mod` pBN)
+  maddR q@(x1, y1, z1)
+    | z1 == 0 = (px, py, 1)
+    | h == 0 && r == 0 = dblR q
+    | h == 0 = (1, 1, 0)
+    | otherwise = (x3, y3, z3)
+   where
+    z1z1 = m z1 z1
+    h = (m px z1z1 - x1) `mod` pBN
+    r = (m py (m z1 z1z1) - y1) `mod` pBN
+    hh = m h h; i = 4 * hh `mod` pBN; j = m h i; rr = 2 * r `mod` pBN; v = m x1 i
+    x3 = (m rr rr - j - 2 * v) `mod` pBN
+    y3 = (m rr (v - x3) - 2 * m y1 j) `mod` pBN
+    z3 = (m (z1 + h) (z1 + h) - z1z1 - hh) `mod` pBN
