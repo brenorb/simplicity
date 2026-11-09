@@ -2,7 +2,8 @@
  *
  *   bench verify VECTORS.tsv       compare every sketch with the reference vectors
  *   bench bench  VECTORS.tsv [NAME...]
- *                                  time sketches (on their OK vectors) and the panel
+ *                                  time sketches (on their OK vectors) and the panel;
+ *                                  JD_PER_INPUT=1 also prints one 'input' line per timed vector
  *
  * VECTORS.tsv comes from tools/CandidateCVectors.hs:
  *   name  input-hex  OK|FAIL  output-hex  output-mask-hex
@@ -188,6 +189,7 @@ static bool selected(const char* name, int argc, char** argv) {
 }
 
 static int bench(const char* path, int argc, char** argv) {
+  bool per_input = NULL != getenv("JD_PER_INPUT");
   printf("kind\tname\tin_bits\tout_bits\tinputs\tmean_ns\tmedian_ns\tmax_ns\n");
   for (const jet_entry* e = jd_panel; e->name; ++e) {
     if (!selected(e->name, argc, argv)) continue;
@@ -206,7 +208,15 @@ static int bench(const char* path, int argc, char** argv) {
     size_t n; vec* vs = read_vectors(path, e->name, e, &n);
     double* t = malloc((n ? n : 1) * sizeof *t);
     size_t k = 0;
-    for (size_t i = 0; i < n; ++i) if (vs[i].ok) t[k++] = time_input(e, vs[i].in);
+    for (size_t i = 0; i < n; ++i) if (vs[i].ok) {
+      t[k] = time_input(e, vs[i].in);
+      if (per_input) {
+        printf("input\t%s\t%zu\t%.3f\t", e->name, i, t[k]);
+        for (size_t b = 0; b < (e->in_bits + 7) / 8; ++b) printf("%02x", vs[i].in[b]);
+        printf("\n");
+      }
+      ++k;
+    }
     if (k) report("sketch", e, t, k);
     free(t); free(vs);
   }
