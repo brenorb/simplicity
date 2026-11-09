@@ -89,4 +89,25 @@ static inline void jd_divmod(uint64_t* q, uint64_t* r, const uint64_t* u, const 
   for (size_t i = 0; i < n; ++i) r[i] = 0;
   for (size_t i = 0; i < dn; ++i) r[i] = s ? (un[i] >> s) | (un[i + 1] << (64 - s)) : un[i];
 }
+
+/* 256-bit helpers on 4 little-endian limbs. */
+static inline uint64_t jd_add4(uint64_t* r, const uint64_t* a, const uint64_t* b) {
+  uint64_t c = 0;
+  for (int i = 0; i < 4; ++i) { jd_u128 t = (jd_u128)a[i] + b[i] + c; r[i] = (uint64_t)t; c = (uint64_t)(t >> 64); }
+  return c;
+}
+static inline uint64_t jd_sub4(uint64_t* r, const uint64_t* a, const uint64_t* b) {
+  uint64_t borrow = 0;
+  for (int i = 0; i < 4; ++i) {
+    jd_u128 t = (jd_u128)a[i] - b[i] - borrow;
+    r[i] = (uint64_t)t; borrow = (uint64_t)(t >> 64) & 1;
+  }
+  return borrow;
+}
+static inline void jd_copy4(uint64_t* r, const uint64_t* a) { for (int i = 0; i < 4; ++i) r[i] = a[i]; }
+/* a < b */
+static inline int jd_lt4(const uint64_t* a, const uint64_t* b) {
+  for (int i = 4; i-- > 0;) if (a[i] != b[i]) return a[i] < b[i];
+  return 0;
+}
 #endif
