@@ -387,8 +387,9 @@ and the automated abstract rules; 88 rest on a reading of the full abstract
 ## Commit notes
 
 `c071a3d4` ("vendor the 1,595 deferred eprint metadata pages") also contains
-the eprint second-pass outputs: `tools/eprint_second_pass.py` (rule changes),
-`reports/data/eprint-second-pass.tsv`, `reports/data/eprint-second-pass-reviewed.json`
-and `reports/data/eprint-second-pass-audit.json`. They should have been a
+the three eprint second-pass outputs: `reports/data/eprint-second-pass.tsv`,
+`reports/data/eprint-second-pass-reviewed.json` and
+`reports/data/eprint-second-pass-audit.json`. The script that produces them
+is committed separately, in `8c56e91c`. They should have been a
 separate commit. GOAL.md forbids history rewrites on this branch, so the commit
 is left as is and recorded here.
