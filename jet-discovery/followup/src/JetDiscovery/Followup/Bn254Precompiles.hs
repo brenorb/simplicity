@@ -18,6 +18,7 @@
 -- Outside the frozen registered corpus; compiled with -ifollowup/src.
 module JetDiscovery.Followup.Bn254Precompiles
   ( AddW, MulW, ecaddT, ecmulT, montMul, toM, fromM, pBN, refAdd, refMul, addWitness, mulWitness
+  , Fp, Aff, addP, subP, sqM, kw, oneM, threeM, r2BN, add2, sub2, mul2, dbl, isZero, eqF, validPt, canon
   ) where
 
 import Prelude hiding (drop, take, not, and, or)
