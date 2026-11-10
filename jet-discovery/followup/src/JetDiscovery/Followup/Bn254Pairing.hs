@@ -27,6 +27,7 @@
 module JetDiscovery.Followup.Bn254Pairing
   ( F2, F6, F12, PairHints(..), PairingW, pairingT, pairingHints
   , f2mulT, f6mulT, f12mulT, f12sqT, frobT, powUT, conj12T, one12, monty, montyF12, montyF2
+  , finalExpT, millerT, subgroupT, pairT
   ) where
 
 import Prelude hiding (drop, take, not, and, or)
@@ -37,8 +38,10 @@ import Simplicity.Programs.Bit
 import Simplicity.Programs.Generic (eq)
 import qualified Simplicity.Programs.Arith as Arith
 import Simplicity.Ty.Word
-import JetDiscovery.Followup.Bn254Precompiles
-  (Fp, Aff, montMul, toM, kw, oneM, add2, sub2, mul2, dbl, isZero, validPt, pBN)
+import qualified Simplicity.Bitcoin.Jets as J
+import Simplicity.Bitcoin.Term (Simplicity)
+import JetDiscovery.Followup.Bn254Precompiles (Fp, Aff, toM, kw, oneM, isZero, validPt, pBN)
+import qualified JetDiscovery.Followup.Bn254Precompiles as PC
 import qualified JetDiscovery.Followup.Bn254PairingRef as R
 
 type F2 = (Fp, Fp)
@@ -49,20 +52,43 @@ type F12 = (F6, F6)
 monty :: Integer -> Integer
 monty x = x * 2 ^ (256 :: Int) `mod` pBN
 
-k2 :: (Core term, TyC a) => R.F2 -> term a F2
+k2 :: (Simplicity term, TyC a) => R.F2 -> term a F2
 k2 (a, b) = kw (monty a) &&& kw (monty b)
 
-z2, one2 :: (Core term, TyC a) => term a F2
+z2, one2 :: (Simplicity term, TyC a) => term a F2
 z2 = kw 0 &&& kw 0
 one2 = kw oneM &&& kw 0
 
+
+-- Memoised building blocks ------------------------------------------------------
+-- Each hot closed operation is jet-substituted once (NOINLINE) and shared by
+-- every use, as the frozen corpus does for BLAKE3 and the NTT; otherwise the
+-- polymorphic definitions re-expand at every call site.
+
+{-# NOINLINE montMulW #-}
+montMulW :: J.WrappedSimplicity (Fp, Fp) Fp
+montMulW = J.jetSubst PC.montMul
+{-# NOINLINE addPW #-}
+addPW :: J.WrappedSimplicity (Fp, Fp) Fp
+addPW = J.jetSubst PC.addP
+{-# NOINLINE subPW #-}
+subPW :: J.WrappedSimplicity (Fp, Fp) Fp
+subPW = J.jetSubst PC.subP
+
+add2, sub2, mul2 :: (Simplicity term, TyC s) => term s Fp -> term s Fp -> term s Fp
+add2 a b = (a &&& b) >>> J.unwrap addPW
+sub2 a b = (a &&& b) >>> J.unwrap subPW
+mul2 a b = (a &&& b) >>> J.unwrap montMulW
+dbl :: (Simplicity term, TyC s) => term s Fp -> term s Fp
+dbl a = add2 a a
+
 -- Fp2 ---------------------------------------------------------------------------
 
-f2addT, f2subT, f2mulT :: Core term => term (F2, F2) F2
+f2addT, f2subT, f2mulT0 :: Simplicity term => term (F2, F2) F2
 f2addT = add2 ooh ioh &&& add2 oih iih
 f2subT = sub2 ooh ioh &&& sub2 oih iih
 -- | Karatsuba: (a0 b0 - a1 b1, (a0 + a1)(b0 + b1) - a0 b0 - a1 b1).
-f2mulT = (iden &&& (mul2 ooh ioh &&& mul2 oih iih)) >>> (sub2 t0 t1 &&& sub2 (sub2 (mul2 (add2 a0 a1) (add2 b0 b1)) t0) t1)
+f2mulT0 = (iden &&& (mul2 ooh ioh &&& mul2 oih iih)) >>> (sub2 t0 t1 &&& sub2 (sub2 (mul2 (add2 a0 a1) (add2 b0 b1)) t0) t1)
  where
   t0 = ih >>> oh
   t1 = ih >>> ih
@@ -71,23 +97,23 @@ f2mulT = (iden &&& (mul2 ooh ioh &&& mul2 oih iih)) >>> (sub2 t0 t1 &&& sub2 (su
   b0 = oh >>> ioh
   b1 = oh >>> iih
 
-f2sqT, f2negT, f2conjT, f2mulXiT :: Core term => term F2 F2
-f2sqT = mul2 (add2 oh ih) (sub2 oh ih) &&& dbl (mul2 oh ih)
+f2sqT0, f2negT, f2conjT, f2mulXiT :: Simplicity term => term F2 F2
+f2sqT0 = mul2 (add2 oh ih) (sub2 oh ih) &&& dbl (mul2 oh ih)
 f2negT = sub2 (kw 0) oh &&& sub2 (kw 0) ih
 f2conjT = oh &&& sub2 (kw 0) ih
 -- | (9 + i)(a + b i) = (9a - b) + (a + 9b) i
 f2mulXiT = sub2 (nine oh) ih &&& add2 oh (nine ih)
  where nine x = add2 (dbl (dbl (dbl x))) x
 
-m2, a2, s2 :: (Core term, TyC s) => term s F2 -> term s F2 -> term s F2
+m2, a2, s2 :: (Simplicity term, TyC s) => term s F2 -> term s F2 -> term s F2
 m2 x y = (x &&& y) >>> f2mulT
 a2 x y = (x &&& y) >>> f2addT
 s2 x y = (x &&& y) >>> f2subT
 
 -- Fp6 = Fp2[v]/(v^3 - xi) -----------------------------------------------------------
 
-f6mulT :: Core term => term (F6, F6) F6
-f6mulT = (iden &&& (m2 a0 b0 &&& (m2 a1 b1 &&& m2 a2' b2))) >>> (c0 &&& (c1 &&& c2))
+f6mulT0 :: Simplicity term => term (F6, F6) F6
+f6mulT0 = (iden &&& (m2 a0 b0 &&& (m2 a1 b1 &&& m2 a2' b2))) >>> (c0 &&& (c1 &&& c2))
  where
   a0 = ooh
   a1 = oih >>> oh
@@ -104,49 +130,49 @@ f6mulT = (iden &&& (m2 a0 b0 &&& (m2 a1 b1 &&& m2 a2' b2))) >>> (c0 &&& (c1 &&& 
   c1 = a2 (s2 (s2 (cross a0 a1 b0 b1) w0) w1) (w2 >>> f2mulXiT)
   c2 = a2 (s2 (s2 (cross a0 a2' b0 b2) w0) w2) w1
 
-f6addT, f6subT :: Core term => term (F6, F6) F6
+f6addT, f6subT :: Simplicity term => term (F6, F6) F6
 f6addT = a2 ooh ioh &&& (a2 (oih >>> oh) (iih >>> oh) &&& a2 (oih >>> ih) (iih >>> ih))
 f6subT = s2 ooh ioh &&& (s2 (oih >>> oh) (iih >>> oh) &&& s2 (oih >>> ih) (iih >>> ih))
 
-f6negT, f6mulVT :: Core term => term F6 F6
+f6negT, f6mulVT :: Simplicity term => term F6 F6
 f6negT = (oh >>> f2negT) &&& ((ih >>> oh >>> f2negT) &&& (ih >>> ih >>> f2negT))
 -- | v (b0 + b1 v + b2 v^2) = xi b2 + b0 v + b1 v^2
 f6mulVT = (ih >>> ih >>> f2mulXiT) &&& (oh &&& (ih >>> oh))
 
-m6, a6, s6 :: (Core term, TyC s) => term s F6 -> term s F6 -> term s F6
+m6, a6, s6 :: (Simplicity term, TyC s) => term s F6 -> term s F6 -> term s F6
 m6 x y = (x &&& y) >>> f6mulT
 a6 x y = (x &&& y) >>> f6addT
 s6 x y = (x &&& y) >>> f6subT
 
 -- Fp12 = Fp6[w]/(w^2 - v) -----------------------------------------------------------
 
-f12mulT :: Core term => term (F12, F12) F12
-f12mulT = (iden &&& (m6 ooh ioh &&& m6 oih iih)) >>>
+f12mulT0 :: Simplicity term => term (F12, F12) F12
+f12mulT0 = (iden &&& (m6 ooh ioh &&& m6 oih iih)) >>>
           (a6 t0 (t1 >>> f6mulVT) &&& s6 (s6 (m6 (a6 (oh >>> ooh) (oh >>> oih)) (a6 (oh >>> ioh) (oh >>> iih))) t0) t1)
  where
   t0 = ih >>> oh
   t1 = ih >>> ih
 
 -- | (a0 + a1 w)^2 = ((a0 + a1)(a0 + v a1) - t - v t) + 2t w with t = a0 a1.
-f12sqT :: Core term => term F12 F12
-f12sqT = (iden &&& m6 oh ih) >>>
+f12sqT0 :: Simplicity term => term F12 F12
+f12sqT0 = (iden &&& m6 oh ih) >>>
          (s6 (s6 (m6 (a6 (oh >>> oh) (oh >>> ih)) (a6 (oh >>> oh) (oh >>> ih >>> f6mulVT))) ih) (ih >>> f6mulVT) &&& a6 ih ih)
 
-conj12T :: Core term => term F12 F12
+conj12T :: Simplicity term => term F12 F12
 conj12T = oh &&& (ih >>> f6negT)
 
-one12 :: (Core term, TyC a) => term a F12
+one12 :: (Simplicity term, TyC a) => term a F12
 one12 = (one2 &&& (z2 &&& z2)) &&& (z2 &&& (z2 &&& z2))
 
-m12 :: (Core term, TyC s) => term s F12 -> term s F12 -> term s F12
+m12 :: (Simplicity term, TyC s) => term s F12 -> term s F12 -> term s F12
 m12 x y = (x &&& y) >>> f12mulT
 
 -- | x -> x^p: conjugate the coefficient of w^k and multiply by xi^((p-1)k/6).
-frobT :: Core term => term F12 F12
-frobT = ((ooh >>> f2conjT) &&& (g (oih >>> oh) 2 &&& g (oih >>> ih) 4)) &&& (g ioh 1 &&& (g (iih >>> oh) 3 &&& g (iih >>> ih) 5))
+frobT0 :: Simplicity term => term F12 F12
+frobT0 = ((ooh >>> f2conjT) &&& (g (oih >>> oh) 2 &&& g (oih >>> ih) 4)) &&& (g ioh 1 &&& (g (iih >>> oh) 3 &&& g (iih >>> ih) 5))
  where g x k = m2 (x >>> f2conjT) (k2 (R.gamma k))
 
-frob2T :: Core term => term F12 F12
+frob2T :: Simplicity term => term F12 F12
 frob2T = frobT >>> frobT
 
 bitsMsbFirst :: Integer -> [Bool]
@@ -154,16 +180,16 @@ bitsMsbFirst e = [ testBit e i | i <- [nb - 1, nb - 2 .. 0] ]
  where nb = length (takeWhile (> 0) (iterate (`shiftR` 1) e))
 
 -- | x -> x^u by square and multiply over the bits of u.
-powUT :: Core term => term F12 F12
-powUT = (iden &&& iden) >>> P.foldl (>>>) iden (map step (P.drop 1 (bitsMsbFirst R.u))) >>> ih
+powUT0 :: Simplicity term => term F12 F12
+powUT0 = (iden &&& iden) >>> P.foldl (>>>) iden (map step (P.drop 1 (bitsMsbFirst R.u))) >>> ih
  where step b = (oh &&& (ih >>> f12sqT)) >>> (if b then oh &&& ((ih &&& oh) >>> f12mulT) else iden)
 
 -- | Inverse from a witness hint g, checked as f g = 1.
-inv12T :: (Assert term, Witness term) => F12 -> term F12 F12
+inv12T :: Simplicity term => F12 -> term F12 F12
 inv12T g = (iden &&& witness g) >>> ((f12mulT &&& one12) >>> eq >>> verify) &&& ih >>> ih
 
 -- | f^((p^12-1)/r): easy part with a hinted inverse, then the hard part.
-finalExpT :: forall term. (Assert term, Witness term) => F12 -> term F12 F12
+finalExpT :: forall term. Simplicity term => F12 -> term F12 F12
 finalExpT g = easy >>> s1 >>> s2 >>> s3 >>> s4 >>> s5 >>> s6' >>> s7 >>> res
  where
   easy = ((conj12T &&& inv12T g) >>> f12mulT) >>> (iden &&& frob2T) >>> f12mulT
@@ -202,15 +228,15 @@ finalExpT g = easy >>> s1 >>> s2 >>> s3 >>> s4 >>> s5 >>> s6' >>> s7 >>> res
 type Pt2 = (F2, F2)
 
 -- | Slope num/den from a hinted inverse h (checked den * h = 1).
-slope :: (Assert term, Witness term, TyC s) => term s F2 -> term s F2 -> F2 -> term s F2
+slope :: (Simplicity term, TyC s) => term s F2 -> term s F2 -> F2 -> term s F2
 slope num den h = (iden &&& witness h) >>> (((m2 (oh >>> den) ih &&& one2) >>> eq >>> verify) &&& m2 (oh >>> num) ih) >>> ih
 
 -- | Given T, the other point B (or T itself for doubling) and the slope, the new point.
-nextPt :: (Core term, TyC s) => term s Pt2 -> term s Pt2 -> term s F2 -> term s Pt2
+nextPt :: (Simplicity term, TyC s) => term s Pt2 -> term s Pt2 -> term s F2 -> term s Pt2
 nextPt t b l = (iden &&& s2 (s2 (l >>> f2sqT) (t >>> oh)) (b >>> oh)) >>> (ih &&& s2 (m2 (oh >>> l) (s2 (oh >>> t >>> oh) ih)) (oh >>> t >>> ih))
 
 -- | Line through T with slope l, at P: yP - l xP w + (l xT - yT) w^3.
-lineT :: (Core term, TyC s) => term s Aff -> term s Pt2 -> term s F2 -> term s F12
+lineT :: (Simplicity term, TyC s) => term s Aff -> term s Pt2 -> term s F2 -> term s F12
 lineT pt t l = c0 &&& c1
  where
   c0 = ((pt >>> ih) &&& kw 0) &&& (z2 &&& z2)
@@ -221,7 +247,7 @@ lineT pt t l = c0 &&& c1
 data PairHints = PairHints { phSubgroup :: [F2], phMiller :: [F2] }
 
 -- | (r-1)Q = -Q with every step's denominator inverted by a hint.
-subgroupT :: forall term. (Assert term, Witness term) => [F2] -> term Pt2 ()
+subgroupT :: forall term. Simplicity term => [F2] -> term Pt2 ()
 subgroupT hs = (iden &&& iden) >>> P.foldl (>>>) iden steps >>> ((ih &&& (oh >>> (oh &&& (ih >>> f2negT)))) >>> eq >>> verify)
  where
   -- state (Q, T)
@@ -234,7 +260,7 @@ subgroupT hs = (iden &&& iden) >>> P.foldl (>>>) iden steps >>> ((ih &&& (oh >>>
   dblY x = a2 (x >>> ih) (x >>> ih)
 
 -- | Miller loop of one pair: input (P, Q) in Montgomery form, output f.
-millerT :: forall term. (Assert term, Witness term) => [F2] -> term (Aff, Pt2) F12
+millerT :: forall term. Simplicity term => [F2] -> term (Aff, Pt2) F12
 millerT hs = (iden &&& (q1 &&& mq2)) >>> (iden &&& (one12 &&& (oh >>> ih))) >>> P.foldl (>>>) iden steps >>> (ih >>> oh)
  where
   frobTw = m2 (oh >>> f2conjT) (k2 (R.gamma 2)) &&& m2 (ih >>> f2conjT) (k2 (R.gamma 3))
@@ -260,10 +286,10 @@ millerT hs = (iden &&& (q1 &&& mq2)) >>> (iden &&& (one12 &&& (oh >>> ih))) >>> 
 -- | One pair as given in calldata: ((x, y), (x.im, x.re, y.im, y.re)), plain integers.
 type PairIn = (Aff, ((Fp, Fp), (Fp, Fp)))
 
-ltP :: (Core term, TyC s) => term s Fp -> term s Bit
+ltP :: (Simplicity term, TyC s) => term s Fp -> term s Bit
 ltP x = (x &&& kw pBN) >>> Arith.lt word256
 
-pairT :: forall term. (Assert term, Witness term) => PairIn -> PairHints -> term () F12
+pairT :: forall term. Simplicity term => PairIn -> PairHints -> term () F12
 pairT w hints = witness w >>> (iden &&& qM) >>> body
  where
   -- Y = (PairIn, Q in Montgomery form)
@@ -287,7 +313,7 @@ pairT w hints = witness w >>> (iden &&& qM) >>> body
 -- | Witness data of one vector: pairs, their hints, the Fp12 inverse hint and the claimed output word.
 type PairingW = ([(PairIn, PairHints)], (F12, Word256))
 
-pairingT :: forall term. (Assert term, Witness term) => PairingW -> term () ()
+pairingT :: forall term. Simplicity term => PairingW -> term () ()
 pairingT (pairs, (ginv, out)) = case map (uncurry pairT) pairs of
   [] -> claimedIs true
   t : ts -> claimedIs (P.foldl (\acc x -> (acc &&& x) >>> f12mulT) t ts >>> finalExpT ginv >>> ((iden &&& one12) >>> eq))
@@ -318,3 +344,45 @@ pairingHints raw out = (map one raw, (montyF12 ginv, toWord256 out))
   live = [ (pt, q) | (g1, g2) <- raw, Just (Just pt) <- [R.decodeG1 g1], Just (Just q) <- [R.decodeG2 g2] ]
   f = if null live then R.f12one else R.millerLoop live
   ginv = R.f12inv f
+
+{-# NOINLINE f2mulTW #-}
+f2mulTW :: J.WrappedSimplicity (F2, F2) F2
+f2mulTW = J.jetSubst f2mulT0
+f2mulT :: Simplicity term => term (F2, F2) F2
+f2mulT = J.unwrap f2mulTW
+
+{-# NOINLINE f2sqTW #-}
+f2sqTW :: J.WrappedSimplicity F2 F2
+f2sqTW = J.jetSubst f2sqT0
+f2sqT :: Simplicity term => term F2 F2
+f2sqT = J.unwrap f2sqTW
+
+{-# NOINLINE f6mulTW #-}
+f6mulTW :: J.WrappedSimplicity (F6, F6) F6
+f6mulTW = J.jetSubst f6mulT0
+f6mulT :: Simplicity term => term (F6, F6) F6
+f6mulT = J.unwrap f6mulTW
+
+{-# NOINLINE f12mulTW #-}
+f12mulTW :: J.WrappedSimplicity (F12, F12) F12
+f12mulTW = J.jetSubst f12mulT0
+f12mulT :: Simplicity term => term (F12, F12) F12
+f12mulT = J.unwrap f12mulTW
+
+{-# NOINLINE f12sqTW #-}
+f12sqTW :: J.WrappedSimplicity F12 F12
+f12sqTW = J.jetSubst f12sqT0
+f12sqT :: Simplicity term => term F12 F12
+f12sqT = J.unwrap f12sqTW
+
+{-# NOINLINE frobTW #-}
+frobTW :: J.WrappedSimplicity F12 F12
+frobTW = J.jetSubst frobT0
+frobT :: Simplicity term => term F12 F12
+frobT = J.unwrap frobTW
+
+{-# NOINLINE powUTW #-}
+powUTW :: J.WrappedSimplicity F12 F12
+powUTW = J.jetSubst powUT0
+powUT :: Simplicity term => term F12 F12
+powUT = J.unwrap powUTW

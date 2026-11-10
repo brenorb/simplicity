@@ -21,6 +21,7 @@ import JetDiscovery.Run
 import JetDiscovery.Tx
 import qualified JetDiscovery.Followup.Bn254PairingRef as R
 import JetDiscovery.Followup.Bn254Pairing
+import JetDiscovery.Followup.Dump (dumpProg)
 
 splitOn :: Char -> String -> [String]
 splitOn c s = case break (== c) s of (a, []) -> [a]; (a, _:rest) -> a : splitOn c rest
@@ -38,7 +39,7 @@ env0 = maybe (error "env") id (envT (hashFromInteger 0))
 say :: String -> IO ()
 say s = putStrLn s >> hFlush stdout
 
-evalT :: (TyC a, TyC b) => (forall term. (BT.Assert term, BT.Primitive term) => term a b) -> a -> Maybe b
+evalT :: (TyC a, TyC b) => (forall term. BT.Simplicity term => term a b) -> a -> Maybe b
 evalT t = J.fastEval (J.unwrap (J.jetSubst t)) env0
 
 -- Deterministic Fp12 test values.
@@ -100,4 +101,8 @@ main = do
         return (and rs)
       unless (and oks) exitFailure
       say ("vectors: " ++ show (length (filter id oks)) ++ "/" ++ show (length oks) ++ " pass")
-    _ -> say "usage: units | cost K | vectors NAME..."
+    "dump" : dir : names -> forM_ [ v | v@(n, _, _) <- vecs, null names || n `elem` names ] $ \(n, raw, out) -> do
+      dumpProg (dir ++ "/" ++ n) (progOf (pairingHints raw out))
+      dumpProg (dir ++ "/" ++ n ++ "-flipped") (progOf (pairingHints raw (1 - out)))
+      say ("dumped " ++ n ++ " pairs=" ++ show (length raw))
+    _ -> say "usage: units | cost K | vectors NAME... | dump DIR [NAME...]"
