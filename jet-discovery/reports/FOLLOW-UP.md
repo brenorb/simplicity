@@ -383,3 +383,12 @@ and the automated abstract rules; 88 rest on a reading of the full abstract
   and HAWK. Each needs primitives the corpus has not measured.
 - **Period-ranking access gaps** ([PERIOD-RANKINGS.md](PERIOD-RANKINGS.md)):
   unchanged; the blocked sources still need manual access.
+
+## Commit notes
+
+`c071a3d4` ("vendor the 1,595 deferred eprint metadata pages") also contains
+the eprint second-pass outputs: `tools/eprint_second_pass.py` (rule changes),
+`reports/data/eprint-second-pass.tsv`, `reports/data/eprint-second-pass-reviewed.json`
+and `reports/data/eprint-second-pass-audit.json`. They should have been a
+separate commit. GOAL.md forbids history rewrites on this branch, so the commit
+is left as is and recorded here.
