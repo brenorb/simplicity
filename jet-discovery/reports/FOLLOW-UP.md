@@ -20,7 +20,7 @@ there would have broken the frozen run's local audit.
 | WOTS unrestricted worst path (30 compressions) unpriced | **Done.** 15,106 mWU worst path; 7,871 mWU for the 18-byte profile | [C-BENCHMARKS.md](C-BENCHMARKS.md) |
 | Complete FROST transcript | **Done.** 14/14 vectors including RFC 9591 E.5; 3,830.371 WU | [below](#frost) |
 | BN254 G1 addition and scalar multiplication (EIP-196) | **Done.** Exact precompile relations on go-ethereum vectors | [below](#bn254) |
-| BN254 pairing check (EIP-197) | Open; extrapolation re-anchored on measured G1 costs | [below](#pairing) |
+| BN254 pairing check (EIP-197) | **Built and measured.** Exact relation, C-evaluator validated; 17.9M WU for one pair | [below](#pairing) |
 | STARK wire compatibility | Compared against Stwo at a pinned commit; the hash difference is priced and it moves `blake2s_compress` | [below](#stark) |
 | STARK security level | **Done.** 123 conjectured, 69.9 provable bits under ethSTARK v1.2 bounds | [below](#stark-security) |
 | 1,595 eprint records deferred at metadata triage | **Done.** All re-triaged on full abstracts; none still deferred | [below](#eprint) |
@@ -116,28 +116,100 @@ judged together, not one multiply at a time.
 
 ## Pairing
 
-The EIP-197 pairing check is still not built. A sound program needs the
-Fp2/Fp6/Fp12 tower, a Miller loop over the twist, line evaluation, final
-exponentiation (or the residue witness of eprint 2024/640), and G2 subgroup
-checks. Building it is mechanical but large. Its vectors cannot be validated
-in reasonable time with the Haskell evaluator: one ECMUL vector already takes
-about 30 minutes, and a pairing is more than an order of magnitude more field
-work.
+[Bn254Pairing.hs](../followup/src/JetDiscovery/Followup/Bn254Pairing.hs) is
+an exact EIP-197 pairing-check relation (precompile 0x08) for k pairs. It
+checks a claimed 32-byte output (0 or 1) against the inputs, under the rules
+of go-ethereum's current gnark backend (read at the vectors' commit):
 
-The measurements above sharpen the frozen extrapolation in
-[bn254-groth16.md](bn254-groth16.md), which counted 557,682 base-field
-multiplies for a naive three-pairing Groth16 check. On existing jets one
-Montgomery multiply plus its share of modular add/sub costs about 460 WU
-(2,590,845.587 WU over the 5,642 multiplies of ECMUL), so `BUDGET_MAX` buys
-about 8.7k of them. A single optimal-ate pairing needs on the order of ten
-thousand base-field multiplies, and a three-pairing Groth16 check about three
-times that, so it lands at or above `BUDGET_MAX` before any line or subgroup
-overhead. With a `bn254_fp_multiply` jet the multiply itself drops to about
-0.32 WU. Measured G1 code still spends about 130 WU per multiply on the
-surrounding modular add/sub (749,249 WU over 5,642 multiplies), so a Groth16
-pairing check would still cost millions of WU unless that residue, or the
-tower arithmetic, is also a jet. Both statements are **ESTIMATES** scaled
-from measured G1 programs, not a measured pairing.
+- G1 canonical, (0, 0) = infinity, otherwise on the curve.
+- G2 in EVM order (imaginary part first), canonical, all-zero = infinity,
+  otherwise on the twist **and in the order-r subgroup**.
+- Empty input returns 1. Pairs with an infinity factor contribute 1.
+
+Construction:
+
+- The Fp2/Fp6/Fp12 tower runs on the validated Montgomery field.
+- An affine optimal-ate Miller loop over 6u+2 takes one inverse hint per step,
+  checked as den·inv = 1, so a zero denominator rejects.
+- The subgroup check computes (r−1)Q = −Q with the same hinted steps.
+- The easy part of the final exponentiation uses an Fp12 inverse hint; the
+  hard part is the Devegili–Scott–Dahab chain (three exponentiations by u).
+- Each pair runs its own Miller loop. The k results are multiplied before one
+  final exponentiation.
+
+The independent Integer reference
+([Bn254PairingRef.hs](../followup/src/JetDiscovery/Followup/Bn254PairingRef.hs))
+passes all 14 go-ethereum pairing vectors, including the two expected-0 cases
+and the 10-pair ones. Its hard part equals direct exponentiation by
+(p¹²−1)/r exactly ([log](data/followup-bn254-pairing-reference.txt)).
+
+**How it was validated.** The Haskell evaluator cannot hold this program
+(about 60 GB for one exponentiation by u), and Haskell DAG construction
+re-expands polymorphic operations at every use. So:
+
+- The program is built from a generated monomorphic twin
+  ([Bn254PairingDag.hs](../followup/src/JetDiscovery/Followup/Bn254PairingDag.hs),
+  `tools/gen_bn254_pairing_dag.py`) that shares every closed operation once.
+- It is executed by libsimplicity's own C evaluator
+  ([bench/run_program.c](../bench/run_program.c)). The runner follows
+  `simplicity_bitcoin_execSimplicity`, with no budget and the anti-DoS
+  branch-coverage checks off, because these are unpruned research programs.
+- On all 42 EIP-196 vectors the runner gives the same accept/reject outcome as
+  the Haskell runs, and the same cost bound to the milliWU.
+- Exact costs above libsimplicity's saturating 32-bit milliWU counter come
+  from the corpus cost algebra on the same DAG.
+
+**Components** ([log](data/followup-bn254-pairing-units.txt)). Each runs OK
+against the Integer reference and fails with a wrong expected value:
+
+| Component | Native bound (WU) |
+| --- | ---: |
+| Fp12 multiply | 37,402.213 |
+| Fp12 square | 26,863.300 |
+| Frobenius | 6,796.441 |
+| Exponentiation by u | 2,668,478.423 |
+| Final exponentiation | **8,800,685.310** (2.2× `BUDGET_MAX`) |
+
+**Vectors.** Each go-ethereum vector is run with its correct claimed output
+(must run OK) and with the output flipped (must fail):
+
+| Pairs | Vectors (claimed output) | Correct output | Flipped output | Native bound (WU) | × `BUDGET_MAX` | Build memory |
+| ---: | --- | --- | --- | ---: | ---: | ---: |
+| 0 | `empty_data` (1) | OK | rejects | 7.534 | 0.000002 | — |
+| 1 | `one_point` (0) | OK | rejects | 17,915,640.822 | 4.48 | 40 GB |
+| 2 | `jeff1`, `jeff2`, `jeff3`, `two_point_match_2/3/4`, `ten_point_match_3` (1); `jeff6` (0) | 8/8 OK | 8/8 reject | 27,067,892.156 | 6.77 | 46–67 GB |
+| 3 | `jeff4`, `jeff5` (1) | 2/2 OK | 2/2 reject | 36,220,143.490 | 9.06 | 75–77 GB |
+| 10 | `ten_point_match_1`, `ten_point_match_2` (1) | 2/2 OK | 2/2 reject | 100,285,902.828 | 25.07 | 88–89 GB |
+
+**All 14 go-ethereum vectors pass**, both expected-0 cases included
+([results](data/followup-bn254-pairing-vectors-results.txt)). Programs with
+the same number of pairs share one CMR across all their vectors, accepting and
+rejecting alike ([CMRs](data/followup-bn254-pairing-cmrs.txt)), so the outcome
+depends only on the witness. Each pair after the first adds 9,152,251.334 WU:
+its own Miller loop, subgroup check and decoding. The 8,800,685.310 WU final
+exponentiation is paid once.
+
+**Reading the cost.** One pair costs 17,915,640.822 WU, 4.5× `BUDGET_MAX`.
+The final exponentiation alone exceeds the maximum, so no BN254 pairing check,
+and so no Groth16 verifier, fits on existing jets. Field arithmetic dominates:
+one Fp12 multiply is 37.4 kWU. A `bn254_fp_multiply` jet removes most of the
+multiply cost, but the measured G1 programs show modular add/sub then
+dominating (see [BN254](#bn254)). A pairing within budget therefore needs
+jetted tower arithmetic (an Fp12 multiply, or a whole pairing/Miller-loop
+jet), or the residue-witness technique of
+[2024/640](https://eprint.iacr.org/2024/640), which removes the final
+exponentiation for accepting checks. This replaces the extrapolation in
+[bn254-groth16.md](bn254-groth16.md) with a measured program.
+
+Limits:
+
+- Lines are multiplied as dense Fp12 elements.
+- Per-pair Miller loops repeat the Fp12 squarings; a shared accumulator would
+  avoid that.
+- Exponentiation by u uses plain squaring; cyclotomic squaring would be
+  cheaper.
+
+All three overstate an optimised verifier, but not by the 4.5× needed to fit.
 
 ## STARK
 
@@ -296,7 +368,6 @@ and the automated abstract rules; 88 rest on a reading of the full abstract
 
 ## Still open
 
-- **EIP-197 pairing check**: see [Pairing](#pairing).
 - **Verifiable timed signatures** (eprint 2020/1563, VT-Schnorr Figure 3).
   Unchanged from [timed-signatures.md](timed-signatures.md). The verifier
   needs range proofs and linearly homomorphic time-lock puzzles over a
