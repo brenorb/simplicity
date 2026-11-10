@@ -9,7 +9,7 @@ paths and dependency metadata can be recovered using `../README.md`.
 | `linked` | 16 | Core and SHA programs with the reference `memcpy` linked internally, plus CompCert linking theorems. Discharges `memcpy_model` for a *linked* program; the unchanged program's libc-conditional entries stay conditional |
 | `bitcoin-env-linked` | 2 | The same, for the Bitcoin environment unit |
 | `bitcoin-env` | 55 | SHA-unit proofs recompiled against the Bitcoin environment translation unit (`C.jets_sha` := `C.jets_bitcoin_env`), environment readiness and startup |
-| `elements-env` | 56 | Elements environment helpers and callers (taproot setup, copyOutput, confidential/issuance hashing, fees) |
+| `elements-env` | 56 | Elements environment helpers and callers (taproot setup, copyOutput, confidential/issuance hashing, fees). Also holds `jet_elements_env_copyin_defs.v.source`, an unfinished, never-built start on `copyInput` (statement decomposition only) |
 | `elements-sha` | 11 | SHA proofs in the Elements program; annex/tapleaf/tapbranch |
 | `startup` | 9 | SHA startup invariant, in the older `JetStartup` namespace (the `C.jet_sha_startup_*` modules in `Coq/C` are the transported versions) |
 | `forward` | 3 | Forward-memory issuance-token helpers, in the older `JetForward` namespace |
@@ -27,8 +27,11 @@ plus one reproducible command), so these trees currently have no build path.
 
 1. Extract the files to their `original_path` (or a scratch tree).
 2. Write a build that copies `Coq/C`, substitutes the program module, and
-   compiles the tree with `build-jets.sh` flags. The pre-integration scripts
-   `Coq/build-{linked,bitcoin-env,elements-env,elements-sha,startup}.sh` on
-   branch `claude/shared-obligations` show each substitution.
+   compiles the tree with `build-jets.sh` flags. The pre-integration build and
+   audit scripts are in [`scripts/`](scripts/) (original path
+   `Coq/<name>`, last versions from the deleted branch
+   `claude/shared-obligations`, 2026-10-11..13) and show each substitution.
+   They predate the cleanup: they expect the trees under `Coq/<tree>/` and the
+   older `Coq/C` layout, so treat them as a recipe rather than a working build.
 3. Wire that build into `check-jets.sh` before registering anything that
    depends on it.

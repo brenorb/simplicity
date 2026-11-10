@@ -1,0 +1,86 @@
+(** [copyInput(result, input)] (elements/env.c): the compound literal
+    [*result = (sigInput){ .prevOutpoint = { .ix = input->prevIx },
+       .sequence = input->sequence, .isPegin = !!input->pegin,
+       .hasAnnex = !!input->annex }], decomposed; the zero runs are computed
+    by [zrun]. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_add_n_init.
+Require Import C.jet_elements_env_field_eval C.jet_elements_env_lit.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+
+Notation SIN := (Tstruct _sigInput noattr).
+Notation RIN := (Tstruct _rawElementsInput noattr).
+Notation CIN := (Evar ___compound SIN).
+Notation RINP := (Ederef (Etempvar _input (tptr RIN)) RIN).
+
+Definition ci_body : statement := fn_body f_copyInput.
+Definition ci_fill : statement :=
+  ltac:(let b := eval cbv delta [ci_body f_copyInput fn_body] beta iota in ci_body in
+        lazymatch b with Ssequence (Ssequence ?f _) _ => exact f end).
+Definition ci_rest : statement :=
+  ltac:(let b := eval cbv delta [ci_body f_copyInput fn_body] beta iota in ci_body in
+        lazymatch b with Ssequence _ ?r => exact r end).
+Definition ci_copy : statement := Sassign (Ederef (Etempvar _result (tptr SIN)) SIN) CIN.
+
+Lemma ci_body_shape : ci_body = Ssequence (Ssequence ci_fill ci_copy) ci_rest.
+Proof. reflexivity. Qed.
+
+Fixpoint peel (n : nat) (s : statement) : statement :=
+  match n with
+  | O => s
+  | S k => match s with Ssequence s' _ => peel k s' | _ => s end
+  end.
+
+Definition ci_f6 : statement := Eval cbv beta iota delta [peel ci_fill] in peel 1 ci_fill.
+Definition ci_f5 : statement := Eval cbv beta iota delta [peel ci_f6] in peel 1 ci_f6.
+Definition ci_f4 : statement := Eval cbv beta iota delta [peel ci_f5] in peel 67 ci_f5.
+Definition ci_f3 : statement := Eval cbv beta iota delta [peel ci_f4] in peel 1 ci_f4.
+Definition ci_f2 : statement := Eval cbv beta iota delta [peel ci_f3] in peel 26 ci_f3.
+Definition ci_f1 : statement := Eval cbv beta iota delta [peel ci_f2] in peel 1 ci_f2.
+
+Definition ci_ix : statement :=
+  Ssequence (Sset _t'39 (Efield RINP _prevIx tuint))
+    (Sassign (Efield (Efield CIN _prevOutpoint (Tstruct _outpoint noattr)) _ix tulong) (Etempvar _t'39 tuint)).
+Definition ci_sequence : statement :=
+  Ssequence (Sset _t'38 (Efield RINP _sequence tuint))
+    (Sassign (Efield CIN _sequence tulong) (Etempvar _t'38 tuint)).
+Definition ci_hasAnnex : statement :=
+  Ssequence (Sset _t'37 (Efield RINP _annex (tptr (Tstruct _rawElementsBuffer noattr))))
+    (Sassign (Efield CIN _hasAnnex tbool)
+      (Eunop Onotbool (Eunop Onotbool (Etempvar _t'37 (tptr (Tstruct _rawElementsBuffer noattr))) tint) tint)).
+Definition ci_isPegin : statement :=
+  Ssequence (Sset _t'36 (Efield RINP _pegin (tptr tuchar)))
+    (Sassign (Efield CIN _isPegin tbool)
+      (Eunop Onotbool (Eunop Onotbool (Etempvar _t'36 (tptr tuchar)) tint) tint)).
+
+Lemma ci_fill_shape : ci_fill = Ssequence ci_f6 ci_isPegin.
+Proof. reflexivity. Qed.
+Lemma ci_f6_shape : ci_f6 = Ssequence ci_f5 ci_hasAnnex.
+Proof. reflexivity. Qed.
+Lemma ci_f4_shape : ci_f4 = Ssequence ci_f3 ci_sequence.
+Proof. reflexivity. Qed.
+Lemma ci_f2_shape : ci_f2 = Ssequence ci_f1 ci_ix.
+Proof. reflexivity. Qed.
+
+Notation CE := (Clight.genv_cenv sha_ge).
+
+Definition ci_z1 : list cell :=
+  Eval vm_compute in match zrun ___compound SIN CE 32 ci_f1 with Some (None, cs) => cs | _ => [] end.
+Definition ci_z2 : list cell :=
+  Eval vm_compute in match zrun ___compound SIN CE 26 ci_f3 with Some (Some _, cs) => cs | _ => [] end.
+Definition ci_z3 : list cell :=
+  Eval vm_compute in match zrun ___compound SIN CE 67 ci_f5 with Some (Some _, cs) => cs | _ => [] end.
+
+Lemma ci_z1_run : zrun ___compound SIN CE 32 ci_f1 = Some (None, ci_z1).
+Proof. vm_compute. reflexivity. Qed.
+Lemma ci_z2_run : zrun ___compound SIN CE 26 ci_f3 = Some (Some ci_f2, ci_z2).
+Proof. vm_compute. reflexivity. Qed.
+Lemma ci_z3_run : zrun ___compound SIN CE 67 ci_f5 = Some (Some ci_f4, ci_z3).
+Proof. vm_compute. reflexivity. Qed.
+
+Lemma ci_sizeof_SIN : sizeof sha_ge SIN = 544.
+Proof. vm_compute. reflexivity. Qed.
+Lemma ci_blockcopy_SIN : alignof_blockcopy sha_ge SIN = 8.
+Proof. vm_compute. reflexivity. Qed.

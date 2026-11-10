@@ -29,7 +29,31 @@ git archive c4115d31430537d67724ebbe65d62ce4c2ce1a37 proof-work | \
 ```
 
 This restores historical candidate material, not current acceptance evidence.
-The old branches and recovery backups also remain untouched.
+
+The old side branches (`integrate/jet-equivalence`, `claude/shared-obligations`,
+`codex/*`, `backup/*`, `wip/*`) were deleted on 2026-11-09. Each one's proofs
+and notes are in this branch's history or archived here. What only they had
+were run receipts and gate scripts, which are not kept (see above). Notes here
+cite about 50 commits from those branches, including the replay bases of the
+`range` and `secp-field-predicates` patches. Tag
+`archive/pre-cleanup-2026-11-09` keeps all of them reachable: its commit has
+an empty tree and the old branch tips as parents. Run
+`git log archive/pre-cleanup-2026-11-09^@` to browse them. The most-cited later
+ones have direct equivalents in this branch:
+
+| Cited | Equivalent here |
+| --- | --- |
+| `2472cb0c` | `57a67ea5` (same commit, rewritten history) |
+| `7f2d7382` | `b744462e` (same commit) |
+| `f03579af` | `60c0bf92` (same commit) |
+| `805cb19e` | `9a748771` (same commit) |
+| `cafb9b31` | `e4233cf8` (same commit) |
+| `2f69bf90` | `61b4dc82` (same commit) |
+| `4f706818` | `5fb137e8` (same commit) |
+| `62d0976d` | `2a42e621` (same commit) |
+| `e8e5500a` | `8831b19a` (identical `Coq/C/jet_frame_constructible.v`) |
+| `dd4579a7` | none; archived as `fe-multiply-parallel/unapplied-registration.patch` |
+| `ef4aa19c` | none; its sources are archived in `fe-multiply-parallel/` |
 
 Useful groups include:
 
