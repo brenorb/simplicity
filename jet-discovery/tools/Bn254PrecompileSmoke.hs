@@ -17,6 +17,7 @@ import JetDiscovery.Types
 import JetDiscovery.Run
 import JetDiscovery.Tx
 import JetDiscovery.Followup.Bn254Precompiles
+import JetDiscovery.Followup.Dump (dumpProg)
 
 hexI :: String -> Integer
 hexI s = read ("0x" ++ s)
@@ -58,7 +59,11 @@ main = do
       mulEntry = Entry "followup-eip196-bn254-ecmul" "EIP-196 BN254 G1 scalar multiplication precompile relation"
                    "EIP-196 0x07 ECMUL" CrossChain (Upstream "vendor-specs-followup/bn254/bn256ScalarMul.json plus derived failures")
                    [] (\w -> Prog (witness w >>> ecmulT)) mulVecs
-  forM_ [ e | e@(Entry i _ _ _ _ _ _ _) <- [addEntry, mulEntry], null args || i `elem` args ] $ \(Entry ident _ _ _ _ _ make vectors) -> do
+  case args of
+    ["dump", dir] -> forM_ [addEntry, mulEntry] $ \(Entry ident _ _ _ _ _ make vectors) ->
+      forM_ (zip [0 :: Int ..] vectors) $ \(i, v) -> dumpProg (dir ++ "/" ++ ident ++ "-" ++ show i) (make (vecWitness v))
+    _ -> return ()
+  unless (take 1 args == ["dump"]) $ forM_ [ e | e@(Entry i _ _ _ _ _ _ _) <- [addEntry, mulEntry], null args || i `elem` args ] $ \(Entry ident _ _ _ _ _ make vectors) -> do
     let first = make (vecWitness (head vectors))
         cmr = progCmr first
         m = measure first

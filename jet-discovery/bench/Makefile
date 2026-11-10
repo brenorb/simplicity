@@ -22,7 +22,19 @@ LIB_OBJS := $(addprefix $(BUILD)/lib/,$(LIB_SRCS:.c=.o))
 SKETCHES := $(sort $(wildcard ../candidates/*/sketch.c))
 SK_OBJS  := $(patsubst ../candidates/%/sketch.c,$(BUILD)/sk/%.o,$(SKETCHES))
 
-all: $(BUILD)/bench
+EXEC_SRCS := bitstream.c cmr.c dag.c deserialize.c eval.c frame.c jets.c jets-secp256k1.c rsort.c sha256.c type.c typeInference.c \
+             bitcoin/env.c bitcoin/exec.c bitcoin/ops.c bitcoin/bitcoinJets.c bitcoin/primitive.c bitcoin/cmr.c bitcoin/txEnv.c
+EXEC_OBJS := $(addprefix $(BUILD)/exec/,$(EXEC_SRCS:.c=.o))
+
+all: $(BUILD)/bench $(BUILD)/run_program
+
+$(BUILD)/exec/%.o: $(C)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) -c $(CFLAGS) -Wno-conversion -o $@ $<
+
+# Run a serialized program with libsimplicity's evaluator (see run_program.c).
+$(BUILD)/run_program: run_program.c $(EXEC_OBJS)
+	$(CC) $(CFLAGS) $(WARN) -o $@ run_program.c $(EXEC_OBJS)
 
 $(BUILD)/lib/%.o: $(C)/%.c
 	@mkdir -p $(dir $@)
