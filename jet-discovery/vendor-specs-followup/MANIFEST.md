@@ -32,3 +32,15 @@ sequentially and rate-spaced. `abstracts/manifest.json` gives each page's URL,
 retrieval time, byte count and SHA-256. Pages are stored unmodified. Individual
 papers keep the licenses stated on their pages; eprint states no blanket license
 for its HTML.
+
+## STARK security sources (`stark/`)
+
+| File | Source | Revision | License | SHA-256 |
+| --- | --- | --- | --- | --- |
+| `ethstark-documentation-v1.2.pdf` | `https://raw.githubusercontent.com/starkware-libs/ethSTARK/0eb683bfdc9b4f85cc5254403ca032868db414f7/rescue_stark_documentation.pdf` | ethSTARK Documentation, Version 1.2, July 2023 (repository commit 2023-07-27) | repository Apache-2.0; the eprint 2021/582 listing states CC BY | `a02bd1c66a4c2f4cfa13c223ed48a9a9b565ebc5adef54f4263f479884ff09e1` |
+
+eprint and ECCC served bot-check pages to automated requests, so the ethSTARK
+document comes from StarkWare's own repository. BCIKS20 (FOCS 2020 version)
+was read from NSF's public-access repository
+(`https://par.nsf.gov/servlets/purl/10292832`, SHA-256
+`4057d92406c43ba8ab7678546b996f7642a935cc22a6209904b84f44377d2a49`). It is IEEE-copyrighted and is not committed.
