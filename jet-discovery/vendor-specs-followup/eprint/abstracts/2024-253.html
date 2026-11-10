@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>2PC-MPC: Emulating Two Party ECDSA in Large-Scale MPC</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="2PC-MPC: Emulating Two Party ECDSA in Large-Scale MPC">
+  
+  <meta name="citation_author" content="Offir Friedman">
+  
+  <meta name="citation_author" content="Avichai Marmor">
+  
+  <meta name="citation_author" content="Dolev Mutzari">
+  
+  <meta name="citation_author" content="Omer Sadika">
+  
+  <meta name="citation_author" content="Yehonatan C. Scaly">
+  
+  <meta name="citation_author" content="Yuval Spiizer">
+  
+  <meta name="citation_author" content="Avishay Yanai">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2024">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2024/253.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2024/253">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="2PC-MPC: Emulating Two Party ECDSA in Large-Scale MPC" />
+  <meta property="og:description" content="Motivated by the need for a massively decentralized network concurrently servicing many clients, we present novel low-overhead UC-secure, publicly verifiable, threshold ECDSA protocols with identifiable abort.
+For the first time, we show how to reduce the message complexity from O(n^2) to O(n) and the computational complexity from O(n) to practically O(1) (per party, where n is the number of parties).
+We require only a broadcast channel for communication. Therefore, we natively support use-cases like permissionless bridges and decentralized custody, where P2P channels between every pair of parties are infeasible. Consequently, the message complexity is reduced and the protocol is publicly verifiable.
+We enable all communication to be public (over a broadcast channel), by using a threshold additively homomorphic encryption scheme and novel zero-knowledge proofs.
+To further reduce the computation and communication overheads, our protocols employ novel batching and amortization techniques, which may be of independent interest.
+
+Our second main contribution is the introduction of the notion of a 2PC-MPC protocol - a two-party ECDSA protocol where the second party is fully emulated by a network of n parties.
+This notion assures that both the first party (the client) and (a threshold) of the network are required to participate in signing, while abstracting away the internal structure of the network.
+In particular, the communication and computation complexities of the client remain independent of the network properties (e.g. size). This allows ultimate decentralization in distributed custody use-cases, as recent growing interest in the industry demands.
+
+We report that our implementation completes the signing phase in 1.23 and 12.703 seconds, for 256 and 1024 parties, respectively." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2024-02-17T15:32:08+00:00" />
+  <meta property="article:published_time" content="2024-02-15T22:16:59+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Threshold ECDSA" />
+  
+      <meta property="article:tag" content="Large-Scale Decentralised Systems" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2024/253</h4>
+    <h3 class="mb-3"><a href="/2024/253.pdf">2PC-MPC: Emulating Two Party ECDSA in Large-Scale MPC</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Offir Friedman</span><span class="affiliation">, dWallet Labs</span></div>
+    
+    
+    <div class="author"><span class="authorName">Avichai Marmor</span><span class="affiliation">, dWallet Labs</span></div>
+    
+    
+    <div class="author"><span class="authorName">Dolev Mutzari</span><span class="affiliation">, dWallet Labs</span></div>
+    
+    
+    <div class="author"><span class="authorName">Omer Sadika</span><span class="affiliation">, dWallet Labs</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yehonatan C. Scaly</span><span class="affiliation">, dWallet Labs</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yuval Spiizer</span><span class="affiliation">, dWallet Labs</span></div>
+    
+    
+    <div class="author"><span class="authorName">Avishay Yanai</span><span class="affiliation">, dWallet Labs</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Motivated by the need for a massively decentralized network concurrently servicing many clients, we present novel low-overhead UC-secure, publicly verifiable, threshold ECDSA protocols with identifiable abort.
+For the first time, we show how to reduce the message complexity from O(n^2) to O(n) and the computational complexity from O(n) to practically O(1) (per party, where n is the number of parties).
+We require only a broadcast channel for communication. Therefore, we natively support use-cases like permissionless bridges and decentralized custody, where P2P channels between every pair of parties are infeasible. Consequently, the message complexity is reduced and the protocol is publicly verifiable.
+We enable all communication to be public (over a broadcast channel), by using a threshold additively homomorphic encryption scheme and novel zero-knowledge proofs.
+To further reduce the computation and communication overheads, our protocols employ novel batching and amortization techniques, which may be of independent interest.
+
+Our second main contribution is the introduction of the notion of a 2PC-MPC protocol - a two-party ECDSA protocol where the second party is fully emulated by a network of n parties.
+This notion assures that both the first party (the client) and (a threshold) of the network are required to participate in signing, while abstracting away the internal structure of the network.
+In particular, the communication and computation complexities of the client remain independent of the network properties (e.g. size). This allows ultimate decentralization in distributed custody use-cases, as recent growing interest in the industry demands.
+
+We report that our implementation completes the signing phase in 1.23 and 12.703 seconds, for 256 and 1024 parties, respectively.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2024/253.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Threshold%20ECDSA" class="me-2 badge bg-secondary keyword">Threshold ECDSA</a><a rel="nofollow" href="/search?q=Large-Scale%20Decentralised%20Systems" class="me-2 badge bg-secondary keyword">Large-Scale Decentralised Systems</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        offir<span class="obfuscate"> &#64; </span>dwalletlabs com<br>avichai<span class="obfuscate"> &#64; </span>dwalletlabs com<br>dolev<span class="obfuscate"> &#64; </span>dwalletlabs com<br>omer<span class="obfuscate"> &#64; </span>dwalletlabs com<br>yehonatan<span class="obfuscate"> &#64; </span>dwalletlabs com<br>yuval<span class="obfuscate"> &#64; </span>dwalletlabs com<br>ay yanay<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2024-02-17: revised</dd>
+      
+      
+      
+      <dd>2024-02-15: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2024/253">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2024/253">https://ia.cr/2024/253</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2024/253,
+      author = {Offir Friedman and Avichai Marmor and Dolev Mutzari and Omer Sadika and Yehonatan C. Scaly and Yuval Spiizer and Avishay Yanai},
+      title = {{2PC}-{MPC}: Emulating Two Party {ECDSA} in Large-Scale {MPC}},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2024/253},
+      year = {2024},
+      url = {https://eprint.iacr.org/2024/253}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

@@ -1,0 +1,338 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Multi-Dimensional Sub/Super-Range Signatures</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Multi-Dimensional Sub/Super-Range Signatures">
+  
+  <meta name="citation_author" content="Masahito Ishizaka">
+  
+  <meta name="citation_author" content="Shinsaku Kiyomoto">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2021">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2021/698.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2021/698">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Multi-Dimensional Sub/Super-Range Signatures" />
+  <meta property="og:description" content="In time-specific signatures (TSS) [Paterson \&amp; Quaglia, SCN&#39;10] [Ishizaka \&amp; Kiyomoto, ISC&#39;20] with $T$ numerical values, each signer is given a secret-key associated with a numerical value $t\in[0,T-1]$ and each signature on a message is generated under a numerical range $[L,R]$ s.t. $0\leq L\leq R\leq T-1$. A signer with $t$ can correctly generate a signature under $[L,R]$ if $t$ is truly included in $[L,R]$, i.e., $t\in[L,R]$.
+
+As a generalized primitive of TSS, we propose multi-dimensional \textit{sub}-range signatures (MDSBRS). As a related primitive, we also propose multi-dimensional \textit{super}-range signatures (MDSPRS). In MDSBRS (resp. MDSPRS) with $D\in\mathbb{N}$ dimensions, each secret-key is associated with a set of $D$ ranges $\{[l_i,r_i]\mid i\in[1,D]\}$ s.t. $0 \leq l_i\leq r_i\leq T_i-1$ and a threshold value $d\in[1,D]$, and it correctly produces a signature on any message under a set of $D$ ranges $\{[L_i,R_i]\mid i\in[1,D]\}$ s.t. $0 \leq L_i\leq R_i\leq T_i-1$, if and only if total number of key-ranges every one $[l_i,r_i]$ of which is a \textit{sub}-range (resp. \textit{super}-range) of the corresponded signature-range $[L_i,R_i]$, i.e., $L_i\leq l_i\leq r_i\leq R_i$ (resp. $l_i\leq L_i\leq R_i\leq r_i$), is more than $d-1$. We show that, by extending (or generalizing) an existing TSS scheme, we obtain MDSBRS and MDSPRS schemes each one of which is secure, i.e., existentially unforgeable and perfectly (signer-)private, under standard assumption and asymptotically efficient." />
+  <meta property="article:section" content="PUBLICKEY" />
+  
+  <meta property="article:modified_time" content="2021-05-28T09:14:59+00:00" />
+  <meta property="article:published_time" content="2021-05-28T09:14:59+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Multi-dimensional sub-range signatures" />
+  
+      <meta property="article:tag" content="Multi-dimensional super-range signatures" />
+  
+      <meta property="article:tag" content="Existential unforgeability" />
+  
+      <meta property="article:tag" content="Perfect privacy" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2021/698</h4>
+    <h3 class="mb-3"><a href="/2021/698.pdf">Multi-Dimensional Sub/Super-Range Signatures</a></h3>
+     
+    <p class="fst-italic mb-3">
+      Masahito Ishizaka and Shinsaku Kiyomoto
+    </p>
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">In time-specific signatures (TSS) [Paterson \&amp; Quaglia, SCN&#39;10] [Ishizaka \&amp; Kiyomoto, ISC&#39;20] with $T$ numerical values, each signer is given a secret-key associated with a numerical value $t\in[0,T-1]$ and each signature on a message is generated under a numerical range $[L,R]$ s.t. $0\leq L\leq R\leq T-1$. A signer with $t$ can correctly generate a signature under $[L,R]$ if $t$ is truly included in $[L,R]$, i.e., $t\in[L,R]$.
+
+As a generalized primitive of TSS, we propose multi-dimensional \textit{sub}-range signatures (MDSBRS). As a related primitive, we also propose multi-dimensional \textit{super}-range signatures (MDSPRS). In MDSBRS (resp. MDSPRS) with $D\in\mathbb{N}$ dimensions, each secret-key is associated with a set of $D$ ranges $\{[l_i,r_i]\mid i\in[1,D]\}$ s.t. $0 \leq l_i\leq r_i\leq T_i-1$ and a threshold value $d\in[1,D]$, and it correctly produces a signature on any message under a set of $D$ ranges $\{[L_i,R_i]\mid i\in[1,D]\}$ s.t. $0 \leq L_i\leq R_i\leq T_i-1$, if and only if total number of key-ranges every one $[l_i,r_i]$ of which is a \textit{sub}-range (resp. \textit{super}-range) of the corresponded signature-range $[L_i,R_i]$, i.e., $L_i\leq l_i\leq r_i\leq R_i$ (resp. $l_i\leq L_i\leq R_i\leq r_i$), is more than $d-1$. We show that, by extending (or generalizing) an existing TSS scheme, we obtain MDSBRS and MDSPRS schemes each one of which is secure, i.e., existentially unforgeable and perfectly (signer-)private, under standard assumption and asymptotically efficient.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2021/698.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PUBLICKEY"><small class="badge category category-PUBLICKEY">Public-key cryptography</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. MINOR revision.</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Multi-dimensional%20sub-range%20signatures" class="me-2 badge bg-secondary keyword">Multi-dimensional sub-range signatures</a><a rel="nofollow" href="/search?q=Multi-dimensional%20super-range%20signatures" class="me-2 badge bg-secondary keyword">Multi-dimensional super-range signatures</a><a rel="nofollow" href="/search?q=Existential%20unforgeability" class="me-2 badge bg-secondary keyword">Existential unforgeability</a><a rel="nofollow" href="/search?q=Perfect%20privacy" class="me-2 badge bg-secondary keyword">Perfect privacy</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        ma-ishizaka<span class="obfuscate"> &#64; </span>kddi-research jp
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2021-05-28: received</dd>
+      
+      
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2021/698">https://ia.cr/2021/698</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2021/698,
+      author = {Masahito Ishizaka and Shinsaku Kiyomoto},
+      title = {Multi-Dimensional Sub/Super-Range Signatures},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2021/698},
+      year = {2021},
+      url = {https://eprint.iacr.org/2021/698}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

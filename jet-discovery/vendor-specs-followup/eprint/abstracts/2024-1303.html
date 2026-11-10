@@ -1,0 +1,368 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Efficient Zero-Knowledge Arguments for Paillier Cryptosystem</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Efficient Zero-Knowledge Arguments for Paillier Cryptosystem">
+  
+  <meta name="citation_author" content="Borui GONG">
+  
+  <meta name="citation_author" content="Wang Fat Lau">
+  
+  <meta name="citation_author" content="Man Ho Au">
+  
+  <meta name="citation_author" content="Rupeng Yang">
+  
+  <meta name="citation_author" content="Haiyang Xue">
+  
+  <meta name="citation_author" content="Lichun Li">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2024">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2024/1303.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2024/1303">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Efficient Zero-Knowledge Arguments for Paillier Cryptosystem" />
+  <meta property="og:description" content="We present an efficient zero-knowledge argument of knowledge system customized for the Paillier cryptosystem. Our system enjoys sublinear proof size, low verification cost, and acceptable proof generation effort, while also supporting batch proof generation/verification. Existing works specialized for Paillier cryptosystem feature linear proof size and verification time. Using existing sublinear argument systems for generic statements (e.g., zk-SNARK) results in unaffordable proof generation cost since it involves translating the relations to be proven into an inhibitive large Boolean or arithmetic circuit over a prime order field.  Our system does not suffer from these limitations.
+
+The core of our argument systems is a constraint system defined over the ring of residue classes modulo a composite number, together with novel techniques tailored for arguing binary values  in this setting. We then adapt the approach from  Bootle et al. (EUROCRYPT 2016) to compile the constraint system into a sublinear argument system. Our constraint system is generic and can be used to express typical relations  in Paillier cryptosystems including range proof, correctness proof, relationships between bits of plaintext, relationships of plaintexts among multiple ciphertexts, and more. Our argument supports batch proof generation and verification, with the amortized cost outperforming state-of-the-art protocol specialized for Paillier when the number of Paillier ciphertext is in the order of hundreds.
+
+We report an end-to-end prototype and conduct comprehensive experiments across multiple scenarios. Scenario 1 is Paillier with packing. When we pack 25.6K bits into 400 ciphertexts, a proof that all these ciphertexts are correctly computed is 17 times smaller and is 3 times faster to verify compared with the naive implementation: using  25.6K OR-proofs without packing. Furthermore, we can prove additional statements almost for free, e.g., one can prove that the sum of a subset of the witness bits is less than a threshold t. Another scenario is  range proof. To prove that each plaintext in  200 Paillier ciphertexts is of size 256 bits, our proof size is 10 times smaller than the state-of-the-art. Our analysis suggests that our system is asymptotically more efficient than existing protocols, and is highly suitable for scenarios involving a large number (more than 100) of Paillier ciphertexts, which is often the case for data analytics applications." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2024-08-21T06:44:04+00:00" />
+  <meta property="article:published_time" content="2024-08-21T06:44:04+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="zero-knowledge arguments" />
+  
+      <meta property="article:tag" content="Paillier" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2024/1303</h4>
+    <h3 class="mb-3"><a href="/2024/1303.pdf">Efficient Zero-Knowledge Arguments for Paillier Cryptosystem</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Borui GONG</span><span class="affiliation">, The Hong Kong Polytechnic University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Wang Fat Lau</span><span class="affiliation">, The Hong Kong Polytechnic University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Man Ho Au</span><span class="affiliation">, The Hong Kong Polytechnic University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Rupeng Yang</span><span class="affiliation">, University of Wollongong</span></div>
+    
+    
+    <div class="author"><span class="authorName">Haiyang Xue</span><span class="affiliation">, Singapore Management University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Lichun Li</span><span class="affiliation">, Ant Group</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We present an efficient zero-knowledge argument of knowledge system customized for the Paillier cryptosystem. Our system enjoys sublinear proof size, low verification cost, and acceptable proof generation effort, while also supporting batch proof generation/verification. Existing works specialized for Paillier cryptosystem feature linear proof size and verification time. Using existing sublinear argument systems for generic statements (e.g., zk-SNARK) results in unaffordable proof generation cost since it involves translating the relations to be proven into an inhibitive large Boolean or arithmetic circuit over a prime order field.  Our system does not suffer from these limitations.
+
+The core of our argument systems is a constraint system defined over the ring of residue classes modulo a composite number, together with novel techniques tailored for arguing binary values  in this setting. We then adapt the approach from  Bootle et al. (EUROCRYPT 2016) to compile the constraint system into a sublinear argument system. Our constraint system is generic and can be used to express typical relations  in Paillier cryptosystems including range proof, correctness proof, relationships between bits of plaintext, relationships of plaintexts among multiple ciphertexts, and more. Our argument supports batch proof generation and verification, with the amortized cost outperforming state-of-the-art protocol specialized for Paillier when the number of Paillier ciphertext is in the order of hundreds.
+
+We report an end-to-end prototype and conduct comprehensive experiments across multiple scenarios. Scenario 1 is Paillier with packing. When we pack 25.6K bits into 400 ciphertexts, a proof that all these ciphertexts are correctly computed is 17 times smaller and is 3 times faster to verify compared with the naive implementation: using  25.6K OR-proofs without packing. Furthermore, we can prove additional statements almost for free, e.g., one can prove that the sum of a subset of the witness bits is less than a threshold t. Another scenario is  range proof. To prove that each plaintext in  200 Paillier ciphertexts is of size 256 bits, our proof size is 10 times smaller than the state-of-the-art. Our analysis suggests that our system is asymptotically more efficient than existing protocols, and is highly suitable for scenarios involving a large number (more than 100) of Paillier ciphertexts, which is often the case for data analytics applications.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2024/1303.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Published elsewhere. IEEE Symposium on Security and Privacy 2024</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=zero-knowledge%20arguments" class="me-2 badge bg-secondary keyword">zero-knowledge arguments</a><a rel="nofollow" href="/search?q=Paillier" class="me-2 badge bg-secondary keyword">Paillier</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        raegongbr<span class="obfuscate"> &#64; </span>gmail com<br>wf-franky lau<span class="obfuscate"> &#64; </span>connect polyu hk<br>mhaau<span class="obfuscate"> &#64; </span>polyu edu hk<br>orbbyrp<span class="obfuscate"> &#64; </span>gmail com<br>haiyangxc<span class="obfuscate"> &#64; </span>gmail com<br>lichun llc<span class="obfuscate"> &#64; </span>antgroup com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2024-08-23: approved</dd>
+      
+      
+      
+      <dd>2024-08-21: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2024/1303">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2024/1303">https://ia.cr/2024/1303</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2024/1303,
+      author = {Borui GONG and Wang Fat Lau and Man Ho Au and Rupeng Yang and Haiyang Xue and Lichun Li},
+      title = {Efficient Zero-Knowledge Arguments for Paillier Cryptosystem},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2024/1303},
+      year = {2024},
+      url = {https://eprint.iacr.org/2024/1303}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

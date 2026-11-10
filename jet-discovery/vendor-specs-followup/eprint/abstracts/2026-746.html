@@ -1,0 +1,359 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Atomic Swaps with Relaxed Assumptions</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Atomic Swaps with Relaxed Assumptions">
+  
+  <meta name="citation_author" content="Paul Rösler">
+  
+  <meta name="citation_author" content="Katharina Schambach">
+  
+  <meta name="citation_author" content="Julian Thomas">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/746.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/746">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Atomic Swaps with Relaxed Assumptions" />
+  <meta property="og:description" content="Atomic swaps allow two parties to exchange coins across blockchains without trust. Most existing solutions support a 1-to-1 transaction; however, the value ratio of two cryptocurrencies is usually not 1-to-1. In addition, these solutions often rely on blockchains with explicit support structures for atomic swaps, typically hashed timelocks (HTLCs) or smart-contract scripting. Thyagarajan et al. (SP&#39;22) provide a solution for n-to-m swaps utilizing adaptor signatures instead, which offer better privacy for the participants. Significantly, all these approaches need timed transactions or a similar substitute on both sides, but not every blockchain supports timed transactions. Hoenisch et al. (ESORICS&#39;22) demonstrate a concrete swap procedure between Bitcoin and Monero, where only one side needs timed transactions. We build upon both of these ideas to provide a generic solution for any blockchain, where only one side needs timed transactions.
+
+We introduce a generic adaptor-signature protocol for n-to-m swaps. In doing so, we minimize assumptions compared to current solutions. Both sides lock their coins in shared (two-party signature) addresses, where they can only access the coins together. To prevent deadlocks, both parties are able to refund their coins from these addresses with pre-signed transactions. Our solution works with all relevant blockchains because it needs only standard signatures and a joint public key. Further, only one side needs timed transactions, and if each party acts in its best interest, there are two possible outcomes: If progress stalls, the side with timelocks refunds after a certain time, and the other side refunds immediately. Otherwise, one party redeems the other party&#39;s coins with pre-signed transactions, and the other party completes the swap after a timeout to prevent race conditions. We prove security in the universal composability framework and show privacy preservation via unlinkability and fungibility." />
+  <meta property="article:section" content="PUBLICKEY" />
+  
+  <meta property="article:modified_time" content="2026-04-15T15:55:25+00:00" />
+  <meta property="article:published_time" content="2026-04-15T15:55:25+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="cryptocurrencies" />
+  
+      <meta property="article:tag" content="atomic swaps" />
+  
+      <meta property="article:tag" content="adaptor signatures" />
+  
+      <meta property="article:tag" content="timed transactions" />
+  
+      <meta property="article:tag" content="UC-framework" />
+  
+      <meta property="article:tag" content="privacy" />
+  
+      <meta property="article:tag" content="htlcs" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/746</h4>
+    <h3 class="mb-3"><a href="/2026/746.pdf">Atomic Swaps with Relaxed Assumptions</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Paul Rösler</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-2324-5671"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Friedrich-Alexander-Universität Erlangen-Nürnberg</span></div>
+    
+    
+    <div class="author"><span class="authorName">Katharina Schambach</span><span class="affiliation">, Friedrich-Alexander-Universität Erlangen-Nürnberg</span></div>
+    
+    
+    <div class="author"><span class="authorName">Julian Thomas</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0000-9033-0449"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Friedrich-Alexander-Universität Erlangen-Nürnberg</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Atomic swaps allow two parties to exchange coins across blockchains without trust. Most existing solutions support a 1-to-1 transaction; however, the value ratio of two cryptocurrencies is usually not 1-to-1. In addition, these solutions often rely on blockchains with explicit support structures for atomic swaps, typically hashed timelocks (HTLCs) or smart-contract scripting. Thyagarajan et al. (SP&#39;22) provide a solution for n-to-m swaps utilizing adaptor signatures instead, which offer better privacy for the participants. Significantly, all these approaches need timed transactions or a similar substitute on both sides, but not every blockchain supports timed transactions. Hoenisch et al. (ESORICS&#39;22) demonstrate a concrete swap procedure between Bitcoin and Monero, where only one side needs timed transactions. We build upon both of these ideas to provide a generic solution for any blockchain, where only one side needs timed transactions.
+
+We introduce a generic adaptor-signature protocol for n-to-m swaps. In doing so, we minimize assumptions compared to current solutions. Both sides lock their coins in shared (two-party signature) addresses, where they can only access the coins together. To prevent deadlocks, both parties are able to refund their coins from these addresses with pre-signed transactions. Our solution works with all relevant blockchains because it needs only standard signatures and a joint public key. Further, only one side needs timed transactions, and if each party acts in its best interest, there are two possible outcomes: If progress stalls, the side with timelocks refunds after a certain time, and the other side refunds immediately. Otherwise, one party redeems the other party&#39;s coins with pre-signed transactions, and the other party completes the swap after a timeout to prevent race conditions. We prove security in the universal composability framework and show privacy preservation via unlinkability and fungibility.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/746.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PUBLICKEY"><small class="badge category category-PUBLICKEY">Public-key cryptography</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Published by the IACR in CIC 2026</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=cryptocurrencies" class="me-2 badge bg-secondary keyword">cryptocurrencies</a><a rel="nofollow" href="/search?q=atomic%20swaps" class="me-2 badge bg-secondary keyword">atomic swaps</a><a rel="nofollow" href="/search?q=adaptor%20signatures" class="me-2 badge bg-secondary keyword">adaptor signatures</a><a rel="nofollow" href="/search?q=timed%20transactions" class="me-2 badge bg-secondary keyword">timed transactions</a><a rel="nofollow" href="/search?q=UC-framework" class="me-2 badge bg-secondary keyword">UC-framework</a><a rel="nofollow" href="/search?q=privacy" class="me-2 badge bg-secondary keyword">privacy</a><a rel="nofollow" href="/search?q=htlcs" class="me-2 badge bg-secondary keyword">htlcs</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        paul roesler<span class="obfuscate"> &#64; </span>fau de<br>rina schambach<span class="obfuscate"> &#64; </span>fau de<br>julian thomas<span class="obfuscate"> &#64; </span>fau de
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-04-21: approved</dd>
+      
+      
+      
+      <dd>2026-04-15: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/746">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/746">https://ia.cr/2026/746</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/746,
+      author = {Paul Rösler and Katharina Schambach and Julian Thomas},
+      title = {Atomic Swaps with Relaxed Assumptions},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/746},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/746}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

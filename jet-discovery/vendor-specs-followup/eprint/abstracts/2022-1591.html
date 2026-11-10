@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>ISAP+: ISAP with Fast Authentication</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="ISAP+: ISAP with Fast Authentication">
+  
+  <meta name="citation_author" content="Arghya Bhattacharjee">
+  
+  <meta name="citation_author" content="Avik Chakraborti">
+  
+  <meta name="citation_author" content="Nilanjan Datta">
+  
+  <meta name="citation_author" content="Cuauhtemoc Mancillas-López">
+  
+  <meta name="citation_author" content="Mridul Nandi">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2022">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2022/1591.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2022/1591">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="ISAP+: ISAP with Fast Authentication" />
+  <meta property="og:description" content="This paper analyses the  lightweight, sponge-based NAEAD mode $\textsf{ISAP}$, one of the  finalists  of the NIST Lightweight Cryptography (LWC) standardisation project, that achieves high-throughput with inherent protection against differential power analysis (DPA). We observe that $\textsf{ISAP}$ requires $256$-bit capacity in the authentication module to satisfy the NIST LWC security criteria. In this paper, we study the analysis carefully and observe that this is primarily due to the collision in the associated data part of the hash function which can be used in the forgery of the mode. However, the same is not applicable to the ciphertext part of the hash function because a collision in the ciphertext part does not always lead to a forgery. In this context, we define a new security notion, named $\textsf{2PI+}$ security, which is a strictly stronger notion than the collision security, and show that the security of a class of encrypt-then-hash based MAC type of authenticated encryptions, that includes $\textsf{ISAP}$, reduces to the $\textsf{2PI+}$ security of the underlying hash function used in the authentication module. Next we investigate and observe that a feed-forward variant of the generic sponge hash achieves better $\textsf{2PI+}$ security as compared to the generic sponge hash. We use this fact to present a close variant of $\textsf{ISAP}$, named $\textsf{ISAP+}$, which is structurally similar to $\textsf{ISAP}$, except that it uses the feed-forward variant of the generic sponge hash in the authentication module. This improves the overall security of the mode, and hence we can set the capacity of the ciphertext part to $192$ bits (to achieve a higher throughput) and yet satisfy the NIST LWC security criteria." />
+  <meta property="article:section" content="SECRETKEY" />
+  
+  <meta property="article:modified_time" content="2022-12-02T10:12:59+00:00" />
+  <meta property="article:published_time" content="2022-11-15T16:54:17+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Authenticated Encryption" />
+  
+      <meta property="article:tag" content=" ISAP" />
+  
+      <meta property="article:tag" content=" ISAP+" />
+  
+      <meta property="article:tag" content=" Re-keying" />
+  
+      <meta property="article:tag" content=" Side Channel Resistant" />
+  
+      <meta property="article:tag" content=" 2PI+" />
+  
+      <meta property="article:tag" content=" Sponge" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2022/1591</h4>
+    <h3 class="mb-3"><a href="/2022/1591.pdf">ISAP+: ISAP with Fast Authentication</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Arghya Bhattacharjee</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-8835-246X"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Indian Statistical Institute, Kolkata, India</span></div>
+    
+    
+    <div class="author"><span class="authorName">Avik Chakraborti</span><span class="affiliation">, TCG Centres for Research and Education in Science and Technology, Kolkata, India</span></div>
+    
+    
+    <div class="author"><span class="authorName">Nilanjan Datta</span><span class="affiliation">, TCG Centres for Research and Education in Science and Technology, Kolkata, India</span></div>
+    
+    
+    <div class="author"><span class="authorName">Cuauhtemoc Mancillas-López</span><span class="affiliation">, Computer Science Department, CINVESTAV-IPN, Mexico</span></div>
+    
+    
+    <div class="author"><span class="authorName">Mridul Nandi</span><span class="affiliation">, Indian Statistical Institute, Kolkata, India</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">This paper analyses the  lightweight, sponge-based NAEAD mode $\textsf{ISAP}$, one of the  finalists  of the NIST Lightweight Cryptography (LWC) standardisation project, that achieves high-throughput with inherent protection against differential power analysis (DPA). We observe that $\textsf{ISAP}$ requires $256$-bit capacity in the authentication module to satisfy the NIST LWC security criteria. In this paper, we study the analysis carefully and observe that this is primarily due to the collision in the associated data part of the hash function which can be used in the forgery of the mode. However, the same is not applicable to the ciphertext part of the hash function because a collision in the ciphertext part does not always lead to a forgery. In this context, we define a new security notion, named $\textsf{2PI+}$ security, which is a strictly stronger notion than the collision security, and show that the security of a class of encrypt-then-hash based MAC type of authenticated encryptions, that includes $\textsf{ISAP}$, reduces to the $\textsf{2PI+}$ security of the underlying hash function used in the authentication module. Next we investigate and observe that a feed-forward variant of the generic sponge hash achieves better $\textsf{2PI+}$ security as compared to the generic sponge hash. We use this fact to present a close variant of $\textsf{ISAP}$, named $\textsf{ISAP+}$, which is structurally similar to $\textsf{ISAP}$, except that it uses the feed-forward variant of the generic sponge hash in the authentication module. This improves the overall security of the mode, and hence we can set the capacity of the ciphertext part to $192$ bits (to achieve a higher throughput) and yet satisfy the NIST LWC security criteria.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2022/1591.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=SECRETKEY"><small class="badge category category-SECRETKEY">Secret-key cryptography</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Published elsewhere. Indocrypt 2022</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Authenticated%20Encryption" class="me-2 badge bg-secondary keyword">Authenticated Encryption</a><a rel="nofollow" href="/search?q=%20ISAP" class="me-2 badge bg-secondary keyword"> ISAP</a><a rel="nofollow" href="/search?q=%20ISAP%2B" class="me-2 badge bg-secondary keyword"> ISAP+</a><a rel="nofollow" href="/search?q=%20Re-keying" class="me-2 badge bg-secondary keyword"> Re-keying</a><a rel="nofollow" href="/search?q=%20Side%20Channel%20Resistant" class="me-2 badge bg-secondary keyword"> Side Channel Resistant</a><a rel="nofollow" href="/search?q=%202PI%2B" class="me-2 badge bg-secondary keyword"> 2PI+</a><a rel="nofollow" href="/search?q=%20Sponge" class="me-2 badge bg-secondary keyword"> Sponge</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        bhattacharjeearghya29<span class="obfuscate"> &#64; </span>gmail com<br>avikchkrbrti<span class="obfuscate"> &#64; </span>gmail com<br>nilanjan datta<span class="obfuscate"> &#64; </span>tcgcrest org<br>cuauhtemoc mancillas<span class="obfuscate"> &#64; </span>cinvestav mx<br>mridul nandi<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2022-12-02: revised</dd>
+      
+      
+      
+      <dd>2022-11-15: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2022/1591">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2022/1591">https://ia.cr/2022/1591</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY_NC_SA.svg" alt="Creative Commons Attribution-NonCommercial-ShareAlike" title="Creative Commons Attribution-NonCommercial-ShareAlike"><br>
+        <small>CC BY-NC-SA</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2022/1591,
+      author = {Arghya Bhattacharjee and Avik Chakraborti and Nilanjan Datta and Cuauhtemoc Mancillas-López and Mridul Nandi},
+      title = {{ISAP}+: {ISAP} with Fast Authentication},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2022/1591},
+      year = {2022},
+      url = {https://eprint.iacr.org/2022/1591}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

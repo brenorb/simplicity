@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>On Secret Sharing, Randomness, and Random-less Reductions for Secret Sharing</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="On Secret Sharing, Randomness, and Random-less Reductions for Secret Sharing">
+  
+  <meta name="citation_author" content="Divesh Aggarwal">
+  
+  <meta name="citation_author" content="Eldon Chung">
+  
+  <meta name="citation_author" content="Maciej Obremski">
+  
+  <meta name="citation_author" content="João Ribeiro">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2021">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2021/802.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2021/802">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="On Secret Sharing, Randomness, and Random-less Reductions for Secret Sharing" />
+  <meta property="og:description" content="Secret-sharing is one of the most basic and oldest primitives in cryptography, introduced by Shamir and Blakely in the 70s. It allows to strike a meaningful balance between availability and  confidentiality of secret information. It has a host of applications most notably in threshold cryptography and multi-party computation. All known constructions of secret sharing  (with the exception of those with a pathological choice of parameters) require access to uniform randomness. In practice, it is extremely challenging to generate a source of uniform randomness. This has led to a large body of research devoted to designing randomized algorithms and cryptographic primitives from imperfect sources of randomness.
+
+Motivated by this, 15 years ago, Bosley and Dodis asked whether it is even possible to build 2-out-of-2 secret sharing without access to uniform randomness. In this work, we make progress towards resolving this question.
+
+We answer this question for secret sharing schemes with important additional properties, i.e., either leakage-resilience or non-malleability. We prove that, unfortunately, for not too small secrets, it is impossible to construct any of 2-out-of-2 leakage-resilient secret sharing or 2-out-of-2 non-malleable secret sharing without access to uniform randomness.
+
+
+Given that the problem whether 2-out-of-2 secret sharing requires uniform randomness has been open for a long time, it is reasonable to consider intermediate problems towards resolving the open question. In a spirit similar to NP-completeness, we study how the existence of a t-out-of-n secret sharing without access to uniform randomness is related to the existence of a t&#39;-out-of-n&#39; secret sharing without access to uniform randomness for a different choice of the parameters t,n,t&#39;,n&#39;." />
+  <meta property="article:section" content="FOUNDATIONS" />
+  
+  <meta property="article:modified_time" content="2022-09-19T14:22:11+00:00" />
+  <meta property="article:published_time" content="2021-06-14T13:50:35+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Secret sharing" />
+  
+      <meta property="article:tag" content=" leakage-resilient secret sharing" />
+  
+      <meta property="article:tag" content=" non-malleable secret sharing" />
+  
+      <meta property="article:tag" content=" Randomness Extraction" />
+  
+      <meta property="article:tag" content=" Random-less reductions" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2021/802</h4>
+    <h3 class="mb-3"><a href="/2021/802.pdf">On Secret Sharing, Randomness, and Random-less Reductions for Secret Sharing</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Divesh Aggarwal</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-3841-0262"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, National University of Singapore</span></div>
+    
+    
+    <div class="author"><span class="authorName">Eldon Chung</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-0048-4610"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, National University of Singapore</span></div>
+    
+    
+    <div class="author"><span class="authorName">Maciej Obremski</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-4174-0438"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, National University of Singapore</span></div>
+    
+    
+    <div class="author"><span class="authorName">João Ribeiro</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-9870-0501"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Carnegie Mellon University</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Secret-sharing is one of the most basic and oldest primitives in cryptography, introduced by Shamir and Blakely in the 70s. It allows to strike a meaningful balance between availability and  confidentiality of secret information. It has a host of applications most notably in threshold cryptography and multi-party computation. All known constructions of secret sharing  (with the exception of those with a pathological choice of parameters) require access to uniform randomness. In practice, it is extremely challenging to generate a source of uniform randomness. This has led to a large body of research devoted to designing randomized algorithms and cryptographic primitives from imperfect sources of randomness.
+
+Motivated by this, 15 years ago, Bosley and Dodis asked whether it is even possible to build 2-out-of-2 secret sharing without access to uniform randomness. In this work, we make progress towards resolving this question.
+
+We answer this question for secret sharing schemes with important additional properties, i.e., either leakage-resilience or non-malleability. We prove that, unfortunately, for not too small secrets, it is impossible to construct any of 2-out-of-2 leakage-resilient secret sharing or 2-out-of-2 non-malleable secret sharing without access to uniform randomness.
+
+
+Given that the problem whether 2-out-of-2 secret sharing requires uniform randomness has been open for a long time, it is reasonable to consider intermediate problems towards resolving the open question. In a spirit similar to NP-completeness, we study how the existence of a t-out-of-n secret sharing without access to uniform randomness is related to the existence of a t&#39;-out-of-n&#39; secret sharing without access to uniform randomness for a different choice of the parameters t,n,t&#39;,n&#39;.</p>
+  
+    <p><strong>Note:</strong> Minor revisions. Added Funding Acknowledgements. Added sub-section about computational setting.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2021/802.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=FOUNDATIONS"><small class="badge category category-FOUNDATIONS">Foundations</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>A minor revision of an IACR publication in TCC 2022</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Secret%20sharing" class="me-2 badge bg-secondary keyword">Secret sharing</a><a rel="nofollow" href="/search?q=%20leakage-resilient%20secret%20sharing" class="me-2 badge bg-secondary keyword"> leakage-resilient secret sharing</a><a rel="nofollow" href="/search?q=%20non-malleable%20secret%20sharing" class="me-2 badge bg-secondary keyword"> non-malleable secret sharing</a><a rel="nofollow" href="/search?q=%20Randomness%20Extraction" class="me-2 badge bg-secondary keyword"> Randomness Extraction</a><a rel="nofollow" href="/search?q=%20Random-less%20reductions" class="me-2 badge bg-secondary keyword"> Random-less reductions</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        dcsdiva<span class="obfuscate"> &#64; </span>nus edu sg
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2022-09-19: last of 2 revisions</dd>
+      
+      
+      
+      <dd>2021-06-14: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2021/802">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2021/802">https://ia.cr/2021/802</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2021/802,
+      author = {Divesh Aggarwal and Eldon Chung and Maciej Obremski and João Ribeiro},
+      title = {On Secret Sharing, Randomness, and Random-less Reductions for Secret Sharing},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2021/802},
+      year = {2021},
+      url = {https://eprint.iacr.org/2021/802}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

@@ -1,0 +1,373 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>SPRINT: High-Throughput Robust Distributed Schnorr Signatures</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="SPRINT: High-Throughput Robust Distributed Schnorr Signatures">
+  
+  <meta name="citation_author" content="Fabrice Benhamouda">
+  
+  <meta name="citation_author" content="Shai Halevi">
+  
+  <meta name="citation_author" content="Hugo Krawczyk">
+  
+  <meta name="citation_author" content="Yiping Ma">
+  
+  <meta name="citation_author" content="Tal Rabin">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2023">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2023/427.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2023/427">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="SPRINT: High-Throughput Robust Distributed Schnorr Signatures" />
+  <meta property="og:description" content="We describe high-throughput threshold protocols with guaranteed output delivery for generating Schnorr-type signatures. The protocols run a single message-independent interactive ephemeral randomness generation procedure (e.g., DKG) followed by a  \emph{non-interactive} multi-message signature generation procedure. The protocols offer significant increase in throughput already for as few as ten parties while remaining highly-efficient for many hundreds of parties with thousands of signatures generated per minute (and over 10,000 in normal optimistic case).
+
+These protocols extend seamlessly to the dynamic/proactive setting, where each run of the protocol uses a new committee, and they support sub-sampling the committees from among an effectively unbounded number of nodes. The protocols work over a broadcast channel in both synchronous and asynchronous networks. 
+
+The combination of these features makes our protocols a good match for implementing a signature service over an (asynchronous) public blockchain with many validators, where guaranteed output delivery is an absolute must. In that setting, there is a system-wide public key, where the corresponding secret signature key is distributed among the validators. Clients can submit messages (under suitable controls, e.g. smart contracts), and authorized messages are signed relative to the global public key.
+
+Asymptotically, when running with committees of $n$ parties, our protocols can generate $\Omega(n^2)$ signatures per run, while providing resilience against $\Omega(n)$ corrupted nodes, and using broadcast bandwidth of only $O(n^2)$ group elements and scalars. For example, we can sign about $n^2/16$ messages using just under $2n^2$ total bandwidth while supporting resilience against $n/4$ corrupted parties, or sign $n^2/8$ messages using just over $2n^2$ total bandwidth with resilience against $n/5$ corrupted parties.
+
+We prove security of our protocols by reduction to the hardness of the discrete logarithm problem in the random-oracle model." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2024-06-02T12:24:20+00:00" />
+  <meta property="article:published_time" content="2023-03-24T01:48:43+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Schnorr signatures" />
+  
+      <meta property="article:tag" content="Threshold protocol" />
+  
+      <meta property="article:tag" content="Amortization" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2023/427</h4>
+    <h3 class="mb-3"><a href="/2023/427.pdf">SPRINT: High-Throughput Robust Distributed Schnorr Signatures</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Fabrice Benhamouda</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-8300-1820"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Algorand Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Shai Halevi</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-3432-7899"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Algorand Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Hugo Krawczyk</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-3130-1888"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Algorand Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yiping Ma</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-3183-9402"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, University of Pennsylvania</span></div>
+    
+    
+    <div class="author"><span class="authorName">Tal Rabin</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-1386-605X"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, University of Pennsylvania</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We describe high-throughput threshold protocols with guaranteed output delivery for generating Schnorr-type signatures. The protocols run a single message-independent interactive ephemeral randomness generation procedure (e.g., DKG) followed by a  \emph{non-interactive} multi-message signature generation procedure. The protocols offer significant increase in throughput already for as few as ten parties while remaining highly-efficient for many hundreds of parties with thousands of signatures generated per minute (and over 10,000 in normal optimistic case).
+
+These protocols extend seamlessly to the dynamic/proactive setting, where each run of the protocol uses a new committee, and they support sub-sampling the committees from among an effectively unbounded number of nodes. The protocols work over a broadcast channel in both synchronous and asynchronous networks. 
+
+The combination of these features makes our protocols a good match for implementing a signature service over an (asynchronous) public blockchain with many validators, where guaranteed output delivery is an absolute must. In that setting, there is a system-wide public key, where the corresponding secret signature key is distributed among the validators. Clients can submit messages (under suitable controls, e.g. smart contracts), and authorized messages are signed relative to the global public key.
+
+Asymptotically, when running with committees of $n$ parties, our protocols can generate $\Omega(n^2)$ signatures per run, while providing resilience against $\Omega(n)$ corrupted nodes, and using broadcast bandwidth of only $O(n^2)$ group elements and scalars. For example, we can sign about $n^2/16$ messages using just under $2n^2$ total bandwidth while supporting resilience against $n/4$ corrupted parties, or sign $n^2/8$ messages using just over $2n^2$ total bandwidth with resilience against $n/5$ corrupted parties.
+
+We prove security of our protocols by reduction to the hardness of the discrete logarithm problem in the random-oracle model.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2023/427.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>A minor revision of an IACR publication in EUROCRYPT 2024</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Schnorr%20signatures" class="me-2 badge bg-secondary keyword">Schnorr signatures</a><a rel="nofollow" href="/search?q=Threshold%20protocol" class="me-2 badge bg-secondary keyword">Threshold protocol</a><a rel="nofollow" href="/search?q=Amortization" class="me-2 badge bg-secondary keyword">Amortization</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        fbenhamo102<span class="obfuscate"> &#64; </span>gmail com<br>shaih<span class="obfuscate"> &#64; </span>alum mit edu<br>hugokraw<span class="obfuscate"> &#64; </span>gmail com<br>yipingma<span class="obfuscate"> &#64; </span>seas upenn edu<br>talr<span class="obfuscate"> &#64; </span>seas upenn edu
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2024-06-02: last of 3 revisions</dd>
+      
+      
+      
+      <dd>2023-03-24: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2023/427">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2023/427">https://ia.cr/2023/427</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2023/427,
+      author = {Fabrice Benhamouda and Shai Halevi and Hugo Krawczyk and Yiping Ma and Tal Rabin},
+      title = {{SPRINT}: High-Throughput Robust Distributed Schnorr Signatures},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2023/427},
+      year = {2023},
+      url = {https://eprint.iacr.org/2023/427}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

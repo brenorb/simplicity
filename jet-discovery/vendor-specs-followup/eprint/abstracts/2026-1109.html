@@ -1,0 +1,351 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>SoK: Cryptographic Erasure on Public Ledgers: Application-Layer Architectures, Key-Lifecycle Adversaries, and GDPR Art. 17 Sufficiency</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="SoK: Cryptographic Erasure on Public Ledgers: Application-Layer Architectures, Key-Lifecycle Adversaries, and GDPR Art. 17 Sufficiency">
+  
+  <meta name="citation_author" content="Yitebeier Aikebaier">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/1109.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/1109">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="SoK: Cryptographic Erasure on Public Ledgers: Application-Layer Architectures, Key-Lifecycle Adversaries, and GDPR Art. 17 Sufficiency" />
+  <meta property="og:description" content="Public permissionless ledgers are append-only by design, yet are increasingly asked to host data subject to statutory erasure obligations (GDPR Art. 17, EDPB Guidelines 02/2025). The prevailing cryptographic response, redacting the chain itself, needs either a different chaining hash or the cooperation of every node, neither of which a controller on Bitcoin or Ethereum mainnet commands. This SoK systematizes the orthogonal application-layer design space, in which the ledger is left untouched and erasure is achieved by destroying the key material required to read the on-chain bytes. We organise the literature along two axes, data locus (on-chain ciphertext, anchor-only, or hybrid), key custody (single-custodian or threshold), and access gate (none, time, or witness), into a twelve-cell grid with canonical constructions from 1996 to 2026. We extend standard IND-CCA security with a key-lifecycle adversary model parametrised by HSM side-channel leakage, coercion fraction over the custody committee, and algorithmic-break horizon, give the security experiment as pseudo-code with adaptive corruption, cumulative leakage across key rotations, a decryption oracle, and a stronger post-destruction adversary class, and prove that the resulting Destruction-IND-CCA notion suffices for a semantic-security formalisation of the EDPB &#34;render unrecoverable&#34; criterion. We state what is provable per custody model: a concrete bound for single-custodian AEAD, a bound for Shamir threshold custody that grows with the number of rotations, an impossibility result for delay-only designs, and a reduction showing witness-gated erasure needs extractable witness encryption.
+
+Evaluating seven reference architectures against eleven engineering, cryptographic, and regulatory criteria, including a production RegTech engine measured at 2.6 × 10^3 events/s single-threaded (10^4 projected with connection pooling), we find that the literature has concentrated on chain-rewriting while the application-layer branch lacks a common threat-model vocabulary. We close this gap and identify five open problems: post-quantum destruction security, the leakage threshold of a custody scheme, decentralised lifecycle audit (with a multi-custody extension covering encrypted mempools), composition with ZKP selective disclosure, and erasure under multi-regime retention conflict." />
+  <meta property="article:section" content="APPLICATIONS" />
+  
+  <meta property="article:modified_time" content="2026-11-04T12:52:10+00:00" />
+  <meta property="article:published_time" content="2026-05-30T10:56:55+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="cryptographic erasure" />
+  
+      <meta property="article:tag" content="GDPR Article 17" />
+  
+      <meta property="article:tag" content="key destruction" />
+  
+      <meta property="article:tag" content="Destruction-IND" />
+  
+      <meta property="article:tag" content="public ledgers" />
+  
+      <meta property="article:tag" content="secure deletion" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/1109</h4>
+    <h3 class="mb-3"><a href="/2026/1109.pdf">SoK: Cryptographic Erasure on Public Ledgers: Application-Layer Architectures, Key-Lifecycle Adversaries, and GDPR Art. 17 Sufficiency</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Yitebeier Aikebaier</span><span class="affiliation">, Nexum Ledger Ltd</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Public permissionless ledgers are append-only by design, yet are increasingly asked to host data subject to statutory erasure obligations (GDPR Art. 17, EDPB Guidelines 02/2025). The prevailing cryptographic response, redacting the chain itself, needs either a different chaining hash or the cooperation of every node, neither of which a controller on Bitcoin or Ethereum mainnet commands. This SoK systematizes the orthogonal application-layer design space, in which the ledger is left untouched and erasure is achieved by destroying the key material required to read the on-chain bytes. We organise the literature along two axes, data locus (on-chain ciphertext, anchor-only, or hybrid), key custody (single-custodian or threshold), and access gate (none, time, or witness), into a twelve-cell grid with canonical constructions from 1996 to 2026. We extend standard IND-CCA security with a key-lifecycle adversary model parametrised by HSM side-channel leakage, coercion fraction over the custody committee, and algorithmic-break horizon, give the security experiment as pseudo-code with adaptive corruption, cumulative leakage across key rotations, a decryption oracle, and a stronger post-destruction adversary class, and prove that the resulting Destruction-IND-CCA notion suffices for a semantic-security formalisation of the EDPB &#34;render unrecoverable&#34; criterion. We state what is provable per custody model: a concrete bound for single-custodian AEAD, a bound for Shamir threshold custody that grows with the number of rotations, an impossibility result for delay-only designs, and a reduction showing witness-gated erasure needs extractable witness encryption.
+
+Evaluating seven reference architectures against eleven engineering, cryptographic, and regulatory criteria, including a production RegTech engine measured at 2.6 × 10^3 events/s single-threaded (10^4 projected with connection pooling), we find that the literature has concentrated on chain-rewriting while the application-layer branch lacks a common threat-model vocabulary. We close this gap and identify five open problems: post-quantum destruction security, the leakage threshold of a custody scheme, decentralised lifecycle audit (with a multi-custody extension covering encrypted mempools), composition with ZKP selective disclosure, and erasure under multi-regime retention conflict.</p>
+  
+    <p><strong>Note:</strong> v3 (November 2026). Adds the proof-carrying redaction line for Bitcoin and for permissioned smart-contract chains (Botta, Iovino and Visconti, IEEE TNSM 2022; Kiraz, Larraia and Vaughan, IEEE ICBC 2024; Avitabile, Botta, Friolo and Visconti, Blockchain: Research and Applications 2025) to Sections 1 and 2 and to the scope statement, and corrects the abstract&#39;s claim about redaction on Bitcoin accordingly; Section 7.6 states the restrictions of the formal results; three bibliography entries corrected after an online check of every reference.
+
+v2 (November 2026). Formal core rewritten after review at PoPETs 2027 Issue 2: the security experiment is given as pseudo-code (Destruction-IND-CCA) with adaptive custodian corruption, cumulative leakage across key rotations, a decryption oracle and a stronger post-destruction adversary class; the regulatory criterion is restated as semantic security of the post-destruction view and the former &#34;equivalence&#34; claim is replaced by a one-directional sufficiency theorem (title changed accordingly); results are stated per custody model (single custodian, Shamir threshold with refresh, time gates, witness gates); the taxonomy separates custody from access gates; the on-chain residue is analysed under the EDPB 02/2026 anonymisation tests; the description and limitations of the reference implementation are corrected; a limitations section is added. Also: the Shamir-custody theorem now has a full hybrid proof (Appendix C) and a counting bound valid for any leakage budget; the witness-gate result is stated as conditional on extractable witness encryption with unique witnesses; twenty-nine related works are added; the cryptographic costs of the threshold-committee and time-lock architectures are measured with public implementations (tlock, threshold_crypto) rather than estimated; the Bitcoin anchoring proofs of the reference implementation are upgraded and verified (24 blocks).</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/1109.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=APPLICATIONS"><small class="badge category category-APPLICATIONS">Applications</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=cryptographic%20erasure" class="me-2 badge bg-secondary keyword">cryptographic erasure</a><a rel="nofollow" href="/search?q=GDPR%20Article%2017" class="me-2 badge bg-secondary keyword">GDPR Article 17</a><a rel="nofollow" href="/search?q=key%20destruction" class="me-2 badge bg-secondary keyword">key destruction</a><a rel="nofollow" href="/search?q=Destruction-IND" class="me-2 badge bg-secondary keyword">Destruction-IND</a><a rel="nofollow" href="/search?q=public%20ledgers" class="me-2 badge bg-secondary keyword">public ledgers</a><a rel="nofollow" href="/search?q=secure%20deletion" class="me-2 badge bg-secondary keyword">secure deletion</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        jsjjd3690<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-11-04: last of 2 revisions</dd>
+      
+      
+      
+      <dd>2026-05-30: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/1109">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/1109">https://ia.cr/2026/1109</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/1109,
+      author = {Yitebeier Aikebaier},
+      title = {{SoK}: Cryptographic Erasure on Public Ledgers: Application-Layer Architectures, Key-Lifecycle Adversaries, and {GDPR} Art. 17 Sufficiency},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/1109},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/1109}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

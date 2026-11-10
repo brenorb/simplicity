@@ -1,0 +1,374 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>FRI Soundness Above the Johnson Bound via Threshold Halving</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="FRI Soundness Above the Johnson Bound via Threshold Halving">
+  
+  <meta name="citation_author" content="Raullen Chai">
+  
+  <meta name="citation_author" content="Xinxin Fan">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/858.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/858">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="FRI Soundness Above the Johnson Bound via Threshold Halving" />
+  <meta property="og:description" content="We prove the first unconditional soundness theorem above the Johnson bound for FRI, STIR, and WHIR — the proximity-testing protocols underlying every deployed STARK, zkVM, and FRI-based system on Ethereum&#39;s roadmap. For $\mathrm{RS}[F, L, k]$ with $k = 2^m$ and $L$ admitting a fixed-point-free involution (standard for deployed FRI, in either characteristic), for every $\delta \in (\delta_J,\, 1-\rho)$: $$\varepsilon_{\mathrm{FRI}} \;\leq\; \frac{nR}{|F|} \;+\; \left(1 - \frac{\delta}{2}\right)^{\!q}.$$
+
+Three results.
+
+(A) The bound above, via threshold halving from Rothblum–Vadhan–Wigderson (STOC 2013); the protocol, prover messages, and verifier checks are unchanged — only the query parameter is recalibrated. The argument enters the unique-decoding regime after one round, where BCIKS locks the distance, making it immune to any open-zone counterexample.
+
+(B) The ${\sim}2{\times}$ query overhead is optimal within the correlated-agreement (CA) framework: $\varepsilon_{\mathrm{ca}}(C, \delta, \delta) = \binom{n}{w}/|F|$, tight for large fields, exponential in the code length, and vacuous at FRI scale.
+
+(C) First $p$-dependent list-size bounds: $\mathbb{E}[M] = \binom{n}{w}/p^c$ at all codimension excesses $c \geq 1$; a sub-Poisson Bernstein tail at $c = 2$; and a phase-diagram conjecture at $c \geq 3$ (the deployment regime) predicting a linear $M_{\mathrm{true}} \leq \lfloor (2D-1)/c \rfloor$.
+
+Impact for Ethereum. Every deployed and proposed FRI-based system — SP1, RISC Zero, Plonky3, the ${\sim}30$ zkVMs on EthProofs, Stwo (Mersenne31 / circle FRI), the planned post-quantum signature aggregation layer — now has a positive proven soundness floor in the open zone above Johnson, replacing a conjecture whose up-to-capacity form was disproved in late 2025 by Crites–Stewart and independently by Kambiré. The cost is a factor ${\sim}2$ in queries; the bound holds in characteristic 2 via additive folding, on the unit circle via the Stwo coupling, and compiles to non-interactive knowledge soundness via Fiat–Shamir and DEEP. The half-threshold CA bound is formally verified in Lean 4 with Mathlib." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2026-05-01T13:27:56+00:00" />
+  <meta property="article:published_time" content="2026-05-01T13:27:56+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Reed-Solomon codes" />
+  
+      <meta property="article:tag" content="FRI" />
+  
+      <meta property="article:tag" content="proximity gap" />
+  
+      <meta property="article:tag" content="Johnson bound" />
+  
+      <meta property="article:tag" content="interactive oracle proofs" />
+  
+      <meta property="article:tag" content="STIR" />
+  
+      <meta property="article:tag" content="WHIR" />
+  
+      <meta property="article:tag" content="Ethereum" />
+  
+      <meta property="article:tag" content="IoTeX" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/858</h4>
+    <h3 class="mb-3"><a href="/2026/858.pdf">FRI Soundness Above the Johnson Bound via Threshold Halving</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Raullen Chai</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0000-6665-8698"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, IoTeX Network</span></div>
+    
+    
+    <div class="author"><span class="authorName">Xinxin Fan</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-4592-6603"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, IoTeX Network</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We prove the first unconditional soundness theorem above the Johnson bound for FRI, STIR, and WHIR — the proximity-testing protocols underlying every deployed STARK, zkVM, and FRI-based system on Ethereum&#39;s roadmap. For $\mathrm{RS}[F, L, k]$ with $k = 2^m$ and $L$ admitting a fixed-point-free involution (standard for deployed FRI, in either characteristic), for every $\delta \in (\delta_J,\, 1-\rho)$: $$\varepsilon_{\mathrm{FRI}} \;\leq\; \frac{nR}{|F|} \;+\; \left(1 - \frac{\delta}{2}\right)^{\!q}.$$
+
+Three results.
+
+(A) The bound above, via threshold halving from Rothblum–Vadhan–Wigderson (STOC 2013); the protocol, prover messages, and verifier checks are unchanged — only the query parameter is recalibrated. The argument enters the unique-decoding regime after one round, where BCIKS locks the distance, making it immune to any open-zone counterexample.
+
+(B) The ${\sim}2{\times}$ query overhead is optimal within the correlated-agreement (CA) framework: $\varepsilon_{\mathrm{ca}}(C, \delta, \delta) = \binom{n}{w}/|F|$, tight for large fields, exponential in the code length, and vacuous at FRI scale.
+
+(C) First $p$-dependent list-size bounds: $\mathbb{E}[M] = \binom{n}{w}/p^c$ at all codimension excesses $c \geq 1$; a sub-Poisson Bernstein tail at $c = 2$; and a phase-diagram conjecture at $c \geq 3$ (the deployment regime) predicting a linear $M_{\mathrm{true}} \leq \lfloor (2D-1)/c \rfloor$.
+
+Impact for Ethereum. Every deployed and proposed FRI-based system — SP1, RISC Zero, Plonky3, the ${\sim}30$ zkVMs on EthProofs, Stwo (Mersenne31 / circle FRI), the planned post-quantum signature aggregation layer — now has a positive proven soundness floor in the open zone above Johnson, replacing a conjecture whose up-to-capacity form was disproved in late 2025 by Crites–Stewart and independently by Kambiré. The cost is a factor ${\sim}2$ in queries; the bound holds in characteristic 2 via additive folding, on the unit circle via the Stwo coupling, and compiles to non-interactive knowledge soundness via Fiat–Shamir and DEEP. The half-threshold CA bound is formally verified in Lean 4 with Mathlib.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/858.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Reed-Solomon%20codes" class="me-2 badge bg-secondary keyword">Reed-Solomon codes</a><a rel="nofollow" href="/search?q=FRI" class="me-2 badge bg-secondary keyword">FRI</a><a rel="nofollow" href="/search?q=proximity%20gap" class="me-2 badge bg-secondary keyword">proximity gap</a><a rel="nofollow" href="/search?q=Johnson%20bound" class="me-2 badge bg-secondary keyword">Johnson bound</a><a rel="nofollow" href="/search?q=interactive%20oracle%20proofs" class="me-2 badge bg-secondary keyword">interactive oracle proofs</a><a rel="nofollow" href="/search?q=STIR" class="me-2 badge bg-secondary keyword">STIR</a><a rel="nofollow" href="/search?q=WHIR" class="me-2 badge bg-secondary keyword">WHIR</a><a rel="nofollow" href="/search?q=Ethereum" class="me-2 badge bg-secondary keyword">Ethereum</a><a rel="nofollow" href="/search?q=IoTeX" class="me-2 badge bg-secondary keyword">IoTeX</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        raullen<span class="obfuscate"> &#64; </span>iotex io<br>xinxin<span class="obfuscate"> &#64; </span>iotex io
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-05-05: approved</dd>
+      
+      
+      
+      <dd>2026-05-01: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/858">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/858">https://ia.cr/2026/858</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/858,
+      author = {Raullen Chai and Xinxin Fan},
+      title = {{FRI} Soundness Above the Johnson Bound via Threshold Halving},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/858},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/858}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>A post-quantum Distributed OPRF from the Legendre PRF</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="A post-quantum Distributed OPRF from the Legendre PRF">
+  
+  <meta name="citation_author" content="Novak Kaluđerović">
+  
+  <meta name="citation_author" content="Nan Cheng">
+  
+  <meta name="citation_author" content="Katerina Mitrokotsa">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2024">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2024/544.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2024/544">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="A post-quantum Distributed OPRF from the Legendre PRF" />
+  <meta property="og:description" content="A distributed OPRF enables a client to evaluate a pseudo-random function on a client-chosen input using a distributed key shared among multiple servers, ensuring that the servers learn nothing about the input or output, while the client learns nothing about the key. We present a post-quantum OPRF suitable for a distributed server setting, requiring only two rounds of communication between the client and servers, with server-to-server communication limited to a pre-computation phase. Our approach leverages the Legendre PRF, computed through a single MPC multiplication and opening during the online phase. We introduce a novel MPC technique that achieves multiplication and opening in one round using replicated secret sharing (RSS) in a malicious adversarial model. This allows for the quantum-secure, verifiable evaluation of the Legendre OPRF against malicious adversaries under a threshold assumption, without requiring inter-server communication. Beyond the Legendre PRF, this method is also of interest for general MPC operations. To our knowledge, our distributed OPRF (dOPRF) is the first post-quantum construction with these properties. We compare our approach to state-of-the-art MPC solutions and provide an implementation of our proposed dOPRF, benchmarking it against existing OPRF constructions. In our comparison, our dOPRF protocol demonstrates superior efficiency." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2025-09-23T16:34:20+00:00" />
+  <meta property="article:published_time" content="2024-04-08T08:14:33+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="OPRF" />
+  
+      <meta property="article:tag" content="Post-quantum" />
+  
+      <meta property="article:tag" content="Legendre PRF" />
+  
+      <meta property="article:tag" content="Distributed OPRF" />
+  
+      <meta property="article:tag" content="MPC" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2024/544</h4>
+    <h3 class="mb-3"><a href="/2024/544.pdf">A post-quantum Distributed OPRF from the Legendre PRF</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Novak Kaluđerović</span><span class="affiliation">, Zircuit</span></div>
+    
+    
+    <div class="author"><span class="authorName">Nan Cheng</span><span class="affiliation">, University of St. Gallen</span></div>
+    
+    
+    <div class="author"><span class="authorName">Katerina Mitrokotsa</span><span class="affiliation">, University of St. Gallen</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">A distributed OPRF enables a client to evaluate a pseudo-random function on a client-chosen input using a distributed key shared among multiple servers, ensuring that the servers learn nothing about the input or output, while the client learns nothing about the key. We present a post-quantum OPRF suitable for a distributed server setting, requiring only two rounds of communication between the client and servers, with server-to-server communication limited to a pre-computation phase. Our approach leverages the Legendre PRF, computed through a single MPC multiplication and opening during the online phase. We introduce a novel MPC technique that achieves multiplication and opening in one round using replicated secret sharing (RSS) in a malicious adversarial model. This allows for the quantum-secure, verifiable evaluation of the Legendre OPRF against malicious adversaries under a threshold assumption, without requiring inter-server communication. Beyond the Legendre PRF, this method is also of interest for general MPC operations. To our knowledge, our distributed OPRF (dOPRF) is the first post-quantum construction with these properties. We compare our approach to state-of-the-art MPC solutions and provide an implementation of our proposed dOPRF, benchmarking it against existing OPRF constructions. In our comparison, our dOPRF protocol demonstrates superior efficiency.</p>
+  
+    <p><strong>Note:</strong> This is a full version of the corresponding ESORICS publication.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2024/544.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Published elsewhere. ESORICS 2025</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=OPRF" class="me-2 badge bg-secondary keyword">OPRF</a><a rel="nofollow" href="/search?q=Post-quantum" class="me-2 badge bg-secondary keyword">Post-quantum</a><a rel="nofollow" href="/search?q=Legendre%20PRF" class="me-2 badge bg-secondary keyword">Legendre PRF</a><a rel="nofollow" href="/search?q=Distributed%20OPRF" class="me-2 badge bg-secondary keyword">Distributed OPRF</a><a rel="nofollow" href="/search?q=MPC" class="me-2 badge bg-secondary keyword">MPC</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        kolja<span class="obfuscate"> &#64; </span>zircuit com<br>nan cheng<span class="obfuscate"> &#64; </span>unisg ch<br>katerina mitrokotsa<span class="obfuscate"> &#64; </span>unisg ch
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2025-09-23: last of 3 revisions</dd>
+      
+      
+      
+      <dd>2024-04-08: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2024/544">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2024/544">https://ia.cr/2024/544</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2024/544,
+      author = {Novak Kaluđerović and Nan Cheng and Katerina Mitrokotsa},
+      title = {A post-quantum Distributed {OPRF} from the Legendre {PRF}},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2024/544},
+      year = {2024},
+      url = {https://eprint.iacr.org/2024/544}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

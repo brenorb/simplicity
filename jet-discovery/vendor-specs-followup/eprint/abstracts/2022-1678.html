@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Practical Asynchronous Distributed Key Generation: Improved Efficiency, Weaker Assumption, and Standard Model</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Practical Asynchronous Distributed Key Generation: Improved Efficiency, Weaker Assumption, and Standard Model">
+  
+  <meta name="citation_author" content="Haibin Zhang">
+  
+  <meta name="citation_author" content="Sisi Duan">
+  
+  <meta name="citation_author" content="Chao Liu">
+  
+  <meta name="citation_author" content="Boxin Zhao">
+  
+  <meta name="citation_author" content="Xuanji Meng">
+  
+  <meta name="citation_author" content="Shengli Liu">
+  
+  <meta name="citation_author" content="Yong Yu">
+  
+  <meta name="citation_author" content="Fangguo Zhang">
+  
+  <meta name="citation_author" content="Liehuang Zhu">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2022">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2022/1678.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2022/1678">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Practical Asynchronous Distributed Key Generation: Improved Efficiency, Weaker Assumption, and Standard Model" />
+  <meta property="og:description" content="Distributed key generation (DKG) allows bootstrapping threshold cryptosystems without relying on a trusted party, nowadays enabling fully decentralized applications in blockchains and multiparty computation (MPC). While we have recently seen new advancements for asynchronous DKG (ADKG) protocols, their performance remains the bottleneck for many applications, with only one protocol being implemented (DYX+ ADKG, IEEE S&amp;P 2022). DYX+ ADKG relies on the Decisional Composite Residuosity assumption (being expensive to instantiate) and the Decisional Diffie-Hellman assumption, incurring a high latency (more than 100s with a failure threshold of 16). Moreover, the security of DYX+ ADKG is based on the random oracle model (ROM) which takes hash function as an ideal function; assuming the existence of random oracle is a strong assumption, and up to now, we cannot ﬁnd any theoretically-sound implementation. Furthermore, the ADKG protocol needs public key infrastructure (PKI) to support the trustworthiness of public keys. The strong models (ROM and PKI) further limit the applicability of DYX+ ADKG, as they would add extra and strong assumptions to underlying threshold cryptosystems. For instance, if the original threshold cryptosystem works in the standard model, then the system using DYX+ ADKG would need to use ROM and PKI. 
+
+
+In this paper, we design and implement a modular ADKG protocol that offers improved efficiency and stronger security guarantees. We explore a novel and much more direct reduction from ADKG to the underlying blocks, reducing the computational overhead and communication rounds of ADKG in the normal case. Our protocol works for both the low-threshold and high-threshold scenarios, being secure under the standard assumption (the well-established discrete logarithm assumption only) in the standard model (no trusted setup, ROM, or PKI)." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2023-07-11T09:20:32+00:00" />
+  <meta property="article:published_time" content="2022-12-02T15:39:17+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="distributed key generation" />
+  
+      <meta property="article:tag" content="asychronous distributed key generation" />
+  
+      <meta property="article:tag" content="ADKG" />
+  
+      <meta property="article:tag" content="consensus" />
+  
+      <meta property="article:tag" content="RABA" />
+  
+      <meta property="article:tag" content="AVSS" />
+  
+      <meta property="article:tag" content="ACSS" />
+  
+      <meta property="article:tag" content="local coins" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2022/1678</h4>
+    <h3 class="mb-3"><a href="/2022/1678.pdf">Practical Asynchronous Distributed Key Generation: Improved Efficiency, Weaker Assumption, and Standard Model</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Haibin Zhang</span><span class="affiliation">, Beijing Institute of Technology</span></div>
+    
+    
+    <div class="author"><span class="authorName">Sisi Duan</span><span class="affiliation">, Tsinghua University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Chao Liu</span><span class="affiliation">, Quanzhou Normal University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Boxin Zhao</span><span class="affiliation">, Zhongguancun Laboratory</span></div>
+    
+    
+    <div class="author"><span class="authorName">Xuanji Meng</span><span class="affiliation">, Tsinghua University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Shengli Liu</span><span class="affiliation">, Shanghai Jiao Tong University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yong Yu</span><span class="affiliation">, Shaanxi Normal University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Fangguo Zhang</span><span class="affiliation">, Sun Yat-sen University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Liehuang Zhu</span><span class="affiliation">, Beijing Institute of Technology</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Distributed key generation (DKG) allows bootstrapping threshold cryptosystems without relying on a trusted party, nowadays enabling fully decentralized applications in blockchains and multiparty computation (MPC). While we have recently seen new advancements for asynchronous DKG (ADKG) protocols, their performance remains the bottleneck for many applications, with only one protocol being implemented (DYX+ ADKG, IEEE S&amp;P 2022). DYX+ ADKG relies on the Decisional Composite Residuosity assumption (being expensive to instantiate) and the Decisional Diffie-Hellman assumption, incurring a high latency (more than 100s with a failure threshold of 16). Moreover, the security of DYX+ ADKG is based on the random oracle model (ROM) which takes hash function as an ideal function; assuming the existence of random oracle is a strong assumption, and up to now, we cannot ﬁnd any theoretically-sound implementation. Furthermore, the ADKG protocol needs public key infrastructure (PKI) to support the trustworthiness of public keys. The strong models (ROM and PKI) further limit the applicability of DYX+ ADKG, as they would add extra and strong assumptions to underlying threshold cryptosystems. For instance, if the original threshold cryptosystem works in the standard model, then the system using DYX+ ADKG would need to use ROM and PKI. 
+
+
+In this paper, we design and implement a modular ADKG protocol that offers improved efficiency and stronger security guarantees. We explore a novel and much more direct reduction from ADKG to the underlying blocks, reducing the computational overhead and communication rounds of ADKG in the normal case. Our protocol works for both the low-threshold and high-threshold scenarios, being secure under the standard assumption (the well-established discrete logarithm assumption only) in the standard model (no trusted setup, ROM, or PKI).</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2022/1678.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Published elsewhere. IEEE/IFIP DSN 2023</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=distributed%20key%20generation" class="me-2 badge bg-secondary keyword">distributed key generation</a><a rel="nofollow" href="/search?q=asychronous%20distributed%20key%20generation" class="me-2 badge bg-secondary keyword">asychronous distributed key generation</a><a rel="nofollow" href="/search?q=ADKG" class="me-2 badge bg-secondary keyword">ADKG</a><a rel="nofollow" href="/search?q=consensus" class="me-2 badge bg-secondary keyword">consensus</a><a rel="nofollow" href="/search?q=RABA" class="me-2 badge bg-secondary keyword">RABA</a><a rel="nofollow" href="/search?q=AVSS" class="me-2 badge bg-secondary keyword">AVSS</a><a rel="nofollow" href="/search?q=ACSS" class="me-2 badge bg-secondary keyword">ACSS</a><a rel="nofollow" href="/search?q=local%20coins" class="me-2 badge bg-secondary keyword">local coins</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        bchainzhang<span class="obfuscate"> &#64; </span>aliyun com<br>duansisi<span class="obfuscate"> &#64; </span>tsinghua edu cn<br>cliu717<span class="obfuscate"> &#64; </span>163 com<br>zhaobx<span class="obfuscate"> &#64; </span>mail zgclab edu cn<br>mxj21<span class="obfuscate"> &#64; </span>mails tsinghua edu cn<br>slliu<span class="obfuscate"> &#64; </span>sjtu edu cn<br>yuyong<span class="obfuscate"> &#64; </span>snnu edu cn<br>isszhfg<span class="obfuscate"> &#64; </span>mail sysu edu cn<br>liehuangz<span class="obfuscate"> &#64; </span>bit edu cn
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2023-07-11: revised</dd>
+      
+      
+      
+      <dd>2022-12-02: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2022/1678">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2022/1678">https://ia.cr/2022/1678</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2022/1678,
+      author = {Haibin Zhang and Sisi Duan and Chao Liu and Boxin Zhao and Xuanji Meng and Shengli Liu and Yong Yu and Fangguo Zhang and Liehuang Zhu},
+      title = {Practical Asynchronous Distributed Key Generation: Improved Efficiency, Weaker Assumption, and Standard Model},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2022/1678},
+      year = {2022},
+      url = {https://eprint.iacr.org/2022/1678}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

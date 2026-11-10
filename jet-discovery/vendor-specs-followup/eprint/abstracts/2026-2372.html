@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>K-LMS: Design, Implementation, and Evaluation of Leighton–Micali Signatures with Korean Cryptographic Primitives</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="K-LMS: Design, Implementation, and Evaluation of Leighton–Micali Signatures with Korean Cryptographic Primitives">
+  
+  <meta name="citation_author" content="Huiju Kang">
+  
+  <meta name="citation_author" content="Yulim Hyoung">
+  
+  <meta name="citation_author" content="Hagyeong Kim">
+  
+  <meta name="citation_author" content="Sumin Jeong">
+  
+  <meta name="citation_author" content="Hangsin Cho">
+  
+  <meta name="citation_author" content="Hwajeong Seo">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/2372.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/2372">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="K-LMS: Design, Implementation, and Evaluation of Leighton–Micali Signatures with Korean Cryptographic Primitives" />
+  <meta property="og:description" content="Hash-based signatures are the most conservative post-
+quantum signature family, and the stateful schemes XMSS and LMS
+are both standardized by NIST. Prior work has instantiated XMSS and
+SPHINCS+ with Korean cryptographic primitives, but no comparable
+Korean-primitive study exists for LMS. We fill that gap with K-LMS, an
+experimental variant that preserves the full LMS structure and domain
+separation and replaces only the hash. The substituted hashes are the
+Korean hash function LSH-256, in both its reference and its vectorized
+implementation, and a Tandem-DM double-block-length construction
+over the Korean block ciphers CHAM, LEA, and ARIA. A non-invasive
+bridge over the reference LMS implementation realizes eight interchange-
+able backends without editing a line of it. We evaluate key generation,
+signing, and verification latency, key and signature sizes, peak memory,
+a sweep over tree height and the Winternitz parameter, and implemen-
+tation complexity. Hash substitution leaves key and signature sizes, and
+the memory requirement of the LMS data structures, unchanged. We
+also isolate two measurement pitfalls that can distort such comparisons:
+a vector dispatch wrapper that re-runs its capability check on every
+digest, which costs an order of magnitude on our virtualized host, and
+the choice of software or hardware-accelerated SHA-256 as the baseline,
+which shifts any LSH vs. SHA-2 conclusion by a factor of about six.
+Profiling shows that LMS is dominated by 55-byte one-shot hashes
+(about 94 % of all calls), so scheme-level ranking cannot be extrapolated
+from long-message hash benchmarks. Against a fair software baseline,
+LSH-256 K-LMS signing is on par with SHA-256 LMS (0.84×), while
+hardware acceleration retains a ∼3.6× advantage where it is available.
+On the same host and with identical LSH-256 code, K-LMS runs 3.3–
+3.9× faster than the published K-XMSS implementation, because LMS
+needs one hash call per Winternitz chain step where XMSS needs three." />
+  <meta property="article:section" content="IMPLEMENTATION" />
+  
+  <meta property="article:modified_time" content="2026-10-06T05:04:34+00:00" />
+  <meta property="article:published_time" content="2026-10-06T05:04:34+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Hash-based signatures" />
+  
+      <meta property="article:tag" content="LMS" />
+  
+      <meta property="article:tag" content="LSH" />
+  
+      <meta property="article:tag" content="Tandem-DM" />
+  
+      <meta property="article:tag" content="CHAM" />
+  
+      <meta property="article:tag" content="LEA" />
+  
+      <meta property="article:tag" content="ARIA" />
+  
+      <meta property="article:tag" content="Post-quantum cryptography" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/2372</h4>
+    <h3 class="mb-3"><a href="/2026/2372.pdf">K-LMS: Design, Implementation, and Evaluation of Leighton–Micali Signatures with Korean Cryptographic Primitives</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Huiju Kang</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0008-3198-4598"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Hansung University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yulim Hyoung</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0009-7530-6497"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Hansung University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Hagyeong Kim</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0008-5840-5517"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Hansung University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Sumin Jeong</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0007-9643-4872"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Hansung University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Hangsin Cho</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0000-0456-6536"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a></div>
+    
+    
+    <div class="author"><span class="authorName">Hwajeong Seo</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-0069-9061"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Hansung University</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Hash-based signatures are the most conservative post-
+quantum signature family, and the stateful schemes XMSS and LMS
+are both standardized by NIST. Prior work has instantiated XMSS and
+SPHINCS+ with Korean cryptographic primitives, but no comparable
+Korean-primitive study exists for LMS. We fill that gap with K-LMS, an
+experimental variant that preserves the full LMS structure and domain
+separation and replaces only the hash. The substituted hashes are the
+Korean hash function LSH-256, in both its reference and its vectorized
+implementation, and a Tandem-DM double-block-length construction
+over the Korean block ciphers CHAM, LEA, and ARIA. A non-invasive
+bridge over the reference LMS implementation realizes eight interchange-
+able backends without editing a line of it. We evaluate key generation,
+signing, and verification latency, key and signature sizes, peak memory,
+a sweep over tree height and the Winternitz parameter, and implemen-
+tation complexity. Hash substitution leaves key and signature sizes, and
+the memory requirement of the LMS data structures, unchanged. We
+also isolate two measurement pitfalls that can distort such comparisons:
+a vector dispatch wrapper that re-runs its capability check on every
+digest, which costs an order of magnitude on our virtualized host, and
+the choice of software or hardware-accelerated SHA-256 as the baseline,
+which shifts any LSH vs. SHA-2 conclusion by a factor of about six.
+Profiling shows that LMS is dominated by 55-byte one-shot hashes
+(about 94 % of all calls), so scheme-level ranking cannot be extrapolated
+from long-message hash benchmarks. Against a fair software baseline,
+LSH-256 K-LMS signing is on par with SHA-256 LMS (0.84×), while
+hardware acceleration retains a ∼3.6× advantage where it is available.
+On the same host and with identical LSH-256 code, K-LMS runs 3.3–
+3.9× faster than the published K-XMSS implementation, because LMS
+needs one hash call per Winternitz chain step where XMSS needs three.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/2372.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=IMPLEMENTATION"><small class="badge category category-IMPLEMENTATION">Implementation</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Hash-based%20signatures" class="me-2 badge bg-secondary keyword">Hash-based signatures</a><a rel="nofollow" href="/search?q=LMS" class="me-2 badge bg-secondary keyword">LMS</a><a rel="nofollow" href="/search?q=LSH" class="me-2 badge bg-secondary keyword">LSH</a><a rel="nofollow" href="/search?q=Tandem-DM" class="me-2 badge bg-secondary keyword">Tandem-DM</a><a rel="nofollow" href="/search?q=CHAM" class="me-2 badge bg-secondary keyword">CHAM</a><a rel="nofollow" href="/search?q=LEA" class="me-2 badge bg-secondary keyword">LEA</a><a rel="nofollow" href="/search?q=ARIA" class="me-2 badge bg-secondary keyword">ARIA</a><a rel="nofollow" href="/search?q=Post-quantum%20cryptography" class="me-2 badge bg-secondary keyword">Post-quantum cryptography</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        huiju9190<span class="obfuscate"> &#64; </span>gmail com<br>yulim4hyoung<span class="obfuscate"> &#64; </span>gmail com<br>kimhaha4420<span class="obfuscate"> &#64; </span>gmail com<br>jeong9sumin<span class="obfuscate"> &#64; </span>gmail com<br>wgt0302<span class="obfuscate"> &#64; </span>naver com<br>hwajeong84<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-10-08: approved</dd>
+      
+      
+      
+      <dd>2026-10-06: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/2372">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/2372">https://ia.cr/2026/2372</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/2372,
+      author = {Huiju Kang and Yulim Hyoung and Hagyeong Kim and Sumin Jeong and Hangsin Cho and Hwajeong Seo},
+      title = {K-{LMS}: Design, Implementation, and Evaluation of Leighton–Micali Signatures with Korean Cryptographic Primitives},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/2372},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/2372}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

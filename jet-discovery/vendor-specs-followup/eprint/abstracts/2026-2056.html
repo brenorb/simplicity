@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Reed-Solomon Codes Beyond Johnson: Efficient Decoding and Smaller Cryptographic Proofs</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Reed-Solomon Codes Beyond Johnson: Efficient Decoding and Smaller Cryptographic Proofs">
+  
+  <meta name="citation_author" content="Quang Dao">
+  
+  <meta name="citation_author" content="Scott Duke Kominers">
+  
+  <meta name="citation_author" content="Justin Thaler">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/2056.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/2056">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Reed-Solomon Codes Beyond Johnson: Efficient Decoding and Smaller Cryptographic Proofs" />
+  <meta property="og:description" content="List decoding Reed–Solomon codes is a central problem in coding theory and, together with mutual correlated agreement (MCA), underpins the soundness of many succinct cryptographic proofs. In this work, we give precise quantitative bounds on Reed–Solomon list decoding and MCA up to capacity, provide deterministic decoding algorithms that remain efficient over cryptographically large fields, and specialize our bounds to reduce proof sizes in implemented proof systems. Our bounds apply to arbitrary prescribed evaluation domains; beyond Johnson, they require sufficiently large field characteristic.
+
+Refining the hidden-derivative method of Brakensiek, Chen, Putterman, Zhang, and Zheng, we obtain an explicit agreement threshold $a_1(\rho)$ strictly below the Johnson bound $\sqrt{\rho}$, using only the first derivative, without requiring its evaluations in the received word. At agreement $a_1(\rho)+\eta_1$, where $\eta_1&gt;0$, our sharper interpolation and candidate counts give list size $O_\rho(n/\eta_1^2)$ and MCA error $O_\rho(n^2/(q\eta_1^4))$ for codes of length $n$ over $\mathbb{F}_q$. Higher derivatives give explicit quantitative bounds up to capacity, uniformly over all rates, sharpening prior MCA results in Zheng&#39;s unpublished manuscript and Jeronimo&#39;s work, concurrent with ours. At fixed rate, for agreement gap $\eta_0&gt;0$ above Johnson, we improve the MCA error bound of Ben-Sasson et al. (BCHKS) from $O_\rho(n/(q\eta_0^5))$ to $O_\rho(n/(q\eta_0^3))$, in every characteristic.
+
+Our decoders determine the values of the message and its derivatives at a point from the agreements with the received word, rather than enumerating them over the field as earlier hidden-derivative decoders do. With fast explicit field arithmetic, at fixed rate and a fixed positive gap above the respective threshold, deterministic decoding takes $\widetilde{O}(n\log q)$ bit operations above Johnson in every characteristic and $\widetilde{O}(n^3\log q)$ above our first-order curve in sufficiently large characteristic. Decoding remains polynomial in $n$ and $\log q$ at every fixed positive gap from capacity, under the same requirement of sufficiently large characteristic.
+
+Our first-derivative bounds give the first proof-size reductions in existing proof-system implementations from provable Reed–Solomon proximity-gap bounds beyond the Johnson radius. Relative to the deployed parameters and at unchanged security targets, we save 79.4 KB (11.1%) for ProveKit passport proofs, 13.2 KB (4.63%) for ZisK compressed final proofs, and 59.8 KB (4.85%) for LambdaVM CPU subproofs. We have formally verified the list-decoding and MCA bounds and concrete parameters in ArkLib, a Lean library for verified cryptographic proofs." />
+  <meta property="article:section" content="FOUNDATIONS" />
+  
+  <meta property="article:modified_time" content="2026-11-03T02:59:04+00:00" />
+  <meta property="article:published_time" content="2026-09-16T02:05:33+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="reed-solomon" />
+  
+      <meta property="article:tag" content="list-decoding" />
+  
+      <meta property="article:tag" content="proximity-gap" />
+  
+      <meta property="article:tag" content="correlated-agreement" />
+  
+      <meta property="article:tag" content="beyond-johnson" />
+  
+      <meta property="article:tag" content="snarks" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/2056</h4>
+    <h3 class="mb-3"><a href="/2026/2056.pdf">Reed-Solomon Codes Beyond Johnson: Efficient Decoding and Smaller Cryptographic Proofs</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Quang Dao</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-1687-0487"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Carnegie Mellon University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Scott Duke Kominers</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-7608-6619"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Harvard University</span><span class="affiliation">, a16z crypto</span></div>
+    
+    
+    <div class="author"><span class="authorName">Justin Thaler</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0009-2234-6225"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Georgetown University</span><span class="affiliation">, a16z crypto</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">List decoding Reed–Solomon codes is a central problem in coding theory and, together with mutual correlated agreement (MCA), underpins the soundness of many succinct cryptographic proofs. In this work, we give precise quantitative bounds on Reed–Solomon list decoding and MCA up to capacity, provide deterministic decoding algorithms that remain efficient over cryptographically large fields, and specialize our bounds to reduce proof sizes in implemented proof systems. Our bounds apply to arbitrary prescribed evaluation domains; beyond Johnson, they require sufficiently large field characteristic.
+
+Refining the hidden-derivative method of Brakensiek, Chen, Putterman, Zhang, and Zheng, we obtain an explicit agreement threshold $a_1(\rho)$ strictly below the Johnson bound $\sqrt{\rho}$, using only the first derivative, without requiring its evaluations in the received word. At agreement $a_1(\rho)+\eta_1$, where $\eta_1&gt;0$, our sharper interpolation and candidate counts give list size $O_\rho(n/\eta_1^2)$ and MCA error $O_\rho(n^2/(q\eta_1^4))$ for codes of length $n$ over $\mathbb{F}_q$. Higher derivatives give explicit quantitative bounds up to capacity, uniformly over all rates, sharpening prior MCA results in Zheng&#39;s unpublished manuscript and Jeronimo&#39;s work, concurrent with ours. At fixed rate, for agreement gap $\eta_0&gt;0$ above Johnson, we improve the MCA error bound of Ben-Sasson et al. (BCHKS) from $O_\rho(n/(q\eta_0^5))$ to $O_\rho(n/(q\eta_0^3))$, in every characteristic.
+
+Our decoders determine the values of the message and its derivatives at a point from the agreements with the received word, rather than enumerating them over the field as earlier hidden-derivative decoders do. With fast explicit field arithmetic, at fixed rate and a fixed positive gap above the respective threshold, deterministic decoding takes $\widetilde{O}(n\log q)$ bit operations above Johnson in every characteristic and $\widetilde{O}(n^3\log q)$ above our first-order curve in sufficiently large characteristic. Decoding remains polynomial in $n$ and $\log q$ at every fixed positive gap from capacity, under the same requirement of sufficiently large characteristic.
+
+Our first-derivative bounds give the first proof-size reductions in existing proof-system implementations from provable Reed–Solomon proximity-gap bounds beyond the Johnson radius. Relative to the deployed parameters and at unchanged security targets, we save 79.4 KB (11.1%) for ProveKit passport proofs, 13.2 KB (4.63%) for ZisK compressed final proofs, and 59.8 KB (4.85%) for LambdaVM CPU subproofs. We have formally verified the list-decoding and MCA bounds and concrete parameters in ArkLib, a Lean library for verified cryptographic proofs.</p>
+  
+    <p><strong>Note:</strong> This revision (2 Nov 2026) reorganizes and shortens the paper; the list-decoding and MCA bounds and the proof-size savings are unchanged.
+
+- The introduction and technical overview are rewritten, and the first-order results and applications now come before the capacity results.
+- The first-order decoder drops the common-center refinement, so it now runs in Õ(n^3 log q) rather than Õ(n^2 log q).
+- Several gaps in the proofs and hypotheses are filled, mostly in the decoder analysis.
+- The Lean statements now point to a newer ArkLib revision.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/2056.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=FOUNDATIONS"><small class="badge category category-FOUNDATIONS">Foundations</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=reed-solomon" class="me-2 badge bg-secondary keyword">reed-solomon</a><a rel="nofollow" href="/search?q=list-decoding" class="me-2 badge bg-secondary keyword">list-decoding</a><a rel="nofollow" href="/search?q=proximity-gap" class="me-2 badge bg-secondary keyword">proximity-gap</a><a rel="nofollow" href="/search?q=correlated-agreement" class="me-2 badge bg-secondary keyword">correlated-agreement</a><a rel="nofollow" href="/search?q=beyond-johnson" class="me-2 badge bg-secondary keyword">beyond-johnson</a><a rel="nofollow" href="/search?q=snarks" class="me-2 badge bg-secondary keyword">snarks</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        qvd<span class="obfuscate"> &#64; </span>andrew cmu edu<br>skominers<span class="obfuscate"> &#64; </span>hbs edu<br>justin r thaler<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-11-03: last of 2 revisions</dd>
+      
+      
+      
+      <dd>2026-09-16: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/2056">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/2056">https://ia.cr/2026/2056</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/2056,
+      author = {Quang Dao and Scott Duke Kominers and Justin Thaler},
+      title = {Reed-Solomon Codes Beyond Johnson: Efficient Decoding and Smaller Cryptographic Proofs},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/2056},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/2056}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

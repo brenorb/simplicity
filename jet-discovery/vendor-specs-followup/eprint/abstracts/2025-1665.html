@@ -1,0 +1,373 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Threshold Public-Key Encryption:  Definitions, Relations, and CPA-to-CCA Transforms</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Threshold Public-Key Encryption:  Definitions, Relations, and CPA-to-CCA Transforms">
+  
+  <meta name="citation_author" content="Chris Brzuska">
+  
+  <meta name="citation_author" content="Michael Klooß">
+  
+  <meta name="citation_author" content="Ivy K. Y. Woo">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2025">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2025/1665.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2025/1665">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Threshold Public-Key Encryption:  Definitions, Relations, and CPA-to-CCA Transforms" />
+  <meta property="og:description" content="Threshold public-key encryption (TPKE) allows $t$ out of $k$ parties to jointly decrypt a ciphertext, while ensuring confidentiality against any coalition of $t-1$ parties. Despite its long history and ongoing standardisation efforts, there has not been a dedicated study on its basic security notions, and a handful of variations are currently in use.
+
+We initiate the systematic study of TPKE confidentiality and develop relations between notions contrasting indistinguishability (IND) vs. simulatability (SIM), passive (CPA) vs. active (CCA) attacks, and static vs. adaptive corruptions. One of our insights is that security under maximal corruptions does not imply security under fewer corruptions when the adversary has access to partial decryptions on challenge ciphertexts. Maximal corruption was adopted by a significant portion of prior works, and this calls for cautious interpretation when using such a notion.
+    
+We complement our study by providing two generic CPA-to-CCA transforms for TPKE. The first is effectively the Naor--Yung transform, for which we fix a gap in prior work by requiring the underlying TPKE to achieve semi-malicious CPA security, where the adversary can choose randomness for non-challenge ciphertexts. Our second transform applies to any CPA secure TPKE in the random oracle model. We abstract the underlying technique as a standalone novel primitive called non-interactive proof of randomness (NIPoR), and we provide a simple construction from straightline extractable non-interactive zero-knowledge proofs and commitments, which we consider of independent interest." />
+  <meta property="article:section" content="PUBLICKEY" />
+  
+  <meta property="article:modified_time" content="2026-07-17T21:11:56+00:00" />
+  <meta property="article:published_time" content="2025-09-13T22:02:40+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="threshold PKE" />
+  
+      <meta property="article:tag" content="separations" />
+  
+      <meta property="article:tag" content="CPA-to-CCA transforms" />
+  
+      <meta property="article:tag" content="non-interactive proof of randomness" />
+  
+      <meta property="article:tag" content="partial decryption queries" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2025/1665</h4>
+    <h3 class="mb-3"><a href="/2025/1665.pdf">Threshold Public-Key Encryption:  Definitions, Relations, and CPA-to-CCA Transforms</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Chris Brzuska</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0001-7485-1217"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Aalto University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Michael Klooß</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-3466-0675"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Karlsruhe Institute of Technology</span></div>
+    
+    
+    <div class="author"><span class="authorName">Ivy K. Y. Woo</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0001-8905-1207"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Aalto University</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Threshold public-key encryption (TPKE) allows $t$ out of $k$ parties to jointly decrypt a ciphertext, while ensuring confidentiality against any coalition of $t-1$ parties. Despite its long history and ongoing standardisation efforts, there has not been a dedicated study on its basic security notions, and a handful of variations are currently in use.
+
+We initiate the systematic study of TPKE confidentiality and develop relations between notions contrasting indistinguishability (IND) vs. simulatability (SIM), passive (CPA) vs. active (CCA) attacks, and static vs. adaptive corruptions. One of our insights is that security under maximal corruptions does not imply security under fewer corruptions when the adversary has access to partial decryptions on challenge ciphertexts. Maximal corruption was adopted by a significant portion of prior works, and this calls for cautious interpretation when using such a notion.
+    
+We complement our study by providing two generic CPA-to-CCA transforms for TPKE. The first is effectively the Naor--Yung transform, for which we fix a gap in prior work by requiring the underlying TPKE to achieve semi-malicious CPA security, where the adversary can choose randomness for non-challenge ciphertexts. Our second transform applies to any CPA secure TPKE in the random oracle model. We abstract the underlying technique as a standalone novel primitive called non-interactive proof of randomness (NIPoR), and we provide a simple construction from straightline extractable non-interactive zero-knowledge proofs and commitments, which we consider of independent interest.</p>
+  
+    <p><strong>Note:</strong> This is the full version of a publication in PKC 2026 with the same title, containing additional proofs in the appendices.
+
+2026-07-17: Fixed typos and small bugs. 
+
+2026-04-13: Added table of properties and notations. Refined discussions. Updated Appendix G preliminaries and proofs. Fixed typos.
+
+2025-10-28: Strengthened definition of NIPoR. Simplified CPA-to-CCA transformation. Extended related work discussion. Fixed typos and small bugs. General editorial refinements.
+
+2025-09-13: First eprint version.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2025/1665.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PUBLICKEY"><small class="badge category category-PUBLICKEY">Public-key cryptography</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>A major revision of an IACR publication in PKC 2026</dd>
+  
+      <dt>DOI</dt>
+        <dd><a href="https://doi.org/10.1007/978-3-032-26740-5_6" target="_blank" class="ms-1">10.1007/978-3-032-26740-5_6 <img src="/img/open-outline.svg" style="height:1.25rem;"></a></dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=threshold%20PKE" class="me-2 badge bg-secondary keyword">threshold PKE</a><a rel="nofollow" href="/search?q=separations" class="me-2 badge bg-secondary keyword">separations</a><a rel="nofollow" href="/search?q=CPA-to-CCA%20transforms" class="me-2 badge bg-secondary keyword">CPA-to-CCA transforms</a><a rel="nofollow" href="/search?q=non-interactive%20proof%20of%20randomness" class="me-2 badge bg-secondary keyword">non-interactive proof of randomness</a><a rel="nofollow" href="/search?q=partial%20decryption%20queries" class="me-2 badge bg-secondary keyword">partial decryption queries</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        chris brzuska<span class="obfuscate"> &#64; </span>aalto fi<br>klooss<span class="obfuscate"> &#64; </span>mail informatik kit edu<br>ivy woo<span class="obfuscate"> &#64; </span>aalto fi
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-07-17: last of 3 revisions</dd>
+      
+      
+      
+      <dd>2025-09-13: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2025/1665">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2025/1665">https://ia.cr/2025/1665</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2025/1665,
+      author = {Chris Brzuska and Michael Klooß and Ivy K. Y. Woo},
+      title = {Threshold Public-Key Encryption:  Definitions, Relations, and {CPA}-to-{CCA} Transforms},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2025/1665},
+      year = {2025},
+      doi = {10.1007/978-3-032-26740-5_6},
+      url = {https://eprint.iacr.org/2025/1665}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

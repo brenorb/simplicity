@@ -1,0 +1,356 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Optimized NEON Implementation of MAYO on Apple M1</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Optimized NEON Implementation of MAYO on Apple M1">
+  
+  <meta name="citation_author" content="Minwoo Lee">
+  
+  <meta name="citation_author" content="Minjoo Sim">
+  
+  <meta name="citation_author" content="Siwoo Eum">
+  
+  <meta name="citation_author" content="Hwajeong Seo">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/2350.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/2350">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Optimized NEON Implementation of MAYO on Apple M1" />
+  <meta property="og:description" content="MAYO is one of nine third-round candidates in NIST’s process for additional post-quantum signatures. Its third-round specification of August 2026 changed the level-1 parameters and added a hash-derived linear term Λ to the verification equation, so earlier optimised implementations no longer match it. We present an optimised NEON implementation of MAYO Round 3 for the Apple M1 and compare it with the upstream NEON code on the same machine. A generator emits the sixteen GF(16) kernels of each parameter set as assembly whose output is byte-identical to that of the upstream intrinsics. Apart from the Λ kernel, the large kernels reach 86–96% of the speed an operation-count model predicts. A transposed constant-time echelon form needs 55–70% fewer cycles than the upstream one. An eight-way interleaved AES expands the public matrices at 0.18 instead of 0.43 cycles per byte. The linear term is expanded with NEON; with our changes off, its portable-C AES derivation takes 10–22% of signing and 18–37% of verification. As medians over seven function alignments, compact-key signing is 1.99–2.12 times faster than upstream on all four sets, and verification 2.11–2.62 times. A constant-time campaign with matched null runs finds the linear-algebra tests indistinguishable from their nulls, at 25% power for a twofold dispersion. The MAYO₂ signature test differs. Verification, which holds no secret, shows a key-fixed timing effect on public data, upstream as well; the signature test does not separate it from a secret one. All measurements are on one M1 Pro." />
+  <meta property="article:section" content="IMPLEMENTATION" />
+  
+  <meta property="article:modified_time" content="2026-10-05T03:19:42+00:00" />
+  <meta property="article:published_time" content="2026-10-05T03:19:42+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="MAYO" />
+  
+      <meta property="article:tag" content="Post-quantum signatures" />
+  
+      <meta property="article:tag" content="ARMv8 NEON" />
+  
+      <meta property="article:tag" content="Apple M1" />
+  
+      <meta property="article:tag" content="Constant-time implementation" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/2350</h4>
+    <h3 class="mb-3"><a href="/2026/2350.pdf">Optimized NEON Implementation of MAYO on Apple M1</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Minwoo Lee</span><span class="affiliation">, Hansung University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Minjoo Sim</span><span class="affiliation">, Hansung University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Siwoo Eum</span><span class="affiliation">, Hansung University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Hwajeong Seo</span><span class="affiliation">, Hansung University</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">MAYO is one of nine third-round candidates in NIST’s process for additional post-quantum signatures. Its third-round specification of August 2026 changed the level-1 parameters and added a hash-derived linear term Λ to the verification equation, so earlier optimised implementations no longer match it. We present an optimised NEON implementation of MAYO Round 3 for the Apple M1 and compare it with the upstream NEON code on the same machine. A generator emits the sixteen GF(16) kernels of each parameter set as assembly whose output is byte-identical to that of the upstream intrinsics. Apart from the Λ kernel, the large kernels reach 86–96% of the speed an operation-count model predicts. A transposed constant-time echelon form needs 55–70% fewer cycles than the upstream one. An eight-way interleaved AES expands the public matrices at 0.18 instead of 0.43 cycles per byte. The linear term is expanded with NEON; with our changes off, its portable-C AES derivation takes 10–22% of signing and 18–37% of verification. As medians over seven function alignments, compact-key signing is 1.99–2.12 times faster than upstream on all four sets, and verification 2.11–2.62 times. A constant-time campaign with matched null runs finds the linear-algebra tests indistinguishable from their nulls, at 25% power for a twofold dispersion. The MAYO₂ signature test differs. Verification, which holds no secret, shows a key-fixed timing effect on public data, upstream as well; the signature test does not separate it from a secret one. All measurements are on one M1 Pro.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/2350.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=IMPLEMENTATION"><small class="badge category category-IMPLEMENTATION">Implementation</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=MAYO" class="me-2 badge bg-secondary keyword">MAYO</a><a rel="nofollow" href="/search?q=Post-quantum%20signatures" class="me-2 badge bg-secondary keyword">Post-quantum signatures</a><a rel="nofollow" href="/search?q=ARMv8%20NEON" class="me-2 badge bg-secondary keyword">ARMv8 NEON</a><a rel="nofollow" href="/search?q=Apple%20M1" class="me-2 badge bg-secondary keyword">Apple M1</a><a rel="nofollow" href="/search?q=Constant-time%20implementation" class="me-2 badge bg-secondary keyword">Constant-time implementation</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        minunejip<span class="obfuscate"> &#64; </span>gmail com<br>minjoos9797<span class="obfuscate"> &#64; </span>gmail com<br>shuraatum<span class="obfuscate"> &#64; </span>gmail com<br>hwajeong84<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-10-07: approved</dd>
+      
+      
+      
+      <dd>2026-10-05: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/2350">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/2350">https://ia.cr/2026/2350</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/publicdomain/zero/1.0/">
+        <img class="licenseImg" src="/img/license/CC0.svg" alt="No rights reserved" title="No rights reserved"><br>
+        <small>CC0</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/2350,
+      author = {Minwoo Lee and Minjoo Sim and Siwoo Eum and Hwajeong Seo},
+      title = {Optimized {NEON} Implementation of {MAYO} on Apple M1},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/2350},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/2350}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

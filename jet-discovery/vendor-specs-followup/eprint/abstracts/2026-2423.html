@@ -1,0 +1,357 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Magnetar: High-speed post-quantum RV64 zkVM from standard hashes</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Magnetar: High-speed post-quantum RV64 zkVM from standard hashes">
+  
+  <meta name="citation_author" content="Srinath Setty">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/2423.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/2423">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Magnetar: High-speed post-quantum RV64 zkVM from standard hashes" />
+  <meta property="og:description" content="We describe the design, implementation, and experimental evaluation of Magnetar, a transparent proof system for RV64I program executions (i.e., a zkVM). Magnetar is the first zkVM to simultaneously satisfy the following three properties:
+
+1. General-purpose proving. Magnetar proves programs compiled to the general-purpose RV64I ISA. An implementation of the Ethereum Virtual Machine (EVM) written in Rust or Go can therefore run inside Magnetar, yielding a zkEVM for proving executions of existing EVM smart contracts.
+
+2. Hash-based, post-quantum security. Magnetar’s cryptographic security is rooted in standard hash functions (e.g., SHA-256 or SHA-3).
+
+3. Efficient recursion. Magnetar’s verification work is dominated by evaluating standard hash functions. Magnetar’s proof engine, BinarySpartan, is well-suited for such bit-oriented computations, so verifying a proof is itself an efficient proving workload.
+
+Unlike prior general-purpose zkVMs, Magnetar does not rely on circuit-friendly algebraic hash functions such as Poseidon or Poseidon2, elliptic-curve or lattice assumptions, or a conjectured Reed–Solomon proximity gap. Even prior zkVMs commonly described as hash-based rely on elliptic-curve or lattice assumptions in their core proving machinery, provide only about 100 bits of security, or rest on conjectured soundness; some do more than one of these.
+
+Finally, we implement Magnetar in Rust and experimentally evaluate it. We find that, at 120 bits of provable security and with 12 performance cores on an M4 Max MacBook Pro, Magnetar proves 2^{22}-cycle executions at 7.2–8.7 million cycles per second, with proofs of about 600 KiB that verify in 11–13 ms. Across 15 application workloads, Magnetar’s proving throughput is 24–66× that of SP1 Hypercube, a hash-and-more-based zkVM; 12–37× that of Jolt-Dory, a curve-based zkVM; and 6–20× that of Jolt-Akita, a lattice-based zkVM, with geometric-mean speedups of about 39×, 18×, and 9.6×, respectively. An optimized Magnetar proves 222-cycle executions at 9.5–12.8 million cycles per second, which increases each geometric-mean speedup by about 1.3×. Magnetar’s proofs are about 4.6× smaller than SP1 Hypercube’s; Jolt’s proofs are under 100 KiB, but they rely on elliptic-curve or lattice assumptions." />
+  <meta property="article:section" content="FOUNDATIONS" />
+  
+  <meta property="article:modified_time" content="2026-10-15T14:18:57+00:00" />
+  <meta property="article:published_time" content="2026-10-09T00:37:27+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="zkVM" />
+  
+      <meta property="article:tag" content="transparent SNARKs" />
+  
+      <meta property="article:tag" content="RV64 provers" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/2423</h4>
+    <h3 class="mb-3"><a href="/2026/2423.pdf">Magnetar: High-speed post-quantum RV64 zkVM from standard hashes</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Srinath Setty</span><span class="affiliation">, Microsoft Research</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We describe the design, implementation, and experimental evaluation of Magnetar, a transparent proof system for RV64I program executions (i.e., a zkVM). Magnetar is the first zkVM to simultaneously satisfy the following three properties:
+
+1. General-purpose proving. Magnetar proves programs compiled to the general-purpose RV64I ISA. An implementation of the Ethereum Virtual Machine (EVM) written in Rust or Go can therefore run inside Magnetar, yielding a zkEVM for proving executions of existing EVM smart contracts.
+
+2. Hash-based, post-quantum security. Magnetar’s cryptographic security is rooted in standard hash functions (e.g., SHA-256 or SHA-3).
+
+3. Efficient recursion. Magnetar’s verification work is dominated by evaluating standard hash functions. Magnetar’s proof engine, BinarySpartan, is well-suited for such bit-oriented computations, so verifying a proof is itself an efficient proving workload.
+
+Unlike prior general-purpose zkVMs, Magnetar does not rely on circuit-friendly algebraic hash functions such as Poseidon or Poseidon2, elliptic-curve or lattice assumptions, or a conjectured Reed–Solomon proximity gap. Even prior zkVMs commonly described as hash-based rely on elliptic-curve or lattice assumptions in their core proving machinery, provide only about 100 bits of security, or rest on conjectured soundness; some do more than one of these.
+
+Finally, we implement Magnetar in Rust and experimentally evaluate it. We find that, at 120 bits of provable security and with 12 performance cores on an M4 Max MacBook Pro, Magnetar proves 2^{22}-cycle executions at 7.2–8.7 million cycles per second, with proofs of about 600 KiB that verify in 11–13 ms. Across 15 application workloads, Magnetar’s proving throughput is 24–66× that of SP1 Hypercube, a hash-and-more-based zkVM; 12–37× that of Jolt-Dory, a curve-based zkVM; and 6–20× that of Jolt-Akita, a lattice-based zkVM, with geometric-mean speedups of about 39×, 18×, and 9.6×, respectively. An optimized Magnetar proves 222-cycle executions at 9.5–12.8 million cycles per second, which increases each geometric-mean speedup by about 1.3×. Magnetar’s proofs are about 4.6× smaller than SP1 Hypercube’s; Jolt’s proofs are under 100 KiB, but they rely on elliptic-curve or lattice assumptions.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/2423.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=FOUNDATIONS"><small class="badge category category-FOUNDATIONS">Foundations</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=zkVM" class="me-2 badge bg-secondary keyword">zkVM</a><a rel="nofollow" href="/search?q=transparent%20SNARKs" class="me-2 badge bg-secondary keyword">transparent SNARKs</a><a rel="nofollow" href="/search?q=RV64%20provers" class="me-2 badge bg-secondary keyword">RV64 provers</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        srinath<span class="obfuscate"> &#64; </span>microsoft com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-10-15: revised</dd>
+      
+      
+      
+      <dd>2026-10-09: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/2423">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/2423">https://ia.cr/2026/2423</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/2423,
+      author = {Srinath Setty},
+      title = {Magnetar: High-speed post-quantum {RV64} {zkVM} from standard hashes},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/2423},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/2423}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

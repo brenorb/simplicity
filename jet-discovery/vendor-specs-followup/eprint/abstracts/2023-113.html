@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Homomorphic Sortition – Single Secret Leader Election for PoS Blockchains</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Homomorphic Sortition – Single Secret Leader Election for PoS Blockchains">
+  
+  <meta name="citation_author" content="Luciano Freitas">
+  
+  <meta name="citation_author" content="Andrei Tonkikh">
+  
+  <meta name="citation_author" content="Adda-Akram Bendoukha">
+  
+  <meta name="citation_author" content="Sara Tucci-Piergiovanni">
+  
+  <meta name="citation_author" content="Renaud Sirdey">
+  
+  <meta name="citation_author" content="Oana Stan">
+  
+  <meta name="citation_author" content="Petr Kuznetsov">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2023">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2023/113.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2023/113">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Homomorphic Sortition – Single Secret Leader Election for PoS Blockchains" />
+  <meta property="og:description" content="In a single secret leader election protocol (SSLE), one of the system participants is chosen and, unless it decides to reveal itself, no other participant can identify it. 
+SSLE has a great potential in protecting blockchain consensus protocols against denial of service (DoS) attacks. However, all existing solutions either make strong synchrony assumptions or have expiring registration, meaning that they require elected processes to re-register themselves before they can be re-elected again. This, in turn, prohibits the use of these SSLE protocols to elect leaders in partially-synchronous consensus protocols as there may be long periods of network instability when no new blocks are decided and, thus, no new registrations (or re-registrations) are possible.
+In this paper, we propose Homomorphic Sortition -- the first asynchronous SSLE protocol with non-expiring registration, making it the first solution compatible with partially-synchronous leader-based consensus protocols.
+
+Homomorphic Sortition relies on Threshold Fully Homomorphic Encryption (ThFHE) and is tailored to proof-of-stake (PoS) blockchains, with several important optimizations with respect to prior proposals.
+In particular, unlike most existing SSLE protocols, it works with arbitrary stake distributions and does not require a user with multiple coins to be registered multiple times. Our protocol is highly parallelizable and can be run completely off-chain after setup.
+
+Some blockchains require a sequence of rounds to have non-repeating leaders. We define a generalization of SSLE, called Secret Leader Permutation (SLP) in which the application can choose how many non-repeating leaders should be output in a sequence of rounds and we show how Homomorphic Sortition also solves this problem." />
+  <meta property="article:section" content="APPLICATIONS" />
+  
+  <meta property="article:modified_time" content="2023-01-30T09:32:03+00:00" />
+  <meta property="article:published_time" content="2023-01-30T09:32:03+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="FHE" />
+  
+      <meta property="article:tag" content="Fully Homomorphic Encryption" />
+  
+      <meta property="article:tag" content="SSLE" />
+  
+      <meta property="article:tag" content="Single Secret Leader Election" />
+  
+      <meta property="article:tag" content="Byzantine" />
+  
+      <meta property="article:tag" content="Blockchain" />
+  
+      <meta property="article:tag" content="Proof of Stake" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2023/113</h4>
+    <h3 class="mb-3"><a href="/2023/113.pdf">Homomorphic Sortition – Single Secret Leader Election for PoS Blockchains</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Luciano Freitas</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-7444-7345"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Télécom ParisTech</span></div>
+    
+    
+    <div class="author"><span class="authorName">Andrei Tonkikh</span><span class="affiliation">, Télécom ParisTech</span></div>
+    
+    
+    <div class="author"><span class="authorName">Adda-Akram Bendoukha</span><span class="affiliation">, CEA LIST</span></div>
+    
+    
+    <div class="author"><span class="authorName">Sara Tucci-Piergiovanni</span><span class="affiliation">, CEA LIST</span></div>
+    
+    
+    <div class="author"><span class="authorName">Renaud Sirdey</span><span class="affiliation">, CEA LIST</span></div>
+    
+    
+    <div class="author"><span class="authorName">Oana Stan</span><span class="affiliation">, CEA LIST</span></div>
+    
+    
+    <div class="author"><span class="authorName">Petr Kuznetsov</span><span class="affiliation">, Télécom ParisTech</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">In a single secret leader election protocol (SSLE), one of the system participants is chosen and, unless it decides to reveal itself, no other participant can identify it. 
+SSLE has a great potential in protecting blockchain consensus protocols against denial of service (DoS) attacks. However, all existing solutions either make strong synchrony assumptions or have expiring registration, meaning that they require elected processes to re-register themselves before they can be re-elected again. This, in turn, prohibits the use of these SSLE protocols to elect leaders in partially-synchronous consensus protocols as there may be long periods of network instability when no new blocks are decided and, thus, no new registrations (or re-registrations) are possible.
+In this paper, we propose Homomorphic Sortition -- the first asynchronous SSLE protocol with non-expiring registration, making it the first solution compatible with partially-synchronous leader-based consensus protocols.
+
+Homomorphic Sortition relies on Threshold Fully Homomorphic Encryption (ThFHE) and is tailored to proof-of-stake (PoS) blockchains, with several important optimizations with respect to prior proposals.
+In particular, unlike most existing SSLE protocols, it works with arbitrary stake distributions and does not require a user with multiple coins to be registered multiple times. Our protocol is highly parallelizable and can be run completely off-chain after setup.
+
+Some blockchains require a sequence of rounds to have non-repeating leaders. We define a generalization of SSLE, called Secret Leader Permutation (SLP) in which the application can choose how many non-repeating leaders should be output in a sequence of rounds and we show how Homomorphic Sortition also solves this problem.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2023/113.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=APPLICATIONS"><small class="badge category category-APPLICATIONS">Applications</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=FHE" class="me-2 badge bg-secondary keyword">FHE</a><a rel="nofollow" href="/search?q=Fully%20Homomorphic%20Encryption" class="me-2 badge bg-secondary keyword">Fully Homomorphic Encryption</a><a rel="nofollow" href="/search?q=SSLE" class="me-2 badge bg-secondary keyword">SSLE</a><a rel="nofollow" href="/search?q=Single%20Secret%20Leader%20Election" class="me-2 badge bg-secondary keyword">Single Secret Leader Election</a><a rel="nofollow" href="/search?q=Byzantine" class="me-2 badge bg-secondary keyword">Byzantine</a><a rel="nofollow" href="/search?q=Blockchain" class="me-2 badge bg-secondary keyword">Blockchain</a><a rel="nofollow" href="/search?q=Proof%20of%20Stake" class="me-2 badge bg-secondary keyword">Proof of Stake</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        lfreitas<span class="obfuscate"> &#64; </span>telecom-paris fr<br>tonkikh<span class="obfuscate"> &#64; </span>telecom-paris fr<br>sara tucci<span class="obfuscate"> &#64; </span>cea fr<br>renaud sirdey<span class="obfuscate"> &#64; </span>cea fr<br>oana stan<span class="obfuscate"> &#64; </span>cea fr<br>petr kuznetsov<span class="obfuscate"> &#64; </span>telecom-paris fr
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2023-01-30: approved</dd>
+      
+      
+      
+      <dd>2023-01-30: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2023/113">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2023/113">https://ia.cr/2023/113</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2023/113,
+      author = {Luciano Freitas and Andrei Tonkikh and Adda-Akram Bendoukha and Sara Tucci-Piergiovanni and Renaud Sirdey and Oana Stan and Petr Kuznetsov},
+      title = {Homomorphic Sortition – Single Secret Leader Election for {PoS} Blockchains},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2023/113},
+      year = {2023},
+      url = {https://eprint.iacr.org/2023/113}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

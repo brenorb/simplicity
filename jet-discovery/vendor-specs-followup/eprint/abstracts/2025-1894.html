@@ -1,0 +1,358 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Bounded-Equivocable Pseudorandom Functions</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Bounded-Equivocable Pseudorandom Functions">
+  
+  <meta name="citation_author" content="Paul Gerhart">
+  
+  <meta name="citation_author" content="Davide Li Calsi">
+  
+  <meta name="citation_author" content="Luigi Russo">
+  
+  <meta name="citation_author" content="Dominique Schröder">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2025">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2025/1894.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2025/1894">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Bounded-Equivocable Pseudorandom Functions" />
+  <meta property="og:description" content="We introduce Bounded-Equivocable PRFs, a new variant of pseudorandom functions. They combine standard pseudorandomness with a bounded form of programmability. In our model, an adversary may issue an arbitrary number of queries that remain indistinguishable from random. Bounded equivocability ensures that responses can be programmed consistently with a later-revealed key, up to a fixed bound q. This relaxation avoids known impossibility results, which preclude polynomial unbounded equivocability in the standard model, while preserving the programmability required for applications. 
+
+We present standard-model constructions of bounded-equivocable PRFs under the DDH and LWE assumptions, and we show how to make these constructions verifiable. Prior SIM-AC style primitives could not achieve verifiability since their programmability relied on embedding the secret key into the random oracle. 
+
+We demonstrate applications to (i) adaptively secure private-key encryption, (ii) two-round threshold Schnorr signatures secure against adaptive corruptions, and (iii) leader election in Proof of Stake blockchains. Together, these results establish bounded-equivocable PRFs as a practical primitive that achieves programmability with verifiability in the standard model, and enables applications previously out of reach." />
+  <meta property="article:section" content="FOUNDATIONS" />
+  
+  <meta property="article:modified_time" content="2025-10-10T12:53:19+00:00" />
+  <meta property="article:published_time" content="2025-10-10T12:53:19+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Pseudorandom Functions" />
+  
+      <meta property="article:tag" content="Adaptive Security" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2025/1894</h4>
+    <h3 class="mb-3"><a href="/2025/1894.pdf">Bounded-Equivocable Pseudorandom Functions</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Paul Gerhart</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-0164-0187"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, TU Wien</span></div>
+    
+    
+    <div class="author"><span class="authorName">Davide Li Calsi</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-4745-5374"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, TU Wien</span></div>
+    
+    
+    <div class="author"><span class="authorName">Luigi Russo</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0001-9869-786X"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, TU Wien</span></div>
+    
+    
+    <div class="author"><span class="authorName">Dominique Schröder</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0001-6943-8914"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, TU Wien</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We introduce Bounded-Equivocable PRFs, a new variant of pseudorandom functions. They combine standard pseudorandomness with a bounded form of programmability. In our model, an adversary may issue an arbitrary number of queries that remain indistinguishable from random. Bounded equivocability ensures that responses can be programmed consistently with a later-revealed key, up to a fixed bound q. This relaxation avoids known impossibility results, which preclude polynomial unbounded equivocability in the standard model, while preserving the programmability required for applications. 
+
+We present standard-model constructions of bounded-equivocable PRFs under the DDH and LWE assumptions, and we show how to make these constructions verifiable. Prior SIM-AC style primitives could not achieve verifiability since their programmability relied on embedding the secret key into the random oracle. 
+
+We demonstrate applications to (i) adaptively secure private-key encryption, (ii) two-round threshold Schnorr signatures secure against adaptive corruptions, and (iii) leader election in Proof of Stake blockchains. Together, these results establish bounded-equivocable PRFs as a practical primitive that achieves programmability with verifiability in the standard model, and enables applications previously out of reach.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2025/1894.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=FOUNDATIONS"><small class="badge category category-FOUNDATIONS">Foundations</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Pseudorandom%20Functions" class="me-2 badge bg-secondary keyword">Pseudorandom Functions</a><a rel="nofollow" href="/search?q=Adaptive%20Security" class="me-2 badge bg-secondary keyword">Adaptive Security</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        paul gerhart<span class="obfuscate"> &#64; </span>tuwien ac at<br>davide li calsi<span class="obfuscate"> &#64; </span>tuwien ac at<br>luigi russo<span class="obfuscate"> &#64; </span>tuwien ac at<br>dominique schroeder<span class="obfuscate"> &#64; </span>tuwien ac at
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2025-10-12: approved</dd>
+      
+      
+      
+      <dd>2025-10-10: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2025/1894">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2025/1894">https://ia.cr/2025/1894</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2025/1894,
+      author = {Paul Gerhart and Davide Li Calsi and Luigi Russo and Dominique Schröder},
+      title = {Bounded-Equivocable Pseudorandom Functions},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2025/1894},
+      year = {2025},
+      url = {https://eprint.iacr.org/2025/1894}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

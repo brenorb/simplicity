@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Analysis of RIPEMD-160: New Collision Attacks and Finding Characteristics with MILP</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Analysis of RIPEMD-160: New Collision Attacks and Finding Characteristics with MILP">
+  
+  <meta name="citation_author" content="Fukang Liu">
+  
+  <meta name="citation_author" content="Gaoli Wang">
+  
+  <meta name="citation_author" content="Santanu Sarkar">
+  
+  <meta name="citation_author" content="Ravi Anand">
+  
+  <meta name="citation_author" content="Willi Meier">
+  
+  <meta name="citation_author" content="Yingxin Li">
+  
+  <meta name="citation_author" content="Takanori Isobe">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2023">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2023/277.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2023/277">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Analysis of RIPEMD-160: New Collision Attacks and Finding Characteristics with MILP" />
+  <meta property="og:description" content="The hash function RIPEMD-160 is an ISO/IEC standard and is being used to generate the bitcoin address together with SHA-256. Despite the fact that many hash functions in the MD-SHA hash family have been broken, RIPEMD-160 remains secure and the best collision attack could only reach up to 34 out of 80 rounds, which was published at CRYPTO 2019. In this paper, we propose a new collision attack on RIPEMD-160 that can reach up to 36 rounds with time complexity $2^{64.5}$. This new attack is facilitated by a new strategy to choose the message differences and new techniques to simultaneously handle the differential conditions on both branches. Moreover, different from all the previous work on RIPEMD-160, we utilize a MILP-based method to search for differential characteristics, where we construct a model to accurately describe the signed difference transitions through its round function. As far as we know, this is the first model targeting the signed difference transitions for the MD-SHA hash family. Indeed, we are more motivated to design this model by the fact that many automatic tools to search for such differential characteristics are not publicly available and implementing them from  scratch is too time-consuming and difficult. Hence, we expect that this can be an alternative easy tool for future research, which only requires to write down some simple linear inequalities." />
+  <meta property="article:section" content="ATTACKS" />
+  
+  <meta property="article:modified_time" content="2023-02-24T07:23:25+00:00" />
+  <meta property="article:published_time" content="2023-02-24T07:23:25+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="RIPEMD-160" />
+  
+      <meta property="article:tag" content="collision attack" />
+  
+      <meta property="article:tag" content="signed difference" />
+  
+      <meta property="article:tag" content="modular difference" />
+  
+      <meta property="article:tag" content="MILP" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2023/277</h4>
+    <h3 class="mb-3"><a href="/2023/277.pdf">Analysis of RIPEMD-160: New Collision Attacks and Finding Characteristics with MILP</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Fukang Liu</span><span class="affiliation">, Tokyo Institute of Technology</span><span class="affiliation">, University of Hyogo</span></div>
+    
+    
+    <div class="author"><span class="authorName">Gaoli Wang</span><span class="affiliation">, East China Normal University</span><span class="affiliation">, State Key Laboratory of Cryptology</span></div>
+    
+    
+    <div class="author"><span class="authorName">Santanu Sarkar</span><span class="affiliation">, Indian Institute of Technology Madras</span></div>
+    
+    
+    <div class="author"><span class="authorName">Ravi Anand</span><span class="affiliation">, University of Hyogo</span></div>
+    
+    
+    <div class="author"><span class="authorName">Willi Meier</span><span class="affiliation">, FHNW</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yingxin Li</span><span class="affiliation">, East China Normal University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Takanori Isobe</span><span class="affiliation">, University of Hyogo</span><span class="affiliation">, NICT</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">The hash function RIPEMD-160 is an ISO/IEC standard and is being used to generate the bitcoin address together with SHA-256. Despite the fact that many hash functions in the MD-SHA hash family have been broken, RIPEMD-160 remains secure and the best collision attack could only reach up to 34 out of 80 rounds, which was published at CRYPTO 2019. In this paper, we propose a new collision attack on RIPEMD-160 that can reach up to 36 rounds with time complexity $2^{64.5}$. This new attack is facilitated by a new strategy to choose the message differences and new techniques to simultaneously handle the differential conditions on both branches. Moreover, different from all the previous work on RIPEMD-160, we utilize a MILP-based method to search for differential characteristics, where we construct a model to accurately describe the signed difference transitions through its round function. As far as we know, this is the first model targeting the signed difference transitions for the MD-SHA hash family. Indeed, we are more motivated to design this model by the fact that many automatic tools to search for such differential characteristics are not publicly available and implementing them from  scratch is too time-consuming and difficult. Hence, we expect that this can be an alternative easy tool for future research, which only requires to write down some simple linear inequalities.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2023/277.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=ATTACKS"><small class="badge category category-ATTACKS">Attacks and cryptanalysis</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>A major revision of an IACR publication in EUROCRYPT 2023</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=RIPEMD-160" class="me-2 badge bg-secondary keyword">RIPEMD-160</a><a rel="nofollow" href="/search?q=collision%20attack" class="me-2 badge bg-secondary keyword">collision attack</a><a rel="nofollow" href="/search?q=signed%20difference" class="me-2 badge bg-secondary keyword">signed difference</a><a rel="nofollow" href="/search?q=modular%20difference" class="me-2 badge bg-secondary keyword">modular difference</a><a rel="nofollow" href="/search?q=MILP" class="me-2 badge bg-secondary keyword">MILP</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        liufukangs<span class="obfuscate"> &#64; </span>gmail com<br>glwang<span class="obfuscate"> &#64; </span>sei ecnu edu cn<br>santanu<span class="obfuscate"> &#64; </span>iitm ac in<br>ravianandsps<span class="obfuscate"> &#64; </span>gmail com<br>willimeier48<span class="obfuscate"> &#64; </span>gmail com<br>liyx1140<span class="obfuscate"> &#64; </span>163 com<br>takanori isobe<span class="obfuscate"> &#64; </span>ai u-hyogo ac jp
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2023-02-27: approved</dd>
+      
+      
+      
+      <dd>2023-02-24: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2023/277">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2023/277">https://ia.cr/2023/277</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2023/277,
+      author = {Fukang Liu and Gaoli Wang and Santanu Sarkar and Ravi Anand and Willi Meier and Yingxin Li and Takanori Isobe},
+      title = {Analysis of {RIPEMD}-160: New Collision Attacks and Finding Characteristics with {MILP}},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2023/277},
+      year = {2023},
+      url = {https://eprint.iacr.org/2023/277}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

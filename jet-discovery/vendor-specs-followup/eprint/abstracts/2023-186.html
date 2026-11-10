@@ -1,0 +1,374 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Generic Models for Group Actions</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Generic Models for Group Actions">
+  
+  <meta name="citation_author" content="Julien Duman">
+  
+  <meta name="citation_author" content="Dominik Hartmann">
+  
+  <meta name="citation_author" content="Eike Kiltz">
+  
+  <meta name="citation_author" content="Sabrina Kunzweiler">
+  
+  <meta name="citation_author" content="Jonas Lehmann">
+  
+  <meta name="citation_author" content="Doreen Riepel">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2023">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2023/186.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2023/186">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Generic Models for Group Actions" />
+  <meta property="og:description" content="We define the Generic Group Action Model (GGAM), an adaptation of the Generic Group Model to the setting of group actions (such as CSIDH). Compared to a previously proposed definition by Montgomery and Zhandry (ASIACRYPT&#39;22), our GGAM more accurately abstracts the security properties of group actions. 
+
+We are able to prove  information-theoretic lower bounds in the GGAM for the discrete logarithm assumption, as well as for non-standard assumptions recently introduced in the setting of threshold and identification schemes on group actions. Unfortunately, in a natural quantum version of the GGAM, the discrete logarithm assumption does not hold. 
+
+To this end we also introduce the weaker Quantum Algebraic Group Action Model (QAGAM), where every set element (in superposition) output by an adversary is required to have an explicit representation relative to known elements. In contrast to the Quantum Generic Group Action Model, in the QAGAM we are able to analyze the hardness of group action assumptions: We prove (among other things) the equivalence between the discrete logarithm assumption and non-standard assumptions recently introduced in the setting of QROM security for Password-Authenticated Key Exchange, Non-Interactive Key Exchange, and Public-Key Encryption." />
+  <meta property="article:section" content="FOUNDATIONS" />
+  
+  <meta property="article:modified_time" content="2023-02-13T15:33:58+00:00" />
+  <meta property="article:published_time" content="2023-02-13T15:33:58+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Group Actions" />
+  
+      <meta property="article:tag" content="CSIDH" />
+  
+      <meta property="article:tag" content="Generic Group Action Model" />
+  
+      <meta property="article:tag" content="Algebraic Group Action Model" />
+  
+      <meta property="article:tag" content="Twists" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2023/186</h4>
+    <h3 class="mb-3"><a href="/2023/186.pdf">Generic Models for Group Actions</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Julien Duman</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-5195-1290"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Ruhr University Bochum</span></div>
+    
+    
+    <div class="author"><span class="authorName">Dominik Hartmann</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-0379-7903"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Ruhr University Bochum</span></div>
+    
+    
+    <div class="author"><span class="authorName">Eike Kiltz</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-1178-048X"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Ruhr University Bochum</span></div>
+    
+    
+    <div class="author"><span class="authorName">Sabrina Kunzweiler</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-6179-2094"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Ruhr University Bochum</span></div>
+    
+    
+    <div class="author"><span class="authorName">Jonas Lehmann</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-1755-8153"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Ruhr University Bochum</span></div>
+    
+    
+    <div class="author"><span class="authorName">Doreen Riepel</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-4990-0929"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Ruhr University Bochum</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We define the Generic Group Action Model (GGAM), an adaptation of the Generic Group Model to the setting of group actions (such as CSIDH). Compared to a previously proposed definition by Montgomery and Zhandry (ASIACRYPT&#39;22), our GGAM more accurately abstracts the security properties of group actions. 
+
+We are able to prove  information-theoretic lower bounds in the GGAM for the discrete logarithm assumption, as well as for non-standard assumptions recently introduced in the setting of threshold and identification schemes on group actions. Unfortunately, in a natural quantum version of the GGAM, the discrete logarithm assumption does not hold. 
+
+To this end we also introduce the weaker Quantum Algebraic Group Action Model (QAGAM), where every set element (in superposition) output by an adversary is required to have an explicit representation relative to known elements. In contrast to the Quantum Generic Group Action Model, in the QAGAM we are able to analyze the hardness of group action assumptions: We prove (among other things) the equivalence between the discrete logarithm assumption and non-standard assumptions recently introduced in the setting of QROM security for Password-Authenticated Key Exchange, Non-Interactive Key Exchange, and Public-Key Encryption.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2023/186.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=FOUNDATIONS"><small class="badge category category-FOUNDATIONS">Foundations</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Published by the IACR in PKC 2023</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Group%20Actions" class="me-2 badge bg-secondary keyword">Group Actions</a><a rel="nofollow" href="/search?q=CSIDH" class="me-2 badge bg-secondary keyword">CSIDH</a><a rel="nofollow" href="/search?q=Generic%20Group%20Action%20Model" class="me-2 badge bg-secondary keyword">Generic Group Action Model</a><a rel="nofollow" href="/search?q=Algebraic%20Group%20Action%20Model" class="me-2 badge bg-secondary keyword">Algebraic Group Action Model</a><a rel="nofollow" href="/search?q=Twists" class="me-2 badge bg-secondary keyword">Twists</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        julien duman<span class="obfuscate"> &#64; </span>rub de<br>dominik hartmann<span class="obfuscate"> &#64; </span>rub de<br>eike kiltz<span class="obfuscate"> &#64; </span>rub de<br>sabrina kunzweiler<span class="obfuscate"> &#64; </span>rub de<br>jonas lehmann-c6j<span class="obfuscate"> &#64; </span>rub de<br>doreen riepel<span class="obfuscate"> &#64; </span>rub de
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2023-02-15: approved</dd>
+      
+      
+      
+      <dd>2023-02-13: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2023/186">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2023/186">https://ia.cr/2023/186</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2023/186,
+      author = {Julien Duman and Dominik Hartmann and Eike Kiltz and Sabrina Kunzweiler and Jonas Lehmann and Doreen Riepel},
+      title = {Generic Models for Group Actions},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2023/186},
+      year = {2023},
+      url = {https://eprint.iacr.org/2023/186}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

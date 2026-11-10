@@ -1,0 +1,358 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Benchmarking ZK-Circuits in Circom</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Benchmarking ZK-Circuits in Circom">
+  
+  <meta name="citation_author" content="Colin Steidtmann">
+  
+  <meta name="citation_author" content="Sanjay Gollapudi">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2023">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2023/681.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2023/681">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Benchmarking ZK-Circuits in Circom" />
+  <meta property="og:description" content="Zero-knowledge proofs and arithmetic circuits are essential building blocks in modern cryptography, but comparing their efficiency across different implementations can be challenging. In this paper, we address this issue by presenting comprehensive benchmarking results for a range of signature schemes and hash functions implemented in Circom, a popular circuit language that has not been extensively benchmarked before. Our benchmarking statistics include prover time, verifier time, and proof size, and cover a diverse set of schemes including Poseidon, Pedersen, MiMC, SHA-256, ECDSA, EdDSA, Sparse Merkle Tree, and Keccak-256. We also introduce a new Circom circuit and a full JavaScript test suite for the Schnorr signature scheme. Our results offer valuable insights into the relative strengths and weaknesses of different schemes and frameworks, and confirm the theoretical predictions with precise real-world data. Our findings can guide researchers and practitioners in selecting the most appropriate scheme for their specific applications, and can serve as a benchmark for future research in this area." />
+  <meta property="article:section" content="IMPLEMENTATION" />
+  
+  <meta property="article:modified_time" content="2023-05-13T03:16:02+00:00" />
+  <meta property="article:published_time" content="2023-05-13T03:16:02+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="benchmark" />
+  
+      <meta property="article:tag" content="benchmarking" />
+  
+      <meta property="article:tag" content="circom" />
+  
+      <meta property="article:tag" content="circuits" />
+  
+      <meta property="article:tag" content="zero knowledge" />
+  
+      <meta property="article:tag" content="zero-knowledge" />
+  
+      <meta property="article:tag" content="performance" />
+  
+      <meta property="article:tag" content="metrics" />
+  
+      <meta property="article:tag" content="analysis" />
+  
+      <meta property="article:tag" content="Poseidon" />
+  
+      <meta property="article:tag" content="SHA" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2023/681</h4>
+    <h3 class="mb-3"><a href="/2023/681.pdf">Benchmarking ZK-Circuits in Circom</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Colin Steidtmann</span><span class="affiliation">, University of California, Berkeley</span></div>
+    
+    
+    <div class="author"><span class="authorName">Sanjay Gollapudi</span><span class="affiliation">, University of California, Berkeley</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Zero-knowledge proofs and arithmetic circuits are essential building blocks in modern cryptography, but comparing their efficiency across different implementations can be challenging. In this paper, we address this issue by presenting comprehensive benchmarking results for a range of signature schemes and hash functions implemented in Circom, a popular circuit language that has not been extensively benchmarked before. Our benchmarking statistics include prover time, verifier time, and proof size, and cover a diverse set of schemes including Poseidon, Pedersen, MiMC, SHA-256, ECDSA, EdDSA, Sparse Merkle Tree, and Keccak-256. We also introduce a new Circom circuit and a full JavaScript test suite for the Schnorr signature scheme. Our results offer valuable insights into the relative strengths and weaknesses of different schemes and frameworks, and confirm the theoretical predictions with precise real-world data. Our findings can guide researchers and practitioners in selecting the most appropriate scheme for their specific applications, and can serve as a benchmark for future research in this area.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2023/681.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=IMPLEMENTATION"><small class="badge category category-IMPLEMENTATION">Implementation</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=benchmark" class="me-2 badge bg-secondary keyword">benchmark</a><a rel="nofollow" href="/search?q=benchmarking" class="me-2 badge bg-secondary keyword">benchmarking</a><a rel="nofollow" href="/search?q=circom" class="me-2 badge bg-secondary keyword">circom</a><a rel="nofollow" href="/search?q=circuits" class="me-2 badge bg-secondary keyword">circuits</a><a rel="nofollow" href="/search?q=zero%20knowledge" class="me-2 badge bg-secondary keyword">zero knowledge</a><a rel="nofollow" href="/search?q=zero-knowledge" class="me-2 badge bg-secondary keyword">zero-knowledge</a><a rel="nofollow" href="/search?q=performance" class="me-2 badge bg-secondary keyword">performance</a><a rel="nofollow" href="/search?q=metrics" class="me-2 badge bg-secondary keyword">metrics</a><a rel="nofollow" href="/search?q=analysis" class="me-2 badge bg-secondary keyword">analysis</a><a rel="nofollow" href="/search?q=Poseidon" class="me-2 badge bg-secondary keyword">Poseidon</a><a rel="nofollow" href="/search?q=SHA" class="me-2 badge bg-secondary keyword">SHA</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        colinsteidtmann<span class="obfuscate"> &#64; </span>berkeley edu<br>sanjaygollapudi<span class="obfuscate"> &#64; </span>berkeley edu
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2023-05-15: approved</dd>
+      
+      
+      
+      <dd>2023-05-13: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2023/681">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2023/681">https://ia.cr/2023/681</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2023/681,
+      author = {Colin Steidtmann and Sanjay Gollapudi},
+      title = {Benchmarking {ZK}-Circuits in Circom},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2023/681},
+      year = {2023},
+      url = {https://eprint.iacr.org/2023/681}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

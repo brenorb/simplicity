@@ -1,0 +1,417 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Auxiliary Isogeny Freedom in SQIsign&#39;s Two-Dimensional Representation</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Auxiliary Isogeny Freedom in SQIsign&#39;s Two-Dimensional Representation">
+  
+  <meta name="citation_author" content="Dustin Ray">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/1305.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/1305">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Auxiliary Isogeny Freedom in SQIsign&#39;s Two-Dimensional Representation" />
+  <meta property="og:description" content="SQIsign encodes its response isogeny via a two-dimensional
+representation on a product of elliptic curves, using the Kani
+construction. We analyze the algebraic structure of this encoding
+in detail, with a focus on the role of the auxiliary isogeny and
+its implications for strong unforgeability.
+
+We show that the anti-isometry $\psi$ determining the Kani kernel
+is publicly computable from the torsion-point images of the
+component and auxiliary isogenies alone, that the automorphism
+orbit $\{\psi, -\psi\}$ is the only torsion-level source of
+encoding non-uniqueness on a fixed product surface, and that every
+auxiliary of the correct degree is commitment-compatible by Kani&#39;s
+theorem. The sole barrier to producing an alternative encoding is
+the construction of a new auxiliary isogeny of the required
+(generically non-smooth) degree from the challenge curve.
+
+We demonstrate that this barrier falls whenever
+ a single small prime divides the auxiliary
+degree $2^f - q$: the adversary reroutes the terminal
+$\ell$-isogeny step at the codomain of the honest auxiliary,
+preserving the total degree exactly. Since generic odd integers
+possess small prime factors with overwhelming probability, this
+establishes that canonicalization of the basis change matrix
+does not suffice for strong unforgeability.
+
+We analyze the signing algorithm&#39;s dependency structure to show
+that the auxiliary cannot be bound into the Fiat-Shamir hash
+without a protocol redesign, and conclude with a structural
+comparison of ECDSA (where canonicalization suffices), SQIsign
+(where it does not), and salt-PRISM (which achieves strong
+unforgeability via a salted hash-to-prime mechanism that
+eliminates the auxiliary freedom entirely)." />
+  <meta property="article:section" content="PUBLICKEY" />
+  
+  <meta property="article:modified_time" content="2026-10-05T20:59:48+00:00" />
+  <meta property="article:published_time" content="2026-06-23T04:21:12+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="SQIsign" />
+  
+      <meta property="article:tag" content="post-quantum signatures" />
+  
+      <meta property="article:tag" content="strong unforgeability" />
+  
+      <meta property="article:tag" content="SUF-CMA" />
+  
+      <meta property="article:tag" content="isogeny-based cryptography" />
+  
+      <meta property="article:tag" content="Kani&#39;s lemma" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/1305</h4>
+    <h3 class="mb-3"><a href="/2026/1305.pdf">Auxiliary Isogeny Freedom in SQIsign&#39;s Two-Dimensional Representation</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Dustin Ray</span><span class="affiliation">, Anchor Labs</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">SQIsign encodes its response isogeny via a two-dimensional
+representation on a product of elliptic curves, using the Kani
+construction. We analyze the algebraic structure of this encoding
+in detail, with a focus on the role of the auxiliary isogeny and
+its implications for strong unforgeability.
+
+We show that the anti-isometry $\psi$ determining the Kani kernel
+is publicly computable from the torsion-point images of the
+component and auxiliary isogenies alone, that the automorphism
+orbit $\{\psi, -\psi\}$ is the only torsion-level source of
+encoding non-uniqueness on a fixed product surface, and that every
+auxiliary of the correct degree is commitment-compatible by Kani&#39;s
+theorem. The sole barrier to producing an alternative encoding is
+the construction of a new auxiliary isogeny of the required
+(generically non-smooth) degree from the challenge curve.
+
+We demonstrate that this barrier falls whenever
+ a single small prime divides the auxiliary
+degree $2^f - q$: the adversary reroutes the terminal
+$\ell$-isogeny step at the codomain of the honest auxiliary,
+preserving the total degree exactly. Since generic odd integers
+possess small prime factors with overwhelming probability, this
+establishes that canonicalization of the basis change matrix
+does not suffice for strong unforgeability.
+
+We analyze the signing algorithm&#39;s dependency structure to show
+that the auxiliary cannot be bound into the Fiat-Shamir hash
+without a protocol redesign, and conclude with a structural
+comparison of ECDSA (where canonicalization suffices), SQIsign
+(where it does not), and salt-PRISM (which achieves strong
+unforgeability via a salted hash-to-prime mechanism that
+eliminates the auxiliary freedom entirely).</p>
+  
+    <p><strong>Note:</strong> Changes in v5:
+
+Complete rewrite. Versions 1-4 attempted a SUF-CMA proof for
+canonicalized SQIsign; following an observation by De Feo
+(Section 6), the proof&#39;s barrier identification was incorrect.
+This version pivots to a technical note analyzing the auxiliary
+isogeny freedom: why canonicalization eliminates the sign
+ambiguity (Section 3) but does not suffice for strong
+unforgeability (Sections 4-6), and what structural property
+a scheme needs to close the gap (Section 8). The M vs -M
+finding and canonical encoding fix are unchanged from v1.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/1305.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PUBLICKEY"><small class="badge category category-PUBLICKEY">Public-key cryptography</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=SQIsign" class="me-2 badge bg-secondary keyword">SQIsign</a><a rel="nofollow" href="/search?q=post-quantum%20signatures" class="me-2 badge bg-secondary keyword">post-quantum signatures</a><a rel="nofollow" href="/search?q=strong%20unforgeability" class="me-2 badge bg-secondary keyword">strong unforgeability</a><a rel="nofollow" href="/search?q=SUF-CMA" class="me-2 badge bg-secondary keyword">SUF-CMA</a><a rel="nofollow" href="/search?q=isogeny-based%20cryptography" class="me-2 badge bg-secondary keyword">isogeny-based cryptography</a><a rel="nofollow" href="/search?q=Kani%27s%20lemma" class="me-2 badge bg-secondary keyword">Kani&#39;s lemma</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        dustin ray<span class="obfuscate"> &#64; </span>anchorlabs com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-10-05: last of 6 revisions</dd>
+      
+      
+      
+      <dd>2026-06-23: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/1305">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/1305">https://ia.cr/2026/1305</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/1305,
+      author = {Dustin Ray},
+      title = {Auxiliary Isogeny Freedom in {SQIsign}&#39;s Two-Dimensional Representation},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/1305},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/1305}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

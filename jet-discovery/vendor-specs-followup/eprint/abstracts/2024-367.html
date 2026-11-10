@@ -1,0 +1,357 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Accelerating SLH-DSA by Two Orders of Magnitude with a Single Hash Unit</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Accelerating SLH-DSA by Two Orders of Magnitude with a Single Hash Unit">
+  
+  <meta name="citation_author" content="Markku-Juhani O. Saarinen">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2024">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2024/367.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2024/367">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Accelerating SLH-DSA by Two Orders of Magnitude with a Single Hash Unit" />
+  <meta property="og:description" content="We report on efficient and secure hardware implementation techniques for the FIPS 205 SLH-DSA Hash-Based Signature Standard. We demonstrate that very significant overall performance gains can be obtained from hardware that optimizes the padding formats and iterative hashing processes specific to SLH-DSA. A prototype implementation, SLotH, contains Keccak/SHAKE, SHA2-256, and SHA2-512 cores and supports all 12 parameter sets of SLH-DSA. SLotH also supports side-channel secure PRF computation and Winternitz chains. SLotH drivers run on a small RISC-V control core, as is common in current Root-of-Trust (RoT) systems.
+
+The new features make SLH-DSA on SLotH many times faster compared to similarly-sized general-purpose hash accelerators. Compared to unaccelerated microcontroller implementations, the performance of SLotH&#39;s SHAKE variants is up to $300\times$ faster; signature generation with 128f parameter set is is 4,903,978 cycles, while signature verification with 128s parameter set is only 179,603 cycles. The SHA2 parameter sets have approximately half of the speed of SHAKE parameter sets. We observe that the signature verification performance of SLH-DSA&#39;s ``s&#39;&#39; parameter sets is generally better than that of accelerated ECDSA or Dilithium on similarly-sized RoT targets. The area of the full SLotH system is small, from 63 kGE (SHA2, Cat 1 only) to 155 kGe (all parameter sets). Keccak Threshold Implementation adds another 130 kGE.
+
+We provide sensitivity analysis of SLH-DSA in relation to side-channel leakage. We show experimentally that an SLH-DSA implementation with CPU hashing will rapidly leak the SK.seed master key. We perform a 100,000-trace TVLA leakage assessment with a protected SLotH unit." />
+  <meta property="article:section" content="IMPLEMENTATION" />
+  
+  <meta property="article:modified_time" content="2024-12-06T11:41:04+00:00" />
+  <meta property="article:published_time" content="2024-02-28T21:38:51+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="FIPS 205" />
+  
+      <meta property="article:tag" content="SLH-DSA" />
+  
+      <meta property="article:tag" content="SPHINCS+" />
+  
+      <meta property="article:tag" content="Root-of-Trust" />
+  
+      <meta property="article:tag" content="Side-Channel Security" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2024/367</h4>
+    <h3 class="mb-3"><a href="/2024/367.pdf">Accelerating SLH-DSA by Two Orders of Magnitude with a Single Hash Unit</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Markku-Juhani O. Saarinen</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-2555-235X"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Tampere University</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We report on efficient and secure hardware implementation techniques for the FIPS 205 SLH-DSA Hash-Based Signature Standard. We demonstrate that very significant overall performance gains can be obtained from hardware that optimizes the padding formats and iterative hashing processes specific to SLH-DSA. A prototype implementation, SLotH, contains Keccak/SHAKE, SHA2-256, and SHA2-512 cores and supports all 12 parameter sets of SLH-DSA. SLotH also supports side-channel secure PRF computation and Winternitz chains. SLotH drivers run on a small RISC-V control core, as is common in current Root-of-Trust (RoT) systems.
+
+The new features make SLH-DSA on SLotH many times faster compared to similarly-sized general-purpose hash accelerators. Compared to unaccelerated microcontroller implementations, the performance of SLotH&#39;s SHAKE variants is up to $300\times$ faster; signature generation with 128f parameter set is is 4,903,978 cycles, while signature verification with 128s parameter set is only 179,603 cycles. The SHA2 parameter sets have approximately half of the speed of SHAKE parameter sets. We observe that the signature verification performance of SLH-DSA&#39;s ``s&#39;&#39; parameter sets is generally better than that of accelerated ECDSA or Dilithium on similarly-sized RoT targets. The area of the full SLotH system is small, from 63 kGE (SHA2, Cat 1 only) to 155 kGe (all parameter sets). Keccak Threshold Implementation adds another 130 kGE.
+
+We provide sensitivity analysis of SLH-DSA in relation to side-channel leakage. We show experimentally that an SLH-DSA implementation with CPU hashing will rapidly leak the SK.seed master key. We perform a 100,000-trace TVLA leakage assessment with a protected SLotH unit.</p>
+  
+    <p><strong>Note:</strong> (Preliminary version of this paper appeared in the Fifth NIST PQC Standardization Conference, April 10-12, 2024, Rockville, Maryland.)
+The related software and hardware source code is available at: https://github.com/slh-dsa/sloth
+CRYPTO 2024 artifact: https://artifacts.iacr.org/crypto/2024/a7/</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2024/367.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=IMPLEMENTATION"><small class="badge category category-IMPLEMENTATION">Implementation</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>A minor revision of an IACR publication in CRYPTO 2024</dd>
+  
+      <dt>DOI</dt>
+        <dd><a href="https://doi.org/10.1007/978-3-031-68376-3_9" target="_blank" class="ms-1">10.1007/978-3-031-68376-3_9 <img src="/img/open-outline.svg" style="height:1.25rem;"></a></dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=FIPS%20205" class="me-2 badge bg-secondary keyword">FIPS 205</a><a rel="nofollow" href="/search?q=SLH-DSA" class="me-2 badge bg-secondary keyword">SLH-DSA</a><a rel="nofollow" href="/search?q=SPHINCS%2B" class="me-2 badge bg-secondary keyword">SPHINCS+</a><a rel="nofollow" href="/search?q=Root-of-Trust" class="me-2 badge bg-secondary keyword">Root-of-Trust</a><a rel="nofollow" href="/search?q=Side-Channel%20Security" class="me-2 badge bg-secondary keyword">Side-Channel Security</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        markku-juhani saarinen<span class="obfuscate"> &#64; </span>tuni fi
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2024-12-06: last of 5 revisions</dd>
+      
+      
+      
+      <dd>2024-02-28: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2024/367">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2024/367">https://ia.cr/2024/367</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2024/367,
+      author = {Markku-Juhani O. Saarinen},
+      title = {Accelerating {SLH}-{DSA} by Two Orders of Magnitude with a Single Hash Unit},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2024/367},
+      year = {2024},
+      doi = {10.1007/978-3-031-68376-3_9},
+      url = {https://eprint.iacr.org/2024/367}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

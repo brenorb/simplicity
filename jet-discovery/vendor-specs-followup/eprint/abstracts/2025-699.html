@@ -1,0 +1,402 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Threshold (Fully) Homomorphic Encryption</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Threshold (Fully) Homomorphic Encryption">
+  
+  <meta name="citation_author" content="Carl Bootland">
+  
+  <meta name="citation_author" content="Kelong Cong">
+  
+  <meta name="citation_author" content="Daniel Demmler">
+  
+  <meta name="citation_author" content="Tore Kasper Frederiksen">
+  
+  <meta name="citation_author" content="Benoit Libert">
+  
+  <meta name="citation_author" content="Jean-Baptiste Orfila">
+  
+  <meta name="citation_author" content="Dragos Rotaru">
+  
+  <meta name="citation_author" content="Nigel P. Smart">
+  
+  <meta name="citation_author" content="Titouan Tanguy">
+  
+  <meta name="citation_author" content="Samuel Tap">
+  
+  <meta name="citation_author" content="Michael Walter">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2025">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2025/699.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2025/699">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Threshold (Fully) Homomorphic Encryption" />
+  <meta property="og:description" content="This document is a preliminary version of what is intended to be submitted to NIST by Zama as part of their threshold call. The document also serves as partial documentation of the protocols used in the Zama MPC system for threshold TFHE.
+
+However, note that the Zama software includes many optimizations built on top of the simple specifications given here. In particular the TFHE parameters given here are larger than those used by the Zama software. This is because the Zama TFHE library contains optimizations which are beyond the scope of this document. Thus the parameters given in this document are compatible with the description of TFHE given here, and take no account of the extra optimizations in the Zama software.
+
+Also note that we describe more protocols than that provided in the Zama software. In particular this document describes BGV and BFV threshold implementations, MPC-in-the-Head based proofs of correct encryption.
+
+We present mechanisms to perform robust threshold key generation and decryption for Fully Homomorphic Encryption schemes such as BGV, BFV and TFHE, in the case of super honest majority, t &lt; n/3, or t &lt; n/4, in the presence of malicious adversaries.
+
+The main mechanism for threshold decryptions follow the noise flooding principle, which we argue is sufficient for BGV and BFV. For TFHE a more subtle technique is needed to apply noise flooding, since TFHE parameters are small. To deal with all three FHE scheme, and obtain a unified framework for all such schemes, we are led to consider secret sharing over Galois Rings and not just finite fields.
+
+We consider two sets of threshold profiles, depending on whether binomial(n,t) is big or small. In the small case we obtain for all schemes an asynchronous protocol for robust threshold decryption, and we obtain a robust synchronous protocol for threshold key generation; both with t &lt; n/3. For the large case we only support TFHE, and our protocols require an “offline phase” which requires synchronous networks and can “only” tolerate t &lt; n/4.
+
+The threshold key generation operation, and the above mentioned offline phase, require access to a generic offline MPC functionality over arbitrary Galois Rings. This functionality is fully specified here. Finally, we present Zero-Knowledge proof techniques for proving the valid encryption of an FHE ciphertext. These proofs are important in a number of application contexts." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2025-04-17T10:27:36+00:00" />
+  <meta property="article:published_time" content="2025-04-17T10:27:36+00:00" />
+  
+  
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2025/699</h4>
+    <h3 class="mb-3"><a href="/2025/699.pdf">Threshold (Fully) Homomorphic Encryption</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Carl Bootland</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-8390-3410"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Zama</span></div>
+    
+    
+    <div class="author"><span class="authorName">Kelong Cong</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-2636-4406"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Zama</span></div>
+    
+    
+    <div class="author"><span class="authorName">Daniel Demmler</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0001-6334-6277"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Zama</span></div>
+    
+    
+    <div class="author"><span class="authorName">Tore Kasper Frederiksen</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-0358-2638"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Zama</span></div>
+    
+    
+    <div class="author"><span class="authorName">Benoit Libert</span><span class="affiliation">, Zama</span></div>
+    
+    
+    <div class="author"><span class="authorName">Jean-Baptiste Orfila</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0001-4526-0434"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Zama</span></div>
+    
+    
+    <div class="author"><span class="authorName">Dragos Rotaru</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-1767-3725"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Gateway</span></div>
+    
+    
+    <div class="author"><span class="authorName">Nigel P. Smart</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-3567-3304"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Zama</span><span class="affiliation">, KU Leuven</span></div>
+    
+    
+    <div class="author"><span class="authorName">Titouan Tanguy</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-7965-620X"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Zama</span></div>
+    
+    
+    <div class="author"><span class="authorName">Samuel Tap</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0003-1778-5297"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Zama</span></div>
+    
+    
+    <div class="author"><span class="authorName">Michael Walter</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-3186-2482"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Zama</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">This document is a preliminary version of what is intended to be submitted to NIST by Zama as part of their threshold call. The document also serves as partial documentation of the protocols used in the Zama MPC system for threshold TFHE.
+
+However, note that the Zama software includes many optimizations built on top of the simple specifications given here. In particular the TFHE parameters given here are larger than those used by the Zama software. This is because the Zama TFHE library contains optimizations which are beyond the scope of this document. Thus the parameters given in this document are compatible with the description of TFHE given here, and take no account of the extra optimizations in the Zama software.
+
+Also note that we describe more protocols than that provided in the Zama software. In particular this document describes BGV and BFV threshold implementations, MPC-in-the-Head based proofs of correct encryption.
+
+We present mechanisms to perform robust threshold key generation and decryption for Fully Homomorphic Encryption schemes such as BGV, BFV and TFHE, in the case of super honest majority, t &lt; n/3, or t &lt; n/4, in the presence of malicious adversaries.
+
+The main mechanism for threshold decryptions follow the noise flooding principle, which we argue is sufficient for BGV and BFV. For TFHE a more subtle technique is needed to apply noise flooding, since TFHE parameters are small. To deal with all three FHE scheme, and obtain a unified framework for all such schemes, we are led to consider secret sharing over Galois Rings and not just finite fields.
+
+We consider two sets of threshold profiles, depending on whether binomial(n,t) is big or small. In the small case we obtain for all schemes an asynchronous protocol for robust threshold decryption, and we obtain a robust synchronous protocol for threshold key generation; both with t &lt; n/3. For the large case we only support TFHE, and our protocols require an “offline phase” which requires synchronous networks and can “only” tolerate t &lt; n/4.
+
+The threshold key generation operation, and the above mentioned offline phase, require access to a generic offline MPC functionality over arbitrary Galois Rings. This functionality is fully specified here. Finally, we present Zero-Knowledge proof techniques for proving the valid encryption of an FHE ciphertext. These proofs are important in a number of application contexts.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2025/699.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        carl bootland<span class="obfuscate"> &#64; </span>zama ai<br>kelong cong<span class="obfuscate"> &#64; </span>zama ai<br>daniel demmler<span class="obfuscate"> &#64; </span>zama ai<br>tore frederiksen<span class="obfuscate"> &#64; </span>zama ai<br>benoit libert<span class="obfuscate"> &#64; </span>zama ai<br>jb orfila<span class="obfuscate"> &#64; </span>zama ai<br>r dragos0<span class="obfuscate"> &#64; </span>gmail com<br>nigel<span class="obfuscate"> &#64; </span>zama ai<br>titouan tanguy<span class="obfuscate"> &#64; </span>zama ai<br>samuel tap<span class="obfuscate"> &#64; </span>zama ai<br>michael walter<span class="obfuscate"> &#64; </span>zama ai
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2025-04-18: approved</dd>
+      
+      
+      
+      <dd>2025-04-17: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2025/699">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2025/699">https://ia.cr/2025/699</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2025/699,
+      author = {Carl Bootland and Kelong Cong and Daniel Demmler and Tore Kasper Frederiksen and Benoit Libert and Jean-Baptiste Orfila and Dragos Rotaru and Nigel P. Smart and Titouan Tanguy and Samuel Tap and Michael Walter},
+      title = {Threshold (Fully) Homomorphic Encryption},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2025/699},
+      year = {2025},
+      url = {https://eprint.iacr.org/2025/699}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

@@ -1,0 +1,359 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>k-Anonymous Group Signatures</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="k-Anonymous Group Signatures">
+  
+  <meta name="citation_author" content="Shalini Banerjee">
+  
+  <meta name="citation_author" content="Andrey Bozhko">
+  
+  <meta name="citation_author" content="Andy Rupp">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2025">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2025/2007.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2025/2007">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="k-Anonymous Group Signatures" />
+  <meta property="og:description" content="We review $k$-anonymity in authentication schemes, group signatures, and ring signatures. Existing constructions either require a signer to maintain state across interactions, or admit tracing algorithms that cost $O(n^k)$ in the number $n$ of signatures. We introduce $k$-anonymous group signatures ($k$-AGS), that achieves stateless signing with a tracing cost $O(n+k)$, while necessarily sacrificing unlinkability. We present a generic construction of $k$-AGS together with an efficient instantiation. 
+
+We additionally construct a proof-of-concept $k$-unlinkable group signature ($k$-UGS) scheme that achieve unlinkability at the expense of $O(n^2k)$ tracing overhead. We pose the question of whether stateless signing, $O(n+k)$ tracing, and unlinkability are simultaneously achievable, and leave it as an open problem.
+
+Building on our $k$-AGS framework, we introduce $k$-Anonymous Set Pre Constrained Group Signatures ($k$-ASPCGS), a threshold variant of Set Pre-Constrained Group Signatures introduced by Bartusek et al. (EUROCRYPT &#39;23). As a proof-of-concept, we present two generic constructions of $k$-ASPCGS.
+
+We show that our notions arise naturally in the context of content moderation in end-to-end encrypted messaging platforms, where users must remain anonymous until a threshold number of distinct illegitimate contents have been reported." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2026-07-09T12:17:37+00:00" />
+  <meta property="article:published_time" content="2025-10-27T14:41:49+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="k-Anonymity" />
+  
+      <meta property="article:tag" content="Group Signatures" />
+  
+      <meta property="article:tag" content="Set Pre-Constrained Group Signatures" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2025/2007</h4>
+    <h3 class="mb-3"><a href="/2025/2007.pdf">k-Anonymous Group Signatures</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Shalini Banerjee</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-8844-0427"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Karlsruhe Institute of Technology</span><span class="affiliation">, KASTEL Security Research Labs</span></div>
+    
+    
+    <div class="author"><span class="authorName">Andrey Bozhko</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-1424-608X"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, University of Luxembourg</span></div>
+    
+    
+    <div class="author"><span class="authorName">Andy Rupp</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-0439-3633"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, University of Luxembourg</span><span class="affiliation">, KASTEL Security Research Labs</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We review $k$-anonymity in authentication schemes, group signatures, and ring signatures. Existing constructions either require a signer to maintain state across interactions, or admit tracing algorithms that cost $O(n^k)$ in the number $n$ of signatures. We introduce $k$-anonymous group signatures ($k$-AGS), that achieves stateless signing with a tracing cost $O(n+k)$, while necessarily sacrificing unlinkability. We present a generic construction of $k$-AGS together with an efficient instantiation. 
+
+We additionally construct a proof-of-concept $k$-unlinkable group signature ($k$-UGS) scheme that achieve unlinkability at the expense of $O(n^2k)$ tracing overhead. We pose the question of whether stateless signing, $O(n+k)$ tracing, and unlinkability are simultaneously achievable, and leave it as an open problem.
+
+Building on our $k$-AGS framework, we introduce $k$-Anonymous Set Pre Constrained Group Signatures ($k$-ASPCGS), a threshold variant of Set Pre-Constrained Group Signatures introduced by Bartusek et al. (EUROCRYPT &#39;23). As a proof-of-concept, we present two generic constructions of $k$-ASPCGS.
+
+We show that our notions arise naturally in the context of content moderation in end-to-end encrypted messaging platforms, where users must remain anonymous until a threshold number of distinct illegitimate contents have been reported.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2025/2007.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=k-Anonymity" class="me-2 badge bg-secondary keyword">k-Anonymity</a><a rel="nofollow" href="/search?q=Group%20Signatures" class="me-2 badge bg-secondary keyword">Group Signatures</a><a rel="nofollow" href="/search?q=Set%20Pre-Constrained%20Group%20Signatures" class="me-2 badge bg-secondary keyword">Set Pre-Constrained Group Signatures</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        shalini banerjee<span class="obfuscate"> &#64; </span>kit edu<br>andrey bozhko<span class="obfuscate"> &#64; </span>uni lu<br>andy rupp<span class="obfuscate"> &#64; </span>uni lu
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-07-09: revised</dd>
+      
+      
+      
+      <dd>2025-10-27: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2025/2007">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2025/2007">https://ia.cr/2025/2007</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2025/2007,
+      author = {Shalini Banerjee and Andrey Bozhko and Andy Rupp},
+      title = {k-Anonymous Group Signatures},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2025/2007},
+      year = {2025},
+      url = {https://eprint.iacr.org/2025/2007}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

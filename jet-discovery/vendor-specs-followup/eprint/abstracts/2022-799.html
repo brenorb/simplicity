@@ -1,0 +1,355 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Tight Bounds on the Randomness Complexity of Secure Multiparty Computation</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Tight Bounds on the Randomness Complexity of Secure Multiparty Computation">
+  
+  <meta name="citation_author" content="Vipul Goyal">
+  
+  <meta name="citation_author" content="Yuval Ishai">
+  
+  <meta name="citation_author" content="Yifan Song">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2022">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2022/799.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2022/799">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Tight Bounds on the Randomness Complexity of Secure Multiparty Computation" />
+  <meta property="og:description" content="We revisit the question of minimizing the randomness complexity of protocols for secure multiparty computation (MPC) in the setting of perfect information-theoretic security. Kushilevitz and Mansour (SIAM J. Discret. Math., 1997) studied the case of $n$-party semi-honest MPC for the XOR function with security threshold $t&lt;n$, showing that $O(t^2\log(n/t))$ random bits are sufficient and $\Omega(t)$ random bits are necessary. Their positive result was obtained via a non-explicit protocol, whose existence was proved using the probabilistic method.
+
+We essentially close the question by proving an $\Omega(t^2)$ lower bound on the randomness complexity of XOR, matching the previous upper bound up to a logarithmic factor (or constant factor when $t=\Omega(n)$). We also obtain an explicit protocol that uses $O(t^2\cdot\log^2n)$ random bits, matching our lower bound up to a polylogarithmic factor. We extend these results from XOR to general  symmetric Boolean functions and to addition over a finite Abelian group, showing how to amortize the randomness complexity over multiple additions. 
+
+Finally, combining our techniques with recent randomness-efficient constructions of private circuits, we obtain an explicit protocol for evaluating a general circuit $C$ using only $O(t^2\cdot\log |C|)$ random bits, by employing additional ``helper parties&#39;&#39; who do not contribute any inputs. This upper bound too matches our lower bound up to a logarithmic factor." />
+  <meta property="article:section" content="FOUNDATIONS" />
+  
+  <meta property="article:modified_time" content="2022-06-22T20:11:48+00:00" />
+  <meta property="article:published_time" content="2022-06-20T23:31:30+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Information-theoretic Security" />
+  
+      <meta property="article:tag" content="  Randomness Complexity" />
+  
+      <meta property="article:tag" content="  Multiparty Computation" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2022/799</h4>
+    <h3 class="mb-3"><a href="/2022/799.pdf">Tight Bounds on the Randomness Complexity of Secure Multiparty Computation</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Vipul Goyal</span><span class="affiliation">, Carnegie Mellon University</span><span class="affiliation">, NTT Research</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yuval Ishai</span><span class="affiliation">, Technion</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yifan Song</span><span class="affiliation">, Carnegie Mellon University</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We revisit the question of minimizing the randomness complexity of protocols for secure multiparty computation (MPC) in the setting of perfect information-theoretic security. Kushilevitz and Mansour (SIAM J. Discret. Math., 1997) studied the case of $n$-party semi-honest MPC for the XOR function with security threshold $t&lt;n$, showing that $O(t^2\log(n/t))$ random bits are sufficient and $\Omega(t)$ random bits are necessary. Their positive result was obtained via a non-explicit protocol, whose existence was proved using the probabilistic method.
+
+We essentially close the question by proving an $\Omega(t^2)$ lower bound on the randomness complexity of XOR, matching the previous upper bound up to a logarithmic factor (or constant factor when $t=\Omega(n)$). We also obtain an explicit protocol that uses $O(t^2\cdot\log^2n)$ random bits, matching our lower bound up to a polylogarithmic factor. We extend these results from XOR to general  symmetric Boolean functions and to addition over a finite Abelian group, showing how to amortize the randomness complexity over multiple additions. 
+
+Finally, combining our techniques with recent randomness-efficient constructions of private circuits, we obtain an explicit protocol for evaluating a general circuit $C$ using only $O(t^2\cdot\log |C|)$ random bits, by employing additional ``helper parties&#39;&#39; who do not contribute any inputs. This upper bound too matches our lower bound up to a logarithmic factor.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2022/799.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=FOUNDATIONS"><small class="badge category category-FOUNDATIONS">Foundations</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>A major revision of an IACR publication in CRYPTO 2022</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Information-theoretic%20Security" class="me-2 badge bg-secondary keyword">Information-theoretic Security</a><a rel="nofollow" href="/search?q=%20%20Randomness%20Complexity" class="me-2 badge bg-secondary keyword">  Randomness Complexity</a><a rel="nofollow" href="/search?q=%20%20Multiparty%20Computation" class="me-2 badge bg-secondary keyword">  Multiparty Computation</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        vipul<span class="obfuscate"> &#64; </span>cmu edu<br>yuvali<span class="obfuscate"> &#64; </span>cs technion ac il<br>yifans2<span class="obfuscate"> &#64; </span>andrew cmu edu
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2022-06-22: revised</dd>
+      
+      
+      
+      <dd>2022-06-20: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2022/799">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2022/799">https://ia.cr/2022/799</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by-nc/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY_NC.svg" alt="Creative Commons Attribution-NonCommercial" title="Creative Commons Attribution-NonCommercial"><br>
+        <small>CC BY-NC</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2022/799,
+      author = {Vipul Goyal and Yuval Ishai and Yifan Song},
+      title = {Tight Bounds on the Randomness Complexity of Secure Multiparty Computation},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2022/799},
+      year = {2022},
+      url = {https://eprint.iacr.org/2022/799}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

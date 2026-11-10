@@ -1,0 +1,361 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Fast Two-party Threshold ECDSA with Proactive Security</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Fast Two-party Threshold ECDSA with Proactive Security">
+  
+  <meta name="citation_author" content="Brian Koziel">
+  
+  <meta name="citation_author" content="S. Dov Gordon">
+  
+  <meta name="citation_author" content="Craig Gentry">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2024">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2024/1831.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2024/1831">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Fast Two-party Threshold ECDSA with Proactive Security" />
+  <meta property="og:description" content="We present a new construction of two-party, threshold ECDSA, building on a 2017 scheme of Lindell and improving his scheme in several ways. 
+
+ECDSA signing is notoriously hard to distribute securely, due to non-linearities in the signing function. Lindell&#39;s scheme uses Paillier encryption to encrypt one party&#39;s key share and handle these non-linearities homomorphically, while elegantly avoiding any expensive zero knowledge proofs over the Paillier group during the signing process. However, the scheme pushes that complexity into key generation. Moreover, avoiding ZK proofs about Paillier ciphertexts during signing comes with a steep price -- namely, the scheme requires a ``global abort&#34; when a malformed ciphertext is detected, after which an entirely new key must be generated.
+
+We overcome all of these issues with a proactive Refresh procedure. Since the Paillier decryption key is part of the secret that must be proactively refreshed, our first improvement is to radically accelerate key generation by replacing one of Lindell&#39;s ZK proofs -- which requires 80 Paillier ciphertexts for statistical security $2^{-40}$ -- with a much faster &#34;weak&#34; proof that requires only 2 Paillier ciphertexts, and which proves a weaker statement about a Paillier ciphertext that we show is sufficient in the context of our scheme. Secondly, our more efficient key generation procedure also makes frequent proactive Refreshes practical. Finally, we show that adding noise to one party&#39;s key share suffices to avoid the need to reset the public verification key when certain bad behavior is detected.  Instead, we prove that our Refresh procedure, performed after each detection, suffices for addressing the attack, allowing the system to continue functioning without disruption to applications that rely on the verification key.  
+
+Our scheme is also very efficient, competitive with the best constructions that do not provide proactive security, and state-of-the-art among the few results that do.  Our optimizations to ECDSA key generation speed up runtime and improve bandwidth over Lindell&#39;s key generation by factors of 7 and 13, respectively. Our Key Generation protocol requires 20% less bandwidth than existing constructions, completes in only 3 protocol messages, and executes much faster than all but OT-based key generation. For ECDSA signing, our extra Refresh protocol does add a 10X latency and 5X bandwidth overhead compared to Lindell. However, this still fits in 150 ms runtime and about 5.4 KB of messages when run in our AWS cluster benchmark." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2024-11-07T19:44:33+00:00" />
+  <meta property="article:published_time" content="2024-11-07T19:44:33+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Threshold Signatures" />
+  
+      <meta property="article:tag" content="MPC" />
+  
+      <meta property="article:tag" content="ECDSA" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2024/1831</h4>
+    <h3 class="mb-3"><a href="/2024/1831.pdf">Fast Two-party Threshold ECDSA with Proactive Security</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Brian Koziel</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0001-8874-2217"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, TripleBlind, Inc.</span><span class="affiliation">, Ideem, Inc.</span></div>
+    
+    
+    <div class="author"><span class="authorName">S. Dov Gordon</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0001-6490-1786"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, TripleBlind, Inc.</span><span class="affiliation">, George Mason University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Craig Gentry</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0000-6651-7262"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, TripleBlind, Inc.</span><span class="affiliation">, Cornami, Inc.</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We present a new construction of two-party, threshold ECDSA, building on a 2017 scheme of Lindell and improving his scheme in several ways. 
+
+ECDSA signing is notoriously hard to distribute securely, due to non-linearities in the signing function. Lindell&#39;s scheme uses Paillier encryption to encrypt one party&#39;s key share and handle these non-linearities homomorphically, while elegantly avoiding any expensive zero knowledge proofs over the Paillier group during the signing process. However, the scheme pushes that complexity into key generation. Moreover, avoiding ZK proofs about Paillier ciphertexts during signing comes with a steep price -- namely, the scheme requires a ``global abort&#34; when a malformed ciphertext is detected, after which an entirely new key must be generated.
+
+We overcome all of these issues with a proactive Refresh procedure. Since the Paillier decryption key is part of the secret that must be proactively refreshed, our first improvement is to radically accelerate key generation by replacing one of Lindell&#39;s ZK proofs -- which requires 80 Paillier ciphertexts for statistical security $2^{-40}$ -- with a much faster &#34;weak&#34; proof that requires only 2 Paillier ciphertexts, and which proves a weaker statement about a Paillier ciphertext that we show is sufficient in the context of our scheme. Secondly, our more efficient key generation procedure also makes frequent proactive Refreshes practical. Finally, we show that adding noise to one party&#39;s key share suffices to avoid the need to reset the public verification key when certain bad behavior is detected.  Instead, we prove that our Refresh procedure, performed after each detection, suffices for addressing the attack, allowing the system to continue functioning without disruption to applications that rely on the verification key.  
+
+Our scheme is also very efficient, competitive with the best constructions that do not provide proactive security, and state-of-the-art among the few results that do.  Our optimizations to ECDSA key generation speed up runtime and improve bandwidth over Lindell&#39;s key generation by factors of 7 and 13, respectively. Our Key Generation protocol requires 20% less bandwidth than existing constructions, completes in only 3 protocol messages, and executes much faster than all but OT-based key generation. For ECDSA signing, our extra Refresh protocol does add a 10X latency and 5X bandwidth overhead compared to Lindell. However, this still fits in 150 ms runtime and about 5.4 KB of messages when run in our AWS cluster benchmark.</p>
+  
+    <p><strong>Note:</strong> Extended version of the ACM CCS 2024 paper with the same name/authors.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2024/1831.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Published elsewhere. Major revision. ACM CCS 2024</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Threshold%20Signatures" class="me-2 badge bg-secondary keyword">Threshold Signatures</a><a rel="nofollow" href="/search?q=MPC" class="me-2 badge bg-secondary keyword">MPC</a><a rel="nofollow" href="/search?q=ECDSA" class="me-2 badge bg-secondary keyword">ECDSA</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        kozielbrian<span class="obfuscate"> &#64; </span>gmail com<br>gordon<span class="obfuscate"> &#64; </span>gmu edu<br>craigbgentry<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2024-11-08: approved</dd>
+      
+      
+      
+      <dd>2024-11-07: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2024/1831">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2024/1831">https://ia.cr/2024/1831</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2024/1831,
+      author = {Brian Koziel and S. Dov Gordon and Craig Gentry},
+      title = {Fast Two-party Threshold {ECDSA} with Proactive Security},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2024/1831},
+      year = {2024},
+      url = {https://eprint.iacr.org/2024/1831}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

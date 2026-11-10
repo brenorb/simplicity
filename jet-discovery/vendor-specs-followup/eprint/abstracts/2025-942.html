@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>On the (in)security of Proofs-of-Space based Longest-Chain Blockchains</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="On the (in)security of Proofs-of-Space based Longest-Chain Blockchains">
+  
+  <meta name="citation_author" content="Mirza Ahad Baig">
+  
+  <meta name="citation_author" content="Krzysztof Pietrzak">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2025">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2025/942.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2025/942">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="On the (in)security of Proofs-of-Space based Longest-Chain Blockchains" />
+  <meta property="og:description" content="The Nakamoto consensus protocol underlying the Bitcoin blockchain uses proof of work as a voting mechanism. Honest miners who contribute hashing power towards securing the chain try to extend the longest chain they are aware of. Despite its simplicity, Nakamoto consensus achieves meaningful security guarantees assuming that at any point in time, a majority of the hashing power is controlled by honest parties. This also holds under ``resource variability&#39;&#39;, i.e., if the total hashing power varies greatly over time.
+
+Proofs of space (PoSpace) have been suggested as a more sustainable replacement for proofs of work. Unfortunately, no construction of a ``longest-chain&#39;&#39; blockchain based on PoSpace, that is secure under dynamic availability, is known. In this work, we prove that without additional assumptions no such protocol exists. We exactly quantify this impossibility result by proving a bound on the length of the fork required for double spending as a function of the adversarial capabilities. This bound holds for any chain selection rule, and we also show a chain selection rule (albeit a very strange one) that almost matches this bound.  
+
+Concretely, we consider a security game in which the honest parties at any point control $\phi&gt;1$ times more space than the adversary. The adversary can change the honest space by a factor $1\pm \varepsilon$ with every block (dynamic availability), and ``replotting&#39;&#39; the space (which allows answering two challenges using the same space) takes as much time as $\rho$ blocks.
+
+We prove that no matter what chain selection rule is used, in this game the adversary can create a fork of length $\phi^2\cdot \rho / \varepsilon$ that will be picked as the winner by the chain selection rule.
+
+We also provide an upper bound that matches the lower bound up to a factor $\phi$. There exists a chain selection rule (albeit a very strange one) which in the above game requires forks of length at least $\phi\cdot \rho / \varepsilon$.
+
+
+
+Our results show the necessity of additional assumptions to create a secure PoSpace based longest-chain blockchain. The Chia network in addition to PoSpace uses a verifiable delay function. 
+Our bounds show that an additional primitive like that is necessary." />
+  <meta property="article:section" content="FOUNDATIONS" />
+  
+  <meta property="article:modified_time" content="2025-05-23T14:58:30+00:00" />
+  <meta property="article:published_time" content="2025-05-23T14:58:30+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Proof-of-Space" />
+  
+      <meta property="article:tag" content="Blockchains" />
+  
+      <meta property="article:tag" content="Impossibility" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2025/942</h4>
+    <h3 class="mb-3"><a href="/2025/942.pdf">On the (in)security of Proofs-of-Space based Longest-Chain Blockchains</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Mirza Ahad Baig</span><span class="affiliation">, ISTA, Austria</span></div>
+    
+    
+    <div class="author"><span class="authorName">Krzysztof Pietrzak</span><span class="affiliation">, ISTA, Austria</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">The Nakamoto consensus protocol underlying the Bitcoin blockchain uses proof of work as a voting mechanism. Honest miners who contribute hashing power towards securing the chain try to extend the longest chain they are aware of. Despite its simplicity, Nakamoto consensus achieves meaningful security guarantees assuming that at any point in time, a majority of the hashing power is controlled by honest parties. This also holds under ``resource variability&#39;&#39;, i.e., if the total hashing power varies greatly over time.
+
+Proofs of space (PoSpace) have been suggested as a more sustainable replacement for proofs of work. Unfortunately, no construction of a ``longest-chain&#39;&#39; blockchain based on PoSpace, that is secure under dynamic availability, is known. In this work, we prove that without additional assumptions no such protocol exists. We exactly quantify this impossibility result by proving a bound on the length of the fork required for double spending as a function of the adversarial capabilities. This bound holds for any chain selection rule, and we also show a chain selection rule (albeit a very strange one) that almost matches this bound.  
+
+Concretely, we consider a security game in which the honest parties at any point control $\phi&gt;1$ times more space than the adversary. The adversary can change the honest space by a factor $1\pm \varepsilon$ with every block (dynamic availability), and ``replotting&#39;&#39; the space (which allows answering two challenges using the same space) takes as much time as $\rho$ blocks.
+
+We prove that no matter what chain selection rule is used, in this game the adversary can create a fork of length $\phi^2\cdot \rho / \varepsilon$ that will be picked as the winner by the chain selection rule.
+
+We also provide an upper bound that matches the lower bound up to a factor $\phi$. There exists a chain selection rule (albeit a very strange one) which in the above game requires forks of length at least $\phi\cdot \rho / \varepsilon$.
+
+
+
+Our results show the necessity of additional assumptions to create a secure PoSpace based longest-chain blockchain. The Chia network in addition to PoSpace uses a verifiable delay function. 
+Our bounds show that an additional primitive like that is necessary.</p>
+  
+    <p><strong>Note:</strong> Full version of the paper published at FC&#39;25</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2025/942.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=FOUNDATIONS"><small class="badge category category-FOUNDATIONS">Foundations</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Published elsewhere. Minor revision. Financial Cryptography and Data Security 2025</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Proof-of-Space" class="me-2 badge bg-secondary keyword">Proof-of-Space</a><a rel="nofollow" href="/search?q=Blockchains" class="me-2 badge bg-secondary keyword">Blockchains</a><a rel="nofollow" href="/search?q=Impossibility" class="me-2 badge bg-secondary keyword">Impossibility</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        mbaig<span class="obfuscate"> &#64; </span>ist ac at<br>pietrzak<span class="obfuscate"> &#64; </span>ist ac at
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2025-05-23: approved</dd>
+      
+      
+      
+      <dd>2025-05-23: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2025/942">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2025/942">https://ia.cr/2025/942</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2025/942,
+      author = {Mirza Ahad Baig and Krzysztof Pietrzak},
+      title = {On the (in)security of Proofs-of-Space based Longest-Chain Blockchains},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2025/942},
+      year = {2025},
+      url = {https://eprint.iacr.org/2025/942}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

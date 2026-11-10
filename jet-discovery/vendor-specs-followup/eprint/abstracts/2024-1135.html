@@ -1,0 +1,364 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Scalable and Lightweight State-Channel Audits</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Scalable and Lightweight State-Channel Audits">
+  
+  <meta name="citation_author" content="Christian Badertscher">
+  
+  <meta name="citation_author" content="Maxim Jourenko">
+  
+  <meta name="citation_author" content="Dimitris Karakostas">
+  
+  <meta name="citation_author" content="Mario Larangeira">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2024">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2024/1135.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2024/1135">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Scalable and Lightweight State-Channel Audits" />
+  <meta property="og:description" content="Payment channels are one of the most prominent off-chain scaling solutions for blockchain systems. However, regulatory institutions have difficulty embracing them, as the channels lack insights needed for Anti-Money Laundering (AML) auditing purposes. Our work tackles the problem of a formal reliable and controllable inspection of off-ledger payment channels, by offering a novel approach for maintaining and reliably auditing statistics of payment channels. We extend a typical trustless Layer 2 protocol and provide a lightweight and scalable protocol such that:
+        - every state channel is provably auditable w.r.t. a configurable set of policy queries, such that a regulator can retrieve reliable insights about the channel;
+        - no information beyond the answers to auditing queries is leaked;
+        - the cryptographic operations are inexpensive, the setup is simple, and storage complexity is independent of the transaction graph&#39;s size.
+    We present a concrete protocol, based on Hydra Isomorphic State Channels (FC&#39;21), and tie the creation of a state channel to real-world identifiers, both in a plain and privacy-preserving manner. For this, we employ verifiable credentials for decentralized identifiers, specifically verifiable Legal Entity Identifiers (vLEI) that increasingly gain traction for financial service providers and regulated institutions." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2024-07-12T14:00:38+00:00" />
+  <meta property="article:published_time" content="2024-07-12T14:00:38+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Blockchain" />
+  
+      <meta property="article:tag" content="Layer-2" />
+  
+      <meta property="article:tag" content="State-channel" />
+  
+      <meta property="article:tag" content="Scalability" />
+  
+      <meta property="article:tag" content="Audit" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2024/1135</h4>
+    <h3 class="mb-3"><a href="/2024/1135.pdf">Scalable and Lightweight State-Channel Audits</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Christian Badertscher</span><span class="affiliation">, IOG</span></div>
+    
+    
+    <div class="author"><span class="authorName">Maxim Jourenko</span><span class="affiliation">, Tokyo Institute of Technology &amp; IOG</span></div>
+    
+    
+    <div class="author"><span class="authorName">Dimitris Karakostas</span><span class="affiliation">, University of Edinburgh</span></div>
+    
+    
+    <div class="author"><span class="authorName">Mario Larangeira</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0001-7168-898X"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Tokyo Institute of Technology &amp; IOH</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Payment channels are one of the most prominent off-chain scaling solutions for blockchain systems. However, regulatory institutions have difficulty embracing them, as the channels lack insights needed for Anti-Money Laundering (AML) auditing purposes. Our work tackles the problem of a formal reliable and controllable inspection of off-ledger payment channels, by offering a novel approach for maintaining and reliably auditing statistics of payment channels. We extend a typical trustless Layer 2 protocol and provide a lightweight and scalable protocol such that:
+        - every state channel is provably auditable w.r.t. a configurable set of policy queries, such that a regulator can retrieve reliable insights about the channel;
+        - no information beyond the answers to auditing queries is leaked;
+        - the cryptographic operations are inexpensive, the setup is simple, and storage complexity is independent of the transaction graph&#39;s size.
+    We present a concrete protocol, based on Hydra Isomorphic State Channels (FC&#39;21), and tie the creation of a state channel to real-world identifiers, both in a plain and privacy-preserving manner. For this, we employ verifiable credentials for decentralized identifiers, specifically verifiable Legal Entity Identifiers (vLEI) that increasingly gain traction for financial service providers and regulated institutions.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2024/1135.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Published elsewhere. Minor revision. CANS 2024</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Blockchain" class="me-2 badge bg-secondary keyword">Blockchain</a><a rel="nofollow" href="/search?q=Layer-2" class="me-2 badge bg-secondary keyword">Layer-2</a><a rel="nofollow" href="/search?q=State-channel" class="me-2 badge bg-secondary keyword">State-channel</a><a rel="nofollow" href="/search?q=Scalability" class="me-2 badge bg-secondary keyword">Scalability</a><a rel="nofollow" href="/search?q=Audit" class="me-2 badge bg-secondary keyword">Audit</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        christian badertscher<span class="obfuscate"> &#64; </span>iohk io<br>jourenko m ab<span class="obfuscate"> &#64; </span>m titech ac jp<br>dkarakos<span class="obfuscate"> &#64; </span>ed ac uk<br>mario<span class="obfuscate"> &#64; </span>c titech ac jp
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2024-07-15: approved</dd>
+      
+      
+      
+      <dd>2024-07-12: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2024/1135">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2024/1135">https://ia.cr/2024/1135</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2024/1135,
+      author = {Christian Badertscher and Maxim Jourenko and Dimitris Karakostas and Mario Larangeira},
+      title = {Scalable and Lightweight State-Channel Audits},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2024/1135},
+      year = {2024},
+      url = {https://eprint.iacr.org/2024/1135}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

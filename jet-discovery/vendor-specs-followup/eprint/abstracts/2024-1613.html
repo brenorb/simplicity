@@ -1,0 +1,435 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Efficient Maliciously Secure Oblivious Exponentiations</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Efficient Maliciously Secure Oblivious Exponentiations">
+  
+  <meta name="citation_author" content="Carsten Baum">
+  
+  <meta name="citation_author" content="Jens Berlips">
+  
+  <meta name="citation_author" content="Walther Chen">
+  
+  <meta name="citation_author" content="Ivan Damgård">
+  
+  <meta name="citation_author" content="Kevin M. Esvelt">
+  
+  <meta name="citation_author" content="Leonard Foner">
+  
+  <meta name="citation_author" content="Dana Gretton">
+  
+  <meta name="citation_author" content="Martin Kysel">
+  
+  <meta name="citation_author" content="Ronald L. Rivest">
+  
+  <meta name="citation_author" content="Lawrence Roy">
+  
+  <meta name="citation_author" content="Francesca Sage-Ling">
+  
+  <meta name="citation_author" content="Adi Shamir">
+  
+  <meta name="citation_author" content="Vinod Vaikuntanathan">
+  
+  <meta name="citation_author" content="Lynn Van Hauwe">
+  
+  <meta name="citation_author" content="Theia Vogel">
+  
+  <meta name="citation_author" content="Benjamin Weinstein-Raun">
+  
+  <meta name="citation_author" content="Daniel Wichs">
+  
+  <meta name="citation_author" content="Stephen Wooster">
+  
+  <meta name="citation_author" content="Andrew C. Yao">
+  
+  <meta name="citation_author" content="Yu Yu">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2024">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2024/1613.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2024/1613">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Efficient Maliciously Secure Oblivious Exponentiations" />
+  <meta property="og:description" content="Oblivious Pseudorandom Functions (OPRFs) allow a client to evaluate a pseudorandom function (PRF) on her secret input based on a key that is held by a server. In the process, the client only learns the PRF output but not the key, while the server neither learns the input nor the output of the client. The arguably most popular OPRF is due to Naor, Pinkas and Reingold (Eurocrypt 2009). It is based on an Oblivious Exponentiation by the server, with passive security under the Decisional Diffie-Hellman assumption. In this work, we strengthen the security guarantees of the NPR OPRF by protecting it against active attacks of the server. We have implemented our solution and report on the performance.
+
+Our main result is a new batch OPRF protocol which is secure against maliciously corrupted servers, but is essentially as efficient as the  semi-honest solution. More precisely, the computation (and communication) overhead is a multiplicative factor $o(1)$ as the batch size increases. The obvious solution using  zero-knowledge proofs would have a constant factor overhead at best, which can be too expensive for certain deployments. 
+
+Our protocol relies on a novel version of the DDH problem, which we call the Oblivious Exponentiation Problem (OEP), and we give evidence for its hardness in the Generic Group model. We also present a variant of our maliciously secure protocol that does not rely on the OEP  but nevertheless only has overhead $o(1)$ over the known semi-honest protocol. Moreover, we show that our techniques can also be used to efficiently protect threshold blind BLS signing and threshold ElGamal decryption against malicious attackers." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2024-10-10T07:30:06+00:00" />
+  <meta property="article:published_time" content="2024-10-10T07:30:06+00:00" />
+  
+  
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2024/1613</h4>
+    <h3 class="mb-3"><a href="/2024/1613.pdf">Efficient Maliciously Secure Oblivious Exponentiations</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Carsten Baum</span><span class="affiliation">, Technical University of Denmark</span></div>
+    
+    
+    <div class="author"><span class="authorName">Jens Berlips</span><span class="affiliation">, SecureDNA Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Walther Chen</span><span class="affiliation">, SecureDNA Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Ivan Damgård</span><span class="affiliation">, Aarhus University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Kevin M. Esvelt</span><span class="affiliation">, Massachusetts Institute of Technology</span></div>
+    
+    
+    <div class="author"><span class="authorName">Leonard Foner</span><span class="affiliation">, SecureDNA Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Dana Gretton</span><span class="affiliation">, Massachusetts Institute of Technology</span></div>
+    
+    
+    <div class="author"><span class="authorName">Martin Kysel</span><span class="affiliation">, SecureDNA Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Ronald L. Rivest</span><span class="affiliation">, Massachusetts Institute of Technology</span></div>
+    
+    
+    <div class="author"><span class="authorName">Lawrence Roy</span><span class="affiliation">, Aarhus University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Francesca Sage-Ling</span><span class="affiliation">, SecureDNA Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Adi Shamir</span><span class="affiliation">, Weizmann Institute of Science</span></div>
+    
+    
+    <div class="author"><span class="authorName">Vinod Vaikuntanathan</span><span class="affiliation">, Massachusetts Institute of Technology</span></div>
+    
+    
+    <div class="author"><span class="authorName">Lynn Van Hauwe</span><span class="affiliation">, SecureDNA Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Theia Vogel</span><span class="affiliation">, SecureDNA Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Benjamin Weinstein-Raun</span><span class="affiliation">, SecureDNA Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Daniel Wichs</span><span class="affiliation">, Northeastern University</span><span class="affiliation">, NTT Basic Research Laboratories</span></div>
+    
+    
+    <div class="author"><span class="authorName">Stephen Wooster</span><span class="affiliation">, SecureDNA Foundation</span></div>
+    
+    
+    <div class="author"><span class="authorName">Andrew C. Yao</span><span class="affiliation">, Tsinghua University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yu Yu</span><span class="affiliation">, Shanghai Jiao Tong University</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Oblivious Pseudorandom Functions (OPRFs) allow a client to evaluate a pseudorandom function (PRF) on her secret input based on a key that is held by a server. In the process, the client only learns the PRF output but not the key, while the server neither learns the input nor the output of the client. The arguably most popular OPRF is due to Naor, Pinkas and Reingold (Eurocrypt 2009). It is based on an Oblivious Exponentiation by the server, with passive security under the Decisional Diffie-Hellman assumption. In this work, we strengthen the security guarantees of the NPR OPRF by protecting it against active attacks of the server. We have implemented our solution and report on the performance.
+
+Our main result is a new batch OPRF protocol which is secure against maliciously corrupted servers, but is essentially as efficient as the  semi-honest solution. More precisely, the computation (and communication) overhead is a multiplicative factor $o(1)$ as the batch size increases. The obvious solution using  zero-knowledge proofs would have a constant factor overhead at best, which can be too expensive for certain deployments. 
+
+Our protocol relies on a novel version of the DDH problem, which we call the Oblivious Exponentiation Problem (OEP), and we give evidence for its hardness in the Generic Group model. We also present a variant of our maliciously secure protocol that does not rely on the OEP  but nevertheless only has overhead $o(1)$ over the known semi-honest protocol. Moreover, we show that our techniques can also be used to efficiently protect threshold blind BLS signing and threshold ElGamal decryption against malicious attackers.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2024/1613.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Published by the IACR in CIC 2024</dd>
+  
+      <dt>DOI</dt>
+        <dd><a href="https://doi.org/10.62056/a66cy7qiu" target="_blank" class="ms-1">10.62056/a66cy7qiu <img src="/img/open-outline.svg" style="height:1.25rem;"></a></dd>
+  
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        cabau<span class="obfuscate"> &#64; </span>dtu dk<br>ivan<span class="obfuscate"> &#64; </span>cs au dk<br>foner<span class="obfuscate"> &#64; </span>securedna org
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2024-10-11: approved</dd>
+      
+      
+      
+      <dd>2024-10-10: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2024/1613">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2024/1613">https://ia.cr/2024/1613</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2024/1613,
+      author = {Carsten Baum and Jens Berlips and Walther Chen and Ivan Damgård and Kevin M. Esvelt and Leonard Foner and Dana Gretton and Martin Kysel and Ronald L. Rivest and Lawrence Roy and Francesca Sage-Ling and Adi Shamir and Vinod Vaikuntanathan and Lynn Van Hauwe and Theia Vogel and Benjamin Weinstein-Raun and Daniel Wichs and Stephen Wooster and Andrew C. Yao and Yu Yu},
+      title = {Efficient Maliciously Secure Oblivious Exponentiations},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2024/1613},
+      year = {2024},
+      doi = {10.62056/a66cy7qiu},
+      url = {https://eprint.iacr.org/2024/1613}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

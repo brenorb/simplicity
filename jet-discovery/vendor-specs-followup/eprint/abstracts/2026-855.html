@@ -1,0 +1,405 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Zinc+: SNARKs for Polynomial Rings</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Zinc+: SNARKs for Polynomial Rings">
+  
+  <meta name="citation_author" content="Alexander Abdugafarov">
+  
+  <meta name="citation_author" content="Albert Garreta">
+  
+  <meta name="citation_author" content="Amit Kumar">
+  
+  <meta name="citation_author" content="Michał Osadnik">
+  
+  <meta name="citation_author" content="Psi Vesely">
+  
+  <meta name="citation_author" content="Ilia Vlasov">
+  
+  <meta name="citation_author" content="Kai Zhe Zheng">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/855.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/855">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Zinc+: SNARKs for Polynomial Rings" />
+  <meta property="og:description" content="Nearly all succinct proof systems express computations as algebraic constraints over a finite field. Operations not native to this field, such as bitwise manipulation, modular arithmetic, and lattice-ring operations, require an arithmetization step that can inflate the witness size by one or more orders of magnitude.
+
+We introduce Universal Constraint Systems (UCS) and Zinc$+$. The first is a relation that can express the above constraints with minimal overhead. The second is a framework for building SNARKs for UCS. Concretely, UCS consists of  algebraic constraints and ideal membership predicates over multiple polynomial rings simultaneously, such as $\mathbb{F}_q[X], \mathbb{Q}[X], \mathbb{Z}[X]$, etc. 
+
+Zinc$+$ SNARKs are built from 1) a PIOP for UCS, and 2) a hash-based IOPP for multilinear polynomials over $R=\mathbb{Q}[X]$ or $R=\mathbb{F}_q[X]$. For 1), we provide a general compiler that takes standard finite-field PIOPs and turns them into a PIOP for UCS. The IOPP in 2) depends on $R$: for $R=\mathbb{F}_q[X]$, we construct it via a black-box lift of any existing IOPP for $\mathbb{F}_q$, and for $R=\mathbb{Q}[X]$, we present a novel tensor IOPP design, instantiated with the new code family below.
+
+We introduce Integer Pseudo-Reed Solomon (IPRS) codes, a new family of MDS codes over $\mathbb{Q}$ and $\mathbb{Q}[X]$. While not Reed-Solomon codes, these codes have optimal MDS relative minimal distance, support efficient FFT-based encoding, and have bounded norm growth when encoding (unlike a naïve lift of Reed-Solomon codes to the integers).
+
+Our unoptimized, open-source, implementation proves 7 SHA-256 compressions followed by the multi-scalar multiplication (MSM) part of an ECDSA verification (the bulk of the work), with the following performance, benchmarked on a MacBook Air M4, without zero-knowledge: 
+
+Prover time: 40.6 ms, Verifier time: 7.0 ms, Proof size: 198  KB.
+
+Zinc$+$ can be instantiated end-to-end or as a lightweight extension to any existing hash-based SNARK over~$\mathbb{F}_q$." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2026-05-09T01:48:11+00:00" />
+  <meta property="article:published_time" content="2026-05-01T09:13:46+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="SNARK" />
+  
+      <meta property="article:tag" content="IOP" />
+  
+      <meta property="article:tag" content="IPRS codes" />
+  
+      <meta property="article:tag" content="hash-based SNARK" />
+  
+      <meta property="article:tag" content="polynomial rings" />
+  
+      <meta property="article:tag" content="integer arithmetic" />
+  
+      <meta property="article:tag" content="ECDSA" />
+  
+      <meta property="article:tag" content="lattice-based cryptography" />
+  
+      <meta property="article:tag" content="Zinc+" />
+  
+      <meta property="article:tag" content="Zip+" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/855</h4>
+    <h3 class="mb-3"><a href="/2026/855.pdf">Zinc+: SNARKs for Polynomial Rings</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Alexander Abdugafarov</span><span class="affiliation">, Nethermind Research</span></div>
+    
+    
+    <div class="author"><span class="authorName">Albert Garreta</span><span class="affiliation">, Nethermind Research</span></div>
+    
+    
+    <div class="author"><span class="authorName">Amit Kumar</span><span class="affiliation">, Nethermind Research</span></div>
+    
+    
+    <div class="author"><span class="authorName">Michał Osadnik</span><span class="affiliation">, Aalto University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Psi Vesely</span><span class="affiliation">, Yale University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Ilia Vlasov</span><span class="affiliation">, Nethermind Research</span></div>
+    
+    
+    <div class="author"><span class="authorName">Kai Zhe Zheng</span><span class="affiliation">, Massachusetts Institute of Technology</span><span class="affiliation">, Nethermind Research</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Nearly all succinct proof systems express computations as algebraic constraints over a finite field. Operations not native to this field, such as bitwise manipulation, modular arithmetic, and lattice-ring operations, require an arithmetization step that can inflate the witness size by one or more orders of magnitude.
+
+We introduce Universal Constraint Systems (UCS) and Zinc$+$. The first is a relation that can express the above constraints with minimal overhead. The second is a framework for building SNARKs for UCS. Concretely, UCS consists of  algebraic constraints and ideal membership predicates over multiple polynomial rings simultaneously, such as $\mathbb{F}_q[X], \mathbb{Q}[X], \mathbb{Z}[X]$, etc. 
+
+Zinc$+$ SNARKs are built from 1) a PIOP for UCS, and 2) a hash-based IOPP for multilinear polynomials over $R=\mathbb{Q}[X]$ or $R=\mathbb{F}_q[X]$. For 1), we provide a general compiler that takes standard finite-field PIOPs and turns them into a PIOP for UCS. The IOPP in 2) depends on $R$: for $R=\mathbb{F}_q[X]$, we construct it via a black-box lift of any existing IOPP for $\mathbb{F}_q$, and for $R=\mathbb{Q}[X]$, we present a novel tensor IOPP design, instantiated with the new code family below.
+
+We introduce Integer Pseudo-Reed Solomon (IPRS) codes, a new family of MDS codes over $\mathbb{Q}$ and $\mathbb{Q}[X]$. While not Reed-Solomon codes, these codes have optimal MDS relative minimal distance, support efficient FFT-based encoding, and have bounded norm growth when encoding (unlike a naïve lift of Reed-Solomon codes to the integers).
+
+Our unoptimized, open-source, implementation proves 7 SHA-256 compressions followed by the multi-scalar multiplication (MSM) part of an ECDSA verification (the bulk of the work), with the following performance, benchmarked on a MacBook Air M4, without zero-knowledge: 
+
+Prover time: 40.6 ms, Verifier time: 7.0 ms, Proof size: 198  KB.
+
+Zinc$+$ can be instantiated end-to-end or as a lightweight extension to any existing hash-based SNARK over~$\mathbb{F}_q$.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/855.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=SNARK" class="me-2 badge bg-secondary keyword">SNARK</a><a rel="nofollow" href="/search?q=IOP" class="me-2 badge bg-secondary keyword">IOP</a><a rel="nofollow" href="/search?q=IPRS%20codes" class="me-2 badge bg-secondary keyword">IPRS codes</a><a rel="nofollow" href="/search?q=hash-based%20SNARK" class="me-2 badge bg-secondary keyword">hash-based SNARK</a><a rel="nofollow" href="/search?q=polynomial%20rings" class="me-2 badge bg-secondary keyword">polynomial rings</a><a rel="nofollow" href="/search?q=integer%20arithmetic" class="me-2 badge bg-secondary keyword">integer arithmetic</a><a rel="nofollow" href="/search?q=ECDSA" class="me-2 badge bg-secondary keyword">ECDSA</a><a rel="nofollow" href="/search?q=lattice-based%20cryptography" class="me-2 badge bg-secondary keyword">lattice-based cryptography</a><a rel="nofollow" href="/search?q=Zinc%2B" class="me-2 badge bg-secondary keyword">Zinc+</a><a rel="nofollow" href="/search?q=Zip%2B" class="me-2 badge bg-secondary keyword">Zip+</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        alexander abdugafarov<span class="obfuscate"> &#64; </span>nethermind io<br>albert<span class="obfuscate"> &#64; </span>nethermind io<br>amit kumar<span class="obfuscate"> &#64; </span>nethermind io<br>michal osadnik<span class="obfuscate"> &#64; </span>aalto fi<br>psi vesely<span class="obfuscate"> &#64; </span>yale edu<br>ilia<span class="obfuscate"> &#64; </span>nethermind io<br>kai zheng<span class="obfuscate"> &#64; </span>nethermind io
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-05-09: last of 5 revisions</dd>
+      
+      
+      
+      <dd>2026-05-01: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/855">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/855">https://ia.cr/2026/855</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/855,
+      author = {Alexander Abdugafarov and Albert Garreta and Amit Kumar and Michał Osadnik and Psi Vesely and Ilia Vlasov and Kai Zhe Zheng},
+      title = {Zinc+: {SNARKs} for Polynomial Rings},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/855},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/855}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

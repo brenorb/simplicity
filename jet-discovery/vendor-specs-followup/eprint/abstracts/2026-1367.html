@@ -1,0 +1,351 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>SoK: Hash-Based Polynomial Commitments and Low-Degree Tests: From FRI to Basefold, STIR, and WHIR</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="SoK: Hash-Based Polynomial Commitments and Low-Degree Tests: From FRI to Basefold, STIR, and WHIR">
+  
+  <meta name="citation_author" content="Christos Skatharoudis">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/1367.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/1367">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="SoK: Hash-Based Polynomial Commitments and Low-Degree Tests: From FRI to Basefold, STIR, and WHIR" />
+  <meta property="og:description" content="Hash-based low-degree tests and polynomial commitment schemes have become the cryptographic engine of a large fraction of deployed succinct-argument systems. Unlike pairing-based commitments such as KZG, they require no trusted setup, rely only on a collision-resistant hash, are plausibly post-quantum, and operate over any sufficiently large field, unlocking small fields whose arithmetic is fast on commodity hardware. Between 2017 and 2025 this design space evolved rapidly along two intertwined lineages: the Reed-Solomon proximity-test line (FRI, DEEP-FRI, STIR, WHIR) and the linear-code tensor-commitment line (Ligero, Brakedown), which Basefold and WHIR ultimately merge. Yet the primary sources report their guarantees under different, and frequently conflated, soundness regimes: unique decoding, the Johnson list-decoding bound, and (conjecturally) capacity. The folklore surrounding these schemes has drifted from what the papers actually prove. 
+
+We systematize this line of work. We organize the seven core schemes along a taxonomy of committed object, code class, and testing mechanism; we trace the evolutionary chain in which each scheme answers a concrete limitation of its predecessor; and we ground the theory in a survey of production zero-knowledge systems, showing how field choice and soundness regime jointly explain real engineering decisions, including a sumcheck-based multilinear prover reaching mainnet in 2026. We make two systematizing corrections. First, the DEEP folklore: the out-of-domain trick that survives in deployment (DEEP-ALI, on the constraint side) is distinct from the low-degree-test modification it is usually conflated with. That modification was superseded for FRI soundness by the Proximity Gaps analysis, which also proves Johnson-bound FRI soundness and is itself routinely misattributed to the original FRI paper. Second, and more consequential: the capacity-soundness conjectures on which nearly all deployed systems set their parameters had their strongest, up-to-capacity forms, including the mutual-correlated-agreement conjecture behind the newest schemes, disproved over large fields in late 2025. Soundness up to the Johnson bound is unaffected and the practical repricing is modest, but the discount the ecosystem had tacitly taken was, in its optimistic form, wrong. Our central thesis is that this proven-versus-conjectured soundness axis, not asymptotic query complexity, is the load-bearing and least-consistently-reported dimension of the design space, and the field has now had to reprice it." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2026-07-02T18:54:08+00:00" />
+  <meta property="article:published_time" content="2026-07-02T18:54:08+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="low-degree testing" />
+  
+      <meta property="article:tag" content="polynomial commitments" />
+  
+      <meta property="article:tag" content="FRI" />
+  
+      <meta property="article:tag" content="STIR" />
+  
+      <meta property="article:tag" content="WHIR" />
+  
+      <meta property="article:tag" content="proximity gaps" />
+  
+      <meta property="article:tag" content="transparent SNARK" />
+  
+      <meta property="article:tag" content="post-quantum" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/1367</h4>
+    <h3 class="mb-3"><a href="/2026/1367.pdf">SoK: Hash-Based Polynomial Commitments and Low-Degree Tests: From FRI to Basefold, STIR, and WHIR</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Christos Skatharoudis</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0001-6398-556X"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, University of the Aegean</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Hash-based low-degree tests and polynomial commitment schemes have become the cryptographic engine of a large fraction of deployed succinct-argument systems. Unlike pairing-based commitments such as KZG, they require no trusted setup, rely only on a collision-resistant hash, are plausibly post-quantum, and operate over any sufficiently large field, unlocking small fields whose arithmetic is fast on commodity hardware. Between 2017 and 2025 this design space evolved rapidly along two intertwined lineages: the Reed-Solomon proximity-test line (FRI, DEEP-FRI, STIR, WHIR) and the linear-code tensor-commitment line (Ligero, Brakedown), which Basefold and WHIR ultimately merge. Yet the primary sources report their guarantees under different, and frequently conflated, soundness regimes: unique decoding, the Johnson list-decoding bound, and (conjecturally) capacity. The folklore surrounding these schemes has drifted from what the papers actually prove. 
+
+We systematize this line of work. We organize the seven core schemes along a taxonomy of committed object, code class, and testing mechanism; we trace the evolutionary chain in which each scheme answers a concrete limitation of its predecessor; and we ground the theory in a survey of production zero-knowledge systems, showing how field choice and soundness regime jointly explain real engineering decisions, including a sumcheck-based multilinear prover reaching mainnet in 2026. We make two systematizing corrections. First, the DEEP folklore: the out-of-domain trick that survives in deployment (DEEP-ALI, on the constraint side) is distinct from the low-degree-test modification it is usually conflated with. That modification was superseded for FRI soundness by the Proximity Gaps analysis, which also proves Johnson-bound FRI soundness and is itself routinely misattributed to the original FRI paper. Second, and more consequential: the capacity-soundness conjectures on which nearly all deployed systems set their parameters had their strongest, up-to-capacity forms, including the mutual-correlated-agreement conjecture behind the newest schemes, disproved over large fields in late 2025. Soundness up to the Johnson bound is unaffected and the practical repricing is modest, but the discount the ecosystem had tacitly taken was, in its optimistic form, wrong. Our central thesis is that this proven-versus-conjectured soundness axis, not asymptotic query complexity, is the load-bearing and least-consistently-reported dimension of the design space, and the field has now had to reprice it.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/1367.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=low-degree%20testing" class="me-2 badge bg-secondary keyword">low-degree testing</a><a rel="nofollow" href="/search?q=polynomial%20commitments" class="me-2 badge bg-secondary keyword">polynomial commitments</a><a rel="nofollow" href="/search?q=FRI" class="me-2 badge bg-secondary keyword">FRI</a><a rel="nofollow" href="/search?q=STIR" class="me-2 badge bg-secondary keyword">STIR</a><a rel="nofollow" href="/search?q=WHIR" class="me-2 badge bg-secondary keyword">WHIR</a><a rel="nofollow" href="/search?q=proximity%20gaps" class="me-2 badge bg-secondary keyword">proximity gaps</a><a rel="nofollow" href="/search?q=transparent%20SNARK" class="me-2 badge bg-secondary keyword">transparent SNARK</a><a rel="nofollow" href="/search?q=post-quantum" class="me-2 badge bg-secondary keyword">post-quantum</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        chris skatharoudis<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-07-06: approved</dd>
+      
+      
+      
+      <dd>2026-07-02: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/1367">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/1367">https://ia.cr/2026/1367</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/1367,
+      author = {Christos Skatharoudis},
+      title = {{SoK}: Hash-Based Polynomial Commitments and Low-Degree Tests: From {FRI} to Basefold, {STIR}, and {WHIR}},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/1367},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/1367}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

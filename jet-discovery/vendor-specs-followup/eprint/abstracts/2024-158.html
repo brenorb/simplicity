@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>HiSE: Hierarchical (Threshold) Symmetric-key Encryption</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="HiSE: Hierarchical (Threshold) Symmetric-key Encryption">
+  
+  <meta name="citation_author" content="Pousali Dey">
+  
+  <meta name="citation_author" content="Pratyay Mukherjee">
+  
+  <meta name="citation_author" content="Swagata Sasmal">
+  
+  <meta name="citation_author" content="Rohit Sinha">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2024">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2024/158.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2024/158">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="HiSE: Hierarchical (Threshold) Symmetric-key Encryption" />
+  <meta property="og:description" content="Threshold symmetric encryption (TSE) [DiSE, CCS 2018], provides a practical decentralized solution for symmetric encryption by distributing the secret-key at all times, thus avoiding a single point of attack or failure. 
+     TSE was further enhanced [ATSE, CCS 2021] by an amortization  which enables a ``more privileged&#39;&#39; client to encrypt bulk records by interacting only once with the key servers, while decryption must be performed individually for each record, potentially by a ``less privileged&#39;&#39; client. 
+    However, a typical enterprise generates data once and queries it several times for various data analysis; i.e., enterprise workloads are often decryption heavy! ATSE does not meet the bar for this setting because of linear interaction / computation (in the number of records to be decrypted) -- our experiments show that ATSE provides a sub-par throughput of a few hundred records/sec.
+
+Our work starts with an observation that a large and useful class of analytics queries access some time-windowed sequence of database records (e.g. log entries or user transactions). Can we offer faster decryption for such access patterns, without compromising the benefits of prior schemes?
+
+To that end, we build a new TSE scheme that allows for both encryption and decryption with flexible granularity, in that a client&#39;s interactions with the key servers is at most logarithmic in the number of records. Our idea is to employ a binary-tree structure, where one interaction is needed to decrypt all ciphertexts in a sub-tree, and thus only log-many for any arbitrary sub-sequence. Our scheme incorporates ideas from binary-tree encryption by Canetti et al. [Eurocrypt 2003] and carefully combines that with Merkle-tree commitments. We show that our scheme satisfies all essential TSE properties, such as correctness, privacy and authenticity for our notion, formalized as hierarchical threshold symmetric-key encryption (HiSE). Our analysis relies on a well-known XDH assumption and a new assumption, that we call $\ell$-masked BDDH, over asymmetric bilinear pairing in the programmable random oracle model. We also show that our new assumption holds in the generic group model. 
+
+Our extensive implementation shows 10-65$\times$ improvement in latency and throughput over ATSE. 
+HiSE can decrypt over 6K records/sec on server-grade hardware, but the logarithmic overhead in encryption (not decryption) only lets us encrypt up to 3K records/sec (about 4.5x slowdown) and incurs roughly 500 bytes of ciphertext expansion per record -- while reducing this penalty is an important future work, we believe HiSE offers an acceptable practical trade-off in practice." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2025-10-09T14:55:15+00:00" />
+  <meta property="article:published_time" content="2024-02-02T17:44:04+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Threshold Cryptography" />
+  
+      <meta property="article:tag" content="Threshold Symmetric-key Encryption" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2024/158</h4>
+    <h3 class="mb-3"><a href="/2024/158.pdf">HiSE: Hierarchical (Threshold) Symmetric-key Encryption</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Pousali Dey</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0001-2213-7281"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Indian Statistical Institute</span></div>
+    
+    
+    <div class="author"><span class="authorName">Pratyay Mukherjee</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-0995-9555"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Indian Statistical Institute</span></div>
+    
+    
+    <div class="author"><span class="authorName">Swagata Sasmal</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0000-3214-7152"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Indian Statistical Institute</span></div>
+    
+    
+    <div class="author"><span class="authorName">Rohit Sinha</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0001-9107-0239"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Swirlds Labs</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Threshold symmetric encryption (TSE) [DiSE, CCS 2018], provides a practical decentralized solution for symmetric encryption by distributing the secret-key at all times, thus avoiding a single point of attack or failure. 
+     TSE was further enhanced [ATSE, CCS 2021] by an amortization  which enables a ``more privileged&#39;&#39; client to encrypt bulk records by interacting only once with the key servers, while decryption must be performed individually for each record, potentially by a ``less privileged&#39;&#39; client. 
+    However, a typical enterprise generates data once and queries it several times for various data analysis; i.e., enterprise workloads are often decryption heavy! ATSE does not meet the bar for this setting because of linear interaction / computation (in the number of records to be decrypted) -- our experiments show that ATSE provides a sub-par throughput of a few hundred records/sec.
+
+Our work starts with an observation that a large and useful class of analytics queries access some time-windowed sequence of database records (e.g. log entries or user transactions). Can we offer faster decryption for such access patterns, without compromising the benefits of prior schemes?
+
+To that end, we build a new TSE scheme that allows for both encryption and decryption with flexible granularity, in that a client&#39;s interactions with the key servers is at most logarithmic in the number of records. Our idea is to employ a binary-tree structure, where one interaction is needed to decrypt all ciphertexts in a sub-tree, and thus only log-many for any arbitrary sub-sequence. Our scheme incorporates ideas from binary-tree encryption by Canetti et al. [Eurocrypt 2003] and carefully combines that with Merkle-tree commitments. We show that our scheme satisfies all essential TSE properties, such as correctness, privacy and authenticity for our notion, formalized as hierarchical threshold symmetric-key encryption (HiSE). Our analysis relies on a well-known XDH assumption and a new assumption, that we call $\ell$-masked BDDH, over asymmetric bilinear pairing in the programmable random oracle model. We also show that our new assumption holds in the generic group model. 
+
+Our extensive implementation shows 10-65$\times$ improvement in latency and throughput over ATSE. 
+HiSE can decrypt over 6K records/sec on server-grade hardware, but the logarithmic overhead in encryption (not decryption) only lets us encrypt up to 3K records/sec (about 4.5x slowdown) and incurs roughly 500 bytes of ciphertext expansion per record -- while reducing this penalty is an important future work, we believe HiSE offers an acceptable practical trade-off in practice.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2024/158.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>A minor revision of an IACR publication in CIC 2025</dd>
+  
+      <dt>DOI</dt>
+        <dd><a href="https://doi.org/10.62056/akgy11fgx" target="_blank" class="ms-1">10.62056/akgy11fgx <img src="/img/open-outline.svg" style="height:1.25rem;"></a></dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Threshold%20Cryptography" class="me-2 badge bg-secondary keyword">Threshold Cryptography</a><a rel="nofollow" href="/search?q=Threshold%20Symmetric-key%20Encryption" class="me-2 badge bg-secondary keyword">Threshold Symmetric-key Encryption</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        deypousali95<span class="obfuscate"> &#64; </span>gmail com<br>pratyay85<span class="obfuscate"> &#64; </span>gmail com<br>swagata sasmal<span class="obfuscate"> &#64; </span>gmail com<br>sinharo<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2025-10-09: revised</dd>
+      
+      
+      
+      <dd>2024-02-02: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2024/158">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2024/158">https://ia.cr/2024/158</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2024/158,
+      author = {Pousali Dey and Pratyay Mukherjee and Swagata Sasmal and Rohit Sinha},
+      title = {{HiSE}: Hierarchical (Threshold) Symmetric-key Encryption},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2024/158},
+      year = {2024},
+      doi = {10.62056/akgy11fgx},
+      url = {https://eprint.iacr.org/2024/158}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

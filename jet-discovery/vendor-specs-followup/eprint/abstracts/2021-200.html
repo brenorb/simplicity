@@ -1,0 +1,352 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Manticore: Efficient Framework for Scalable Secure Multiparty Computation Protocols</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Manticore: Efficient Framework for Scalable Secure Multiparty Computation Protocols">
+  
+  <meta name="citation_author" content="Sergiu Carpov">
+  
+  <meta name="citation_author" content="Kevin Deforth">
+  
+  <meta name="citation_author" content="Nicolas Gama">
+  
+  <meta name="citation_author" content="Mariya Georgieva">
+  
+  <meta name="citation_author" content="Dimitar Jetchev">
+  
+  <meta name="citation_author" content="Jonathan Katz">
+  
+  <meta name="citation_author" content="Iraklis Leontiadis">
+  
+  <meta name="citation_author" content="M.  Mohammadi">
+  
+  <meta name="citation_author" content="Abson Sae-Tang">
+  
+  <meta name="citation_author" content="Marius Vuille">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2021">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2021/200.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2021/200">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Manticore: Efficient Framework for Scalable Secure Multiparty Computation Protocols" />
+  <meta property="og:description" content="We propose a novel MPC framework, Manticore, in the multiparty setting, with full threshold and semi-honest security model, supporting  a  combination  of  real  number  arithmetic  (arithmetic  shares), Boolean arithmetic (Boolean shares) and garbled circuits (Yao shares). In contrast to prior work [MZ17, MR18], Manticore never overflows, an important feature for machine learning applications. It achieves this without compromising efficiency or security. Compared to other overflow-free recent techniques such as MP-SPDZ [EGKRS20] that convert arithmetic to Boolean shares, we introduce a novel highly efficient modular lifting/truncation method that stays in the arithmetic domain. We revisit some of the basic MPC operations such as real-valued polynomial evaluation, division, logarithm, exponential and comparison by employing our modular lift in  combination  with  existing  efficient  conversions  between  arithmetic, Boolean and Yao shares. Furthermore, we provide a highly efficient and scalable implementation supporting logistic regression models with real-world  training  data  sizes  and  high  numerical  precision  through  PCA and blockwise variants (for memory and runtime optimizations). On a dataset of 50 million rows and 50 columns distributed among two players, it completes in one day with at least 10 decimal digits of precision.Our  logistic  regression  solution  placed  first  at  Track  3  of  the  annual iDASH’2020 Competition. Finally, we mention a novel oblivious sorting algorithm built using Manticore." />
+  <meta property="article:section" content="IMPLEMENTATION" />
+  
+  <meta property="article:modified_time" content="2021-02-24T21:39:26+00:00" />
+  <meta property="article:published_time" content="2021-02-24T21:39:26+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Multiparty Computation Protocols" />
+  
+      <meta property="article:tag" content="Full Threshold Security" />
+  
+      <meta property="article:tag" content="Efficient implementation" />
+  
+      <meta property="article:tag" content="Applied cryptography" />
+  
+      <meta property="article:tag" content="Numerical Methods" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2021/200</h4>
+    <h3 class="mb-3"><a href="/2021/200.pdf">Manticore: Efficient Framework for Scalable Secure Multiparty Computation Protocols</a></h3>
+     
+    <p class="fst-italic mb-3">
+      Sergiu Carpov, Kevin Deforth, Nicolas Gama, Mariya Georgieva, Dimitar Jetchev, Jonathan Katz, Iraklis Leontiadis, M.  Mohammadi, Abson Sae-Tang, and Marius Vuille
+    </p>
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We propose a novel MPC framework, Manticore, in the multiparty setting, with full threshold and semi-honest security model, supporting  a  combination  of  real  number  arithmetic  (arithmetic  shares), Boolean arithmetic (Boolean shares) and garbled circuits (Yao shares). In contrast to prior work [MZ17, MR18], Manticore never overflows, an important feature for machine learning applications. It achieves this without compromising efficiency or security. Compared to other overflow-free recent techniques such as MP-SPDZ [EGKRS20] that convert arithmetic to Boolean shares, we introduce a novel highly efficient modular lifting/truncation method that stays in the arithmetic domain. We revisit some of the basic MPC operations such as real-valued polynomial evaluation, division, logarithm, exponential and comparison by employing our modular lift in  combination  with  existing  efficient  conversions  between  arithmetic, Boolean and Yao shares. Furthermore, we provide a highly efficient and scalable implementation supporting logistic regression models with real-world  training  data  sizes  and  high  numerical  precision  through  PCA and blockwise variants (for memory and runtime optimizations). On a dataset of 50 million rows and 50 columns distributed among two players, it completes in one day with at least 10 decimal digits of precision.Our  logistic  regression  solution  placed  first  at  Track  3  of  the  annual iDASH’2020 Competition. Finally, we mention a novel oblivious sorting algorithm built using Manticore.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2021/200.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=IMPLEMENTATION"><small class="badge category category-IMPLEMENTATION">Implementation</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. MINOR revision.</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Multiparty%20Computation%20Protocols" class="me-2 badge bg-secondary keyword">Multiparty Computation Protocols</a><a rel="nofollow" href="/search?q=Full%20Threshold%20Security" class="me-2 badge bg-secondary keyword">Full Threshold Security</a><a rel="nofollow" href="/search?q=Efficient%20implementation" class="me-2 badge bg-secondary keyword">Efficient implementation</a><a rel="nofollow" href="/search?q=Applied%20cryptography" class="me-2 badge bg-secondary keyword">Applied cryptography</a><a rel="nofollow" href="/search?q=Numerical%20Methods" class="me-2 badge bg-secondary keyword">Numerical Methods</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        mariya<span class="obfuscate"> &#64; </span>inpher io
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2021-02-24: received</dd>
+      
+      
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2021/200">https://ia.cr/2021/200</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2021/200,
+      author = {Sergiu Carpov and Kevin Deforth and Nicolas Gama and Mariya Georgieva and Dimitar Jetchev and Jonathan Katz and Iraklis Leontiadis and M.  Mohammadi and Abson Sae-Tang and Marius Vuille},
+      title = {Manticore: Efficient Framework for Scalable Secure Multiparty Computation Protocols},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2021/200},
+      year = {2021},
+      url = {https://eprint.iacr.org/2021/200}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

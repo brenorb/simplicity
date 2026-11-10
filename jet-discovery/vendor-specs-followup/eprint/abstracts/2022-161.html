@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>D-KODE: Mechanism to Generate and Maintain a Billion Keys</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="D-KODE: Mechanism to Generate and Maintain a Billion Keys">
+  
+  <meta name="citation_author" content="Easwar Vivek Mangipudi">
+  
+  <meta name="citation_author" content="Aniket Kate">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2022">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2022/161.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2022/161">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="D-KODE: Mechanism to Generate and Maintain a Billion Keys" />
+  <meta property="og:description" content="This work considers two prominent key management problems in the blockchain space: (i) allowing a (distributed) blockchain system to securely airdrop/send some tokens to a potential client Bob, who is yet to set up the required cryptographic key for the system, and (ii) creating a (distributed) cross-chain bridge that allows interoperability at scale by allowing a (changing) set of nodes in a blockchain to perform transactions on the other blockchain. The existing solutions for the first problem need Bob to either generate and maintain private keys locally for the first time in his life — a usability bottleneck — or place trust in third-party custodial services — a privacy and censorship nightmare. Towards solving both problems in a distributed setting against a threshold-bounded adversary, distributed key generation (DKG) based solutions are actively employed; here, a set of servers generate the transactions in a distributed manner and link them to clients’ ids. Nevertheless, these solutions introduce computation and communication overhead that is linear in the number of keys and do not scale well even for a million keys, especially for proactive security against a mobile adversary. This work presents a Keys-On-Demand (D-KODE) distributed protocol suite that lets the blockchain system securely generate the public key of any Bob against a mobile threshold adversary. Multiple servers, here, compute discrete-log private/public keys on the fly through distributed pseudo-random function evaluations on the queried public string. D-KODE also introduces a proactive security mechanism for the employed black-box secret-sharing based DKG to maintain the system’s longitudinal security. The proposed protocol scales well for a very high number of keys as its communication and computation complexity is independent of the number of keys. Our experimental analysis demonstrates that, for a 20-node network with a 2/3 honest majority, D-KODE starts to outperform the state of the art as the number of keys reaches 94K. D-KODE is practical as it takes less than 100msec to generate a secret key for a single-threaded server in a 20-node setup" />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2022-02-20T20:02:09+00:00" />
+  <meta property="article:published_time" content="2022-02-20T20:02:09+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Distributed key generation (DKG)" />
+  
+      <meta property="article:tag" content="Black box secret sharing" />
+  
+      <meta property="article:tag" content="Distributed PRF" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2022/161</h4>
+    <h3 class="mb-3"><a href="/2022/161.pdf">D-KODE: Mechanism to Generate and Maintain a Billion Keys</a></h3>
+     
+    <p class="fst-italic mb-3">
+      Easwar Vivek Mangipudi and Aniket Kate
+    </p>
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">This work considers two prominent key management problems in the blockchain space: (i) allowing a (distributed) blockchain system to securely airdrop/send some tokens to a potential client Bob, who is yet to set up the required cryptographic key for the system, and (ii) creating a (distributed) cross-chain bridge that allows interoperability at scale by allowing a (changing) set of nodes in a blockchain to perform transactions on the other blockchain. The existing solutions for the first problem need Bob to either generate and maintain private keys locally for the first time in his life — a usability bottleneck — or place trust in third-party custodial services — a privacy and censorship nightmare. Towards solving both problems in a distributed setting against a threshold-bounded adversary, distributed key generation (DKG) based solutions are actively employed; here, a set of servers generate the transactions in a distributed manner and link them to clients’ ids. Nevertheless, these solutions introduce computation and communication overhead that is linear in the number of keys and do not scale well even for a million keys, especially for proactive security against a mobile adversary. This work presents a Keys-On-Demand (D-KODE) distributed protocol suite that lets the blockchain system securely generate the public key of any Bob against a mobile threshold adversary. Multiple servers, here, compute discrete-log private/public keys on the fly through distributed pseudo-random function evaluations on the queried public string. D-KODE also introduces a proactive security mechanism for the employed black-box secret-sharing based DKG to maintain the system’s longitudinal security. The proposed protocol scales well for a very high number of keys as its communication and computation complexity is independent of the number of keys. Our experimental analysis demonstrates that, for a 20-node network with a 2/3 honest majority, D-KODE starts to outperform the state of the art as the number of keys reaches 94K. D-KODE is practical as it takes less than 100msec to generate a secret key for a single-threaded server in a 20-node setup</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2022/161.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. MINOR revision.</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Distributed%20key%20generation%20%28DKG%29" class="me-2 badge bg-secondary keyword">Distributed key generation (DKG)</a><a rel="nofollow" href="/search?q=Black%20box%20secret%20sharing" class="me-2 badge bg-secondary keyword">Black box secret sharing</a><a rel="nofollow" href="/search?q=Distributed%20PRF" class="me-2 badge bg-secondary keyword">Distributed PRF</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        emangipu<span class="obfuscate"> &#64; </span>purdue edu
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2022-02-20: received</dd>
+      
+      
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2022/161">https://ia.cr/2022/161</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2022/161,
+      author = {Easwar Vivek Mangipudi and Aniket Kate},
+      title = {D-{KODE}: Mechanism to Generate and Maintain a Billion Keys},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2022/161},
+      year = {2022},
+      url = {https://eprint.iacr.org/2022/161}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

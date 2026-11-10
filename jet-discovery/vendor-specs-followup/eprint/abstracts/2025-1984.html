@@ -1,0 +1,387 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Fully Anonymous Secret Sharing</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Fully Anonymous Secret Sharing">
+  
+  <meta name="citation_author" content="Allison Bishop">
+  
+  <meta name="citation_author" content="Matthew Green">
+  
+  <meta name="citation_author" content="Yuval Ishai">
+  
+  <meta name="citation_author" content="Abhishek Jain">
+  
+  <meta name="citation_author" content="Paul Lou">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2025">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2025/1984.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2025/1984">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Fully Anonymous Secret Sharing" />
+  <meta property="og:description" content="In a secret sharing scheme for a monotone access structure $\mathcal{A}:\{0,1\}^n\rightarrow \{0,1\}$, a dealer can share a secret $s$ to $n$ parties such that any authorized subset of parties $A\in\mathcal{A}$ can recover $s$ while all other subsets learn nothing about $s$. In this work, we study fully anonymous secret sharing (FASS), which strengthens standard secret sharing by requiring the following properties:
+
+- Share Anonymity. The shares belonging to any unauthorized set of parties not only hide the secret, but also all identifiable information such as party identities and whether or not the shares were generated together. In particular, it suffices that such shares be uniform and independent.
+
+- Anonymous Reconstruction. The reconstruction algorithm does not need to know the reconstructing set of parties.
+
+Efficient FASS exists for threshold access structures. For general access structures, the only known construction relies on a monotone DNF representation of $\mathcal{A}$ and has per-party share size $\Omega(\ell n)$ where $\ell$ is the number of minterms of $\mathcal{A}$. This leaves an exponential gap between standard secret sharing and FASS even for simple access structures. Moreover, even in the threshold case, known schemes could not achieve optimal robust reconstruction when mixing shares of multiple secrets. 
+
+Motivated by a recent work of Eldridge et al. [USENIX&#39;24], who demonstrated an application of FASS to stalker detection, we initiate a systematic study of FASS, obtaining the following main results.
+
+- Near-Optimal Information-Theoretic FASS. We obtain strong lower bounds, showing that the dependence on the DNF size is generally inherent. In particular, the share size can be exponential in the number of parties or even in the minimum CNF size. This stands in sharp contrast to standard secret sharing, where no super-polynomial lower bounds are known, and where the share size is upper bounded by the CNF size. For DNF with $\ell$ small minterms, we improve the previous upper bound to $\tilde O(\ell)$, matching our lower bound up to a polylogarithmic factor.
+
+- Computational FASS. We show that the above negative results can be circumvented in the computational setting, obtaining FASS schemes with succinct shares. Under the learning with errors (LWE) assumption, we present a general compiler from standard secret sharing to FASS that preserves the share size of the underlying scheme. For natural graph access structures, we directly construct succinct FASS from either one-way functions or bilinear maps.
+
+- Robust FASS. We show that simple modifications of our computational FASS schemes can allow for robust reconstruction of a polynomially unbounded number of secrets from any mixture of their authorized shares." />
+  <meta property="article:section" content="FOUNDATIONS" />
+  
+  <meta property="article:modified_time" content="2025-10-23T13:06:43+00:00" />
+  <meta property="article:published_time" content="2025-10-23T13:06:43+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="secret sharing" />
+  
+      <meta property="article:tag" content="anonymous" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2025/1984</h4>
+    <h3 class="mb-3"><a href="/2025/1984.pdf">Fully Anonymous Secret Sharing</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Allison Bishop</span><span class="affiliation">, Proof Trading</span><span class="affiliation">, City College, CUNY</span></div>
+    
+    
+    <div class="author"><span class="authorName">Matthew Green</span><span class="affiliation">, Johns Hopkins University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yuval Ishai</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0009-4096-6305"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Technion – Israel Institute of Technology</span><span class="affiliation">, AWS</span></div>
+    
+    
+    <div class="author"><span class="authorName">Abhishek Jain</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-3572-7643"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, NTT Research</span><span class="affiliation">, Johns Hopkins University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Paul Lou</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-8709-2205"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, University of California, Los Angeles</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">In a secret sharing scheme for a monotone access structure $\mathcal{A}:\{0,1\}^n\rightarrow \{0,1\}$, a dealer can share a secret $s$ to $n$ parties such that any authorized subset of parties $A\in\mathcal{A}$ can recover $s$ while all other subsets learn nothing about $s$. In this work, we study fully anonymous secret sharing (FASS), which strengthens standard secret sharing by requiring the following properties:
+
+- Share Anonymity. The shares belonging to any unauthorized set of parties not only hide the secret, but also all identifiable information such as party identities and whether or not the shares were generated together. In particular, it suffices that such shares be uniform and independent.
+
+- Anonymous Reconstruction. The reconstruction algorithm does not need to know the reconstructing set of parties.
+
+Efficient FASS exists for threshold access structures. For general access structures, the only known construction relies on a monotone DNF representation of $\mathcal{A}$ and has per-party share size $\Omega(\ell n)$ where $\ell$ is the number of minterms of $\mathcal{A}$. This leaves an exponential gap between standard secret sharing and FASS even for simple access structures. Moreover, even in the threshold case, known schemes could not achieve optimal robust reconstruction when mixing shares of multiple secrets. 
+
+Motivated by a recent work of Eldridge et al. [USENIX&#39;24], who demonstrated an application of FASS to stalker detection, we initiate a systematic study of FASS, obtaining the following main results.
+
+- Near-Optimal Information-Theoretic FASS. We obtain strong lower bounds, showing that the dependence on the DNF size is generally inherent. In particular, the share size can be exponential in the number of parties or even in the minimum CNF size. This stands in sharp contrast to standard secret sharing, where no super-polynomial lower bounds are known, and where the share size is upper bounded by the CNF size. For DNF with $\ell$ small minterms, we improve the previous upper bound to $\tilde O(\ell)$, matching our lower bound up to a polylogarithmic factor.
+
+- Computational FASS. We show that the above negative results can be circumvented in the computational setting, obtaining FASS schemes with succinct shares. Under the learning with errors (LWE) assumption, we present a general compiler from standard secret sharing to FASS that preserves the share size of the underlying scheme. For natural graph access structures, we directly construct succinct FASS from either one-way functions or bilinear maps.
+
+- Robust FASS. We show that simple modifications of our computational FASS schemes can allow for robust reconstruction of a polynomially unbounded number of secrets from any mixture of their authorized shares.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2025/1984.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=FOUNDATIONS"><small class="badge category category-FOUNDATIONS">Foundations</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>A minor revision of an IACR publication in CRYPTO 2025</dd>
+  
+      <dt>DOI</dt>
+        <dd><a href="https://doi.org/10.1007/978-3-032-01884-7_12" target="_blank" class="ms-1">10.1007/978-3-032-01884-7_12 <img src="/img/open-outline.svg" style="height:1.25rem;"></a></dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=secret%20sharing" class="me-2 badge bg-secondary keyword">secret sharing</a><a rel="nofollow" href="/search?q=anonymous" class="me-2 badge bg-secondary keyword">anonymous</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        allibishop<span class="obfuscate"> &#64; </span>gmail com<br>mgreen<span class="obfuscate"> &#64; </span>cs jhu edu<br>yuvali<span class="obfuscate"> &#64; </span>cs technion ac il<br>abhishek<span class="obfuscate"> &#64; </span>cs jhu edu<br>paul96lou<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2025-10-29: approved</dd>
+      
+      
+      
+      <dd>2025-10-23: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2025/1984">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2025/1984">https://ia.cr/2025/1984</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2025/1984,
+      author = {Allison Bishop and Matthew Green and Yuval Ishai and Abhishek Jain and Paul Lou},
+      title = {Fully Anonymous Secret Sharing},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2025/1984},
+      year = {2025},
+      doi = {10.1007/978-3-032-01884-7_12},
+      url = {https://eprint.iacr.org/2025/1984}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

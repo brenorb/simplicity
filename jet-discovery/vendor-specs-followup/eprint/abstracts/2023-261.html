@@ -1,0 +1,355 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>A Greedy Global Framework for Lattice Reduction Using Deep Insertions</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="A Greedy Global Framework for Lattice Reduction Using Deep Insertions">
+  
+  <meta name="citation_author" content="Sanjay Bhattacherjee">
+  
+  <meta name="citation_author" content="Julio Hernandez-Castro">
+  
+  <meta name="citation_author" content="Jack Moyler">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2023">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2023/261.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2023/261">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="A Greedy Global Framework for Lattice Reduction Using Deep Insertions" />
+  <meta property="og:description" content="LLL-style lattice reduction algorithms iteratively employ size reduction and reordering on ordered basis vectors to find progressively shorter, more orthogonal vectors. DeepLLL reorders the basis through deep insertions, yielding much shorter vectors than LLL. DeepLLL was introduced alongside BKZ, however, the latter has received greater attention and has emerged as the state-of-the-art. We first show that LLL-style algorithms work with a designated measure of basis quality and iteratively improves it; specifically, DeepLLL improves a sublattice measure based on the generalised Lovász condition. We then introduce a new generic framework X-GG for lattice reduction algorithms that work with a measure X of basis quality. X-GG globally searches for deep insertions that minimise X in each iteration. We instantiate the framework with two quality measures — basis potential (Pot) and squared sum (SS) — both of which have corresponding DeepLLL algorithms. We prove polynomial runtimes for our X-GG algorithms and also prove their output to be X-DeepLLL reduced. Our experiments on non-preprocessed bases show that X-GG produces better quality outputs whilst being much faster than the corresponding DeepLLL algorithms. We also compare SS-GG and the FPLLL implementation of BKZ with LLL-preprocessed bases. In small dimensions (40 to 210), SS-GG is significantly faster than BKZ with block sizes 8 to 12, while simultaneously also providing better output quality in most cases. In higher dimensions (250 and beyond), by varying the threshold $\delta$ for deep insertion, SS-GG offers new trade-offs between the output quality and runtime. On the one hand, it provides significantly better runtime than BKZ-5 with worse output quality; on the other hand, it is significantly faster than BKZ-21 while providing increasingly better output quality after around dimension 350." />
+  <meta property="article:section" content="FOUNDATIONS" />
+  
+  <meta property="article:modified_time" content="2024-10-31T15:36:16+00:00" />
+  <meta property="article:published_time" content="2023-02-22T17:21:31+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Lattice reduction" />
+  
+      <meta property="article:tag" content="LLL" />
+  
+      <meta property="article:tag" content="DeepLLL" />
+  
+      <meta property="article:tag" content="BKZ" />
+  
+      <meta property="article:tag" content="greedy global framework" />
+  
+      <meta property="article:tag" content="potential" />
+  
+      <meta property="article:tag" content="squared sum" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2023/261</h4>
+    <h3 class="mb-3"><a href="/2023/261.pdf">A Greedy Global Framework for Lattice Reduction Using Deep Insertions</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Sanjay Bhattacherjee</span><span class="affiliation">, University of Kent</span></div>
+    
+    
+    <div class="author"><span class="authorName">Julio Hernandez-Castro</span><span class="affiliation">, ETSISI, Universidad Politécnica de Madrid</span></div>
+    
+    
+    <div class="author"><span class="authorName">Jack Moyler</span><span class="affiliation">, University of Kent</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">LLL-style lattice reduction algorithms iteratively employ size reduction and reordering on ordered basis vectors to find progressively shorter, more orthogonal vectors. DeepLLL reorders the basis through deep insertions, yielding much shorter vectors than LLL. DeepLLL was introduced alongside BKZ, however, the latter has received greater attention and has emerged as the state-of-the-art. We first show that LLL-style algorithms work with a designated measure of basis quality and iteratively improves it; specifically, DeepLLL improves a sublattice measure based on the generalised Lovász condition. We then introduce a new generic framework X-GG for lattice reduction algorithms that work with a measure X of basis quality. X-GG globally searches for deep insertions that minimise X in each iteration. We instantiate the framework with two quality measures — basis potential (Pot) and squared sum (SS) — both of which have corresponding DeepLLL algorithms. We prove polynomial runtimes for our X-GG algorithms and also prove their output to be X-DeepLLL reduced. Our experiments on non-preprocessed bases show that X-GG produces better quality outputs whilst being much faster than the corresponding DeepLLL algorithms. We also compare SS-GG and the FPLLL implementation of BKZ with LLL-preprocessed bases. In small dimensions (40 to 210), SS-GG is significantly faster than BKZ with block sizes 8 to 12, while simultaneously also providing better output quality in most cases. In higher dimensions (250 and beyond), by varying the threshold $\delta$ for deep insertion, SS-GG offers new trade-offs between the output quality and runtime. On the one hand, it provides significantly better runtime than BKZ-5 with worse output quality; on the other hand, it is significantly faster than BKZ-21 while providing increasingly better output quality after around dimension 350.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2023/261.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=FOUNDATIONS"><small class="badge category category-FOUNDATIONS">Foundations</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Lattice%20reduction" class="me-2 badge bg-secondary keyword">Lattice reduction</a><a rel="nofollow" href="/search?q=LLL" class="me-2 badge bg-secondary keyword">LLL</a><a rel="nofollow" href="/search?q=DeepLLL" class="me-2 badge bg-secondary keyword">DeepLLL</a><a rel="nofollow" href="/search?q=BKZ" class="me-2 badge bg-secondary keyword">BKZ</a><a rel="nofollow" href="/search?q=greedy%20global%20framework" class="me-2 badge bg-secondary keyword">greedy global framework</a><a rel="nofollow" href="/search?q=potential" class="me-2 badge bg-secondary keyword">potential</a><a rel="nofollow" href="/search?q=squared%20sum" class="me-2 badge bg-secondary keyword">squared sum</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        s bhattacherjee<span class="obfuscate"> &#64; </span>kent ac uk<br>jc hernandez castro<span class="obfuscate"> &#64; </span>upm es<br>jdm58<span class="obfuscate"> &#64; </span>kent ac uk
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2024-10-31: last of 3 revisions</dd>
+      
+      
+      
+      <dd>2023-02-22: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2023/261">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2023/261">https://ia.cr/2023/261</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY_NC_ND.svg" alt="Creative Commons Attribution-NonCommercial-NoDerivs" title="Creative Commons Attribution-NonCommercial-NoDerivs"><br>
+        <small>CC BY-NC-ND</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2023/261,
+      author = {Sanjay Bhattacherjee and Julio Hernandez-Castro and Jack Moyler},
+      title = {A Greedy Global Framework for Lattice Reduction Using Deep Insertions},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2023/261},
+      year = {2023},
+      url = {https://eprint.iacr.org/2023/261}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Cryptography with Weights: MPC, Encryption and Signatures</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Cryptography with Weights: MPC, Encryption and Signatures">
+  
+  <meta name="citation_author" content="Sanjam Garg">
+  
+  <meta name="citation_author" content="Abhishek Jain">
+  
+  <meta name="citation_author" content="Pratyay Mukherjee">
+  
+  <meta name="citation_author" content="Rohit Sinha">
+  
+  <meta name="citation_author" content="Mingyuan Wang">
+  
+  <meta name="citation_author" content="Yinuo Zhang">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2022">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2022/1632.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2022/1632">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Cryptography with Weights: MPC, Encryption and Signatures" />
+  <meta property="og:description" content="The security of several cryptosystems rests on the trust assumption that a certain fraction of the parties are honest. This trust assumption has enabled a diverse of cryptographic applications such as secure multiparty computation, threshold encryption, and threshold signatures. However, current and emerging practical use cases suggest that this paradigm of
+one-person-one-vote is outdated.
+
+In this work, we consider {\em weighted} cryptosystems where every party is assigned a certain weight and the trust assumption is that a certain fraction of the total weight is honest. This setting can be translated to the standard setting (where each party has a unit weight) via virtualization. However, this method is quite expensive, incurring a multiplicative overhead in the weight.
+
+We present new weighted cryptosystems with significantly better efficiency. Specifically, our proposed schemes incur only an {\em additive} overhead in weights.
+
+\begin{itemize}
+    \item We first present a weighted ramp secret-sharing scheme where the size of the secret share is as short as $O(w)$ (where $w$ corresponds to the weight). In comparison, Shamir&#39;s secret sharing with virtualization requires secret shares of size $w\cdot\lambda$, where $\lambda=\log |\mathbb{F}|$ is the security parameter.
+    \item Next, we use our weighted secret-sharing scheme to construct weighted versions of (semi-honest) secure multiparty computation (MPC), threshold encryption, and threshold signatures. All these schemes inherit the efficiency of our secret sharing scheme and incur only an additive overhead in the weights. 
+\end{itemize}
+
+Our weighted secret-sharing scheme is based on the Chinese remainder theorem. Interestingly, this secret-sharing scheme is {\em non-linear} and only achieves statistical privacy. These distinct features introduce several technical hurdles in applications to MPC and threshold cryptosystems. We resolve these challenges by developing several new ideas." />
+  <meta property="article:section" content="FOUNDATIONS" />
+  
+  <meta property="article:modified_time" content="2023-06-27T13:45:53+00:00" />
+  <meta property="article:published_time" content="2022-11-24T05:38:34+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="weighted secret sharing" />
+  
+      <meta property="article:tag" content="mpc" />
+  
+      <meta property="article:tag" content="threshold decryption" />
+  
+      <meta property="article:tag" content="threshold signature" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2022/1632</h4>
+    <h3 class="mb-3"><a href="/2022/1632.pdf">Cryptography with Weights: MPC, Encryption and Signatures</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Sanjam Garg</span><span class="affiliation">, NTT Research</span><span class="affiliation">, University of California, Berkeley</span></div>
+    
+    
+    <div class="author"><span class="authorName">Abhishek Jain</span><span class="affiliation">, Johns Hopkins University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Pratyay Mukherjee</span><span class="affiliation">, SupraOracles</span></div>
+    
+    
+    <div class="author"><span class="authorName">Rohit Sinha</span><span class="affiliation">, Meta</span></div>
+    
+    
+    <div class="author"><span class="authorName">Mingyuan Wang</span><span class="affiliation">, University of California, Berkeley</span></div>
+    
+    
+    <div class="author"><span class="authorName">Yinuo Zhang</span><span class="affiliation">, University of California, Berkeley</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">The security of several cryptosystems rests on the trust assumption that a certain fraction of the parties are honest. This trust assumption has enabled a diverse of cryptographic applications such as secure multiparty computation, threshold encryption, and threshold signatures. However, current and emerging practical use cases suggest that this paradigm of
+one-person-one-vote is outdated.
+
+In this work, we consider {\em weighted} cryptosystems where every party is assigned a certain weight and the trust assumption is that a certain fraction of the total weight is honest. This setting can be translated to the standard setting (where each party has a unit weight) via virtualization. However, this method is quite expensive, incurring a multiplicative overhead in the weight.
+
+We present new weighted cryptosystems with significantly better efficiency. Specifically, our proposed schemes incur only an {\em additive} overhead in weights.
+
+\begin{itemize}
+    \item We first present a weighted ramp secret-sharing scheme where the size of the secret share is as short as $O(w)$ (where $w$ corresponds to the weight). In comparison, Shamir&#39;s secret sharing with virtualization requires secret shares of size $w\cdot\lambda$, where $\lambda=\log |\mathbb{F}|$ is the security parameter.
+    \item Next, we use our weighted secret-sharing scheme to construct weighted versions of (semi-honest) secure multiparty computation (MPC), threshold encryption, and threshold signatures. All these schemes inherit the efficiency of our secret sharing scheme and incur only an additive overhead in the weights. 
+\end{itemize}
+
+Our weighted secret-sharing scheme is based on the Chinese remainder theorem. Interestingly, this secret-sharing scheme is {\em non-linear} and only achieves statistical privacy. These distinct features introduce several technical hurdles in applications to MPC and threshold cryptosystems. We resolve these challenges by developing several new ideas.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2022/1632.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=FOUNDATIONS"><small class="badge category category-FOUNDATIONS">Foundations</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>A minor revision of an IACR publication in CRYPTO 2023</dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=weighted%20secret%20sharing" class="me-2 badge bg-secondary keyword">weighted secret sharing</a><a rel="nofollow" href="/search?q=mpc" class="me-2 badge bg-secondary keyword">mpc</a><a rel="nofollow" href="/search?q=threshold%20decryption" class="me-2 badge bg-secondary keyword">threshold decryption</a><a rel="nofollow" href="/search?q=threshold%20signature" class="me-2 badge bg-secondary keyword">threshold signature</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        sanjamg<span class="obfuscate"> &#64; </span>berkeley edu<br>abhishek<span class="obfuscate"> &#64; </span>cs jhu edu<br>pratyay85<span class="obfuscate"> &#64; </span>gmail com<br>sinharo<span class="obfuscate"> &#64; </span>gmail com<br>mingyuan<span class="obfuscate"> &#64; </span>berkeley edu<br>yinuo<span class="obfuscate"> &#64; </span>berkeley edu
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2023-06-27: revised</dd>
+      
+      
+      
+      <dd>2022-11-24: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2022/1632">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2022/1632">https://ia.cr/2022/1632</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2022/1632,
+      author = {Sanjam Garg and Abhishek Jain and Pratyay Mukherjee and Rohit Sinha and Mingyuan Wang and Yinuo Zhang},
+      title = {Cryptography with Weights: {MPC}, Encryption and Signatures},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2022/1632},
+      year = {2022},
+      url = {https://eprint.iacr.org/2022/1632}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

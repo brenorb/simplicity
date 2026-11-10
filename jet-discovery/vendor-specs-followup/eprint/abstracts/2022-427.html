@@ -1,0 +1,373 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Constant Size Secret Sharing: with General Thresholds, Towards Standard Assumptions, and Applications</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="Constant Size Secret Sharing: with General Thresholds, Towards Standard Assumptions, and Applications">
+  
+  <meta name="citation_author" content="Katarzyna Kapusta">
+  
+  <meta name="citation_author" content="Matthieu Rambaud">
+  
+  <meta name="citation_author" content="Ferdinand Sibleyras">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2022">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2022/427.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2022/427">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="Constant Size Secret Sharing: with General Thresholds, Towards Standard Assumptions, and Applications" />
+  <meta property="og:description" content="We consider threshold Computational Secret Sharing Schemes, i.e., such that the secret can be recovered from any $t+1$ out of $n$ shares, and such that no computationally bounded adversary can distinguish between $t$ shares of a chosen secret and a uniform string.
+We say that such a scheme has Constant Size (CSSS) if, in the asymptotic regime of many shares of small size the security parameter, then the total size of shares reaches the minimum, which is the size of an erasures-correction encoding of the secret with same threshold.
+But all CSSS so far have only maximum threshold, i.e., $t=n-1$.
+They are known as All Or Nothing Transforms (AONT).
+On the other hand, for arbitrary thresholds $t&lt;n-1$, the shortest scheme known so far is [Kra93, Crypto], which has instead twice larger size in the previous regime, due to a size overhead of $n$ times the security parameter.
+The other limitation of known CSSS is that they require a number of calls to idealized primitives which grows linearly with the size of the secret.
+
+Our first contribution is to show that the CSSS of [Des00, Crypto], which holds under the ideal cipher assumption, looses its privacy when instantiated with a plain pseudorandom permutation.
+
+Our main contribution is a scheme which: is the first CSSS for any threshold $t$, and furthermore, whose security holds, for the first time, under any plain pseudorandom function, with the only idealized assumption being in the key-derivation function.
+It is based on the possibly new observation that the scheme of [Des00] can be seen as an additive secret-sharing of an encryption key, using the ciphertext itself as a source of randomness.
+
+A variation of our construction enables to improve upon known schemes, that we denote as Encryption into Shares with Resilience against Key exposure (ESKE), having the property that all ciphertext blocks are needed to obtain any information, even when the key is leaked.
+We obtain the first ESKE with arbitrary threshold $t$ and constant size, furthermore in one pass of encryption.
+Also, for the first time, the only idealized assumption is in the key-derivation.
+
+Then, we demonstrate how to establish fast revocable storage on an untrusted server, from any black box ESKE.
+Instantiated with our ESKE, then encryption and decryption both require only $1$ pass of symmetric primitives under standard assumptions (except the key-derivation), compared to at least $2$ consecutive passes in [MS18, CT-RSA] and more in [Bac+16, CCS].
+
+We finally bridge the gap between two conflicting specifications of AONT in the literature: one very similar to CSSS, which has indistinguishability, and one which has not." />
+  <meta property="article:section" content="" />
+  
+  <meta property="article:modified_time" content="2022-04-06T13:04:45+00:00" />
+  <meta property="article:published_time" content="2022-04-06T13:04:45+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="secret sharing" />
+  
+      <meta property="article:tag" content="pseudo-randomness" />
+  
+      <meta property="article:tag" content="secret-key cryptography" />
+  
+      <meta property="article:tag" content="threshold cryptography" />
+  
+      <meta property="article:tag" content="key management" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2022/427</h4>
+    <h3 class="mb-3"><a href="/2022/427.pdf">Constant Size Secret Sharing: with General Thresholds, Towards Standard Assumptions, and Applications</a></h3>
+     
+    <p class="fst-italic mb-3">
+      Katarzyna Kapusta, Matthieu Rambaud, and Ferdinand Sibleyras
+    </p>
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">We consider threshold Computational Secret Sharing Schemes, i.e., such that the secret can be recovered from any $t+1$ out of $n$ shares, and such that no computationally bounded adversary can distinguish between $t$ shares of a chosen secret and a uniform string.
+We say that such a scheme has Constant Size (CSSS) if, in the asymptotic regime of many shares of small size the security parameter, then the total size of shares reaches the minimum, which is the size of an erasures-correction encoding of the secret with same threshold.
+But all CSSS so far have only maximum threshold, i.e., $t=n-1$.
+They are known as All Or Nothing Transforms (AONT).
+On the other hand, for arbitrary thresholds $t&lt;n-1$, the shortest scheme known so far is [Kra93, Crypto], which has instead twice larger size in the previous regime, due to a size overhead of $n$ times the security parameter.
+The other limitation of known CSSS is that they require a number of calls to idealized primitives which grows linearly with the size of the secret.
+
+Our first contribution is to show that the CSSS of [Des00, Crypto], which holds under the ideal cipher assumption, looses its privacy when instantiated with a plain pseudorandom permutation.
+
+Our main contribution is a scheme which: is the first CSSS for any threshold $t$, and furthermore, whose security holds, for the first time, under any plain pseudorandom function, with the only idealized assumption being in the key-derivation function.
+It is based on the possibly new observation that the scheme of [Des00] can be seen as an additive secret-sharing of an encryption key, using the ciphertext itself as a source of randomness.
+
+A variation of our construction enables to improve upon known schemes, that we denote as Encryption into Shares with Resilience against Key exposure (ESKE), having the property that all ciphertext blocks are needed to obtain any information, even when the key is leaked.
+We obtain the first ESKE with arbitrary threshold $t$ and constant size, furthermore in one pass of encryption.
+Also, for the first time, the only idealized assumption is in the key-derivation.
+
+Then, we demonstrate how to establish fast revocable storage on an untrusted server, from any black box ESKE.
+Instantiated with our ESKE, then encryption and decryption both require only $1$ pass of symmetric primitives under standard assumptions (except the key-derivation), compared to at least $2$ consecutive passes in [MS18, CT-RSA] and more in [Bac+16, CCS].
+
+We finally bridge the gap between two conflicting specifications of AONT in the literature: one very similar to CSSS, which has indistinguishability, and one which has not.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2022/427.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=secret%20sharing" class="me-2 badge bg-secondary keyword">secret sharing</a><a rel="nofollow" href="/search?q=pseudo-randomness" class="me-2 badge bg-secondary keyword">pseudo-randomness</a><a rel="nofollow" href="/search?q=secret-key%20cryptography" class="me-2 badge bg-secondary keyword">secret-key cryptography</a><a rel="nofollow" href="/search?q=threshold%20cryptography" class="me-2 badge bg-secondary keyword">threshold cryptography</a><a rel="nofollow" href="/search?q=key%20management" class="me-2 badge bg-secondary keyword">key management</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        matthieu rambaud<span class="obfuscate"> &#64; </span>telecom-paris fr
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2022-04-06: received</dd>
+      
+      
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2022/427">https://ia.cr/2022/427</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2022/427,
+      author = {Katarzyna Kapusta and Matthieu Rambaud and Ferdinand Sibleyras},
+      title = {Constant Size Secret Sharing: with General Thresholds, Towards Standard Assumptions, and Applications},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2022/427},
+      year = {2022},
+      url = {https://eprint.iacr.org/2022/427}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

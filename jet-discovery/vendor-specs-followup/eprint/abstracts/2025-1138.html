@@ -1,0 +1,359 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>ZK-NR: A Layered Cryptographic Architecture for  Explainable Non-Repudiation</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="ZK-NR: A Layered Cryptographic Architecture for  Explainable Non-Repudiation">
+  
+  <meta name="citation_author" content="Thierry Emmanuel MINKA MI NGUIDJOI">
+  
+  <meta name="citation_author" content="MANI ONANA Flavien Serge">
+  
+  <meta name="citation_author" content="DJOTIO NDIÉ Thomas">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2025">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2025/1138.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2025/1138">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="ZK-NR: A Layered Cryptographic Architecture for  Explainable Non-Repudiation" />
+  <meta property="og:description" content="This paper introduces ZK-NR, a modular cryptographic protocol designed to ensure privacy-preserving non-repudiation in the co-production of digital public services. By integrating Merkle commitments, zero-knowledge proofs (STARKs), threshold BLS signatures, and post-quantum Dilithium authentication, ZK-NR enables the creation of secure, verifiable, and auditable evidence across decentralized infrastructures. Unlike traditional digital signatures or blockchain-based logs, ZK-NR provides formally verifiable attestations without disclosing sensitive content, making it suitable for public finance, e-government, and regulated digital ecosystems. The protocol is modeled in Tamarin and implemented as a proof-of-concept using open cryptographic tools. This contribution offers a reproducible foundation for future infrastructures requiring long-term trust, data minimization, and legal admissibility, particularly in contexts where citizens and institutions share responsibility for digital evidence. ZK-NR addresses the tension between confidentiality and accountability, providing an interoperable and future-ready layer for trustworthy public service delivery.
+This preliminary work focuses on architectural composition and implementation feasibility. It does not include formal security proofs." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2025-06-16T19:55:21+00:00" />
+  <meta property="article:published_time" content="2025-06-16T19:55:21+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Non-Repudiation" />
+  
+      <meta property="article:tag" content="Post-Quantum Crypto" />
+  
+      <meta property="article:tag" content="Merkle" />
+  
+      <meta property="article:tag" content="STARKs" />
+  
+      <meta property="article:tag" content="Signatures" />
+  
+      <meta property="article:tag" content="Tamarin" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2025/1138</h4>
+    <h3 class="mb-3"><a href="/2025/1138.pdf">ZK-NR: A Layered Cryptographic Architecture for  Explainable Non-Repudiation</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Thierry Emmanuel MINKA MI NGUIDJOI</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-4901-8626"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, National Advanced School of Engineering,  University of Yaoundé I, Cameroon</span></div>
+    
+    
+    <div class="author"><span class="authorName">MANI ONANA Flavien Serge</span><span class="affiliation">, National Advanced School of Engineering,  University of Yaoundé I, Cameroon</span></div>
+    
+    
+    <div class="author"><span class="authorName">DJOTIO NDIÉ Thomas</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0002-6300-6237"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, National Advanced School of Engineering,  University of Yaoundé I, Cameroon</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">This paper introduces ZK-NR, a modular cryptographic protocol designed to ensure privacy-preserving non-repudiation in the co-production of digital public services. By integrating Merkle commitments, zero-knowledge proofs (STARKs), threshold BLS signatures, and post-quantum Dilithium authentication, ZK-NR enables the creation of secure, verifiable, and auditable evidence across decentralized infrastructures. Unlike traditional digital signatures or blockchain-based logs, ZK-NR provides formally verifiable attestations without disclosing sensitive content, making it suitable for public finance, e-government, and regulated digital ecosystems. The protocol is modeled in Tamarin and implemented as a proof-of-concept using open cryptographic tools. This contribution offers a reproducible foundation for future infrastructures requiring long-term trust, data minimization, and legal admissibility, particularly in contexts where citizens and institutions share responsibility for digital evidence. ZK-NR addresses the tension between confidentiality and accountability, providing an interoperable and future-ready layer for trustworthy public service delivery.
+This preliminary work focuses on architectural composition and implementation feasibility. It does not include formal security proofs.</p>
+  
+    <p><strong>Note:</strong> This report introduces the ZK-NR protocol as a layered cryptographic architecture for explainable non-repudiation. It includes practical artefacts for role-based signing, Merkle commitment, and STARK proof generation. The supplementary file zk-nr_sup_mat.zip contains all implementation scripts, logs, and instructions required to replicate the setup described in Section 4 and Appendix A.
+
+Note: This manuscript precedes a series of more formal documents currently under preparation, including UC-composable security proofs and symbolic verification with Tamarin. Those will be made available in separate submissions.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2025/1138.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Non-Repudiation" class="me-2 badge bg-secondary keyword">Non-Repudiation</a><a rel="nofollow" href="/search?q=Post-Quantum%20Crypto" class="me-2 badge bg-secondary keyword">Post-Quantum Crypto</a><a rel="nofollow" href="/search?q=Merkle" class="me-2 badge bg-secondary keyword">Merkle</a><a rel="nofollow" href="/search?q=STARKs" class="me-2 badge bg-secondary keyword">STARKs</a><a rel="nofollow" href="/search?q=Signatures" class="me-2 badge bg-secondary keyword">Signatures</a><a rel="nofollow" href="/search?q=Tamarin" class="me-2 badge bg-secondary keyword">Tamarin</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        minkathierry<span class="obfuscate"> &#64; </span>gmail com<br>serge mani<span class="obfuscate"> &#64; </span>digitworldacademy com<br>tdjotio<span class="obfuscate"> &#64; </span>gmail com
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2025-06-17: approved</dd>
+      
+      
+      
+      <dd>2025-06-16: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2025/1138">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2025/1138">https://ia.cr/2025/1138</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2025/1138,
+      author = {Thierry Emmanuel MINKA MI NGUIDJOI and MANI ONANA Flavien Serge and DJOTIO NDIÉ Thomas},
+      title = {{ZK}-{NR}: A Layered Cryptographic Architecture for  Explainable Non-Repudiation},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2025/1138},
+      year = {2025},
+      url = {https://eprint.iacr.org/2025/1138}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

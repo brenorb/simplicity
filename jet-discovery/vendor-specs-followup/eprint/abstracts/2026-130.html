@@ -1,0 +1,373 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>ARES: Online-Friendly Robust Threshold ECDSA with Amortized Costs</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="ARES: Online-Friendly Robust Threshold ECDSA with Amortized Costs">
+  
+  <meta name="citation_author" content="Guofeng Tang">
+  
+  <meta name="citation_author" content="Tian Qiu">
+  
+  <meta name="citation_author" content="Bowen Jiang">
+  
+  <meta name="citation_author" content="Haiyang Xue">
+  
+  <meta name="citation_author" content="Meng Hao">
+  
+  <meta name="citation_author" content="Guomin Yang">
+  
+  <meta name="citation_author" content="Robert H. Deng">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2026">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2026/130.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2026/130">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="ARES: Online-Friendly Robust Threshold ECDSA with Amortized Costs" />
+  <meta property="og:description" content="Threshold ECDSA has been an active research topic in recent years, driven by its wide-ranging applications, particularly in blockchain domains. In these real-world applications, robustness is a critical requirement. It ensures that a signature is successfully generated as long as $t+1$ honest parties are present, regardless of malicious behavior from others. Existing robust constructions generally fall into two categories: those based on threshold linearly homomorphic encryption (TLHE) and those leveraging the Multiplicative-to-Additive (MtA) paradigm. The TLHE-based approach (e.g., WMC24 in NDSS&#39;24) achieves constant sending communication per party but incurs an expensive online phase. In contrast, the MtA-based approach (e.g., TX25 in S\&amp;P&#39;25) is online-friendly, requiring only elliptic-curve group operations during the online phase. However, it has the drawback of requiring $O(n)$ sending communication per party when $n$ parties are involved. 
+
+In this work, we propose ARES, a robust threshold ECDSA scheme designed to reduce both communication and computational overhead within the online-friendly MtA framework. To improve the communication efficiency of TX25, we propose verifiable non-interactive multiplication (VNIM), a new primitive which endows standard non-interactive multiplication with public verifiability. Simultaneously, we leverage super-invertible matrices and packed secret sharing to amortize the overall costs. Specifically, when setting the packing parameter of packed secret sharing to $\ell = 1$ (i.e., without secret packing), ARES exhibits linear communication complexity while already achieving an approximately $50\%$ improvement over TX25. When configuring $\ell = t/3$ with $t \ge 12$, ARES achieves lower communication overhead than WMC24, requiring a constant $\approx 4.5\text{ KB}$ per party. Furthermore, setting $\ell = t/2$ reduces the amortized communication cost to roughly $3\text{ KB}$ per party. On the other hand, amortizing across $\ell$ signatures incurs a trade-off by increasing the required party size by $\ell$." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2026-08-26T03:49:30+00:00" />
+  <meta property="article:published_time" content="2026-01-27T08:54:40+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Threshold ECDSA" />
+  
+      <meta property="article:tag" content="Robustness" />
+  
+      <meta property="article:tag" content="Verifiable NIM" />
+  
+      <meta property="article:tag" content="Packed secret sharing" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2026/130</h4>
+    <h3 class="mb-3"><a href="/2026/130.pdf">ARES: Online-Friendly Robust Threshold ECDSA with Amortized Costs</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Guofeng Tang</span><span class="affiliation">, Singapore Management University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Tian Qiu</span><span class="affiliation">, Nanyang Technological University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Bowen Jiang</span><span class="affiliation">, Singapore Management University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Haiyang Xue</span><span class="affiliation">, Singapore Management University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Meng Hao</span><span class="affiliation">, Singapore Management University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Guomin Yang</span><span class="affiliation">, Singapore Management University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Robert H. Deng</span><span class="affiliation">, Singapore Management University</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">Threshold ECDSA has been an active research topic in recent years, driven by its wide-ranging applications, particularly in blockchain domains. In these real-world applications, robustness is a critical requirement. It ensures that a signature is successfully generated as long as $t+1$ honest parties are present, regardless of malicious behavior from others. Existing robust constructions generally fall into two categories: those based on threshold linearly homomorphic encryption (TLHE) and those leveraging the Multiplicative-to-Additive (MtA) paradigm. The TLHE-based approach (e.g., WMC24 in NDSS&#39;24) achieves constant sending communication per party but incurs an expensive online phase. In contrast, the MtA-based approach (e.g., TX25 in S\&amp;P&#39;25) is online-friendly, requiring only elliptic-curve group operations during the online phase. However, it has the drawback of requiring $O(n)$ sending communication per party when $n$ parties are involved. 
+
+In this work, we propose ARES, a robust threshold ECDSA scheme designed to reduce both communication and computational overhead within the online-friendly MtA framework. To improve the communication efficiency of TX25, we propose verifiable non-interactive multiplication (VNIM), a new primitive which endows standard non-interactive multiplication with public verifiability. Simultaneously, we leverage super-invertible matrices and packed secret sharing to amortize the overall costs. Specifically, when setting the packing parameter of packed secret sharing to $\ell = 1$ (i.e., without secret packing), ARES exhibits linear communication complexity while already achieving an approximately $50\%$ improvement over TX25. When configuring $\ell = t/3$ with $t \ge 12$, ARES achieves lower communication overhead than WMC24, requiring a constant $\approx 4.5\text{ KB}$ per party. Furthermore, setting $\ell = t/2$ reduces the amortized communication cost to roughly $3\text{ KB}$ per party. On the other hand, amortizing across $\ell$ signatures incurs a trade-off by increasing the required party size by $\ell$.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2026/130.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Threshold%20ECDSA" class="me-2 badge bg-secondary keyword">Threshold ECDSA</a><a rel="nofollow" href="/search?q=Robustness" class="me-2 badge bg-secondary keyword">Robustness</a><a rel="nofollow" href="/search?q=Verifiable%20NIM" class="me-2 badge bg-secondary keyword">Verifiable NIM</a><a rel="nofollow" href="/search?q=Packed%20secret%20sharing" class="me-2 badge bg-secondary keyword">Packed secret sharing</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        tang guofeng789<span class="obfuscate"> &#64; </span>gmail com<br>qtautumn6<span class="obfuscate"> &#64; </span>gmail com<br>bowen jiang 2024<span class="obfuscate"> &#64; </span>phdcs smu edu sg<br>haiyangxc<span class="obfuscate"> &#64; </span>gmail com<br>menghao303<span class="obfuscate"> &#64; </span>gmail com<br>gmyang<span class="obfuscate"> &#64; </span>smu edu sg<br>robertdeng<span class="obfuscate"> &#64; </span>smu edu sg
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-08-26: last of 2 revisions</dd>
+      
+      
+      
+      <dd>2026-01-27: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2026/130">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2026/130">https://ia.cr/2026/130</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2026/130,
+      author = {Guofeng Tang and Tian Qiu and Bowen Jiang and Haiyang Xue and Meng Hao and Guomin Yang and Robert H. Deng},
+      title = {{ARES}: Online-Friendly Robust Threshold {ECDSA} with Amortized Costs},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2026/130},
+      year = {2026},
+      url = {https://eprint.iacr.org/2026/130}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>

@@ -1,0 +1,368 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="/css/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>TSS-PV: Traceable Secret Sharing with Public Verifiability</title>
+    <link rel="stylesheet" href="/css/eprint.css?v=10">
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon-180x180.png" />
+    <meta name="tdm-reservation" content="1">
+    
+<style>
+  a.toggle-open:after {
+  content:' -';
+  font-weight: 800;
+  }
+  a.toggle-closed:after {
+  content: " ›";
+  font-weight: 800;
+  }
+  .paper-abstract {
+     white-space: pre-wrap;
+  }
+  #metadata dt {
+    margin-top: 1rem;
+  }
+  #metadata dt + dd { /* gap between dt and first dd */
+    margin-top: .75rem;
+  }
+  #metadata dd {
+    margin-left: 2rem;
+  }
+  #metadata dd.keywords {
+    padding-bottom: .5rem;
+  }
+  span.authorName {
+    margin-top: .5rem;
+    font-style: italic;
+  }
+</style>
+
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEnvironments: false
+    },
+    loader: {
+        load: [
+            "ui/safe",
+            "ui/lazy",
+        ],
+    },
+    options: {
+        safeOptions: {
+        allow: {
+            URLs: "none",
+            classes: "safe",
+            cssIDs: "safe",
+            styles: "safe",
+        },
+        },
+    }
+    };
+</script>
+
+<script id="MathJax-script" async src="/js/mathjax/tex-chtml.js"></script>
+
+
+  <meta name="citation_title" content="TSS-PV: Traceable Secret Sharing with Public Verifiability">
+  
+  <meta name="citation_author" content="Duc Anh Luong">
+  
+  <meta name="citation_author" content="Jong Hwan Park">
+  
+  <meta name="citation_author" content="Changmin Lee">
+  
+  <meta name="citation_author" content="Hyoseung Kim">
+  
+  <meta name="citation_journal_title" content="Cryptology ePrint Archive">
+  <meta name="citation_publication_date" content="2025">
+  
+  <meta name="citation_pdf_url" content="https://eprint.iacr.org/2025/2261.pdf">
+  
+
+
+  
+  <meta property="og:image" content="https://eprint.iacr.org/img/iacrlogo.png"/>
+  <meta property="og:image:alt" content="IACR logo"/>
+  <meta property="og:url" content="https://eprint.iacr.org/2025/2261">
+  <meta property="og:site_name" content="IACR Cryptology ePrint Archive" />
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:title" content="TSS-PV: Traceable Secret Sharing with Public Verifiability" />
+  <meta property="og:description" content="High-value custodial systems require both Public Verifiability  to audit key distribution and Traceability to identify insider leakage via black-box \textit{reconstruction boxes}. Existing schemes achieve one property but not both, leaving practical systems exposed to either undetectable dealer misbehavior or untraceable share leakage. Combining these properties introduces the Provenance Paradox: a verifiability-aware reconstruction box with access to verification predicates and public transcripts can reject dummy shares used for tracing because they have no provenance in the public transcript.
+
+We present TSS-PV, the first publicly verifiable traceable secret sharing scheme that resolves this paradox. Our key insight is to inject indistinguishable dummy shares during the sharing phase itself, ensuring they are committed to the public transcript before any reconstruction box is constructed. We formalize syntax and security under a modular adversarial model: public verifiability holds against fully malicious dealers and parties; traceability identifies leaking parties after honest distribution; and non-imputability prevents a malicious dealer from framing honest parties. Both tracing properties assume a verifiability-aware perfect reconstruction box.
+
+We instantiate TSS-PV over cyclic groups using Schnorr-based NIZKs including a new $\Sigma$-protocol for power-chain relations and a recent generic tracing framework (CRYPTO&#39;24). Public verification costs scale linearly in the number of parties; tracing costs are quadratic. A Curve25519 prototype on commodity hardware demonstrates practicality: for $32\text{ - }256$ parties, distribution verification completes in $\approx 14\text{ - }107$ ms, tracing in $\approx0.23\text{ - }78$ s, and trace verification in $\approx 0.13\text{ - }26$ s." />
+  <meta property="article:section" content="PROTOCOLS" />
+  
+  <meta property="article:modified_time" content="2026-06-16T04:03:04+00:00" />
+  <meta property="article:published_time" content="2025-12-16T15:35:22+00:00" />
+  
+  
+  
+      <meta property="article:tag" content="Traceable Secret Sharing" />
+  
+      <meta property="article:tag" content="Accountability" />
+  
+      <meta property="article:tag" content="Verifiability" />
+  
+      <meta property="article:tag" content="Threshold" />
+  
+      <meta property="article:tag" content="Traitor" />
+  
+      <meta property="article:tag" content="Blackbox" />
+  
+      <meta property="article:tag" content="MPC" />
+  
+  
+
+  </head>
+
+  <body>
+    <noscript>
+      <h1 class="text-center">What a lovely hat</h1>
+      <h4 class="text-center">Is it made out of <a href="https://iacr.org/tinfoil.html">tin foil</a>?</h4>
+    </noscript>
+    <div class="fixed-top" id="topNavbar">
+      <nav class="navbar navbar-custom navbar-expand-lg">
+        <div class="container px-0 justify-content-between justify-content-lg-evenly">
+          <div class="order-0 align-items-center d-flex">
+            <button class="navbar-toggler btnNoOutline" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
+              <span class="icon-bar top-bar"></span>
+              <span class="icon-bar middle-bar"></span>
+              <span class="icon-bar bottom-bar"></span>
+            </button>
+            <a class="d-none me-5 d-lg-inline" href="https://iacr.org/"><img class="iacrlogo" src="/img/iacrlogo_small.png" alt="IACR Logo" style="max-width:6rem;"></a>
+          </div>
+          <a class="ePrintname order-1" href="/">
+            <span class="longNavName">Cryptology ePrint Archive</span>
+          </a>
+          <div class="collapse navbar-collapse order-3" id="navbarContent">
+            <ul class="navbar-nav me-auto ms-2 mb-2 mb-lg-0 justify-content-end w-100">
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Papers
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="navbarDropdown">
+                  <span class="text-dark mx-3" style="white-space:nowrap;">Updates from the last:</span>
+                  <li><a class="dropdown-item ps-custom" href="/days/7">7 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/31">31 days</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/183">6 months</a></li>
+                  <li><a class="dropdown-item ps-custom" href="/days/365">365 days</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/byyear">Listing by year</a></li>
+                  <li><a class="dropdown-item" href="/complete">All papers</a></li>
+                  <li><a class="dropdown-item" href="/complete/compact">Compact view</a></li>
+                  <li><a class="dropdown-item" href="https://www.iacr.org/news/subscribe">Subscribe</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/citation.html">How to cite</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/rss">Harvesting metadata</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="submissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Submissions
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="submissionsDropdown">
+                  <li><a class="dropdown-item" href="/submit">Submit a paper</a></li>
+                  <li><a class="dropdown-item" href="/revise">Revise or withdraw a paper</a></li>
+                  <li><a class="dropdown-item" href="/operations.html">Acceptance and publishing conditions</a></li>
+                </ul>
+              </li>
+              <li class="ps-md-3 nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  About
+                </a>
+                <ul class="dropdown-menu me-3" aria-labelledby="aboutDropdown">
+                  <li><a class="dropdown-item" href="/about.html">Goals and history</a></li>
+                  <li><a class="dropdown-item" href="/news.html">News</a></li>
+                  <li><a class="dropdown-item" href="/stats">Statistics</a></li>
+                  <li><a class="dropdown-item" href="/contact.html">Contact</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown ps-md-2 text-right order-2 order-lg-last">
+            <button class="btn btnNoOutline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/img/search.svg" class="searchIcon" alt="Search Button"/>
+            </button>
+            <div id="searchDd" class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="dropdownMenuButton1">
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input id="searchbox" name="q" type="search" class="form-control" autocomplete="off">
+                  <button class="btn btn-secondary border input-group-append ml-2">
+                    Search
+                  </button>
+                </div>
+              </form>
+              <div class="ms-2 p-1 d-none"><a href="/search">Advanced search</a></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <main id="eprintContent" class="container px-3 py-4 p-md-4">
+
+<div class="row mt-4">
+  <div class="col-md-7 col-lg-8 pe-md-5">
+    
+    <h4>Paper 2025/2261</h4>
+    <h3 class="mb-3"><a href="/2025/2261.pdf">TSS-PV: Traceable Secret Sharing with Public Verifiability</a></h3>
+    
+    
+    
+    <div class="author"><span class="authorName">Duc Anh Luong</span><a class="ms-1" target="_blank" href="https://orcid.org/0009-0009-4198-6586"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Korea University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Jong Hwan Park</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-2742-6119"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Sangmyung University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Changmin Lee</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0001-8191-1516"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Korea University</span></div>
+    
+    
+    <div class="author"><span class="authorName">Hyoseung Kim</span><a class="ms-1" target="_blank" href="https://orcid.org/0000-0003-2908-5266"><img class="align-baseline orcidIcon" src="/img/orcid.svg"></a><span class="affiliation">, Hallym University</span></div>
+    
+    
+    <h5 class="mt-3">Abstract</h5>
+    <p style="white-space: pre-wrap;">High-value custodial systems require both Public Verifiability  to audit key distribution and Traceability to identify insider leakage via black-box \textit{reconstruction boxes}. Existing schemes achieve one property but not both, leaving practical systems exposed to either undetectable dealer misbehavior or untraceable share leakage. Combining these properties introduces the Provenance Paradox: a verifiability-aware reconstruction box with access to verification predicates and public transcripts can reject dummy shares used for tracing because they have no provenance in the public transcript.
+
+We present TSS-PV, the first publicly verifiable traceable secret sharing scheme that resolves this paradox. Our key insight is to inject indistinguishable dummy shares during the sharing phase itself, ensuring they are committed to the public transcript before any reconstruction box is constructed. We formalize syntax and security under a modular adversarial model: public verifiability holds against fully malicious dealers and parties; traceability identifies leaking parties after honest distribution; and non-imputability prevents a malicious dealer from framing honest parties. Both tracing properties assume a verifiability-aware perfect reconstruction box.
+
+We instantiate TSS-PV over cyclic groups using Schnorr-based NIZKs including a new $\Sigma$-protocol for power-chain relations and a recent generic tracing framework (CRYPTO&#39;24). Public verification costs scale linearly in the number of parties; tracing costs are quadratic. A Curve25519 prototype on commodity hardware demonstrates practicality: for $32\text{ - }256$ parties, distribution verification completes in $\approx 14\text{ - }107$ ms, tracing in $\approx0.23\text{ - }78$ s, and trace verification in $\approx 0.13\text{ - }26$ s.</p>
+  
+  </div>
+  <div id="metadata" class="col-md-5 col-lg-4 ps-md-5 mt-4 mt-md-0">
+    <h5>Metadata</h5>
+    <dl>
+      <dt>
+        Available format(s)
+      </dt>
+      <dd>
+        
+        
+        <a class="btn btn-sm btn-outline-dark"
+           href="/2025/2261.pdf">
+          <img class="icon" src="/img/file-pdf.svg">PDF</a>
+        
+        
+        
+      </dd>
+  
+      <dt>Category</dt>
+        <dd><a rel="nofollow" href="/search?category=PROTOCOLS"><small class="badge category category-PROTOCOLS">Cryptographic protocols</small></a></dd>
+  
+      <dt>Publication info</dt>
+      <dd>Preprint. </dd>
+  
+  
+      <dt>Keywords</dt>
+      <dd class="keywords"><a rel="nofollow" href="/search?q=Traceable%20Secret%20Sharing" class="me-2 badge bg-secondary keyword">Traceable Secret Sharing</a><a rel="nofollow" href="/search?q=Accountability" class="me-2 badge bg-secondary keyword">Accountability</a><a rel="nofollow" href="/search?q=Verifiability" class="me-2 badge bg-secondary keyword">Verifiability</a><a rel="nofollow" href="/search?q=Threshold" class="me-2 badge bg-secondary keyword">Threshold</a><a rel="nofollow" href="/search?q=Traitor" class="me-2 badge bg-secondary keyword">Traitor</a><a rel="nofollow" href="/search?q=Blackbox" class="me-2 badge bg-secondary keyword">Blackbox</a><a rel="nofollow" href="/search?q=MPC" class="me-2 badge bg-secondary keyword">MPC</a></dd>
+  
+      <dt>Contact author(s)</dt>
+      <dd><span class="font-monospace">
+        adluong11<span class="obfuscate"> &#64; </span>korea ac kr<br>jhpark<span class="obfuscate"> &#64; </span>smu ac kr<br>changminlee<span class="obfuscate"> &#64; </span>korea ac kr<br>hyoseung_kim<span class="obfuscate"> &#64; </span>hallym ac kr
+        </span>
+      </dd>
+      <dt>History</dt>
+      
+      
+      <dd>2026-06-16: last of 5 revisions</dd>
+      
+      
+      
+      <dd>2025-12-16: received</dd>
+      
+      
+      
+      <dd><a rel="nofollow noindex" href="/archive/versions/2025/2261">See all versions</a></dd>
+      
+      <dt>Short URL</dt>
+      <dd><a rel="nofollow" href="https://ia.cr/2025/2261">https://ia.cr/2025/2261</a></dd>
+      <dt>License</dt>
+      <dd><a rel="license" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+        <img class="licenseImg" src="/img/license/CC_BY.svg" alt="Creative Commons Attribution" title="Creative Commons Attribution"><br>
+        <small>CC BY</small>
+        </a>
+      </dd>
+    </dl>
+  </div>
+  </div>
+  
+  
+  <p class="mt-4"><strong>BibTeX</strong> <button id="bibcopy" class="ms-2 btn btn-sm btn-outline-dark"
+ aria-label="Copy to clipboard"
+                                     onclick="copyBibtex()">
+    <img src="/img/copy-outline.svg" class="icon">Copy to clipboard</button></p>
+  <pre id="bibtex">
+@misc{cryptoeprint:2025/2261,
+      author = {Duc Anh Luong and Jong Hwan Park and Changmin Lee and Hyoseung Kim},
+      title = {{TSS}-{PV}: Traceable Secret Sharing with Public Verifiability},
+      howpublished = {Cryptology {ePrint} Archive, Paper 2025/2261},
+      year = {2025},
+      url = {https://eprint.iacr.org/2025/2261}
+}
+</pre>
+  
+
+<script>
+ var bibcopy;
+ function triggerTooltip() {
+   console.log('setting tooltip');
+ }
+ window.onload = triggerTooltip;
+ function copyBibtex() {
+   let range = document.createRange();
+   range.selectNode(document.getElementById('bibtex'));
+   window.getSelection().removeAllRanges();
+   window.getSelection().addRange(range);
+   document.execCommand('copy');
+   window.getSelection().removeAllRanges();
+   let bibcopy = document.getElementById('bibcopy');
+   let copyTooltip = new bootstrap.Tooltip(bibcopy, {trigger: 'manual',
+                                                     title: 'Copied!'});
+   copyTooltip.show();
+   setTimeout(function() {
+     copyTooltip.dispose();
+   }, 2000);
+ }
+</script>
+
+</main>
+<div class="container-fluid mt-auto" id="eprintFooter">
+  <a href="https://iacr.org/">
+    <img id="iacrlogo" src="/img/iacrlogo_small.png" class="img-fluid d-block mx-auto" alt="IACR Logo">
+  </a>
+  <div class="colorDiv"></div>
+  <div class="alert alert-success w-75 mx-auto">
+    Note: In order to protect the privacy of readers, eprint.iacr.org
+    does not use cookies or embedded third party content.
+  </div>
+</div>
+<script src="/css/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script>
+   var topNavbar = document.getElementById('topNavbar');
+   if (topNavbar) {
+     document.addEventListener('scroll', function(e) {
+       if (window.scrollY > 100) {
+         topNavbar.classList.add('scrolled');
+       } else {
+         topNavbar.classList.remove('scrolled');
+       }
+     })
+   }
+  </script>
+
+
+</body>
+</html>
