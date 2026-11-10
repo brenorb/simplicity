@@ -26,7 +26,11 @@ splitOn c s = case break (== c) s of (a, []) -> [a]; (a, _:rest) -> a : splitOn 
 
 main :: IO ()
 main = do
-  args <- getArgs
+  allArgs <- getArgs
+  -- optional trailing "--vectors FROM TO": run only vectors [FROM, TO) and skip the cost measurement
+  let (args, range) = case break (== "--vectors") allArgs of
+        (a, ["--vectors", from, to]) -> (a, Just (read from :: Int, read to :: Int))
+        (a, _) -> (a, Nothing)
   rows <- map (splitOn '\t') . tail . lines <$> readFile "reports/data/followup-bn254-vectors.tsv"
   let env = mkEnv (mkTx 2 [mkInput (dummyOutpoint 0) 1000 mempty 0] [mkOutput 900 mempty] 0) 0 defaultTap
       adds = [ (n, (a, b), (c, d), (e, f)) | ["add", n, ws, outs] <- rows
@@ -58,13 +62,15 @@ main = do
     let first = make (vecWitness (head vectors))
         cmr = progCmr first
         m = measure first
+        chosen = maybe vectors (\(a, b) -> take (b - a) (drop a vectors)) range
     say (ident ++ " CMR=" ++ show cmr)
-    say (ident ++ " cost_mwu=" ++ show (mCost m) ++ " program_bits=" ++ show (mProgBits m) ++ " witness_bits=" ++ show (mWitBits m) ++ " dag_nodes=" ++ show (mNodes m))
-    forM_ (mCandidateCosts m) $ \(name, (iso, occ, sites)) ->
-      unless (sites == 0) $ say (ident ++ " candidate " ++ name ++ " isolated_mwu=" ++ show iso ++ " occurrences=" ++ show occ)
+    unless (range /= Nothing) $ do
+      say (ident ++ " cost_mwu=" ++ show (mCost m) ++ " program_bits=" ++ show (mProgBits m) ++ " witness_bits=" ++ show (mWitBits m) ++ " dag_nodes=" ++ show (mNodes m))
+      forM_ (mCandidateCosts m) $ \(name, (iso, occ, sites)) ->
+        unless (sites == 0) $ say (ident ++ " candidate " ++ name ++ " isolated_mwu=" ++ show iso ++ " occurrences=" ++ show occ)
     results <- mapM (\r -> do
         say (ident ++ "\t" ++ vrName r ++ "\texpected=" ++ show (vrExpect r) ++ "\t" ++ vrNote r ++ "\tpass=" ++ show (vrOk r))
-        return (vrOk r)) (runVectors make cmr vectors)
+        return (vrOk r)) (runVectors make cmr chosen)
     say (ident ++ " vectors: " ++ show (length (filter id results)) ++ "/" ++ show (length results) ++ " pass")
     unless (and results) exitFailure
  where say s = putStrLn s >> hFlush stdout
