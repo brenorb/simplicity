@@ -25,7 +25,7 @@ there would have broken the frozen run's local audit.
 | STARK security level | **Done.** 123 conjectured, 69.9 provable bits under ethSTARK v1.2 bounds | [below](#stark-security) |
 | 1,595 eprint records deferred at metadata triage | **Done.** All re-triaged on full abstracts; none still deferred | [below](#eprint) |
 | Verifiable timed signatures | Bounded by an ESTIMATE from measured RSA-size modular multiplies: at least 442× `BUDGET_MAX` | [below](#verifiable-timed-signatures) |
-| Concurrent blind-signing wrapper | Still open (proof system unchosen) | [below](#still-open) |
+| Concurrent blind-signing wrapper | **Resolved:** no on-chain component; the issued signature is a standard BIP340 signature | [below](#blind-schnorr-wrapper) |
 
 ## FROST
 
@@ -407,14 +407,24 @@ verifiable in a Bitcoin script, and needs no new jet recommendation. That fits
 the paper's own applications, which verify off-chain to avoid on-chain
 timelocks.
 
+## Blind Schnorr wrapper
+
+The frozen corpus measures the single-session blind Schnorr algebra
+(`eprint-blind-schnorr-response`). The concurrently secure protocol
+([2022/1676](https://eprint.iacr.org/2022/1676), vendored page
+`vendor-specs/eprint/2022-1676.html`) uses a NIZK and public-key encryption
+only inside the interactive signing protocol, between user and signer. Its
+stated goal is that the resulting signatures stay standard Schnorr
+signatures, compatible with existing implementations. So the concurrency
+wrapper adds nothing to verify on chain: spending with a blindly issued
+signature is an ordinary BIP340 check, already a jet. The wrapper's
+proof-system choice changes off-chain issuance cost only, and needs no
+measurement or jet.
+
 ## Still open
 
 - **Verifiable timed signatures** (eprint 2020/1563, VT-Schnorr Figure 3):
   bounded by an **ESTIMATE**, not built; see [below](#verifiable-timed-signatures).
-- **Concurrent blind-signing wrapper** (eprint 2022/1676). The single-session
-  algebra is measured. The concurrency machinery (NIZK plus PKE) is an
-  off-chain wrapper whose on-chain cost depends on a proof system that has not
-  been chosen.
 - **Unmeasured post-quantum signature families** surfaced by the eprint second
   pass: isogeny (SQIsign, PRISM), multivariate (UOV, MAYO), MPC/VOLE-in-the-head
   and HAWK. Each needs primitives the corpus has not measured.
