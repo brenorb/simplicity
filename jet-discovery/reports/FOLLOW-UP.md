@@ -24,7 +24,8 @@ there would have broken the frozen run's local audit.
 | STARK wire compatibility | Compared against Stwo at a pinned commit; the hash difference is priced and it moves `blake2s_compress` | [below](#stark) |
 | STARK security level | **Done.** 123 conjectured, 69.9 provable bits under ethSTARK v1.2 bounds | [below](#stark-security) |
 | 1,595 eprint records deferred at metadata triage | **Done.** All re-triaged on full abstracts; none still deferred | [below](#eprint) |
-| Verifiable timed signatures, concurrent blind-signing wrapper | Still open | [below](#still-open) |
+| Verifiable timed signatures | Bounded by an ESTIMATE from measured RSA-size modular multiplies: at least 442× `BUDGET_MAX` | [below](#verifiable-timed-signatures) |
+| Concurrent blind-signing wrapper | Still open (proof system unchosen) | [below](#still-open) |
 
 ## FROST
 
@@ -366,14 +367,50 @@ can still be missed. 143 of the individual reviews rest on titles, keywords
 and the automated abstract rules; 88 rest on a reading of the full abstract
 (see each entry's `basis` field).
 
+## Verifiable timed signatures
+
+VT-Schnorr verification (Figure 3 of the vendored author version,
+[timed-signatures.md](timed-signatures.md)) was not built. It is bounded from
+below with measured parts, using the paper's own evaluation parameters:
+
+- statistical parameter n = 40;
+- threshold t = n/2, so 19 puzzles are opened;
+- RSA-1024 modulus N;
+- puzzle randomness r of λ = 128 bits.
+
+The verifier must recompute every opened puzzle with the linearly homomorphic
+time-lock puzzle of Malavolta–Thyagarajan: u = g^r mod N, and
+v = h^(r·N) · (1+N)^s mod N². That is at least 128 squarings mod N and at
+least 1,152 squarings mod N² (the exponent r·N has about 1,152 bits).
+
+`tools/VtsModmulCost.hs` measures one exact modular multiply (product, then
+`div_mod`, the same reduction as the corpus BN254 kernel) on existing jets
+([data](data/followup-vts-modmul-cost.tsv)):
+
+| Operation | Native bound (WU) |
+| --- | ---: |
+| 1024-bit modular multiply (mod N) | 27,921.468 |
+| 2048-bit modular multiply (mod N²) | 77,698.390 |
+| One opened-puzzle recomputation, lower bound: 128 + 1,152 multiplies | 93,082,493.184 (23× `BUDGET_MAX`) |
+| 19 opened puzzles, lower bound | **1,768,567,370.496 (442× `BUDGET_MAX`)** |
+
+This is a lower bound and an **ESTIMATE**:
+
+- It counts only squarings, so no multiplies for set exponent bits.
+- It omits the 40 range proofs, the Fiat–Shamir hash, the Lagrange checks and
+  the secp256k1 equations.
+- It uses the paper's 1024-bit modulus; a 2048-bit modulus would cost more.
+
+Even a Montgomery-style reduction or a dedicated big-integer jet several times
+cheaper leaves it two orders of magnitude over budget. So VT-Schnorr is not
+verifiable in a Bitcoin script, and needs no new jet recommendation. That fits
+the paper's own applications, which verify off-chain to avoid on-chain
+timelocks.
+
 ## Still open
 
-- **Verifiable timed signatures** (eprint 2020/1563, VT-Schnorr Figure 3).
-  Unchanged from [timed-signatures.md](timed-signatures.md). The verifier
-  needs range proofs and linearly homomorphic time-lock puzzles over a
-  composite modulus: thousands-of-bits modular exponentiation for which no
-  corpus kernel or candidate exists. Setup, modulus size and repetition count
-  must be fixed first.
+- **Verifiable timed signatures** (eprint 2020/1563, VT-Schnorr Figure 3):
+  bounded by an **ESTIMATE**, not built; see [below](#verifiable-timed-signatures).
 - **Concurrent blind-signing wrapper** (eprint 2022/1676). The single-session
   algebra is measured. The concurrency machinery (NIZK plus PKE) is an
   off-chain wrapper whose on-chain cost depends on a proof system that has not
