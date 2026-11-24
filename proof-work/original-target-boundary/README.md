@@ -1,12 +1,23 @@
 # Original Bitcoin target: domain/identity and stale-object diagnostic
 
+**Historical source boundary.** The 2026-11-23 authorized fee-only correction
+means the current canonical `Bitcoin.v` is no longer byte-identical to the
+original model described below. Reconstruct that original module from
+`git show 91d89bac:Coq/Simplicity/Primitive/Bitcoin.v` in the separate
+`TargetReview.OriginalBitcoin` namespace; do not retarget the exclusion theorem
+to corrected `Bitcoin`. The current positive/zero-fee execution evidence and
+validation status are in
+[the repair report](../../Coq/C/JET_BITCOIN_FEE_REPAIR.md).
+The counts, gate behavior and compiled-input claims below are historical.
+
+
 The production/original-specification source guard passes (240 pinned files).
 The existing Bitcoin identity gate fails: the unchanged starting Coq module
 uses `locktime`, while the unchanged Haskell primitive uses `lockTime`. No
 source, API or gate is changed by this diagnostic. It adds zero jet coverage.
 
 `OriginalBitcoin.v.source` is byte-identical to
-`91d89bac:Coq/Simplicity/Primitive/Bitcoin.v` and to the current original source.
+`91d89bac:Coq/Simplicity/Primitive/Bitcoin.v` and, at the recorded diagnostic, to the then-current original source.
 It was explicitly compiled in the separate `TargetReview` namespace. Five
 closed facts in `OriginalDomainBoundary.v.source` establish that this original
 domain excludes empty outputs, an input amount with bit 63 set, and a transaction

@@ -24,6 +24,9 @@ Lemma nonce_uchars_link :
     Some (Internal f_sha256_uchars).
 Proof. split; vm_compute; reflexivity. Qed.
 
+(* The context-disjointness proof can exceed ten seconds on a fresh build.
+   Keep the original proof and a bounded budget for this theorem only. *)
+Set Default Timeout 30.
 Theorem nonce_payload_exec (Hmodel : memcpy_model) le m bl bm bb bx bi edge rc
     (h : Ty.tySem Word256) l regs c ovf :
   bl <> bx -> bl <> bm -> bl <> GC -> bl <> GM ->
@@ -110,3 +113,4 @@ Proof.
     + split; [exact HCtx|].
       eapply nonce_effects_union with (m1 := mr) (bs := [bl; bb]) (cs := [bx; bm]); eassumption.
 Qed.
+Set Default Timeout 10.

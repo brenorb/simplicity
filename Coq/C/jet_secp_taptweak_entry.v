@@ -87,6 +87,9 @@ Lemma taptweak_blocks bb bi bo bp bt bh bs bc bc1 br br1:
  [(bs,0,32);(bo,0,64);(bc1,0,88);(bc,0,88);(bh,0,32);(bi,0,64);
  (br1,0,88);(br,0,88);(bp,0,64);(bt,0,32);(bb,0,32)].
 Proof. reflexivity. Qed.
+(* The eleven-block disjointness calculation takes about 19 seconds on
+   the pinned toolchain; retain a bounded budget for this theorem only. *)
+Set Default Timeout 30.
 Theorem taptweak_free m bb bi bo bp bt bh bs bc bc1 br br1:
  NoDup (taptweak_locals bb bi bo bp bt bh bs bc bc1 br br1) ->
  (forall b hi,In (b,hi) (taptweak_storage bb bi bo bp bt bh bs bc bc1 br br1) ->Mem.range_perm m b 0 hi Cur Freeable) ->
@@ -105,3 +108,4 @@ Proof.
      intros b pos Outside _;clear -Outside;cbn [taptweak_locals map fst In] in *;tauto.
    + eapply freelist_preserved;exact Frees.
 Qed.
+Set Default Timeout 10.

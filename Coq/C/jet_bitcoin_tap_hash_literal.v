@@ -80,11 +80,15 @@ Proof.
   intros alg1 alg2 R. rewrite !literal_bitcoin_tapleaf_hash_matches.
   apply tapleaf_hash_spec_parametric.
 Qed.
+(* The expanded literal-program relation takes over ten seconds to check
+   with the pinned toolchain; keep a bounded budget for this lemma only. *)
+Set Default Timeout 30.
 Lemma literal_bitcoin_tap_env_hash_parametric : PF.Parametric (@literal_bitcoin_tap_env_hash).
 Proof.
   intros alg1 alg2 R. rewrite !literal_bitcoin_tap_env_hash_matches.
   apply tap_env_hash_spec_parametric.
 Qed.
+Set Default Timeout 10.
 
 Theorem bitcoin_tapleaf_hash_literal_local_spec :
   application_jet_local_spec_sep f_simplicity_bitcoin_tapleaf_hash bitcoin_ge ext_environment

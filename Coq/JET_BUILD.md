@@ -38,7 +38,9 @@ assumptions and physical/logical environment and global-state boundaries remain 
 The extended Bitcoin module preserves primitive names/types/tags. Its cached-hash
 fields still require a semantic projection from canonical raw transaction/taproot
 data. The inherited Bitcoin environment also imposes domain restrictions that
-are reported in [C/JET_BITCOIN_MODEL_MISMATCHES.md](C/JET_BITCOIN_MODEL_MISMATCHES.md); the frozen model is unchanged. See [C/JET_FIDELITY_REVIEW.md](C/JET_FIDELITY_REVIEW.md). Treat its
+are reported in [C/JET_BITCOIN_MODEL_MISMATCHES.md](C/JET_BITCOIN_MODEL_MISMATCHES.md); M2 has an explicitly authorized local fee-sign correction with all other
+bounds retained. See [C/JET_BITCOIN_FEE_REPAIR.md](C/JET_BITCOIN_FEE_REPAIR.md)
+for its validation status, and [C/JET_FIDELITY_REVIEW.md](C/JET_FIDELITY_REVIEW.md). Treat its
 current registered contracts as pending that review.
 
 Final acceptance runs `bash Coq/check-jets.sh --accept` on frozen inputs, without

@@ -79,6 +79,9 @@ Qed.
 
 Local Opaque sha_ge.
 
+(* Keep the enclosing proof-command budget above the measured disjointness
+   or dispatch calculation; an inner timeout cannot raise that outer limit. *)
+Set Default Timeout 30.
 Theorem el_eval_make_tapbranch (Hmodel : memcpy_model) m bres ores ba oa bb ob (xa xb : list int) :
   0 <= ores -> ores + 32 <= Ptrofs.max_unsigned -> (4 | ores) ->
   Mem.range_perm m bres ores (ores + 32) Cur Writable ->
@@ -392,3 +395,4 @@ Proof.
     eapply Mem.perm_storebytes_1; [exact HS|]. apply P10, XP, Hp.
   - intros b Hb. apply HVf. eapply Mem.storebytes_valid_block_1; [exact HS|]. apply V10, Hb.
 Qed.
+Set Default Timeout 10.

@@ -63,6 +63,9 @@ Definition elements_single_issuance_hash_rep (m : mem) (env : val) (e : Elements
           (bin, inbase, inbase + 544 * Z.of_nat (length (sigTxIn (Elements.envTx e))));
           (GC, 0, 8); (GM, 0, 8)].
 
+(* Keep the enclosing proof-command budget above the measured disjointness
+   or dispatch calculation; an inner timeout cannot raise that outer limit. *)
+Set Default Timeout 30.
 Theorem elements_single_issuance_hash_program_local_spec : memcpy_model ->
   application_jet_local_spec_sep f_simplicity_issuance_hash sha_ge Elements.env
     (Word 5) (Ty.Sum Ty.Unit (Word 8)) elements_single_issuance_hash_rep
@@ -508,3 +511,4 @@ Proof.
   - intros ch b0 ofs Hv Hd Hw. rewrite HLf by (apply HNl; exact Hv).
     rewrite HLoads by assumption. apply Kr; exact Hv.
 Qed.
+Set Default Timeout 15.

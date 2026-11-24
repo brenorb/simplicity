@@ -59,6 +59,9 @@ Local Ltac local_geometry Sep Old :=
  clear -Sep Old;unfold hashgen_locals in *;
  repeat rewrite NoDup_cons_iff in Sep;cbn [In] in *;intuition congruence.
 
+(* The retained literal rewrite or block-disjointness calculation exceeds
+   ten seconds on a fresh build; keep a bounded budget for this theorem. *)
+Set Default Timeout 30.
 Theorem eval_hashgen_internal (Hmodel:memcpy_model) (key:Ty.tySem (Word 8)) m bg ba oa :
  (forall mc x,Int64.unsigned x<>0 ->
    Clight2.eval_funcall secp_ge mc (Internal f_secp256k1_ctz64_var) [Vlong x]
@@ -167,3 +170,4 @@ Proof.
        -- split;[eapply swu_startup_preserved;[exact SWU|exact Read]|].
           intro prefix;eapply generator_sha_prefix_preserved;[apply Prefixes|exact Read].
 Qed.
+Set Default Timeout 10.

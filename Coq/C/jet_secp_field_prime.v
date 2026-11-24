@@ -57,12 +57,17 @@ Definition secp256k1_prime_support : Certif :=
   (Pock_certif 3 2 [(2,1)] 1);
   (Proof_certif 2 prime_2)].
 
+(* This closed VM certificate takes about 15 seconds with the pinned
+   Coq 8.17.1/OCaml 4.14.4 toolchain. Keep its timeout bounded separately
+   from the short symbolic lemmas below. *)
+Set Default Timeout 30.
 Theorem secp256k1_field_prime : prime feP.
 Proof.
  change (prime (Zpos (nprim secp256k1_prime_certificate))).
  apply (Pocklington_refl secp256k1_prime_certificate secp256k1_prime_support).
  vm_compute;reflexivity.
 Qed.
+Set Default Timeout 10.
 Local Open Scope Z_scope.
 
 Lemma secp256k1_nonzero_product a b :

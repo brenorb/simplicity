@@ -43,6 +43,9 @@ Fixpoint scalar_de62_acc_sx (high : bool) (k : nat) : sx*sx :=
 Definition scalar_de62_recurrence_sx high i :=
  if Nat.eqb i 4 then fst(de62_shift_sx(scalar_de62_acc_sx high 4))
  else XLb Band (fst(scalar_de62_acc_sx high (S i))) norm62_mask.
+(* The retained reflected recurrence comparison exceeds the enclosing
+   ten-second default; keep this lemma's checking budget bounded. *)
+Set Default Timeout 30.
 Lemma scalar_de62_recurrence_matches high i : (i<5)%nat ->
  nth i (scalar_de62_limbs high) (XLc Int64.zero)=scalar_de62_recurrence_sx high i.
 Proof.
@@ -58,6 +61,7 @@ Proof.
  - apply sx_beq_true. Timeout 30 vm_compute. reflexivity.
  - apply sx_beq_true. Timeout 30 vm_compute. reflexivity.
 Qed.
+Set Default Timeout 10.
 
 Fixpoint scalar_de62_acc_words (rho : nat -> int64) (high : bool) (k : nat) : int64*int64 :=
  match k with

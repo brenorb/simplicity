@@ -1,16 +1,18 @@
 # Reported mismatches: frozen Coq Bitcoin model vs canonical Haskell
 
-Date: 2026-10-19. Target pinned at `91d89bac` (`C`, `Haskell`, `Coq/Simplicity`
-unchanged).
+Original report: 2026-10-19, against the unchanged `91d89bac` model.
+Current update: 2026-11-23, authorized local fee-only correction in M2.
 
-**Policy.** Mismatches between upstream sources are **reported, not corrected**.
-They may be evidence of upstream bugs, and the Simplicity developers are the
-ones to evaluate them. The frozen files stay byte-identical. Proofs are stated
-against the frozen model as it is. Their scope is recorded here, so that a
-mismatch never quietly changes what a theorem means.
+**Policy and current status.** Unrelated mismatches remain reported and frozen.
+On 2026-11-23 the user explicitly authorized correcting M2 and its proof,
+representation and acceptance consequences. The current local model defines
+fee as input minus output, retaining every monetary/structural bound and the
+M1 name. Original upstream provenance and the local correction are distinct;
+see [the repair scope and validation](JET_BITCOIN_FEE_REPAIR.md).
 
 Each entry gives the two sources, the kernel-checked evidence, and the effect on
-the jet proofs. The entries do not judge which side is right.
+the jet proofs. Uncorrected entries remain discrepancy reports; M2 records the
+specifically authorized local correction.
 
 ## M1. `LockTime` primitive name
 
@@ -34,27 +36,43 @@ on a documented one that has disappeared. It prints the documented ones on every
 
 <!-- gate bitcoin-base name LockTime "locktime" "lockTime" -->
 
-## M2. Fee definition and its bound
+## M2. Fee definition and its bound — locally corrected
 
 | Source | Definition |
 | --- | --- |
-| Coq `Bitcoin.v:54,57` | `sigTxFee := sigTxTotalOutValue - sigTxTotalInValue`, with record field `sigTxFee_bound : moneyRange sigTxFee` |
-| Haskell `DataTypes.hs:166-167` | `txFee tx = txTotalInputValue tx - txTotalOutputValue tx` (no bound) |
+| Original upstream Coq `Bitcoin.v:54,57` | `sigTxFee := sigTxTotalOutValue - sigTxTotalInValue`, with `moneyRange sigTxFee` |
+| Corrected local Coq `Bitcoin.v:54,57` | `sigTxFee := sigTxTotalInValue - sigTxTotalOutValue`, retaining `moneyRange sigTxFee` |
+| Unchanged Haskell `DataTypes.hs:166-167` | `txFee tx = txTotalInputValue tx - txTotalOutputValue tx` (no type-level bound) |
+| Unchanged C `bitcoinJets.c` | `totalInputValue - totalOutputValue` written as Word64 |
 
-**Observation:** the two definitions subtract in opposite orders. Together with
-`moneyRange` (`-1 < x < MAX_MONEY + 1`), the Coq record admits only
-transactions whose total output is at least their total input.
+The reversed definition originates in upstream commit
+`6e0ddfbbbc55903833b7cdc30790b0a2269505fb` (2018-05-01), before local
+proof work. Together with `moneyRange` it excluded inputs 10 / outputs 9.
+`original_bitcoin_excludes_ten_in_nine_out` is evidence about that original
+source, retained in the historical boundary diagnostic; it is not a theorem
+about the corrected model.
 
-**Evidence:** `original_bitcoin_excludes_ten_in_nine_out` (same file) proves that
-no frozen `sigTx` has inputs 10 and outputs 9.
+The local change is exactly the operand order. The lower bound now expresses
+nonnegative fees on ordinary non-creating transactions. Its upper bound is
+redundant given the unchanged money-range totals and `outputs <= inputs`.
+`bitcoin_fee_admissible` and `bitcoin_tx_from_lists` establish this for arbitrary
+input/output lists under all remaining validity conditions. Coinbase, arbitrary
+raw Word64 aggregates, empty outputs and high-bit amounts are not newly admitted.
 
-**Effect on the jet proofs:** the registered `simplicity_bitcoin_fee` spec is the
-Simplicity program `total_input - total_output` (`jet_bitcoin_fee_spec.v`). It
-does not use `sigTxFee`. All 36 registered `simplicity_bitcoin_*` proofs are
-quantified over the frozen `sigTx`. So they are statements about the transactions
-that model can represent. Under the observation above, that set contains no
-transaction whose inputs exceed its outputs. Whether the scope should be wider
-is the upstream question this report raises.
+The registered `bitcoin_fee_local_spec` already proves actual C execution of
+the literal input-minus-output program. Its type and proof remain intact.
+`jet_bitcoin_fee_domain.v` connects every corrected environment to that theorem
+using a constructed exact-total representation and complete encoded-frame,
+separation, success-return, output and memory-framing witness. It also proves
+exact integer decoding without modular wrap, and includes 10/9/1 and 10/10/0
+instances and canonical raw/extended hashing projections. These new results
+are registered for normal contract/assumption checks; their validation status
+is recorded in the repair report.
+
+Only the `Bitcoin.v` content pin and the manifest's two enforcing digest pins
+change. All 282 other frozen inputs retain their original hashes. Historical
+build results apply only to their recorded sources; they do not validate this
+correction.
 
 ## M3. Structural bounds
 
@@ -76,10 +94,10 @@ is the upstream question this report raises.
 > At `91d89bac`, `Coq/Simplicity/Primitive/Bitcoin.v`:
 > 1. names `LockTime` `"locktime"`; Haskell's `primName LockTime` is `"lockTime"`,
 >    so their primitive tags differ;
-> 2. defines `sigTxFee` as total output minus total input and requires it to be in
+> 2. originally defined `sigTxFee` as total output minus total input and requires it to be in
 >    money range, while Haskell's `txFee` is total input minus total output.
 >    As a result, the record cannot represent a transaction whose inputs exceed its
->    outputs;
+>    outputs (locally corrected on 2026-11-23; see M2);
 > 3. requires at least one output and money-range totals, which the Haskell types
 >    do not.
 >

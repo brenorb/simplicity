@@ -68,6 +68,8 @@ Proof.
    + apply eval_Etempvar;rewrite PTree.gso by discriminate;exact NumW.
    + reflexivity.
 Qed.
+(* The fresh dependency build measured this proof step above the old 10-second limit. *)
+Set Default Timeout 30.
 Theorem exec_elements_taptweak_strauss_preprocess_finite (Model:memset_model) e le m raw bk br1 br2 bs bp ba bt bx bo bj
  x y z (ax ay az:Ty.tySem (Word 8)) :
  edom e(fn_vars f_secp256k1_ecmult_strauss_wnaf) ->
@@ -275,3 +277,4 @@ Proof.
              rewrite !PTree.gso by (clear -Outside;cbn [In] in Outside;intuition congruence).
              apply OtherS;clear -Outside;cbn [In] in Outside|-*;tauto.
 Qed.
+Set Default Timeout 10.

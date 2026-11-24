@@ -56,6 +56,9 @@ Local Ltac separate_ratio_blocks Sep :=
     assert (HP : ~P) by (intro;apply HS;left;assumption);
     assert (HQ : ~Q) by (intro;apply HS;right;assumption);clear HS end.
 
+(* The retained block-disjointness calculations can exceed ten seconds on
+   a fresh build; keep a bounded budget for this theorem only. *)
+Set Default Timeout 30.
 Theorem eval_mixed_equal_ratio_function x y z u v m bp ba br :
   NoDup [bp;ba;br] ->
   fe_limbs_ok (Int64.unsigned (x 0%nat)) (Int64.unsigned (x 1%nat))
@@ -187,3 +190,4 @@ Proof.
       * rewrite mixed_function_blocks;exact Free.
     + do 11 (split;[assumption|]);exact Frame.
 Qed.
+Set Default Timeout 10.

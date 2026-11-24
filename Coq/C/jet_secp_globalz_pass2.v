@@ -50,6 +50,9 @@ Qed.
 
 (** Only the last ratio and the unchanged last point need canonical values.
     These premises follow from decoding C fields; other words are unrestricted. *)
+(* The retained literal rewrite or block-disjointness calculation exceeds
+   ten seconds on a fresh build; keep a bounded budget for this theorem. *)
+Set Default Timeout 30.
 Theorem globalz_word_walk_pass2 (ps:nat->Ty.tySem literal_table_ge) (rs:nat->Ty.tySem (Word 8)) :
  globalz_word_canonical (rs 7%nat) ->
  globalz_word_canonical (fst (ps 7%nat)) -> globalz_word_canonical (snd (ps 7%nat)) ->
@@ -76,6 +79,7 @@ Proof.
  | |- ?p=(fst ?p,snd ?p)=>apply surjective_pairing
  | |- _=>reflexivity end in point_eta.
 Qed.
+Set Default Timeout 10.
 
 Lemma globalz_word_vector_congr ps qs : (forall k,(k<8)%nat -> ps k=qs k) ->
  globalz_word_vector ps=globalz_word_vector qs.

@@ -10,6 +10,9 @@ Set Default Timeout 10.
 Local Opaque literal_fe_add literal_fe_multiply literal_fe_square literal_fe_cube
  literal_fe_negate literal_fe_multiply_int canonical_fe_is_zero canonical_fe_normalize
  literal_fe_one256 literal_fe_zero256 literal_gej_double literal_gej_infinity literal_gej_is_infinity.
+(* Elaborating this fixed literal tree can exceed ten seconds on a fresh
+   build; retain its statement and proof with a bounded local budget. *)
+Set Default Timeout 30.
 Lemma literal_gej_add_finite_step (ax ay az bx byword bz : Ty.tySem (Word 8)) :
  @literal_gej_is_infinity Alg.CoreFunSem ((ax,ay),az)=inl tt ->
  @literal_gej_is_infinity Alg.CoreFunSem ((bx,byword),bz)=inl tt ->
@@ -51,3 +54,4 @@ Proof.
  - match goal with |- snd (match ?c with inl _ => _ | inr _ => _ end)=_ =>
      destruct c as [u|u];destruct u end;reflexivity.
 Qed.
+Set Default Timeout 10.

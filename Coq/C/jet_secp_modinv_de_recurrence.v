@@ -28,6 +28,9 @@ Definition de62_recurrence_sx high i :=
  if Nat.eqb i 4 then fst (de62_shift_sx (de62_acc_sx high 4))
  else XLb Band (fst (de62_acc_sx high (S i))) norm62_mask.
 
+(* Closing the ten checked recurrence cases takes over ten seconds on a
+   fresh build; keep the proof and a bounded local checking budget. *)
+Set Default Timeout 30.
 Lemma de62_recurrence_matches high i : (i<5)%nat ->
  nth i (de62_limbs high) (XLc Int64.zero)=de62_recurrence_sx high i.
 Proof.
@@ -43,3 +46,4 @@ Proof.
  - vm_compute;reflexivity.
  - vm_compute;reflexivity.
 Qed.
+Set Default Timeout 10.

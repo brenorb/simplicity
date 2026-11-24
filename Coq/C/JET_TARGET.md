@@ -10,6 +10,15 @@ inputs. Another 43 inputs are frozen at proof-branch commit
 and `memcpy_*.v` ASTs, all regeneration scripts and translation units, memcpy
 C harnesses, clightgen configuration templates, and dependency/sysroot pins.
 
+The sole authorized canonical-model correction is the 2026-11-23 operand
+swap in `Simplicity/Primitive/Bitcoin.v:54`: fee is input minus output.
+The upstream original is `6e0ddfbbbc55903833b7cdc30790b0a2269505fb`
+(2018-05-01); the previous frozen file SHA-256 was
+`f83df11d0834fc25109f6f2a26866645d1adc7ad3b148c832bdd746244d84165`.
+The manifest pins the corrected local file and preserves all other entries.
+See [JET_BITCOIN_FEE_REPAIR.md](JET_BITCOIN_FEE_REPAIR.md) for scope,
+proof inventory and current validation. C/Haskell/AST targets are unchanged.
+
 Run the fast gate from the repository root:
 
 ```sh

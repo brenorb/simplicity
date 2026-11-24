@@ -174,7 +174,7 @@ Record sigTx : Set := Build_sigTx
     sigTxTotalOutValue := List.Z_sum
                             (@List.map txOutput BinNums.Z (fun i : txOutput => Integers.Int64.signed (txoValue i))
                                sigTxOut);
-    sigTxFee := BinInt.Z.sub sigTxTotalOutValue sigTxTotalInValue;
+    sigTxFee := BinInt.Z.sub sigTxTotalInValue sigTxTotalOutValue;
     sigTxTotalInValue_bound : and (BinInt.Z.lt (BinNums.Zneg BinNums.xH) sigTxTotalInValue)
                                 (BinInt.Z.lt sigTxTotalInValue (BinInt.Z.succ MAX_MONEY));
     sigTxTotalOutValue_bound : and (BinInt.Z.lt (BinNums.Zneg BinNums.xH) sigTxTotalOutValue)
@@ -203,9 +203,9 @@ Arguments sigTxTotalOutValue s
 sigTxFee =
 fun s : sigTx =>
 BinInt.Z.sub
-  (List.Z_sum (@List.map txOutput BinNums.Z (fun i : txOutput => Integers.Int64.signed (txoValue i)) (sigTxOut s)))
   (List.Z_sum
      (@List.map sigTxInput BinNums.Z (fun i : sigTxInput => Integers.Int64.signed (sigTxiValue i)) (sigTxIn s)))
+  (List.Z_sum (@List.map txOutput BinNums.Z (fun i : txOutput => Integers.Int64.signed (txoValue i)) (sigTxOut s)))
      : forall _ : sigTx, BinNums.Z
 
 Arguments sigTxFee s

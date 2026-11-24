@@ -24,6 +24,8 @@ Local Opaque secp_ge elements_taptweak_ge elements_taptweak_runtime_tag_block ta
 Local Ltac distinct Sep:=clear -Sep;unfold taptweak_locals in Sep;cbn [app] in Sep;
  repeat rewrite NoDup_cons_iff in Sep;repeat rewrite not_in_cons in Sep;cbn [In] in *;intuition congruence.
 Local Ltac notlocal Outside:=clear -Outside;cbn [taptweak_body_locals taptweak_locals app In] in *;intuition congruence.
+(* Fresh closure build: the field-frame bookkeeping exceeds the old 10-second limit. *)
+Set Default Timeout 30.
 Theorem exec_elements_taptweak_body (Copy:memcpy_model) (Clear:memset_model) (Count:ctz_model)
  (pk h:Ty.tySem (Word 8)) le m bb bi bo bp bt bh bs bc bc1 br br1 bf bin edge rc bd base bw outedge cursor:
  le!_tagName__3=Some (Vptr elements_taptweak_runtime_tag_block Ptrofs.zero) ->le!_tagLen=Some (Vlong (Int64.repr 17)) ->
@@ -183,3 +185,4 @@ Proof.
              ** exact OW.
           ++ split;[eapply mem_forward_trans;[exact ForwardH|exact ForwardF]|exact ReadyF].
 Qed.
+Set Default Timeout 10.

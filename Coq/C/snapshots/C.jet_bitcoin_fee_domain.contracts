@@ -1,0 +1,231 @@
+### C.jet_bitcoin_fee_domain.bitcoin_fee_admissible
+bitcoin_fee_admissible
+     : forall (ti to_ : BinNums.Z)
+         (_ : and (BinInt.Z.lt (BinNums.Zneg BinNums.xH) ti) (BinInt.Z.lt ti (BinInt.Z.succ Bitcoin.MAX_MONEY)))
+         (_ : and (BinInt.Z.lt (BinNums.Zneg BinNums.xH) to_) (BinInt.Z.lt to_ (BinInt.Z.succ Bitcoin.MAX_MONEY)))
+         (_ : BinInt.Z.le to_ ti),
+       and (BinInt.Z.lt (BinNums.Zneg BinNums.xH) (BinInt.Z.sub ti to_))
+         (BinInt.Z.lt (BinInt.Z.sub ti to_) (BinInt.Z.succ Bitcoin.MAX_MONEY))
+### C.jet_bitcoin_fee_domain.bitcoin_fee_exact
+bitcoin_fee_exact
+     : forall tx : Bitcoin.sigTx,
+       and (and (BinInt.Z.le BinNums.Z0 (Bitcoin.sigTxFee tx)) (BinInt.Z.le (Bitcoin.sigTxFee tx) Bitcoin.MAX_MONEY))
+         (@eq BinNums.Z (Bitcoin.sigTxFee tx)
+            (BinInt.Z.sub (Bitcoin.sigTxTotalInValue tx) (Bitcoin.sigTxTotalOutValue tx)))
+### C.jet_bitcoin_fee_domain.bitcoin_fee_word_exact
+bitcoin_fee_word_exact
+     : forall e : Bitcoin.Bitcoin.environment,
+       @eq BinNums.Z
+         (jet_forWhile_seq.wz (S (S (S (S (S (S O))))))
+            (jet_bitcoin_totals_spec.fw6 (Bitcoin.sigTxFee (Bitcoin.Bitcoin.envTx e))))
+         (Bitcoin.sigTxFee (Bitcoin.Bitcoin.envTx e))
+### C.jet_bitcoin_fee_domain.bitcoin_fee_spec_record
+bitcoin_fee_spec_record
+     : forall e : Bitcoin.Bitcoin.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_fee_spec.bitcoin_fee_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt e)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+            (jet_bitcoin_totals_spec.fw6 (Bitcoin.sigTxFee (Bitcoin.Bitcoin.envTx e))))
+### C.jet_bitcoin_fee_domain.positive_fee_totals
+positive_fee_totals
+     : and
+         (@eq BinNums.Z (Bitcoin.sigTxTotalInValue (Bitcoin.Bitcoin.envTx positive_fee_env))
+            (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+         (and
+            (@eq BinNums.Z (Bitcoin.sigTxTotalOutValue (Bitcoin.Bitcoin.envTx positive_fee_env))
+               (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))
+            (@eq BinNums.Z (Bitcoin.sigTxFee (Bitcoin.Bitcoin.envTx positive_fee_env)) (BinNums.Zpos BinNums.xH)))
+### C.jet_bitcoin_fee_domain.zero_fee_total
+zero_fee_total
+     : @eq BinNums.Z (Bitcoin.sigTxFee (Bitcoin.Bitcoin.envTx zero_fee_env)) BinNums.Z0
+### C.jet_bitcoin_fee_domain.fee_domain_raw_projection
+fee_domain_raw_projection
+     : forall e : Bitcoin.Bitcoin.env,
+       and
+         (@eq Bitcoin.Bitcoin.environment
+            (jet_bitcoin_ext_prim.extBase
+               (jet_bitcoin_raw_env.project_raw_environment (fee_domain_raw e)
+                  (PeanoNat.Nat.le_0_l (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+            e)
+         (@eq Digest.hash256
+            (jet_bitcoin_ext_prim.extTxid
+               (jet_bitcoin_raw_env.project_raw_environment (fee_domain_raw e)
+                  (PeanoNat.Nat.le_0_l (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+            (jet_bitcoin_raw_env.raw_transaction_id (fee_domain_raw e)))
+### C.jet_bitcoin_fee_domain.bitcoin_fee_rep_constructible
+bitcoin_fee_rep_constructible
+     : forall e : Bitcoin.Bitcoin.env,
+       @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          @ex Values.val
+            (fun env : Values.val =>
+             @ex (list (prod (prod Values.block BinNums.Z) BinNums.Z))
+               (fun fp : list (prod (prod Values.block BinNums.Z) BinNums.Z) =>
+                and (jet_bitcoin_fee_local.bitcoin_fee_env_rep m env e fp)
+                  (@List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                     (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                      match pat return Prop with
+                      | pair y _ => match y return Prop with
+                                    | pair b _ => Memory.Mem.valid_block m b
+                                    end
+                      end) fp))))
+### C.jet_bitcoin_fee_domain.bitcoin_fee_rep_stable
+bitcoin_fee_rep_stable
+     : @jet_frame_constructible_app.env_rep_sep_stable Bitcoin.Bitcoin.env jet_bitcoin_fee_local.bitcoin_fee_env_rep
+### C.jet_bitcoin_fee_domain.bitcoin_fee_every_environment_checked
+bitcoin_fee_every_environment_checked
+     : forall e : Bitcoin.Bitcoin.env, bitcoin_fee_checked_execution e
+### C.jet_bitcoin_fee_domain.positive_fee_checked
+positive_fee_checked
+     : bitcoin_fee_checked_execution positive_fee_env
+### C.jet_bitcoin_fee_domain.zero_fee_checked
+zero_fee_checked
+     : bitcoin_fee_checked_execution zero_fee_env
+### C.jet_bitcoin_fee_domain.bitcoin_tx_from_lists
+bitcoin_tx_from_lists =
+fun (ver : Integers.Int.int) (ins : list Bitcoin.sigTxInput) (outs : list Bitcoin.txOutput)
+  (lock : Bitcoin.lock)
+  (HI : and (BinInt.Z.lt BinNums.Z0 (@Zcomplements.Zlength Bitcoin.sigTxInput ins))
+          (BinInt.Z.lt (@Zcomplements.Zlength Bitcoin.sigTxInput ins) Integers.Int.modulus))
+  (HO : and (BinInt.Z.lt BinNums.Z0 (@Zcomplements.Zlength Bitcoin.txOutput outs))
+          (BinInt.Z.lt (@Zcomplements.Zlength Bitcoin.txOutput outs) Integers.Int.modulus))
+  (HTI : and
+           (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+              (List.Z_sum
+                 (@List.map Bitcoin.sigTxInput BinNums.Z
+                    (fun i : Bitcoin.sigTxInput => Integers.Int64.signed (Bitcoin.sigTxiValue i)) ins)))
+           (BinInt.Z.lt
+              (List.Z_sum
+                 (@List.map Bitcoin.sigTxInput BinNums.Z
+                    (fun i : Bitcoin.sigTxInput => Integers.Int64.signed (Bitcoin.sigTxiValue i)) ins))
+              (BinInt.Z.succ Bitcoin.MAX_MONEY)))
+  (HTO : and
+           (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+              (List.Z_sum
+                 (@List.map Bitcoin.txOutput BinNums.Z
+                    (fun o : Bitcoin.txOutput => Integers.Int64.signed (Bitcoin.txoValue o)) outs)))
+           (BinInt.Z.lt
+              (List.Z_sum
+                 (@List.map Bitcoin.txOutput BinNums.Z
+                    (fun o : Bitcoin.txOutput => Integers.Int64.signed (Bitcoin.txoValue o)) outs))
+              (BinInt.Z.succ Bitcoin.MAX_MONEY)))
+  (Hbalance : BinInt.Z.le
+                (List.Z_sum
+                   (@List.map Bitcoin.txOutput BinNums.Z
+                      (fun o : Bitcoin.txOutput => Integers.Int64.signed (Bitcoin.txoValue o)) outs))
+                (List.Z_sum
+                   (@List.map Bitcoin.sigTxInput BinNums.Z
+                      (fun i : Bitcoin.sigTxInput => Integers.Int64.signed (Bitcoin.sigTxiValue i)) ins))) =>
+Bitcoin.Build_sigTx ver ins outs lock HI HO HTI HTO
+  (@bitcoin_fee_admissible
+     (List.Z_sum
+        (@List.map Bitcoin.sigTxInput BinNums.Z
+           (fun i : Bitcoin.sigTxInput => Integers.Int64.signed (Bitcoin.sigTxiValue i)) ins))
+     (List.Z_sum
+        (@List.map Bitcoin.txOutput BinNums.Z (fun o : Bitcoin.txOutput => Integers.Int64.signed (Bitcoin.txoValue o))
+           outs)) HTI HTO Hbalance)
+     : forall (_ : Integers.Int.int) (ins : list Bitcoin.sigTxInput) (outs : list Bitcoin.txOutput)
+         (_ : Bitcoin.lock)
+         (_ : and (BinInt.Z.lt BinNums.Z0 (@Zcomplements.Zlength Bitcoin.sigTxInput ins))
+                (BinInt.Z.lt (@Zcomplements.Zlength Bitcoin.sigTxInput ins) Integers.Int.modulus))
+         (_ : and (BinInt.Z.lt BinNums.Z0 (@Zcomplements.Zlength Bitcoin.txOutput outs))
+                (BinInt.Z.lt (@Zcomplements.Zlength Bitcoin.txOutput outs) Integers.Int.modulus))
+         (_ : and
+                (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+                   (List.Z_sum
+                      (@List.map Bitcoin.sigTxInput BinNums.Z
+                         (fun i : Bitcoin.sigTxInput => Integers.Int64.signed (Bitcoin.sigTxiValue i)) ins)))
+                (BinInt.Z.lt
+                   (List.Z_sum
+                      (@List.map Bitcoin.sigTxInput BinNums.Z
+                         (fun i : Bitcoin.sigTxInput => Integers.Int64.signed (Bitcoin.sigTxiValue i)) ins))
+                   (BinInt.Z.succ Bitcoin.MAX_MONEY)))
+         (_ : and
+                (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+                   (List.Z_sum
+                      (@List.map Bitcoin.txOutput BinNums.Z
+                         (fun o : Bitcoin.txOutput => Integers.Int64.signed (Bitcoin.txoValue o)) outs)))
+                (BinInt.Z.lt
+                   (List.Z_sum
+                      (@List.map Bitcoin.txOutput BinNums.Z
+                         (fun o : Bitcoin.txOutput => Integers.Int64.signed (Bitcoin.txoValue o)) outs))
+                   (BinInt.Z.succ Bitcoin.MAX_MONEY)))
+         (_ : BinInt.Z.le
+                (List.Z_sum
+                   (@List.map Bitcoin.txOutput BinNums.Z
+                      (fun o : Bitcoin.txOutput => Integers.Int64.signed (Bitcoin.txoValue o)) outs))
+                (List.Z_sum
+                   (@List.map Bitcoin.sigTxInput BinNums.Z
+                      (fun i : Bitcoin.sigTxInput => Integers.Int64.signed (Bitcoin.sigTxiValue i)) ins))),
+       Bitcoin.sigTx
+
+Arguments bitcoin_tx_from_lists ver (ins outs)%list_scope lock HI HO HTI HTO Hbalance
+### C.jet_bitcoin_fee_domain.fee_domain_raw
+fee_domain_raw =
+fun e : Bitcoin.Bitcoin.env =>
+jet_bitcoin_raw_env.Build_raw_bitcoin_environment e
+  (@List.repeat jet_bitcoin_raw_env.raw_input_data
+     (jet_bitcoin_raw_env.Build_raw_input_data (@nil Integers.Byte.int) (@None (list Integers.Byte.int))
+        (@nil Integers.Byte.int)) (@length Bitcoin.sigTxInput (Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx e))))
+  (@List.repeat_length jet_bitcoin_raw_env.raw_input_data
+     (jet_bitcoin_raw_env.Build_raw_input_data (@nil Integers.Byte.int) (@None (list Integers.Byte.int))
+        (@nil Integers.Byte.int)) (@length Bitcoin.sigTxInput (Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx e))))
+  (Integers.Byte.repr
+     (BinNums.Zpos
+        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+  (@nil Digest.hash256) fee_domain_hash
+     : forall _ : Bitcoin.Bitcoin.env, jet_bitcoin_raw_env.raw_bitcoin_environment
+
+Arguments fee_domain_raw e
+### C.jet_bitcoin_fee_domain.bitcoin_fee_checked_execution
+bitcoin_fee_checked_execution =
+fun e : Bitcoin.Bitcoin.env =>
+@ex Memory.Mem.mem
+  (fun m : Memory.Mem.mem =>
+   @ex Values.val
+     (fun env : Values.val =>
+      @ex (list (prod (prod Values.block BinNums.Z) BinNums.Z))
+        (fun fp : list (prod (prod Values.block BinNums.Z) BinNums.Z) =>
+         @ex Values.block
+           (fun bd : Values.block =>
+            @ex Values.block
+              (fun bs : Values.block =>
+               @ex Values.block
+                 (fun bi : Values.block =>
+                  @ex Values.block
+                    (fun bw : Values.block =>
+                     @ex BinNums.Z
+                       (fun edge : BinNums.Z =>
+                        @ex Memory.Mem.mem
+                          (fun mf : Memory.Mem.mem =>
+                           and (jet_bitcoin_fee_local.bitcoin_fee_env_rep m env e fp)
+                             (and
+                                (@List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                   (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                                    match pat return Prop with
+                                    | pair y hi =>
+                                        match y return Prop with
+                                        | pair b lo =>
+                                            jet_application_sep.out_sep bd BinNums.Z0 bw BinNums.Z0
+                                              (BinNums.Zpos (BinNums.xO (BinNums.xO ...)))
+                                              (BinNums.Zpos (BinNums.xO (BinNums.xO ...))) b lo hi
+                                        end
+                                    end) fp)
+                                (and (jet_frame_layout.frame_base_valid BinNums.Z0)
+                                   (and
+                                      (BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                         BinNums.Z0)
+                                      (and (jet_frame_layout.frame_fields_at m bs BinNums.Z0 bi edge BinNums.Z0)
+                                         (and
+                                            (jet_encoding.frame_input_cells_at m bi edge BinNums.Z0
+                                               (@Translate.encode Ty.Unit tt))
+                                            (and
+                                               (jet_output_layout.write_frame_at m bd BinNums.Z0 bw BinNums.Z0
+                                                  (BinNums.Zpos (...)) (BinNums.Zpos (...)))
+                                               (and (@eq (...) (...) (...)) (and (...) (...))))))))))))))))))
+     : forall _ : Bitcoin.Bitcoin.env, Prop
+
+Arguments bitcoin_fee_checked_execution e

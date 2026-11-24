@@ -15,6 +15,8 @@ Require Import C.jet_secp_taptweak_function C.jet_elements_taptweak_pure C.jet_e
  C.jet_elements_taptweak_tag C.jet_elements_taptweak_message_hash.
 Require Import C.jet_elements_taptweak_runtime_ready C.jet_elements_taptweak_runtime_write C.jet_elements_taptweak_body.
 Local Opaque secp_ge elements_taptweak_ge elements_taptweak_runtime_tag_block taptweak_output taptweak_result elements_taptweak_hash_word.
+(* Fresh closure build: separation bookkeeping exceeds the old 10-second limit. *)
+Set Default Timeout 30.
 Theorem eval_elements_taptweak_generic (Copy:memcpy_model) (Clear:memset_model) (Count:ctz_model)
  (pk h:Ty.tySem (Word 8)) m bd base bf bin bw edge outedge rc cursor:
  elements_taptweak_runtime_ready m ->Mem.range_perm m bf 0 16 Cur Freeable ->bf<>bin ->bf<>bd ->bf<>bw ->
@@ -118,3 +120,4 @@ Proof.
        -- eapply mem_forward_trans;[exact (proj1 ReadI)|];eapply mem_forward_trans;[exact ForwardB|exact (proj1 ReadF)].
        -- exact ReadyF.
 Qed.
+Set Default Timeout 10.

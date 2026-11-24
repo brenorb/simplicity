@@ -72,6 +72,9 @@ Hypothesis AuxLiteral:forall k,(k<8)%nat -> rescale_field_output (aux k)=
 Hypothesis Absent1:forall j,0<=j<129 -> bits1<=j -> digits1 j=inl tt.
 Hypothesis AbsentLam:forall j,0<=j<129 -> bitslam<=j -> digitslam j=inl tt.
 
+(* The retained temporary-environment bookkeeping exceeds ten seconds on
+   a fresh build; keep a bounded default for this theorem only. *)
+Set Default Timeout 30.
 Theorem exec_strauss_general_loop count : (count<=129)%nat ->
  forall le m x y z (ax ay az:Ty.tySem (Word 8)),
  le!_r=Some (Vptr br Ptrofs.zero) -> le!_state=Some (Vptr bs Ptrofs.zero) ->
@@ -217,5 +220,6 @@ Proof.
              unfold ln;rewrite PTree.gso by (intro Eq;apply Outside;subst id;cbn [In];tauto).
              unfold li;apply strauss_general_iteration_other;cbn [In] in Outside|-*;tauto.
 Qed.
+Set Default Timeout 10.
 End Descending.
 

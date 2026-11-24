@@ -1,5 +1,32 @@
 # Integration and pending-jet reconciliation
 
+## Bitcoin fee correction: accepted on corrected domain
+
+The authorized 2026-11-23 local fee operand correction passed fresh validation
+on 2026-11-24. The 194-module reverse dependency inventory expands to 2,113 C
+prerequisites plus canonical Bitcoin. All selected modules build and pass full
+kernel checking with the unchanged fifteen-library-axiom baseline and all safety
+checks clean. Assumption records match for 1,948 modules; contracts match for
+1,984 modules. The full-audit input fingerprint stayed unchanged.
+
+The new general constructor and complete 10/9/1 and 10/10/0 execution witnesses
+instantiate the unchanged actual C-call theorem with exact-total memory,
+input/output encoding, successful return, exact input-minus-output value and
+full framing. Existing public statements, proof operations and assumptions are
+preserved. All prior registry entries remain; twelve new results are added.
+Among existing frozen model/contract records, only the authorized fee binding
+and its necessary pins change. Production C, Haskell, ASTs and the other Bitcoin
+bounds are unchanged.
+
+Final `bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_fee` exits zero:
+86 modules kernel-checked, 26 assumption and 41 contract modules match; global
+source/registry/mutation checks, negative fixtures and all five AST comparisons
+pass on stable sources. [The repair report](JET_BITCOIN_FEE_REPAIR.md) contains
+the complete broader reproduction command, proof inventory, all 1,130 affected
+theorem assumption comparisons, resource-ceiling changes and retained limits.
+This extends an existing jet's environment domain; it adds no new public jet.
+Older acceptance results below apply only to their recorded sources.
+
 ## Scoped compressed-point verification acceptance
 
 `C.jet_secp_point_verify_local.point_verify_initialized_local_spec` passed

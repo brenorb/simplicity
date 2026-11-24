@@ -16,7 +16,7 @@ COQ_PATTERNS = (
     "C/jets*.v", "C/memcpy_*.v", "C/*translation_unit.c",
     "C/jet_memcpy_*.c", "C/clightgen*.in", "C/regenerate-*.sh",
 )
-MANIFEST_SHA256 = "8ba2f4d48470b988eab2de57ec2cbc79604b3c368d517f368a036093f5d43896"
+MANIFEST_SHA256 = "e08f743a9e10f532958120530ba7b419b90fec4daf69fed347ec8ccde61d5d3b"
 CONFIG_INPUTS = {"Coq/jet-deps.sh", "Coq/jet-sysroot.sh"}
 
 

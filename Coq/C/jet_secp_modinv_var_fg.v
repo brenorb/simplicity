@@ -217,9 +217,13 @@ Qed.
 
 Definition inv_fg_active_value len (rho : nat->int64) (high : bool) :=
  norm62_value_z (len-1) (fun j=>Int64.signed (rho ((if high then 20 else 15)+j)%nat)).
+(* The finite length/value conversion cases exceed ten seconds on a fresh
+   build; retain the exact proof with a bounded budget for this lemma. *)
+Set Default Timeout 30.
 Lemma inv_fg_next_value len rho high : (0<len<=5)%nat ->
  inv_fg_active_value len (inv_fg_next_rho len rho) high=fg_body_value len (inv_fg_rho len rho) high.
 Proof. destruct high;destruct len as [|[|[|[|[|[|len]]]]]];intro Len;try lia;reflexivity. Qed.
+Set Default Timeout 10.
 Lemma inv_fg_load_expr (high : bool) j : (j<5)%nat ->
  xload inv_loop_regs (if high then 5 else 4) (8*Z.of_nat j) tulong=
  Some (XLv ((if high then 20 else 15)+j)%nat).

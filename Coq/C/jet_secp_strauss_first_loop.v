@@ -159,6 +159,9 @@ Proof. reflexivity. Qed.
 Definition strauss_preprocess_storage bk br1 br2 bs bp ba bt bx bo bj : list (block*Z) :=
  [(bk,32);(br1,32);(br2,32);(bs,24);(bp,1040);(ba,128);(bt,704);(bx,320);(bo,40);(bj,128)].
 
+(* The retained temporary-environment bookkeeping exceeds ten seconds on
+   a fresh build; keep a bounded default for this theorem only. *)
+Set Default Timeout 30.
 Theorem exec_strauss_preprocess_finite (Model:memset_model) e le m raw bk br1 br2 bs bp ba bt bx bo bj
  x y z (ax ay az:Ty.tySem (Word 8)) :
  e!_na_1=Some (br1,Tstruct __5826 noattr) -> e!_na_lam=Some (br2,Tstruct __5826 noattr) ->
@@ -364,3 +367,4 @@ Proof.
              rewrite !PTree.gso by (clear -Outside;cbn [In] in Outside;intuition congruence).
              apply OtherS;clear -Outside;cbn [In] in Outside|-*;tauto.
 Qed.
+Set Default Timeout 10.

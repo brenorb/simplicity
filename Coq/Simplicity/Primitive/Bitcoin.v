@@ -51,7 +51,7 @@ Record sigTx : Set :=
  ; sigTxOutBounds : (0 < Zlength sigTxOut < Int.modulus)%Z
  ; sigTxTotalInValue : Z := Z_sum (map (fun i => Int64.signed (sigTxiValue i)) sigTxIn)
  ; sigTxTotalOutValue : Z := Z_sum (map (fun i => Int64.signed (txoValue i)) sigTxOut)
- ; sigTxFee : Z := sigTxTotalOutValue - sigTxTotalInValue
+ ; sigTxFee : Z := sigTxTotalInValue - sigTxTotalOutValue
  ; sigTxTotalInValue_bound : moneyRange sigTxTotalInValue
  ; sigTxTotalOutValue_bound : moneyRange sigTxTotalOutValue
  ; sigTxFee_bound : moneyRange sigTxFee

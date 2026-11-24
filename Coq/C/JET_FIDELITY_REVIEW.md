@@ -22,6 +22,12 @@ Four regeneration comparisons and the 96 native C correctness tests pass.
 
 ## Bitcoin environment domain discrepancy
 
+**Current correction (2026-11-23):** M2 now has an authorized local operand
+swap, preserving all other bounds. The paragraphs below describe historical
+sources/builds, not corrected-domain acceptance. Current scope, exact-total
+representation and full execution nonvacuity are in
+[JET_BITCOIN_FEE_REPAIR.md](JET_BITCOIN_FEE_REPAIR.md).
+
 The legacy `Simplicity/Primitive/Bitcoin.v` defines its fee as total output minus
 total input, and requires that value to satisfy `moneyRange`. The canonical
 Haskell `Bitcoin/DataTypes.hs` defines `txFee` as total input minus total output.

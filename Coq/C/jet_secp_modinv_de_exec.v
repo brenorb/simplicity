@@ -19,8 +19,12 @@ Definition de62_args := [XP 0 0;XP 1 0;XP 2 0;XP 3 0].
 Definition de62_run := known_fun (genv_cenv secp_ge) [] fg_fast_table 400
  f_secp256k1_modinv64_update_de_62 de62_args de62_regs [] 14.
 Definition de62_run_ok := match de62_run with Some (RDone _ ONormal)=>true | _=>false end.
+(* The closed VM execution certificate takes about 12 seconds on the
+   pinned toolchain; retain a bounded budget for this certificate only. *)
+Set Default Timeout 30.
 Lemma de62_run_ok_true : de62_run_ok=true.
 Proof. vm_compute;reflexivity. Qed.
+Set Default Timeout 10.
 
 Definition de62_state := match de62_run with
  | Some (RDone st _)=>st | _=>mkst (PTree.empty sx) [] [] 0 end.
